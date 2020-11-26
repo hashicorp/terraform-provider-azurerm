@@ -8,7 +8,7 @@ import (
 
 type DatabaseId struct {
 	ResourceGroup string
-	Cluster       string
+	ClusterName   string
 	Name          string
 }
 
@@ -22,7 +22,7 @@ func DatabaseID(input string) (*DatabaseId, error) {
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if database.Cluster, err = id.PopSegment("Clusters"); err != nil {
+	if database.ClusterName, err = id.PopSegment("Clusters"); err != nil {
 		return nil, err
 	}
 

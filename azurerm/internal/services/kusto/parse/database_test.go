@@ -30,7 +30,7 @@ func TestKustoDatabaseId(t *testing.T) {
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/Clusters/cluster1/Databases/database1",
 			Expected: &DatabaseId{
 				Name:          "database1",
-				Cluster:       "cluster1",
+				ClusterName:   "cluster1",
 				ResourceGroup: "group1",
 			},
 		},
@@ -52,8 +52,8 @@ func TestKustoDatabaseId(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 
-		if actual.Cluster != v.Expected.Cluster {
-			t.Fatalf("Expected %q but got %q for Cluster", v.Expected.Cluster, actual.Cluster)
+		if actual.ClusterName != v.Expected.ClusterName {
+			t.Fatalf("Expected %q but got %q for Cluster", v.Expected.ClusterName, actual.ClusterName)
 		}
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
