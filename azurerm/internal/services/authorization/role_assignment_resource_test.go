@@ -1,4 +1,4 @@
-package tests
+package authorization_test
 
 import (
 	"fmt"
