@@ -4,22 +4,22 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type ManagedApplicationId struct {
-	Name          string
+type ApplicationDefinitionId struct {
 	ResourceGroup string
+	Name          string
 }
 
-func ManagedApplicationID(input string) (*ManagedApplicationId, error) {
+func ApplicationDefinitionID(input string) (*ApplicationDefinitionId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	account := ManagedApplicationId{
+	account := ApplicationDefinitionId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if account.Name, err = id.PopSegment("applications"); err != nil {
+	if account.Name, err = id.PopSegment("applicationDefinitions"); err != nil {
 		return nil, err
 	}
 

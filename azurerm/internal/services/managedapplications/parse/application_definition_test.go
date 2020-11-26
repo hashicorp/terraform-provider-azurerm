@@ -4,12 +4,12 @@ import (
 	"testing"
 )
 
-func TestManagedApplicationID(t *testing.T) {
+func TestManagedApplicationDefinitionID(t *testing.T) {
 	testData := []struct {
 		Name   string
 		Input  string
 		Error  bool
-		Expect *ManagedApplicationId
+		Expect *ApplicationDefinitionId
 	}{
 		{
 			Name:  "Empty",
@@ -32,16 +32,16 @@ func TestManagedApplicationID(t *testing.T) {
 			Error: true,
 		},
 		{
-			Name:  "Missing Managed Application Value",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Solutions/applications",
+			Name:  "Missing Managed Application Definition Value",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Solutions/applicationDefinitions",
 			Error: true,
 		},
 		{
-			Name:  "Managed Application ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Solutions/applications/app1",
+			Name:  "Managed Application Definition ID",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Solutions/applicationDefinitions/appDef1",
 			Error: false,
-			Expect: &ManagedApplicationId{
-				Name:          "app1",
+			Expect: &ApplicationDefinitionId{
+				Name:          "appDef1",
 				ResourceGroup: "group1",
 			},
 		},
@@ -50,7 +50,7 @@ func TestManagedApplicationID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ManagedApplicationID(v.Input)
+		actual, err := ApplicationDefinitionID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
