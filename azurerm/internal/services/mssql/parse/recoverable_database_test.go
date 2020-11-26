@@ -8,7 +8,7 @@ func TestMssqlRecoverableDBID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *MsSqlRecoverableDBId
+		Expected *RecoverableDBId
 	}{
 		{
 			Name:     "Empty",
@@ -48,9 +48,9 @@ func TestMssqlRecoverableDBID(t *testing.T) {
 		{
 			Name:  "Sql Database ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Sql/servers/sqlServer1/recoverabledatabases/sqlDB1",
-			Expected: &MsSqlRecoverableDBId{
+			Expected: &RecoverableDBId{
 				Name:          "sqlDB1",
-				MsSqlServer:   "sqlServer1",
+				ServerName:    "sqlServer1",
 				ResourceGroup: "resGroup1",
 			},
 		},
@@ -64,7 +64,7 @@ func TestMssqlRecoverableDBID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := MssqlRecoverableDBID(v.Input)
+		actual, err := RecoverableDBID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -77,7 +77,7 @@ func TestMssqlRecoverableDBID(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 
-		if actual.MsSqlServer != v.Expected.MsSqlServer {
+		if actual.ServerName != v.Expected.ServerName {
 			t.Fatalf("Expected %q but got %q for Sql Server", v.Expected.Name, actual.Name)
 		}
 

@@ -6,23 +6,23 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type MsSqlRecoverableDBId struct {
+type RecoverableDBId struct {
 	Name          string
-	MsSqlServer   string
+	ServerName    string
 	ResourceGroup string
 }
 
-func MssqlRecoverableDBID(input string) (*MsSqlRecoverableDBId, error) {
+func RecoverableDBID(input string) (*RecoverableDBId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Microsoft Sql Recoverable DB ID %q: %+v", input, err)
 	}
 
-	recoverableDBId := MsSqlRecoverableDBId{
+	recoverableDBId := RecoverableDBId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if recoverableDBId.MsSqlServer, err = id.PopSegment("servers"); err != nil {
+	if recoverableDBId.ServerName, err = id.PopSegment("servers"); err != nil {
 		return nil, err
 	}
 
