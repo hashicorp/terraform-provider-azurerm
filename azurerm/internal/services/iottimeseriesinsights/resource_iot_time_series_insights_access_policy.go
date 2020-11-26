@@ -25,7 +25,7 @@ func resourceArmIoTTimeSeriesInsightsAccessPolicy() *schema.Resource {
 		Update: resourceArmIoTTimeSeriesInsightsAccessPolicyCreateUpdate,
 		Delete: resourceArmIoTTimeSeriesInsightsAccessPolicyDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.TimeSeriesInsightsAccessPolicyID(id)
+			_, err := parse.AccessPolicyID(id)
 			return err
 		}),
 
@@ -99,7 +99,7 @@ func resourceArmIoTTimeSeriesInsightsAccessPolicyCreateUpdate(d *schema.Resource
 		return err
 	}
 
-	id := parse.NewTimeSeriesInsightsAccessPolicyID(environmentId.ResourceGroup, environmentId.Name, name)
+	id := parse.NewAccessPolicyID(environmentId.ResourceGroup, environmentId.Name, name)
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, environmentId.ResourceGroup, environmentId.Name, name)
 		if err != nil {
@@ -145,7 +145,7 @@ func resourceArmIoTTimeSeriesInsightsAccessPolicyRead(d *schema.ResourceData, me
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.TimeSeriesInsightsAccessPolicyID(d.Id())
+	id, err := parse.AccessPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -179,7 +179,7 @@ func resourceArmIoTTimeSeriesInsightsAccessPolicyDelete(d *schema.ResourceData, 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.TimeSeriesInsightsAccessPolicyID(d.Id())
+	id, err := parse.AccessPolicyID(d.Id())
 	if err != nil {
 		return err
 	}

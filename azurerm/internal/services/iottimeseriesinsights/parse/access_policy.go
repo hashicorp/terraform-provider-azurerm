@@ -6,32 +6,32 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type TimeSeriesInsightsAccessPolicyId struct {
+type AccessPolicyId struct {
 	ResourceGroup   string
 	EnvironmentName string
 	Name            string
 }
 
-func NewTimeSeriesInsightsAccessPolicyID(resourceGroup, environmentName, name string) TimeSeriesInsightsAccessPolicyId {
-	return TimeSeriesInsightsAccessPolicyId{
+func NewAccessPolicyID(resourceGroup, environmentName, name string) AccessPolicyId {
+	return AccessPolicyId{
 		ResourceGroup:   resourceGroup,
 		EnvironmentName: environmentName,
 		Name:            name,
 	}
 }
 
-func (id TimeSeriesInsightsAccessPolicyId) ID(subscriptionId string) string {
+func (id AccessPolicyId) ID(subscriptionId string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.TimeSeriesInsights/environments/%s/accessPolicies/%s"
 	return fmt.Sprintf(fmtString, subscriptionId, id.ResourceGroup, id.EnvironmentName, id.Name)
 }
 
-func TimeSeriesInsightsAccessPolicyID(input string) (*TimeSeriesInsightsAccessPolicyId, error) {
+func AccessPolicyID(input string) (*AccessPolicyId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("parsing Time Series Insights Access Policy ID %q: %+v", input, err)
 	}
 
-	service := TimeSeriesInsightsAccessPolicyId{
+	service := AccessPolicyId{
 		ResourceGroup: id.ResourceGroup,
 	}
 

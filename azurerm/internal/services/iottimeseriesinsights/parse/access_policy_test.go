@@ -8,7 +8,7 @@ func TestTimeSeriesInsightsAccessPolicyId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *TimeSeriesInsightsAccessPolicyId
+		Expected *AccessPolicyId
 	}{
 		{
 			Name:     "Empty",
@@ -43,7 +43,7 @@ func TestTimeSeriesInsightsAccessPolicyId(t *testing.T) {
 		{
 			Name:  "Time Series Insight Access Policy ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.TimeSeriesInsights/environments/Environment1/accessPolicies/Policy1",
-			Expected: &TimeSeriesInsightsAccessPolicyId{
+			Expected: &AccessPolicyId{
 				EnvironmentName: "Environment1",
 				ResourceGroup:   "resGroup1",
 				Name:            "Policy1",
@@ -59,7 +59,7 @@ func TestTimeSeriesInsightsAccessPolicyId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := TimeSeriesInsightsAccessPolicyID(v.Input)
+		actual, err := AccessPolicyID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
