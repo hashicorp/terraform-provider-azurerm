@@ -527,7 +527,7 @@ func Test%[1]sID(t *testing.T) {
 
 func (id ResourceIdGenerator) testCodeForParserInsensitive() string {
 	if !id.ShouldRewrite {
-		// this funcitonality isn't enabled by default
+		// this functionality isn't enabled by default
 		return ""
 	}
 
