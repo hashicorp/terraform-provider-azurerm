@@ -18,6 +18,7 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * `azurerm_api_management` - fixing an issue where developer portal certificates are updated on every apply [GH-7299]
+* `azurerm_cosmosdb_account` - Fix Cosmos zone redundant update [GH-9485]
 * `azurerm_windows_virtual_machine` - no longer sets `patch_mode` on creation if it is the default value [GH-[9432]
 
 ## 2.37.0 (November 20, 2020)
