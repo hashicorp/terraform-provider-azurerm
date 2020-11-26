@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check`
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -84,12 +85,18 @@ func TestAccAzureRMAutomationSchedule_oneTime_update(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationSchedule_oneTime_basic(data),
-				Check:  checkAccAzureRMAutomationSchedule_oneTime_basic(data.ResourceName),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
 			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMAutomationSchedule_oneTime_complete(data, startTime),
-				Check:  checkAccAzureRMAutomationSchedule_oneTime_complete(data.ResourceName, startTime),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
 			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -104,7 +111,9 @@ func TestAccAzureRMAutomationSchedule_hourly(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationSchedule_recurring_basic(data, "Hour", 7),
-				Check:  checkAccAzureRMAutomationSchedule_recurring_basic(data.ResourceName, "Hour", 7),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
 			},
 			data.ImportStep(),
 		},
@@ -121,7 +130,9 @@ func TestAccAzureRMAutomationSchedule_daily(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationSchedule_recurring_basic(data, "Day", 7),
-				Check:  checkAccAzureRMAutomationSchedule_recurring_basic(data.ResourceName, "Day", 7),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
 			},
 			data.ImportStep(),
 		},
@@ -138,7 +149,9 @@ func TestAccAzureRMAutomationSchedule_weekly(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationSchedule_recurring_basic(data, "Week", 7),
-				Check:  checkAccAzureRMAutomationSchedule_recurring_basic(data.ResourceName, "Week", 7),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
 			},
 			data.ImportStep(),
 		},
@@ -155,7 +168,9 @@ func TestAccAzureRMAutomationSchedule_monthly(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationSchedule_recurring_basic(data, "Month", 7),
-				Check:  checkAccAzureRMAutomationSchedule_recurring_basic(data.ResourceName, "Month", 7),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
 			},
 			data.ImportStep(),
 		},
@@ -172,7 +187,9 @@ func TestAccAzureRMAutomationSchedule_weekly_advanced(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationSchedule_recurring_advanced_week(data, "Monday"),
-				Check:  checkAccAzureRMAutomationSchedule_recurring_advanced_week(data.ResourceName),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
 			},
 			data.ImportStep(),
 		},
@@ -189,7 +206,9 @@ func TestAccAzureRMAutomationSchedule_monthly_advanced_by_day(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationSchedule_recurring_advanced_month(data, 2),
-				Check:  checkAccAzureRMAutomationSchedule_recurring_advanced_month(data.ResourceName),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
 			},
 			data.ImportStep(),
 		},
@@ -206,7 +225,9 @@ func TestAccAzureRMAutomationSchedule_monthly_advanced_by_week_day(t *testing.T)
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationSchedule_recurring_advanced_month_week_day(data, "Monday", 2),
-				Check:  checkAccAzureRMAutomationSchedule_recurring_advanced_month_week_day(data.ResourceName, "Monday", 2),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
 			},
 			data.ImportStep(),
 		},
