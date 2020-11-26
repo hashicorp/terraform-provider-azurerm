@@ -1,23 +1,45 @@
 package parse
 
-import "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
+import (
+	"fmt"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+)
 
 type ClusterId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
+func NewClusterID(subscriptionId, resourceGroup, name string) ClusterId {
+	return ClusterId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id ClusterId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.EventHub/clusters/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+}
+
+// ClusterID parses a Cluster ID into an ClusterId struct
 func ClusterID(input string) (*ClusterId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	cluster := ClusterId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := ClusterId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if cluster.Name, err = id.PopSegment("clusters"); err != nil {
+	if resourceId.Name, err = id.PopSegment("clusters"); err != nil {
 		return nil, err
 	}
 
@@ -25,5 +47,5 @@ func ClusterID(input string) (*ClusterId, error) {
 		return nil, err
 	}
 
-	return &cluster, nil
+	return &resourceId, nil
 }

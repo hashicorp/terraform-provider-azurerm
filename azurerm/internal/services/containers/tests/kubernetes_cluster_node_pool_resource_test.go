@@ -27,6 +27,7 @@ var kubernetesNodePoolTests = map[string]func(t *testing.T){
 	"manualScaleMultiplePoolsUpdate": testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsUpdate,
 	"manualScaleUpdate":              testAccAzureRMKubernetesClusterNodePool_manualScaleUpdate,
 	"manualScaleVMSku":               testAccAzureRMKubernetesClusterNodePool_manualScaleVMSku,
+	"maxSize":                        testAccAzureRMKubernetesClusterNodePool_maxSize,
 	"nodeLabels":                     testAccAzureRMKubernetesClusterNodePool_nodeLabels,
 	"nodePublicIP":                   testAccAzureRMKubernetesClusterNodePool_nodePublicIP,
 	"nodeTaints":                     testAccAzureRMKubernetesClusterNodePool_nodeTaints,
@@ -785,11 +786,6 @@ func TestAccAzureRMKubernetesClusterNodePool_zeroSize(t *testing.T) {
 	testAccAzureRMKubernetesClusterNodePool_zeroSize(t)
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_sameSize(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesClusterNodePool_sameSize(t)
-}
-
 func testAccAzureRMKubernetesClusterNodePool_zeroSize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 
@@ -807,6 +803,35 @@ func testAccAzureRMKubernetesClusterNodePool_zeroSize(t *testing.T) {
 			data.ImportStep(),
 		},
 	})
+}
+
+func TestAccAzureRMKubernetesClusterNodePool_maxSize(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesClusterNodePool_maxSize(t)
+}
+
+func testAccAzureRMKubernetesClusterNodePool_maxSize(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKubernetesClusterNodePool_maxSizeConfig(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMKubernetesClusterNodePool_sameSize(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesClusterNodePool_sameSize(t)
 }
 
 func testAccAzureRMKubernetesClusterNodePool_sameSize(t *testing.T) {
@@ -837,12 +862,12 @@ func testCheckAzureRMKubernetesClusterNodePoolDestroy(s *terraform.State) error 
 			continue
 		}
 
-		parsedK8sId, err := parse.KubernetesNodePoolID(rs.Primary.ID)
+		parsedK8sId, err := parse.NodePoolID(rs.Primary.ID)
 		if err != nil {
 			return fmt.Errorf("Error parsing kubernetes node pool id: %+v", err)
 		}
 
-		resp, err := client.Get(ctx, parsedK8sId.ResourceGroup, parsedK8sId.ClusterName, parsedK8sId.Name)
+		resp, err := client.Get(ctx, parsedK8sId.ResourceGroup, parsedK8sId.ManagedClusterName, parsedK8sId.AgentPoolName)
 		if err != nil {
 			return nil
 		}
@@ -868,18 +893,18 @@ func testCheckAzureRMKubernetesNodePoolExists(resourceName string) resource.Test
 
 		name := rs.Primary.Attributes["name"]
 		kubernetesClusterId := rs.Primary.Attributes["kubernetes_cluster_id"]
-		parsedK8sId, err := parse.KubernetesClusterID(kubernetesClusterId)
+		parsedK8sId, err := parse.ClusterID(kubernetesClusterId)
 		if err != nil {
 			return fmt.Errorf("Error parsing kubernetes cluster id: %+v", err)
 		}
 
-		agentPool, err := client.Get(ctx, parsedK8sId.ResourceGroup, parsedK8sId.Name, name)
+		agentPool, err := client.Get(ctx, parsedK8sId.ResourceGroup, parsedK8sId.ManagedClusterName, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on kubernetesClustersClient: %+v", err)
 		}
 
 		if agentPool.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q) does not exist", name, parsedK8sId.Name, parsedK8sId.ResourceGroup)
+			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q) does not exist", name, parsedK8sId.ManagedClusterName, parsedK8sId.ResourceGroup)
 		}
 
 		return nil
@@ -899,12 +924,12 @@ func testCheckAzureRMKubernetesNodePoolScale(resourceName string, nodeCount int)
 
 		nodePoolName := rs.Primary.Attributes["name"]
 		kubernetesClusterId := rs.Primary.Attributes["kubernetes_cluster_id"]
-		parsedK8sId, err := parse.KubernetesClusterID(kubernetesClusterId)
+		parsedK8sId, err := parse.ClusterID(kubernetesClusterId)
 		if err != nil {
 			return fmt.Errorf("Error parsing kubernetes cluster id: %+v", err)
 		}
 
-		clusterName := parsedK8sId.Name
+		clusterName := parsedK8sId.ManagedClusterName
 		resourceGroup := parsedK8sId.ResourceGroup
 
 		nodePool, err := client.Get(ctx, resourceGroup, clusterName, nodePoolName)
@@ -948,18 +973,18 @@ func testCheckAzureRMKubernetesNodePoolNodeLabels(resourceName string, expectedL
 
 		name := rs.Primary.Attributes["name"]
 		kubernetesClusterId := rs.Primary.Attributes["kubernetes_cluster_id"]
-		parsedK8sId, err := parse.KubernetesClusterID(kubernetesClusterId)
+		parsedK8sId, err := parse.ClusterID(kubernetesClusterId)
 		if err != nil {
 			return fmt.Errorf("Error parsing kubernetes cluster id: %+v", err)
 		}
 
-		agent_pool, err := client.Get(ctx, parsedK8sId.ResourceGroup, parsedK8sId.Name, name)
+		agent_pool, err := client.Get(ctx, parsedK8sId.ResourceGroup, parsedK8sId.ManagedClusterName, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on kubernetesClustersClient: %+v", err)
 		}
 
 		if agent_pool.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q) does not exist", name, parsedK8sId.Name, parsedK8sId.ResourceGroup)
+			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q) does not exist", name, parsedK8sId.ManagedClusterName, parsedK8sId.ResourceGroup)
 		}
 
 		labels := make(map[string]string)
@@ -967,7 +992,7 @@ func testCheckAzureRMKubernetesNodePoolNodeLabels(resourceName string, expectedL
 			labels[k] = *v
 		}
 		if !reflect.DeepEqual(labels, expectedLabels) {
-			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q) nodeLabels %v do not match expected %v", name, parsedK8sId.Name, parsedK8sId.ResourceGroup, labels, expectedLabels)
+			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q) nodeLabels %v do not match expected %v", name, parsedK8sId.ManagedClusterName, parsedK8sId.ResourceGroup, labels, expectedLabels)
 		}
 
 		return nil
@@ -1733,6 +1758,27 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   min_count             = 0
   max_count             = 3
   node_count            = 0
+}
+`, template)
+}
+
+func testAccAzureRMKubernetesClusterNodePool_maxSizeConfig(data acceptance.TestData) string {
+	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  enable_auto_scaling   = true
+  min_count             = 1
+  max_count             = 1000
+  node_count            = 1
 }
 `, template)
 }

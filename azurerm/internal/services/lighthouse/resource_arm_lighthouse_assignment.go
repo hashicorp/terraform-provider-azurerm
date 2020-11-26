@@ -15,7 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/lighthouse/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/lighthouse/validate"
-	resourceValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource"
+	resourceValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/validate"
 	subscriptionValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -56,7 +56,7 @@ func resourceArmLighthouseAssignment() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.Any(subscriptionValidate.SubscriptionID, resourceValidate.ValidateResourceGroupID),
+				ValidateFunc: validation.Any(subscriptionValidate.SubscriptionID, resourceValidate.ResourceGroupID),
 			},
 		},
 	}

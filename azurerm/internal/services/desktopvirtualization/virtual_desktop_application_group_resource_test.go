@@ -117,7 +117,7 @@ func testCheckAzureRMDesktopVirtualizationApplicationGroupExists(resourceName st
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.VirtualDesktopApplicationGroupID(rs.Primary.ID)
+		id, err := parse.ApplicationGroupID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -146,7 +146,7 @@ func testCheckAzureRMDesktopVirtualizationApplicationGroupDestroy(s *terraform.S
 
 		log.Printf("[WARN] azurerm_virtual_desktop_application_group still exists in state file.")
 
-		id, err := parse.VirtualDesktopApplicationGroupID(rs.Primary.ID)
+		id, err := parse.ApplicationGroupID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

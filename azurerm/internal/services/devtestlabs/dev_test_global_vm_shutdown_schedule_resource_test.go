@@ -8,7 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs/parse"
+	computeParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccDevTestLabGlobalVMShutdownSchedule_autoShutdownBasic(t *testing.T) {
@@ -153,7 +154,7 @@ func testCheckDevTestLabGlobalVMShutdownScheduleExistsInternal(vmID string) (boo
 	client := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.GlobalLabSchedulesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-	vm, err := parse.GlobalScheduleVirtualMachineID(vmID)
+	vm, err := computeParse.VirtualMachineID(vmID)
 	if err != nil {
 		return false, fmt.Errorf("Bad: Failed to parse ID (id: %s): %+v", vmID, err)
 	}
@@ -164,7 +165,7 @@ func testCheckDevTestLabGlobalVMShutdownScheduleExistsInternal(vmID string) (boo
 
 	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
-		if resp.Response.IsHTTPStatus(404) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			return false, nil
 		}
 		return false, fmt.Errorf("Bad: Get on devTestLabsGlobalSchedules client (id: %s): %+v", vmID, err)

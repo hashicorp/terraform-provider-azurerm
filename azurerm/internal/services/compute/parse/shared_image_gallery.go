@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,32 +9,37 @@ import (
 )
 
 type SharedImageGalleryId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	GalleryName    string
 }
 
-func NewSharedImageGalleryId(resourceGroup, name string) SharedImageGalleryId {
+func NewSharedImageGalleryID(subscriptionId, resourceGroup, galleryName string) SharedImageGalleryId {
 	return SharedImageGalleryId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		GalleryName:    galleryName,
 	}
 }
 
-func (id SharedImageGalleryId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/galleries/%s", subscriptionId, id.ResourceGroup, id.Name)
+func (id SharedImageGalleryId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/galleries/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.GalleryName)
 }
 
+// SharedImageGalleryID parses a SharedImageGallery ID into an SharedImageGalleryId struct
 func SharedImageGalleryID(input string) (*SharedImageGalleryId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse Shared Image Gallery ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	gallery := SharedImageGalleryId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := SharedImageGalleryId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if gallery.Name, err = id.PopSegment("galleries"); err != nil {
+	if resourceId.GalleryName, err = id.PopSegment("galleries"); err != nil {
 		return nil, err
 	}
 
@@ -40,5 +47,5 @@ func SharedImageGalleryID(input string) (*SharedImageGalleryId, error) {
 		return nil, err
 	}
 
-	return &gallery, nil
+	return &resourceId, nil
 }

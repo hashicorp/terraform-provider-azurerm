@@ -80,6 +80,39 @@ func TestAccAzureRMDnsZone_withTags(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMDnsZone_withSOARecord(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dns_zone", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDnsZone_withBasicSOARecord(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDnsZoneExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMDnsZone_withCompletedSOARecord(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDnsZoneExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMDnsZone_withBasicSOARecord(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDnsZoneExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMDnsZoneExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Dns.ZonesClient
@@ -208,6 +241,62 @@ resource "azurerm_dns_zone" "test" {
 
   tags = {
     environment = "staging"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMDnsZone_withBasicSOARecord(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-dns-%d"
+  location = "%s"
+}
+
+resource "azurerm_dns_zone" "test" {
+  name                = "acctestzone%d.com"
+  resource_group_name = azurerm_resource_group.test.name
+
+  soa_record {
+    email     = "testemail.com"
+    host_name = "testhost.contoso.com"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMDnsZone_withCompletedSOARecord(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-dns-%d"
+  location = "%s"
+}
+
+resource "azurerm_dns_zone" "test" {
+  name                = "acctestzone%d.com"
+  resource_group_name = azurerm_resource_group.test.name
+
+  soa_record {
+    email         = "testemail.com"
+    host_name     = "testhost.contoso.com"
+    expire_time   = 2419200
+    minimum_ttl   = 200
+    refresh_time  = 2600
+    retry_time    = 200
+    serial_number = 1
+    ttl           = 100
+
+    tags = {
+      ENv = "Test"
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

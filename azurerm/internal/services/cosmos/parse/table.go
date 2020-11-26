@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,28 +9,48 @@ import (
 )
 
 type TableId struct {
-	ResourceGroup string
-	Account       string
-	Name          string
+	SubscriptionId      string
+	ResourceGroup       string
+	DatabaseAccountName string
+	Name                string
 }
 
+func NewTableID(subscriptionId, resourceGroup, databaseAccountName, name string) TableId {
+	return TableId{
+		SubscriptionId:      subscriptionId,
+		ResourceGroup:       resourceGroup,
+		DatabaseAccountName: databaseAccountName,
+		Name:                name,
+	}
+}
+
+func (id TableId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/databaseAccounts/%s/tables/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DatabaseAccountName, id.Name)
+}
+
+// TableID parses a Table ID into an TableId struct
 func TableID(input string) (*TableId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Table ID %q: %+v", input, err)
-	}
-
-	table := TableId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if table.Account, err = id.PopSegment("databaseAccounts"); err != nil {
 		return nil, err
 	}
 
-	if table.Name, err = id.PopSegment("tables"); err != nil {
+	resourceId := TableId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.DatabaseAccountName, err = id.PopSegment("databaseAccounts"); err != nil {
+		return nil, err
+	}
+	if resourceId.Name, err = id.PopSegment("tables"); err != nil {
 		return nil, err
 	}
 
-	return &table, nil
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
 }

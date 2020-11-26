@@ -35,7 +35,7 @@ func resourceArmEventGridDomain() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.EventGridDomainID(id)
+			_, err := parse.DomainID(id)
 			return err
 		}),
 
@@ -222,7 +222,7 @@ func resourceArmEventGridDomainRead(d *schema.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EventGridDomainID(d.Id())
+	id, err := parse.DomainID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -281,7 +281,7 @@ func resourceArmEventGridDomainDelete(d *schema.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EventGridDomainID(d.Id())
+	id, err := parse.DomainID(d.Id())
 	if err != nil {
 		return err
 	}

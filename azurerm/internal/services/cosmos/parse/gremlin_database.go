@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,28 +9,48 @@ import (
 )
 
 type GremlinDatabaseId struct {
-	ResourceGroup string
-	Account       string
-	Name          string
+	SubscriptionId      string
+	ResourceGroup       string
+	DatabaseAccountName string
+	Name                string
 }
 
+func NewGremlinDatabaseID(subscriptionId, resourceGroup, databaseAccountName, name string) GremlinDatabaseId {
+	return GremlinDatabaseId{
+		SubscriptionId:      subscriptionId,
+		ResourceGroup:       resourceGroup,
+		DatabaseAccountName: databaseAccountName,
+		Name:                name,
+	}
+}
+
+func (id GremlinDatabaseId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/databaseAccounts/%s/gremlinDatabases/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DatabaseAccountName, id.Name)
+}
+
+// GremlinDatabaseID parses a GremlinDatabase ID into an GremlinDatabaseId struct
 func GremlinDatabaseID(input string) (*GremlinDatabaseId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Gremlin Database ID %q: %+v", input, err)
-	}
-
-	gremlinDatabase := GremlinDatabaseId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if gremlinDatabase.Account, err = id.PopSegment("databaseAccounts"); err != nil {
 		return nil, err
 	}
 
-	if gremlinDatabase.Name, err = id.PopSegment("gremlinDatabases"); err != nil {
+	resourceId := GremlinDatabaseId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.DatabaseAccountName, err = id.PopSegment("databaseAccounts"); err != nil {
+		return nil, err
+	}
+	if resourceId.Name, err = id.PopSegment("gremlinDatabases"); err != nil {
 		return nil, err
 	}
 
-	return &gremlinDatabase, nil
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
 }

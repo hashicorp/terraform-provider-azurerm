@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceproviders"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/sdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -39,7 +40,43 @@ func azureProvider(supportLegacyTestSuite bool) terraform.ResourceProvider {
 
 	dataSources := make(map[string]*schema.Resource)
 	resources := make(map[string]*schema.Resource)
-	for _, service := range SupportedServices() {
+
+	// first handle the typed services
+	for _, service := range SupportedTypedServices() {
+		debugLog("[DEBUG] Registering Data Sources for %q..", service.Name())
+		for _, ds := range service.SupportedDataSources() {
+			key := ds.ResourceType()
+			if existing := dataSources[key]; existing != nil {
+				panic(fmt.Sprintf("An existing Data Source exists for %q", key))
+			}
+
+			wrapper := sdk.NewDataSourceWrapper(ds)
+			dataSource, err := wrapper.DataSource()
+			if err != nil {
+				panic(fmt.Errorf("creating Wrapper for Data Source %q: %+v", key, err))
+			}
+
+			dataSources[key] = dataSource
+		}
+
+		debugLog("[DEBUG] Registering Resources for %q..", service.Name())
+		for _, r := range service.SupportedResources() {
+			key := r.ResourceType()
+			if existing := resources[key]; existing != nil {
+				panic(fmt.Sprintf("An existing Resource exists for %q", key))
+			}
+
+			wrapper := sdk.NewResourceWrapper(r)
+			resource, err := wrapper.Resource()
+			if err != nil {
+				panic(fmt.Errorf("creating Wrapper for Resource %q: %+v", key, err))
+			}
+			resources[key] = resource
+		}
+	}
+
+	// then handle the untyped services
+	for _, service := range SupportedUntypedServices() {
 		debugLog("[DEBUG] Registering Data Sources for %q..", service.Name())
 		for k, v := range service.SupportedDataSources() {
 			if existing := dataSources[k]; existing != nil {

@@ -117,7 +117,7 @@ func testCheckAzureRMDesktopVirtualizationHostPoolExists(resourceName string) re
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.VirtualDesktopHostPoolID(rs.Primary.ID)
+		id, err := parse.HostPoolID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -147,7 +147,7 @@ func testCheckAzureRMDesktopVirtualizationHostPoolDestroy(s *terraform.State) er
 
 		log.Printf("[WARN] azurerm_virtual_desktop_host_pool still exists in state file.")
 
-		id, err := parse.VirtualDesktopHostPoolID(rs.Primary.ID)
+		id, err := parse.HostPoolID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

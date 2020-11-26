@@ -146,7 +146,7 @@ func TestAccAppConfigurationResource_update(t *testing.T) {
 }
 
 func (t AppConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.AppConfigurationID(state.ID)
+	id, err := parse.ConfigurationStoreID(state.ID)
 	if err != nil {
 		return nil, err
 	}

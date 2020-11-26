@@ -49,7 +49,7 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.EventGridEventSubscriptionID(id)
+			_, err := parse.EventSubscriptionID(id)
 			return err
 		}),
 
@@ -655,7 +655,7 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EventGridEventSubscriptionID(d.Id())
+	id, err := parse.EventSubscriptionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -766,7 +766,7 @@ func resourceArmEventGridEventSubscriptionDelete(d *schema.ResourceData, meta in
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EventGridEventSubscriptionID(d.Id())
+	id, err := parse.EventSubscriptionID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,39 +9,42 @@ import (
 )
 
 type DedicatedHostId struct {
-	ResourceGroup string
-	HostGroup     string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	HostGroupName  string
+	HostName       string
 }
 
-func NewDedicatedHostId(id DedicatedHostGroupId, name string) DedicatedHostId {
+func NewDedicatedHostID(subscriptionId, resourceGroup, hostGroupName, hostName string) DedicatedHostId {
 	return DedicatedHostId{
-		ResourceGroup: id.ResourceGroup,
-		HostGroup:     id.Name,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		HostGroupName:  hostGroupName,
+		HostName:       hostName,
 	}
 }
 
-func (id DedicatedHostId) ID(subscriptionId string) string {
-	base := NewDedicatedHostGroupId(id.ResourceGroup, id.HostGroup).ID(subscriptionId)
-	return fmt.Sprintf("%s/hosts/%s", base, id.Name)
+func (id DedicatedHostId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/hostGroups/%s/hosts/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.HostGroupName, id.HostName)
 }
 
+// DedicatedHostID parses a DedicatedHost ID into an DedicatedHostId struct
 func DedicatedHostID(input string) (*DedicatedHostId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse Dedicated Host ID %q: %+v", input, err)
-	}
-
-	host := DedicatedHostId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if host.HostGroup, err = id.PopSegment("hostGroups"); err != nil {
 		return nil, err
 	}
 
-	if host.Name, err = id.PopSegment("hosts"); err != nil {
+	resourceId := DedicatedHostId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.HostGroupName, err = id.PopSegment("hostGroups"); err != nil {
+		return nil, err
+	}
+	if resourceId.HostName, err = id.PopSegment("hosts"); err != nil {
 		return nil, err
 	}
 
@@ -47,5 +52,5 @@ func DedicatedHostID(input string) (*DedicatedHostId, error) {
 		return nil, err
 	}
 
-	return &host, nil
+	return &resourceId, nil
 }

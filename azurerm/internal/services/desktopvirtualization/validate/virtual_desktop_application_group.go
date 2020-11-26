@@ -13,7 +13,7 @@ func VirtualDesktopApplicationGroupID(i interface{}, k string) (warnings []strin
 		return
 	}
 
-	if _, err := parse.VirtualDesktopApplicationGroupID(v); err != nil {
+	if _, err := parse.ApplicationGroupID(v); err != nil {
 		errors = append(errors, fmt.Errorf("Can not parse %q as a resource id: %v", k, err))
 		return
 	}

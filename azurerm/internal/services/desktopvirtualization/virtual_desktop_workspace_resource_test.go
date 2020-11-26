@@ -117,7 +117,7 @@ func testCheckAzureRMDesktopVirtualizationWorkspaceExists(resourceName string) r
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.VirtualDesktopWorkspaceID(rs.Primary.ID)
+		id, err := parse.WorkspaceID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -147,7 +147,7 @@ func testCheckAzureRMDesktopVirtualizationWorkspaceDestroy(s *terraform.State) e
 
 		log.Printf("[WARN] azurerm_virtual_desktop_workspace still exists in state file.")
 
-		id, err := parse.VirtualDesktopWorkspaceID(rs.Primary.ID)
+		id, err := parse.WorkspaceID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

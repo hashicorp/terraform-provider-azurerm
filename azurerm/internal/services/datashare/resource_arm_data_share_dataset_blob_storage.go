@@ -34,7 +34,7 @@ func resourceArmDataShareDataSetBlobStorage() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DataShareDataSetID(id)
+			_, err := parse.DataSetID(id)
 			return err
 		}),
 
@@ -117,7 +117,7 @@ func resourceArmDataShareDataSetBlobStorageCreate(d *schema.ResourceData, meta i
 	defer cancel()
 
 	name := d.Get("name").(string)
-	shareId, err := parse.DataShareID(d.Get("data_share_id").(string))
+	shareId, err := parse.ShareID(d.Get("data_share_id").(string))
 	if err != nil {
 		return err
 	}
@@ -192,7 +192,7 @@ func resourceArmDataShareDataSetBlobStorageRead(d *schema.ResourceData, meta int
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataShareDataSetID(d.Id())
+	id, err := parse.DataSetID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -260,7 +260,7 @@ func resourceArmDataShareDataSetBlobStorageDelete(d *schema.ResourceData, meta i
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataShareDataSetID(d.Id())
+	id, err := parse.DataSetID(d.Id())
 	if err != nil {
 		return err
 	}

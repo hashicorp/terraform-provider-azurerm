@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -193,6 +193,11 @@ func resourceArmFunctionApp() *schema.Resource {
 			"tags": tags.Schema(),
 
 			// Computed Only
+
+			"custom_domain_verification_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 
 			"default_hostname": {
 				Type:     schema.TypeString,
@@ -605,6 +610,7 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
 		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
+		d.Set("custom_domain_verification_id", props.CustomDomainVerificationID)
 	}
 
 	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)

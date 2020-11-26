@@ -34,7 +34,7 @@ func resourceArmDevSpaceController() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DevSpaceControllerID(id)
+			_, err := parse.ControllerID(id)
 			return err
 		}),
 
@@ -159,7 +159,7 @@ func resourceArmDevSpaceControllerUpdate(d *schema.ResourceData, meta interface{
 
 	log.Printf("[INFO] preparing arguments for DevSpace Controller updating")
 
-	id, err := parse.DevSpaceControllerID(d.Id())
+	id, err := parse.ControllerID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -185,7 +185,7 @@ func resourceArmDevSpaceControllerRead(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DevSpaceControllerID(d.Id())
+	id, err := parse.ControllerID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -225,7 +225,7 @@ func resourceArmDevSpaceControllerDelete(d *schema.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DevSpaceControllerID(d.Id())
+	id, err := parse.ControllerID(d.Id())
 	if err != nil {
 		return err
 	}

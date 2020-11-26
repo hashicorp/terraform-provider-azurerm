@@ -34,7 +34,7 @@ func resourceArmDataShare() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DataShareID(id)
+			_, err := parse.ShareID(id)
 			return err
 		}),
 
@@ -115,12 +115,12 @@ func resourceArmDataShareCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	defer cancel()
 
 	name := d.Get("name").(string)
-	accountId, err := parse.DataShareAccountID(d.Get("account_id").(string))
+	accountId, err := parse.AccountID(d.Get("account_id").(string))
 	if err != nil {
 		return err
 	}
 
-	resourceId := parse.NewDataShareId(accountId.ResourceGroup, accountId.Name, name).ID(subscriptionId)
+	resourceId := parse.NewShareID(subscriptionId, accountId.ResourceGroup, accountId.Name, name).ID("")
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, accountId.ResourceGroup, accountId.Name, name)
 		if err != nil {
@@ -180,7 +180,7 @@ func resourceArmDataShareRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataShareID(d.Id())
+	id, err := parse.ShareID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -195,10 +195,10 @@ func resourceArmDataShareRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving DataShare %q (Resource Group %q / accountName %q): %+v", id.Name, id.ResourceGroup, id.AccountName, err)
 	}
 
-	accountId := parse.NewDataShareAccountId(id.ResourceGroup, id.AccountName)
+	accountId := parse.NewAccountID(subscriptionId, id.ResourceGroup, id.AccountName)
 
 	d.Set("name", id.Name)
-	d.Set("account_id", accountId.ID(subscriptionId))
+	d.Set("account_id", accountId.ID(""))
 
 	if props := dataShare.ShareProperties; props != nil {
 		d.Set("kind", props.ShareKind)
@@ -234,7 +234,7 @@ func resourceArmDataShareDelete(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataShareID(d.Id())
+	id, err := parse.ShareID(d.Id())
 	if err != nil {
 		return err
 	}

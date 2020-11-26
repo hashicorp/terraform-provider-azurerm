@@ -50,6 +50,7 @@ terrafmt:
 	@find . | egrep html.markdown | sort | while read f; do terrafmt fmt $$f; done
 
 generate:
+	go generate ./azurerm/internal/services/...
 	go generate ./azurerm/internal/provider/
 
 goimports:

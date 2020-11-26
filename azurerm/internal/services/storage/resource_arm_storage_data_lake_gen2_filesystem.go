@@ -83,7 +83,7 @@ func resourceArmStorageDataLakeGen2FileSystemCreate(d *schema.ResourceData, meta
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	storageID, err := parse.ParseAccountID(d.Get("storage_account_id").(string))
+	storageID, err := parse.AccountID(d.Get("storage_account_id").(string))
 	if err != nil {
 		return err
 	}
@@ -138,7 +138,7 @@ func resourceArmStorageDataLakeGen2FileSystemUpdate(d *schema.ResourceData, meta
 		return err
 	}
 
-	storageID, err := parse.ParseAccountID(d.Get("storage_account_id").(string))
+	storageID, err := parse.AccountID(d.Get("storage_account_id").(string))
 	if err != nil {
 		return err
 	}
@@ -178,7 +178,7 @@ func resourceArmStorageDataLakeGen2FileSystemRead(d *schema.ResourceData, meta i
 		return err
 	}
 
-	storageID, err := parse.ParseAccountID(d.Get("storage_account_id").(string))
+	storageID, err := parse.AccountID(d.Get("storage_account_id").(string))
 	if err != nil {
 		return err
 	}
