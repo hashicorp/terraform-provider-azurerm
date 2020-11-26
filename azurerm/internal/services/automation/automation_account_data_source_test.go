@@ -17,8 +17,7 @@ func TestAccDataSourceAutomationAccount(t *testing.T) {
 	data.DataSourceTest(t, []resource.TestStep{
 		{
 			Config: AutomationAccountDataSource{}.complete(data),
-			Check: resource.ComposeTestCheckFunc(
-			),
+			Check:  resource.ComposeTestCheckFunc(),
 		},
 	})
 }

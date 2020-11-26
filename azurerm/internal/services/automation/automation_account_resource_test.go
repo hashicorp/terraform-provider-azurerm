@@ -1,17 +1,17 @@
 package automation_test
 
 import (
-	`context`
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure`
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration/parse`
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,58 +20,57 @@ type AutomationAccountResource struct {
 
 func TestAccAzureRMAutomationAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_account", "test")
-	r := AutomationAccountResource {}
+	r := AutomationAccountResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-			{
-				Config: r.basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key( "sku_name").HasValue( "Basic"),
-					check.That(data.ResourceName).Key( "dsc_server_endpoint").Exists(),
-					check.That(data.ResourceName).Key( "dsc_primary_access_key").Exists(),
-					check.That(data.ResourceName).Key( "dsc_secondary_access_key").Exists(),
-				),
-			},
-			data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Basic"),
+				check.That(data.ResourceName).Key("dsc_server_endpoint").Exists(),
+				check.That(data.ResourceName).Key("dsc_primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("dsc_secondary_access_key").Exists(),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAutomationAccount_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_account", "test")
-	r := AutomationAccountResource {}
+	r := AutomationAccountResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-			{
-				Config: r.basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-				),
-			},
-			{
-				Config: r.requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_automation_account"),
-			},
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_automation_account"),
+		},
 	})
 }
 
 func TestAccAzureRMAutomationAccount_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_account", "test")
-	r := AutomationAccountResource {}
+	r := AutomationAccountResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-			{
-				Config: r.complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key( "sku_name").HasValue( "Basic"),
-					check.That(data.ResourceName).Key( "tags.hello").HasValue( "world"),
-				),
-			},
-			data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Basic"),
+				check.That(data.ResourceName).Key("tags.hello").HasValue("world"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
-
 
 func (t AutomationAccountResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
