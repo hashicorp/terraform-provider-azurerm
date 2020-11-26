@@ -305,6 +305,9 @@ func (client SecurityGroupsClient) List(ctx context.Context, resourceGroupName s
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.SecurityGroupsClient", "List", resp, "Failure responding to request")
 	}
+	if result.sglr.hasNextLink() && result.sglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -413,6 +416,9 @@ func (client SecurityGroupsClient) ListAll(ctx context.Context) (result Security
 	result.sglr, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.SecurityGroupsClient", "ListAll", resp, "Failure responding to request")
+	}
+	if result.sglr.hasNextLink() && result.sglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

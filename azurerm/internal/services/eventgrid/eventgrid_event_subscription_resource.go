@@ -3,6 +3,7 @@ package eventgrid
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-04-01-preview/eventgrid"
@@ -13,7 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/parse"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -49,16 +49,22 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.EventGridEventSubscriptionID(id)
+			_, err := parse.EventSubscriptionID(id)
 			return err
 		}),
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.All(
+					validation.StringIsNotEmpty,
+					validation.StringMatch(
+						regexp.MustCompile("^[-a-zA-Z0-9]{3,50}$"),
+						"EventGrid subscription name must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
+					),
+				),
 			},
 
 			"scope": {
@@ -331,7 +337,8 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 										Required: true,
 									},
 								},
-							}},
+							},
+						},
 						"number_less_than": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -577,7 +584,7 @@ func resourceArmEventGridEventSubscriptionCreateUpdate(d *schema.ResourceData, m
 	name := d.Get("name").(string)
 	scope := d.Get("scope").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, scope, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -648,7 +655,7 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EventGridEventSubscriptionID(d.Id())
+	id, err := parse.EventSubscriptionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -759,7 +766,7 @@ func resourceArmEventGridEventSubscriptionDelete(d *schema.ResourceData, meta in
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EventGridEventSubscriptionID(d.Id())
+	id, err := parse.EventSubscriptionID(d.Id())
 	if err != nil {
 		return err
 	}

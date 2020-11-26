@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/migration"
+
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -35,7 +37,7 @@ func resourceArmCdnProfile() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.CdnProfileID(id)
+			_, err := parse.ProfileID(id)
 			return err
 		}),
 
@@ -66,10 +68,20 @@ func resourceArmCdnProfile() *schema.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    migration.CdnProfileV0Schema().CoreConfigSchema().ImpliedType(),
+				Upgrade: migration.CdnProfileV0ToV1,
+				Version: 0,
+			},
+		},
 	}
 }
 
 func resourceArmCdnProfileCreate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Cdn.ProfilesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -121,7 +133,12 @@ func resourceArmCdnProfileCreate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Cannot read CDN Profile %s (resource group %s) ID", name, resGroup)
 	}
 
-	d.SetId(*read.ID)
+	id, err := parse.ProfileID(*read.ID)
+	if err != nil {
+		return err
+	}
+
+	d.SetId(id.ID(subscriptionId))
 
 	return resourceArmCdnProfileRead(d, meta)
 }
@@ -135,7 +152,7 @@ func resourceArmCdnProfileUpdate(d *schema.ResourceData, meta interface{}) error
 		return nil
 	}
 
-	id, err := parse.CdnProfileID(d.Id())
+	id, err := parse.ProfileID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -165,7 +182,7 @@ func resourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CdnProfileID(d.Id())
+	id, err := parse.ProfileID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -31,157 +31,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups"
 
-// InheritedPermissions enumerates the values for inherited permissions.
-type InheritedPermissions string
-
-const (
-	// Delete ...
-	Delete InheritedPermissions = "delete"
-	// Edit ...
-	Edit InheritedPermissions = "edit"
-	// Noaccess ...
-	Noaccess InheritedPermissions = "noaccess"
-	// View ...
-	View InheritedPermissions = "view"
-)
-
-// PossibleInheritedPermissionsValues returns an array of possible values for the InheritedPermissions const type.
-func PossibleInheritedPermissionsValues() []InheritedPermissions {
-	return []InheritedPermissions{Delete, Edit, Noaccess, View}
-}
-
-// Permissions enumerates the values for permissions.
-type Permissions string
-
-const (
-	// PermissionsDelete ...
-	PermissionsDelete Permissions = "delete"
-	// PermissionsEdit ...
-	PermissionsEdit Permissions = "edit"
-	// PermissionsNoaccess ...
-	PermissionsNoaccess Permissions = "noaccess"
-	// PermissionsView ...
-	PermissionsView Permissions = "view"
-)
-
-// PossiblePermissionsValues returns an array of possible values for the Permissions const type.
-func PossiblePermissionsValues() []Permissions {
-	return []Permissions{PermissionsDelete, PermissionsEdit, PermissionsNoaccess, PermissionsView}
-}
-
-// Permissions1 enumerates the values for permissions 1.
-type Permissions1 string
-
-const (
-	// Permissions1Delete ...
-	Permissions1Delete Permissions1 = "delete"
-	// Permissions1Edit ...
-	Permissions1Edit Permissions1 = "edit"
-	// Permissions1Noaccess ...
-	Permissions1Noaccess Permissions1 = "noaccess"
-	// Permissions1View ...
-	Permissions1View Permissions1 = "view"
-)
-
-// PossiblePermissions1Values returns an array of possible values for the Permissions1 const type.
-func PossiblePermissions1Values() []Permissions1 {
-	return []Permissions1{Permissions1Delete, Permissions1Edit, Permissions1Noaccess, Permissions1View}
-}
-
-// ProvisioningState enumerates the values for provisioning state.
-type ProvisioningState string
-
-const (
-	// Updating ...
-	Updating ProvisioningState = "Updating"
-)
-
-// PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
-func PossibleProvisioningStateValues() []ProvisioningState {
-	return []ProvisioningState{Updating}
-}
-
-// Reason enumerates the values for reason.
-type Reason string
-
-const (
-	// AlreadyExists ...
-	AlreadyExists Reason = "AlreadyExists"
-	// Invalid ...
-	Invalid Reason = "Invalid"
-)
-
-// PossibleReasonValues returns an array of possible values for the Reason const type.
-func PossibleReasonValues() []Reason {
-	return []Reason{AlreadyExists, Invalid}
-}
-
-// Status enumerates the values for status.
-type Status string
-
-const (
-	// Cancelled ...
-	Cancelled Status = "Cancelled"
-	// Completed ...
-	Completed Status = "Completed"
-	// Failed ...
-	Failed Status = "Failed"
-	// NotStarted ...
-	NotStarted Status = "NotStarted"
-	// NotStartedButGroupsExist ...
-	NotStartedButGroupsExist Status = "NotStartedButGroupsExist"
-	// Started ...
-	Started Status = "Started"
-)
-
-// PossibleStatusValues returns an array of possible values for the Status const type.
-func PossibleStatusValues() []Status {
-	return []Status{Cancelled, Completed, Failed, NotStarted, NotStartedButGroupsExist, Started}
-}
-
-// Type enumerates the values for type.
-type Type string
-
-const (
-	// ProvidersMicrosoftManagementmanagementGroups ...
-	ProvidersMicrosoftManagementmanagementGroups Type = "/providers/Microsoft.Management/managementGroups"
-)
-
-// PossibleTypeValues returns an array of possible values for the Type const type.
-func PossibleTypeValues() []Type {
-	return []Type{ProvidersMicrosoftManagementmanagementGroups}
-}
-
-// Type1 enumerates the values for type 1.
-type Type1 string
-
-const (
-	// Type1ProvidersMicrosoftManagementmanagementGroups ...
-	Type1ProvidersMicrosoftManagementmanagementGroups Type1 = "/providers/Microsoft.Management/managementGroups"
-	// Type1Subscriptions ...
-	Type1Subscriptions Type1 = "/subscriptions"
-)
-
-// PossibleType1Values returns an array of possible values for the Type1 const type.
-func PossibleType1Values() []Type1 {
-	return []Type1{Type1ProvidersMicrosoftManagementmanagementGroups, Type1Subscriptions}
-}
-
-// Type2 enumerates the values for type 2.
-type Type2 string
-
-const (
-	// Type2ProvidersMicrosoftManagementmanagementGroups ...
-	Type2ProvidersMicrosoftManagementmanagementGroups Type2 = "/providers/Microsoft.Management/managementGroups"
-	// Type2Subscriptions ...
-	Type2Subscriptions Type2 = "/subscriptions"
-)
-
-// PossibleType2Values returns an array of possible values for the Type2 const type.
-func PossibleType2Values() []Type2 {
-	return []Type2{Type2ProvidersMicrosoftManagementmanagementGroups, Type2Subscriptions}
-}
-
 // CheckNameAvailabilityRequest management group name availability check parameters.
 type CheckNameAvailabilityRequest struct {
 	// Name - the name to check for availability
@@ -190,8 +39,7 @@ type CheckNameAvailabilityRequest struct {
 	Type Type `json:"type,omitempty"`
 }
 
-// CheckNameAvailabilityResult describes the result of the request to check management group name
-// availability.
+// CheckNameAvailabilityResult describes the result of the request to check management group name availability.
 type CheckNameAvailabilityResult struct {
 	autorest.Response `json:"-"`
 	// NameAvailable - READ-ONLY; Required. True indicates name is valid and available. False indicates the name is invalid, unavailable, or both.
@@ -245,6 +93,15 @@ type CreateManagementGroupDetails struct {
 	Parent    *CreateParentGroupInfo `json:"parent,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for CreateManagementGroupDetails.
+func (cmgd CreateManagementGroupDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cmgd.Parent != nil {
+		objectMap["parent"] = cmgd.Parent
+	}
+	return json.Marshal(objectMap)
+}
+
 // CreateManagementGroupProperties the generic properties of a management group used during creation.
 type CreateManagementGroupProperties struct {
 	// TenantID - READ-ONLY; The AAD Tenant ID associated with the management group. For example, 00000000-0000-0000-0000-000000000000
@@ -256,6 +113,18 @@ type CreateManagementGroupProperties struct {
 	Details *CreateManagementGroupDetails `json:"details,omitempty"`
 	// Children - READ-ONLY; The list of children.
 	Children *[]CreateManagementGroupChildInfo `json:"children,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CreateManagementGroupProperties.
+func (cmgp CreateManagementGroupProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cmgp.DisplayName != nil {
+		objectMap["displayName"] = cmgp.DisplayName
+	}
+	if cmgp.Details != nil {
+		objectMap["details"] = cmgp.Details
+	}
+	return json.Marshal(objectMap)
 }
 
 // CreateManagementGroupRequest management group creation parameters.
@@ -332,8 +201,7 @@ func (cmgr *CreateManagementGroupRequest) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// CreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// CreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type CreateOrUpdateFuture struct {
 	azure.Future
 }
@@ -369,6 +237,15 @@ type CreateParentGroupInfo struct {
 	Name *string `json:"name,omitempty"`
 	// DisplayName - READ-ONLY; The friendly name of the parent management group.
 	DisplayName *string `json:"displayName,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CreateParentGroupInfo.
+func (cpgi CreateParentGroupInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cpgi.ID != nil {
+		objectMap["id"] = cpgi.ID
+	}
+	return json.Marshal(objectMap)
 }
 
 // DeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
@@ -486,6 +363,15 @@ type DescendantListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DescendantListResult.
+func (dlr DescendantListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dlr.Value != nil {
+		objectMap["value"] = dlr.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // DescendantListResultIterator provides access to a complete listing of DescendantInfo values.
 type DescendantListResultIterator struct {
 	i    int
@@ -554,10 +440,15 @@ func (dlr DescendantListResult) IsEmpty() bool {
 	return dlr.Value == nil || len(*dlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (dlr DescendantListResult) hasNextLink() bool {
+	return dlr.NextLink != nil && len(*dlr.NextLink) != 0
+}
+
 // descendantListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (dlr DescendantListResult) descendantListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if dlr.NextLink == nil || len(to.String(dlr.NextLink)) < 1 {
+	if !dlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -585,11 +476,16 @@ func (page *DescendantListResultPage) NextWithContext(ctx context.Context) (err 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.dlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.dlr)
+		if err != nil {
+			return err
+		}
+		page.dlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.dlr = next
 	return nil
 }
 
@@ -825,6 +721,15 @@ type EntityListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for EntityListResult.
+func (elr EntityListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if elr.Value != nil {
+		objectMap["value"] = elr.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // EntityListResultIterator provides access to a complete listing of EntityInfo values.
 type EntityListResultIterator struct {
 	i    int
@@ -893,10 +798,15 @@ func (elr EntityListResult) IsEmpty() bool {
 	return elr.Value == nil || len(*elr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (elr EntityListResult) hasNextLink() bool {
+	return elr.NextLink != nil && len(*elr.NextLink) != 0
+}
+
 // entityListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (elr EntityListResult) entityListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if elr.NextLink == nil || len(to.String(elr.NextLink)) < 1 {
+	if !elr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -924,11 +834,16 @@ func (page *EntityListResultPage) NextWithContext(ctx context.Context) (err erro
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.elr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.elr)
+		if err != nil {
+			return err
+		}
+		page.elr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.elr = next
 	return nil
 }
 
@@ -1071,6 +986,15 @@ type ListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ListResult.
+func (lr ListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if lr.Value != nil {
+		objectMap["value"] = lr.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // ListResultIterator provides access to a complete listing of Info values.
 type ListResultIterator struct {
 	i    int
@@ -1139,10 +1063,15 @@ func (lr ListResult) IsEmpty() bool {
 	return lr.Value == nil || len(*lr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (lr ListResult) hasNextLink() bool {
+	return lr.NextLink != nil && len(*lr.NextLink) != 0
+}
+
 // listResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (lr ListResult) listResultPreparer(ctx context.Context) (*http.Request, error) {
-	if lr.NextLink == nil || len(to.String(lr.NextLink)) < 1 {
+	if !lr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1170,11 +1099,16 @@ func (page *ListResultPage) NextWithContext(ctx context.Context) (err error) {
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.lr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.lr)
+		if err != nil {
+			return err
+		}
+		page.lr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.lr = next
 	return nil
 }
 
@@ -1287,6 +1221,15 @@ type Operation struct {
 	Display *OperationDisplayProperties `json:"display,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Operation.
+func (o Operation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if o.Display != nil {
+		objectMap["display"] = o.Display
+	}
+	return json.Marshal(objectMap)
+}
+
 // OperationDisplayProperties the object that represents the operation.
 type OperationDisplayProperties struct {
 	// Provider - READ-ONLY; The name of the provider.
@@ -1376,10 +1319,15 @@ func (olr OperationListResult) IsEmpty() bool {
 	return olr.Value == nil || len(*olr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (olr OperationListResult) hasNextLink() bool {
+	return olr.NextLink != nil && len(*olr.NextLink) != 0
+}
+
 // operationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (olr OperationListResult) operationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if olr.NextLink == nil || len(to.String(olr.NextLink)) < 1 {
+	if !olr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1407,11 +1355,16 @@ func (page *OperationListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.olr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.olr)
+		if err != nil {
+			return err
+		}
+		page.olr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.olr = next
 	return nil
 }
 

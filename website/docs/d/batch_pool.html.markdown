@@ -137,6 +137,8 @@ A `container_configuration` block exports the following:
 
 * `type` - The type of container configuration.
 
+* `container_image_names` - A list of container image names to use, as would be specified by `docker pull`.
+
 * `container_registries` - Additional container registries from which container images can be pulled by the pool's VMs.
 
 ---

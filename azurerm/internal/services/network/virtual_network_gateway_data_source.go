@@ -104,6 +104,21 @@ func dataSourceArmVirtualNetworkGateway() *schema.Resource {
 							},
 						},
 
+						"aad_tenant": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"aad_audience": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"aad_issuer": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
 						"root_certificate": {
 							Type:     schema.TypeList,
 							Computed: true,

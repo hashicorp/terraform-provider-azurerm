@@ -16,7 +16,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -99,12 +98,14 @@ func resourceArmNetAppVolume() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				MaxItems: 2,
-				Elem: &schema.Schema{Type: schema.TypeString,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
 						"NFSv3",
 						"NFSv4.1",
 						"CIFS",
-					}, false)},
+					}, false),
+				},
 			},
 
 			"storage_quota_in_gb": {
@@ -140,12 +141,14 @@ func resourceArmNetAppVolume() *schema.Resource {
 							Computed: true,
 							MaxItems: 1,
 							MinItems: 1,
-							Elem: &schema.Schema{Type: schema.TypeString,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
 									"NFSv3",
 									"NFSv4.1",
 									"CIFS",
-								}, false)},
+								}, false),
+							},
 						},
 
 						"cifs_enabled": {
@@ -205,7 +208,7 @@ func resourceArmNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{
 	accountName := d.Get("account_name").(string)
 	poolName := d.Get("pool_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, accountName, poolName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

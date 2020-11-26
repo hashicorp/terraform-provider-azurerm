@@ -13,8 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -59,7 +58,7 @@ func resourceArmBackupProtectedFileShare() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: storage.ValidateArmStorageShareName,
+				ValidateFunc: validate.ShareName,
 			},
 
 			"backup_policy_id": {
@@ -99,7 +98,7 @@ func resourceArmBackupProtectedFileShareCreateUpdate(d *schema.ResourceData, met
 
 	log.Printf("[DEBUG] Creating/updating Recovery Service Protected File Share %q (Container Name %q)", protectedItemName, containerName)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err2 := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
 		if err2 != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

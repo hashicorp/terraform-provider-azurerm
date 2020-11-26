@@ -278,7 +278,6 @@ func resourceArmDevTestLabSchedulesRead(d *schema.ResourceData, meta interface{}
 	name := id.Path["schedules"]
 
 	resp, err := client.Get(ctx, resGroup, devTestLabName, name, "")
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")

@@ -36,6 +36,24 @@ func dataSourceArmAppServiceEnvironment() *schema.Resource {
 				Computed: true,
 			},
 
+			"internal_ip_address": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"service_ip_address": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"outbound_ip_addresses": {
+				Type: schema.TypeList,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				Computed: true,
+			},
+
 			"pricing_tier": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -62,6 +80,14 @@ func dataSourceArmAppServiceEnvironmentRead(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error retrieving App Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	vipInfo, err := client.GetVipInfo(ctx, resourceGroup, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(vipInfo.Response) {
+			return fmt.Errorf("Error retrieving VIP info: App Service Environment %q (Resource Group %q) was not found", name, resourceGroup)
+		}
+		return fmt.Errorf("Error retrieving VIP info App Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
 	d.SetId(*resp.ID)
 
 	d.Set("name", name)
@@ -77,10 +103,14 @@ func dataSourceArmAppServiceEnvironmentRead(d *schema.ResourceData, meta interfa
 
 		pricingTier := ""
 		if props.MultiSize != nil {
-			pricingTier = convertFromIsolatedSKU(*props.MultiSize)
+			pricingTier = convertToIsolatedSKU(*props.MultiSize)
 		}
 		d.Set("pricing_tier", pricingTier)
 	}
+
+	d.Set("internal_ip_address", vipInfo.InternalIPAddress)
+	d.Set("service_ip_address", vipInfo.ServiceIPAddress)
+	d.Set("outbound_ip_addresses", vipInfo.OutboundIPAddresses)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

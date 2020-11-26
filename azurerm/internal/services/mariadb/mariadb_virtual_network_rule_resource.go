@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
@@ -15,7 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -74,7 +72,7 @@ func resourceArmMariaDbVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, me
 	resourceGroup := d.Get("resource_group_name").(string)
 	subnetId := d.Get("subnet_id").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -87,46 +85,6 @@ func resourceArmMariaDbVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, me
 		}
 	}
 
-	// due to a bug in the API we have to ensure the Subnet's configured correctly or the API call will timeout
-	// BUG: https://github.com/Azure/azure-rest-api-specs/issues/3719
-	subnetsClient := meta.(*clients.Client).Network.SubnetsClient
-	subnetParsedId, err := azure.ParseAzureResourceID(subnetId)
-	if err != nil {
-		return err
-	}
-
-	subnetResourceGroup := subnetParsedId.ResourceGroup
-	virtualNetwork := subnetParsedId.Path["virtualNetworks"]
-	subnetName := subnetParsedId.Path["subnets"]
-	subnet, err := subnetsClient.Get(ctx, subnetResourceGroup, virtualNetwork, subnetName, "")
-	if err != nil {
-		if utils.ResponseWasNotFound(subnet.Response) {
-			return fmt.Errorf("Subnet with ID %q was not found: %+v", subnetId, err)
-		}
-
-		return fmt.Errorf("Error obtaining Subnet %q (Virtual Network %q / Resource Group %q: %+v", subnetName, virtualNetwork, subnetResourceGroup, err)
-	}
-
-	containsEndpoint := false
-	if props := subnet.SubnetPropertiesFormat; props != nil {
-		if endpoints := props.ServiceEndpoints; endpoints != nil {
-			for _, e := range *endpoints {
-				if e.Service == nil {
-					continue
-				}
-
-				if strings.EqualFold(*e.Service, "Microsoft.Sql") {
-					containsEndpoint = true
-					break
-				}
-			}
-		}
-	}
-
-	if !containsEndpoint {
-		return fmt.Errorf("Error creating MariaDb Virtual Network Rule: Subnet %q (Virtual Network %q / Resource Group %q) must contain a Service Endpoint for `Microsoft.Sql`", subnetName, virtualNetwork, subnetResourceGroup)
-	}
-
 	parameters := mariadb.VirtualNetworkRule{
 		VirtualNetworkRuleProperties: &mariadb.VirtualNetworkRuleProperties{
 			VirtualNetworkSubnetID:           utils.String(subnetId),
@@ -134,12 +92,12 @@ func resourceArmMariaDbVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, me
 		},
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, resourceGroup, serverName, name, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, parameters); err != nil {
 		return fmt.Errorf("Error creating MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
 	}
 
 	// Wait for the provisioning state to become ready
-	log.Printf("[DEBUG] Waiting for MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q) to become ready: %+v", name, serverName, resourceGroup, err)
+	log.Printf("[DEBUG] Waiting for MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q) to become ready", name, serverName, resourceGroup)
 	stateConf := &resource.StateChangeConf{
 		Pending:                   []string{"Initializing", "InProgress", "Unknown", "ResponseNotFound"},
 		Target:                    []string{"Ready"},
@@ -153,7 +111,7 @@ func resourceArmMariaDbVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, me
 		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
 	}
 
-	if _, err = stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q) to be created or updated: %+v", name, serverName, resourceGroup, err)
 	}
 
@@ -238,7 +196,6 @@ func resourceArmMariaDbVirtualNetworkRuleDelete(d *schema.ResourceData, meta int
 func mariaDbVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client *mariadb.VirtualNetworkRulesClient, resourceGroup string, serverName string, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				log.Printf("[DEBUG] Retrieving MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q) returned 404.", resourceGroup, serverName, name)

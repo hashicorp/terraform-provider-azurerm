@@ -461,12 +461,47 @@ func TestAccAzureRMFunctionAppSlot_manyIpRestrictions(t *testing.T) {
 				Config: testAccAzureRMFunctionAppSlot_manyIpRestrictions(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFunctionAppSlotExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10/32"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.1.ip_address", "20.20.20.0/24"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.2.ip_address", "30.30.0.0/16"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.3.ip_address", "192.168.1.2/24"),
 				),
 			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMFunctionAppSlot_scmUseMainIPRestriction(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMFunctionAppSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMFunctionAppSlot_scmUseMainIPRestriction(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFunctionAppSlotExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMFunctionAppSlot_scmIPRestrictionComplete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMFunctionAppSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMFunctionAppSlot_scmIPRestrictionComplete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFunctionAppSlotExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -642,6 +677,26 @@ func TestAccAzureRMFunctionAppSlot_minTls(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMFunctionAppSlot_preWarmedInstanceCount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMFunctionAppSlot_preWarmedInstanceCount(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFunctionAppSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.pre_warmed_instance_count", "1"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMFunctionAppSlotDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServicesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -656,7 +711,6 @@ func testCheckAzureRMFunctionAppSlotDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := client.GetSlot(ctx, resourceGroup, FunctionAppName, slot)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
@@ -698,26 +752,6 @@ func testCheckAzureRMFunctionAppSlotExists(slot string) resource.TestCheckFunc {
 
 		return nil
 	}
-}
-
-func TestAccAzureRMFunctionAppSlot_preWarmedInstanceCount(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_function_app_slot", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionAppSlot_preWarmedInstanceCount(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppSlotExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.pre_warmed_instance_count", "1"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
 }
 
 func testAccAzureRMFunctionAppSlot_basic(data acceptance.TestData) string {
@@ -1605,7 +1639,7 @@ resource "azurerm_function_app_slot" "test" {
 
   site_config {
     ip_restriction {
-      subnet_id = azurerm_subnet.test.id
+      virtual_network_subnet_id = azurerm_subnet.test.id
     }
   }
 }
@@ -1730,6 +1764,125 @@ resource "azurerm_function_app_slot" "test" {
 
     ip_restriction {
       ip_address = "192.168.1.2/24"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMFunctionAppSlot_scmUseMainIPRestriction(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_function_app" "test" {
+  name                       = "acctestFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+}
+
+resource "azurerm_function_app_slot" "test" {
+  name                       = "acctestFASlot-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  function_app_name          = azurerm_function_app.test.name
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    ip_restriction {
+      ip_address = "10.10.10.10/32"
+    }
+
+    scm_use_main_ip_restriction = true
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMFunctionAppSlot_scmIPRestrictionComplete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_function_app" "test" {
+  name                       = "acctestFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+}
+
+resource "azurerm_function_app_slot" "test" {
+  name                       = "acctestFASlot-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  function_app_name          = azurerm_function_app.test.name
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    scm_ip_restriction {
+      ip_address = "10.10.10.10/32"
+      name       = "test-restriction"
+      priority   = 123
+      action     = "Allow"
     }
   }
 }

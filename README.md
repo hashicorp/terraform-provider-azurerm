@@ -50,13 +50,23 @@ Further [usage documentation is available on the Terraform website](https://www.
 * [Terraform](https://www.terraform.io/downloads.html) version 0.12.x +
 * [Go](https://golang.org/doc/install) version 1.14.x (to build the provider plugin)
 
+### On Windows 
+
 If you're on Windows you'll also need:
-* [Make for Windows](http://gnuwin32.sourceforge.net/packages/make.htm)
 * [Git Bash for Windows](https://git-scm.com/download/win)
+* [Make for Windows](http://gnuwin32.sourceforge.net/packages/make.htm)
 
 For *GNU32 Make*, make sure its bin path is added to PATH environment variable.*
 
 For *Git Bash for Windows*, at the step of "Adjusting your PATH environment", please choose "Use Git and optional Unix tools from Windows Command Prompt".*
+
+Or install via [Chocolatey](https://chocolatey.org/install) (`Git Bash for Windows` must be installed per steps above)
+```powershell
+choco install make golang terraform -y
+refreshenv
+```
+
+You must run  `Developing the Provider` commands in `bash` because `sh` scrips are invoked as part of these.
 
 ## Developing the Provider
 
@@ -87,13 +97,13 @@ You can also cross-compile if necessary:
 GOOS=windows GOARCH=amd64 make build
 ```
 
-In order to run the Unit Tests for the provider, you can run:
+In order to run the `Unit Tests` for the provider, you can run:
 
 ```sh
 $ make test
 ```
 
-The majority of tests in the provider are Acceptance Tests - which provisions real resources in Azure. It's possible to run the entire acceptance test suite by running `make testacc` - however it's likely you'll want to run a subset, which you can do using a prefix, by running:
+The majority of tests in the provider are `Acceptance Tests` - which provisions real resources in Azure. It's possible to run the entire acceptance test suite by running `make testacc` - however it's likely you'll want to run a subset, which you can do using a prefix, by running:
 
 ```sh
 make acctests SERVICE='resource' TESTARGS='-run=TestAccAzureRMResourceGroup' TESTTIMEOUT='60m'

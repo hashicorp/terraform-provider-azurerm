@@ -2,10 +2,9 @@ package tests
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -20,11 +19,6 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_basic(t *testing.T) {
 	var lb network.LoadBalancer
 	addressPoolName := fmt.Sprintf("%d-address-pool", data.RandomInteger)
 
-	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	backendAddressPoolId := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/backendAddressPools/%s",
-		subscriptionID, data.RandomInteger, data.RandomInteger, addressPoolName)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
@@ -35,29 +29,19 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerBackEndAddressPoolExists(addressPoolName, &lb),
-					resource.TestCheckResourceAttr(
-						"azurerm_lb_backend_address_pool.test", "id", backendAddressPoolId),
 				),
 			},
-			{
-				ResourceName:      "azurerm_lb.test",
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
+
 func TestAccAzureRMLoadBalancerBackEndAddressPool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
 
 	var lb network.LoadBalancer
 	addressPoolName := fmt.Sprintf("%d-address-pool", data.RandomInteger)
 
-	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	backendAddressPoolId := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/backendAddressPools/%s",
-		subscriptionID, data.RandomInteger, data.RandomInteger, addressPoolName)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
@@ -68,12 +52,11 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_requiresImport(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerBackEndAddressPoolExists(addressPoolName, &lb),
-					resource.TestCheckResourceAttr("azurerm_lb_backend_address_pool.test", "id", backendAddressPoolId),
 				),
 			},
 			{
 				Config:      testAccAzureRMLoadBalancerBackEndAddressPool_requiresImport(data, addressPoolName),
-				ExpectError: acceptance.RequiresImportError("azurerm_lb_backend_address_pool"),
+				ExpectError: acceptance.RequiresImportError(data.ResourceType),
 			},
 		},
 	})

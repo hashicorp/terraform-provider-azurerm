@@ -35,9 +35,11 @@ PARAMETERS
 
   policy_definition_reference {
     policy_definition_id = "/providers/Microsoft.Authorization/policyDefinitions/e765b5de-1225-4ba3-bd56-1ac6695af988"
-    parameters = {
-      listOfAllowedLocations = "[parameters('allowedLocations')]"
+    parameter_values     = <<VALUE
+    {
+      "listOfAllowedLocations": {"value": "[parameters('allowedLocations')]"}
     }
+    VALUE
   }
 }
 ```
@@ -52,9 +54,11 @@ The following arguments are supported:
 
 * `display_name` - (Required) The display name of the policy set definition.
 
-* `policy_definitions` - (Optional / **Deprecated in favor of `policy_definition_reference`**) The policy definitions for the policy set definition. This is a json object representing the bundled policy definitions.
+* `policy_definitions` - (Optional / **Deprecated in favour of `policy_definition_reference`**) The policy definitions for the policy set definition. This is a json object representing the bundled policy definitions.
 
 * `policy_definition_reference` - (Optional) One or more `policy_definition_reference` blocks as defined below.
+
+* `policy_definition_group` - (Optional) One or more `policy_definition_group` blocks as defined below.
 
 * `description` - (Optional) The description of the policy set definition.
 
@@ -62,7 +66,7 @@ The following arguments are supported:
 
 * `management_group_id` - (Optional / **Deprecated in favour of `management_group_name`**) The name of the Management Group where this policy set definition should be defined. Changing this forces a new resource to be created.
 
-~> **Note:** if you are using `azurerm_management_group` to assign a value to `management_group_id`, be sure to use `name` or `group_id` attribute, but not `id`.
+~> **NOTE:** if you are using `azurerm_management_group` to assign a value to `management_group_id`, be sure to use `name` or `group_id` attribute, but not `id`.
 
 * `metadata` - (Optional) The metadata for the policy set definition. This is a json object representing additional metadata that should be stored with the policy definition.
 
@@ -74,9 +78,25 @@ A `policy_definition_reference` block supports the following:
 
 * `policy_definition_id` - (Required) The ID of the policy definition or policy set definition that will be included in this policy set definition.
 
-* `parameters` - (Required) A mapping of the parameter values for the referenced policy rule. The keys are the parameter names.
+* `parameter_values` - (Optional) Parameter values for the referenced policy rule. This field is a JSON string that allows you to assign parameters to this policy rule. 
 
 * `reference_id` - (Optional) A unique ID within this policy set definition for this policy definition reference.
+
+* `group_names` - (Optional) A list of names of the policy definition groups that this policy definition reference belongs to.
+
+---
+
+An `policy_definition_group` block supports the following:
+
+* `name` - (Required) The name of this policy definition group.
+
+* `display_name` - (Optional) The display name of this policy definition group. 
+
+* `category` - (Optional) The category of this policy definition group.
+
+* `description` - (Optional) The description of this policy definition group.
+
+* `additional_metadata_id` - (Optional) The ID of a resource that contains additional metadata about this policy definition group.
 
 ## Attributes Reference
 
@@ -95,7 +115,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-Policy Set Definitions can be imported using the Resource ID, e.g.
+Policy Set Definitions can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_policy_set_definition.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/policySetDefinitions/testPolicySet

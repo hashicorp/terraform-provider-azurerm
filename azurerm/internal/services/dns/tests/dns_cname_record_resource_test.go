@@ -222,18 +222,18 @@ func testCheckAzureRMDnsCNameRecordExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.DnsCNameRecordID(rs.Primary.ID)
+		id, err := parse.CnameRecordID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.CNAME)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.DnszoneName, id.CNAMEName, dns.CNAME)
 		if err != nil {
 			return fmt.Errorf("Bad: Get CNAME RecordSet: %v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: DNS CNAME record %s (resource group: %s) does not exist", id.Name, id.ResourceGroup)
+			return fmt.Errorf("Bad: DNS CNAME record %s (resource group: %s) does not exist", id.CNAMEName, id.ResourceGroup)
 		}
 
 		return nil
@@ -249,13 +249,12 @@ func testCheckAzureRMDnsCNameRecordDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.DnsCNameRecordID(rs.Primary.ID)
+		id, err := parse.CnameRecordID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.CNAME)
-
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.DnszoneName, id.CNAMEName, dns.CNAME)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
 				return nil

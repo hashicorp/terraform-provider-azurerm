@@ -198,6 +198,25 @@ func TestAccAzureRMAppServicePlan_consumptionPlan(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppServicePlan_linuxConsumptionPlan(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppServicePlan_linuxConsumptionPlan(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServicePlanExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMAppServicePlan_premiumConsumptionPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 
@@ -254,7 +273,6 @@ func testCheckAzureRMAppServicePlanDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		resp, err := conn.Get(ctx, resourceGroup, name)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
@@ -551,6 +569,32 @@ resource "azurerm_app_service_plan" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   kind                = "FunctionApp"
+
+  sku {
+    tier = "Dynamic"
+    size = "Y1"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMAppServicePlan_linuxConsumptionPlan(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  kind                = "FunctionApp"
+  reserved            = true
 
   sku {
     tier = "Dynamic"

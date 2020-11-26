@@ -15,7 +15,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -128,17 +127,15 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 		name = uuid
 	}
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := roleAssignmentsClient.Get(ctx, scope, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Role Assignment ID for %q (Scope %q): %+v", name, scope, err)
-			}
+	existing, err := roleAssignmentsClient.Get(ctx, scope, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of existing Role Assignment ID for %q (Scope %q): %+v", name, scope, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_role_assignment", *existing.ID)
-		}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_role_assignment", *existing.ID)
 	}
 
 	properties := authorization.RoleAssignmentCreateParameters{
@@ -149,11 +146,11 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	skipPrincipalCheck := d.Get("skip_service_principal_aad_check").(bool)
-
 	if skipPrincipalCheck {
 		properties.RoleAssignmentProperties.PrincipalType = authorization.ServicePrincipal
 	}
 
+	// TODO: we should switch this to use the timeout
 	if err := resource.Retry(300*time.Second, retryRoleAssignmentsClient(d, scope, name, properties, meta)); err != nil {
 		return err
 	}

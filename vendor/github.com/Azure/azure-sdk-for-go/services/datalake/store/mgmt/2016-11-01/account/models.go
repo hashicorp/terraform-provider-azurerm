@@ -32,230 +32,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
 
-// DataLakeStoreAccountState enumerates the values for data lake store account state.
-type DataLakeStoreAccountState string
-
-const (
-	// Active ...
-	Active DataLakeStoreAccountState = "Active"
-	// Suspended ...
-	Suspended DataLakeStoreAccountState = "Suspended"
-)
-
-// PossibleDataLakeStoreAccountStateValues returns an array of possible values for the DataLakeStoreAccountState const type.
-func PossibleDataLakeStoreAccountStateValues() []DataLakeStoreAccountState {
-	return []DataLakeStoreAccountState{Active, Suspended}
-}
-
-// DataLakeStoreAccountStatus enumerates the values for data lake store account status.
-type DataLakeStoreAccountStatus string
-
-const (
-	// Canceled ...
-	Canceled DataLakeStoreAccountStatus = "Canceled"
-	// Creating ...
-	Creating DataLakeStoreAccountStatus = "Creating"
-	// Deleted ...
-	Deleted DataLakeStoreAccountStatus = "Deleted"
-	// Deleting ...
-	Deleting DataLakeStoreAccountStatus = "Deleting"
-	// Failed ...
-	Failed DataLakeStoreAccountStatus = "Failed"
-	// Patching ...
-	Patching DataLakeStoreAccountStatus = "Patching"
-	// Resuming ...
-	Resuming DataLakeStoreAccountStatus = "Resuming"
-	// Running ...
-	Running DataLakeStoreAccountStatus = "Running"
-	// Succeeded ...
-	Succeeded DataLakeStoreAccountStatus = "Succeeded"
-	// Suspending ...
-	Suspending DataLakeStoreAccountStatus = "Suspending"
-	// Undeleting ...
-	Undeleting DataLakeStoreAccountStatus = "Undeleting"
-)
-
-// PossibleDataLakeStoreAccountStatusValues returns an array of possible values for the DataLakeStoreAccountStatus const type.
-func PossibleDataLakeStoreAccountStatusValues() []DataLakeStoreAccountStatus {
-	return []DataLakeStoreAccountStatus{Canceled, Creating, Deleted, Deleting, Failed, Patching, Resuming, Running, Succeeded, Suspending, Undeleting}
-}
-
-// EncryptionConfigType enumerates the values for encryption config type.
-type EncryptionConfigType string
-
-const (
-	// ServiceManaged ...
-	ServiceManaged EncryptionConfigType = "ServiceManaged"
-	// UserManaged ...
-	UserManaged EncryptionConfigType = "UserManaged"
-)
-
-// PossibleEncryptionConfigTypeValues returns an array of possible values for the EncryptionConfigType const type.
-func PossibleEncryptionConfigTypeValues() []EncryptionConfigType {
-	return []EncryptionConfigType{ServiceManaged, UserManaged}
-}
-
-// EncryptionProvisioningState enumerates the values for encryption provisioning state.
-type EncryptionProvisioningState string
-
-const (
-	// EncryptionProvisioningStateCreating ...
-	EncryptionProvisioningStateCreating EncryptionProvisioningState = "Creating"
-	// EncryptionProvisioningStateSucceeded ...
-	EncryptionProvisioningStateSucceeded EncryptionProvisioningState = "Succeeded"
-)
-
-// PossibleEncryptionProvisioningStateValues returns an array of possible values for the EncryptionProvisioningState const type.
-func PossibleEncryptionProvisioningStateValues() []EncryptionProvisioningState {
-	return []EncryptionProvisioningState{EncryptionProvisioningStateCreating, EncryptionProvisioningStateSucceeded}
-}
-
-// EncryptionState enumerates the values for encryption state.
-type EncryptionState string
-
-const (
-	// Disabled ...
-	Disabled EncryptionState = "Disabled"
-	// Enabled ...
-	Enabled EncryptionState = "Enabled"
-)
-
-// PossibleEncryptionStateValues returns an array of possible values for the EncryptionState const type.
-func PossibleEncryptionStateValues() []EncryptionState {
-	return []EncryptionState{Disabled, Enabled}
-}
-
-// FirewallAllowAzureIpsState enumerates the values for firewall allow azure ips state.
-type FirewallAllowAzureIpsState string
-
-const (
-	// FirewallAllowAzureIpsStateDisabled ...
-	FirewallAllowAzureIpsStateDisabled FirewallAllowAzureIpsState = "Disabled"
-	// FirewallAllowAzureIpsStateEnabled ...
-	FirewallAllowAzureIpsStateEnabled FirewallAllowAzureIpsState = "Enabled"
-)
-
-// PossibleFirewallAllowAzureIpsStateValues returns an array of possible values for the FirewallAllowAzureIpsState const type.
-func PossibleFirewallAllowAzureIpsStateValues() []FirewallAllowAzureIpsState {
-	return []FirewallAllowAzureIpsState{FirewallAllowAzureIpsStateDisabled, FirewallAllowAzureIpsStateEnabled}
-}
-
-// FirewallState enumerates the values for firewall state.
-type FirewallState string
-
-const (
-	// FirewallStateDisabled ...
-	FirewallStateDisabled FirewallState = "Disabled"
-	// FirewallStateEnabled ...
-	FirewallStateEnabled FirewallState = "Enabled"
-)
-
-// PossibleFirewallStateValues returns an array of possible values for the FirewallState const type.
-func PossibleFirewallStateValues() []FirewallState {
-	return []FirewallState{FirewallStateDisabled, FirewallStateEnabled}
-}
-
-// OperationOrigin enumerates the values for operation origin.
-type OperationOrigin string
-
-const (
-	// System ...
-	System OperationOrigin = "system"
-	// User ...
-	User OperationOrigin = "user"
-	// Usersystem ...
-	Usersystem OperationOrigin = "user,system"
-)
-
-// PossibleOperationOriginValues returns an array of possible values for the OperationOrigin const type.
-func PossibleOperationOriginValues() []OperationOrigin {
-	return []OperationOrigin{System, User, Usersystem}
-}
-
-// SubscriptionState enumerates the values for subscription state.
-type SubscriptionState string
-
-const (
-	// SubscriptionStateDeleted ...
-	SubscriptionStateDeleted SubscriptionState = "Deleted"
-	// SubscriptionStateRegistered ...
-	SubscriptionStateRegistered SubscriptionState = "Registered"
-	// SubscriptionStateSuspended ...
-	SubscriptionStateSuspended SubscriptionState = "Suspended"
-	// SubscriptionStateUnregistered ...
-	SubscriptionStateUnregistered SubscriptionState = "Unregistered"
-	// SubscriptionStateWarned ...
-	SubscriptionStateWarned SubscriptionState = "Warned"
-)
-
-// PossibleSubscriptionStateValues returns an array of possible values for the SubscriptionState const type.
-func PossibleSubscriptionStateValues() []SubscriptionState {
-	return []SubscriptionState{SubscriptionStateDeleted, SubscriptionStateRegistered, SubscriptionStateSuspended, SubscriptionStateUnregistered, SubscriptionStateWarned}
-}
-
-// TierType enumerates the values for tier type.
-type TierType string
-
-const (
-	// Commitment100TB ...
-	Commitment100TB TierType = "Commitment_100TB"
-	// Commitment10TB ...
-	Commitment10TB TierType = "Commitment_10TB"
-	// Commitment1PB ...
-	Commitment1PB TierType = "Commitment_1PB"
-	// Commitment1TB ...
-	Commitment1TB TierType = "Commitment_1TB"
-	// Commitment500TB ...
-	Commitment500TB TierType = "Commitment_500TB"
-	// Commitment5PB ...
-	Commitment5PB TierType = "Commitment_5PB"
-	// Consumption ...
-	Consumption TierType = "Consumption"
-)
-
-// PossibleTierTypeValues returns an array of possible values for the TierType const type.
-func PossibleTierTypeValues() []TierType {
-	return []TierType{Commitment100TB, Commitment10TB, Commitment1PB, Commitment1TB, Commitment500TB, Commitment5PB, Consumption}
-}
-
-// TrustedIDProviderState enumerates the values for trusted id provider state.
-type TrustedIDProviderState string
-
-const (
-	// TrustedIDProviderStateDisabled ...
-	TrustedIDProviderStateDisabled TrustedIDProviderState = "Disabled"
-	// TrustedIDProviderStateEnabled ...
-	TrustedIDProviderStateEnabled TrustedIDProviderState = "Enabled"
-)
-
-// PossibleTrustedIDProviderStateValues returns an array of possible values for the TrustedIDProviderState const type.
-func PossibleTrustedIDProviderStateValues() []TrustedIDProviderState {
-	return []TrustedIDProviderState{TrustedIDProviderStateDisabled, TrustedIDProviderStateEnabled}
-}
-
-// UsageUnit enumerates the values for usage unit.
-type UsageUnit string
-
-const (
-	// Bytes ...
-	Bytes UsageUnit = "Bytes"
-	// BytesPerSecond ...
-	BytesPerSecond UsageUnit = "BytesPerSecond"
-	// Count ...
-	Count UsageUnit = "Count"
-	// CountsPerSecond ...
-	CountsPerSecond UsageUnit = "CountsPerSecond"
-	// Percent ...
-	Percent UsageUnit = "Percent"
-	// Seconds ...
-	Seconds UsageUnit = "Seconds"
-)
-
-// PossibleUsageUnitValues returns an array of possible values for the UsageUnit const type.
-func PossibleUsageUnitValues() []UsageUnit {
-	return []UsageUnit{Bytes, BytesPerSecond, Count, CountsPerSecond, Percent, Seconds}
-}
-
 // AccountsCreateFutureType an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type AccountsCreateFutureType struct {
@@ -465,8 +241,8 @@ type CreateDataLakeStoreAccountProperties struct {
 	NewTier TierType `json:"newTier,omitempty"`
 }
 
-// CreateFirewallRuleWithAccountParameters the parameters used to create a new firewall rule while creating
-// a new Data Lake Store account.
+// CreateFirewallRuleWithAccountParameters the parameters used to create a new firewall rule while creating a
+// new Data Lake Store account.
 type CreateFirewallRuleWithAccountParameters struct {
 	// Name - The unique name of the firewall rule to create.
 	Name *string `json:"name,omitempty"`
@@ -558,8 +334,7 @@ func (coufrp *CreateOrUpdateFirewallRuleParameters) UnmarshalJSON(body []byte) e
 	return nil
 }
 
-// CreateOrUpdateFirewallRuleProperties the firewall rule properties to use when creating a new firewall
-// rule.
+// CreateOrUpdateFirewallRuleProperties the firewall rule properties to use when creating a new firewall rule.
 type CreateOrUpdateFirewallRuleProperties struct {
 	// StartIPAddress - The start IP address for the firewall rule. This can be either ipv4 or ipv6. Start and End should be in the same protocol.
 	StartIPAddress *string `json:"startIpAddress,omitempty"`
@@ -606,8 +381,8 @@ func (coutipp *CreateOrUpdateTrustedIDProviderParameters) UnmarshalJSON(body []b
 	return nil
 }
 
-// CreateOrUpdateTrustedIDProviderProperties the trusted identity provider properties to use when creating
-// a new trusted identity provider.
+// CreateOrUpdateTrustedIDProviderProperties the trusted identity provider properties to use when creating a
+// new trusted identity provider.
 type CreateOrUpdateTrustedIDProviderProperties struct {
 	// IDProvider - The URL of this trusted identity provider.
 	IDProvider *string `json:"idProvider,omitempty"`
@@ -652,15 +427,15 @@ func (couvnrp *CreateOrUpdateVirtualNetworkRuleParameters) UnmarshalJSON(body []
 	return nil
 }
 
-// CreateOrUpdateVirtualNetworkRuleProperties the virtual network rule properties to use when creating a
-// new virtual network rule.
+// CreateOrUpdateVirtualNetworkRuleProperties the virtual network rule properties to use when creating a new
+// virtual network rule.
 type CreateOrUpdateVirtualNetworkRuleProperties struct {
 	// SubnetID - The resource identifier for the subnet.
 	SubnetID *string `json:"subnetId,omitempty"`
 }
 
-// CreateTrustedIDProviderWithAccountParameters the parameters used to create a new trusted identity
-// provider while creating a new Data Lake Store account.
+// CreateTrustedIDProviderWithAccountParameters the parameters used to create a new trusted identity provider
+// while creating a new Data Lake Store account.
 type CreateTrustedIDProviderWithAccountParameters struct {
 	// Name - The unique name of the trusted identity provider to create.
 	Name *string `json:"name,omitempty"`
@@ -713,8 +488,8 @@ func (ctipwap *CreateTrustedIDProviderWithAccountParameters) UnmarshalJSON(body 
 	return nil
 }
 
-// CreateVirtualNetworkRuleWithAccountParameters the parameters used to create a new virtual network rule
-// while creating a new Data Lake Store account.
+// CreateVirtualNetworkRuleWithAccountParameters the parameters used to create a new virtual network rule while
+// creating a new Data Lake Store account.
 type CreateVirtualNetworkRuleWithAccountParameters struct {
 	// Name - The unique name of the virtual network rule to create.
 	Name *string `json:"name,omitempty"`
@@ -970,8 +745,8 @@ type DataLakeStoreAccountListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// DataLakeStoreAccountListResultIterator provides access to a complete listing of
-// DataLakeStoreAccountBasic values.
+// DataLakeStoreAccountListResultIterator provides access to a complete listing of DataLakeStoreAccountBasic
+// values.
 type DataLakeStoreAccountListResultIterator struct {
 	i    int
 	page DataLakeStoreAccountListResultPage
@@ -1039,10 +814,15 @@ func (dlsalr DataLakeStoreAccountListResult) IsEmpty() bool {
 	return dlsalr.Value == nil || len(*dlsalr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (dlsalr DataLakeStoreAccountListResult) hasNextLink() bool {
+	return dlsalr.NextLink != nil && len(*dlsalr.NextLink) != 0
+}
+
 // dataLakeStoreAccountListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (dlsalr DataLakeStoreAccountListResult) dataLakeStoreAccountListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if dlsalr.NextLink == nil || len(to.String(dlsalr.NextLink)) < 1 {
+	if !dlsalr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1070,11 +850,16 @@ func (page *DataLakeStoreAccountListResultPage) NextWithContext(ctx context.Cont
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.dlsalr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.dlsalr)
+		if err != nil {
+			return err
+		}
+		page.dlsalr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.dlsalr = next
 	return nil
 }
 
@@ -1181,6 +966,15 @@ type EncryptionIdentity struct {
 	PrincipalID *uuid.UUID `json:"principalId,omitempty"`
 	// TenantID - READ-ONLY; The tenant identifier associated with the encryption.
 	TenantID *uuid.UUID `json:"tenantId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for EncryptionIdentity.
+func (ei EncryptionIdentity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ei.Type != nil {
+		objectMap["type"] = ei.Type
+	}
+	return json.Marshal(objectMap)
 }
 
 // FirewallRule data Lake Store firewall rule information.
@@ -1330,10 +1124,15 @@ func (frlr FirewallRuleListResult) IsEmpty() bool {
 	return frlr.Value == nil || len(*frlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (frlr FirewallRuleListResult) hasNextLink() bool {
+	return frlr.NextLink != nil && len(*frlr.NextLink) != 0
+}
+
 // firewallRuleListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (frlr FirewallRuleListResult) firewallRuleListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if frlr.NextLink == nil || len(to.String(frlr.NextLink)) < 1 {
+	if !frlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1361,11 +1160,16 @@ func (page *FirewallRuleListResultPage) NextWithContext(ctx context.Context) (er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.frlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.frlr)
+		if err != nil {
+			return err
+		}
+		page.frlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.frlr = next
 	return nil
 }
 
@@ -1436,6 +1240,15 @@ type Operation struct {
 	Display *OperationDisplay `json:"display,omitempty"`
 	// Origin - READ-ONLY; The intended executor of the operation. Possible values include: 'User', 'System', 'Usersystem'
 	Origin OperationOrigin `json:"origin,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Operation.
+func (o Operation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if o.Display != nil {
+		objectMap["display"] = o.Display
+	}
+	return json.Marshal(objectMap)
 }
 
 // OperationDisplay the display information for a particular operation.
@@ -1636,10 +1449,15 @@ func (tiplr TrustedIDProviderListResult) IsEmpty() bool {
 	return tiplr.Value == nil || len(*tiplr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (tiplr TrustedIDProviderListResult) hasNextLink() bool {
+	return tiplr.NextLink != nil && len(*tiplr.NextLink) != 0
+}
+
 // trustedIDProviderListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (tiplr TrustedIDProviderListResult) trustedIDProviderListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if tiplr.NextLink == nil || len(to.String(tiplr.NextLink)) < 1 {
+	if !tiplr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1667,11 +1485,16 @@ func (page *TrustedIDProviderListResultPage) NextWithContext(ctx context.Context
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.tiplr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.tiplr)
+		if err != nil {
+			return err
+		}
+		page.tiplr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.tiplr = next
 	return nil
 }
 
@@ -1839,8 +1662,8 @@ type UpdateFirewallRuleProperties struct {
 	EndIPAddress *string `json:"endIpAddress,omitempty"`
 }
 
-// UpdateFirewallRuleWithAccountParameters the parameters used to update a firewall rule while updating a
-// Data Lake Store account.
+// UpdateFirewallRuleWithAccountParameters the parameters used to update a firewall rule while updating a Data
+// Lake Store account.
 type UpdateFirewallRuleWithAccountParameters struct {
 	// Name - The unique name of the firewall rule to update.
 	Name *string `json:"name,omitempty"`
@@ -1938,15 +1761,15 @@ func (utipp *UpdateTrustedIDProviderParameters) UnmarshalJSON(body []byte) error
 	return nil
 }
 
-// UpdateTrustedIDProviderProperties the trusted identity provider properties to use when updating a
-// trusted identity provider.
+// UpdateTrustedIDProviderProperties the trusted identity provider properties to use when updating a trusted
+// identity provider.
 type UpdateTrustedIDProviderProperties struct {
 	// IDProvider - The URL of this trusted identity provider.
 	IDProvider *string `json:"idProvider,omitempty"`
 }
 
-// UpdateTrustedIDProviderWithAccountParameters the parameters used to update a trusted identity provider
-// while updating a Data Lake Store account.
+// UpdateTrustedIDProviderWithAccountParameters the parameters used to update a trusted identity provider while
+// updating a Data Lake Store account.
 type UpdateTrustedIDProviderWithAccountParameters struct {
 	// Name - The unique name of the trusted identity provider to update.
 	Name *string `json:"name,omitempty"`
@@ -2275,10 +2098,15 @@ func (vnrlr VirtualNetworkRuleListResult) IsEmpty() bool {
 	return vnrlr.Value == nil || len(*vnrlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (vnrlr VirtualNetworkRuleListResult) hasNextLink() bool {
+	return vnrlr.NextLink != nil && len(*vnrlr.NextLink) != 0
+}
+
 // virtualNetworkRuleListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (vnrlr VirtualNetworkRuleListResult) virtualNetworkRuleListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if vnrlr.NextLink == nil || len(to.String(vnrlr.NextLink)) < 1 {
+	if !vnrlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2306,11 +2134,16 @@ func (page *VirtualNetworkRuleListResultPage) NextWithContext(ctx context.Contex
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.vnrlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.vnrlr)
+		if err != nil {
+			return err
+		}
+		page.vnrlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.vnrlr = next
 	return nil
 }
 

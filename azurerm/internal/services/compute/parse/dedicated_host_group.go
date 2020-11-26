@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,21 +9,36 @@ import (
 )
 
 type DedicatedHostGroupId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	HostGroupName  string
+}
+
+func NewDedicatedHostGroupID(subscriptionId, resourceGroup, hostGroupName string) DedicatedHostGroupId {
+	return DedicatedHostGroupId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		HostGroupName:  hostGroupName,
+	}
+}
+
+func (id DedicatedHostGroupId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/hostGroups/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.HostGroupName)
 }
 
 func DedicatedHostGroupID(input string) (*DedicatedHostGroupId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Dedicated Host Group ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	group := DedicatedHostGroupId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := DedicatedHostGroupId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if group.Name, err = id.PopSegment("hostGroups"); err != nil {
+	if resourceId.HostGroupName, err = id.PopSegment("hostGroups"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +46,5 @@ func DedicatedHostGroupID(input string) (*DedicatedHostGroupId, error) {
 		return nil, err
 	}
 
-	return &group, nil
+	return &resourceId, nil
 }

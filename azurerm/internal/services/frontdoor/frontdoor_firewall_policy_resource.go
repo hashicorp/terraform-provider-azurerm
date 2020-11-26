@@ -12,9 +12,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/migration"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -26,9 +29,10 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 		Update: resourceArmFrontDoorFirewallPolicyCreateUpdate,
 		Delete: resourceArmFrontDoorFirewallPolicyDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.WebApplicationFirewallPolicyID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -45,7 +49,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 				ValidateFunc: validate.FrontDoorWAFName,
 			},
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": location.SchemaComputed(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
@@ -163,6 +167,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 											string(frontdoor.RequestHeader),
 											string(frontdoor.RequestMethod),
 											string(frontdoor.RequestURI),
+											string(frontdoor.SocketAddr),
 										}, false),
 									},
 
@@ -416,11 +421,21 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    migration.WebApplicationFirewallPolicyV0Schema().CoreConfigSchema().ImpliedType(),
+				Upgrade: migration.WebApplicationFirewallPolicyV0ToV1,
+				Version: 0,
+			},
+		},
 	}
 }
 
 func resourceArmFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Frontdoor.FrontDoorsPolicyClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -428,16 +443,17 @@ func resourceArmFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewWebApplicationFirewallPolicyID(resourceGroup, name).ID(subscriptionId)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for present of existing Front Door Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for existing Front Door Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_frontdoor_firewall_policy", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_frontdoor_firewall_policy", id)
 		}
 	}
 
@@ -481,21 +497,13 @@ func resourceArmFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, frontdoorWebApplicationFirewallPolicy)
 	if err != nil {
-		return fmt.Errorf("Error creating Front Door Firewall policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Front Door Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Front Door Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of Front Door Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving Front Door Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Front Door Firewall %q (Resource Group %q) ID", name, resourceGroup)
-	}
-	d.SetId(*resp.ID)
-
+	d.SetId(id)
 	return resourceArmFrontDoorFirewallPolicyRead(d, meta)
 }
 
@@ -504,25 +512,23 @@ func resourceArmFrontDoorFirewallPolicyRead(d *schema.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.WebApplicationFirewallPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["frontdoorwebapplicationfirewallpolicies"]
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Front Door Firewall Policy %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Front Door Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Front Door Firewall Policy %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -538,15 +544,15 @@ func resourceArmFrontDoorFirewallPolicyRead(d *schema.ResourceData, meta interfa
 		}
 
 		if err := d.Set("custom_rule", flattenArmFrontDoorFirewallCustomRules(properties.CustomRules)); err != nil {
-			return fmt.Errorf("Error flattening `custom_rule`: %+v", err)
-		}
-
-		if err := d.Set("managed_rule", flattenArmFrontDoorFirewallManagedRules(properties.ManagedRules)); err != nil {
-			return fmt.Errorf("Error flattening `managed_rule`: %+v", err)
+			return fmt.Errorf("flattening `custom_rule`: %+v", err)
 		}
 
 		if err := d.Set("frontend_endpoint_ids", FlattenFrontendEndpointLinkSlice(properties.FrontendEndpointLinks)); err != nil {
-			return fmt.Errorf("Error flattening `frontend_endpoint_ids`: %+v", err)
+			return fmt.Errorf("flattening `frontend_endpoint_ids`: %+v", err)
+		}
+
+		if err := d.Set("managed_rule", flattenArmFrontDoorFirewallManagedRules(properties.ManagedRules)); err != nil {
+			return fmt.Errorf("flattening `managed_rule`: %+v", err)
 		}
 	}
 
@@ -558,24 +564,22 @@ func resourceArmFrontDoorFirewallPolicyDelete(d *schema.ResourceData, meta inter
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.WebApplicationFirewallPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["frontdoorwebapplicationfirewallpolicies"]
 
-	future, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting Front Door Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting Front Door Firewall %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deleting Front Door Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("waiting for deleting Front Door Firewall %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 

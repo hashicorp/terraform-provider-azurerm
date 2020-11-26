@@ -9,7 +9,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -30,6 +29,7 @@ func flattenLogicAppActionRunAfter(input map[string]interface{}) []interface{} {
 
 	return output
 }
+
 func expandLogicAppActionRunAfter(input []interface{}) map[string]interface{} {
 	if len(input) == 0 {
 		return nil
@@ -52,7 +52,7 @@ func resourceLogicAppTriggerUpdate(d *schema.ResourceData, meta interface{}, log
 }
 
 func resourceLogicAppComponentUpdate(d *schema.ResourceData, meta interface{}, kind string, propertyName string, logicAppId string, name string, vals map[string]interface{}, resourceName string) error {
-	client := meta.(*clients.Client).Logic.WorkflowsClient
+	client := meta.(*clients.Client).Logic.WorkflowClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -92,7 +92,7 @@ func resourceLogicAppComponentUpdate(d *schema.ResourceData, meta interface{}, k
 	definition := read.WorkflowProperties.Definition.(map[string]interface{})
 	vs := definition[propertyName].(map[string]interface{})
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		if _, hasExisting := vs[name]; hasExisting {
 			return tf.ImportAsExistsError(resourceName, resourceId)
 		}
@@ -130,7 +130,7 @@ func resourceLogicAppTriggerRemove(d *schema.ResourceData, meta interface{}, res
 }
 
 func resourceLogicAppComponentRemove(d *schema.ResourceData, meta interface{}, kind, propertyName, resourceGroup, logicAppName, name string) error {
-	client := meta.(*clients.Client).Logic.WorkflowsClient
+	client := meta.(*clients.Client).Logic.WorkflowClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -188,7 +188,7 @@ func retrieveLogicAppTrigger(d *schema.ResourceData, meta interface{}, resourceG
 }
 
 func retrieveLogicAppComponent(d *schema.ResourceData, meta interface{}, resourceGroup, kind, propertyName, logicAppName, name string) (*map[string]interface{}, *logic.Workflow, error) {
-	client := meta.(*clients.Client).Logic.WorkflowsClient
+	client := meta.(*clients.Client).Logic.WorkflowClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

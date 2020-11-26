@@ -232,10 +232,15 @@ func (dlr DashboardListResult) IsEmpty() bool {
 	return dlr.Value == nil || len(*dlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (dlr DashboardListResult) hasNextLink() bool {
+	return dlr.NextLink != nil && len(*dlr.NextLink) != 0
+}
+
 // dashboardListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (dlr DashboardListResult) dashboardListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if dlr.NextLink == nil || len(to.String(dlr.NextLink)) < 1 {
+	if !dlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -263,11 +268,16 @@ func (page *DashboardListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.dlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.dlr)
+		if err != nil {
+			return err
+		}
+		page.dlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.dlr = next
 	return nil
 }
 
@@ -545,10 +555,15 @@ func (rpol ResourceProviderOperationList) IsEmpty() bool {
 	return rpol.Value == nil || len(*rpol.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rpol ResourceProviderOperationList) hasNextLink() bool {
+	return rpol.NextLink != nil && len(*rpol.NextLink) != 0
+}
+
 // resourceProviderOperationListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rpol ResourceProviderOperationList) resourceProviderOperationListPreparer(ctx context.Context) (*http.Request, error) {
-	if rpol.NextLink == nil || len(to.String(rpol.NextLink)) < 1 {
+	if !rpol.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -576,11 +591,16 @@ func (page *ResourceProviderOperationListPage) NextWithContext(ctx context.Conte
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rpol)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rpol)
+		if err != nil {
+			return err
+		}
+		page.rpol = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rpol = next
 	return nil
 }
 

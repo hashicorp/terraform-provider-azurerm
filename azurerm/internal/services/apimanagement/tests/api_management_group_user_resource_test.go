@@ -11,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMAPIManagementGroupUser_basic(t *testing.T) {
+func TestAccAzureRMApiManagementGroupUser_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_group_user", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -20,7 +20,7 @@ func TestAccAzureRMAPIManagementGroupUser_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAPIManagementGroupUserDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAPIManagementGroupUser_basic(data),
+				Config: testAccAzureRMApiManagementGroupUser_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementGroupUserExists(data.ResourceName),
 				),
@@ -30,7 +30,7 @@ func TestAccAzureRMAPIManagementGroupUser_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAPIManagementGroupUser_requiresImport(t *testing.T) {
+func TestAccAzureRMApiManagementGroupUser_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_group_user", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -39,12 +39,12 @@ func TestAccAzureRMAPIManagementGroupUser_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAPIManagementGroupUserDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAPIManagementGroupUser_basic(data),
+				Config: testAccAzureRMApiManagementGroupUser_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementGroupUserExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMAPIManagementGroupUser_requiresImport),
+			data.RequiresImportErrorStep(testAccAzureRMApiManagementGroupUser_requiresImport),
 		},
 	})
 }
@@ -102,7 +102,7 @@ func testCheckAzureRMAPIManagementGroupUserExists(resourceName string) resource.
 	}
 }
 
-func testAccAzureRMAPIManagementGroupUser_basic(data acceptance.TestData) string {
+func testAccAzureRMApiManagementGroupUser_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -148,8 +148,8 @@ resource "azurerm_api_management_group_user" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAPIManagementGroupUser_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMAPIManagementGroupUser_basic(data)
+func testAccAzureRMApiManagementGroupUser_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementGroupUser_basic(data)
 	return fmt.Sprintf(`
 %s
 

@@ -64,7 +64,7 @@ func testCheckAzureRMMaintenanceAssignmentDedicatedHostDestroy(s *terraform.Stat
 			return err
 		}
 
-		listResp, err := conn.ListParent(ctx, id.DedicatedHostId.ResourceGroup, "Microsoft.Compute", "hostGroups", id.DedicatedHostId.HostGroup, "hosts", id.DedicatedHostId.Name)
+		listResp, err := conn.ListParent(ctx, id.DedicatedHostId.ResourceGroup, "Microsoft.Compute", "hostGroups", id.DedicatedHostId.HostGroupName, "hosts", id.DedicatedHostId.HostName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(listResp.Response) {
 				return err
@@ -97,7 +97,7 @@ func testCheckAzureRMMaintenanceAssignmentDedicatedHostExists(resourceName strin
 			return err
 		}
 
-		listResp, err := conn.ListParent(ctx, id.DedicatedHostId.ResourceGroup, "Microsoft.Compute", "hostGroups", id.DedicatedHostId.HostGroup, "hosts", id.DedicatedHostId.Name)
+		listResp, err := conn.ListParent(ctx, id.DedicatedHostId.ResourceGroup, "Microsoft.Compute", "hostGroups", id.DedicatedHostId.HostGroupName, "hosts", id.DedicatedHostId.HostName)
 		if err != nil {
 			return fmt.Errorf("bad: list on ConfigurationAssignmentsClient: %+v", err)
 		}

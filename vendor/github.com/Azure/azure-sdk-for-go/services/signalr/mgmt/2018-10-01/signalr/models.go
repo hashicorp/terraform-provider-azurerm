@@ -30,92 +30,13 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/signalr/mgmt/2018-10-01/signalr"
 
-// FeatureFlags enumerates the values for feature flags.
-type FeatureFlags string
-
-const (
-	// EnableConnectivityLogs ...
-	EnableConnectivityLogs FeatureFlags = "EnableConnectivityLogs"
-	// ServiceMode ...
-	ServiceMode FeatureFlags = "ServiceMode"
-)
-
-// PossibleFeatureFlagsValues returns an array of possible values for the FeatureFlags const type.
-func PossibleFeatureFlagsValues() []FeatureFlags {
-	return []FeatureFlags{EnableConnectivityLogs, ServiceMode}
-}
-
-// KeyType enumerates the values for key type.
-type KeyType string
-
-const (
-	// Primary ...
-	Primary KeyType = "Primary"
-	// Secondary ...
-	Secondary KeyType = "Secondary"
-)
-
-// PossibleKeyTypeValues returns an array of possible values for the KeyType const type.
-func PossibleKeyTypeValues() []KeyType {
-	return []KeyType{Primary, Secondary}
-}
-
-// ProvisioningState enumerates the values for provisioning state.
-type ProvisioningState string
-
-const (
-	// Canceled ...
-	Canceled ProvisioningState = "Canceled"
-	// Creating ...
-	Creating ProvisioningState = "Creating"
-	// Deleting ...
-	Deleting ProvisioningState = "Deleting"
-	// Failed ...
-	Failed ProvisioningState = "Failed"
-	// Moving ...
-	Moving ProvisioningState = "Moving"
-	// Running ...
-	Running ProvisioningState = "Running"
-	// Succeeded ...
-	Succeeded ProvisioningState = "Succeeded"
-	// Unknown ...
-	Unknown ProvisioningState = "Unknown"
-	// Updating ...
-	Updating ProvisioningState = "Updating"
-)
-
-// PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
-func PossibleProvisioningStateValues() []ProvisioningState {
-	return []ProvisioningState{Canceled, Creating, Deleting, Failed, Moving, Running, Succeeded, Unknown, Updating}
-}
-
-// SkuTier enumerates the values for sku tier.
-type SkuTier string
-
-const (
-	// Basic ...
-	Basic SkuTier = "Basic"
-	// Free ...
-	Free SkuTier = "Free"
-	// Premium ...
-	Premium SkuTier = "Premium"
-	// Standard ...
-	Standard SkuTier = "Standard"
-)
-
-// PossibleSkuTierValues returns an array of possible values for the SkuTier const type.
-func PossibleSkuTierValues() []SkuTier {
-	return []SkuTier{Basic, Free, Premium, Standard}
-}
-
 // CorsSettings cross-Origin Resource Sharing (CORS) settings.
 type CorsSettings struct {
 	// AllowedOrigins - Gets or sets the list of origins that should be allowed to make cross-origin calls (for example: http://example.com:12345). Use "*" to allow all. If omitted, allow all by default.
 	AllowedOrigins *[]string `json:"allowedOrigins,omitempty"`
 }
 
-// CreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// CreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type CreateOrUpdateFuture struct {
 	azure.Future
 }
@@ -315,8 +236,8 @@ type MetricSpecification struct {
 	Dimensions *[]Dimension `json:"dimensions,omitempty"`
 }
 
-// NameAvailability result of the request to check name availability. It contains a flag and possible
-// reason of failure.
+// NameAvailability result of the request to check name availability. It contains a flag and possible reason of
+// failure.
 type NameAvailability struct {
 	autorest.Response `json:"-"`
 	// NameAvailable - Indicates whether the name is available or not.
@@ -437,10 +358,15 @@ func (ol OperationList) IsEmpty() bool {
 	return ol.Value == nil || len(*ol.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (ol OperationList) hasNextLink() bool {
+	return ol.NextLink != nil && len(*ol.NextLink) != 0
+}
+
 // operationListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (ol OperationList) operationListPreparer(ctx context.Context) (*http.Request, error) {
-	if ol.NextLink == nil || len(to.String(ol.NextLink)) < 1 {
+	if !ol.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -468,11 +394,16 @@ func (page *OperationListPage) NextWithContext(ctx context.Context) (err error) 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.ol)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.ol)
+		if err != nil {
+			return err
+		}
+		page.ol = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.ol = next
 	return nil
 }
 
@@ -512,8 +443,8 @@ type OperationProperties struct {
 	ServiceSpecification *ServiceSpecification `json:"serviceSpecification,omitempty"`
 }
 
-// Properties a class that describes the properties of the SignalR service that should contain more
-// read-only properties than AzSignalR.Models.SignalRCreateOrUpdateProperties
+// Properties a class that describes the properties of the SignalR service that should contain more read-only
+// properties than AzSignalR.Models.SignalRCreateOrUpdateProperties
 type Properties struct {
 	// ProvisioningState - READ-ONLY; Provisioning state of the resource. Possible values include: 'Unknown', 'Succeeded', 'Failed', 'Canceled', 'Running', 'Creating', 'Updating', 'Deleting', 'Moving'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
@@ -541,8 +472,25 @@ type Properties struct {
 	Cors *CorsSettings `json:"cors,omitempty"`
 }
 
-// RegenerateKeyFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// MarshalJSON is the custom marshaler for Properties.
+func (p Properties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if p.Version != nil {
+		objectMap["version"] = p.Version
+	}
+	if p.HostNamePrefix != nil {
+		objectMap["hostNamePrefix"] = p.HostNamePrefix
+	}
+	if p.Features != nil {
+		objectMap["features"] = p.Features
+	}
+	if p.Cors != nil {
+		objectMap["cors"] = p.Cors
+	}
+	return json.Marshal(objectMap)
+}
+
+// RegenerateKeyFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type RegenerateKeyFuture struct {
 	azure.Future
 }
@@ -664,10 +612,15 @@ func (rl ResourceList) IsEmpty() bool {
 	return rl.Value == nil || len(*rl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rl ResourceList) hasNextLink() bool {
+	return rl.NextLink != nil && len(*rl.NextLink) != 0
+}
+
 // resourceListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rl ResourceList) resourceListPreparer(ctx context.Context) (*http.Request, error) {
-	if rl.NextLink == nil || len(to.String(rl.NextLink)) < 1 {
+	if !rl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -695,11 +648,16 @@ func (page *ResourceListPage) NextWithContext(ctx context.Context) (err error) {
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rl)
+		if err != nil {
+			return err
+		}
+		page.rl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rl = next
 	return nil
 }
 
@@ -1071,10 +1029,15 @@ func (ul UsageList) IsEmpty() bool {
 	return ul.Value == nil || len(*ul.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (ul UsageList) hasNextLink() bool {
+	return ul.NextLink != nil && len(*ul.NextLink) != 0
+}
+
 // usageListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (ul UsageList) usageListPreparer(ctx context.Context) (*http.Request, error) {
-	if ul.NextLink == nil || len(to.String(ul.NextLink)) < 1 {
+	if !ul.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1102,11 +1065,16 @@ func (page *UsageListPage) NextWithContext(ctx context.Context) (err error) {
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.ul)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.ul)
+		if err != nil {
+			return err
+		}
+		page.ul = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.ul = next
 	return nil
 }
 

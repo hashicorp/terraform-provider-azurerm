@@ -35,7 +35,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Resource ID of the Shared Image.
+* `id` - The ID of the Shared Image.
 
 * `description` - The description of this Shared Image.
 

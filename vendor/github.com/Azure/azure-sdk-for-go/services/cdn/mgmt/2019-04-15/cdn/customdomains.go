@@ -533,6 +533,9 @@ func (client CustomDomainsClient) ListByEndpoint(ctx context.Context, resourceGr
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.CustomDomainsClient", "ListByEndpoint", resp, "Failure responding to request")
 	}
+	if result.cdlr.hasNextLink() && result.cdlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

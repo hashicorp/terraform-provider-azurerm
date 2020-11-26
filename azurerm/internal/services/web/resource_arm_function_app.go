@@ -1,22 +1,20 @@
 package web
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	webValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -33,7 +31,7 @@ func resourceArmFunctionApp() *schema.Resource {
 		Update: resourceArmFunctionAppUpdate,
 		Delete: resourceArmFunctionAppDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := ParseAppServiceID(id)
+			_, err := parse.AppServiceID(id)
 			return err
 		}),
 
@@ -56,14 +54,70 @@ func resourceArmFunctionApp() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"kind": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"app_service_plan_id": {
 				Type:     schema.TypeString,
 				Required: true,
+			},
+
+			"app_settings": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
+			"auth_settings": schemaAppServiceAuthSettings(),
+
+			"connection_string": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(web.APIHub),
+								string(web.Custom),
+								string(web.DocDb),
+								string(web.EventHub),
+								string(web.MySQL),
+								string(web.NotificationHub),
+								string(web.PostgreSQL),
+								string(web.RedisCache),
+								string(web.ServiceBus),
+								string(web.SQLAzure),
+								string(web.SQLServer),
+							}, true),
+							DiffSuppressFunc: suppress.CaseDifference,
+						},
+
+						"value": {
+							Type:      schema.TypeString,
+							Required:  true,
+							Sensitive: true,
+						},
+					},
+				},
+			},
+
+			"client_affinity_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+
+			"daily_memory_time_quota": {
+				Type:     schema.TypeInt,
+				Optional: true,
 			},
 
 			"enabled": {
@@ -72,22 +126,32 @@ func resourceArmFunctionApp() *schema.Resource {
 				Default:  true,
 			},
 
-			"version": {
-				Type:     schema.TypeString,
+			"enable_builtin_logging": {
+				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  "~1",
+				Default:  true,
 			},
 
-			// TODO remove this in 3.0
-			"storage_connection_string": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
-				Sensitive:     true,
-				Deprecated:    "Deprecated in favor of `storage_account_name` and `storage_account_access_key`",
-				ConflictsWith: []string{"storage_account_name", "storage_account_access_key"},
+			"https_only": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
+
+			"identity": schemaAppServiceIdentity(),
+
+			"os_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"linux",
+				}, false),
+			},
+
+			"site_config": schemaAppServiceFunctionAppSiteConfig(),
+
+			"source_control": schemaAppServiceSiteSourceControl(),
 
 			"storage_account_name": {
 				Type: schema.TypeString,
@@ -109,73 +173,35 @@ func resourceArmFunctionApp() *schema.Resource {
 				ConflictsWith: []string{"storage_connection_string"},
 			},
 
-			"app_settings": {
-				Type:     schema.TypeMap,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
+			// TODO remove this in 3.0
+			"storage_connection_string": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				Sensitive:     true,
+				Deprecated:    "Deprecated in favour of `storage_account_name` and `storage_account_access_key`",
+				ConflictsWith: []string{"storage_account_name", "storage_account_access_key"},
 			},
 
-			"enable_builtin_logging": {
-				Type:     schema.TypeBool,
+			"version": {
+				Type:     schema.TypeString,
 				Optional: true,
-				Default:  true,
+				Default:  "~1",
 			},
-
-			"connection_string": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"value": {
-							Type:      schema.TypeString,
-							Required:  true,
-							Sensitive: true,
-						},
-						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(web.APIHub),
-								string(web.Custom),
-								string(web.DocDb),
-								string(web.EventHub),
-								string(web.MySQL),
-								string(web.NotificationHub),
-								string(web.PostgreSQL),
-								string(web.RedisCache),
-								string(web.ServiceBus),
-								string(web.SQLAzure),
-								string(web.SQLServer),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
-						},
-					},
-				},
-			},
-
-			"identity": azure.SchemaAppServiceIdentity(),
 
 			"tags": tags.Schema(),
+
+			// Computed Only
 
 			"default_hostname": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"os_type": {
+			"kind": {
 				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"linux",
-				}, false),
+				Computed: true,
 			},
 
 			"outbound_ip_addresses": {
@@ -187,107 +213,6 @@ func resourceArmFunctionApp() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
-			"client_affinity_enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
-
-			"https_only": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
-			"daily_memory_time_quota": {
-				Type:     schema.TypeInt,
-				Optional: true,
-			},
-
-			"site_config": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"always_on": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"use_32_bit_worker_process": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  true,
-						},
-						"websockets_enabled": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"linux_fx_version": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-						},
-						"http2_enabled": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"ip_restriction": {
-							Type:       schema.TypeList,
-							Optional:   true,
-							Computed:   true,
-							ConfigMode: schema.SchemaConfigModeAttr,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"ip_address": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validate.CIDR,
-									},
-									"subnet_id": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-								},
-							},
-						},
-						"min_tls_version": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(web.OneFullStopZero),
-								string(web.OneFullStopOne),
-								string(web.OneFullStopTwo),
-							}, false),
-						},
-						"ftps_state": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(web.AllAllowed),
-								string(web.Disabled),
-								string(web.FtpsOnly),
-							}, false),
-						},
-						"pre_warmed_instance_count": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							ValidateFunc: validation.IntBetween(0, 10),
-						},
-						"cors": azure.SchemaWebCorsSettings(),
-					},
-				},
-			},
-
-			"auth_settings": azure.SchemaAppServiceAuthSettings(),
 
 			"site_credential": {
 				Type:     schema.TypeList,
@@ -321,17 +246,15 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Function App %q (Resource Group %q): %s", name, resourceGroup, err)
-			}
+	existing, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of existing Function App %q (Resource Group %q): %s", name, resourceGroup, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_function_app", *existing.ID)
-		}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_function_app", *existing.ID)
 	}
 
 	availabilityRequest := web.ResourceNameAvailabilityRequest{
@@ -395,7 +318,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 
 	if _, ok := d.GetOk("identity"); ok {
 		appServiceIdentityRaw := d.Get("identity").([]interface{})
-		appServiceIdentity := azure.ExpandAppServiceIdentity(appServiceIdentityRaw)
+		appServiceIdentity := expandAppServiceIdentity(appServiceIdentityRaw)
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
@@ -409,22 +332,38 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
+	if _, ok := d.GetOk("source_control"); ok {
+		if siteConfig.ScmType != "" {
+			return fmt.Errorf("cannot set source_control parameters when scm_type is set to %q", siteConfig.ScmType)
+		}
+		sourceControlProperties := expandAppServiceSiteSourceControl(d)
+		sourceControl := &web.SiteSourceControl{}
+		sourceControl.SiteSourceControlProperties = sourceControlProperties
+		// TODO - Do we need to lock the function app for updates?
+		_, err := client.CreateOrUpdateSourceControl(ctx, resourceGroup, name, *sourceControl)
+		if err != nil {
+			return fmt.Errorf("failed to create App Service Source Control for %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+	}
+
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return err
 	}
-	if read.ID == nil {
+
+	if read.ID == nil || *read.ID == "" {
 		return fmt.Errorf("Cannot read Function App %s (resource group %s) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
 
 	authSettingsRaw := d.Get("auth_settings").([]interface{})
-	authSettings := azure.ExpandAppServiceAuthSettings(authSettingsRaw)
+	authSettings := expandAppServiceAuthSettings(authSettingsRaw)
 
 	auth := web.SiteAuthSettings{
 		ID:                         read.ID,
-		SiteAuthSettingsProperties: &authSettings}
+		SiteAuthSettingsProperties: &authSettings,
+	}
 
 	if _, err := client.UpdateAuthSettings(ctx, resourceGroup, name, auth); err != nil {
 		return fmt.Errorf("Error updating auth settings for Function App %q (resource group %q): %+v", name, resourceGroup, err)
@@ -439,7 +378,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseAppServiceID(d.Id())
+	id, err := parse.AppServiceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -492,7 +431,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 
 	if _, ok := d.GetOk("identity"); ok {
 		appServiceIdentityRaw := d.Get("identity").([]interface{})
-		appServiceIdentity := azure.ExpandAppServiceIdentity(appServiceIdentityRaw)
+		appServiceIdentity := expandAppServiceIdentity(appServiceIdentityRaw)
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
@@ -517,7 +456,13 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error updating Application Settings for Function App %q: %+v", id.Name, err)
 	}
 
-	if d.HasChange("site_config") {
+	// If `source_control` is defined, we need to set site_config.0.scm_type to "None" or we cannot update it
+	// repo_url is required by the API
+	_, hasSourceControl := d.GetOk("source_control.0.repo_url")
+
+	scmType := web.ScmTypeNone
+
+	if d.HasChange("site_config") || hasSourceControl {
 		siteConfig, err := expandFunctionAppSiteConfig(d)
 		if err != nil {
 			return fmt.Errorf("Error expanding `site_config` for Function App %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
@@ -525,14 +470,42 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		siteConfigResource := web.SiteConfigResource{
 			SiteConfig: &siteConfig,
 		}
+
+		scmType = siteConfig.ScmType
+		// ScmType being set blocks the update of source_control in _most_ cases, ADO is an exception
+		if hasSourceControl && scmType != web.ScmTypeVSTSRM {
+			siteConfigResource.SiteConfig.ScmType = web.ScmTypeNone
+		}
+
 		if _, err := client.CreateOrUpdateConfiguration(ctx, id.ResourceGroup, id.Name, siteConfigResource); err != nil {
 			return fmt.Errorf("Error updating Configuration for Function App %q: %+v", id.Name, err)
 		}
 	}
 
+	// Don't send source_control changes for ADO controlled Apps
+	if hasSourceControl && scmType != web.ScmTypeVSTSRM {
+		sourceControlProperties := expandAppServiceSiteSourceControl(d)
+		sourceControl := &web.SiteSourceControl{}
+		sourceControl.SiteSourceControlProperties = sourceControlProperties
+		scFuture, err := client.CreateOrUpdateSourceControl(ctx, id.ResourceGroup, id.Name, *sourceControl)
+		if err != nil {
+			return fmt.Errorf("failed to create App Service Source Control for %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
+
+		err = scFuture.WaitForCompletionRef(ctx, client.Client)
+		if err != nil {
+			return fmt.Errorf("failed waiting for App Service Source Control configuration: %+v", err)
+		}
+
+		sc, err := client.GetSourceControl(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return fmt.Errorf("failed reading back App Service Source Control for %q", *sc.Name)
+		}
+	}
+
 	if d.HasChange("auth_settings") {
 		authSettingsRaw := d.Get("auth_settings").([]interface{})
-		authSettingsProperties := azure.ExpandAppServiceAuthSettings(authSettingsRaw)
+		authSettingsProperties := expandAppServiceAuthSettings(authSettingsRaw)
 		authSettings := web.SiteAuthSettings{
 			ID:                         utils.String(d.Id()),
 			SiteAuthSettingsProperties: &authSettingsProperties,
@@ -563,7 +536,7 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseAppServiceID(d.Id())
+	id, err := parse.AppServiceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -671,7 +644,7 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		delete(appSettings, "FUNCTIONS_EXTENSION_VERSION")
 	}
 
-	// Let the user have a final say whether he wants to keep these 2 or not on
+	// Let the user have a final say whether they want to keep these 2 or not on
 	// Linux consumption plans. They shouldn't be there according to a bug
 	// report (see // https://github.com/Azure/azure-functions-python-worker/issues/598)
 	if !strings.EqualFold(d.Get("os_type").(string), "linux") {
@@ -686,7 +659,7 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	identity := azure.FlattenAppServiceIdentity(resp.Identity)
+	identity := flattenAppServiceIdentity(resp.Identity)
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("Error setting `identity`: %s", err)
 	}
@@ -701,9 +674,18 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	authSettings := azure.FlattenAppServiceAuthSettings(authResp.SiteAuthSettingsProperties)
+	authSettings := flattenAppServiceAuthSettings(authResp.SiteAuthSettingsProperties)
 	if err := d.Set("auth_settings", authSettings); err != nil {
 		return fmt.Errorf("Error setting `auth_settings`: %s", err)
+	}
+
+	scmResp, err := client.GetSourceControl(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf("Error making Read request on Function App Source Control %q: %+v", id.Name, err)
+	}
+	scm := flattenAppServiceSourceControl(scmResp.SiteSourceControlProperties)
+	if err := d.Set("source_control", scm); err != nil {
+		return fmt.Errorf("Error setting `source_control`: %s", err)
 	}
 
 	siteCred := flattenFunctionAppSiteCredential(siteCredResp.UserProperties)
@@ -719,7 +701,7 @@ func resourceArmFunctionAppDelete(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseAppServiceID(d.Id())
+	id, err := parse.AppServiceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -736,336 +718,4 @@ func resourceArmFunctionAppDelete(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	return nil
-}
-
-func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier, endpointSuffix string) ([]web.NameValuePair, error) {
-	// TODO: This is a workaround since there are no public Functions API
-	// You may track the API request here: https://github.com/Azure/azure-rest-api-specs/issues/3750
-	dashboardPropName := "AzureWebJobsDashboard"
-	storagePropName := "AzureWebJobsStorage"
-	functionVersionPropName := "FUNCTIONS_EXTENSION_VERSION"
-
-	contentSharePropName := "WEBSITE_CONTENTSHARE"
-	contentFileConnStringPropName := "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"
-
-	// TODO 3.0 - remove this logic for determining which storage account connection string to use
-	storageConnection := ""
-	if v, ok := d.GetOk("storage_connection_string"); ok {
-		storageConnection = v.(string)
-	}
-
-	storageAccount := ""
-	if v, ok := d.GetOk("storage_account_name"); ok {
-		storageAccount = v.(string)
-	}
-
-	connectionString := ""
-	if v, ok := d.GetOk("storage_account_access_key"); ok {
-		connectionString = v.(string)
-	}
-
-	if storageConnection == "" && storageAccount == "" && connectionString == "" {
-		return nil, fmt.Errorf("one of `storage_connection_string` or `storage_account_name` and `storage_account_access_key` must be specified")
-	}
-
-	if (storageAccount == "" && connectionString != "") || (storageAccount != "" && connectionString == "") {
-		return nil, fmt.Errorf("both `storage_account_name` and `storage_account_access_key` must be specified")
-	}
-
-	if connectionString != "" && storageAccount != "" {
-		storageConnection = fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", storageAccount, connectionString, endpointSuffix)
-	}
-
-	functionVersion := d.Get("version").(string)
-	contentShare := strings.ToLower(d.Get("name").(string)) + "-content"
-
-	basicSettings := []web.NameValuePair{
-		{Name: &storagePropName, Value: &storageConnection},
-		{Name: &functionVersionPropName, Value: &functionVersion},
-	}
-
-	if d.Get("enable_builtin_logging").(bool) {
-		basicSettings = append(basicSettings, web.NameValuePair{
-			Name:  &dashboardPropName,
-			Value: &storageConnection,
-		})
-	}
-
-	consumptionSettings := []web.NameValuePair{
-		{Name: &contentSharePropName, Value: &contentShare},
-		{Name: &contentFileConnStringPropName, Value: &storageConnection},
-	}
-
-	// On consumption and premium plans include WEBSITE_CONTENT components, unless it's a Linux consumption plan
-	// (see https://github.com/Azure/azure-functions-python-worker/issues/598)
-	if (strings.EqualFold(appServiceTier, "dynamic") || strings.EqualFold(appServiceTier, "elasticpremium")) &&
-		!strings.EqualFold(d.Get("os_type").(string), "linux") {
-		return append(basicSettings, consumptionSettings...), nil
-	}
-
-	return basicSettings, nil
-}
-
-func getFunctionAppServiceTier(ctx context.Context, appServicePlanId string, meta interface{}) (string, error) {
-	id, err := ParseAppServicePlanID(appServicePlanId)
-	if err != nil {
-		return "", fmt.Errorf("[ERROR] Unable to parse App Service Plan ID %q: %+v", appServicePlanId, err)
-	}
-
-	log.Printf("[DEBUG] Retrieving App Service Plan %q (Resource Group %q)", id.Name, id.ResourceGroup)
-
-	appServicePlansClient := meta.(*clients.Client).Web.AppServicePlansClient
-	appServicePlan, err := appServicePlansClient.Get(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return "", fmt.Errorf("[ERROR] Could not retrieve App Service Plan ID %q: %+v", appServicePlanId, err)
-	}
-
-	if sku := appServicePlan.Sku; sku != nil {
-		if tier := sku.Tier; tier != nil {
-			return *tier, nil
-		}
-	}
-	return "", fmt.Errorf("No `sku` block was returned for App Service Plan ID %q", appServicePlanId)
-}
-
-func expandFunctionAppAppSettings(d *schema.ResourceData, appServiceTier, endpointSuffix string) (map[string]*string, error) {
-	output := expandAppServiceAppSettings(d)
-
-	basicAppSettings, err := getBasicFunctionAppAppSettings(d, appServiceTier, endpointSuffix)
-	if err != nil {
-		return nil, err
-	}
-	for _, p := range basicAppSettings {
-		output[*p.Name] = p.Value
-	}
-
-	return output, nil
-}
-
-func expandFunctionAppSiteConfig(d *schema.ResourceData) (web.SiteConfig, error) {
-	configs := d.Get("site_config").([]interface{})
-	siteConfig := web.SiteConfig{}
-
-	if len(configs) == 0 {
-		return siteConfig, nil
-	}
-
-	config := configs[0].(map[string]interface{})
-
-	if v, ok := config["always_on"]; ok {
-		siteConfig.AlwaysOn = utils.Bool(v.(bool))
-	}
-
-	if v, ok := config["use_32_bit_worker_process"]; ok {
-		siteConfig.Use32BitWorkerProcess = utils.Bool(v.(bool))
-	}
-
-	if v, ok := config["websockets_enabled"]; ok {
-		siteConfig.WebSocketsEnabled = utils.Bool(v.(bool))
-	}
-
-	if v, ok := config["linux_fx_version"]; ok {
-		siteConfig.LinuxFxVersion = utils.String(v.(string))
-	}
-
-	if v, ok := config["cors"]; ok {
-		corsSettings := v.(interface{})
-		expand := azure.ExpandWebCorsSettings(corsSettings)
-		siteConfig.Cors = &expand
-	}
-
-	if v, ok := config["http2_enabled"]; ok {
-		siteConfig.HTTP20Enabled = utils.Bool(v.(bool))
-	}
-
-	if v, ok := config["ip_restriction"]; ok {
-		ipSecurityRestrictions := v.(interface{})
-		restrictions, err := expandFunctionAppIpRestriction(ipSecurityRestrictions)
-		if err != nil {
-			return siteConfig, err
-		}
-		siteConfig.IPSecurityRestrictions = &restrictions
-	}
-
-	if v, ok := config["min_tls_version"]; ok {
-		siteConfig.MinTLSVersion = web.SupportedTLSVersions(v.(string))
-	}
-
-	if v, ok := config["ftps_state"]; ok {
-		siteConfig.FtpsState = web.FtpsState(v.(string))
-	}
-
-	if v, ok := config["pre_warmed_instance_count"]; ok {
-		siteConfig.PreWarmedInstanceCount = utils.Int32(int32(v.(int)))
-	}
-
-	return siteConfig, nil
-}
-
-func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
-	results := make([]interface{}, 0)
-	result := make(map[string]interface{})
-
-	if input == nil {
-		log.Printf("[DEBUG] SiteConfig is nil")
-		return results
-	}
-
-	if input.AlwaysOn != nil {
-		result["always_on"] = *input.AlwaysOn
-	}
-
-	if input.Use32BitWorkerProcess != nil {
-		result["use_32_bit_worker_process"] = *input.Use32BitWorkerProcess
-	}
-
-	if input.WebSocketsEnabled != nil {
-		result["websockets_enabled"] = *input.WebSocketsEnabled
-	}
-
-	if input.LinuxFxVersion != nil {
-		result["linux_fx_version"] = *input.LinuxFxVersion
-	}
-
-	if input.HTTP20Enabled != nil {
-		result["http2_enabled"] = *input.HTTP20Enabled
-	}
-
-	if input.PreWarmedInstanceCount != nil {
-		result["pre_warmed_instance_count"] = *input.PreWarmedInstanceCount
-	}
-
-	result["ip_restriction"] = flattenFunctionAppIpRestriction(input.IPSecurityRestrictions)
-
-	result["min_tls_version"] = string(input.MinTLSVersion)
-	result["ftps_state"] = string(input.FtpsState)
-
-	result["cors"] = azure.FlattenWebCorsSettings(input.Cors)
-
-	results = append(results, result)
-	return results
-}
-
-func expandFunctionAppConnectionStrings(d *schema.ResourceData) map[string]*web.ConnStringValueTypePair {
-	input := d.Get("connection_string").(*schema.Set).List()
-	output := make(map[string]*web.ConnStringValueTypePair, len(input))
-
-	for _, v := range input {
-		vals := v.(map[string]interface{})
-
-		csName := vals["name"].(string)
-		csType := vals["type"].(string)
-		csValue := vals["value"].(string)
-
-		output[csName] = &web.ConnStringValueTypePair{
-			Value: utils.String(csValue),
-			Type:  web.ConnectionStringType(csType),
-		}
-	}
-
-	return output
-}
-
-func expandFunctionAppIpRestriction(input interface{}) ([]web.IPSecurityRestriction, error) {
-	restrictions := make([]web.IPSecurityRestriction, 0)
-
-	for i, r := range input.([]interface{}) {
-		if r == nil {
-			continue
-		}
-
-		restriction := r.(map[string]interface{})
-
-		ipAddress := restriction["ip_address"].(string)
-		vNetSubnetID := restriction["subnet_id"].(string)
-
-		if vNetSubnetID != "" && ipAddress != "" {
-			return nil, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `subnet_id` can set for `site_config.0.ip_restriction.%d`", i))
-		}
-
-		if vNetSubnetID == "" && ipAddress == "" {
-			return nil, fmt.Errorf(fmt.Sprintf("one of `ip_address` or `subnet_id` must be set for `site_config.0.ip_restriction.%d`", i))
-		}
-
-		ipSecurityRestriction := web.IPSecurityRestriction{}
-		if ipAddress == "Any" {
-			continue
-		}
-
-		if ipAddress != "" {
-			ipSecurityRestriction.IPAddress = &ipAddress
-		}
-
-		if vNetSubnetID != "" {
-			ipSecurityRestriction.VnetSubnetResourceID = &vNetSubnetID
-		}
-
-		restrictions = append(restrictions, ipSecurityRestriction)
-	}
-
-	return restrictions, nil
-}
-
-func flattenFunctionAppConnectionStrings(input map[string]*web.ConnStringValueTypePair) interface{} {
-	results := make([]interface{}, 0)
-
-	for k, v := range input {
-		result := make(map[string]interface{})
-		result["name"] = k
-		result["type"] = string(v.Type)
-		result["value"] = *v.Value
-		results = append(results, result)
-	}
-
-	return results
-}
-
-func flattenFunctionAppSiteCredential(input *web.UserProperties) []interface{} {
-	results := make([]interface{}, 0)
-	result := make(map[string]interface{})
-
-	if input == nil {
-		log.Printf("[DEBUG] UserProperties is nil")
-		return results
-	}
-
-	if input.PublishingUserName != nil {
-		result["username"] = *input.PublishingUserName
-	}
-
-	if input.PublishingPassword != nil {
-		result["password"] = *input.PublishingPassword
-	}
-
-	return append(results, result)
-}
-
-func flattenFunctionAppIpRestriction(input *[]web.IPSecurityRestriction) []interface{} {
-	restrictions := make([]interface{}, 0)
-
-	if input == nil {
-		return restrictions
-	}
-
-	for _, v := range *input {
-		ipAddress := ""
-		if v.IPAddress != nil {
-			ipAddress = *v.IPAddress
-			if ipAddress == "Any" {
-				continue
-			}
-		}
-
-		subnetId := ""
-		if v.VnetSubnetResourceID != nil {
-			subnetId = *v.VnetSubnetResourceID
-		}
-
-		restrictions = append(restrictions, map[string]interface{}{
-			"ip_address": ipAddress,
-			"subnet_id":  subnetId,
-		})
-	}
-
-	return restrictions
 }

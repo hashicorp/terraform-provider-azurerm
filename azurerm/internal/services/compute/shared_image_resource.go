@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -112,6 +112,34 @@ func resourceArmSharedImage() *schema.Resource {
 				Optional: true,
 			},
 
+			"purchase_plan": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"publisher": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"product": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
 			"privacy_statement_uri": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -167,6 +195,7 @@ func resourceArmSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}
 			ReleaseNoteURI:      utils.String(d.Get("release_note_uri").(string)),
 			OsType:              compute.OperatingSystemTypes(d.Get("os_type").(string)),
 			HyperVGeneration:    compute.HyperVGeneration(d.Get("hyper_v_generation").(string)),
+			PurchasePlan:        expandGalleryImagePurchasePlan(d.Get("purchase_plan").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -210,19 +239,19 @@ func resourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Gallery, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.GalleryName, id.ImageName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Shared Image %q (Gallery %q / Resource Group %q) was not found - removing from state", id.Name, id.Gallery, id.ResourceGroup)
+			log.Printf("[DEBUG] Shared Image %q (Gallery %q / Resource Group %q) was not found - removing from state", id.ImageName, id.GalleryName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Shared Image %q (Gallery %q / Resource Group %q): %+v", id.Name, id.Gallery, id.ResourceGroup, err)
+		return fmt.Errorf("Error making Read request on Shared Image %q (Gallery %q / Resource Group %q): %+v", id.ImageName, id.GalleryName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("gallery_name", id.Gallery)
+	d.Set("name", id.ImageName)
+	d.Set("gallery_name", id.GalleryName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -240,6 +269,10 @@ func resourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) error 
 		if err := d.Set("identifier", flattenGalleryImageIdentifier(props.Identifier)); err != nil {
 			return fmt.Errorf("Error setting `identifier`: %+v", err)
 		}
+
+		if err := d.Set("purchase_plan", flattenGalleryImagePurchasePlan(props.PurchasePlan)); err != nil {
+			return fmt.Errorf("Error setting `purchase_plan`: %+v", err)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -255,27 +288,27 @@ func resourceArmSharedImageDelete(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Gallery, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.GalleryName, id.ImageName)
 	if err != nil {
-		return fmt.Errorf("deleting Shared Image %q (Gallery %q / Resource Group %q): %+v", id.Name, id.Gallery, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Shared Image %q (Gallery %q / Resource Group %q): %+v", id.ImageName, id.GalleryName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("failed to wait for deleting Shared Image %q (Gallery %q / Resource Group %q): %+v", id.Name, id.Gallery, id.ResourceGroup, err)
+		return fmt.Errorf("failed to wait for deleting Shared Image %q (Gallery %q / Resource Group %q): %+v", id.ImageName, id.GalleryName, id.ResourceGroup, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for Shared Image %q (Gallery %q / Resource Group %q) to be eventually deleted", id.Name, id.Gallery, id.ResourceGroup)
+	log.Printf("[DEBUG] Waiting for Shared Image %q (Gallery %q / Resource Group %q) to be eventually deleted", id.ImageName, id.GalleryName, id.ResourceGroup)
 	stateConf := &resource.StateChangeConf{
 		Pending:                   []string{"Exists"},
 		Target:                    []string{"NotFound"},
-		Refresh:                   sharedImageDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.Gallery, id.Name),
+		Refresh:                   sharedImageDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.GalleryName, id.ImageName),
 		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 10,
 		Timeout:                   d.Timeout(schema.TimeoutDelete),
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("failed to wait for Shared Image %q (Gallery %q / Resource Group %q) to be deleted: %+v", id.Name, id.Gallery, id.ResourceGroup, err)
+		return fmt.Errorf("failed to wait for Shared Image %q (Gallery %q / Resource Group %q) to be deleted: %+v", id.ImageName, id.GalleryName, id.ResourceGroup, err)
 	}
 
 	return nil
@@ -341,6 +374,56 @@ func flattenGalleryImageIdentifier(input *compute.GalleryImageIdentifier) []inte
 			"offer":     offer,
 			"publisher": publisher,
 			"sku":       sku,
+		},
+	}
+}
+
+func expandGalleryImagePurchasePlan(input []interface{}) *compute.ImagePurchasePlan {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	result := compute.ImagePurchasePlan{
+		Name: utils.String(v["name"].(string)),
+	}
+
+	if publisher := v["publisher"].(string); publisher != "" {
+		result.Publisher = &publisher
+	}
+
+	if product := v["product"].(string); product != "" {
+		result.Product = &product
+	}
+
+	return &result
+}
+
+func flattenGalleryImagePurchasePlan(input *compute.ImagePurchasePlan) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	name := ""
+	if input.Name != nil {
+		name = *input.Name
+	}
+
+	publisher := ""
+	if input.Publisher != nil {
+		publisher = *input.Publisher
+	}
+
+	product := ""
+	if input.Product != nil {
+		product = *input.Product
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"name":      name,
+			"publisher": publisher,
+			"product":   product,
 		},
 	}
 }

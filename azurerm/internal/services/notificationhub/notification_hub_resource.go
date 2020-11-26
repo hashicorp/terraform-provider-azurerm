@@ -14,7 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -24,10 +23,12 @@ import (
 
 var notificationHubResourceName = "azurerm_notification_hub"
 
-const apnsProductionName = "Production"
-const apnsProductionEndpoint = "https://api.push.apple.com:443/3/device"
-const apnsSandboxName = "Sandbox"
-const apnsSandboxEndpoint = "https://api.development.push.apple.com:443/3/device"
+const (
+	apnsProductionName     = "Production"
+	apnsProductionEndpoint = "https://api.push.apple.com:443/3/device"
+	apnsSandboxName        = "Sandbox"
+	apnsSandboxEndpoint    = "https://api.development.push.apple.com:443/3/device"
+)
 
 func resourceArmNotificationHub() *schema.Resource {
 	return &schema.Resource{
@@ -155,7 +156,7 @@ func resourceArmNotificationHubCreateUpdate(d *schema.ResourceData, meta interfa
 	resourceGroup := d.Get("resource_group_name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, namespaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

@@ -14,7 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -188,7 +187,7 @@ func resourceArmTrafficManagerEndpointCreateUpdate(d *schema.ResourceData, meta 
 	profileName := d.Get("profile_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, profileName, endpointType, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -357,7 +356,7 @@ func getArmTrafficManagerEndpointProperties(d *schema.ResourceData) *trafficmana
 
 	if resourceId := d.Get("target_resource_id").(string); resourceId != "" {
 		endpointProps.TargetResourceID = utils.String(resourceId)
-		// NOTE: Workaround for upstream behavior: if the target is blank instead of nil, the REST API will throw a 500 error
+		// NOTE: Workaround for upstream behaviour: if the target is blank instead of nil, the REST API will throw a 500 error
 		if target == "" {
 			endpointProps.Target = nil
 		}

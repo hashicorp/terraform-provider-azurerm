@@ -11,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMAPIManagementProperty_basic(t *testing.T) {
+func TestAccAzureRMApiManagementProperty_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_property", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -20,7 +20,7 @@ func TestAccAzureRMAPIManagementProperty_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAPIManagementPropertyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAPIManagementProperty_basic(data),
+				Config: testAccAzureRMApiManagementProperty_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementPropertyExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("TestProperty%d", data.RandomInteger)),
@@ -34,7 +34,7 @@ func TestAccAzureRMAPIManagementProperty_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAPIManagementProperty_update(t *testing.T) {
+func TestAccAzureRMApiManagementProperty_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_property", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -43,7 +43,7 @@ func TestAccAzureRMAPIManagementProperty_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAPIManagementPropertyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAPIManagementProperty_basic(data),
+				Config: testAccAzureRMApiManagementProperty_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementPropertyExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("TestProperty%d", data.RandomInteger)),
@@ -54,7 +54,7 @@ func TestAccAzureRMAPIManagementProperty_update(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMAPIManagementProperty_update(data),
+				Config: testAccAzureRMApiManagementProperty_update(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementPropertyExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("TestProperty2%d", data.RandomInteger)),
@@ -82,7 +82,6 @@ func testCheckAzureRMAPIManagementPropertyDestroy(s *terraform.State) error {
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
-
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err
@@ -124,7 +123,7 @@ func testCheckAzureRMAPIManagementPropertyExists(resourceName string) resource.T
 
  */
 
-func testAccAzureRMAPIManagementProperty_basic(data acceptance.TestData) string {
+func testAccAzureRMApiManagementProperty_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -156,7 +155,7 @@ resource "azurerm_api_management_property" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAPIManagementProperty_update(data acceptance.TestData) string {
+func testAccAzureRMApiManagementProperty_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

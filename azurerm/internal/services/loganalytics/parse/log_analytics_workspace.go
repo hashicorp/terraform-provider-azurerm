@@ -11,6 +11,18 @@ type LogAnalyticsWorkspaceId struct {
 	Name          string
 }
 
+func NewLogAnalyticsWorkspaceID(name, resourceGroup string) LogAnalyticsWorkspaceId {
+	return LogAnalyticsWorkspaceId{
+		ResourceGroup: resourceGroup,
+		Name:          name,
+	}
+}
+
+func (id LogAnalyticsWorkspaceId) ID(subscriptionId string) string {
+	// Log Analytics ID ignores casing
+	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.OperationalInsights/workspaces/%s", subscriptionId, id.ResourceGroup, id.Name)
+}
+
 func LogAnalyticsWorkspaceID(input string) (*LogAnalyticsWorkspaceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

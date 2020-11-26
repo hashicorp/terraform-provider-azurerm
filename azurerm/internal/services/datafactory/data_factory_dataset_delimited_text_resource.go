@@ -64,7 +64,7 @@ func resourceArmDataFactoryDatasetDelimitedText() *schema.Resource {
 				Type:     schema.TypeList,
 				MaxItems: 1,
 				Optional: true,
-				//ConflictsWith: []string{"sftp_server_location", "file_server_location", "s3_location", "blob_storage_location"},
+				// ConflictsWith: []string{"sftp_server_location", "file_server_location", "s3_location", "azure_blob_storage_location"},
 				ConflictsWith: []string{"azure_blob_storage_location"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -92,7 +92,7 @@ func resourceArmDataFactoryDatasetDelimitedText() *schema.Resource {
 				Type:     schema.TypeList,
 				MaxItems: 1,
 				Optional: true,
-				//ConflictsWith: []string{"sftp_server_location", "file_server_location", "s3_location", "blob_storage_location"},
+				// ConflictsWith: []string{"sftp_server_location", "file_server_location", "s3_location", "azure_blob_storage_location"},
 				ConflictsWith: []string{"http_server_location"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -266,7 +266,7 @@ func resourceArmDataFactoryDatasetDelimitedTextCreateUpdate(d *schema.ResourceDa
 
 	location := expandDataFactoryDatasetLocation(d)
 	if location == nil {
-		return fmt.Errorf("One of `http_server_location`, `blob_storage_location` must be specified to create a DataFactory Delimited Text Dataset")
+		return fmt.Errorf("One of `http_server_location`, `azure_blob_storage_location` must be specified to create a DataFactory Delimited Text Dataset")
 	}
 
 	delimited_textDatasetProperties := datafactory.DelimitedTextDatasetTypeProperties{
@@ -404,8 +404,8 @@ func resourceArmDataFactoryDatasetDelimitedTextRead(d *schema.ResourceData, meta
 			}
 		}
 		if azureBlobStorageLocation, ok := properties.Location.AsAzureBlobStorageLocation(); ok {
-			if err := d.Set("http_server_location", flattenDataFactoryDatasetAzureBlobStorageLocation(azureBlobStorageLocation)); err != nil {
-				return fmt.Errorf("Error setting `http_server_location` for Data Factory Delimited Text Dataset %s", err)
+			if err := d.Set("azure_blob_storage_location", flattenDataFactoryDatasetAzureBlobStorageLocation(azureBlobStorageLocation)); err != nil {
+				return fmt.Errorf("Error setting `azure_blob_storage_location` for Data Factory Delimited Text Dataset %s", err)
 			}
 		}
 
@@ -499,7 +499,7 @@ func expandDataFactoryDatasetLocation(d *schema.ResourceData) datafactory.BasicD
 		return expandDataFactoryDatasetHttpServerLocation(d)
 	}
 
-	if _, ok := d.GetOk("blob_storage_location"); ok {
+	if _, ok := d.GetOk("azure_blob_storage_location"); ok {
 		return expandDataFactoryDatasetAzureBlobStorageLocation(d)
 	}
 
@@ -519,8 +519,9 @@ func expandDataFactoryDatasetHttpServerLocation(d *schema.ResourceData) datafact
 	}
 	return httpServerLocation
 }
+
 func expandDataFactoryDatasetAzureBlobStorageLocation(d *schema.ResourceData) datafactory.BasicDatasetLocation {
-	props := d.Get("blob_storage_location").([]interface{})[0].(map[string]interface{})
+	props := d.Get("azure_blob_storage_location").([]interface{})[0].(map[string]interface{})
 	container := props["container"].(string)
 	path := props["path"].(string)
 	filename := props["filename"].(string)

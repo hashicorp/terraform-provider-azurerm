@@ -288,23 +288,50 @@ func dataSourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface
 }
 
 func flattenKeyVaultCertificatePolicyForDataSource(input *keyvault.CertificatePolicy) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
 	policy := make(map[string]interface{})
 
 	if params := input.IssuerParameters; params != nil {
-		issuerParams := make(map[string]interface{})
-		issuerParams["name"] = *params.Name
-		policy["issuer_parameters"] = []interface{}{issuerParams}
+		var name string
+		if params.Name != nil {
+			name = *params.Name
+		}
+		policy["issuer_parameters"] = []interface{}{
+			map[string]interface{}{
+				"name": name,
+			},
+		}
 	}
 
 	// key properties
 	if props := input.KeyProperties; props != nil {
-		keyProps := make(map[string]interface{})
-		keyProps["exportable"] = *props.Exportable
-		keyProps["key_size"] = int(*props.KeySize)
-		keyProps["key_type"] = *props.KeyType
-		keyProps["reuse_key"] = *props.ReuseKey
+		var exportable, reuseKey bool
+		var keySize int
+		var keyType string
+		if props.Exportable != nil {
+			exportable = *props.Exportable
+		}
+		if props.ReuseKey != nil {
+			reuseKey = *props.ReuseKey
+		}
+		if props.KeySize != nil {
+			keySize = int(*props.KeySize)
+		}
+		if props.KeyType != nil {
+			keyType = *props.KeyType
+		}
 
-		policy["key_properties"] = []interface{}{keyProps}
+		policy["key_properties"] = []interface{}{
+			map[string]interface{}{
+				"exportable": exportable,
+				"key_size":   keySize,
+				"key_type":   keyType,
+				"reuse_key":  reuseKey,
+			},
+		}
 	}
 
 	// lifetime actions
@@ -337,45 +364,53 @@ func flattenKeyVaultCertificatePolicyForDataSource(input *keyvault.CertificatePo
 
 	// secret properties
 	if props := input.SecretProperties; props != nil {
-		keyProps := make(map[string]interface{})
-		keyProps["content_type"] = *props.ContentType
-
-		policy["secret_properties"] = []interface{}{keyProps}
+		var contentType string
+		if props.ContentType != nil {
+			contentType = *props.ContentType
+		}
+		policy["secret_properties"] = []interface{}{
+			map[string]interface{}{
+				"content_type": contentType,
+			},
+		}
 	}
 
 	// x509 Certificate Properties
 	if props := input.X509CertificateProperties; props != nil {
-		certProps := make(map[string]interface{})
+		var subject string
+		var validityInMonths int
+		if props.Subject != nil {
+			subject = *props.Subject
+		}
+		if props.ValidityInMonths != nil {
+			validityInMonths = int(*props.ValidityInMonths)
+		}
 
 		usages := make([]string, 0)
-		for _, usage := range *props.KeyUsage {
-			usages = append(usages, string(usage))
+		if props.KeyUsage != nil {
+			for _, usage := range *props.KeyUsage {
+				usages = append(usages, string(usage))
+			}
 		}
 
 		sanOutputs := make([]interface{}, 0)
 		if san := props.SubjectAlternativeNames; san != nil {
-			sanOutput := make(map[string]interface{})
-			if emails := san.Emails; emails != nil {
-				sanOutput["emails"] = *emails
-			}
-			if dnsNames := san.DNSNames; dnsNames != nil {
-				sanOutput["dns_names"] = *dnsNames
-			}
-			if upns := san.Upns; upns != nil {
-				sanOutput["upns"] = *upns
-			}
-
-			sanOutputs = append(sanOutputs, sanOutput)
+			sanOutputs = append(sanOutputs, map[string]interface{}{
+				"emails":    utils.FlattenStringSlice(san.Emails),
+				"dns_names": utils.FlattenStringSlice(san.DNSNames),
+				"upns":      utils.FlattenStringSlice(san.Upns),
+			})
 		}
 
-		certProps["key_usage"] = usages
-		certProps["subject"] = *props.Subject
-		certProps["validity_in_months"] = int(*props.ValidityInMonths)
-		if props.Ekus != nil {
-			certProps["extended_key_usage"] = props.Ekus
+		policy["x509_certificate_properties"] = []interface{}{
+			map[string]interface{}{
+				"key_usage":                 usages,
+				"subject":                   subject,
+				"validity_in_months":        validityInMonths,
+				"extended_key_usage":        utils.FlattenStringSlice(props.Ekus),
+				"subject_alternative_names": sanOutputs,
+			},
 		}
-		certProps["subject_alternative_names"] = sanOutputs
-		policy["x509_certificate_properties"] = []interface{}{certProps}
 	}
 
 	return []interface{}{policy}

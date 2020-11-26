@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceproviders"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/sdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -24,7 +26,7 @@ func TestAzureProvider() terraform.ResourceProvider {
 
 func azureProvider(supportLegacyTestSuite bool) terraform.ResourceProvider {
 	// avoids this showing up in test output
-	var debugLog = func(f string, v ...interface{}) {
+	debugLog := func(f string, v ...interface{}) {
 		if os.Getenv("TF_LOG") == "" {
 			return
 		}
@@ -38,7 +40,43 @@ func azureProvider(supportLegacyTestSuite bool) terraform.ResourceProvider {
 
 	dataSources := make(map[string]*schema.Resource)
 	resources := make(map[string]*schema.Resource)
-	for _, service := range SupportedServices() {
+
+	// first handle the typed services
+	for _, service := range SupportedTypedServices() {
+		debugLog("[DEBUG] Registering Data Sources for %q..", service.Name())
+		for _, ds := range service.SupportedDataSources() {
+			key := ds.ResourceType()
+			if existing := dataSources[key]; existing != nil {
+				panic(fmt.Sprintf("An existing Data Source exists for %q", key))
+			}
+
+			wrapper := sdk.NewDataSourceWrapper(ds)
+			dataSource, err := wrapper.DataSource()
+			if err != nil {
+				panic(fmt.Errorf("creating Wrapper for Data Source %q: %+v", key, err))
+			}
+
+			dataSources[key] = dataSource
+		}
+
+		debugLog("[DEBUG] Registering Resources for %q..", service.Name())
+		for _, r := range service.SupportedResources() {
+			key := r.ResourceType()
+			if existing := resources[key]; existing != nil {
+				panic(fmt.Sprintf("An existing Resource exists for %q", key))
+			}
+
+			wrapper := sdk.NewResourceWrapper(r)
+			resource, err := wrapper.Resource()
+			if err != nil {
+				panic(fmt.Errorf("creating Wrapper for Resource %q: %+v", key, err))
+			}
+			resources[key] = resource
+		}
+	}
+
+	// then handle the untyped services
+	for _, service := range SupportedUntypedServices() {
 		debugLog("[DEBUG] Registering Data Sources for %q..", service.Name())
 		for k, v := range service.SupportedDataSources() {
 			if existing := dataSources[k]; existing != nil {
@@ -235,7 +273,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			TenantID:           d.Get("tenant_id").(string),
 			AuxiliaryTenantIDs: auxTenants,
 			Environment:        d.Get("environment").(string),
-			MetadataURL:        metadataHost, // TODO: rename this in Helpers too
+			MetadataHost:       metadataHost,
 			MsiEndpoint:        d.Get("msi_endpoint").(string),
 			ClientCertPassword: d.Get("client_certificate_password").(string),
 			ClientCertPath:     d.Get("client_certificate_path").(string),
@@ -248,7 +286,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			SupportsAuxiliaryTenants:       len(auxTenants) > 0,
 
 			// Doc Links
-			ClientSecretDocsLink: "https://www.terraform.io/docs/providers/azurerm/guides/service_principal_client_secret.html",
+			ClientSecretDocsLink: "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/service_principal_client_secret",
 		}
 
 		config, err := builder.Build()
@@ -301,9 +339,9 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 
 			if !skipProviderRegistration {
 				availableResourceProviders := providerList.Values()
-				requiredResourceProviders := RequiredResourceProviders()
+				requiredResourceProviders := resourceproviders.Required()
 
-				err := EnsureResourceProvidersAreRegistered(ctx, *client.Resource.ProvidersClient, availableResourceProviders, requiredResourceProviders)
+				err := resourceproviders.EnsureRegistered(ctx, *client.Resource.ProvidersClient, availableResourceProviders, requiredResourceProviders)
 				if err != nil {
 					return nil, fmt.Errorf(resourceProviderRegistrationErrorFmt, err)
 				}

@@ -1,12 +1,14 @@
 package cognitive
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -35,7 +37,7 @@ func resourceArmCognitiveAccount() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.CognitiveAccountID(id)
+			_, err := parse.AccountID(id)
 			return err
 		}),
 
@@ -57,6 +59,7 @@ func resourceArmCognitiveAccount() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Academic",
+					"AnomalyDetector",
 					"Bing.Autosuggest",
 					"Bing.Autosuggest.v7",
 					"Bing.CustomSearch",
@@ -77,6 +80,7 @@ func resourceArmCognitiveAccount() *schema.Resource {
 					"ImmersiveReader",
 					"LUIS",
 					"LUIS.Authoring",
+					"Personalizer",
 					"QnAMaker",
 					"Recommendations",
 					"SpeakerRecognition",
@@ -93,7 +97,7 @@ func resourceArmCognitiveAccount() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"F0", "F1", "S0", "S1", "S2", "S3", "S4", "S5", "S6", "P0", "P1", "P2",
+					"F0", "F1", "S0", "S", "S1", "S2", "S3", "S4", "S5", "S6", "P0", "P1", "P2",
 				}, false),
 			},
 
@@ -138,7 +142,7 @@ func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{})
 		existing, err := client.GetProperties(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Cognitive Account %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Cognitive Account %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -149,7 +153,7 @@ func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{})
 
 	sku, err := expandAccountSkuName(d.Get("sku_name").(string))
 	if err != nil {
-		return fmt.Errorf("error expanding sku_name for Cognitive Account %s (Resource Group %q): %v", name, resourceGroup, err)
+		return fmt.Errorf("expanding sku_name for Cognitive Account %s (Resource Group %q): %v", name, resourceGroup, err)
 	}
 
 	props := cognitiveservices.Account{
@@ -157,24 +161,38 @@ func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{})
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Sku:      sku,
 		Properties: &cognitiveservices.AccountProperties{
-			APIProperties: &cognitiveservices.AccountAPIProperties{
-				QnaRuntimeEndpoint: utils.String(d.Get("qna_runtime_endpoint").(string)),
-			},
+			APIProperties: &cognitiveservices.AccountAPIProperties{},
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if kind == "QnAMaker" && *props.Properties.APIProperties.QnaRuntimeEndpoint == "" {
-		return fmt.Errorf("the QnAMaker runtime endpoint `qna_runtime_endpoint` is required when kind is set to `QnAMaker`")
+	if kind == "QnAMaker" {
+		if v, ok := d.GetOk("qna_runtime_endpoint"); ok && v != "" {
+			props.Properties.APIProperties.QnaRuntimeEndpoint = utils.String(v.(string))
+		} else {
+			return fmt.Errorf("the QnAMaker runtime endpoint `qna_runtime_endpoint` is required when kind is set to `QnAMaker`")
+		}
 	}
 
 	if _, err := client.Create(ctx, resourceGroup, name, props); err != nil {
-		return fmt.Errorf("Error creating Cognitive Services Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Cognitive Services Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"Creating"},
+		Target:     []string{"Succeeded"},
+		Refresh:    cognitiveAccountStateRefreshFunc(ctx, client, resourceGroup, name),
+		MinTimeout: 15 * time.Second,
+		Timeout:    d.Timeout(schema.TimeoutCreate),
+	}
+
+	if _, err = stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for Cognitive Account (%s) to become available: %s", d.Get("name"), err)
 	}
 
 	read, err := client.GetProperties(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Cognitive Services Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Cognitive Services Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*read.ID)
@@ -187,7 +205,7 @@ func resourceArmCognitiveAccountUpdate(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CognitiveAccountID(d.Id())
+	id, err := parse.AccountID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -200,15 +218,17 @@ func resourceArmCognitiveAccountUpdate(d *schema.ResourceData, meta interface{})
 	props := cognitiveservices.Account{
 		Sku: sku,
 		Properties: &cognitiveservices.AccountProperties{
-			APIProperties: &cognitiveservices.AccountAPIProperties{
-				QnaRuntimeEndpoint: utils.String(d.Get("qna_runtime_endpoint").(string)),
-			},
+			APIProperties: &cognitiveservices.AccountAPIProperties{},
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if d.Get("kind").(string) == "QnAMaker" && *props.Properties.APIProperties.QnaRuntimeEndpoint == "" {
-		return fmt.Errorf("the QnAMaker runtime endpoint `qna_runtime_endpoint` is required when kind is set to `QnAMaker`")
+	if kind := d.Get("kind"); kind == "QnAMaker" {
+		if v, ok := d.GetOk("qna_runtime_endpoint"); ok && v != "" {
+			props.Properties.APIProperties.QnaRuntimeEndpoint = utils.String(v.(string))
+		} else {
+			return fmt.Errorf("the QnAMaker runtime endpoint `qna_runtime_endpoint` is required when kind is set to `QnAMaker`")
+		}
 	}
 
 	if _, err = client.Update(ctx, id.ResourceGroup, id.Name, props); err != nil {
@@ -223,13 +243,12 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CognitiveAccountID(d.Id())
+	id, err := parse.AccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resp, err := client.GetProperties(ctx, id.ResourceGroup, id.Name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Cognitive Services Account %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
@@ -259,7 +278,6 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.Name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Not able to obtain keys for Cognitive Services Account %q in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
@@ -280,7 +298,7 @@ func resourceArmCognitiveAccountDelete(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CognitiveAccountID(d.Id())
+	id, err := parse.AccountID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -312,4 +330,15 @@ func expandAccountSkuName(skuName string) (*cognitiveservices.Sku, error) {
 		Name: utils.String(skuName),
 		Tier: tier,
 	}, nil
+}
+
+func cognitiveAccountStateRefreshFunc(ctx context.Context, client *cognitiveservices.AccountsClient, resourceGroupName string, cognitiveAccountName string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.GetProperties(ctx, resourceGroupName, cognitiveAccountName)
+		if err != nil {
+			return nil, "", fmt.Errorf("issuing read request in cognitiveAccountStateRefreshFunc to Azure ARM for Cognitive Account '%s' (RG: '%s'): %s", cognitiveAccountName, resourceGroupName, err)
+		}
+
+		return res, string(res.Properties.ProvisioningState), nil
+	}
 }

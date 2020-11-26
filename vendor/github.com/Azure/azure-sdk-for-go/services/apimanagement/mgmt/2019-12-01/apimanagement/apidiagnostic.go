@@ -521,6 +521,9 @@ func (client APIDiagnosticClient) ListByService(ctx context.Context, resourceGro
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIDiagnosticClient", "ListByService", resp, "Failure responding to request")
 	}
+	if result.dc.hasNextLink() && result.dc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

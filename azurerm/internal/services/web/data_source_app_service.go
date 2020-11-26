@@ -35,7 +35,7 @@ func dataSourceArmAppService() *schema.Resource {
 				Computed: true,
 			},
 
-			"site_config": azure.SchemaAppServiceDataSourceSiteConfig(),
+			"site_config": schemaAppServiceDataSourceSiteConfig(),
 
 			"client_affinity_enabled": {
 				Type:     schema.TypeBool,
@@ -122,25 +122,11 @@ func dataSourceArmAppService() *schema.Resource {
 				Computed: true,
 			},
 
-			"source_control": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"repo_url": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"branch": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"source_control": schemaDataSourceAppServiceSiteSourceControl(),
 		},
 	}
 }
+
 func dataSourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -216,7 +202,7 @@ func dataSourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	siteConfig := azure.FlattenAppServiceSiteConfig(configResp.SiteConfig)
+	siteConfig := flattenAppServiceSiteConfig(configResp.SiteConfig)
 	if err := d.Set("site_config", siteConfig); err != nil {
 		return err
 	}

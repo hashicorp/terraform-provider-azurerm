@@ -323,6 +323,9 @@ func (client NotificationChannelsClient) List(ctx context.Context, resourceGroup
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.NotificationChannelsClient", "List", resp, "Failure responding to request")
 	}
+	if result.rwcnc.hasNextLink() && result.rwcnc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

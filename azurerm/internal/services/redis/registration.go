@@ -30,5 +30,6 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_redis_cache":         resourceArmRedisCache(),
 		"azurerm_redis_firewall_rule": resourceArmRedisFirewallRule(),
+		"azurerm_redis_linked_server": resourceArmRedisLinkedServer(),
 	}
 }

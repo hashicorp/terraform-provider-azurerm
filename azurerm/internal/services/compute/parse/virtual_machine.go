@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,21 +9,36 @@ import (
 )
 
 type VirtualMachineId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
+}
+
+func NewVirtualMachineID(subscriptionId, resourceGroup, name string) VirtualMachineId {
+	return VirtualMachineId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id VirtualMachineId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachines/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func VirtualMachineID(input string) (*VirtualMachineId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse VM ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	vm := VirtualMachineId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := VirtualMachineId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if vm.Name, err = id.PopSegment("virtualMachines"); err != nil {
+	if resourceId.Name, err = id.PopSegment("virtualMachines"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +46,5 @@ func VirtualMachineID(input string) (*VirtualMachineId, error) {
 		return nil, err
 	}
 
-	return &vm, nil
+	return &resourceId, nil
 }

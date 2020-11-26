@@ -31,6 +31,10 @@ func TestEnhancedValidationDisabled(t *testing.T) {
 			input: "West Europe",
 			valid: true,
 		},
+		{
+			input: "global",
+			valid: true,
+		},
 	}
 	enhancedEnabled = false
 	defer func() {
@@ -71,6 +75,10 @@ func TestEnhancedValidationEnabledButIsOffline(t *testing.T) {
 		},
 		{
 			input: "West Europe",
+			valid: true,
+		},
+		{
+			input: "global",
 			valid: true,
 		},
 	}
@@ -143,6 +151,11 @@ func TestEnhancedValidationEnabled(t *testing.T) {
 			input:              "West Europe",
 			valid:              false,
 		},
+		{
+			availableLocations: publicLocations,
+			input:              "global",
+			valid:              true,
+		},
 	}
 	enhancedEnabled = true
 	defer func() {
@@ -163,49 +176,51 @@ func TestEnhancedValidationEnabled(t *testing.T) {
 	}
 }
 
-var chinaLocations = []string{"chinaeast", "chinanorth", "chinanorth2", "chinaeast2"}
-var publicLocations = []string{
-	"westus",
-	"westus2",
-	"eastus",
-	"centralus",
-	"southcentralus",
-	"northcentralus",
-	"westcentralus",
-	"eastus2",
-	"brazilsouth",
-	"brazilus",
-	"northeurope",
-	"westeurope",
-	"eastasia",
-	"southeastasia",
-	"japanwest",
-	"japaneast",
-	"koreacentral",
-	"koreasouth",
-	"indiasouth",
-	"indiawest",
-	"indiacentral",
-	"australiaeast",
-	"australiasoutheast",
-	"canadacentral",
-	"canadaeast",
-	"uknorth",
-	"uksouth2",
-	"uksouth",
-	"ukwest",
-	"francecentral",
-	"francesouth",
-	"australiacentral",
-	"australiacentral2",
-	"uaecentral",
-	"uaenorth",
-	"southafricanorth",
-	"southafricawest",
-	"switzerlandnorth",
-	"switzerlandwest",
-	"germanynorth",
-	"germanywestcentral",
-	"norwayeast",
-	"norwaywest",
-}
+var (
+	chinaLocations  = []string{"chinaeast", "chinanorth", "chinanorth2", "chinaeast2"}
+	publicLocations = []string{
+		"westus",
+		"westus2",
+		"eastus",
+		"centralus",
+		"southcentralus",
+		"northcentralus",
+		"westcentralus",
+		"eastus2",
+		"brazilsouth",
+		"brazilus",
+		"northeurope",
+		"westeurope",
+		"eastasia",
+		"southeastasia",
+		"japanwest",
+		"japaneast",
+		"koreacentral",
+		"koreasouth",
+		"indiasouth",
+		"indiawest",
+		"indiacentral",
+		"australiaeast",
+		"australiasoutheast",
+		"canadacentral",
+		"canadaeast",
+		"uknorth",
+		"uksouth2",
+		"uksouth",
+		"ukwest",
+		"francecentral",
+		"francesouth",
+		"australiacentral",
+		"australiacentral2",
+		"uaecentral",
+		"uaenorth",
+		"southafricanorth",
+		"southafricawest",
+		"switzerlandnorth",
+		"switzerlandwest",
+		"germanynorth",
+		"germanywestcentral",
+		"norwayeast",
+		"norwaywest",
+	}
+)

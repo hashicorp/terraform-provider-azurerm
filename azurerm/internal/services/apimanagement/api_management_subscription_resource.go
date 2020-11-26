@@ -90,6 +90,12 @@ func resourceArmApiManagementSubscription() *schema.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
+
+			"allow_tracing": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 		},
 	}
 }
@@ -123,13 +129,15 @@ func resourceArmApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, me
 	productId := d.Get("product_id").(string)
 	state := d.Get("state").(string)
 	userId := d.Get("user_id").(string)
+	allowTracing := d.Get("allow_tracing").(bool)
 
 	params := apimanagement.SubscriptionCreateParameters{
 		SubscriptionCreateParameterProperties: &apimanagement.SubscriptionCreateParameterProperties{
-			DisplayName: utils.String(displayName),
-			Scope:       utils.String(productId),
-			State:       apimanagement.SubscriptionState(state),
-			OwnerID:     utils.String(userId),
+			DisplayName:  utils.String(displayName),
+			Scope:        utils.String(productId),
+			State:        apimanagement.SubscriptionState(state),
+			OwnerID:      utils.String(userId),
+			AllowTracing: utils.Bool(allowTracing),
 		},
 	}
 
@@ -142,7 +150,7 @@ func resourceArmApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, me
 	}
 
 	sendEmail := utils.Bool(false)
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, subscriptionId, params, sendEmail, "")
+	_, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, subscriptionId, params, sendEmail, "", apimanagement.DeveloperPortal)
 	if err != nil {
 		return fmt.Errorf("creating/updating Subscription %q (API Management Service %q / Resource Group %q): %+v", subscriptionId, serviceName, resourceGroup, err)
 	}
@@ -190,6 +198,7 @@ func resourceArmApiManagementSubscriptionRead(d *schema.ResourceData, meta inter
 		d.Set("state", string(props.State))
 		d.Set("product_id", props.Scope)
 		d.Set("user_id", props.OwnerID)
+		d.Set("allow_tracing", props.AllowTracing)
 	}
 
 	// Primary and secondary keys must be got from this additional api

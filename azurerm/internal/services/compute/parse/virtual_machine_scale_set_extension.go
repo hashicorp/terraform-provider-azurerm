@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,26 +9,41 @@ import (
 )
 
 type VirtualMachineScaleSetExtensionId struct {
+	SubscriptionId             string
 	ResourceGroup              string
 	VirtualMachineScaleSetName string
-	Name                       string
+	ExtensionName              string
+}
+
+func NewVirtualMachineScaleSetExtensionID(subscriptionId, resourceGroup, virtualMachineScaleSetName, extensionName string) VirtualMachineScaleSetExtensionId {
+	return VirtualMachineScaleSetExtensionId{
+		SubscriptionId:             subscriptionId,
+		ResourceGroup:              resourceGroup,
+		VirtualMachineScaleSetName: virtualMachineScaleSetName,
+		ExtensionName:              extensionName,
+	}
+}
+
+func (id VirtualMachineScaleSetExtensionId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachineScaleSets/%s/extensions/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VirtualMachineScaleSetName, id.ExtensionName)
 }
 
 func VirtualMachineScaleSetExtensionID(input string) (*VirtualMachineScaleSetExtensionId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Virtual Machine Scale Set Extension ID %q: %+v", input, err)
-	}
-
-	extension := VirtualMachineScaleSetExtensionId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if extension.VirtualMachineScaleSetName, err = id.PopSegment("virtualMachineScaleSets"); err != nil {
 		return nil, err
 	}
 
-	if extension.Name, err = id.PopSegment("extensions"); err != nil {
+	resourceId := VirtualMachineScaleSetExtensionId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.VirtualMachineScaleSetName, err = id.PopSegment("virtualMachineScaleSets"); err != nil {
+		return nil, err
+	}
+	if resourceId.ExtensionName, err = id.PopSegment("extensions"); err != nil {
 		return nil, err
 	}
 
@@ -34,5 +51,5 @@ func VirtualMachineScaleSetExtensionID(input string) (*VirtualMachineScaleSetExt
 		return nil, err
 	}
 
-	return &extension, nil
+	return &resourceId, nil
 }

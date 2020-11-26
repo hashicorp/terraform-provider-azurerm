@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -82,6 +82,7 @@ func TestAccAzureRMLoadBalancer_standard(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMLoadBalancer_frontEndConfigPublicIPPrefix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
 	var lb network.LoadBalancer
@@ -106,6 +107,7 @@ func TestAccAzureRMLoadBalancer_frontEndConfigPublicIPPrefix(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMLoadBalancer_frontEndConfig(t *testing.T) {
 	var lb network.LoadBalancer
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
@@ -255,7 +257,6 @@ func testCheckAzureRMLoadBalancerDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := client.Get(ctx, resourceGroup, name, "")
-
 		if err != nil {
 			return nil
 		}

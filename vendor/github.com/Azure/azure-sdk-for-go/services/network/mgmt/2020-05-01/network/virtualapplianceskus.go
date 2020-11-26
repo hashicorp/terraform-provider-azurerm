@@ -145,6 +145,9 @@ func (client VirtualApplianceSkusClient) List(ctx context.Context) (result Virtu
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualApplianceSkusClient", "List", resp, "Failure responding to request")
 	}
+	if result.vaslr.hasNextLink() && result.vaslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

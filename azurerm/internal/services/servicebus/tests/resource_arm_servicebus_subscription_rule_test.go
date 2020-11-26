@@ -28,6 +28,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMServiceBusSubscriptionRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
 
@@ -322,6 +323,9 @@ resource "azurerm_servicebus_subscription_rule" "test" {
   correlation_filter {
     correlation_id = "test_correlation_id"
     message_id     = "test_message_id"
+    properties = {
+      test_key = "test_value"
+    }
   }
 }
 `, template, data.RandomInteger)
@@ -344,6 +348,9 @@ resource "azurerm_servicebus_subscription_rule" "test" {
     correlation_id = "test_correlation_id"
     message_id     = "test_message_id_updated"
     reply_to       = "test_reply_to_added"
+    properties = {
+      test_key = "test_value_updated"
+    }
   }
 }
 `, template, data.RandomInteger)

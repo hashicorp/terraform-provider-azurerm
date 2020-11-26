@@ -5,14 +5,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	webValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -26,6 +25,7 @@ func resourceArmAppServiceSlot() *schema.Resource {
 		Read:   resourceArmAppServiceSlotRead,
 		Update: resourceArmAppServiceSlotCreateUpdate,
 		Delete: resourceArmAppServiceSlotDelete,
+
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := ParseAppServiceSlotID(id)
 			return err
@@ -46,16 +46,17 @@ func resourceArmAppServiceSlot() *schema.Resource {
 				ValidateFunc: webValidate.AppServiceName,
 			},
 
+			"identity": schemaAppServiceIdentity(),
+
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"location": azure.SchemaLocation(),
 
-			"identity": azure.SchemaAppServiceIdentity(),
-
 			"app_service_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: webValidate.AppServiceName,
 			},
 
 			"app_service_plan_id": {
@@ -64,11 +65,11 @@ func resourceArmAppServiceSlot() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"site_config": azure.SchemaAppServiceSiteConfig(),
+			"site_config": schemaAppServiceSiteConfig(),
 
-			"auth_settings": azure.SchemaAppServiceAuthSettings(),
+			"auth_settings": schemaAppServiceAuthSettings(),
 
-			"logs": azure.SchemaAppServiceLogsConfig(),
+			"logs": schemaAppServiceLogsConfig(),
 
 			"client_affinity_enabled": {
 				Type:     schema.TypeBool,
@@ -171,7 +172,7 @@ func resourceArmAppServiceSlotCreateUpdate(d *schema.ResourceData, meta interfac
 	resourceGroup := d.Get("resource_group_name").(string)
 	appServiceName := d.Get("app_service_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.GetSlot(ctx, resourceGroup, appServiceName, slot)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -191,7 +192,7 @@ func resourceArmAppServiceSlotCreateUpdate(d *schema.ResourceData, meta interfac
 	t := d.Get("tags").(map[string]interface{})
 	affinity := d.Get("client_affinity_enabled").(bool)
 
-	siteConfig, err := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
+	siteConfig, err := expandAppServiceSiteConfig(d.Get("site_config"))
 	if err != nil {
 		return fmt.Errorf("Error expanding `site_config` for App Service Slot %q (Resource Group %q): %s", slot, resourceGroup, err)
 	}
@@ -209,7 +210,7 @@ func resourceArmAppServiceSlotCreateUpdate(d *schema.ResourceData, meta interfac
 
 	if _, ok := d.GetOk("identity"); ok {
 		appServiceIdentityRaw := d.Get("identity").([]interface{})
-		appServiceIdentity := azure.ExpandAppServiceIdentity(appServiceIdentityRaw)
+		appServiceIdentity := expandAppServiceIdentity(appServiceIdentityRaw)
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
@@ -249,7 +250,7 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	appServicePlanId := d.Get("app_service_plan_id").(string)
-	siteConfig, err := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
+	siteConfig, err := expandAppServiceSiteConfig(d.Get("site_config"))
 	if err != nil {
 		return fmt.Errorf("Error expanding `site_config` for App Service Slot %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
 	}
@@ -283,7 +284,7 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 
 	if d.HasChange("site_config") {
 		// update the main configuration
-		siteConfig, err := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
+		siteConfig, err := expandAppServiceSiteConfig(d.Get("site_config"))
 		if err != nil {
 			return fmt.Errorf("Error expanding `site_config` for App Service Slot %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
 		}
@@ -297,7 +298,7 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 
 	if d.HasChange("auth_settings") {
 		authSettingsRaw := d.Get("auth_settings").([]interface{})
-		authSettingsProperties := azure.ExpandAppServiceAuthSettings(authSettingsRaw)
+		authSettingsProperties := expandAppServiceAuthSettings(authSettingsRaw)
 		authSettings := web.SiteAuthSettings{
 			ID:                         utils.String(d.Id()),
 			SiteAuthSettingsProperties: &authSettingsProperties,
@@ -327,7 +328,7 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 	// updating the former will clobber the log settings
 	hasLogs := len(d.Get("logs").([]interface{})) > 0
 	if d.HasChange("logs") || (hasLogs && d.HasChange("app_settings")) {
-		logs := azure.ExpandAppServiceLogs(d.Get("logs"))
+		logs := expandAppServiceLogs(d.Get("logs"))
 		logsResource := web.SiteLogsConfig{
 			ID:                       utils.String(d.Id()),
 			SiteLogsConfigProperties: &logs,
@@ -352,7 +353,7 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 
 	if d.HasChange("identity") {
 		appServiceIdentityRaw := d.Get("identity").([]interface{})
-		appServiceIdentity := azure.ExpandAppServiceIdentity(appServiceIdentityRaw)
+		appServiceIdentity := expandAppServiceIdentity(appServiceIdentityRaw)
 		sitePatchResource := web.SitePatchResource{
 			ID:       utils.String(d.Id()),
 			Identity: appServiceIdentity,
@@ -468,17 +469,17 @@ func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error setting `connection_string`: %s", err)
 	}
 
-	authSettings := azure.FlattenAppServiceAuthSettings(authResp.SiteAuthSettingsProperties)
+	authSettings := flattenAppServiceAuthSettings(authResp.SiteAuthSettingsProperties)
 	if err := d.Set("auth_settings", authSettings); err != nil {
 		return fmt.Errorf("Error setting `auth_settings`: %s", err)
 	}
 
-	logs := azure.FlattenAppServiceLogs(logsResp.SiteLogsConfigProperties)
+	logs := flattenAppServiceLogs(logsResp.SiteLogsConfigProperties)
 	if err := d.Set("logs", logs); err != nil {
 		return fmt.Errorf("Error setting `logs`: %s", err)
 	}
 
-	identity := azure.FlattenAppServiceIdentity(resp.Identity)
+	identity := flattenAppServiceIdentity(resp.Identity)
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("Error setting `identity`: %s", err)
 	}
@@ -488,7 +489,7 @@ func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error setting `site_credential`: %s", err)
 	}
 
-	siteConfig := azure.FlattenAppServiceSiteConfig(configResp.SiteConfig)
+	siteConfig := flattenAppServiceSiteConfig(configResp.SiteConfig)
 	if err := d.Set("site_config", siteConfig); err != nil {
 		return fmt.Errorf("Error setting `site_config`: %s", err)
 	}

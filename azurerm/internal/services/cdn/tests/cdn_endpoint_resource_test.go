@@ -131,6 +131,25 @@ func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "staging"),
 				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMCdnEndpoint_withoutCompression(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCdnEndpoint_withoutCompression(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCdnEndpointExists(data.ResourceName),
+					resource.TestCheckNoResourceAttr(data.ResourceName, "is_compression_enabled"),
+				),
 			}, data.ImportStep(),
 		},
 	})
@@ -345,6 +364,25 @@ func TestAccAzureRMCdnEndpoint_deliveryRule(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCdnEndpoint_dnsAlias(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCdnEndpoint_dnsAlias(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCdnEndpointExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMCdnEndpointExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := acceptance.AzureProvider.Meta().(*clients.Client).Cdn.EndpointsClient
@@ -356,7 +394,7 @@ func testCheckAzureRMCdnEndpointExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.CdnEndpointID(rs.Primary.ID)
+		id, err := parse.EndpointID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -414,7 +452,7 @@ func testCheckAzureRMCdnEndpointDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.CdnEndpointID(rs.Primary.ID)
+		id, err := parse.EndpointID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -655,6 +693,43 @@ resource "azurerm_cdn_endpoint" "test" {
 }
 
 func testAccAzureRMCdnEndpoint_optimized(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_cdn_profile" "test" {
+  name                = "acctestcdnprof%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard_Verizon"
+}
+
+resource "azurerm_cdn_endpoint" "test" {
+  name                = "acctestcdnend%d"
+  profile_name        = azurerm_cdn_profile.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  is_http_allowed     = false
+  is_https_allowed    = true
+  optimization_type   = "GeneralWebDelivery"
+
+  origin {
+    name       = "acceptanceTestCdnOrigin1"
+    host_name  = "www.contoso.com"
+    https_port = 443
+    http_port  = 80
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMCdnEndpoint_withoutCompression(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1108,4 +1183,51 @@ resource "azurerm_cdn_endpoint" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMCdnEndpoint_dnsAlias(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_dns_zone" "test" {
+  name                = "acctestcdnep%d.com"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_cdn_profile" "test" {
+  name                = "acctestcdnep%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard_Verizon"
+}
+
+resource "azurerm_cdn_endpoint" "test" {
+  name                = "acctestcdnep%d"
+  profile_name        = azurerm_cdn_profile.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  origin {
+    name       = "acceptanceTestCdnOrigin1"
+    host_name  = "www.contoso.com"
+    https_port = 443
+    http_port  = 80
+  }
+}
+
+resource "azurerm_dns_a_record" "test" {
+  name                = "myarecord%d"
+  resource_group_name = azurerm_resource_group.test.name
+  zone_name           = azurerm_dns_zone.test.name
+  ttl                 = 300
+  target_resource_id  = azurerm_cdn_endpoint.test.id
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

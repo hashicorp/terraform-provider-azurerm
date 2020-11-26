@@ -46,7 +46,7 @@ func TestAccAzureRMMonitorActionGroup_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMMonitorActionGroup_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_app_service_custom_hostname_binding"),
+				ExpectError: acceptance.RequiresImportError("azurerm_monitor_action_group"),
 			},
 		},
 	})
@@ -616,7 +616,7 @@ resource "azurerm_automation_runbook" "test" {
   runbook_type            = "PowerShellWorkflow"
 
   publish_content_link {
-    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
+    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/c4935ffb69246a6058eb24f54640f53f69d3ac9f/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -824,7 +824,7 @@ resource "azurerm_monitor_action_group" "test" {
 
   sms_receiver {
     name         = "remotesupport"
-    country_code = "86"
+    country_code = "61"
     phone_number = "13888888888"
   }
 
@@ -850,7 +850,7 @@ resource "azurerm_monitor_action_group" "test" {
   }
 
   voice_receiver {
-    name         = "oncallmsg"
+    name         = "oncallvoice"
     country_code = "1"
     phone_number = "1231231234"
   }
@@ -896,7 +896,7 @@ resource "azurerm_automation_runbook" "test" {
   runbook_type            = "PowerShellWorkflow"
 
   publish_content_link {
-    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
+    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/c4935ffb69246a6058eb24f54640f53f69d3ac9f/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
   }
 }
 
@@ -985,7 +985,6 @@ func testCheckAzureRMMonitorActionGroupDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
-
 		if err != nil {
 			return nil
 		}

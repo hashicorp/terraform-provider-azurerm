@@ -137,6 +137,8 @@ The following arguments are supported:
 
 * `route` - (Optional) A `route` block as defined below.
 
+* `public_network_access_enabled` - (Optional) Is the IotHub resource accessible from a public network? 
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -168,6 +170,8 @@ An `endpoint` block supports the following:
 * `encoding` - (Optional) Encoding that is used to serialize messages to blobs. Supported values are 'avro' and 'avrodeflate'. Default value is 'avro'. This attribute is mandatory for endpoint type `AzureIotHub.StorageContainer`.
 
 * `file_name_format` - (Optional) File name format for the blob. Default format is ``{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}``. All parameters are mandatory but can be reordered. This attribute is mandatory for endpoint type `AzureIotHub.StorageContainer`.
+
+* `resource_group_name` - (Optional) The resource group in which the endpoint will be created.
 
 ---
 

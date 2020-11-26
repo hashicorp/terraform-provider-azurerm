@@ -237,6 +237,9 @@ func (client EncryptionProtectorsClient) ListByServer(ctx context.Context, resou
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.EncryptionProtectorsClient", "ListByServer", resp, "Failure responding to request")
 	}
+	if result.eplr.hasNextLink() && result.eplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

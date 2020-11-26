@@ -205,6 +205,28 @@ func TestAccAzureRMVirtualNetworkGateway_vpnClientConfig(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVirtualNetworkGateway_vpnClientConfigAzureAdAuth(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualNetworkGateway_vpnClientConfigAzureAdAuth(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkGatewayExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "vpn_client_configuration.0.aad_tenant", fmt.Sprintf("https://login.microsoftonline.com/%s/", data.Client().TenantID)),
+					resource.TestCheckResourceAttr(data.ResourceName, "vpn_client_configuration.0.aad_audience", "41b23e61-6c1e-4545-b367-cd054e0ed4b4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "vpn_client_configuration.0.aad_issuer", fmt.Sprintf("https://sts.windows.net/%s/", data.Client().TenantID)),
+					resource.TestCheckResourceAttr(data.ResourceName, "vpn_client_configuration.0.vpn_client_protocols.#", "1"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMVirtualNetworkGateway_vpnClientConfigOpenVPN(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
 
@@ -303,7 +325,6 @@ func testCheckAzureRMVirtualNetworkGatewayDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := client.Get(ctx, resourceGroup, name)
-
 		if err != nil {
 			return nil
 		}
@@ -623,6 +644,65 @@ resource "azurerm_virtual_network_gateway" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMVirtualNetworkGateway_vpnClientConfigAzureAdAuth(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "GatewaySubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.1.0/24"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Dynamic"
+}
+
+resource "azurerm_virtual_network_gateway" "test" {
+  name                = "acctestvng-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  type     = "Vpn"
+  vpn_type = "RouteBased"
+  sku      = "VpnGw1"
+
+  ip_configuration {
+    public_ip_address_id          = azurerm_public_ip.test.id
+    private_ip_address_allocation = "Dynamic"
+    subnet_id                     = azurerm_subnet.test.id
+  }
+
+  vpn_client_configuration {
+    address_space        = ["10.2.0.0/24"]
+    vpn_client_protocols = ["OpenVPN"]
+
+    aad_tenant   = "https://login.microsoftonline.com/%s/"
+    aad_audience = "41b23e61-6c1e-4545-b367-cd054e0ed4b4"
+    aad_issuer   = "https://sts.windows.net/%s/"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Client().TenantID, data.Client().TenantID)
 }
 
 func testAccAzureRMVirtualNetworkGateway_vpnClientConfigOpenVPN(data acceptance.TestData) string {

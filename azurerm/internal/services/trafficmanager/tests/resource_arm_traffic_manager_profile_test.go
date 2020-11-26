@@ -79,6 +79,32 @@ func TestAccAzureRMTrafficManagerProfile_update(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMTrafficManagerProfile_updateEnsureDoNotEraseEndpoints(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMTrafficManagerProfile_completeWithEndpoint(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMTrafficManagerProfileExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMTrafficManagerProfile_completeUpdatedWithEndpoint(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMTrafficManagerProfileExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMTrafficManagerProfile_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 	resource.ParallelTest(t, resource.TestCase{
@@ -228,24 +254,31 @@ func testCheckAzureRMTrafficManagerProfileDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMTrafficManagerProfile_basic(data acceptance.TestData, method string) string {
+func testAccAzureRMTrafficManagerProfile_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-traffic-%[1]d"
-  location = "%[2]s"
+  name     = "acctestRG-traffic-%d"
+  location = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
+func testAccAzureRMTrafficManagerProfile_basic(data acceptance.TestData, method string) string {
+	template := testAccAzureRMTrafficManagerProfile_template(data)
+	return fmt.Sprintf(`
+%s
+
 resource "azurerm_traffic_manager_profile" "test" {
-  name                   = "acctest-TMP-%[1]d"
+  name                   = "acctest-TMP-%d"
   resource_group_name    = azurerm_resource_group.test.name
-  traffic_routing_method = "%[3]s"
+  traffic_routing_method = "%s"
 
   dns_config {
-    relative_name = "acctest-tmp-%[1]d"
+    relative_name = "acctest-tmp-%d"
     ttl           = 30
   }
 
@@ -255,7 +288,7 @@ resource "azurerm_traffic_manager_profile" "test" {
     path     = "/"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, method)
+`, template, data.RandomInteger, method, data.RandomInteger)
 }
 
 func testAccAzureRMTrafficManagerProfile_requiresImport(data acceptance.TestData) string {
@@ -283,15 +316,9 @@ resource "azurerm_traffic_manager_profile" "import" {
 }
 
 func testAccAzureRMTrafficManagerProfile_complete(data acceptance.TestData) string {
+	template := testAccAzureRMTrafficManagerProfile_template(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-traffic-%d"
-  location = "%s"
-}
+%s
 
 resource "azurerm_traffic_manager_profile" "test" {
   name                   = "acctest-TMP-%d"
@@ -327,19 +354,13 @@ resource "azurerm_traffic_manager_profile" "test" {
     cost_center = "acctest"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMTrafficManagerProfile_completeUpdated(data acceptance.TestData) string {
+	template := testAccAzureRMTrafficManagerProfile_template(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-traffic-%d"
-  location = "%s"
-}
+%s
 
 resource "azurerm_traffic_manager_profile" "test" {
   name                   = "acctest-TMP-%d"
@@ -347,7 +368,7 @@ resource "azurerm_traffic_manager_profile" "test" {
   traffic_routing_method = "Priority"
 
   dns_config {
-    relative_name = "acctest-tmp-rename-%d"
+    relative_name = "acctest-tmp-%d"
     ttl           = 30
   }
 
@@ -374,19 +395,115 @@ resource "azurerm_traffic_manager_profile" "test" {
     Environment = "staging"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMTrafficManagerProfile_endpointResource(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_traffic_manager_endpoint" "test" {
+  name                = "acctestend-external%d"
+  resource_group_name = azurerm_resource_group.test.name
+  profile_name        = azurerm_traffic_manager_profile.test.name
+  target              = "terraform.io"
+  type                = "externalEndpoints"
+  weight              = 100
+}
+`, data.RandomInteger)
+}
+
+func testAccAzureRMTrafficManagerProfile_completeWithEndpoint(data acceptance.TestData) string {
+	template := testAccAzureRMTrafficManagerProfile_template(data)
+	endpoint := testAccAzureRMTrafficManagerProfile_endpointResource(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_traffic_manager_profile" "test" {
+  name                   = "acctest-TMP-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  traffic_routing_method = "Weighted"
+
+  dns_config {
+    relative_name = "acctest-tmp-%d"
+    ttl           = 30
+  }
+
+  monitor_config {
+    expected_status_code_ranges = [
+      "100-101",
+      "301-303",
+    ]
+
+    custom_header {
+      name  = "foo"
+      value = "bar"
+    }
+
+    protocol = "tcp"
+    port     = 777
+
+    interval_in_seconds          = 30
+    timeout_in_seconds           = 9
+    tolerated_number_of_failures = 6
+  }
+
+  tags = {
+    Environment = "Production"
+    cost_center = "acctest"
+  }
+}
+
+%s
+`, template, data.RandomInteger, data.RandomInteger, endpoint)
+}
+
+func testAccAzureRMTrafficManagerProfile_completeUpdatedWithEndpoint(data acceptance.TestData) string {
+	template := testAccAzureRMTrafficManagerProfile_template(data)
+	endpoint := testAccAzureRMTrafficManagerProfile_endpointResource(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_traffic_manager_profile" "test" {
+  name                   = "acctest-TMP-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  traffic_routing_method = "Priority"
+
+  dns_config {
+    relative_name = "acctest-tmp-%d"
+    ttl           = 30
+  }
+
+  monitor_config {
+    expected_status_code_ranges = [
+      "302-304",
+    ]
+
+    custom_header {
+      name  = "foo2"
+      value = "bar2"
+    }
+
+    protocol = "https"
+    port     = 442
+    path     = "/"
+
+    interval_in_seconds          = 30
+    timeout_in_seconds           = 6
+    tolerated_number_of_failures = 3
+  }
+
+  tags = {
+    Environment = "staging"
+  }
+}
+
+%s
+`, template, data.RandomInteger, data.RandomInteger, endpoint)
 }
 
 func testAccAzureRMTrafficManagerProfile_failoverError(data acceptance.TestData) string {
+	template := testAccAzureRMTrafficManagerProfile_template(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-traffic-%d"
-  location = "%s"
-}
+%s
 
 resource "azurerm_traffic_manager_profile" "test" {
   name                   = "acctest-TMP-%d"
@@ -407,5 +524,5 @@ resource "azurerm_traffic_manager_profile" "test" {
     tolerated_number_of_failures = 3
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomInteger)
 }

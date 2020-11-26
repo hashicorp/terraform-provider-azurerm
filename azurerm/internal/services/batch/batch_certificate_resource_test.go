@@ -158,6 +158,7 @@ resource "azurerm_batch_certificate" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
+
 func testAccBatchCertificateCer(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -186,6 +187,7 @@ resource "azurerm_batch_certificate" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
+
 func testAccBatchCertificateCerWithPassword(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -225,12 +227,12 @@ func testCheckBatchCertificateDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.BatchCertificateID(rs.Primary.ID)
+		id, err := parse.CertificateID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err

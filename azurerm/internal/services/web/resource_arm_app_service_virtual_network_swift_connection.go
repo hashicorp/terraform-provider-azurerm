@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -55,7 +55,7 @@ func resourceArmAppServiceVirtualNetworkSwiftConnectionCreateUpdate(d *schema.Re
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	appID, err := ParseAppServiceID(d.Get("app_service_id").(string))
+	appID, err := parse.AppServiceID(d.Get("app_service_id").(string))
 	if err != nil {
 		return fmt.Errorf("Error parsing App Service Resource ID %q", appID)
 	}

@@ -368,6 +368,9 @@ func (client BotConnectionClient) ListByBotService(ctx context.Context, resource
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.BotConnectionClient", "ListByBotService", resp, "Failure responding to request")
 	}
+	if result.csrl.hasNextLink() && result.csrl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

@@ -421,6 +421,32 @@ func TestAccBatchPool_frontEndPortRanges(t *testing.T) {
 	})
 }
 
+func TestAccBatchPool_fixedScaleUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckBatchPoolDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccBatchPool_fixedScale_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckBatchPoolExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("stop_pending_resize_operation"),
+			{
+				Config: testAccBatchPool_fixedScale_completeUpdate(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckBatchPoolExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("stop_pending_resize_operation"),
+		},
+	})
+}
+
 func testCheckBatchPoolExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -432,18 +458,18 @@ func testCheckBatchPoolExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		id, err := parse.BatchPoolID(rs.Primary.ID)
+		id, err := parse.PoolID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on batchPoolClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Batch pool %q (account: %q, resource group: %q) does not exist", id.Name, id.AccountName, id.ResourceGroup)
+			return fmt.Errorf("Bad: Batch pool %q (account: %q, resource group: %q) does not exist", id.Name, id.BatchAccountName, id.ResourceGroup)
 		}
 
 		return nil
@@ -459,11 +485,11 @@ func testCheckBatchPoolDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.BatchPoolID(rs.Primary.ID)
+		id, err := parse.PoolID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err
@@ -518,6 +544,64 @@ resource "azurerm_batch_pool" "test" {
 
   fixed_scale {
     target_dedicated_nodes = 2
+  }
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04.0-LTS"
+    version   = "latest"
+  }
+
+  metadata = {
+    tagName = "Example tag"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
+}
+
+func testAccBatchPool_fixedScale_completeUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-%d-batchpool"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "testaccsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                 = "testaccbatch%s"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  pool_allocation_mode = "BatchService"
+  storage_account_id   = azurerm_storage_account.test.id
+
+  tags = {
+    env = "test"
+  }
+}
+
+resource "azurerm_batch_pool" "test" {
+  name                = "testaccpool%s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
+  display_name        = "Test Acc Pool"
+  vm_size             = "Standard_A1"
+  max_tasks_per_node  = 2
+  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+
+  fixed_scale {
+    target_dedicated_nodes = 3
   }
 
   storage_image_reference {

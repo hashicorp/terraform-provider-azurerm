@@ -149,6 +149,9 @@ func (client ReplicationEventsClient) List(ctx context.Context, filter string) (
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationEventsClient", "List", resp, "Failure responding to request")
 	}
+	if result.ec.hasNextLink() && result.ec.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

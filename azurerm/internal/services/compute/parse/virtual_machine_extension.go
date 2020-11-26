@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,28 +9,47 @@ import (
 )
 
 type VirtualMachineExtensionId struct {
-	ResourceGroup  string
-	Name           string
-	VirtualMachine string
+	SubscriptionId     string
+	ResourceGroup      string
+	VirtualMachineName string
+	ExtensionName      string
+}
+
+func NewVirtualMachineExtensionID(subscriptionId, resourceGroup, virtualMachineName, extensionName string) VirtualMachineExtensionId {
+	return VirtualMachineExtensionId{
+		SubscriptionId:     subscriptionId,
+		ResourceGroup:      resourceGroup,
+		VirtualMachineName: virtualMachineName,
+		ExtensionName:      extensionName,
+	}
+}
+
+func (id VirtualMachineExtensionId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachines/%s/extensions/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VirtualMachineName, id.ExtensionName)
 }
 
 func VirtualMachineExtensionID(input string) (*VirtualMachineExtensionId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse App Service ID %q: %+v", input, err)
-	}
-
-	virtualMachineExtension := VirtualMachineExtensionId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if virtualMachineExtension.VirtualMachine, err = id.PopSegment("virtualMachines"); err != nil {
 		return nil, err
 	}
 
-	if virtualMachineExtension.Name, err = id.PopSegment("extensions"); err != nil {
+	resourceId := VirtualMachineExtensionId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.VirtualMachineName, err = id.PopSegment("virtualMachines"); err != nil {
+		return nil, err
+	}
+	if resourceId.ExtensionName, err = id.PopSegment("extensions"); err != nil {
 		return nil, err
 	}
 
-	return &virtualMachineExtension, nil
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
 }

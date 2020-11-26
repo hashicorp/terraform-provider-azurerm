@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -70,12 +70,10 @@ func resourceArmOrchestratedVirtualMachineScaleSet() *schema.Resource {
 			},
 
 			"single_placement_group": {
-				Type:         schema.TypeBool,
-				Optional:     true,
-				ForceNew:     true,
-				Default:      false,
-				Deprecated:   "Due to an upgrade of the compute API this preview property has now been deprecated and required to be false in the 2019-12-01 api versions for orchestrated VMSS - as it will always be false for the current and future API versions this property now defaults to false and will removed in version 3.0 of the provider.",
-				ValidateFunc: validateBoolIsFalse,
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+				Default:  false,
 			},
 
 			// the VMO mode can only be deployed into one zone for now, and its zone will also be assigned to all its VM instances
@@ -213,18 +211,4 @@ func resourceArmOrchestratedVirtualMachineScaleSetDelete(d *schema.ResourceData,
 	}
 
 	return nil
-}
-
-func validateBoolIsFalse(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(bool)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be boolean", k))
-		return
-	}
-
-	if v {
-		errors = append(errors, fmt.Errorf("%q can only be false", k))
-	}
-
-	return
 }

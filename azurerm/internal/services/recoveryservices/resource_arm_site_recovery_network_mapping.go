@@ -12,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -104,7 +103,7 @@ func resourceArmSiteRecoveryNetworkMappingCreate(d *schema.ResourceData, meta in
 		}
 	}
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, fabricName, sourceNetworkName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) &&
@@ -120,7 +119,7 @@ func resourceArmSiteRecoveryNetworkMappingCreate(d *schema.ResourceData, meta in
 		}
 	}
 
-	var parameters = siterecovery.CreateNetworkMappingInput{
+	parameters := siterecovery.CreateNetworkMappingInput{
 		Properties: &siterecovery.CreateNetworkMappingInputProperties{
 			RecoveryNetworkID:  &targetNetworkId,
 			RecoveryFabricName: &targetFabricName,

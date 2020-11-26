@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -26,7 +26,7 @@ func resourceArmAutomationConnectionCertificate() *schema.Resource {
 		Delete: resourceArmAutomationConnectionCertificateDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
-			_, err := parse.AutomationConnectionID(id)
+			_, err := parse.ConnectionID(id)
 			return err
 		}, importAutomationConnection("Azure")),
 
@@ -51,7 +51,7 @@ func resourceArmAutomationConnectionCertificate() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateAutomationAccountName(),
+				ValidateFunc: validate.AutomationAccountName(),
 			},
 
 			"automation_certificate_name": {
@@ -135,12 +135,12 @@ func resourceArmAutomationConnectionCertificateRead(d *schema.ResourceData, meta
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AutomationConnectionID(d.Id())
+	id, err := parse.ConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -152,7 +152,7 @@ func resourceArmAutomationConnectionCertificateRead(d *schema.ResourceData, meta
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("automation_account_name", id.AccountName)
+	d.Set("automation_account_name", id.AutomationAccountName)
 	d.Set("description", resp.Description)
 
 	if props := resp.ConnectionProperties; props != nil {
@@ -172,12 +172,12 @@ func resourceArmAutomationConnectionCertificateDelete(d *schema.ResourceData, me
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AutomationConnectionID(d.Id())
+	id, err := parse.ConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.AccountName, id.Name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil

@@ -241,19 +241,6 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 		if _, err = client.SetSecret(ctx, id.KeyVaultBaseUrl, id.Name, parameters); err != nil {
 			return err
 		}
-
-		// "" indicates the latest version
-		read, err2 := client.GetSecret(ctx, id.KeyVaultBaseUrl, id.Name, "")
-		if err2 != nil {
-			return fmt.Errorf("Error getting Key Vault Secret %q : %+v", id.Name, err2)
-		}
-
-		if _, err = azure.ParseKeyVaultChildID(*read.ID); err != nil {
-			return err
-		}
-
-		// the ID is suffixed with the secret version
-		d.SetId(*read.ID)
 	} else {
 		parameters := keyvault.SecretUpdateParameters{
 			ContentType:      utils.String(contentType),
@@ -261,10 +248,23 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 			SecretAttributes: secretAttributes,
 		}
 
-		if _, err = client.UpdateSecret(ctx, id.KeyVaultBaseUrl, id.Name, id.Version, parameters); err != nil {
+		if _, err = client.UpdateSecret(ctx, id.KeyVaultBaseUrl, id.Name, "", parameters); err != nil {
 			return err
 		}
 	}
+
+	// "" indicates the latest version
+	read, err2 := client.GetSecret(ctx, id.KeyVaultBaseUrl, id.Name, "")
+	if err2 != nil {
+		return fmt.Errorf("Error getting Key Vault Secret %q : %+v", id.Name, err2)
+	}
+
+	if _, err = azure.ParseKeyVaultChildID(*read.ID); err != nil {
+		return err
+	}
+
+	// the ID is suffixed with the secret version
+	d.SetId(*read.ID)
 
 	return resourceArmKeyVaultSecretRead(d, meta)
 }
@@ -372,7 +372,7 @@ func keyVaultChildItemRefreshFunc(secretUri string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		log.Printf("[DEBUG] Checking to see if KeyVault Secret %q is available..", secretUri)
 
-		var PTransport = &http.Transport{Proxy: http.ProxyFromEnvironment}
+		PTransport := &http.Transport{Proxy: http.ProxyFromEnvironment}
 
 		client := &http.Client{
 			Transport: PTransport,

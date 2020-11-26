@@ -312,6 +312,9 @@ func (client ReplicationNetworkMappingsClient) List(ctx context.Context) (result
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationNetworkMappingsClient", "List", resp, "Failure responding to request")
 	}
+	if result.nmc.hasNextLink() && result.nmc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -424,6 +427,9 @@ func (client ReplicationNetworkMappingsClient) ListByReplicationNetworks(ctx con
 	result.nmc, err = client.ListByReplicationNetworksResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationNetworkMappingsClient", "ListByReplicationNetworks", resp, "Failure responding to request")
+	}
+	if result.nmc.hasNextLink() && result.nmc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

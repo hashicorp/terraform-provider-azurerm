@@ -10,7 +10,7 @@ description: |-
 
 Manages the Custom Https Configuration for an Azure Front Door Frontend Endpoint..
 
-~> **NOTE:** Custom https configurations for a Front Door Frontened Endpoint can be defined both within [the `azurerm_frontdoor` resource](frontdoor.html) via the `custom_https_configuration` block and by using a separate resource, as described in the following sections.
+~> **NOTE:** Custom https configurations for a Front Door Frontend Endpoint can be defined both within [the `azurerm_frontdoor` resource](frontdoor.html) via the `custom_https_configuration` block and by using a separate resource, as described in the following sections.
 
 -> **NOTE:** Defining custom https configurations using a separate `azurerm_frontdoor_custom_https_configuration` resource allows for parallel creation/update.
  
@@ -76,13 +76,11 @@ resource "azurerm_frontdoor" "example" {
 
 resource "azurerm_frontdoor_custom_https_configuration" "example_custom_https_0" {
   frontend_endpoint_id              = azurerm_frontdoor.example.frontend_endpoint[0].id
-  resource_group_name               = azurerm_resource_group.example.name
   custom_https_provisioning_enabled = false
 }
 
 resource "azurerm_frontdoor_custom_https_configuration" "example_custom_https_1" {
   frontend_endpoint_id              = azurerm_frontdoor.example.frontend_endpoint[1].id
-  resource_group_name               = azurerm_resource_group.example.name
   custom_https_provisioning_enabled = true
 
   custom_https_configuration {
@@ -98,9 +96,10 @@ resource "azurerm_frontdoor_custom_https_configuration" "example_custom_https_1"
 
 The `custom_https_configuration` block is also valid inside an `azurerm_frontdoor_custom_https_configuration`, which supports the following arguments: 
 
-* `frontend_endpoint_id` - (Required) Id of the Front Door Frontend endpoint this configuration refers to.
-* `resource_group_name` - (Required) Specifies the name of the Resource Group in which the Front Door exists
+* `frontend_endpoint_id` - (Required) The ID of the FrontDoor Frontend Endpoint which this configuration refers to.
+
 * `custom_https_provisioning_enabled` - (Required) Should the HTTPS protocol be enabled for this custom domain associated with the Front Door?
+
 * `custom_https_configuration` - (Optional) A `custom_https_configuration` block as defined above.
 
 ---
@@ -119,20 +118,16 @@ The following attributes are only valid if `certificate_source` is set to `Azure
 
 ~> **Note:** In order to enable the use of your own custom `HTTPS certificate` you must grant `Azure Front Door Service` access to your key vault. For instuctions on how to configure your `Key Vault` correctly please refer to the [product documentation](https://docs.microsoft.com/en-us/azure/frontdoor/front-door-custom-domain-https#option-2-use-your-own-certificate).
 
----
-
 
 ## Attributes Reference
 
-`azurerm_frontdoor_custom_https_configuration` exports the following attributes:
+* `id` - The ID of the Azure Front Door Custom Https Configuration.
 
-* `id` - The Resource ID of the Azure Front Door Custom https configuration.
+* `custom_https_configuration` - A `custom_https_configuration` block as defined below.
 
-
-`custom_https_configuration` exports the following:
+The `custom_https_configuration` block exports the following:
 
 * `minimum_tls_version` - Minimum client TLS version supported.
-
 
 ## Timeouts
 
@@ -145,8 +140,8 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-Front Door Custom Https Configurations can be imported using the `Frontend endpoint name`, e.g.
+Front Door Custom Https Configurations can be imported using the `resource id` of the Frontend Endpoint, e.g.
 
 ```shell
-terraform import azurerm_frontdoor_custom_https_configuration.example_custom_https_1 /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/mygroup1/providers/Microsoft.Network/frontdoors/frontdoor1/frontendendpoints/exampleFrontendEndpoint2/customHttpsConfiguration/exampleFrontendEndpoint2
+terraform import azurerm_frontdoor_custom_https_configuration.example_custom_https_1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/frontdoors/frontdoor1/frontendEndpoints/endpoint1
 ```

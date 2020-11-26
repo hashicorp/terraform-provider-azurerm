@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,21 +9,36 @@ import (
 )
 
 type AvailabilitySetId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
+}
+
+func NewAvailabilitySetID(subscriptionId, resourceGroup, name string) AvailabilitySetId {
+	return AvailabilitySetId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id AvailabilitySetId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/availabilitySets/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func AvailabilitySetID(input string) (*AvailabilitySetId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Availability Set ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	set := AvailabilitySetId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := AvailabilitySetId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if set.Name, err = id.PopSegment("availabilitySets"); err != nil {
+	if resourceId.Name, err = id.PopSegment("availabilitySets"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +46,5 @@ func AvailabilitySetID(input string) (*AvailabilitySetId, error) {
 		return nil, err
 	}
 
-	return &set, nil
+	return &resourceId, nil
 }

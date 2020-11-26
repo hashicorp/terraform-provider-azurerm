@@ -112,7 +112,6 @@ func testCheckAzureRMDataFactoryDatasetJSONDestroy(s *terraform.State) error {
 		dataFactoryName := rs.Primary.Attributes["data_factory_name"]
 
 		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
-
 		if err != nil {
 			return nil
 		}
@@ -295,4 +294,80 @@ resource "azurerm_data_factory_dataset_json" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func TestAccAzureRMDataFactoryDatasetJSON_blob(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_json", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMDataFactoryDatasetJSONDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDataFactoryDatasetJSON_blob(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataFactoryDatasetJSONExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func testAccAzureRMDataFactoryDatasetJSON_blob(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestdf%s"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "content"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+
+resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
+  name                = "acctestlsblob%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
+  connection_string   = azurerm_storage_account.test.primary_connection_string
+}
+
+resource "azurerm_data_factory_dataset_json" "test" {
+  name                = "acctestds%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
+  linked_service_name = azurerm_data_factory_linked_service_azure_blob_storage.test.name
+
+  azure_blob_storage_location {
+    container = azurerm_storage_container.test.name
+    path      = "foo/bar/"
+    filename  = "foo.txt"
+  }
+
+  encoding = "UTF-8"
+
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

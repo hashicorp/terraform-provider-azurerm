@@ -180,7 +180,6 @@ resource "azurerm_virtual_wan" "test" {
 
   disable_vpn_encryption            = false
   allow_branch_to_branch_traffic    = true
-  allow_vnet_to_vnet_traffic        = true
   office365_local_breakout_category = "All"
   type                              = "Standard"
 

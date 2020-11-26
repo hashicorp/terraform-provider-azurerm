@@ -81,6 +81,9 @@ func (client RegionsClient) ListBySku(ctx context.Context, sku string) (result M
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.RegionsClient", "ListBySku", resp, "Failure responding to request")
 	}
+	if result.mrlr.hasNextLink() && result.mrlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

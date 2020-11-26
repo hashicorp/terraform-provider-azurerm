@@ -2,6 +2,7 @@ package tests
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
@@ -218,6 +219,41 @@ func TestAccAzureRMFirewallNatRuleCollection_updateFirewallTags(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMFirewallNatRuleCollection_ipGroup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall_nat_rule_collection", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMFirewallNatRuleCollection_ipGroup(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFirewallNatRuleCollectionExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMFirewallNatRuleCollection_noSource(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall_nat_rule_collection", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAzureRMFirewallNatRuleCollection_noSource(data),
+				ExpectError: regexp.MustCompile(fmt.Sprintf("at least one of %q and %q must be specified", "source_addresses", "source_ip_groups")),
+			},
 		},
 	})
 }
@@ -676,6 +712,85 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 
     translated_port    = 53
     translated_address = "10.0.0.1"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMFirewallNatRuleCollection_ipGroup(data acceptance.TestData) string {
+	template := testAccAzureRMFirewall_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_ip_group" "test" {
+  name                = "acctestIpGroupForFirewallNatRules"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  cidrs               = ["192.168.0.0/25", "192.168.0.192/26"]
+}
+
+resource "azurerm_firewall_nat_rule_collection" "test" {
+  name                = "acctestnrc-%d"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  priority            = 100
+  action              = "Dnat"
+
+  rule {
+    name = "rule1"
+
+    source_ip_groups = [
+      azurerm_ip_group.test.id,
+    ]
+
+    destination_ports = [
+      "53",
+    ]
+
+    destination_addresses = [
+      azurerm_public_ip.test.ip_address,
+    ]
+
+    protocols = [
+      "Any",
+    ]
+
+    translated_port    = 53
+    translated_address = "8.8.8.8"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMFirewallNatRuleCollection_noSource(data acceptance.TestData) string {
+	template := testAccAzureRMFirewall_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_firewall_nat_rule_collection" "test" {
+  name                = "acctestnrc-%d"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  priority            = 100
+  action              = "Dnat"
+
+  rule {
+    name = "rule1"
+
+    destination_ports = [
+      "53",
+    ]
+
+    destination_addresses = [
+      azurerm_public_ip.test.ip_address,
+    ]
+
+    protocols = [
+      "Any",
+    ]
+
+    translated_port    = 53
+    translated_address = "8.8.8.8"
   }
 }
 `, template, data.RandomInteger)

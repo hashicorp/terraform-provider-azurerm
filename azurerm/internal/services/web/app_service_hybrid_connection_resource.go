@@ -1,11 +1,13 @@
 package web
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
+	relayMngt "github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -195,12 +197,18 @@ func resourceArmAppServiceHybridConnectionRead(d *schema.ResourceData, meta inte
 	}
 
 	// key values are not returned in the response, so we get the primary key from the relay namespace ListKeys func
-	relayNSClient := meta.(*clients.Client).Relay.NamespacesClient
-	accessKeys, err := relayNSClient.ListKeys(ctx, resourceGroup, *resp.ServiceBusNamespace, *resp.SendKeyName)
-	if err != nil {
-		return fmt.Errorf("unable to List Access Keys for Namespace %q (Resource Group %q): %+v", *resp.ServiceBusNamespace, resourceGroup, err)
-	} else {
-		d.Set("send_key_value", accessKeys.PrimaryKey)
+	if resp.ServiceBusNamespace != nil && resp.SendKeyName != nil {
+		relayNSClient := meta.(*clients.Client).Relay.NamespacesClient
+		relayNamespaceRG, err := findRelayNamespace(relayNSClient, ctx, *resp.ServiceBusNamespace)
+		if err != nil {
+			return err
+		}
+		accessKeys, err := relayNSClient.ListKeys(ctx, relayNamespaceRG, *resp.ServiceBusNamespace, *resp.SendKeyName)
+		if err != nil {
+			return fmt.Errorf("unable to List Access Keys for Namespace %q (Resource Group %q): %+v", *resp.ServiceBusNamespace, resourceGroup, err)
+		} else {
+			d.Set("send_key_value", accessKeys.PrimaryKey)
+		}
 	}
 
 	return nil
@@ -229,4 +237,33 @@ func resourceArmAppServiceHybridConnectionDelete(d *schema.ResourceData, meta in
 	}
 
 	return nil
+}
+
+func findRelayNamespace(client *relayMngt.NamespacesClient, ctx context.Context, name string) (string, error) {
+	relayNSIterator, err := client.ListComplete(ctx)
+	if err != nil {
+		return "", fmt.Errorf("listing Relay Namespaces: %+v", err)
+	}
+
+	var found *relayMngt.Namespace
+	for relayNSIterator.NotDone() {
+		namespace := relayNSIterator.Value()
+		if namespace.Name != nil && *namespace.Name == name {
+			found = &namespace
+			break
+		}
+		if err := relayNSIterator.NextWithContext(ctx); err != nil {
+			return "", fmt.Errorf("listing Relay Namespaces: %+v", err)
+		}
+	}
+
+	if found == nil || found.ID == nil {
+		return "", fmt.Errorf("could not find Relay Namespace with name: %q", name)
+	}
+
+	id, err := relay.ParseNamespaceID(*found.ID)
+	if err != nil {
+		return "", fmt.Errorf("relay Namespace id not valid: %+v", err)
+	}
+	return id.ResourceGroup, nil
 }

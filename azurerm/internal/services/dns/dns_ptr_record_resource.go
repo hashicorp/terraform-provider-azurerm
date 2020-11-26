@@ -32,7 +32,7 @@ func resourceArmDnsPtrRecord() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DnsPtrRecordID(id)
+			_, err := parse.PtrRecordID(id)
 			return err
 		}),
 		Schema: map[string]*schema.Schema{
@@ -130,24 +130,24 @@ func resourceArmDnsPtrRecordRead(d *schema.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DnsPtrRecordID(d.Id())
+	id, err := parse.PtrRecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := dnsClient.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.PTR)
+	resp, err := dnsClient.Get(ctx, id.ResourceGroup, id.DnszoneName, id.PTRName, dns.PTR)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error reading DNS PTR record %s: %+v", id.Name, err)
+		return fmt.Errorf("Error reading DNS PTR record %s: %+v", id.PTRName, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.PTRName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("zone_name", id.ZoneName)
+	d.Set("zone_name", id.DnszoneName)
 	d.Set("ttl", resp.TTL)
 	d.Set("fqdn", resp.Fqdn)
 
@@ -163,18 +163,18 @@ func resourceArmDnsPtrRecordDelete(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DnsPtrRecordID(d.Id())
+	id, err := parse.PtrRecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := dnsClient.Delete(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.PTR, "")
+	resp, err := dnsClient.Delete(ctx, id.ResourceGroup, id.DnszoneName, id.PTRName, dns.PTR, "")
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting DNS PTR Record %s: %+v", id.Name, err)
+		return fmt.Errorf("Error deleting DNS PTR Record %s: %+v", id.PTRName, err)
 	}
 
 	return nil

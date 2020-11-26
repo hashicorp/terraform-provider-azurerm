@@ -97,7 +97,6 @@ func testCheckAzureRMApiManagementIdentityProviderAADDestroy(s *terraform.State)
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
 		resp, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.Aad)
-
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err
@@ -159,6 +158,7 @@ resource "azurerm_api_management_identity_provider_aad" "test" {
   api_management_name = azurerm_api_management.test.name
   client_id           = "00000000-0000-0000-0000-000000000000"
   client_secret       = "00000000000000000000000000000000"
+  signin_tenant       = "00000000-0000-0000-0000-000000000000"
   allowed_tenants     = ["%s"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Client().TenantID)

@@ -11,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMAPIManagementNamedValue_basic(t *testing.T) {
+func TestAccAzureRMApiManagementNamedValue_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_named_value", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -20,7 +20,7 @@ func TestAccAzureRMAPIManagementNamedValue_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAPIManagementNamedValueDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAPIManagementNamedValue_basic(data),
+				Config: testAccAzureRMApiManagementNamedValue_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementNamedValueExists(data.ResourceName),
 				),
@@ -30,7 +30,7 @@ func TestAccAzureRMAPIManagementNamedValue_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAPIManagementNamedValue_update(t *testing.T) {
+func TestAccAzureRMApiManagementNamedValue_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_named_value", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -39,14 +39,14 @@ func TestAccAzureRMAPIManagementNamedValue_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAPIManagementNamedValueDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAPIManagementNamedValue_basic(data),
+				Config: testAccAzureRMApiManagementNamedValue_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementNamedValueExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMAPIManagementNamedValue_update(data),
+				Config: testAccAzureRMApiManagementNamedValue_update(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementNamedValueExists(data.ResourceName),
 				),
@@ -70,7 +70,6 @@ func testCheckAzureRMAPIManagementNamedValueDestroy(s *terraform.State) error {
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
-
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err
@@ -112,7 +111,7 @@ func testCheckAzureRMAPIManagementNamedValueExists(resourceName string) resource
 
  */
 
-func testAccAzureRMAPIManagementNamedValue_basic(data acceptance.TestData) string {
+func testAccAzureRMApiManagementNamedValue_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -144,7 +143,7 @@ resource "azurerm_api_management_named_value" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAPIManagementNamedValue_update(data acceptance.TestData) string {
+func testAccAzureRMApiManagementNamedValue_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

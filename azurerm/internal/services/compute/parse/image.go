@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,21 +9,36 @@ import (
 )
 
 type ImageId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
+}
+
+func NewImageID(subscriptionId, resourceGroup, name string) ImageId {
+	return ImageId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id ImageId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/images/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func ImageID(input string) (*ImageId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Image ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	set := ImageId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := ImageId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if set.Name, err = id.PopSegment("images"); err != nil {
+	if resourceId.Name, err = id.PopSegment("images"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +46,5 @@ func ImageID(input string) (*ImageId, error) {
 		return nil, err
 	}
 
-	return &set, nil
+	return &resourceId, nil
 }

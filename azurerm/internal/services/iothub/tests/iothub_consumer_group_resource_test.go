@@ -73,6 +73,25 @@ func TestAccAzureRMIotHubConsumerGroup_operationsMonitoringEvents(t *testing.T) 
 	})
 }
 
+func TestAccAzureRMIotHubConsumerGroup_withSharedAccessPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_consumer_group", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMIotHubConsumerGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMIotHubConsumerGroup_withSharedAccessPolicy(data, "events"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMIotHubConsumerGroupExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMIotHubConsumerGroupDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -88,7 +107,6 @@ func testCheckAzureRMIotHubConsumerGroupDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := client.GetEventHubConsumerGroup(ctx, resourceGroup, iotHubName, endpointName, name)
-
 		if err != nil {
 			return nil
 		}
@@ -173,6 +191,20 @@ resource "azurerm_iothub_consumer_group" "import" {
   iothub_name            = azurerm_iothub_consumer_group.test.iothub_name
   eventhub_endpoint_name = azurerm_iothub_consumer_group.test.eventhub_endpoint_name
   resource_group_name    = azurerm_iothub_consumer_group.test.resource_group_name
+}
+`, template)
+}
+
+func testAccAzureRMIotHubConsumerGroup_withSharedAccessPolicy(data acceptance.TestData, eventName string) string {
+	template := testAccAzureRMIotHubConsumerGroup_basic(data, eventName)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_iothub_shared_access_policy" "test" {
+  name                = "acctestSharedAccessPolicy"
+  resource_group_name = azurerm_resource_group.test.name
+  iothub_name         = azurerm_iothub.test.name
+  service_connect     = true
 }
 `, template)
 }

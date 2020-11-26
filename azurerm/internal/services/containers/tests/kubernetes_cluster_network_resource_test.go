@@ -328,30 +328,6 @@ func testAccAzureRMKubernetesCluster_outboundTypeLoadBalancer(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_outboundTypeUserDefinedRouting(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_outboundTypeUserDefinedRouting(t)
-}
-
-func testAccAzureRMKubernetesCluster_outboundTypeUserDefinedRouting(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_outboundTypeUserDefinedRoutingConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
 func TestAccAzureRMKubernetesCluster_privateClusterOn(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccAzureRMKubernetesCluster_privateClusterOn(t)
@@ -709,19 +685,6 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_route_table" "test" {
-  name                = "akc-routetable-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  route {
-    name                   = "akc-route-%d"
-    address_prefix         = "10.100.0.0/14"
-    next_hop_type          = "VirtualAppliance"
-    next_hop_in_ip_address = "10.10.1.1"
-  }
-}
-
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.1.0.0/16"]
@@ -734,11 +697,6 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.1.0.0/24"
-}
-
-resource "azurerm_subnet_route_table_association" "test" {
-  subnet_id      = azurerm_subnet.test.id
-  route_table_id = azurerm_route_table.test.id
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -773,7 +731,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     service_cidr       = "10.10.0.0/16"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkPlugin)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkPlugin)
 }
 
 // nolint unparam
@@ -1039,89 +997,6 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
-func testAccAzureRMKubernetesCluster_outboundTypeUserDefinedRoutingConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-
-
-
-resource "azurerm_route_table" "test" {
-  name                = "akc-routetable-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  route {
-    name                   = "first"
-    address_prefix         = "10.100.0.0/14"
-    next_hop_type          = "VirtualAppliance"
-    next_hop_in_ip_address = "10.10.1.1"
-  }
-
-  route {
-    name                   = "second"
-    address_prefix         = "0.0.0.0/0"
-    next_hop_type          = "VirtualAppliance"
-    next_hop_in_ip_address = "10.10.1.1"
-  }
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
-  address_space       = ["10.1.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
-}
-
-resource "azurerm_subnet_route_table_association" "test" {
-  subnet_id      = azurerm_subnet.test.id
-  route_table_id = azurerm_route_table.test.id
-}
-
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-
-  default_node_pool {
-    name           = "default"
-    node_count     = 2
-    vm_size        = "Standard_DS2_v2"
-    vnet_subnet_id = azurerm_subnet.test.id
-    max_pods       = 60
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-  network_profile {
-    network_plugin     = "kubenet"
-    load_balancer_sku  = "Standard"
-    pod_cidr           = "10.244.0.0/16"
-    service_cidr       = "10.0.0.0/16"
-    dns_service_ip     = "10.0.0.10"
-    docker_bridge_cidr = "172.17.0.1/16"
-    outbound_type      = "userDefinedRouting"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMKubernetesCluster_privateClusterConfig(data acceptance.TestData, enablePrivateCluster bool) string {

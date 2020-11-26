@@ -110,17 +110,17 @@ resource "azurerm_blueprint_assignment" "example" {
 
 * `target_subscription_id` - (Required) The Subscription ID the Blueprint Published Version is to be applied to.
 
-* `location` - (Required) The Azure location of the Assignment. 
+* `location` - (Required) The Azure location of the Assignment.
 
 * `identitiy` - (Required) an identity block, as detailed below.
 
-* `version_id` - (Required) The ID of the Published Version of the blueprint to be assigned. 
+* `version_id` - (Required) The ID of the Published Version of the blueprint to be assigned.
 
 * `parameter_values` - (Optional) a JSON string to supply Blueprint Assignment parameter values.
 
 ~> **NOTE:** Improperly formatted JSON, or missing values required by a Blueprint will cause the assignment to fail.
 
-* `resource_groups` - (Optional) a JSON string to supply the Blueprint Resource Group information. 
+* `resource_groups` - (Optional) a JSON string to supply the Blueprint Resource Group information.
 
 ~> **NOTE:** Improperly formatted JSON, or missing values required by a Blueprint will cause the assignment to fail.
 
@@ -139,7 +139,7 @@ An `identity` block supports the following Arguments
 
 ## Attribute Reference
 
-* `id` - the Azure Resource ID of the Blueprint Assignment
+* `id` - The ID of the Blueprint Assignment
 
 * `description` - The Description on the Blueprint
 

@@ -119,18 +119,18 @@ func testCheckAzureRMDnsTxtRecordExists(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.DnsTxtRecordID(rs.Primary.ID)
+		id, err := parse.TxtRecordID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.TXT)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.DnszoneName, id.TXTName, dns.TXT)
 		if err != nil {
 			return fmt.Errorf("Bad: Get TXT RecordSet: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: DNS TXT record %s (resource group: %s) does not exist", id.Name, id.ResourceGroup)
+			return fmt.Errorf("Bad: DNS TXT record %s (resource group: %s) does not exist", id.TXTName, id.ResourceGroup)
 		}
 
 		return nil
@@ -146,13 +146,12 @@ func testCheckAzureRMDnsTxtRecordDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.DnsTxtRecordID(rs.Primary.ID)
+		id, err := parse.TxtRecordID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.TXT)
-
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.DnszoneName, id.TXTName, dns.TXT)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
 				return nil

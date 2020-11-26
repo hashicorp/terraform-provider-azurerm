@@ -11,10 +11,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs"
+	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs"
 )
 
 func resourceArmStorageBlob() *schema.Resource {
@@ -115,6 +114,13 @@ func resourceArmStorageBlob() *schema.Resource {
 				ConflictsWith: []string{"source", "source_content"},
 			},
 
+			"content_md5": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"source_uri"},
+			},
+
 			"url": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -157,7 +163,7 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	id := blobsClient.GetResourceID(accountName, containerName, name)
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		input := blobs.GetPropertiesInput{}
 		props, err := blobsClient.GetProperties(ctx, accountName, containerName, name, input)
 		if err != nil {
@@ -167,6 +173,16 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 		}
 		if !utils.ResponseWasNotFound(props.Response) {
 			return tf.ImportAsExistsError("azurerm_storage_blob", id)
+		}
+	}
+
+	contentMD5Raw := d.Get("content_md5").(string)
+	contentMD5 := ""
+	if contentMD5Raw != "" {
+		// Azure uses a Base64 encoded representation of the standard MD5 sum of the file
+		contentMD5, err = convertHexToBase64Encoding(d.Get("content_md5").(string))
+		if err != nil {
+			return fmt.Errorf("failed to base64 encode `content_md5` value: %s", err)
 		}
 	}
 
@@ -180,6 +196,7 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 
 		BlobType:      d.Get("type").(string),
 		ContentType:   d.Get("content_type").(string),
+		ContentMD5:    contentMD5,
 		MetaData:      ExpandMetaData(metaDataRaw),
 		Parallelism:   d.Get("parallelism").(int),
 		Size:          d.Get("size").(int),
@@ -234,9 +251,20 @@ func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) erro
 
 	if d.HasChange("content_type") {
 		log.Printf("[DEBUG] Updating Properties for Blob %q (Container %q / Account %q)...", id.BlobName, id.ContainerName, id.AccountName)
+		// `content_md5` is `ForceNew` but must be included in the `SetPropertiesInput` update payload or it will be zeroed on the blob.
 		input := blobs.SetPropertiesInput{
 			ContentType: utils.String(d.Get("content_type").(string)),
 		}
+
+		if contentMD5 := d.Get("content_md5").(string); contentMD5 != "" {
+			data, err := convertHexToBase64Encoding(contentMD5)
+			if err != nil {
+				return fmt.Errorf("Error in converting hex to base64 encoding for content_md5: %s", err)
+			}
+
+			input.ContentMD5 = utils.String(data)
+		}
+
 		if _, err := blobsClient.SetProperties(ctx, id.AccountName, id.ContainerName, id.BlobName, input); err != nil {
 			return fmt.Errorf("Error updating Properties for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
 		}
@@ -302,6 +330,17 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 
 	d.Set("access_tier", string(props.AccessTier))
 	d.Set("content_type", props.ContentType)
+
+	// Set the ContentMD5 value to md5 hash in hex
+	contentMD5 := ""
+	if props.ContentMD5 != "" {
+		contentMD5, err = convertBase64ToHexEncoding(props.ContentMD5)
+		if err != nil {
+			return fmt.Errorf("Error in converting hex to base64 encoding for content_md5: %s", err)
+		}
+	}
+	d.Set("content_md5", contentMD5)
+
 	d.Set("type", strings.TrimSuffix(string(props.BlobType), "Blob"))
 	d.Set("url", d.Id())
 

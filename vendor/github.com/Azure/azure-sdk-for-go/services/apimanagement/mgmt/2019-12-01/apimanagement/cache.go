@@ -469,6 +469,9 @@ func (client CacheClient) ListByService(ctx context.Context, resourceGroupName s
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.CacheClient", "ListByService", resp, "Failure responding to request")
 	}
+	if result.cc.hasNextLink() && result.cc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

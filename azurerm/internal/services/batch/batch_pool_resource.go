@@ -16,7 +16,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/parse"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -39,7 +38,7 @@ func resourceArmBatchPool() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.BatchPoolID(id)
+			_, err := parse.PoolID(id)
 			return err
 		}),
 		Schema: map[string]*schema.Schema{
@@ -436,11 +435,13 @@ func resourceArmBatchPool() *schema.Resource {
 										}, false),
 									},
 									"backend_port": {
-										Type:         schema.TypeInt,
-										Required:     true,
-										ForceNew:     true,
-										ValidateFunc: validate.IntBetweenAndNotInRange(1, 65535, 29876, 29877),
-										// 1 and 65535 except for 29876, 29877 as these are reserved.
+										Type:     schema.TypeInt,
+										Required: true,
+										ForceNew: true,
+										ValidateFunc: validation.All(
+											validation.IsPortNumber,
+											validation.IntNotInSlice([]int{29876, 29877}),
+										),
 									},
 									"frontend_port_range": {
 										Type:         schema.TypeString,
@@ -634,12 +635,12 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BatchPoolID(d.Id())
+	id, err := parse.PoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving the Batch pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
@@ -652,12 +653,12 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 		}
 
 		log.Printf("[INFO] stopping the pending resize operation on this pool...")
-		if _, err = client.StopResize(ctx, id.ResourceGroup, id.AccountName, id.Name); err != nil {
+		if _, err = client.StopResize(ctx, id.ResourceGroup, id.BatchAccountName, id.Name); err != nil {
 			return fmt.Errorf("Error stopping resize operation for Batch pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 
 		// waiting for the pool to be in steady state
-		if err = waitForBatchPoolPendingResizeOperation(ctx, client, id.ResourceGroup, id.AccountName, id.Name); err != nil {
+		if err = waitForBatchPoolPendingResizeOperation(ctx, client, id.ResourceGroup, id.BatchAccountName, id.Name); err != nil {
 			return fmt.Errorf("Error waiting for Batch pool %q (resource group %q) being ready", id.Name, id.ResourceGroup)
 		}
 	}
@@ -701,26 +702,20 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	if d.HasChange("metadata") {
-		log.Printf("[DEBUG] Updating the MetaData for Batch pool %q (Account name %q / Resource Group %q)..", id.Name, id.AccountName, id.ResourceGroup)
+		log.Printf("[DEBUG] Updating the MetaData for Batch pool %q (Account name %q / Resource Group %q)..", id.Name, id.BatchAccountName, id.ResourceGroup)
 		metaDataRaw := d.Get("metadata").(map[string]interface{})
 
 		parameters.PoolProperties.Metadata = ExpandBatchMetaData(metaDataRaw)
 	}
 
-	networkConfiguration := d.Get("network_configuration").([]interface{})
-	parameters.PoolProperties.NetworkConfiguration, err = ExpandBatchPoolNetworkConfiguration(networkConfiguration)
-	if err != nil {
-		return fmt.Errorf("Error expanding `network_configuration`: %+v", err)
-	}
-
-	result, err := client.Update(ctx, id.ResourceGroup, id.AccountName, id.Name, parameters, "")
+	result, err := client.Update(ctx, id.ResourceGroup, id.BatchAccountName, id.Name, parameters, "")
 	if err != nil {
 		return fmt.Errorf("Error updating Batch pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	// if the pool is not Steady after the update, wait for it to be Steady
 	if props := result.PoolProperties; props != nil && props.AllocationState != batch.Steady {
-		if err := waitForBatchPoolPendingResizeOperation(ctx, client, id.ResourceGroup, id.AccountName, id.Name); err != nil {
+		if err := waitForBatchPoolPendingResizeOperation(ctx, client, id.ResourceGroup, id.BatchAccountName, id.Name); err != nil {
 			return fmt.Errorf("Error waiting for Batch pool %q (resource group %q) being ready", id.Name, id.ResourceGroup)
 		}
 	}
@@ -733,21 +728,21 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BatchPoolID(d.Id())
+	id, err := parse.PoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Batch pool %q in account %q (Resource Group %q) was not found", id.Name, id.AccountName, id.ResourceGroup)
+			return fmt.Errorf("Error: Batch pool %q in account %q (Resource Group %q) was not found", id.Name, id.BatchAccountName, id.ResourceGroup)
 		}
 		return fmt.Errorf("Error making Read request on AzureRM Batch pool %q: %+v", id.Name, err)
 	}
 
 	d.Set("name", id.Name)
-	d.Set("account_name", id.AccountName)
+	d.Set("account_name", id.BatchAccountName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.PoolProperties; props != nil {
@@ -802,12 +797,12 @@ func resourceArmBatchPoolDelete(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BatchPoolID(d.Id())
+	id, err := parse.PoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.AccountName, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
 	if err != nil {
 		return fmt.Errorf("Error deleting Batch pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
