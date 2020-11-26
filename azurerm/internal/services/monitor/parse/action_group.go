@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,27 +9,43 @@ import (
 )
 
 type ActionGroupId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
+func NewActionGroupID(subscriptionId, resourceGroup, name string) ActionGroupId {
+	return ActionGroupId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id ActionGroupId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/actionGroups/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+}
+
+// ActionGroupID parses a ActionGroup ID into an ActionGroupId struct
 func ActionGroupID(input string) (*ActionGroupId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing Action Group ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	actionGroup := ActionGroupId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := ActionGroupId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if actionGroup.Name, err = id.PopSegment("actionGroups"); err != nil {
-		return nil, fmt.Errorf("parsing Action Group ID %q: %+v", input, err)
+	if resourceId.Name, err = id.PopSegment("actionGroups"); err != nil {
+		return nil, err
 	}
 
 	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, fmt.Errorf("parsing Action Group ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	return &actionGroup, nil
+	return &resourceId, nil
 }

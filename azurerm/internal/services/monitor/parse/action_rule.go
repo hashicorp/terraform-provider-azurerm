@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,25 +9,43 @@ import (
 )
 
 type ActionRuleId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
+func NewActionRuleID(subscriptionId, resourceGroup, name string) ActionRuleId {
+	return ActionRuleId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id ActionRuleId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.AlertsManagement/actionRules/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+}
+
+// ActionRuleID parses a ActionRule ID into an ActionRuleId struct
 func ActionRuleID(input string) (*ActionRuleId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing Action Rule ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	actionRule := ActionRuleId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := ActionRuleId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
-	if actionRule.Name, err = id.PopSegment("actionRules"); err != nil {
-		return nil, fmt.Errorf("parsing Action Rule ID %q: %+v", input, err)
+
+	if resourceId.Name, err = id.PopSegment("actionRules"); err != nil {
+		return nil, err
 	}
+
 	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, fmt.Errorf("parsing ActionRule ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	return &actionRule, nil
+	return &resourceId, nil
 }

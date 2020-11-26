@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,25 +9,43 @@ import (
 )
 
 type SmartDetectorAlertRuleId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
+func NewSmartDetectorAlertRuleID(subscriptionId, resourceGroup, name string) SmartDetectorAlertRuleId {
+	return SmartDetectorAlertRuleId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id SmartDetectorAlertRuleId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.AlertsManagement/smartdetectoralertrules/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+}
+
+// SmartDetectorAlertRuleID parses a SmartDetectorAlertRule ID into an SmartDetectorAlertRuleId struct
 func SmartDetectorAlertRuleID(input string) (*SmartDetectorAlertRuleId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing Smart Detector Alert Rule ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	smartDetectorAlertRuleId := SmartDetectorAlertRuleId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := SmartDetectorAlertRuleId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
-	if smartDetectorAlertRuleId.Name, err = id.PopSegment("smartdetectoralertrules"); err != nil {
-		return nil, fmt.Errorf("parsing Smart Detector Alert Rule ID %q: %+v", input, err)
+
+	if resourceId.Name, err = id.PopSegment("smartdetectoralertrules"); err != nil {
+		return nil, err
 	}
+
 	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, fmt.Errorf("parsing Smart Detector Alert Rule ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	return &smartDetectorAlertRuleId, nil
+	return &resourceId, nil
 }
