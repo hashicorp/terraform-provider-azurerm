@@ -25,7 +25,7 @@ func TestKustoAttachedDatabaseConfigurationId(t *testing.T) {
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/Clusters/cluster1/AttachedDatabaseConfigurations/configuration1",
 			Expected: &AttachedDatabaseConfigurationId{
 				Name:          "configuration1",
-				Cluster:       "cluster1",
+				ClusterName:   "cluster1",
 				ResourceGroup: "group1",
 			},
 		},

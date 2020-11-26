@@ -8,7 +8,7 @@ import (
 
 type AttachedDatabaseConfigurationId struct {
 	ResourceGroup string
-	Cluster       string
+	ClusterName   string
 	Name          string
 }
 
@@ -22,7 +22,7 @@ func AttachedDatabaseConfigurationID(input string) (*AttachedDatabaseConfigurati
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if configuration.Cluster, err = id.PopSegment("Clusters"); err != nil {
+	if configuration.ClusterName, err = id.PopSegment("Clusters"); err != nil {
 		return nil, err
 	}
 
