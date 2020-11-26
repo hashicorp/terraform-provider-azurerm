@@ -29,6 +29,7 @@ func TestAccAzureRMAppService_basic(t *testing.T) {
 					testCheckAzureRMAppServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "outbound_ip_addresses"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "possible_outbound_ip_addresses"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "custom_domain_verification_id"),
 				),
 			},
 			data.ImportStep(),
@@ -1906,7 +1907,8 @@ func TestAccAzureRMAppService_basicWindowsContainer(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_aseScopeNameCheck(t *testing.T) {
+// (@jackofallops) - renamed to allow filtering out long running test from AppService
+func TestAccAzureRMAppServiceEnvironment_scopeNameCheck(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },

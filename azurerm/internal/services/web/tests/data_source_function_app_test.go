@@ -23,6 +23,7 @@ func TestAccDataSourceAzureRMFunctionApp_basic(t *testing.T) {
 					testCheckAzureRMFunctionAppHasNoContentShare(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "outbound_ip_addresses"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "possible_outbound_ip_addresses"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "custom_domain_verification_id"),
 				),
 			},
 		},

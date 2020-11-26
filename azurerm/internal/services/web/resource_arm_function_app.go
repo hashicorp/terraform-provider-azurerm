@@ -194,6 +194,11 @@ func resourceArmFunctionApp() *schema.Resource {
 
 			// Computed Only
 
+			"custom_domain_verification_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"default_hostname": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -605,6 +610,7 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
 		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
+		d.Set("custom_domain_verification_id", props.CustomDomainVerificationID)
 	}
 
 	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)

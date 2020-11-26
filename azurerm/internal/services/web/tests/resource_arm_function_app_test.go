@@ -32,6 +32,7 @@ func TestAccAzureRMFunctionApp_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "version", "~1"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "outbound_ip_addresses"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "possible_outbound_ip_addresses"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "custom_domain_verification_id"),
 					resource.TestCheckResourceAttr(data.ResourceName, "identity.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),

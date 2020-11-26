@@ -1,4 +1,4 @@
-package web
+package parse
 
 import (
 	"fmt"
@@ -6,19 +6,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type AppServiceCustomHostnameBindingResourceID struct {
+type AppServiceCustomHostnameBindingId struct {
 	ResourceGroup  string
 	AppServiceName string
 	Name           string
 }
 
-func ParseAppServiceCustomHostnameBindingID(input string) (*AppServiceCustomHostnameBindingResourceID, error) {
+func AppServiceCustomHostnameBindingID(input string) (*AppServiceCustomHostnameBindingId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse App Service Custom Hostname Binding ID %q: %+v", input, err)
 	}
 
-	binding := AppServiceCustomHostnameBindingResourceID{
+	binding := AppServiceCustomHostnameBindingId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
