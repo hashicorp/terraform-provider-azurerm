@@ -29,6 +29,7 @@ func (id TxtRecordId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DnszoneName, id.TXTName)
 }
 
+// TxtRecordID parses a TxtRecord ID into an TxtRecordId struct
 func TxtRecordID(input string) (*TxtRecordId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

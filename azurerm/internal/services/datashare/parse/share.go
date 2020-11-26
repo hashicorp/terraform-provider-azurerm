@@ -29,6 +29,7 @@ func (id ShareId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.AccountName, id.Name)
 }
 
+// ShareID parses a Share ID into an ShareId struct
 func ShareID(input string) (*ShareId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

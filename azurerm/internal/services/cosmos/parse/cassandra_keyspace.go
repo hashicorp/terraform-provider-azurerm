@@ -29,6 +29,7 @@ func (id CassandraKeyspaceId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DatabaseAccountName, id.Name)
 }
 
+// CassandraKeyspaceID parses a CassandraKeyspace ID into an CassandraKeyspaceId struct
 func CassandraKeyspaceID(input string) (*CassandraKeyspaceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

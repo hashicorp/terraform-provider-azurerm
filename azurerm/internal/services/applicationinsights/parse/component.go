@@ -27,6 +27,7 @@ func (id ComponentId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
+// ComponentID parses a Component ID into an ComponentId struct
 func ComponentID(input string) (*ComponentId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

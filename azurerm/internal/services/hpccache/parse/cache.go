@@ -27,6 +27,7 @@ func (id CacheId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
+// CacheID parses a Cache ID into an CacheId struct
 func CacheID(input string) (*CacheId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

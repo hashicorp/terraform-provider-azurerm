@@ -27,6 +27,7 @@ func (id NamespaceId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
+// NamespaceID parses a Namespace ID into an NamespaceId struct
 func NamespaceID(input string) (*NamespaceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

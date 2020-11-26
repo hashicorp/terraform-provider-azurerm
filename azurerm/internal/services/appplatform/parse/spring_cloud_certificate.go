@@ -29,6 +29,7 @@ func (id SpringCloudCertificateId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SpringName, id.CertificateName)
 }
 
+// SpringCloudCertificateID parses a SpringCloudCertificate ID into an SpringCloudCertificateId struct
 func SpringCloudCertificateID(input string) (*SpringCloudCertificateId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

@@ -27,6 +27,7 @@ func (id SpringCloudServiceId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SpringName)
 }
 
+// SpringCloudServiceID parses a SpringCloudService ID into an SpringCloudServiceId struct
 func SpringCloudServiceID(input string) (*SpringCloudServiceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

@@ -27,6 +27,7 @@ func (id ConfigurationStoreId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
+// ConfigurationStoreID parses a ConfigurationStore ID into an ConfigurationStoreId struct
 func ConfigurationStoreID(input string) (*ConfigurationStoreId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

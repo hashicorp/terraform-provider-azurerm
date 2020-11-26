@@ -29,6 +29,7 @@ func (id VirtualMachineExtensionId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VirtualMachineName, id.ExtensionName)
 }
 
+// VirtualMachineExtensionID parses a VirtualMachineExtension ID into an VirtualMachineExtensionId struct
 func VirtualMachineExtensionID(input string) (*VirtualMachineExtensionId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

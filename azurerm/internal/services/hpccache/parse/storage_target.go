@@ -29,6 +29,7 @@ func (id StorageTargetId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.CacheName, id.Name)
 }
 
+// StorageTargetID parses a StorageTarget ID into an StorageTargetId struct
 func StorageTargetID(input string) (*StorageTargetId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

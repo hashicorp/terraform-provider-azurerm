@@ -27,6 +27,7 @@ func (id SharedImageGalleryId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.GalleryName)
 }
 
+// SharedImageGalleryID parses a SharedImageGallery ID into an SharedImageGalleryId struct
 func SharedImageGalleryID(input string) (*SharedImageGalleryId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

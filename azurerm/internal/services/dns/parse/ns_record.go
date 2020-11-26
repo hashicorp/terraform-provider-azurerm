@@ -29,6 +29,7 @@ func (id NsRecordId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DnszoneName, id.NSName)
 }
 
+// NsRecordID parses a NsRecord ID into an NsRecordId struct
 func NsRecordID(input string) (*NsRecordId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

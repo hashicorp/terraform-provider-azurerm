@@ -27,6 +27,7 @@ func (id ManagedDiskId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DiskName)
 }
 
+// ManagedDiskID parses a ManagedDisk ID into an ManagedDiskId struct
 func ManagedDiskID(input string) (*ManagedDiskId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

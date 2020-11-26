@@ -27,6 +27,7 @@ func (id SystemTopicId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
+// SystemTopicID parses a SystemTopic ID into an SystemTopicId struct
 func SystemTopicID(input string) (*SystemTopicId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

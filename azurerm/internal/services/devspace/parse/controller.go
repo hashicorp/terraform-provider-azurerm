@@ -27,6 +27,7 @@ func (id ControllerId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
+// ControllerID parses a Controller ID into an ControllerId struct
 func ControllerID(input string) (*ControllerId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

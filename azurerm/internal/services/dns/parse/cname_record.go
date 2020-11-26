@@ -29,6 +29,7 @@ func (id CnameRecordId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DnszoneName, id.CNAMEName)
 }
 
+// CnameRecordID parses a CnameRecord ID into an CnameRecordId struct
 func CnameRecordID(input string) (*CnameRecordId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

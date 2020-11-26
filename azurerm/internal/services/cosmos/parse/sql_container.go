@@ -31,6 +31,7 @@ func (id SqlContainerId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DatabaseAccountName, id.SqlDatabaseName, id.ContainerName)
 }
 
+// SqlContainerID parses a SqlContainer ID into an SqlContainerId struct
 func SqlContainerID(input string) (*SqlContainerId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

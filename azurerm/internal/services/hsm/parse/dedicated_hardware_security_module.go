@@ -27,6 +27,7 @@ func (id DedicatedHardwareSecurityModuleId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DedicatedHSMName)
 }
 
+// DedicatedHardwareSecurityModuleID parses a DedicatedHardwareSecurityModule ID into an DedicatedHardwareSecurityModuleId struct
 func DedicatedHardwareSecurityModuleID(input string) (*DedicatedHardwareSecurityModuleId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

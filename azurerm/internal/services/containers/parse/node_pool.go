@@ -29,6 +29,7 @@ func (id NodePoolId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ManagedClusterName, id.AgentPoolName)
 }
 
+// NodePoolID parses a NodePool ID into an NodePoolId struct
 func NodePoolID(input string) (*NodePoolId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

@@ -27,6 +27,7 @@ func (id DedicatedHostGroupId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.HostGroupName)
 }
 
+// DedicatedHostGroupID parses a DedicatedHostGroup ID into an DedicatedHostGroupId struct
 func DedicatedHostGroupID(input string) (*DedicatedHostGroupId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

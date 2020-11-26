@@ -29,6 +29,7 @@ func (id MxRecordId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DnszoneName, id.MXName)
 }
 
+// MxRecordID parses a MxRecord ID into an MxRecordId struct
 func MxRecordID(input string) (*MxRecordId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

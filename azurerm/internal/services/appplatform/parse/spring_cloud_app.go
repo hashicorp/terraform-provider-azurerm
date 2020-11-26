@@ -29,6 +29,7 @@ func (id SpringCloudAppId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SpringName, id.AppName)
 }
 
+// SpringCloudAppID parses a SpringCloudApp ID into an SpringCloudAppId struct
 func SpringCloudAppID(input string) (*SpringCloudAppId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

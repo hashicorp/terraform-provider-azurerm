@@ -27,6 +27,7 @@ func (id DomainId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
+// DomainID parses a Domain ID into an DomainId struct
 func DomainID(input string) (*DomainId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
