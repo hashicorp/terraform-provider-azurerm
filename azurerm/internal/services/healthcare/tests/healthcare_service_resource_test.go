@@ -79,7 +79,7 @@ func testCheckAzureRMHealthCareServiceExists(resourceName string) resource.TestC
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.HealthcareServiceID(rs.Primary.ID)
+		id, err := parse.ServiceID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -106,7 +106,7 @@ func testCheckAzureRMHealthCareServiceDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.HealthcareServiceID(rs.Primary.ID)
+		id, err := parse.ServiceID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
