@@ -102,6 +102,14 @@ func dataSourceArmSpringCloudService() *schema.Resource {
 				},
 			},
 
+			"outbound_public_ip_addresses": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -132,11 +140,14 @@ func dataSourceArmSpringCloudServiceRead(d *schema.ResourceData, meta interface{
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if resp.Properties != nil && resp.Properties.ConfigServerProperties != nil && resp.Properties.ConfigServerProperties.ConfigServer != nil {
-		if props := resp.Properties.ConfigServerProperties.ConfigServer.GitProperty; props != nil {
-			if err := d.Set("config_server_git_setting", flattenArmSpringCloudConfigServerGitProperty(props, d)); err != nil {
-				return fmt.Errorf("failure setting AzureRM Spring Cloud Service Config Server error: %+v", err)
-			}
+	if props := resp.Properties; props != nil {
+		if err := d.Set("config_server_git_setting", flattenArmSpringCloudConfigServerGitProperty(props.ConfigServerProperties, d)); err != nil {
+			return fmt.Errorf("setting `config_server_git_setting`: %+v", err)
+		}
+
+		outboundPublicIPAddresses := flattenOutboundPublicIPAddresses(props.NetworkProfile)
+		if err := d.Set("outbound_public_ip_addresses", outboundPublicIPAddresses); err != nil {
+			return fmt.Errorf("setting `outbound_public_ip_addresses`: %+v", err)
 		}
 	}
 
