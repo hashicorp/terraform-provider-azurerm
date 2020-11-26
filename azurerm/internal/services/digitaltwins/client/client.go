@@ -6,7 +6,7 @@ import (
 )
 
 type Client struct {
-	EndpointClient     *digitaltwins.EndpointClient
+	EndpointClient *digitaltwins.EndpointClient
 	InstanceClient *digitaltwins.Client
 }
 
@@ -18,7 +18,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&InstanceClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		EndpointClient:     &endpointClient,
+		EndpointClient: &endpointClient,
 		InstanceClient: &InstanceClient,
 	}
 }

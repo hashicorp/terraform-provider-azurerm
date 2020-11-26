@@ -1,47 +1,55 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type DigitaltwinsEndpointId struct {
-	ResourceGroup string
-	ResourceName  string
-	Name          string
+type DigitalTwinsEndpointId struct {
+	SubscriptionId           string
+	ResourceGroup            string
+	DigitalTwinsInstanceName string
+	EndpointName             string
 }
 
-func NewDigitaltwinsEndpointID(resourcegroup string, resourcename string, name string) DigitaltwinsEndpointId {
-	return DigitaltwinsEndpointId{
-		ResourceGroup: resourcegroup,
-		ResourceName:  resourcename,
-		Name:          name,
+func NewDigitalTwinsEndpointID(subscriptionId, resourceGroup, digitalTwinsInstanceName, endpointName string) DigitalTwinsEndpointId {
+	return DigitalTwinsEndpointId{
+		SubscriptionId:           subscriptionId,
+		ResourceGroup:            resourceGroup,
+		DigitalTwinsInstanceName: digitalTwinsInstanceName,
+		EndpointName:             endpointName,
 	}
 }
 
-func (id DigitaltwinsEndpointId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DigitalTwins/digitalTwinsInstances/%s/endpoints/%s", subscriptionId, id.ResourceGroup, id.ResourceName, id.Name)
+func (id DigitalTwinsEndpointId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DigitalTwins/digitalTwinsInstances/%s/endpoints/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DigitalTwinsInstanceName, id.EndpointName)
 }
 
-func DigitaltwinsEndpointID(input string) (*DigitaltwinsEndpointId, error) {
+func DigitalTwinsEndpointID(input string) (*DigitalTwinsEndpointId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing DigitalTwinsEndpoint ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	DigitalTwinsEndpoint := DigitaltwinsEndpointId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := DigitalTwinsEndpointId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
-	if DigitalTwinsEndpoint.ResourceName, err = id.PopSegment("digitalTwinsInstances"); err != nil {
+
+	if resourceId.DigitalTwinsInstanceName, err = id.PopSegment("digitalTwinsInstances"); err != nil {
 		return nil, err
 	}
-	if DigitalTwinsEndpoint.Name, err = id.PopSegment("endpoints"); err != nil {
+	if resourceId.EndpointName, err = id.PopSegment("endpoints"); err != nil {
 		return nil, err
 	}
+
 	if err := id.ValidateNoEmptySegments(input); err != nil {
 		return nil, err
 	}
 
-	return &DigitalTwinsEndpoint, nil
+	return &resourceId, nil
 }

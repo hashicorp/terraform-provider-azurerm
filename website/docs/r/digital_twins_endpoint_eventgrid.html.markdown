@@ -1,14 +1,14 @@
 ---
-subcategory: "DigitalTwins"
+subcategory: "Digital Twins"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_digital_twins_endpoint_eventgrid"
 description: |-
-  Manages a Digital Twins Eventgrid Endpoint.
+  Manages a Digital Twins Event Grid Endpoint.
 ---
 
 # azurerm_digital_twins_endpoint_eventgrid
 
-Manages a Digital Twins Eventgrid Endpoint.
+Manages a Digital Twins Event Grid Endpoint.
 
 ## Example Usage
 
@@ -22,7 +22,7 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_digital_twins" "example" {
+resource "azurerm_digital_twins_instance" "example" {
   name                = "example-DT"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
@@ -36,7 +36,7 @@ resource "azurerm_eventgrid_topic" "example" {
 
 resource "azurerm_digital_twins_endpoint_eventgrid" "example" {
   name                                 = "example-EG"
-  digital_twins_id                     = azurerm_digital_twins.example.id
+  digital_twins_instance_id            = azurerm_digital_twins_instance.example.id
   eventgrid_topic_endpoint             = azurerm_eventgrid_topic.example.endpoint
   eventgrid_topic_primary_access_key   = azurerm_eventgrid_topic.example.primary_access_key
   eventgrid_topic_secondary_access_key = azurerm_eventgrid_topic.example.secondary_access_key
@@ -49,21 +49,21 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Digital Twins Eventgrid Endpoint. Changing this forces a new Digital Twins Eventgrid Endpoint to be created.
 
-* `digital_twins_id` - (Required) The resource ID of the Digital Twins. Changing this forces a new Digital Twins Eventgrid Endpoint to be created.
+* `digital_twins_instance_id` - (Required) The resource ID of the Digital Twins Instance. Changing this forces a new Digital Twins Eventgrid Endpoint to be created.
 
-* `eventgrid_topic_endpoint` - (Required) The endpoint of the EventGrid Topic.
+* `eventgrid_topic_endpoint` - (Required) The endpoint of the Event Grid Topic.
 
-* `eventgrid_topic_primary_access_key` - (Required) The primary accesskey of the EventGrid Topic.
+* `eventgrid_topic_primary_access_key` - (Required) The primary access key of the Event Grid Topic.
 
-* `eventgrid_topic_secondary_access_key` - (Required) The secondary accesskey of the EventGrid Topic.
+* `eventgrid_topic_secondary_access_key` - (Required) The secondary access key of the Event Grid Topic.
 
-* `dead_letter_storage_secret` - (Optional) The storage secret of the dead-lettering, whose format is `https://<storageAccountname>.blob.core.windows.net/<containerName>?<SASToken>`. When an endpoint can't deliver an event within a certain time period or after trying to deliver the event a certain number of times, it can send the undelivered event to a storage account. This process is known as dead-lettering.
+* `dead_letter_storage_secret` - (Optional) The storage secret of the dead-lettering, whose format is `https://<storageAccountname>.blob.core.windows.net/<containerName>?<SASToken>`. When an endpoint can't deliver an event within a certain time period or after trying to deliver the event a certain number of times, it can send the undelivered event to a storage account.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Digital Twins Eventgrid Endpoint.
+* `id` - The ID of the Digital Twins Event Grid Endpoint.
 
 ## Timeouts
 

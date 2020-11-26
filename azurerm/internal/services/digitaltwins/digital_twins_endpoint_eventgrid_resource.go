@@ -32,7 +32,7 @@ func resourceArmDigitalTwinsEndpointEventGrid() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DigitaltwinsEndpointID(id)
+			_, err := parse.DigitalTwinsEndpointID(id)
 			return err
 		}),
 
@@ -41,10 +41,10 @@ func resourceArmDigitalTwinsEndpointEventGrid() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DigitaltwinsName(),
+				ValidateFunc: validate.DigitaltwinsInstanceName,
 			},
 
-			"digital_twins_id": {
+			"digital_twins_instance_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -58,44 +58,49 @@ func resourceArmDigitalTwinsEndpointEventGrid() *schema.Resource {
 			},
 
 			"eventgrid_topic_primary_access_key": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"eventgrid_topic_secondary_access_key": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"dead_letter_storage_secret": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 	}
 }
 func resourceArmDigitalTwinsEndpointEventGridCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).Digitaltwins.EndpointClient
+	client := meta.(*clients.Client).DigitalTwins.EndpointClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
-	digitalTwinsID, _ := parse.DigitalTwinsID(d.Get("digital_twins_id").(string))
+	digitalTwinsInstanceId, _ := parse.DigitalTwinsInstanceID(d.Get("digital_twins_instance_id").(string))
+
+	id := parse.NewDigitalTwinsEndpointID(subscriptionId, digitalTwinsInstanceId.ResourceGroup, digitalTwinsInstanceId.Name, name).ID("")
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, digitalTwinsID.ResourceGroup, digitalTwinsID.Name, name)
+		existing, err := client.Get(ctx, digitalTwinsInstanceId.ResourceGroup, digitalTwinsInstanceId.Name, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing Digital Twins Endpoint %q (Resource Group %q / Digital Twins Name %q): %+v", name, digitalTwinsID.ResourceGroup, digitalTwinsID.Name, err)
+				return fmt.Errorf("checking for present of existing Digital Twins Endpoint %q (Resource Group %q / Digital Twins Instance Name %q): %+v", name, digitalTwinsInstanceId.ResourceGroup, digitalTwinsInstanceId.Name, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_digital_twins_endpoint_eventgrid", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_digital_twins_endpoint_eventgrid", id)
 		}
 	}
 
-	endpointDescription := digitaltwins.EndpointResource{
+	properties := digitaltwins.EndpointResource{
 		Properties: &digitaltwins.EventGrid{
 			EndpointType:     digitaltwins.EndpointTypeEventGrid,
 			TopicEndpoint:    utils.String(d.Get("eventgrid_topic_endpoint").(string)),
@@ -105,79 +110,72 @@ func resourceArmDigitalTwinsEndpointEventGridCreateUpdate(d *schema.ResourceData
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, digitalTwinsID.ResourceGroup, digitalTwinsID.Name, name, endpointDescription)
+	future, err := client.CreateOrUpdate(ctx, digitalTwinsInstanceId.ResourceGroup, digitalTwinsInstanceId.Name, name, properties)
 	if err != nil {
-		return fmt.Errorf("creating/updating Digital Twins Endpoint %q (Resource Group %q / Digital Twins Name %q): %+v", name, digitalTwinsID.ResourceGroup, digitalTwinsID.Name, err)
+		return fmt.Errorf("creating/updating Digital Twins EventGrid Endpoint %q (Resource Group %q / Digital Twins Instance Name %q): %+v", name, digitalTwinsInstanceId.ResourceGroup, digitalTwinsInstanceId.Name, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on creating/updating future for Digital Twins Endpoint %q (Resource Group %q / Digital Twins Name %q): %+v", name, digitalTwinsID.ResourceGroup, digitalTwinsID.Name, err)
+		return fmt.Errorf("waiting for creation/update of the Digital Twins EventGrid Endpoint %q (Resource Group %q / Digital Twins Instance Name %q): %+v", name, digitalTwinsInstanceId.ResourceGroup, digitalTwinsInstanceId.Name, err)
 	}
 
-	resp, err := client.Get(ctx, digitalTwinsID.ResourceGroup, digitalTwinsID.Name, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Digital Twins Endpoint %q (Resource Group %q / Digital Twins Name %q): %+v", name, digitalTwinsID.ResourceGroup, digitalTwinsID.Name, err)
+	if _, err := client.Get(ctx, digitalTwinsInstanceId.ResourceGroup, digitalTwinsInstanceId.Name, name); err != nil {
+		return fmt.Errorf("retrieving Digital Twins EventGrid Endpoint %q (Resource Group %q / Digital Twins Instance Name %q): %+v", name, digitalTwinsInstanceId.ResourceGroup, digitalTwinsInstanceId.Name, err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Digital Twins Endpoint %q (Resource Group %q / Digital Twins Name %q) ID", name, digitalTwinsID.ResourceGroup, digitalTwinsID.Name)
-	}
-
-	id, err := parse.DigitaltwinsEndpointID(*resp.ID)
-	if err != nil {
-		return err
-	}
-	d.SetId(id.ID(subscriptionId))
+	d.SetId(id)
 
 	return resourceArmDigitalTwinsEndpointEventGridRead(d, meta)
 }
 
 func resourceArmDigitalTwinsEndpointEventGridRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Digitaltwins.EndpointClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	client := meta.(*clients.Client).DigitalTwins.EndpointClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DigitaltwinsEndpointID(d.Id())
+	id, err := parse.DigitalTwinsEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ResourceName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.DigitalTwinsInstanceName, id.EndpointName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] digitaltwins %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] Digital Twins EventGrid Endpoint %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Digital Twins Endpoint %q (Resource Group %q / Digital Twins Name %q): %+v", id.Name, id.ResourceGroup, id.ResourceName, err)
+		return fmt.Errorf("retrieving Digital Twins EventGrid Endpoint %q (Resource Group %q / Digital Twins Instance Name %q): %+v", id.EndpointName, id.ResourceGroup, id.DigitalTwinsInstanceName, err)
 	}
-	d.Set("name", id.Name)
-	d.Set("digital_twins_id", parse.NewDigitalTwinsID(id.ResourceGroup, id.ResourceName).ID(client.SubscriptionID))
+	d.Set("name", id.EndpointName)
+	d.Set("digital_twins_instance_id", parse.NewDigitalTwinsInstanceID(subscriptionId, id.ResourceGroup, id.DigitalTwinsInstanceName).ID(""))
 	if resp.Properties != nil {
 		if _, ok := resp.Properties.AsEventGrid(); !ok {
-			return fmt.Errorf("retrieving Digital Twins Endpoint %q (Resource Group %q / Digital Twins Name %q) is not type Event Grid", id.Name, id.ResourceGroup, id.ResourceName)
+			return fmt.Errorf("retrieving Digital Twins Endpoint %q (Resource Group %q / Digital Twins Instance Name %q) is not type Event Grid", id.EndpointName, id.ResourceGroup, id.DigitalTwinsInstanceName)
 		}
 	}
+
 	return nil
 }
 
 func resourceArmDigitalTwinsEndpointEventGridDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Digitaltwins.EndpointClient
+	client := meta.(*clients.Client).DigitalTwins.EndpointClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DigitaltwinsEndpointID(d.Id())
+	id, err := parse.DigitalTwinsEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ResourceName, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.DigitalTwinsInstanceName, id.EndpointName)
 	if err != nil {
-		return fmt.Errorf("deleting Digital Twins Endpoint %q (Resource Group %q / Digital Twins Name %q): %+v", id.Name, id.ResourceGroup, id.ResourceName, err)
+		return fmt.Errorf("deleting Digital Twins EventGrid Endpoint %q (Resource Group %q / Digital Twins Instance Name %q): %+v", id.EndpointName, id.ResourceGroup, id.DigitalTwinsInstanceName, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on deleting future for Digital Twins Endpoint %q (Resource Group %q / Digital Twins Name %q): %+v", id.Name, id.ResourceGroup, id.ResourceName, err)
+		return fmt.Errorf("waiting for deletion of the Digital Twins EventGrid Endpoint %q (Resource Group %q / Digital Twins Instance Name %q): %+v", id.EndpointName, id.ResourceGroup, id.DigitalTwinsInstanceName, err)
 	}
 	return nil
 }
