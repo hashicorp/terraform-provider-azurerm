@@ -554,7 +554,7 @@ func testCheckAzureRMMsSqlDatabaseExists(resourceName string) resource.TestCheck
 			return err
 		}
 
-		resp, err := client.Get(ctx, id.ResourceGroup, id.MsSqlServer, id.Name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("MsSql Database %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
@@ -581,7 +581,7 @@ func testCheckAzureRMMsSqlDatabaseDestroy(s *terraform.State) error {
 			return err
 		}
 
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.MsSqlServer, id.Name); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Get on MsSql Database Client: %+v", err)
 			}

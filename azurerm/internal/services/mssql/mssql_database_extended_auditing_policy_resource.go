@@ -86,10 +86,10 @@ func resourceArmMsSqlDatabaseExtendedAuditingPolicyCreateUpdate(d *schema.Resour
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, dbId.ResourceGroup, dbId.MsSqlServer, dbId.Name)
+		existing, err := client.Get(ctx, dbId.ResourceGroup, dbId.ServerName, dbId.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Failed to check for presence of existing Database %q Sql Auditing (MsSql Server %q / Resource Group %q): %s", dbId.Name, dbId.MsSqlServer, dbId.ResourceGroup, err)
+				return fmt.Errorf("Failed to check for presence of existing Database %q Sql Auditing (MsSql Server %q / Resource Group %q): %s", dbId.Name, dbId.ServerName, dbId.ResourceGroup, err)
 			}
 		}
 
@@ -116,17 +116,17 @@ func resourceArmMsSqlDatabaseExtendedAuditingPolicyCreateUpdate(d *schema.Resour
 		params.ExtendedDatabaseBlobAuditingPolicyProperties.StorageAccountAccessKey = utils.String(v.(string))
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, dbId.ResourceGroup, dbId.MsSqlServer, dbId.Name, params); err != nil {
-		return fmt.Errorf("creating MsSql Database %q Extended Auditing Policy (Sql Server %q / Resource Group %q): %+v", dbId.Name, dbId.MsSqlServer, dbId.ResourceGroup, err)
+	if _, err = client.CreateOrUpdate(ctx, dbId.ResourceGroup, dbId.ServerName, dbId.Name, params); err != nil {
+		return fmt.Errorf("creating MsSql Database %q Extended Auditing Policy (Sql Server %q / Resource Group %q): %+v", dbId.Name, dbId.ServerName, dbId.ResourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, dbId.ResourceGroup, dbId.MsSqlServer, dbId.Name)
+	read, err := client.Get(ctx, dbId.ResourceGroup, dbId.ServerName, dbId.Name)
 	if err != nil {
-		return fmt.Errorf("retrieving MsSql Database %q Extended Auditing Policy (MsSql Server Name %q / Resource Group %q): %+v", dbId.Name, dbId.MsSqlServer, dbId.ResourceGroup, err)
+		return fmt.Errorf("retrieving MsSql Database %q Extended Auditing Policy (MsSql Server Name %q / Resource Group %q): %+v", dbId.Name, dbId.ServerName, dbId.ResourceGroup, err)
 	}
 
 	if read.ID == nil || *read.ID == "" {
-		return fmt.Errorf("reading MsSql Database %q Extended Auditing Policy (MsSql Server Name %q / Resource Group %q) ID is empty or nil", dbId.Name, dbId.MsSqlServer, dbId.ResourceGroup)
+		return fmt.Errorf("reading MsSql Database %q Extended Auditing Policy (MsSql Server Name %q / Resource Group %q) ID is empty or nil", dbId.Name, dbId.ServerName, dbId.ResourceGroup)
 	}
 
 	d.SetId(*read.ID)

@@ -410,5 +410,5 @@ func constructSourceDatabaseId(id string, subscriptionId string) string {
 	if err != nil {
 		return id
 	}
-	return mssqlParse.NewMsSqlDatabaseID(sqlPoolId.Workspace.ResourceGroup, sqlPoolId.Workspace.Name, sqlPoolId.Name).ID(subscriptionId)
+	return mssqlParse.NewDatabaseID(sqlPoolId.Workspace.SubscriptionID, sqlPoolId.Workspace.ResourceGroup, sqlPoolId.Workspace.Name, sqlPoolId.Name).ID("")
 }

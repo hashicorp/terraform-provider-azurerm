@@ -6,13 +6,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = MsSqlDatabaseId{}
+var _ resourceid.Formatter = DatabaseId{}
 
 func TestMsSqlDatabaseID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *MsSqlDatabaseId
+		Expected *DatabaseId
 	}{
 		{
 			Name:     "Empty",
@@ -52,9 +52,9 @@ func TestMsSqlDatabaseID(t *testing.T) {
 		{
 			Name:  "Sql Database ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Sql/servers/sqlServer1/databases/sqlDB1",
-			Expected: &MsSqlDatabaseId{
+			Expected: &DatabaseId{
 				Name:          "sqlDB1",
-				MsSqlServer:   "sqlServer1",
+				ServerName:    "sqlServer1",
 				ResourceGroup: "resGroup1",
 			},
 		},
@@ -81,7 +81,7 @@ func TestMsSqlDatabaseID(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 
-		if actual.MsSqlServer != v.Expected.MsSqlServer {
+		if actual.ServerName != v.Expected.ServerName {
 			t.Fatalf("Expected %q but got %q for Sql Server", v.Expected.Name, actual.Name)
 		}
 
