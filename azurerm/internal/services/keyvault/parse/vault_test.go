@@ -8,7 +8,7 @@ func TestKeyVaultID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *KeyVaultId
+		Expected *VaultId
 	}{
 		{
 			Name:     "Empty",
@@ -38,7 +38,7 @@ func TestKeyVaultID(t *testing.T) {
 		{
 			Name:  "Key Vault ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.KeyVault/vaults/vault1",
-			Expected: &KeyVaultId{
+			Expected: &VaultId{
 				Name:          "vault1",
 				ResourceGroup: "resGroup1",
 			},
@@ -53,7 +53,7 @@ func TestKeyVaultID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := KeyVaultID(v.Input)
+		actual, err := VaultID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

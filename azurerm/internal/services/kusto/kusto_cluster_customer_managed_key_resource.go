@@ -102,7 +102,7 @@ func resourceArmKustoClusterCustomerManagedKeyCreateUpdate(d *schema.ResourceDat
 	}
 
 	keyVaultIDRaw := d.Get("key_vault_id").(string)
-	keyVaultID, err := keyVaultParse.KeyVaultID(keyVaultIDRaw)
+	keyVaultID, err := keyVaultParse.VaultID(keyVaultIDRaw)
 	if err != nil {
 		return err
 	}

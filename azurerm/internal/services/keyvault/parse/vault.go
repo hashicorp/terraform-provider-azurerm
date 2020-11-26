@@ -4,18 +4,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type KeyVaultId struct {
-	Name          string
+type VaultId struct {
 	ResourceGroup string
+	Name          string
 }
 
-func KeyVaultID(input string) (*KeyVaultId, error) {
+func VaultID(input string) (*VaultId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	account := KeyVaultId{
+	account := VaultId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
