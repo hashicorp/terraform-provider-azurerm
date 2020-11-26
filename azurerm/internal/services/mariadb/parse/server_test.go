@@ -8,7 +8,7 @@ func TestValidateMariaDbServerServerID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *MariaDbServerServerId
+		Expected *ServerId
 	}{
 		{
 			Name:     "Empty resource ID",
@@ -38,7 +38,7 @@ func TestValidateMariaDbServerServerID(t *testing.T) {
 		{
 			Name:  "Valid",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test-rg/providers/Microsoft.DBforMariaDB/servers/test-mariadb",
-			Expected: &MariaDbServerServerId{
+			Expected: &ServerId{
 				Name:          "test-mariadb",
 				ResourceGroup: "test-rg",
 			},
@@ -48,7 +48,7 @@ func TestValidateMariaDbServerServerID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := MariaDbServerServerID(v.Input)
+		actual, err := ServerID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

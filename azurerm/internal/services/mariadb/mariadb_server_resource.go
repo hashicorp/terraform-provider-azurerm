@@ -32,7 +32,7 @@ func resourceArmMariaDbServer() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-				if _, err := parse.MariaDbServerServerID(d.Id()); err != nil {
+				if _, err := parse.ServerID(d.Id()); err != nil {
 					return []*schema.ResourceData{d}, err
 				}
 
@@ -400,7 +400,7 @@ func resourceArmMariaDbServerUpdate(d *schema.ResourceData, meta interface{}) er
 
 	log.Printf("[INFO] preparing arguments for AzureRM MariaDB Server update.")
 
-	id, err := parse.MariaDbServerServerID(d.Id())
+	id, err := parse.ServerID(d.Id())
 	if err != nil {
 		return fmt.Errorf("parsing MariaDB Server ID : %v", err)
 	}
@@ -462,7 +462,7 @@ func resourceArmMariaDbServerRead(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MariaDbServerServerID(d.Id())
+	id, err := parse.ServerID(d.Id())
 	if err != nil {
 		return fmt.Errorf("parsing MariaDB Server ID : %v", err)
 	}
@@ -519,7 +519,7 @@ func resourceArmMariaDbServerDelete(d *schema.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MariaDbServerServerID(d.Id())
+	id, err := parse.ServerID(d.Id())
 	if err != nil {
 		return fmt.Errorf("parsing MariaDB Server ID : %v", err)
 	}

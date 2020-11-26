@@ -6,18 +6,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type MariaDbServerServerId struct {
+type ServerId struct {
 	ResourceGroup string
 	Name          string
 }
 
-func MariaDbServerServerID(input string) (*MariaDbServerServerId, error) {
+func ServerID(input string) (*ServerId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse MariaDB Server ID %q: %+v", input, err)
 	}
 
-	server := MariaDbServerServerId{
+	server := ServerId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
