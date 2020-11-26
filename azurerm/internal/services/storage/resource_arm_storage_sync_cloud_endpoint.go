@@ -67,6 +67,7 @@ func resourceArmStorageSyncCloudEndpoint() *schema.Resource {
 			"storage_account_tenant_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},

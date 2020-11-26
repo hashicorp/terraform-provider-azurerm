@@ -140,10 +140,10 @@ resource "azurerm_storage_share" "test" {
 }
 
 resource "azurerm_storage_sync_cloud_endpoint" "test" {
-  name                      = "acctest-CEP-%[1]d"
-  storage_sync_group_id     = azurerm_storage_sync_group.test.id
-  storage_account_id        = azurerm_storage_account.test.id
-  file_share_name           = azurerm_storage_share.test.name
+  name                  = "acctest-CEP-%[1]d"
+  storage_sync_group_id = azurerm_storage_sync_group.test.id
+  storage_account_id    = azurerm_storage_account.test.id
+  file_share_name       = azurerm_storage_share.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -154,10 +154,10 @@ func testAccAzureRMCloudEndpoint_requiresImport(data acceptance.TestData) string
 %s
 
 resource "azurerm_storage_sync_cloud_endpoint" "import" {
-  name                      = azurerm_storage_sync_cloud_endpoint.test.name
-  storage_sync_group_id     = azurerm_storage_sync_cloud_endpoint.test.storage_sync_group_id
-  storage_account_id        = azurerm_storage_sync_cloud_endpoint.test.storage_account_id
-  file_share_name           = azurerm_storage_sync_cloud_endpoint.test.file_share_name
+  name                  = azurerm_storage_sync_cloud_endpoint.test.name
+  storage_sync_group_id = azurerm_storage_sync_cloud_endpoint.test.storage_sync_group_id
+  storage_account_id    = azurerm_storage_sync_cloud_endpoint.test.storage_account_id
+  file_share_name       = azurerm_storage_sync_cloud_endpoint.test.file_share_name
 }
 `, template)
 }
