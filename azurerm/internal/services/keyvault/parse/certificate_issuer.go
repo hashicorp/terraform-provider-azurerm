@@ -6,12 +6,12 @@ import (
 	"strings"
 )
 
-type KeyVaultCertificateIssuerID struct {
+type IssuerId struct {
 	KeyVaultBaseUrl string
 	Name            string
 }
 
-func KeyVaultCertificateIssuerId(id string) (*KeyVaultCertificateIssuerID, error) {
+func IssuerID(id string) (*IssuerId, error) {
 	// example: https://example-keyvault.vault.azure.net/certificates/issuers/ExampleIssuer
 	idURL, err := url.ParseRequestURI(id)
 	if err != nil {
@@ -32,7 +32,7 @@ func KeyVaultCertificateIssuerId(id string) (*KeyVaultCertificateIssuerID, error
 		return nil, fmt.Errorf("Key Vault Certificate Issuer ID path must begin with %q", "/certificates/issuers")
 	}
 
-	issuerId := KeyVaultCertificateIssuerID{
+	issuerId := IssuerId{
 		KeyVaultBaseUrl: fmt.Sprintf("%s://%s/", idURL.Scheme, idURL.Host),
 		Name:            components[2],
 	}
