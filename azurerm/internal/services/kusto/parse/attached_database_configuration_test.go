@@ -8,7 +8,7 @@ func TestKustoAttachedDatabaseConfigurationId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *KustoAttachedDatabaseConfigurationId
+		Expected *AttachedDatabaseConfigurationId
 	}{
 		{
 			Name:     "Empty",
@@ -23,7 +23,7 @@ func TestKustoAttachedDatabaseConfigurationId(t *testing.T) {
 		{
 			Name:  "Kusto Attached Database Configuration ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/Clusters/cluster1/AttachedDatabaseConfigurations/configuration1",
-			Expected: &KustoAttachedDatabaseConfigurationId{
+			Expected: &AttachedDatabaseConfigurationId{
 				Name:          "configuration1",
 				Cluster:       "cluster1",
 				ResourceGroup: "group1",
@@ -34,7 +34,7 @@ func TestKustoAttachedDatabaseConfigurationId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := KustoAttachedDatabaseConfigurationID(v.Input)
+		actual, err := AttachedDatabaseConfigurationID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

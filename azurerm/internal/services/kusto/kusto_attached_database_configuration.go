@@ -146,7 +146,7 @@ func resourceArmKustoAttachedDatabaseConfigurationRead(d *schema.ResourceData, m
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KustoAttachedDatabaseConfigurationID(d.Id())
+	id, err := parse.AttachedDatabaseConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -183,7 +183,7 @@ func resourceArmKustoAttachedDatabaseConfigurationDelete(d *schema.ResourceData,
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KustoAttachedDatabaseConfigurationID(d.Id())
+	id, err := parse.AttachedDatabaseConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}

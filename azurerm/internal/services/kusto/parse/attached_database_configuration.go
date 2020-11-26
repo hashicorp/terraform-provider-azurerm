@@ -6,19 +6,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type KustoAttachedDatabaseConfigurationId struct {
+type AttachedDatabaseConfigurationId struct {
 	ResourceGroup string
 	Cluster       string
 	Name          string
 }
 
-func KustoAttachedDatabaseConfigurationID(input string) (*KustoAttachedDatabaseConfigurationId, error) {
+func AttachedDatabaseConfigurationID(input string) (*AttachedDatabaseConfigurationId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Kusto Attached Database Configuration ID %q: %+v", input, err)
 	}
 
-	configuration := KustoAttachedDatabaseConfigurationId{
+	configuration := AttachedDatabaseConfigurationId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
