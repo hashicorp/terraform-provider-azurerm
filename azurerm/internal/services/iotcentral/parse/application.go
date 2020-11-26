@@ -6,22 +6,22 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type IoTCentralApplicationId struct {
+type ApplicationId struct {
 	ResourceGroup string
-	Name          string
+	IoTAppName    string
 }
 
-func IoTCentralApplicationID(input string) (*IoTCentralApplicationId, error) {
+func ApplicationID(input string) (*ApplicationId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse IoT Central Application ID %q: %+v", input, err)
 	}
 
-	server := IoTCentralApplicationId{
+	server := ApplicationId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if server.Name, err = id.PopSegment("IoTApps"); err != nil {
+	if server.IoTAppName, err = id.PopSegment("IoTApps"); err != nil {
 		return nil, err
 	}
 

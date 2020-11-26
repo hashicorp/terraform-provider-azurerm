@@ -8,7 +8,7 @@ func TestIotCentralApplicationID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *IoTCentralApplicationId
+		Expected *ApplicationId
 	}{
 		{
 			Name:     "Empty",
@@ -38,8 +38,8 @@ func TestIotCentralApplicationID(t *testing.T) {
 		{
 			Name:  "IoT Central Application ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.IoTCentral/IoTApps/App1",
-			Expected: &IoTCentralApplicationId{
-				Name:          "App1",
+			Expected: &ApplicationId{
+				IoTAppName:    "App1",
 				ResourceGroup: "resGroup1",
 			},
 		},
@@ -53,7 +53,7 @@ func TestIotCentralApplicationID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := IoTCentralApplicationID(v.Input)
+		actual, err := ApplicationID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -62,8 +62,8 @@ func TestIotCentralApplicationID(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.IoTAppName != v.Expected.IoTAppName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.IoTAppName, actual.IoTAppName)
 		}
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
