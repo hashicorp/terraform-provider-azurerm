@@ -14,13 +14,13 @@ Manages a SQL Container within a Cosmos DB Account.
 
 ```hcl
 resource "azurerm_cosmosdb_sql_container" "example" {
-  name                = "example-container"
-  resource_group_name = azurerm_cosmosdb_account.example.resource_group_name
-  account_name        = azurerm_cosmosdb_account.example.name
-  database_name       = azurerm_cosmosdb_sql_database.example.name
-  partition_key_path  = "/definition/id"
+  name                  = "example-container"
+  resource_group_name   = azurerm_cosmosdb_account.example.resource_group_name
+  account_name          = azurerm_cosmosdb_account.example.name
+  database_name         = azurerm_cosmosdb_sql_database.example.name
+  partition_key_path    = "/definition/id"
   partition_key_version = 1
-  throughput          = 400
+  throughput            = 400
 
   indexing_policy {
     indexing_mode = "Consistent"
