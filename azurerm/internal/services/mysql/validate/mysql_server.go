@@ -14,7 +14,7 @@ func MySQLServerID(i interface{}, k string) (warnings []string, errors []error) 
 		return warnings, errors
 	}
 
-	if _, err := parse.MySQLServerID(v); err != nil {
+	if _, err := parse.ServerID(v); err != nil {
 		errors = append(errors, fmt.Errorf("Can not parse %q as a MySQL Server resource id: %v", k, err))
 	}
 

@@ -1,14 +1,12 @@
 package parse
 
-import (
-	"testing"
-)
+import "testing"
 
-func TestMySQLServerID(t *testing.T) {
+func TestMySQLServerKeyID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *MySQLServerId
+		Expected *KeyId
 	}{
 		{
 			Name:     "Empty resource ID",
@@ -36,11 +34,22 @@ func TestMySQLServerID(t *testing.T) {
 			Expected: nil,
 		},
 		{
+			Name:     "MySQL Server ID",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test-rg/providers/Microsoft.DBforMySQL/servers/test-mysql/",
+			Expected: nil,
+		},
+		{
+			Name:     "Missing key name",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test-rg/providers/Microsoft.DBforMySQL/servers/test-mysql/keys/",
+			Expected: nil,
+		},
+		{
 			Name:  "Valid",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test-rg/providers/Microsoft.DBforMySQL/servers/test-mysql",
-			Expected: &MySQLServerId{
-				Name:          "test-mysql",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test-rg/providers/Microsoft.DBforMySQL/servers/test-mysql/keys/key1",
+			Expected: &KeyId{
+				Name:          "key1",
 				ResourceGroup: "test-rg",
+				ServerName:    "test-mysql",
 			},
 		},
 	}
@@ -48,7 +57,7 @@ func TestMySQLServerID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := MySQLServerID(v.Input)
+		actual, err := KeyID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -59,6 +68,10 @@ func TestMySQLServerID(t *testing.T) {
 
 		if actual.Name != v.Expected.Name {
 			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		}
+
+		if actual.ServerName != v.Expected.ServerName {
+			t.Fatalf("Expected %q but got %q for ServerName", v.Expected.ServerName, actual.ServerName)
 		}
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {

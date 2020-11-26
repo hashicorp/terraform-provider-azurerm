@@ -36,7 +36,7 @@ func resourceArmMySqlServer() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-				if _, err := parse.MySQLServerID(d.Id()); err != nil {
+				if _, err := parse.ServerID(d.Id()); err != nil {
 					return []*schema.ResourceData{d}, err
 				}
 
@@ -575,7 +575,7 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Server update.")
 
-	id, err := parse.MySQLServerID(d.Id())
+	id, err := parse.ServerID(d.Id())
 	if err != nil {
 		return fmt.Errorf("parsing MySQL Server ID : %v", err)
 	}
@@ -654,7 +654,7 @@ func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MySQLServerID(d.Id())
+	id, err := parse.ServerID(d.Id())
 	if err != nil {
 		return fmt.Errorf("parsing MySQL Server ID : %v", err)
 	}
@@ -734,7 +734,7 @@ func resourceArmMySqlServerDelete(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MySQLServerID(d.Id())
+	id, err := parse.ServerID(d.Id())
 	if err != nil {
 		return fmt.Errorf("parsing MySQL Server ID : %v", err)
 	}
