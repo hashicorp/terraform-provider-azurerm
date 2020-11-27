@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,45 +9,48 @@ import (
 )
 
 type HubVirtualNetworkConnectionId struct {
-	SubscriptionId string // placeholder value
+	SubscriptionId string
 	ResourceGroup  string
 	VirtualHubName string
 	Name           string
 }
 
-func NewHubVirtualNetworkConnectionID(id VirtualHubId, name string) HubVirtualNetworkConnectionId {
+func NewHubVirtualNetworkConnectionID(subscriptionId, resourceGroup, virtualHubName, name string) HubVirtualNetworkConnectionId {
 	return HubVirtualNetworkConnectionId{
-		ResourceGroup:  id.ResourceGroup,
-		VirtualHubName: id.Name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		VirtualHubName: virtualHubName,
 		Name:           name,
 	}
 }
 
-func (id HubVirtualNetworkConnectionId) ID(subscriptionId string) string {
-	base := NewVirtualHubID(subscriptionId, id.ResourceGroup, id.VirtualHubName).ID(subscriptionId)
-	return fmt.Sprintf("%s/hubVirtualNetworkConnections/%s", base, id.Name)
+func (id HubVirtualNetworkConnectionId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualHubs/%s/hubVirtualNetworkConnections/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VirtualHubName, id.Name)
 }
 
+// HubVirtualNetworkConnectionID parses a HubVirtualNetworkConnection ID into an HubVirtualNetworkConnectionId struct
 func HubVirtualNetworkConnectionID(input string) (*HubVirtualNetworkConnectionId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Virtual Hub Connection ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	// /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tom-dev99/providers/Microsoft.Network/virtualHubs/tom-devvh/hubVirtualNetworkConnections/first
-	connection := HubVirtualNetworkConnectionId{
+	resourceId := HubVirtualNetworkConnectionId{
+		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
-		VirtualHubName: id.Path["virtualHubs"],
-		Name:           id.Path["hubVirtualNetworkConnections"],
 	}
 
-	if connection.VirtualHubName == "" {
-		return nil, fmt.Errorf("ID was missing the `virtualHubs` element")
+	if resourceId.VirtualHubName, err = id.PopSegment("virtualHubs"); err != nil {
+		return nil, err
+	}
+	if resourceId.Name, err = id.PopSegment("hubVirtualNetworkConnections"); err != nil {
+		return nil, err
 	}
 
-	if connection.Name == "" {
-		return nil, fmt.Errorf("ID was missing the `hubVirtualNetworkConnections` element")
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
 	}
 
-	return &connection, nil
+	return &resourceId, nil
 }
