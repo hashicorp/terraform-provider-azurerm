@@ -8,38 +8,38 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type IntegrationServiceEnvironmentId struct {
+type IntegrationAccountId struct {
 	SubscriptionId string
 	ResourceGroup  string
 	Name           string
 }
 
-func NewIntegrationServiceEnvironmentID(subscriptionId, resourceGroup, name string) IntegrationServiceEnvironmentId {
-	return IntegrationServiceEnvironmentId{
+func NewIntegrationAccountID(subscriptionId, resourceGroup, name string) IntegrationAccountId {
+	return IntegrationAccountId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
 		Name:           name,
 	}
 }
 
-func (id IntegrationServiceEnvironmentId) ID(_ string) string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Logic/integrationServiceEnvironments/%s"
+func (id IntegrationAccountId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Logic/integrationAccounts/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
-// IntegrationServiceEnvironmentID parses a IntegrationServiceEnvironment ID into an IntegrationServiceEnvironmentId struct
-func IntegrationServiceEnvironmentID(input string) (*IntegrationServiceEnvironmentId, error) {
+// IntegrationAccountID parses a IntegrationAccount ID into an IntegrationAccountId struct
+func IntegrationAccountID(input string) (*IntegrationAccountId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := IntegrationServiceEnvironmentId{
+	resourceId := IntegrationAccountId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if resourceId.Name, err = id.PopSegment("integrationServiceEnvironments"); err != nil {
+	if resourceId.Name, err = id.PopSegment("integrationAccounts"); err != nil {
 		return nil, err
 	}
 

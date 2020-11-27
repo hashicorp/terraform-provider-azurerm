@@ -8,21 +8,21 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = IntegrationServiceEnvironmentId{}
+var _ resourceid.Formatter = IntegrationAccountId{}
 
-func TestIntegrationServiceEnvironmentIDFormatter(t *testing.T) {
-	actual := NewIntegrationServiceEnvironmentID("12345678-1234-9876-4563-123456789012", "group1", "ise1").ID("")
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Logic/integrationServiceEnvironments/ise1"
+func TestIntegrationAccountIDFormatter(t *testing.T) {
+	actual := NewIntegrationAccountID("12345678-1234-9876-4563-123456789012", "group1", "account1").ID("")
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Logic/integrationAccounts/account1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestIntegrationServiceEnvironmentID(t *testing.T) {
+func TestIntegrationAccountID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *IntegrationServiceEnvironmentId
+		Expected *IntegrationAccountId
 	}{
 
 		{
@@ -63,23 +63,23 @@ func TestIntegrationServiceEnvironmentID(t *testing.T) {
 
 		{
 			// missing value for Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Logic/integrationServiceEnvironments/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Logic/integrationAccounts/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Logic/integrationServiceEnvironments/ise1",
-			Expected: &IntegrationServiceEnvironmentId{
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Logic/integrationAccounts/account1",
+			Expected: &IntegrationAccountId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "group1",
-				Name:           "ise1",
+				Name:           "account1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/GROUP1/PROVIDERS/MICROSOFT.LOGIC/INTEGRATIONSERVICEENVIRONMENTS/ISE1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/GROUP1/PROVIDERS/MICROSOFT.LOGIC/INTEGRATIONACCOUNTS/ACCOUNT1",
 			Error: true,
 		},
 	}
@@ -87,7 +87,7 @@ func TestIntegrationServiceEnvironmentID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := IntegrationServiceEnvironmentID(v.Input)
+		actual, err := IntegrationAccountID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
