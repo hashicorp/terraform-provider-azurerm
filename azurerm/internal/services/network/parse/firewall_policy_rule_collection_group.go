@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,39 +9,42 @@ import (
 )
 
 type FirewallPolicyRuleCollectionGroupId struct {
+	SubscriptionId          string
 	ResourceGroup           string
 	FirewallPolicyName      string
 	RuleCollectionGroupName string
 }
 
-func (id FirewallPolicyRuleCollectionGroupId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/firewallPolicies/%s/ruleCollectionGroups/%s",
-		subscriptionId, id.ResourceGroup, id.FirewallPolicyName, id.RuleCollectionGroupName)
-}
-
-func NewFirewallPolicyRuleCollectionGroupID(policyId FirewallPolicyId, name string) FirewallPolicyRuleCollectionGroupId {
+func NewFirewallPolicyRuleCollectionGroupID(subscriptionId, resourceGroup, firewallPolicyName, ruleCollectionGroupName string) FirewallPolicyRuleCollectionGroupId {
 	return FirewallPolicyRuleCollectionGroupId{
-		ResourceGroup:           policyId.ResourceGroup,
-		FirewallPolicyName:      policyId.Name,
-		RuleCollectionGroupName: name,
+		SubscriptionId:          subscriptionId,
+		ResourceGroup:           resourceGroup,
+		FirewallPolicyName:      firewallPolicyName,
+		RuleCollectionGroupName: ruleCollectionGroupName,
 	}
 }
 
+func (id FirewallPolicyRuleCollectionGroupId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/firewallPolicies/%s/ruleCollectionGroups/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.FirewallPolicyName, id.RuleCollectionGroupName)
+}
+
+// FirewallPolicyRuleCollectionGroupID parses a FirewallPolicyRuleCollectionGroup ID into an FirewallPolicyRuleCollectionGroupId struct
 func FirewallPolicyRuleCollectionGroupID(input string) (*FirewallPolicyRuleCollectionGroupId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing Firewall Policy ID %q: %+v", input, err)
-	}
-
-	group := FirewallPolicyRuleCollectionGroupId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if group.FirewallPolicyName, err = id.PopSegment("firewallPolicies"); err != nil {
 		return nil, err
 	}
 
-	if group.RuleCollectionGroupName, err = id.PopSegment("ruleCollectionGroups"); err != nil {
+	resourceId := FirewallPolicyRuleCollectionGroupId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.FirewallPolicyName, err = id.PopSegment("firewallPolicies"); err != nil {
+		return nil, err
+	}
+	if resourceId.RuleCollectionGroupName, err = id.PopSegment("ruleCollectionGroups"); err != nil {
 		return nil, err
 	}
 
@@ -47,5 +52,5 @@ func FirewallPolicyRuleCollectionGroupID(input string) (*FirewallPolicyRuleColle
 		return nil, err
 	}
 
-	return &group, nil
+	return &resourceId, nil
 }
