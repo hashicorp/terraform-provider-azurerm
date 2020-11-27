@@ -1,70 +1,104 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-func TestNetworkPacketCaptureID(t *testing.T) {
+var _ resourceid.Formatter = PacketCaptureId{}
+
+func TestPacketCaptureIDFormatter(t *testing.T) {
+	actual := NewPacketCaptureID("12345678-1234-9876-4563-123456789012", "resGroup1", "watcher1", "capture1").ID("")
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkWatchers/watcher1/packetCaptures/capture1"
+	if actual != expected {
+		t.Fatalf("Expected %q but got %q", expected, actual)
+	}
+}
+
+func TestPacketCaptureID(t *testing.T) {
 	testData := []struct {
-		Name   string
-		Input  string
-		Error  bool
-		Expect *PacketCaptureId
+		Input    string
+		Error    bool
+		Expected *PacketCaptureId
 	}{
+
 		{
-			Name:  "Empty",
+			// empty
 			Input: "",
 			Error: true,
 		},
+
 		{
-			Name:  "No Resource Groups Segment",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000",
+			// missing SubscriptionId
+			Input: "/",
 			Error: true,
 		},
+
 		{
-			Name:  "No Resource Groups Value",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/",
+			// missing value for SubscriptionId
+			Input: "/subscriptions/",
 			Error: true,
 		},
+
 		{
-			Name:  "Resource Group ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/",
+			// missing ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/",
 			Error: true,
 		},
+
 		{
-			Name:  "Missing Network Watcher Key",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/networkWatchers/",
+			// missing value for ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
 			Error: true,
 		},
+
 		{
-			Name:  "Missing Network Watcher Value",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/networkWatchers/watcher1",
+			// missing NetworkWatcherName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/",
 			Error: true,
 		},
+
 		{
-			Name:  "Missing Network Packet Capture Key",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/networkWatchers/watcher1/packetCaptures",
+			// missing value for NetworkWatcherName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkWatchers/",
 			Error: true,
 		},
+
 		{
-			Name:  "Namespace Network Packet Capture Value",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/networkWatchers/watcher1/packetCaptures/packetCapture1",
-			Error: false,
-			Expect: &PacketCaptureId{
-				ResourceGroup:      "group1",
+			// missing Name
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkWatchers/watcher1/",
+			Error: true,
+		},
+
+		{
+			// missing value for Name
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkWatchers/watcher1/packetCaptures/",
+			Error: true,
+		},
+
+		{
+			// valid
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/networkWatchers/watcher1/packetCaptures/capture1",
+			Expected: &PacketCaptureId{
+				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:      "resGroup1",
 				NetworkWatcherName: "watcher1",
-				Name:               "packetCapture1",
+				Name:               "capture1",
 			},
 		},
+
 		{
-			Name:  "Wrong Segment",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/networkWatchers/watcher1/NetworkPacketCaptures/packetCapture1",
+			// upper-cased
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NETWORK/NETWORKWATCHERS/WATCHER1/PACKETCAPTURES/CAPTURE1",
 			Error: true,
 		},
 	}
 
 	for _, v := range testData {
-		t.Logf("[DEBUG] Testing %q", v.Name)
+		t.Logf("[DEBUG] Testing %q", v.Input)
 
 		actual, err := PacketCaptureID(v.Input)
 		if err != nil {
@@ -72,19 +106,23 @@ func TestNetworkPacketCaptureID(t *testing.T) {
 				continue
 			}
 
-			t.Fatalf("Expected a value but got an error: %s", err)
+			t.Fatalf("Expect a value but got an error: %s", err)
+		}
+		if v.Error {
+			t.Fatal("Expect an error but didn't get one")
 		}
 
-		if actual.Name != v.Expect.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expect.Name, actual.Name)
+		if actual.SubscriptionId != v.Expected.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
 		}
-
-		if actual.NetworkWatcherName != v.Expect.NetworkWatcherName {
-			t.Fatalf("Expected %q but got %q for Name", v.Expect.NetworkWatcherName, actual.NetworkWatcherName)
+		if actual.ResourceGroup != v.Expected.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
-
-		if actual.ResourceGroup != v.Expect.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for Resource Group", v.Expect.ResourceGroup, actual.ResourceGroup)
+		if actual.NetworkWatcherName != v.Expected.NetworkWatcherName {
+			t.Fatalf("Expected %q but got %q for NetworkWatcherName", v.Expected.NetworkWatcherName, actual.NetworkWatcherName)
+		}
+		if actual.Name != v.Expected.Name {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 	}
 }
