@@ -161,14 +161,14 @@ func resourceArmIotCentralAppUpdate(d *schema.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.IoTCentralApplicationID(d.Id())
+	id, err := parse.ApplicationID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	displayName := d.Get("display_name").(string)
 	if displayName == "" {
-		displayName = id.Name
+		displayName = id.IoTAppName
 	}
 
 	subdomain := d.Get("sub_domain").(string)
@@ -181,22 +181,22 @@ func resourceArmIotCentralAppUpdate(d *schema.ResourceData, meta interface{}) er
 			Template:    &template,
 		},
 	}
-	future, err := client.Update(ctx, id.ResourceGroup, id.Name, appPatch)
+	future, err := client.Update(ctx, id.ResourceGroup, id.IoTAppName, appPatch)
 	if err != nil {
-		return fmt.Errorf("Error update Iot Central Application %q (Resource Group %q).  %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error update Iot Central Application %q (Resource Group %q).  %+v", id.IoTAppName, id.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the completion of update Iot Central Application %q (Resource Group %q):  %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error waiting for the completion of update Iot Central Application %q (Resource Group %q):  %+v", id.IoTAppName, id.ResourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.IoTAppName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving IoT Central Application %q (Resource Group %q):  %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error retrieving IoT Central Application %q (Resource Group %q):  %+v", id.IoTAppName, id.ResourceGroup, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("Cannot read IoT Central Application %q (Resource Group %q):  %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Cannot read IoT Central Application %q (Resource Group %q):  %+v", id.IoTAppName, id.ResourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -208,18 +208,18 @@ func resourceArmIotCentralAppRead(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.IoTCentralApplicationID(d.Id())
+	id, err := parse.ApplicationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.IoTAppName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving IoT Central Application %q (Resource Group %q):  %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error retrieving IoT Central Application %q (Resource Group %q):  %+v", id.IoTAppName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -246,19 +246,19 @@ func resourceArmIotCentralAppDelete(d *schema.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.IoTCentralApplicationID(d.Id())
+	id, err := parse.ApplicationID(d.Id())
 	if err != nil {
 		return err
 	}
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.IoTAppName)
 	if err != nil {
 		if !response.WasNotFound(resp.Response()) {
-			return fmt.Errorf("Error delete Iot Central Application %q (Resource Group %q).  %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("Error delete Iot Central Application %q (Resource Group %q).  %+v", id.IoTAppName, id.ResourceGroup, err)
 		}
 	}
 
 	if err := resp.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error delete Iot Central Application %q Resource Group %q).  %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error delete Iot Central Application %q Resource Group %q).  %+v", id.IoTAppName, id.ResourceGroup, err)
 	}
 	return nil
 }
