@@ -405,7 +405,7 @@ func synapseSqlPoolScaleStateRefreshFunc(ctx context.Context, client *synapse.SQ
 // sqlPool backend service is a proxy to sql database
 // backend service restore and backup only accept id format of sql database
 // so if the id is sqlPool, we need to construct the corresponding sql database id
-func constructSourceDatabaseId(id string, subscriptionId string) string {
+func constructSourceDatabaseId(id string, _ string) string {
 	sqlPoolId, err := parse.SynapseSqlPoolID(id)
 	if err != nil {
 		return id
