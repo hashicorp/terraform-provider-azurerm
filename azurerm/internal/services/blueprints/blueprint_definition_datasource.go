@@ -14,9 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmBlueprintDefinition() *schema.Resource {
+func dataSourceBlueprintDefinition() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmBlueprintDefinitionRead,
+		Read: dataSourceBlueprintDefinitionRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -75,7 +75,7 @@ func dataSourceArmBlueprintDefinition() *schema.Resource {
 	}
 }
 
-func dataSourceArmBlueprintDefinitionRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceBlueprintDefinitionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Blueprints.BlueprintsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

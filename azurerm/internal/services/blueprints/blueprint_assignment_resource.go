@@ -21,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmBlueprintAssignment() *schema.Resource {
+func resourceBlueprintAssignment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmBlueprintAssignmentCreateUpdate,
-		Update: resourceArmBlueprintAssignmentCreateUpdate,
-		Read:   resourceArmBlueprintAssignmentRead,
-		Delete: resourceArmBlueprintAssignmentDelete,
+		Create: resourceBlueprintAssignmentCreateUpdate,
+		Update: resourceBlueprintAssignmentCreateUpdate,
+		Read:   resourceBlueprintAssignmentRead,
+		Delete: resourceBlueprintAssignmentDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -126,7 +126,7 @@ func resourceArmBlueprintAssignment() *schema.Resource {
 	}
 }
 
-func resourceArmBlueprintAssignmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBlueprintAssignmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Blueprints.AssignmentsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -214,10 +214,10 @@ func resourceArmBlueprintAssignmentCreateUpdate(d *schema.ResourceData, meta int
 
 	d.SetId(*resp.ID)
 
-	return resourceArmBlueprintAssignmentRead(d, meta)
+	return resourceBlueprintAssignmentRead(d, meta)
 }
 
-func resourceArmBlueprintAssignmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBlueprintAssignmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Blueprints.AssignmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -298,7 +298,7 @@ func resourceArmBlueprintAssignmentRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceArmBlueprintAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBlueprintAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Blueprints.AssignmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
