@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,21 +9,37 @@ import (
 )
 
 type AccountId struct {
+	SubscriptionId    string
 	ResourceGroup     string
 	NetAppAccountName string
 }
 
-func NetAppAccountID(input string) (*AccountId, error) {
+func NewAccountID(subscriptionId, resourceGroup, netAppAccountName string) AccountId {
+	return AccountId{
+		SubscriptionId:    subscriptionId,
+		ResourceGroup:     resourceGroup,
+		NetAppAccountName: netAppAccountName,
+	}
+}
+
+func (id AccountId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.NetApp/netAppAccounts/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.NetAppAccountName)
+}
+
+// AccountID parses a Account ID into an AccountId struct
+func AccountID(input string) (*AccountId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse NetApp Account ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	service := AccountId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := AccountId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if service.NetAppAccountName, err = id.PopSegment("netAppAccounts"); err != nil {
+	if resourceId.NetAppAccountName, err = id.PopSegment("netAppAccounts"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +47,5 @@ func NetAppAccountID(input string) (*AccountId, error) {
 		return nil, err
 	}
 
-	return &service, nil
+	return &resourceId, nil
 }
