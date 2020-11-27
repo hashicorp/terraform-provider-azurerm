@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,21 +9,37 @@ import (
 )
 
 type NetworkWatcherId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
+func NewNetworkWatcherID(subscriptionId, resourceGroup, name string) NetworkWatcherId {
+	return NetworkWatcherId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id NetworkWatcherId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/networkWatchers/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+}
+
+// NetworkWatcherID parses a NetworkWatcher ID into an NetworkWatcherId struct
 func NetworkWatcherID(input string) (*NetworkWatcherId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	watcher := NetworkWatcherId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := NetworkWatcherId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if watcher.Name, err = id.PopSegment("networkWatchers"); err != nil {
+	if resourceId.Name, err = id.PopSegment("networkWatchers"); err != nil {
 		return nil, err
 	}
 
@@ -29,17 +47,5 @@ func NetworkWatcherID(input string) (*NetworkWatcherId, error) {
 		return nil, err
 	}
 
-	return &watcher, nil
-}
-
-func (id NetworkWatcherId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/networkWatchers/%s",
-		subscriptionId, id.ResourceGroup, id.Name)
-}
-
-func NewNetworkWatcherID(resourceGroup, name string) NetworkWatcherId {
-	return NetworkWatcherId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
-	}
+	return &resourceId, nil
 }
