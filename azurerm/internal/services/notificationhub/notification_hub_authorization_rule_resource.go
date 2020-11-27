@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub/parse"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -22,9 +23,10 @@ func resourceArmNotificationHubAuthorizationRule() *schema.Resource {
 		Read:   resourceArmNotificationHubAuthorizationRuleRead,
 		Update: resourceArmNotificationHubAuthorizationRuleCreateUpdate,
 		Delete: resourceArmNotificationHubAuthorizationRuleDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.NotificationHubAuthorizationRuleID(id)
+			return err
+		}),
 		// TODO: customizeDiff for send+listen when manage selected
 
 		Timeouts: &schema.ResourceTimeout{
