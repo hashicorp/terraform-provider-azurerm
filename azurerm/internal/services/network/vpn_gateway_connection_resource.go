@@ -289,7 +289,7 @@ func resourceArmVpnGatewayConnectionResourceCreateUpdate(d *schema.ResourceData,
 	defer cancel()
 
 	name := d.Get("name").(string)
-	gatewayId, err := parse.VPNGatewayID(d.Get("vpn_gateway_id").(string))
+	gatewayId, err := parse.VpnGatewayID(d.Get("vpn_gateway_id").(string))
 	if err != nil {
 		return err
 	}
@@ -314,9 +314,11 @@ func resourceArmVpnGatewayConnectionResourceCreateUpdate(d *schema.ResourceData,
 		Name: &name,
 		VpnConnectionProperties: &network.VpnConnectionProperties{
 			EnableInternetSecurity: utils.Bool(d.Get("internet_security_enabled").(bool)),
-			RemoteVpnSite:          &network.SubResource{ID: utils.String(d.Get("remote_vpn_site_id").(string))},
-			VpnLinkConnections:     expandArmVpnGatewayConnectionVpnSiteLinkConnections(d.Get("vpn_link").([]interface{})),
-			RoutingConfiguration:   expandArmVpnGatewayConnectionRoutingConfiguration(d.Get("routing").([]interface{})),
+			RemoteVpnSite: &network.SubResource{
+				ID: utils.String(d.Get("remote_vpn_site_id").(string)),
+			},
+			VpnLinkConnections:   expandArmVpnGatewayConnectionVpnSiteLinkConnections(d.Get("vpn_link").([]interface{})),
+			RoutingConfiguration: expandArmVpnGatewayConnectionRoutingConfiguration(d.Get("routing").([]interface{})),
 		},
 	}
 
@@ -347,7 +349,6 @@ func resourceArmVpnGatewayConnectionResourceCreateUpdate(d *schema.ResourceData,
 }
 
 func resourceArmVpnGatewayConnectionResourceRead(d *schema.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.VpnConnectionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -370,8 +371,8 @@ func resourceArmVpnGatewayConnectionResourceRead(d *schema.ResourceData, meta in
 
 	d.Set("name", id.Name)
 
-	gatewayId := parse.NewVPNGatewayID(id.ResourceGroup, id.VpnGatewayName)
-	d.Set("vpn_gateway_id", gatewayId.ID(subscriptionId))
+	gatewayId := parse.NewVpnGatewayID(id.SubscriptionId, id.ResourceGroup, id.VpnGatewayName)
+	d.Set("vpn_gateway_id", gatewayId.ID(""))
 
 	if prop := resp.VpnConnectionProperties; prop != nil {
 		vpnSiteId := ""
@@ -381,7 +382,7 @@ func resourceArmVpnGatewayConnectionResourceRead(d *schema.ResourceData, meta in
 				if err != nil {
 					return err
 				}
-				vpnSiteId = theVpnSiteId.ID(subscriptionId)
+				vpnSiteId = theVpnSiteId.ID("")
 			}
 		}
 		d.Set("remote_vpn_site_id", vpnSiteId)

@@ -317,7 +317,7 @@ func resourceArmVPNGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VPNGatewayID(d.Id())
+	id, err := parse.VpnGatewayID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -365,7 +365,7 @@ func resourceArmVPNGatewayDelete(d *schema.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VPNGatewayID(d.Id())
+	id, err := parse.VpnGatewayID(d.Id())
 	if err != nil {
 		return err
 	}
