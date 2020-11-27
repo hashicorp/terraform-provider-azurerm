@@ -6,19 +6,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type PostgreSQLServerKeyId struct {
-	Name          string
-	ServerName    string
+type ServerKeyId struct {
 	ResourceGroup string
+	ServerName    string
+	KeyName       string
 }
 
-func PostgreSQLServerKeyID(input string) (*PostgreSQLServerKeyId, error) {
+func ServerKeyID(input string) (*ServerKeyId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse Postgres Server Key ID %q: %+v", input, err)
 	}
 
-	server := PostgreSQLServerKeyId{
+	server := ServerKeyId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
@@ -26,7 +26,7 @@ func PostgreSQLServerKeyID(input string) (*PostgreSQLServerKeyId, error) {
 		return nil, err
 	}
 
-	if server.Name, err = id.PopSegment("keys"); err != nil {
+	if server.KeyName, err = id.PopSegment("keys"); err != nil {
 		return nil, err
 	}
 

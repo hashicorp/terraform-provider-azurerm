@@ -1,12 +1,14 @@
 package parse
 
-import "testing"
+import (
+	"testing"
+)
 
-func TestPostgreSQLServerKeyID(t *testing.T) {
+func TestAnalysisServicesServerId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *PostgreSQLServerKeyId
+		Expected *ServerId
 	}{
 		{
 			Name:     "Empty",
@@ -34,21 +36,10 @@ func TestPostgreSQLServerKeyID(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Name:     "Postgres Server ID",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DBforPostgreSQL/servers/Server1/",
-			Expected: nil,
-		},
-		{
-			Name:     "Missing Key Name",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DBforPostgreSQL/servers/Server1/keys/",
-			Expected: nil,
-		},
-		{
-			Name:  "PostgreSQL Server Key ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DBforPostgreSQL/servers/Server1/keys/key1",
-			Expected: &PostgreSQLServerKeyId{
-				Name:          "key1",
-				ServerName:    "Server1",
+			Name:  "Postgres Server ID",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DBforPostgreSQL/servers/Server1",
+			Expected: &ServerId{
+				Name:          "Server1",
 				ResourceGroup: "resGroup1",
 			},
 		},
@@ -62,7 +53,7 @@ func TestPostgreSQLServerKeyID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := PostgreSQLServerKeyID(v.Input)
+		actual, err := ServerID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -73,10 +64,6 @@ func TestPostgreSQLServerKeyID(t *testing.T) {
 
 		if actual.Name != v.Expected.Name {
 			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
-		}
-
-		if actual.ServerName != v.Expected.ServerName {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.ServerName, actual.ServerName)
 		}
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {

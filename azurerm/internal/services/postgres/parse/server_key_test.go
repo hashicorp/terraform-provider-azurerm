@@ -1,14 +1,12 @@
 package parse
 
-import (
-	"testing"
-)
+import "testing"
 
-func TestAnalysisServicesServerId(t *testing.T) {
+func TestPostgreSQLServerKeyID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *PostgreSQLServerId
+		Expected *ServerKeyId
 	}{
 		{
 			Name:     "Empty",
@@ -36,10 +34,21 @@ func TestAnalysisServicesServerId(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Name:  "Postgres Server ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DBforPostgreSQL/servers/Server1",
-			Expected: &PostgreSQLServerId{
-				Name:          "Server1",
+			Name:     "Postgres Server ID",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DBforPostgreSQL/servers/Server1/",
+			Expected: nil,
+		},
+		{
+			Name:     "Missing Key Name",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DBforPostgreSQL/servers/Server1/keys/",
+			Expected: nil,
+		},
+		{
+			Name:  "PostgreSQL Server Key ID",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DBforPostgreSQL/servers/Server1/keys/key1",
+			Expected: &ServerKeyId{
+				KeyName:       "key1",
+				ServerName:    "Server1",
 				ResourceGroup: "resGroup1",
 			},
 		},
@@ -53,7 +62,7 @@ func TestAnalysisServicesServerId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := PostgreSQLServerID(v.Input)
+		actual, err := ServerKeyID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -62,8 +71,12 @@ func TestAnalysisServicesServerId(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.KeyName != v.Expected.KeyName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.KeyName, actual.KeyName)
+		}
+
+		if actual.ServerName != v.Expected.ServerName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.ServerName, actual.ServerName)
 		}
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
