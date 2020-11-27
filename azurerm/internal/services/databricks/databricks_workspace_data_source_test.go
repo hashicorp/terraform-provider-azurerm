@@ -1,4 +1,4 @@
-package tests
+package databricks_test
 
 import (
 	"fmt"

@@ -1,4 +1,4 @@
-package tests
+package databricks_test
 
 import (
 	"fmt"
@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks/parse"
 )
 
@@ -87,7 +86,7 @@ func TestAzureRMDatabrickWorkspaceName(t *testing.T) {
 	t.Parallel()
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			_, errors := databricks.ValidateDatabricksWorkspaceName(tc.Input, "azurerm_databricks_workspace.test.name")
+			_, errors := ValidateDatabricksWorkspaceName(tc.Input, "azurerm_databricks_workspace.test.name")
 
 			if len(errors) != len(tc.ExpectedErrors) {
 				t.Fatalf("Expected %d errors but got %d for %q: %v", len(tc.ExpectedErrors), len(errors), tc.Input, errors)
