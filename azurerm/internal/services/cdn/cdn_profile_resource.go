@@ -214,26 +214,24 @@ func resourceCdnProfileDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ProfileID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Path["profiles"]
-	future, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error issuing delete request for CDN Profile %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting CDN Profile %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error waiting for CDN Profile %q (Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for deletion of CDN Profile %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return err
