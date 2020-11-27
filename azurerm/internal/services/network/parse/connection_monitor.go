@@ -4,23 +4,23 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type NetworkConnectionMonitorId struct {
-	ResourceGroup string
-	WatcherName   string
-	Name          string
+type ConnectionMonitorId struct {
+	ResourceGroup      string
+	NetworkWatcherName string
+	Name               string
 }
 
-func NetworkConnectionMonitorID(input string) (*NetworkConnectionMonitorId, error) {
+func ConnectionMonitorID(input string) (*ConnectionMonitorId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	connectionMonitor := NetworkConnectionMonitorId{
+	connectionMonitor := ConnectionMonitorId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if connectionMonitor.WatcherName, err = id.PopSegment("networkWatchers"); err != nil {
+	if connectionMonitor.NetworkWatcherName, err = id.PopSegment("networkWatchers"); err != nil {
 		return nil, err
 	}
 

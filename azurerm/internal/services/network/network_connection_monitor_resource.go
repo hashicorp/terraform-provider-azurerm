@@ -506,18 +506,18 @@ func resourceArmNetworkConnectionMonitorRead(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NetworkConnectionMonitorID(d.Id())
+	id, err := parse.ConnectionMonitorID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WatcherName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Connection Monitor %q (Watcher %q / Resource Group %q) %+v", id.Name, id.WatcherName, id.ResourceGroup, err)
+		return fmt.Errorf("Error reading Connection Monitor %q (Watcher %q / Resource Group %q) %+v", id.Name, id.NetworkWatcherName, id.ResourceGroup, err)
 	}
 
 	if resp.ConnectionMonitorType == network.SingleSourceDestination {
@@ -526,7 +526,7 @@ func resourceArmNetworkConnectionMonitorRead(d *schema.ResourceData, meta interf
 
 	d.Set("name", id.Name)
 
-	networkWatcherId := parse.NewNetworkWatcherID(id.ResourceGroup, id.WatcherName)
+	networkWatcherId := parse.NewNetworkWatcherID(id.ResourceGroup, id.NetworkWatcherName)
 	d.Set("network_watcher_id", networkWatcherId.ID(subscriptionId))
 
 	if location := resp.Location; location != nil {
@@ -561,20 +561,20 @@ func resourceArmNetworkConnectionMonitorDelete(d *schema.ResourceData, meta inte
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NetworkConnectionMonitorID(d.Id())
+	id, err := parse.ConnectionMonitorID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.WatcherName, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error deleting Connection Monitor %q (Watcher %q / Resource Group %q): %+v", id.Name, id.WatcherName, id.ResourceGroup, err)
+			return fmt.Errorf("Error deleting Connection Monitor %q (Watcher %q / Resource Group %q): %+v", id.Name, id.NetworkWatcherName, id.ResourceGroup, err)
 		}
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the deletion of Connection Monitor %q (Watcher %q / Resource Group %q): %+v", id.Name, id.WatcherName, id.ResourceGroup, err)
+		return fmt.Errorf("Error waiting for the deletion of Connection Monitor %q (Watcher %q / Resource Group %q): %+v", id.Name, id.NetworkWatcherName, id.ResourceGroup, err)
 	}
 
 	return nil

@@ -23,7 +23,7 @@ func TestNetworkConnectionMonitorID(t *testing.T) {
 		Name   string
 		Input  string
 		Error  bool
-		Expect *NetworkConnectionMonitorId
+		Expect *ConnectionMonitorId
 	}{
 		{
 			Name:  "Empty",
@@ -64,10 +64,10 @@ func TestNetworkConnectionMonitorID(t *testing.T) {
 			Name:  "Namespace Network Connection Monitor Value",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/networkWatchers/watcher1/connectionMonitors/connectionMonitor1",
 			Error: false,
-			Expect: &NetworkConnectionMonitorId{
-				ResourceGroup: "group1",
-				WatcherName:   "watcher1",
-				Name:          "connectionMonitor1",
+			Expect: &ConnectionMonitorId{
+				ResourceGroup:      "group1",
+				NetworkWatcherName: "watcher1",
+				Name:               "connectionMonitor1",
 			},
 		},
 		{
@@ -80,7 +80,7 @@ func TestNetworkConnectionMonitorID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := NetworkConnectionMonitorID(v.Input)
+		actual, err := ConnectionMonitorID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -93,8 +93,8 @@ func TestNetworkConnectionMonitorID(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for Name", v.Expect.Name, actual.Name)
 		}
 
-		if actual.WatcherName != v.Expect.WatcherName {
-			t.Fatalf("Expected %q but got %q for Name", v.Expect.WatcherName, actual.WatcherName)
+		if actual.NetworkWatcherName != v.Expect.NetworkWatcherName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expect.NetworkWatcherName, actual.NetworkWatcherName)
 		}
 
 		if actual.ResourceGroup != v.Expect.ResourceGroup {
