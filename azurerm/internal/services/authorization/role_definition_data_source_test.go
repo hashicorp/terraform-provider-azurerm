@@ -12,7 +12,7 @@ import (
 
 type RoleDefinitionDataSource struct{}
 
-func TestAccDataSourceAzureRMRoleDefinition_basic(t *testing.T) {
+func TestAccRoleDefinitionDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_role_definition", "test")
 	id := uuid.New().String()
 
@@ -35,7 +35,7 @@ func TestAccDataSourceAzureRMRoleDefinition_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMRoleDefinition_basicByName(t *testing.T) {
+func TestAccRoleDefinitionDataSource_basicByName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_role_definition", "test")
 	id := uuid.New().String()
 
@@ -58,7 +58,7 @@ func TestAccDataSourceAzureRMRoleDefinition_basicByName(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMRoleDefinition_builtIn_contributor(t *testing.T) {
+func TestAccRoleDefinitionDataSource_builtIn_contributor(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_role_definition", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{
@@ -82,7 +82,7 @@ func TestAccDataSourceAzureRMRoleDefinition_builtIn_contributor(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMRoleDefinition_builtIn_owner(t *testing.T) {
+func TestAccRoleDefinitionDataSource_builtIn_owner(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_role_definition", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{
@@ -101,7 +101,7 @@ func TestAccDataSourceAzureRMRoleDefinition_builtIn_owner(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMRoleDefinition_builtIn_reader(t *testing.T) {
+func TestAccRoleDefinitionDataSource_builtIn_reader(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_role_definition", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{
@@ -120,7 +120,7 @@ func TestAccDataSourceAzureRMRoleDefinition_builtIn_reader(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMRoleDefinition_builtIn_virtualMachineContributor(t *testing.T) {
+func TestAccRoleDefinitionDataSource_builtIn_virtualMachineContributor(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_role_definition", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{

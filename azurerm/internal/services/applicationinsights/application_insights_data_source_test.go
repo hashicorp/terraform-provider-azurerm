@@ -13,7 +13,7 @@ import (
 type AppInsightsDataSource struct {
 }
 
-func TestAccDataSourceApplicationInsights_basic(t *testing.T) {
+func TestAccApplicationInsightsDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_application_insights", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{

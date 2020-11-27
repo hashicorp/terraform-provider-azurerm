@@ -21,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAttestationProvider() *schema.Resource {
+func resourceAttestationProvider() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAttestationProviderCreate,
-		Read:   resourceArmAttestationProviderRead,
-		Update: resourceArmAttestationProviderUpdate,
-		Delete: resourceArmAttestationProviderDelete,
+		Create: resourceAttestationProviderCreate,
+		Read:   resourceAttestationProviderRead,
+		Update: resourceAttestationProviderUpdate,
+		Delete: resourceAttestationProviderDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -74,7 +74,7 @@ func resourceArmAttestationProvider() *schema.Resource {
 	}
 }
 
-func resourceArmAttestationProviderCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAttestationProviderCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Attestation.ProviderClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -122,10 +122,10 @@ func resourceArmAttestationProviderCreate(d *schema.ResourceData, meta interface
 	}
 
 	d.SetId(resourceId)
-	return resourceArmAttestationProviderRead(d, meta)
+	return resourceAttestationProviderRead(d, meta)
 }
 
-func resourceArmAttestationProviderRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAttestationProviderRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Attestation.ProviderClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -157,7 +157,7 @@ func resourceArmAttestationProviderRead(d *schema.ResourceData, meta interface{}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmAttestationProviderUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAttestationProviderUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Attestation.ProviderClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -175,10 +175,10 @@ func resourceArmAttestationProviderUpdate(d *schema.ResourceData, meta interface
 	if _, err := client.Update(ctx, id.ResourceGroup, id.AttestationProviderName, updateParams); err != nil {
 		return fmt.Errorf("updating Attestation Provider %q (Resource Group %q): %+v", id.AttestationProviderName, id.ResourceGroup, err)
 	}
-	return resourceArmAttestationProviderRead(d, meta)
+	return resourceAttestationProviderRead(d, meta)
 }
 
-func resourceArmAttestationProviderDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAttestationProviderDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Attestation.ProviderClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

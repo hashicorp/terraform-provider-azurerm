@@ -17,7 +17,7 @@ import (
 type AppInsightsWebTestsResource struct {
 }
 
-func TestAccAzureRMApplicationInsightsWebTests_basic(t *testing.T) {
+func TestAccApplicationInsightsWebTests_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_web_test", "test")
 	r := AppInsightsWebTestsResource{}
 
@@ -32,7 +32,7 @@ func TestAccAzureRMApplicationInsightsWebTests_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMApplicationInsightsWebTests_complete(t *testing.T) {
+func TestAccApplicationInsightsWebTests_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_web_test", "test")
 	r := AppInsightsWebTestsResource{}
 
@@ -47,7 +47,7 @@ func TestAccAzureRMApplicationInsightsWebTests_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMApplicationInsightsWebTests_update(t *testing.T) {
+func TestAccApplicationInsightsWebTests_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_web_test", "test")
 	r := AppInsightsWebTestsResource{}
 
@@ -82,7 +82,7 @@ func TestAccAzureRMApplicationInsightsWebTests_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMApplicationInsightsWebTests_requiresImport(t *testing.T) {
+func TestAccApplicationInsightsWebTests_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_web_test", "test")
 	r := AppInsightsWebTestsResource{}
 

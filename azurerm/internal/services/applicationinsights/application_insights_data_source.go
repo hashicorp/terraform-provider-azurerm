@@ -15,7 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmApplicationInsights() *schema.Resource {
+func dataSourceApplicationInsights() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmApplicationInsightsRead,
 
