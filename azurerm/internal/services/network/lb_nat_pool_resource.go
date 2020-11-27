@@ -208,10 +208,10 @@ func resourceArmLoadBalancerNatPoolRead(d *schema.ResourceData, meta interface{}
 		return nil
 	}
 
-	config, _, exists := FindLoadBalancerNatPoolByName(loadBalancer, id.Name)
+	config, _, exists := FindLoadBalancerNatPoolByName(loadBalancer, id.InboundNatPoolName)
 	if !exists {
 		d.SetId("")
-		log.Printf("[INFO] Load Balancer Nat Pool %q not found. Removing from state", id.Name)
+		log.Printf("[INFO] Load Balancer Nat Pool %q not found. Removing from state", id.InboundNatPoolName)
 		return nil
 	}
 
@@ -228,12 +228,12 @@ func resourceArmLoadBalancerNatPoolRead(d *schema.ResourceData, meta interface{}
 		frontendIPConfigName := ""
 		frontendIPConfigID := ""
 		if props.FrontendIPConfiguration != nil && props.FrontendIPConfiguration.ID != nil {
-			feid, err := parse.LoadBalancerFrontendIPConfigurationID(*props.FrontendIPConfiguration.ID)
+			feid, err := parse.LoadBalancerFrontendIpConfigurationID(*props.FrontendIPConfiguration.ID)
 			if err != nil {
 				return err
 			}
 
-			frontendIPConfigName = feid.Name
+			frontendIPConfigName = feid.FrontendIPConfigurationName
 			frontendIPConfigID = feid.ID(subscriptionId)
 		}
 		d.Set("frontend_ip_configuration_id", frontendIPConfigID)
@@ -281,7 +281,7 @@ func resourceArmLoadBalancerNatPoolDelete(d *schema.ResourceData, meta interface
 		return nil
 	}
 
-	_, index, exists := FindLoadBalancerNatPoolByName(loadBalancer, id.Name)
+	_, index, exists := FindLoadBalancerNatPoolByName(loadBalancer, id.InboundNatPoolName)
 	if !exists {
 		return nil
 	}

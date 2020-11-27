@@ -6,19 +6,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type LoadBalancerRuleId struct {
+type LoadBalancingRuleId struct {
 	ResourceGroup    string
 	LoadBalancerName string
 	Name             string
 }
 
-func LoadBalancerRuleID(input string) (*LoadBalancerRuleId, error) {
+func LoadBalancingRuleID(input string) (*LoadBalancingRuleId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("parsing Load Balancer Rule ID %q: %+v", input, err)
 	}
 
-	ruleId := LoadBalancerRuleId{
+	ruleId := LoadBalancingRuleId{
 		ResourceGroup: id.ResourceGroup,
 	}
 

@@ -9,7 +9,7 @@ import (
 type LoadBalancerOutboundRuleId struct {
 	ResourceGroup    string
 	LoadBalancerName string
-	Name             string
+	OutboundRuleName string
 }
 
 func LoadBalancerOutboundRuleID(input string) (*LoadBalancerOutboundRuleId, error) {
@@ -26,7 +26,7 @@ func LoadBalancerOutboundRuleID(input string) (*LoadBalancerOutboundRuleId, erro
 		return nil, err
 	}
 
-	if outboundRuleId.Name, err = id.PopSegment("outboundRules"); err != nil {
+	if outboundRuleId.OutboundRuleName, err = id.PopSegment("outboundRules"); err != nil {
 		return nil, err
 	}
 

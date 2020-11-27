@@ -18,7 +18,7 @@ func TestLoadBalancerProbeIDParser(t *testing.T) {
 			expected: &LoadBalancerProbeId{
 				ResourceGroup:    "group1",
 				LoadBalancerName: "lb1",
-				Name:             "probe1",
+				ProbeName:        "probe1",
 			},
 		},
 		{
@@ -48,8 +48,8 @@ func TestLoadBalancerProbeIDParser(t *testing.T) {
 			t.Fatalf("Expected LoadBalancerName to be %q but was %q", test.expected.LoadBalancerName, actual.LoadBalancerName)
 		}
 
-		if actual.Name != test.expected.Name {
-			t.Fatalf("Expected name to be %q but was %q", test.expected.Name, actual.Name)
+		if actual.ProbeName != test.expected.ProbeName {
+			t.Fatalf("Expected name to be %q but was %q", test.expected.ProbeName, actual.ProbeName)
 		}
 	}
 }

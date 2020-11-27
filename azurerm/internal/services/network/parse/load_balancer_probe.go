@@ -9,7 +9,7 @@ import (
 type LoadBalancerProbeId struct {
 	ResourceGroup    string
 	LoadBalancerName string
-	Name             string
+	ProbeName        string
 }
 
 func LoadBalancerProbeID(input string) (*LoadBalancerProbeId, error) {
@@ -26,7 +26,7 @@ func LoadBalancerProbeID(input string) (*LoadBalancerProbeId, error) {
 		return nil, err
 	}
 
-	if probeId.Name, err = id.PopSegment("probes"); err != nil {
+	if probeId.ProbeName, err = id.PopSegment("probes"); err != nil {
 		return nil, err
 	}
 

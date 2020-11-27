@@ -6,7 +6,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = LoadBalancerFrontendIPConfigurationId{}
+var _ resourceid.Formatter = LoadBalancerFrontendIpConfigurationId{}
 
 func TestLoadBalancerFrontendIPConfigurationIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
@@ -21,7 +21,7 @@ func TestLoadBalancerFrontendIPConfigurationIDFormatter(t *testing.T) {
 func TestLoadBalancerFrontendIPConfigurationIDParser(t *testing.T) {
 	testData := []struct {
 		input    string
-		expected *LoadBalancerFrontendIPConfigurationId
+		expected *LoadBalancerFrontendIpConfigurationId
 	}{
 		{
 			// load balancer id
@@ -36,10 +36,10 @@ func TestLoadBalancerFrontendIPConfigurationIDParser(t *testing.T) {
 		{
 			// camel case
 			input: "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/loadBalancers/lb1/frontendIPConfigurations/config1",
-			expected: &LoadBalancerFrontendIPConfigurationId{
-				ResourceGroup:    "group1",
-				LoadBalancerName: "lb1",
-				Name:             "config1",
+			expected: &LoadBalancerFrontendIpConfigurationId{
+				ResourceGroup:               "group1",
+				LoadBalancerName:            "lb1",
+				FrontendIPConfigurationName: "config1",
 			},
 		},
 		{
@@ -55,7 +55,7 @@ func TestLoadBalancerFrontendIPConfigurationIDParser(t *testing.T) {
 	}
 	for _, test := range testData {
 		t.Logf("Testing %q..", test.input)
-		actual, err := LoadBalancerFrontendIPConfigurationID(test.input)
+		actual, err := LoadBalancerFrontendIpConfigurationID(test.input)
 		if err != nil && test.expected == nil {
 			continue
 		} else {
@@ -74,8 +74,8 @@ func TestLoadBalancerFrontendIPConfigurationIDParser(t *testing.T) {
 			t.Fatalf("Expected LoadBalancerName to be %q but was %q", test.expected.LoadBalancerName, actual.LoadBalancerName)
 		}
 
-		if actual.Name != test.expected.Name {
-			t.Fatalf("Expected name to be %q but was %q", test.expected.Name, actual.Name)
+		if actual.FrontendIPConfigurationName != test.expected.FrontendIPConfigurationName {
+			t.Fatalf("Expected name to be %q but was %q", test.expected.FrontendIPConfigurationName, actual.FrontendIPConfigurationName)
 		}
 	}
 }

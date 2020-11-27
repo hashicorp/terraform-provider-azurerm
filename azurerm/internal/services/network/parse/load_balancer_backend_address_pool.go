@@ -7,21 +7,21 @@ import (
 )
 
 type LoadBalancerBackendAddressPoolId struct {
-	ResourceGroup    string
-	LoadBalancerName string
-	Name             string
+	ResourceGroup          string
+	LoadBalancerName       string
+	BackendAddressPoolName string
 }
 
 func (id LoadBalancerBackendAddressPoolId) ID(subscriptionId string) string {
 	baseId := NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName).ID(subscriptionId)
-	return fmt.Sprintf("%s/backendAddressPools/%s", baseId, id.Name)
+	return fmt.Sprintf("%s/backendAddressPools/%s", baseId, id.BackendAddressPoolName)
 }
 
 func NewLoadBalancerBackendAddressPoolId(loadBalancerId LoadBalancerId, name string) LoadBalancerBackendAddressPoolId {
 	return LoadBalancerBackendAddressPoolId{
-		ResourceGroup:    loadBalancerId.ResourceGroup,
-		LoadBalancerName: loadBalancerId.Name,
-		Name:             name,
+		ResourceGroup:          loadBalancerId.ResourceGroup,
+		LoadBalancerName:       loadBalancerId.Name,
+		BackendAddressPoolName: name,
 	}
 }
 
@@ -39,7 +39,7 @@ func LoadBalancerBackendAddressPoolID(input string) (*LoadBalancerBackendAddress
 		return nil, err
 	}
 
-	if backendAddressPoolId.Name, err = id.PopSegment("backendAddressPools"); err != nil {
+	if backendAddressPoolId.BackendAddressPoolName, err = id.PopSegment("backendAddressPools"); err != nil {
 		return nil, err
 	}
 

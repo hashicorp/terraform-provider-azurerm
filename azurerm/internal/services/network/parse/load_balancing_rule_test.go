@@ -5,7 +5,7 @@ import "testing"
 func TestLoadBalancerRuleIDParser(t *testing.T) {
 	testData := []struct {
 		input    string
-		expected *LoadBalancerRuleId
+		expected *LoadBalancingRuleId
 	}{
 		{
 			// load balancer id
@@ -20,7 +20,7 @@ func TestLoadBalancerRuleIDParser(t *testing.T) {
 		{
 			// camel case
 			input: "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/loadBalancers/lb1/loadBalancingRules/rule1",
-			expected: &LoadBalancerRuleId{
+			expected: &LoadBalancingRuleId{
 				ResourceGroup:    "group1",
 				LoadBalancerName: "lb1",
 				Name:             "rule1",
@@ -39,7 +39,7 @@ func TestLoadBalancerRuleIDParser(t *testing.T) {
 	}
 	for _, test := range testData {
 		t.Logf("Testing %q..", test.input)
-		actual, err := LoadBalancerRuleID(test.input)
+		actual, err := LoadBalancingRuleID(test.input)
 		if err != nil && test.expected == nil {
 			continue
 		} else {

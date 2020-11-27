@@ -7,9 +7,9 @@ import (
 )
 
 type LoadBalancerInboundNATRuleId struct {
-	ResourceGroup    string
-	LoadBalancerName string
-	Name             string
+	ResourceGroup      string
+	LoadBalancerName   string
+	InboundNatRuleName string
 }
 
 func LoadBalancerInboundNATRuleID(input string) (*LoadBalancerInboundNATRuleId, error) {
@@ -26,7 +26,7 @@ func LoadBalancerInboundNATRuleID(input string) (*LoadBalancerInboundNATRuleId, 
 		return nil, err
 	}
 
-	if natRuleId.Name, err = id.PopSegment("inboundNatRules"); err != nil {
+	if natRuleId.InboundNatRuleName, err = id.PopSegment("inboundNatRules"); err != nil {
 		return nil, err
 	}
 

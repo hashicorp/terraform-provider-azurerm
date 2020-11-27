@@ -29,7 +29,7 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 		Delete: resourceArmLoadBalancerRuleDelete,
 
 		Importer: loadBalancerSubResourceImporter(func(input string) (*parse.LoadBalancerId, error) {
-			id, err := parse.LoadBalancerRuleID(input)
+			id, err := parse.LoadBalancingRuleID(input)
 			if err != nil {
 				return nil, err
 			}
@@ -227,7 +227,7 @@ func resourceArmLoadBalancerRuleRead(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LoadBalancerRuleID(d.Id())
+	id, err := parse.LoadBalancingRuleID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -274,12 +274,12 @@ func resourceArmLoadBalancerRuleRead(d *schema.ResourceData, meta interface{}) e
 		frontendIPConfigName := ""
 		frontendIPConfigID := ""
 		if props.FrontendIPConfiguration != nil && props.FrontendIPConfiguration.ID != nil {
-			feid, err := parse.LoadBalancerFrontendIPConfigurationID(*props.FrontendIPConfiguration.ID)
+			feid, err := parse.LoadBalancerFrontendIpConfigurationID(*props.FrontendIPConfiguration.ID)
 			if err != nil {
 				return err
 			}
 
-			frontendIPConfigName = feid.Name
+			frontendIPConfigName = feid.FrontendIPConfigurationName
 			frontendIPConfigID = feid.ID(subscriptionId)
 		}
 		d.Set("frontend_ip_configuration_name", frontendIPConfigName)
@@ -319,7 +319,7 @@ func resourceArmLoadBalancerRuleDelete(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LoadBalancerRuleID(d.Id())
+	id, err := parse.LoadBalancingRuleID(d.Id())
 	if err != nil {
 		return err
 	}

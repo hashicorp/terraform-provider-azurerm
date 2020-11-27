@@ -21,9 +21,9 @@ func TestLoadBalancerInboundNATPoolIDParser(t *testing.T) {
 			// camel case
 			input: "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/loadBalancers/lb1/inboundNatPools/pool1",
 			expected: &LoadBalancerInboundNATPoolId{
-				ResourceGroup:    "group1",
-				LoadBalancerName: "lb1",
-				Name:             "pool1",
+				ResourceGroup:      "group1",
+				LoadBalancerName:   "lb1",
+				InboundNatPoolName: "pool1",
 			},
 		},
 		{
@@ -58,8 +58,8 @@ func TestLoadBalancerInboundNATPoolIDParser(t *testing.T) {
 			t.Fatalf("Expected LoadBalancerName to be %q but was %q", test.expected.LoadBalancerName, actual.LoadBalancerName)
 		}
 
-		if actual.Name != test.expected.Name {
-			t.Fatalf("Expected name to be %q but was %q", test.expected.Name, actual.Name)
+		if actual.InboundNatPoolName != test.expected.InboundNatPoolName {
+			t.Fatalf("Expected name to be %q but was %q", test.expected.InboundNatPoolName, actual.InboundNatPoolName)
 		}
 	}
 }

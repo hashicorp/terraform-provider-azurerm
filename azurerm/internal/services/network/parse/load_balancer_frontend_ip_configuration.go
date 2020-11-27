@@ -6,32 +6,32 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type LoadBalancerFrontendIPConfigurationId struct {
-	ResourceGroup    string
-	LoadBalancerName string
-	Name             string
+type LoadBalancerFrontendIpConfigurationId struct {
+	ResourceGroup               string
+	LoadBalancerName            string
+	FrontendIPConfigurationName string
 }
 
-func NewLoadBalancerFrontendIPConfigurationId(loadBalancer LoadBalancerId, name string) LoadBalancerFrontendIPConfigurationId {
-	return LoadBalancerFrontendIPConfigurationId{
-		ResourceGroup:    loadBalancer.ResourceGroup,
-		LoadBalancerName: loadBalancer.Name,
-		Name:             name,
+func NewLoadBalancerFrontendIPConfigurationId(loadBalancer LoadBalancerId, name string) LoadBalancerFrontendIpConfigurationId {
+	return LoadBalancerFrontendIpConfigurationId{
+		ResourceGroup:               loadBalancer.ResourceGroup,
+		LoadBalancerName:            loadBalancer.Name,
+		FrontendIPConfigurationName: name,
 	}
 }
 
-func (id LoadBalancerFrontendIPConfigurationId) ID(subscriptionId string) string {
+func (id LoadBalancerFrontendIpConfigurationId) ID(subscriptionId string) string {
 	baseId := NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName).ID(subscriptionId)
-	return fmt.Sprintf("%s/frontendIPConfigurations/%s", baseId, id.Name)
+	return fmt.Sprintf("%s/frontendIPConfigurations/%s", baseId, id.FrontendIPConfigurationName)
 }
 
-func LoadBalancerFrontendIPConfigurationID(input string) (*LoadBalancerFrontendIPConfigurationId, error) {
+func LoadBalancerFrontendIpConfigurationID(input string) (*LoadBalancerFrontendIpConfigurationId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("parsing Load Balancer Frontend IP Configuration ID %q: %+v", input, err)
 	}
 
-	frontendIPConfigurationId := LoadBalancerFrontendIPConfigurationId{
+	frontendIPConfigurationId := LoadBalancerFrontendIpConfigurationId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
@@ -39,7 +39,7 @@ func LoadBalancerFrontendIPConfigurationID(input string) (*LoadBalancerFrontendI
 		return nil, err
 	}
 
-	if frontendIPConfigurationId.Name, err = id.PopSegment("frontendIPConfigurations"); err != nil {
+	if frontendIPConfigurationId.FrontendIPConfigurationName, err = id.PopSegment("frontendIPConfigurations"); err != nil {
 		return nil, err
 	}
 

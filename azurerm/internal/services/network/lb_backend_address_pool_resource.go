@@ -178,9 +178,9 @@ func resourceArmLoadBalancerBackendAddressPoolRead(d *schema.ResourceData, meta 
 		return nil
 	}
 
-	config, _, exists := FindLoadBalancerBackEndAddressPoolByName(loadBalancer, id.Name)
+	config, _, exists := FindLoadBalancerBackEndAddressPoolByName(loadBalancer, id.BackendAddressPoolName)
 	if !exists {
-		log.Printf("[INFO] Load Balancer Backend Address Pool %q not found. Removing from state", id.Name)
+		log.Printf("[INFO] Load Balancer Backend Address Pool %q not found. Removing from state", id.BackendAddressPoolName)
 		d.SetId("")
 		return nil
 	}

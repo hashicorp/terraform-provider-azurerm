@@ -23,7 +23,7 @@ func TestLoadBalancerOutboundRuleIDParser(t *testing.T) {
 			expected: &LoadBalancerOutboundRuleId{
 				ResourceGroup:    "group1",
 				LoadBalancerName: "lb1",
-				Name:             "rule1",
+				OutboundRuleName: "rule1",
 			},
 		},
 		{
@@ -58,8 +58,8 @@ func TestLoadBalancerOutboundRuleIDParser(t *testing.T) {
 			t.Fatalf("Expected LoadBalancerName to be %q but was %q", test.expected.LoadBalancerName, actual.LoadBalancerName)
 		}
 
-		if actual.Name != test.expected.Name {
-			t.Fatalf("Expected name to be %q but was %q", test.expected.Name, actual.Name)
+		if actual.OutboundRuleName != test.expected.OutboundRuleName {
+			t.Fatalf("Expected name to be %q but was %q", test.expected.OutboundRuleName, actual.OutboundRuleName)
 		}
 	}
 }

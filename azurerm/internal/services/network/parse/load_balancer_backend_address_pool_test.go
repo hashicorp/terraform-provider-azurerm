@@ -37,9 +37,9 @@ func TestLoadBalancerBackendAddressPoolIDParser(t *testing.T) {
 			// camel case
 			input: "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/loadBalancers/lb1/backendAddressPools/pool1",
 			expected: &LoadBalancerBackendAddressPoolId{
-				ResourceGroup:    "group1",
-				LoadBalancerName: "lb1",
-				Name:             "pool1",
+				ResourceGroup:          "group1",
+				LoadBalancerName:       "lb1",
+				BackendAddressPoolName: "pool1",
 			},
 		},
 		{
@@ -74,8 +74,8 @@ func TestLoadBalancerBackendAddressPoolIDParser(t *testing.T) {
 			t.Fatalf("Expected LoadBalancerName to be %q but was %q", test.expected.LoadBalancerName, actual.LoadBalancerName)
 		}
 
-		if actual.Name != test.expected.Name {
-			t.Fatalf("Expected name to be %q but was %q", test.expected.Name, actual.Name)
+		if actual.BackendAddressPoolName != test.expected.BackendAddressPoolName {
+			t.Fatalf("Expected name to be %q but was %q", test.expected.BackendAddressPoolName, actual.BackendAddressPoolName)
 		}
 	}
 }

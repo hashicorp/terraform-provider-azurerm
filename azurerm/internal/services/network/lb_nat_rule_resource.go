@@ -225,10 +225,10 @@ func resourceArmLoadBalancerNatRuleRead(d *schema.ResourceData, meta interface{}
 		return nil
 	}
 
-	config, _, exists := FindLoadBalancerNatRuleByName(loadBalancer, id.Name)
+	config, _, exists := FindLoadBalancerNatRuleByName(loadBalancer, id.InboundNatRuleName)
 	if !exists {
 		d.SetId("")
-		log.Printf("[INFO] Load Balancer Nat Rule %q not found. Removing from state", id.Name)
+		log.Printf("[INFO] Load Balancer Nat Rule %q not found. Removing from state", id.InboundNatRuleName)
 		return nil
 	}
 
@@ -253,12 +253,12 @@ func resourceArmLoadBalancerNatRuleRead(d *schema.ResourceData, meta interface{}
 		frontendIPConfigName := ""
 		frontendIPConfigID := ""
 		if props.FrontendIPConfiguration != nil && props.FrontendIPConfiguration.ID != nil {
-			feid, err := parse.LoadBalancerFrontendIPConfigurationID(*props.FrontendIPConfiguration.ID)
+			feid, err := parse.LoadBalancerFrontendIpConfigurationID(*props.FrontendIPConfiguration.ID)
 			if err != nil {
 				return err
 			}
 
-			frontendIPConfigName = feid.Name
+			frontendIPConfigName = feid.FrontendIPConfigurationName
 			frontendIPConfigID = feid.ID(subscriptionId)
 		}
 		d.Set("frontend_ip_configuration_name", frontendIPConfigName)
@@ -306,7 +306,7 @@ func resourceArmLoadBalancerNatRuleDelete(d *schema.ResourceData, meta interface
 		return nil
 	}
 
-	_, index, exists := FindLoadBalancerNatRuleByName(loadBalancer, id.Name)
+	_, index, exists := FindLoadBalancerNatRuleByName(loadBalancer, id.InboundNatRuleName)
 	if !exists {
 		return nil
 	}

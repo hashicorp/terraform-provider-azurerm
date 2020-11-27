@@ -206,10 +206,10 @@ func resourceArmLoadBalancerProbeRead(d *schema.ResourceData, meta interface{}) 
 		return nil
 	}
 
-	config, _, exists := FindLoadBalancerProbeByName(loadBalancer, id.Name)
+	config, _, exists := FindLoadBalancerProbeByName(loadBalancer, id.ProbeName)
 	if !exists {
 		d.SetId("")
-		log.Printf("[INFO] Load Balancer Probe %q not found. Removing from state", id.Name)
+		log.Printf("[INFO] Load Balancer Probe %q not found. Removing from state", id.ProbeName)
 		return nil
 	}
 
@@ -247,7 +247,7 @@ func resourceArmLoadBalancerProbeRead(d *schema.ResourceData, meta interface{}) 
 			}
 		}
 		if err := d.Set("load_balancer_rules", loadBalancerRules); err != nil {
-			return fmt.Errorf("Error setting `load_balancer_rules` (Load Balancer Probe %q): %+v", id.Name, err)
+			return fmt.Errorf("Error setting `load_balancer_rules` (Load Balancer Probe %q): %+v", id.ProbeName, err)
 		}
 	}
 
@@ -279,7 +279,7 @@ func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}
 		return nil
 	}
 
-	_, index, exists := FindLoadBalancerProbeByName(loadBalancer, id.Name)
+	_, index, exists := FindLoadBalancerProbeByName(loadBalancer, id.ProbeName)
 	if !exists {
 		return nil
 	}
