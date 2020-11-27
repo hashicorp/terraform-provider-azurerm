@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,21 +9,37 @@ import (
 )
 
 type SearchServiceId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
+func NewSearchServiceID(subscriptionId, resourceGroup, name string) SearchServiceId {
+	return SearchServiceId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id SearchServiceId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Search/searchServices/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+}
+
+// SearchServiceID parses a SearchService ID into an SearchServiceId struct
 func SearchServiceID(input string) (*SearchServiceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Search Service ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	service := SearchServiceId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := SearchServiceId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if service.Name, err = id.PopSegment("searchServices"); err != nil {
+	if resourceId.Name, err = id.PopSegment("searchServices"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +47,5 @@ func SearchServiceID(input string) (*SearchServiceId, error) {
 		return nil, err
 	}
 
-	return &service, nil
+	return &resourceId, nil
 }
