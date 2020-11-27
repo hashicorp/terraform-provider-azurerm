@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,23 +9,43 @@ import (
 )
 
 type PrivateEndpointId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
+func NewPrivateEndpointID(subscriptionId, resourceGroup, name string) PrivateEndpointId {
+	return PrivateEndpointId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id PrivateEndpointId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/privateEndpoints/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+}
+
+// PrivateEndpointID parses a PrivateEndpoint ID into an PrivateEndpointId struct
 func PrivateEndpointID(input string) (*PrivateEndpointId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse Private Endpoint ID %q: %+v", input, err)
-	}
-
-	privateEndpoint := PrivateEndpointId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if privateEndpoint.Name, err = id.PopSegment("privateEndpoints"); err != nil {
 		return nil, err
 	}
 
-	return &privateEndpoint, nil
+	resourceId := PrivateEndpointId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.Name, err = id.PopSegment("privateEndpoints"); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
 }
