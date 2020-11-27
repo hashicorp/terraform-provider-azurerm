@@ -2,6 +2,7 @@
 
 IMPROVEMENTS: 
 
+* `azurerm_dashboard` - adding validation at import time to ensure the ID is for a Dashboard [GH-9530]
 * `azurerm_keyvault_certificate` - add `3072` to allowed values for `key_size` [GH-9524]
 * `azurerm_notification_hub_authorization_rule` - adding validation at import time to ensure the ID is for a Notification Hub Authorization Rule [GH-9529]
 * `azurerm_notification_hub_namespace` - adding validation at import time to ensure the ID is for a Notification Hub Namespace [GH-9529]
