@@ -148,7 +148,7 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *schema.ResourceData, meta int
 		return nil
 	}
 
-	newNatRule, err := expandAzureRmLoadBalancerNatRule(d, loadBalancer, *loadBalancerId, subscriptionId)
+	newNatRule, err := expandAzureRmLoadBalancerNatRule(d, loadBalancer, *loadBalancerId)
 	if err != nil {
 		return fmt.Errorf("Error Expanding NAT Rule: %+v", err)
 	}
@@ -333,7 +333,7 @@ func resourceArmLoadBalancerNatRuleDelete(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func expandAzureRmLoadBalancerNatRule(d *schema.ResourceData, lb *network.LoadBalancer, loadBalancerId parse.LoadBalancerId, subscriptionId string) (*network.InboundNatRule, error) {
+func expandAzureRmLoadBalancerNatRule(d *schema.ResourceData, lb *network.LoadBalancer, loadBalancerId parse.LoadBalancerId) (*network.InboundNatRule, error) {
 	properties := network.InboundNatRulePropertiesFormat{
 		Protocol:       network.TransportProtocol(d.Get("protocol").(string)),
 		FrontendPort:   utils.Int32(int32(d.Get("frontend_port").(int))),
