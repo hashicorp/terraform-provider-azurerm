@@ -70,7 +70,7 @@ func getPostgreSQLServerKeyName(ctx context.Context, vaultsClient *keyvault.Vaul
 	if keyVaultIDRaw == nil {
 		return nil, fmt.Errorf("cannot get the keyvault ID from keyvault URL %q", keyVaultKeyID.KeyVaultBaseUrl)
 	}
-	keyVaultID, err := keyVaultParse.KeyVaultID(*keyVaultIDRaw)
+	keyVaultID, err := keyVaultParse.VaultID(*keyVaultIDRaw)
 	if err != nil {
 		return nil, err
 	}

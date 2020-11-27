@@ -66,7 +66,7 @@ func getMySQLServerKeyName(ctx context.Context, vaultsClient *keyvault.VaultsCli
 	if err != nil {
 		return nil, err
 	}
-	keyVaultID, err := keyVaultParse.KeyVaultID(*keyVaultIDRaw)
+	keyVaultID, err := keyVaultParse.VaultID(*keyVaultIDRaw)
 	if err != nil {
 		return nil, err
 	}
