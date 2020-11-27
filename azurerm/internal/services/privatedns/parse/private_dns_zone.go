@@ -1,39 +1,51 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
-	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 type PrivateDnsZoneId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
+}
+
+func NewPrivateDnsZoneID(subscriptionId, resourceGroup, name string) PrivateDnsZoneId {
+	return PrivateDnsZoneId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
 }
 
 func (id PrivateDnsZoneId) ID(_ string) string {
-	// stub implementation until the generator is in
-	return ""
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/privateDnsZones/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
+// PrivateDnsZoneID parses a PrivateDnsZone ID into an PrivateDnsZoneId struct
 func PrivateDnsZoneID(input string) (*PrivateDnsZoneId, error) {
-	if len(strings.TrimSpace(input)) == 0 {
-		return nil, fmt.Errorf("unable to parse Private DNS Zone ID %q: input is empty", input)
-	}
-
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse Private DNS Zone ID %q: %+v", input, err)
-	}
-
-	privateDnsZone := PrivateDnsZoneId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if privateDnsZone.Name, err = id.PopSegment("privateDnsZones"); err != nil {
 		return nil, err
 	}
 
-	return &privateDnsZone, nil
+	resourceId := PrivateDnsZoneId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.Name, err = id.PopSegment("privateDnsZones"); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
 }
