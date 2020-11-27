@@ -6,23 +6,23 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = VpnSiteId{}
+var _ resourceid.Formatter = VpnSiteLinkId{}
 
-func TestVpnSiteIDFormatter(t *testing.T) {
+func TestVpnSiteLinkIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	actual := NewVpnSiteID("group1", "site1").ID(subscriptionId)
-	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/vpnSites/site1"
+	actual := NewVpnSiteLinkID(NewVpnSiteID("group1", "site1"), "link1").ID(subscriptionId)
+	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/vpnSites/site1/vpnSiteLinks/link1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestVpnSiteID(t *testing.T) {
+func TestVpnSiteLinkID(t *testing.T) {
 	testData := []struct {
 		Name   string
 		Input  string
 		Error  bool
-		Expect *VpnSiteId
+		Expect *VpnSiteLinkId
 	}{
 		{
 			Name:  "Empty",
@@ -55,11 +55,17 @@ func TestVpnSiteID(t *testing.T) {
 			Error: true,
 		},
 		{
-			Name:  "Correct",
+			Name:  "No link segment",
 			Input: "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/group1/providers/Microsoft.Network/vpnSites/site1",
-			Expect: &VpnSiteId{
+			Error: true,
+		},
+		{
+			Name:  "Correct",
+			Input: "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/group1/providers/Microsoft.Network/vpnSites/site1/vpnSiteLinks/link1",
+			Expect: &VpnSiteLinkId{
 				ResourceGroup: "group1",
-				Name:          "site1",
+				Site:          "site1",
+				Name:          "link1",
 			},
 		},
 	}
@@ -67,7 +73,7 @@ func TestVpnSiteID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := VpnSiteID(v.Input)
+		actual, err := VpnSiteLinkID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -81,6 +87,10 @@ func TestVpnSiteID(t *testing.T) {
 
 		if actual.ResourceGroup != v.Expect.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for Resource Group", v.Expect.ResourceGroup, actual.ResourceGroup)
+		}
+
+		if actual.Site != v.Expect.Site {
+			t.Fatalf("Expected %q but got %q for Site", v.Expect.Site, actual.Site)
 		}
 
 		if actual.Name != v.Expect.Name {
