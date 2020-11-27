@@ -6,23 +6,23 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type NetAppPoolId struct {
-	ResourceGroup string
-	AccountName   string
-	Name          string
+type CapacityPoolId struct {
+	ResourceGroup     string
+	NetAppAccountName string
+	Name              string
 }
 
-func NetAppPoolID(input string) (*NetAppPoolId, error) {
+func CapacityPoolID(input string) (*CapacityPoolId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse NetApp Pool ID %q: %+v", input, err)
 	}
 
-	service := NetAppPoolId{
+	service := CapacityPoolId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if service.AccountName, err = id.PopSegment("netAppAccounts"); err != nil {
+	if service.NetAppAccountName, err = id.PopSegment("netAppAccounts"); err != nil {
 		return nil, err
 	}
 

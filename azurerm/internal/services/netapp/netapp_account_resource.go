@@ -167,14 +167,14 @@ func resourceArmNetAppAccountRead(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.NetAppAccountName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] NetApp Accounts %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading NetApp Accounts %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error reading NetApp Accounts %q (Resource Group %q): %+v", id.NetAppAccountName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -196,14 +196,14 @@ func resourceArmNetAppAccountDelete(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.NetAppAccountName)
 	if err != nil {
-		return fmt.Errorf("Error deleting NetApp Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error deleting NetApp Account %q (Resource Group %q): %+v", id.NetAppAccountName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deleting NetApp Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("Error waiting for deleting NetApp Account %q (Resource Group %q): %+v", id.NetAppAccountName, id.ResourceGroup, err)
 		}
 	}
 

@@ -8,7 +8,7 @@ func TestNetAppSnapshotId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *NetAppSnapshotId
+		Expected *SnapshotId
 	}{
 		{
 			Name:     "Empty",
@@ -68,12 +68,12 @@ func TestNetAppSnapshotId(t *testing.T) {
 		{
 			Name:  "NetApp Snapshot ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.NetApp/netAppAccounts/account1/capacityPools/pool1/volumes/volume1/snapshots/snapshot1",
-			Expected: &NetAppSnapshotId{
-				Name:          "snapshot1",
-				VolumeName:    "volume1",
-				PoolName:      "pool1",
-				AccountName:   "account1",
-				ResourceGroup: "resGroup1",
+			Expected: &SnapshotId{
+				Name:              "snapshot1",
+				VolumeName:        "volume1",
+				CapacityPoolName:  "pool1",
+				NetAppAccountName: "account1",
+				ResourceGroup:     "resGroup1",
 			},
 		},
 		{
@@ -86,7 +86,7 @@ func TestNetAppSnapshotId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := NetAppSnapshotID(v.Input)
+		actual, err := SnapshotID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -99,12 +99,12 @@ func TestNetAppSnapshotId(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 
-		if actual.AccountName != v.Expected.AccountName {
-			t.Fatalf("Expected %q but got %q for Account Name", v.Expected.AccountName, actual.AccountName)
+		if actual.NetAppAccountName != v.Expected.NetAppAccountName {
+			t.Fatalf("Expected %q but got %q for Account Name", v.Expected.NetAppAccountName, actual.NetAppAccountName)
 		}
 
-		if actual.PoolName != v.Expected.PoolName {
-			t.Fatalf("Expected %q but got %q for Pool Name", v.Expected.PoolName, actual.PoolName)
+		if actual.CapacityPoolName != v.Expected.CapacityPoolName {
+			t.Fatalf("Expected %q but got %q for Pool Name", v.Expected.CapacityPoolName, actual.CapacityPoolName)
 		}
 
 		if actual.VolumeName != v.Expected.VolumeName {

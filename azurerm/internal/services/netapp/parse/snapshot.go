@@ -6,29 +6,29 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type NetAppSnapshotId struct {
-	ResourceGroup string
-	AccountName   string
-	PoolName      string
-	VolumeName    string
-	Name          string
+type SnapshotId struct {
+	ResourceGroup     string
+	NetAppAccountName string
+	CapacityPoolName  string
+	VolumeName        string
+	Name              string
 }
 
-func NetAppSnapshotID(input string) (*NetAppSnapshotId, error) {
+func SnapshotID(input string) (*SnapshotId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse NetApp Snapshot ID %q: %+v", input, err)
 	}
 
-	service := NetAppSnapshotId{
+	service := SnapshotId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if service.AccountName, err = id.PopSegment("netAppAccounts"); err != nil {
+	if service.NetAppAccountName, err = id.PopSegment("netAppAccounts"); err != nil {
 		return nil, err
 	}
 
-	if service.PoolName, err = id.PopSegment("capacityPools"); err != nil {
+	if service.CapacityPoolName, err = id.PopSegment("capacityPools"); err != nil {
 		return nil, err
 	}
 

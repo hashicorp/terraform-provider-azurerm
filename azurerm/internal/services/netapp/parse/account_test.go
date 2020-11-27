@@ -8,7 +8,7 @@ func TestNetAppAccountId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *NetAppAccountId
+		Expected *AccountId
 	}{
 		{
 			Name:     "Empty",
@@ -38,9 +38,9 @@ func TestNetAppAccountId(t *testing.T) {
 		{
 			Name:  "NetApp Account ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.NetApp/netAppAccounts/account1",
-			Expected: &NetAppAccountId{
-				Name:          "account1",
-				ResourceGroup: "resGroup1",
+			Expected: &AccountId{
+				NetAppAccountName: "account1",
+				ResourceGroup:     "resGroup1",
 			},
 		},
 		{
@@ -62,8 +62,8 @@ func TestNetAppAccountId(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.NetAppAccountName != v.Expected.NetAppAccountName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.NetAppAccountName, actual.NetAppAccountName)
 		}
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {

@@ -4,11 +4,11 @@ import (
 	"testing"
 )
 
-func TestNetAppPoolId(t *testing.T) {
+func TestNetAppVolumeId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *NetAppPoolId
+		Expected *VolumeId
 	}{
 		{
 			Name:     "Empty",
@@ -46,17 +46,28 @@ func TestNetAppPoolId(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Name:  "NetApp Pool ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.NetApp/netAppAccounts/account1/capacityPools/pool1",
-			Expected: &NetAppPoolId{
-				Name:          "pool1",
-				AccountName:   "account1",
-				ResourceGroup: "resGroup1",
+			Name:     "NetApp Pool ID",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.NetApp/netAppAccounts/account1/capacityPools/pool1",
+			Expected: nil,
+		},
+		{
+			Name:     "Missing NetApp Volume Value",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.NetApp/netAppAccounts/account1/capacityPools/pool1/volumes/",
+			Expected: nil,
+		},
+		{
+			Name:  "NetApp Volume ID",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.NetApp/netAppAccounts/account1/capacityPools/pool1/volumes/volume1",
+			Expected: &VolumeId{
+				Name:              "volume1",
+				CapacityPoolName:  "pool1",
+				NetAppAccountName: "account1",
+				ResourceGroup:     "resGroup1",
 			},
 		},
 		{
 			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.NetApp/netAppAccounts/account1/CAPACITYPOOLS/pool1",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.NetApp/netAppAccounts/account1/capacityPools/pool1/VOLUMES/volume1",
 			Expected: nil,
 		},
 	}
@@ -64,7 +75,7 @@ func TestNetAppPoolId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := NetAppPoolID(v.Input)
+		actual, err := VolumeID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -77,8 +88,12 @@ func TestNetAppPoolId(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 
-		if actual.AccountName != v.Expected.AccountName {
-			t.Fatalf("Expected %q but got %q for Account Name", v.Expected.AccountName, actual.AccountName)
+		if actual.NetAppAccountName != v.Expected.NetAppAccountName {
+			t.Fatalf("Expected %q but got %q for Account Name", v.Expected.NetAppAccountName, actual.NetAppAccountName)
+		}
+
+		if actual.CapacityPoolName != v.Expected.CapacityPoolName {
+			t.Fatalf("Expected %q but got %q for Pool Name", v.Expected.CapacityPoolName, actual.CapacityPoolName)
 		}
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
