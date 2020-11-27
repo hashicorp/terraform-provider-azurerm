@@ -1,115 +1,74 @@
 package batch_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type BatchApplicationResource struct {
+}
+
 func TestAccBatchApplication_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_application", "test")
+	r := BatchApplicationResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckBatchApplicationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccBatchApplication_template(data, ""),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckBatchApplicationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.template(data, ""),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccBatchApplication_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_application", "test")
+	r := BatchApplicationResource{}
 	displayName := fmt.Sprintf("TestAccDisplayName-%d", data.RandomInteger)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckBatchApplicationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccBatchApplication_template(data, ""),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckBatchApplicationExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccBatchApplication_template(data, fmt.Sprintf(`display_name = "%s"`, displayName)),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckBatchApplicationExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "display_name", displayName),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.template(data, ""),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.template(data, fmt.Sprintf(`display_name = "%s"`, displayName)),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("display_name").HasValue(displayName),
+			),
 		},
 	})
 }
 
-func testCheckBatchApplicationExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Batch.ApplicationClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Batch Application not found: %s", resourceName)
-		}
-
-		id, err := parse.ApplicationID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Batch Application %q (Account Name %q / Resource Group %q) does not exist", id.Name, id.BatchAccountName, id.ResourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on batchApplicationClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckBatchApplicationDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Batch.ApplicationClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_batch_application" {
-			continue
-		}
-
-		id, err := parse.ApplicationID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on batchApplicationClient: %+v", err)
-			}
-		}
-
-		return nil
+func (t BatchApplicationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ApplicationID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Batch.ApplicationClient.Get(ctx, id.Name, id.BatchAccountName, id.ResourceGroup)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Batch Application %q (Account Name %q / Resource Group %q) does not exist", id.Name, id.BatchAccountName, id.ResourceGroup)
+	}
+
+	return utils.Bool(resp.ApplicationProperties != nil), nil
 }
 
-func testAccBatchApplication_template(data acceptance.TestData, displayName string) string {
+func (BatchApplicationResource) template(data acceptance.TestData, displayName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmBatchCertificate() *schema.Resource {
+func resourceBatchCertificate() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmBatchCertificateCreate,
-		Read:   resourceArmBatchCertificateRead,
-		Update: resourceArmBatchCertificateUpdate,
-		Delete: resourceArmBatchCertificateDelete,
+		Create: resourceBatchCertificateCreate,
+		Read:   resourceBatchCertificateRead,
+		Update: resourceBatchCertificateUpdate,
+		Delete: resourceBatchCertificateDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -100,7 +100,7 @@ func resourceArmBatchCertificate() *schema.Resource {
 	}
 }
 
-func resourceArmBatchCertificateCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBatchCertificateCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.CertificateClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -160,10 +160,10 @@ func resourceArmBatchCertificateCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error retrieving Batch certificate %q (Account %q / Resource Group %q): %+v", name, accountName, resourceGroupName, err)
 	}
 	d.SetId(*read.ID)
-	return resourceArmBatchCertificateRead(d, meta)
+	return resourceBatchCertificateRead(d, meta)
 }
 
-func resourceArmBatchCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBatchCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.CertificateClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -197,7 +197,7 @@ func resourceArmBatchCertificateRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceArmBatchCertificateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBatchCertificateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.CertificateClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -243,10 +243,10 @@ func resourceArmBatchCertificateUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Cannot read ID for Batch certificate %q (Account: %q, Resource Group %q) ID", id.Name, id.BatchAccountName, id.ResourceGroup)
 	}
 
-	return resourceArmBatchCertificateRead(d, meta)
+	return resourceBatchCertificateRead(d, meta)
 }
 
-func resourceArmBatchCertificateDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBatchCertificateDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.CertificateClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
