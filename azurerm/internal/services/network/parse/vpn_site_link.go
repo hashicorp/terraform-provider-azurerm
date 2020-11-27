@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,39 +9,42 @@ import (
 )
 
 type VpnSiteLinkId struct {
-	ResourceGroup string
-	Site          string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	VpnSiteName    string
+	Name           string
 }
 
-func (id VpnSiteLinkId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/vpnSites/%s/vpnSiteLinks/%s",
-		subscriptionId, id.ResourceGroup, id.Site, id.Name)
-}
-
-func NewVpnSiteLinkID(vpnSiteId VpnSiteId, name string) VpnSiteLinkId {
+func NewVpnSiteLinkID(subscriptionId, resourceGroup, vpnSiteName, name string) VpnSiteLinkId {
 	return VpnSiteLinkId{
-		ResourceGroup: vpnSiteId.ResourceGroup,
-		Site:          vpnSiteId.Name,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		VpnSiteName:    vpnSiteName,
+		Name:           name,
 	}
 }
 
+func (id VpnSiteLinkId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/vpnSites/%s/vpnSiteLinks/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VpnSiteName, id.Name)
+}
+
+// VpnSiteLinkID parses a VpnSiteLink ID into an VpnSiteLinkId struct
 func VpnSiteLinkID(input string) (*VpnSiteLinkId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing Vpn Site Link ID %q: %+v", input, err)
-	}
-
-	vpnSiteLinkId := VpnSiteLinkId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if vpnSiteLinkId.Site, err = id.PopSegment("vpnSites"); err != nil {
 		return nil, err
 	}
 
-	if vpnSiteLinkId.Name, err = id.PopSegment("vpnSiteLinks"); err != nil {
+	resourceId := VpnSiteLinkId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.VpnSiteName, err = id.PopSegment("vpnSites"); err != nil {
+		return nil, err
+	}
+	if resourceId.Name, err = id.PopSegment("vpnSiteLinks"); err != nil {
 		return nil, err
 	}
 
@@ -47,5 +52,5 @@ func VpnSiteLinkID(input string) (*VpnSiteLinkId, error) {
 		return nil, err
 	}
 
-	return &vpnSiteLinkId, nil
+	return &resourceId, nil
 }

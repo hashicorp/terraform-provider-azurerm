@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"testing"
 
@@ -9,9 +11,8 @@ import (
 var _ resourceid.Formatter = VpnSiteId{}
 
 func TestVpnSiteIDFormatter(t *testing.T) {
-	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	actual := NewVpnSiteID("group1", "site1").ID(subscriptionId)
-	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/vpnSites/site1"
+	actual := NewVpnSiteID("12345678-1234-9876-4563-123456789012", "resGroup1", "vpnSite1").ID("")
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/vpnSites/vpnSite1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -19,53 +20,72 @@ func TestVpnSiteIDFormatter(t *testing.T) {
 
 func TestVpnSiteID(t *testing.T) {
 	testData := []struct {
-		Name   string
-		Input  string
-		Error  bool
-		Expect *VpnSiteId
+		Input    string
+		Error    bool
+		Expected *VpnSiteId
 	}{
+
 		{
-			Name:  "Empty",
+			// empty
 			Input: "",
 			Error: true,
 		},
+
 		{
-			Name:  "No Resource Groups Segment",
-			Input: "/subscriptions/11111111-1111-1111-1111-111111111111",
+			// missing SubscriptionId
+			Input: "/",
 			Error: true,
 		},
+
 		{
-			Name:  "No Resource Groups Value",
-			Input: "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/",
+			// missing value for SubscriptionId
+			Input: "/subscriptions/",
 			Error: true,
 		},
+
 		{
-			Name:  "Missing leading slash",
-			Input: "subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/group1",
+			// missing ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/",
 			Error: true,
 		},
+
 		{
-			Name:  "Malformed segments",
-			Input: "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/group1/foo/bar",
+			// missing value for ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
 			Error: true,
 		},
+
 		{
-			Name:  "No vpn site segment",
-			Input: "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/group1/providers/Microsoft.Network",
+			// missing Name
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/",
 			Error: true,
 		},
+
 		{
-			Name:  "Correct",
-			Input: "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/group1/providers/Microsoft.Network/vpnSites/site1",
-			Expect: &VpnSiteId{
-				ResourceGroup: "group1",
-				Name:          "site1",
+			// missing value for Name
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/vpnSites/",
+			Error: true,
+		},
+
+		{
+			// valid
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/vpnSites/vpnSite1",
+			Expected: &VpnSiteId{
+				SubscriptionId: "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:  "resGroup1",
+				Name:           "vpnSite1",
 			},
+		},
+
+		{
+			// upper-cased
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NETWORK/VPNSITES/VPNSITE1",
+			Error: true,
 		},
 	}
 
 	for _, v := range testData {
-		t.Logf("[DEBUG] Testing %q", v.Name)
+		t.Logf("[DEBUG] Testing %q", v.Input)
 
 		actual, err := VpnSiteID(v.Input)
 		if err != nil {
@@ -76,15 +96,17 @@ func TestVpnSiteID(t *testing.T) {
 			t.Fatalf("Expect a value but got an error: %s", err)
 		}
 		if v.Error {
-			t.Fatal("Expect an error but didn't get")
+			t.Fatal("Expect an error but didn't get one")
 		}
 
-		if actual.ResourceGroup != v.Expect.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for Resource Group", v.Expect.ResourceGroup, actual.ResourceGroup)
+		if actual.SubscriptionId != v.Expected.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
 		}
-
-		if actual.Name != v.Expect.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expect.Name, actual.Name)
+		if actual.ResourceGroup != v.Expected.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
+		}
+		if actual.Name != v.Expected.Name {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 	}
 }
