@@ -112,7 +112,7 @@ func testCheckAzureRMManagedApplicationExists(resourceName string) resource.Test
 			return fmt.Errorf("Managed Application not found: %s", resourceName)
 		}
 
-		id, err := parse.ManagedApplicationID(rs.Primary.ID)
+		id, err := parse.ApplicationID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -140,7 +140,7 @@ func testCheckAzureRMManagedApplicationDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.ManagedApplicationID(rs.Primary.ID)
+		id, err := parse.ApplicationID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
