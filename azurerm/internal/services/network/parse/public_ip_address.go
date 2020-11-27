@@ -6,18 +6,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type PublicIPAddressId struct {
+type PublicIpAddressId struct {
 	ResourceGroup string
 	Name          string
 }
 
-func PublicIPAddressID(input string) (*PublicIPAddressId, error) {
+func PublicIpAddressID(input string) (*PublicIpAddressId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Public IP Address ID %q: %+v", input, err)
 	}
 
-	ipAddress := PublicIPAddressId{
+	ipAddress := PublicIpAddressId{
 		ResourceGroup: id.ResourceGroup,
 	}
 

@@ -9,7 +9,7 @@ func TestPublicIPAddressID(t *testing.T) {
 		Name   string
 		Input  string
 		Error  bool
-		Expect *PublicIPAddressId
+		Expect *PublicIpAddressId
 	}{
 		{
 			Name:  "Empty",
@@ -40,7 +40,7 @@ func TestPublicIPAddressID(t *testing.T) {
 			Name:  "Public IP Address ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/publicIPAddresses/address1",
 			Error: false,
-			Expect: &PublicIPAddressId{
+			Expect: &PublicIpAddressId{
 				ResourceGroup: "resGroup1",
 				Name:          "address1",
 			},
@@ -55,7 +55,7 @@ func TestPublicIPAddressID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := PublicIPAddressID(v.Input)
+		actual, err := PublicIpAddressID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
