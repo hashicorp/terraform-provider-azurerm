@@ -58,7 +58,7 @@ func testCheckAzureRMVirtualHubBgpConnectionExists(resourceName string) resource
 			return fmt.Errorf("virtualHubBgpConnection not found: %s", resourceName)
 		}
 
-		id, err := parse.VirtualHubBgpConnectionID(rs.Primary.ID)
+		id, err := parse.BgpConnectionID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -84,7 +84,7 @@ func testCheckAzureRMVirtualHubBgpConnectionDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.VirtualHubBgpConnectionID(rs.Primary.ID)
+		id, err := parse.BgpConnectionID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

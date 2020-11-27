@@ -31,7 +31,7 @@ func resourceArmVirtualHubBgpConnection() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.VirtualHubBgpConnectionID(id)
+			_, err := parse.BgpConnectionID(id)
 			return err
 		}),
 
@@ -132,7 +132,7 @@ func resourceArmVirtualHubBgpConnectionRead(d *schema.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualHubBgpConnectionID(d.Id())
+	id, err := parse.BgpConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -164,7 +164,7 @@ func resourceArmVirtualHubBgpConnectionDelete(d *schema.ResourceData, meta inter
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualHubBgpConnectionID(d.Id())
+	id, err := parse.BgpConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
