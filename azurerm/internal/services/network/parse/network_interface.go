@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,21 +9,37 @@ import (
 )
 
 type NetworkInterfaceId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
+func NewNetworkInterfaceID(subscriptionId, resourceGroup, name string) NetworkInterfaceId {
+	return NetworkInterfaceId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id NetworkInterfaceId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/networkInterfaces/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+}
+
+// NetworkInterfaceID parses a NetworkInterface ID into an NetworkInterfaceId struct
 func NetworkInterfaceID(input string) (*NetworkInterfaceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Network Interface ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	server := NetworkInterfaceId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := NetworkInterfaceId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if server.Name, err = id.PopSegment("networkInterfaces"); err != nil {
+	if resourceId.Name, err = id.PopSegment("networkInterfaces"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +47,5 @@ func NetworkInterfaceID(input string) (*NetworkInterfaceId, error) {
 		return nil, err
 	}
 
-	return &server, nil
+	return &resourceId, nil
 }
