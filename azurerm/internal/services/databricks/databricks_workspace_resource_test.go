@@ -1,8 +1,8 @@
-package tests
+package databricks_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"regexp"
 	"strings"
 	"testing"
@@ -10,10 +10,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+type DatabricksWorkspaceResource struct {
+}
 
 func TestAzureRMDatabrickWorkspaceName(t *testing.T) {
 	const errEmpty = "cannot be an empty string"
@@ -102,164 +107,107 @@ func TestAzureRMDatabrickWorkspaceName(t *testing.T) {
 	}
 }
 
-func TestAccAzureRMDatabricksWorkspace_basic(t *testing.T) {
+func TestAccDatabricksWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+	r := DatabricksWorkspaceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDatabricksWorkspaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDatabricksWorkspace_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDatabricksWorkspaceExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "managed_resource_group_id"),
-					resource.TestMatchResourceAttr(data.ResourceName, "workspace_url", regexp.MustCompile("azuredatabricks.net")),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "workspace_id"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("managed_resource_group_id").Exists(),
+				resource.TestMatchResourceAttr(data.ResourceName, "workspace_url", regexp.MustCompile("azuredatabricks.net")),
+				check.That(data.ResourceName).Key("workspace_id").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMDatabricksWorkspace_requiresImport(t *testing.T) {
+func TestAccDatabricksWorkspace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+	r := DatabricksWorkspaceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDatabricksWorkspaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDatabricksWorkspace_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDatabricksWorkspaceExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMDatabricksWorkspace_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMDatabricksWorkspace_complete(t *testing.T) {
+func TestAccDatabricksWorkspace_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+	r := DatabricksWorkspaceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDatabricksWorkspaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDatabricksWorkspace_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDatabricksWorkspaceExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "managed_resource_group_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "managed_resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "custom_parameters.0.virtual_network_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.Environment", "Production"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.Pricing", "Standard"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("managed_resource_group_id").Exists(),
+				check.That(data.ResourceName).Key("managed_resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("custom_parameters.0.virtual_network_id").Exists(),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+				check.That(data.ResourceName).Key("tags.Environment").HasValue("Production"),
+				check.That(data.ResourceName).Key("tags.Pricing").HasValue("Standard"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMDatabricksWorkspace_update(t *testing.T) {
+func TestAccDatabricksWorkspace_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+	r := DatabricksWorkspaceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDatabricksWorkspaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDatabricksWorkspace_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDatabricksWorkspaceExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "managed_resource_group_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "managed_resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "custom_parameters.0.virtual_network_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.Environment", "Production"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.Pricing", "Standard"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMDatabricksWorkspace_completeUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDatabricksWorkspaceExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "managed_resource_group_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "managed_resource_group_name"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.Pricing", "Standard"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("managed_resource_group_id").Exists(),
+				check.That(data.ResourceName).Key("managed_resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("custom_parameters.0.virtual_network_id").Exists(),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+				check.That(data.ResourceName).Key("tags.Environment").HasValue("Production"),
+				check.That(data.ResourceName).Key("tags.Pricing").HasValue("Standard"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.completeUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("managed_resource_group_id").Exists(),
+				check.That(data.ResourceName).Key("managed_resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.Pricing").HasValue("Standard"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMDatabricksWorkspaceExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).DataBricks.WorkspacesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Bad: Not found: %s", resourceName)
-		}
-
-		id, err := parse.WorkspaceID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			return fmt.Errorf("Bad: Getting Workspace: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Databricks Workspace %s (resource group: %s) does not exist", id.Name, id.ResourceGroup)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMDatabricksWorkspaceDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).DataBricks.WorkspacesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_databricks_workspace" {
-			continue
-		}
-
-		id, err := parse.WorkspaceID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Bad: Databricks Workspace still exists:\n%#v", resp.ID)
-		}
+func (t DatabricksWorkspaceResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.WorkspaceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.DataBricks.WorkspacesClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Analysis Services Server %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	return utils.Bool(resp.WorkspaceProperties != nil), nil
 }
 
-func testAccAzureRMDatabricksWorkspace_basic(data acceptance.TestData) string {
+func (DatabricksWorkspaceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -279,8 +227,8 @@ resource "azurerm_databricks_workspace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMDatabricksWorkspace_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMDatabricksWorkspace_basic(data)
+func (DatabricksWorkspaceResource) requiresImport(data acceptance.TestData) string {
+	template := DatabricksWorkspaceResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -293,7 +241,7 @@ resource "azurerm_databricks_workspace" "import" {
 `, template)
 }
 
-func testAccAzureRMDatabricksWorkspace_complete(data acceptance.TestData) string {
+func (DatabricksWorkspaceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -392,7 +340,7 @@ resource "azurerm_databricks_workspace" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMDatabricksWorkspace_completeUpdate(data acceptance.TestData) string {
+func (DatabricksWorkspaceResource) completeUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
