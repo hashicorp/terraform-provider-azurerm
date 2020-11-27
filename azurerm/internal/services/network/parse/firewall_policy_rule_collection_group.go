@@ -7,21 +7,21 @@ import (
 )
 
 type FirewallPolicyRuleCollectionGroupId struct {
-	ResourceGroup string
-	PolicyName    string
-	Name          string
+	ResourceGroup           string
+	FirewallPolicyName      string
+	RuleCollectionGroupName string
 }
 
 func (id FirewallPolicyRuleCollectionGroupId) ID(subscriptionId string) string {
 	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/firewallPolicies/%s/ruleCollectionGroups/%s",
-		subscriptionId, id.ResourceGroup, id.PolicyName, id.Name)
+		subscriptionId, id.ResourceGroup, id.FirewallPolicyName, id.RuleCollectionGroupName)
 }
 
 func NewFirewallPolicyRuleCollectionGroupID(policyId FirewallPolicyId, name string) FirewallPolicyRuleCollectionGroupId {
 	return FirewallPolicyRuleCollectionGroupId{
-		ResourceGroup: policyId.ResourceGroup,
-		PolicyName:    policyId.Name,
-		Name:          name,
+		ResourceGroup:           policyId.ResourceGroup,
+		FirewallPolicyName:      policyId.Name,
+		RuleCollectionGroupName: name,
 	}
 }
 
@@ -35,11 +35,11 @@ func FirewallPolicyRuleCollectionGroupID(input string) (*FirewallPolicyRuleColle
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if group.PolicyName, err = id.PopSegment("firewallPolicies"); err != nil {
+	if group.FirewallPolicyName, err = id.PopSegment("firewallPolicies"); err != nil {
 		return nil, err
 	}
 
-	if group.Name, err = id.PopSegment("ruleCollectionGroups"); err != nil {
+	if group.RuleCollectionGroupName, err = id.PopSegment("ruleCollectionGroups"); err != nil {
 		return nil, err
 	}
 

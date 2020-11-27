@@ -63,9 +63,9 @@ func TestFirewallPolicyRuleCollectionGroupID(t *testing.T) {
 			Name:  "Correct Case",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/firewallPolicies/policy1/ruleCollectionGroups/rulegroup1",
 			Expect: &FirewallPolicyRuleCollectionGroupId{
-				ResourceGroup: "group1",
-				PolicyName:    "policy1",
-				Name:          "rulegroup1",
+				ResourceGroup:           "group1",
+				FirewallPolicyName:      "policy1",
+				RuleCollectionGroupName: "rulegroup1",
 			},
 		},
 	}
@@ -89,8 +89,8 @@ func TestFirewallPolicyRuleCollectionGroupID(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for Resource Group", v.Expect.ResourceGroup, actual.ResourceGroup)
 		}
 
-		if actual.Name != v.Expect.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expect.Name, actual.Name)
+		if actual.RuleCollectionGroupName != v.Expect.RuleCollectionGroupName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expect.RuleCollectionGroupName, actual.RuleCollectionGroupName)
 		}
 	}
 }
