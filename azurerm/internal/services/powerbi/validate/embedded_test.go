@@ -1,4 +1,4 @@
-package powerbi
+package validate
 
 import "testing"
 
@@ -62,7 +62,7 @@ func TestValidatePowerBIEmbeddedName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := ValidatePowerBIEmbeddedName(v.input, "name")
+		_, errors := PowerBIEmbeddedName(v.input, "name")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)
@@ -110,7 +110,7 @@ func TestValidatePowerBIEmbeddedAdministratorName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := ValidatePowerBIEmbeddedAdministratorName(v.input, "administrators")
+		_, errors := PowerBIEmbeddedAdministratorName(v.input, "administrators")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)

@@ -8,7 +8,7 @@ func TestPowerBIEmbeddedId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *PowerBIEmbeddedId
+		Expected *EmbeddedId
 	}{
 		{
 			Name:     "Empty",
@@ -38,9 +38,9 @@ func TestPowerBIEmbeddedId(t *testing.T) {
 		{
 			Name:  "PowerBI Embedded ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.PowerBIDedicated/capacities/capacity1",
-			Expected: &PowerBIEmbeddedId{
+			Expected: &EmbeddedId{
 				ResourceGroup: "resGroup1",
-				Name:          "capacity1",
+				CapacityName:  "capacity1",
 			},
 		},
 	}
@@ -48,7 +48,7 @@ func TestPowerBIEmbeddedId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := PowerBIEmbeddedID(v.Input)
+		actual, err := EmbeddedID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -57,8 +57,8 @@ func TestPowerBIEmbeddedId(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.CapacityName != v.Expected.CapacityName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.CapacityName, actual.CapacityName)
 		}
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for Resource Group", v.Expected.ResourceGroup, actual.ResourceGroup)
