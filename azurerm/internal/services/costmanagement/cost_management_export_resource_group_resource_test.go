@@ -1,6 +1,7 @@
 package costmanagement_test
 
 import (
+	`context`
 	"fmt"
 	"net/http"
 	"testing"
@@ -8,119 +9,74 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/costmanagement/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMCostManagementExportResourceGroup_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cost_management_export_resource_group", "test")
+type CostManagementExportResourceGroupResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCostManagementExportResourceGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMCostManagementExportResourceGroup_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCostManagementExportResourceGroupExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccCostManagementExportResourceGroup_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cost_management_export_resource_group", "test")
+	r := CostManagementExportResourceGroupResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMCostManagementExportResourceGroup_update(t *testing.T) {
+func TestAccCostManagementExportResourceGroup_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cost_management_export_resource_group", "test")
+	r := CostManagementExportResourceGroupResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCostManagementExportResourceGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMCostManagementExportResourceGroup_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCostManagementExportResourceGroupExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMCostManagementExportResourceGroup_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCostManagementExportResourceGroupExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMCostManagementExportResourceGroup_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCostManagementExportResourceGroupExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMCostManagementExportResourceGroupExists(name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).CostManagement.ExportClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
-		if !ok {
-			return fmt.Errorf("Not found: %s", name)
-		}
-
-		id, err := parse.CostManagementExportResourceGroupID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceId, id.Name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on costManagementExportResourceGroupClient: %+v", err)
-		}
-
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Cost Management Export ResourceGroup %q (resource group: %q) does not exist", id.Name, id.ResourceId)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMCostManagementExportResourceGroupDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).CostManagement.ExportClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_cost_management_export_resource_group" {
-			continue
-		}
-
-		id, err := parse.CostManagementExportResourceGroupID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		resp, err := client.Get(ctx, id.ResourceId, id.Name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Cost Management Export ResourceGroup still exists: %q", id.Name)
-		}
+func (t CostManagementExportResourceGroupResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.CostManagementExportResourceGroupID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.CostManagement.ExportClient.Get(ctx, id.ResourceId, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Cost Management Export ResourceGroup %q (resource group: %q) does not exist", id.Name, id.ResourceId)
+	}
+
+	return utils.Bool(resp.ExportProperties != nil), nil
 }
 
-func testAccAzureRMCostManagementExportResourceGroup_basic(data acceptance.TestData) string {
+func (CostManagementExportResourceGroupResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -161,7 +117,7 @@ resource "azurerm_cost_management_export_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMCostManagementExportResourceGroup_update(data acceptance.TestData) string {
+func (CostManagementExportResourceGroupResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
