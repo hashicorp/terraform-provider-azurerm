@@ -11,7 +11,7 @@ import (
 
 type CdnProfileDataSource struct{}
 
-func TestAccDataSourceAzureRMCdnProfile_basic(t *testing.T) {
+func TestAccCdnProfileDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_cdn_profile", "test")
 	d := CdnProfileDataSource{}
 
@@ -25,7 +25,7 @@ func TestAccDataSourceAzureRMCdnProfile_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMCdnProfile_withTags(t *testing.T) {
+func TestAccCdnProfileDataSource_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_cdn_profile", "test")
 	d := CdnProfileDataSource{}
 

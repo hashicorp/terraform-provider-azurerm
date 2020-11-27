@@ -22,12 +22,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmCdnProfile() *schema.Resource {
+func resourceCdnProfile() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCdnProfileCreate,
-		Read:   resourceArmCdnProfileRead,
-		Update: resourceArmCdnProfileUpdate,
-		Delete: resourceArmCdnProfileDelete,
+		Create: resourceCdnProfileCreate,
+		Read:   resourceCdnProfileRead,
+		Update: resourceCdnProfileUpdate,
+		Delete: resourceCdnProfileDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -80,7 +80,7 @@ func resourceArmCdnProfile() *schema.Resource {
 	}
 }
 
-func resourceArmCdnProfileCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCdnProfileCreate(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Cdn.ProfilesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -140,10 +140,10 @@ func resourceArmCdnProfileCreate(d *schema.ResourceData, meta interface{}) error
 
 	d.SetId(id.ID(subscriptionId))
 
-	return resourceArmCdnProfileRead(d, meta)
+	return resourceCdnProfileRead(d, meta)
 }
 
-func resourceArmCdnProfileUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCdnProfileUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.ProfilesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -174,10 +174,10 @@ func resourceArmCdnProfileUpdate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error waiting for the update of CDN Profile %q (Resource Group %q) to commplete: %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return resourceArmCdnProfileRead(d, meta)
+	return resourceCdnProfileRead(d, meta)
 }
 
-func resourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
+func resourceCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.ProfilesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -209,7 +209,7 @@ func resourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmCdnProfileDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceCdnProfileDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.ProfilesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
