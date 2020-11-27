@@ -1,4 +1,4 @@
-package azurerm
+package databasemigration_test
 
 import (
 	"fmt"
