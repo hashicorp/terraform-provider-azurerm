@@ -1,4 +1,4 @@
-package tests
+package blueprints_test
 
 import (
 	"fmt"
