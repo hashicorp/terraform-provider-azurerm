@@ -167,13 +167,13 @@ func TestAccBatchPool_completeUpdated(t *testing.T) {
 	})
 }
 
-func TestAccBatchPoolStartTask_basic(t *testing.T) {
+func TestAccBatchPool_startTask_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.startTask_basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("vm_size").HasValue("STANDARD_A1"),
@@ -637,7 +637,7 @@ resource "azurerm_batch_pool" "import" {
 `, BatchPoolResource{}.basic(data))
 }
 
-func (BatchPoolResource) starttask_basic(data acceptance.TestData) string {
+func (BatchPoolResource) startTask_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
