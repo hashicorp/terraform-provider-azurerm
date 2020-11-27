@@ -138,20 +138,16 @@ func resourceApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, met
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	appInsightsID := d.Get("application_insights_id").(string)
-
-	id, err := azure.ParseAzureResourceID(appInsightsID)
+	appInsightsId, err := parse.ComponentID(d.Get("application_insights_id").(string))
 	if err != nil {
 		return err
 	}
-
-	appInsightsName := id.Path["components"]
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Application Insights WebTests %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing Application Insights WebTests %q (Resource Group %q): %s", name, resGroup, err)
 			}
 		}
 
@@ -172,7 +168,7 @@ func resourceApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, met
 	testConf := d.Get("configuration").(string)
 
 	t := d.Get("tags").(map[string]interface{})
-	tagKey := fmt.Sprintf("hidden-link:/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/components/%s", client.SubscriptionID, resGroup, appInsightsName)
+	tagKey := fmt.Sprintf("hidden-link:%s", appInsightsId.ID(""))
 	t[tagKey] = "Resource"
 
 	webTest := insights.WebTest{
@@ -198,7 +194,7 @@ func resourceApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, met
 
 	resp, err := client.CreateOrUpdate(ctx, resGroup, name, webTest)
 	if err != nil {
-		return fmt.Errorf("Error creating Application Insights WebTest %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("creating/updating Application Insights WebTest %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -225,7 +221,7 @@ func resourceApplicationInsightsWebTestsRead(d *schema.ResourceData, meta interf
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Application Insights WebTests %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Application Insights WebTests %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	appInsightsId := ""
