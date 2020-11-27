@@ -36,7 +36,7 @@ func resourceArmNetAppAccount() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.NetAppAccountID(id)
+			_, err := parse.AccountID(id)
 			return err
 		}),
 
@@ -162,7 +162,7 @@ func resourceArmNetAppAccountRead(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NetAppAccountID(d.Id())
+	id, err := parse.AccountID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -191,7 +191,7 @@ func resourceArmNetAppAccountDelete(d *schema.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NetAppAccountID(d.Id())
+	id, err := parse.AccountID(d.Id())
 	if err != nil {
 		return err
 	}
