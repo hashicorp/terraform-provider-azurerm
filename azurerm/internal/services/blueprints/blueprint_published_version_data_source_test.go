@@ -6,70 +6,65 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
+type BlueprintPublishedVersionDataSource struct {
+}
+
 // lintignore:AT001
-func TestAccDataSourceBlueprintPublishedVersion_atSubscription(t *testing.T) {
+func TestAccBlueprintPublishedVersionDataSource_atSubscription(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_published_version", "test")
+	r := BlueprintPublishedVersionDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceBlueprintPublishedVersion_atSubscription(data, "testAcc_basicSubscription", "v0.1_testAcc"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "target_scope", "subscription"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "Acceptance Test stub for Blueprints at Subscription"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "time_created"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "type"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.atSubscription(data, "testAcc_basicSubscription", "v0.1_testAcc"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("target_scope").HasValue("subscription"),
+				check.That(data.ResourceName).Key("description").HasValue("Acceptance Test stub for Blueprints at Subscription"),
+				check.That(data.ResourceName).Key("time_created").Exists(),
+				check.That(data.ResourceName).Key("type").Exists(),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceBlueprintPublishedVersion_atRootManagementGroup(t *testing.T) {
+func TestAccBlueprintPublishedVersionDataSource_atRootManagementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_published_version", "test")
+	r := BlueprintPublishedVersionDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceBlueprintPublishedVersion_atRootManagementGroup("testAcc_basicRootManagementGroup", "v0.1_testAcc"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "target_scope", "subscription"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "Acceptance Test stub for Blueprints at Root Management Group"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "time_created"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "type"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.atRootManagementGroup("testAcc_basicRootManagementGroup", "v0.1_testAcc"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("target_scope").HasValue("subscription"),
+				check.That(data.ResourceName).Key("description").HasValue("Acceptance Test stub for Blueprints at Root Management Group"),
+				check.That(data.ResourceName).Key("time_created").Exists(),
+				check.That(data.ResourceName).Key("type").Exists(),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceBlueprintPublishedVersion_atChildManagementGroup(t *testing.T) {
+func TestAccBlueprintPublishedVersionDataSource_atChildManagementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_published_version", "test")
+	r := BlueprintPublishedVersionDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceBlueprintPublishedVersion_atChildManagementGroup("testAcc_staticStubGroup", "testAcc_staticStubManagementGroup", "v0.1_testAcc"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "target_scope", "subscription"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "Acceptance Test stub for Blueprints at Child Management Group"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "time_created"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "type"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.atChildManagementGroup("testAcc_staticStubGroup", "testAcc_staticStubManagementGroup", "v0.1_testAcc"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("target_scope").HasValue("subscription"),
+				check.That(data.ResourceName).Key("description").HasValue("Acceptance Test stub for Blueprints at Child Management Group"),
+				check.That(data.ResourceName).Key("time_created").Exists(),
+				check.That(data.ResourceName).Key("type").Exists(),
+			),
 		},
 	})
 }
 
-func testAccDataSourceBlueprintPublishedVersion_atSubscription(data acceptance.TestData, bpName string, version string) string {
+func (BlueprintPublishedVersionDataSource) atSubscription(data acceptance.TestData, bpName string, version string) string {
 	subscription := data.Client().SubscriptionIDAlt
 
 	return fmt.Sprintf(`
@@ -88,7 +83,7 @@ data "azurerm_blueprint_published_version" "test" {
 `, subscription, bpName, version)
 }
 
-func testAccDataSourceBlueprintPublishedVersion_atRootManagementGroup(bpName, version string) string {
+func (BlueprintPublishedVersionDataSource) atRootManagementGroup(bpName, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -108,7 +103,7 @@ data "azurerm_blueprint_published_version" "test" {
 `, bpName, version)
 }
 
-func testAccDataSourceBlueprintPublishedVersion_atChildManagementGroup(mg, bpName, version string) string {
+func (BlueprintPublishedVersionDataSource) atChildManagementGroup(mg, bpName, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

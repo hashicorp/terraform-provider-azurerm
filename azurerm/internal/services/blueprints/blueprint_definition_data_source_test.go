@@ -6,72 +6,67 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-// lintignore:AT001
-func TestAccDataSourceBlueprintDefinition_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_definition", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceBlueprintDefinition_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "Acceptance Test stub for Blueprints at Subscription"),
-					resource.TestCheckResourceAttr(data.ResourceName, "name", "testAcc_basicSubscription"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "last_modified"),
-					resource.TestCheckResourceAttr(data.ResourceName, "target_scope", "subscription"), // Only subscriptions can be targets
-					resource.TestCheckResourceAttrSet(data.ResourceName, "time_created"),
-				),
-			},
-		},
-	})
+type BlueprintDefinitionDataSource struct {
 }
 
 // lintignore:AT001
-func TestAccDataSourceBlueprintDefinition_basicAtRootManagementGroup(t *testing.T) {
+func TestAccBlueprintDefinitionDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_definition", "test")
+	r := BlueprintDefinitionDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceBlueprintDefinition_basicAtRootManagementGroup(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "name", "testAcc_basicRootManagementGroup"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "time_created"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "last_modified"),
-					resource.TestCheckResourceAttr(data.ResourceName, "target_scope", "subscription"), // Only subscriptions can be targets
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("description").HasValue("Acceptance Test stub for Blueprints at Subscription"),
+				check.That(data.ResourceName).Key("name").HasValue("testAcc_basicSubscription"),
+				check.That(data.ResourceName).Key("last_modified").Exists(),
+				check.That(data.ResourceName).Key("target_scope").HasValue("subscription"),
+				check.That(data.ResourceName).Key("time_created").Exists(),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceBlueprintDefinition_basicAtChildManagementGroup(t *testing.T) {
+// lintignore:AT001
+func TestAccBlueprintDefinitionDataSource_basicAtRootManagementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_definition", "test")
+	r := BlueprintDefinitionDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceBlueprintDefinition_basicAtManagementGroup("testAcc_staticStubGroup"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "name", "testAcc_staticStubManagementGroup"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "time_created"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "last_modified"),
-					resource.TestCheckResourceAttr(data.ResourceName, "target_scope", "subscription"), // Only subscriptions can be targets
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basicAtRootManagementGroup(),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").HasValue("testAcc_basicRootManagementGroup"),
+				check.That(data.ResourceName).Key("time_created").Exists(),
+				check.That(data.ResourceName).Key("last_modified").Exists(),
+				check.That(data.ResourceName).Key("target_scope").HasValue("subscription"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceBlueprintDefinition_basic(data acceptance.TestData) string {
+func TestAccBlueprintDefinitionDataSource_basicAtChildManagementGroup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_definition", "test")
+	r := BlueprintDefinitionDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basicAtManagementGroup("testAcc_staticStubGroup"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").HasValue("testAcc_staticStubManagementGroup"),
+				check.That(data.ResourceName).Key("time_created").Exists(),
+				check.That(data.ResourceName).Key("last_modified").Exists(),
+				check.That(data.ResourceName).Key("target_scope").HasValue("subscription"),
+			),
+		},
+	})
+}
+
+func (BlueprintDefinitionDataSource) basic(data acceptance.TestData) string {
 	subscription := data.Client().SubscriptionIDAlt
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -89,7 +84,7 @@ data "azurerm_blueprint_definition" "test" {
 `, subscription)
 }
 
-func testAccDataSourceBlueprintDefinition_basicAtManagementGroup(managementGroup string) string {
+func (BlueprintDefinitionDataSource) basicAtManagementGroup(managementGroup string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -107,7 +102,7 @@ data "azurerm_blueprint_definition" "test" {
 `, managementGroup)
 }
 
-func testAccDataSourceBlueprintDefinition_basicAtRootManagementGroup() string {
+func (BlueprintDefinitionDataSource) basicAtRootManagementGroup() string {
 	return `
 provider "azurerm" {
   features {}

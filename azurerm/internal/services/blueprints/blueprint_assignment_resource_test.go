@@ -7,75 +7,67 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/blueprints/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type BlueprintAssignmentResource struct {
+}
+
 // Scenario: Basic BP, no artefacts etc.  Stored and applied at Subscription.
 func TestAccBlueprintAssignment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_blueprint_assignment", "test")
+	r := BlueprintAssignmentResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBlueprintAssignmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccBlueprintAssignment_basic(data, "testAcc_basicSubscription", "v0.1_testAcc"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckBlueprintAssignmentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "testAcc_basicSubscription", "v0.1_testAcc"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccBlueprintAssignment_basicUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_blueprint_assignment", "test")
+	r := BlueprintAssignmentResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBlueprintAssignmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccBlueprintAssignment_basic(data, "testAcc_basicSubscription", "v0.1_testAcc"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckBlueprintAssignmentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccBlueprintAssignment_basic(data, "testAcc_basicSubscription", "v0.2_testAcc"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckBlueprintAssignmentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "testAcc_basicSubscription", "v0.1_testAcc"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data, "testAcc_basicSubscription", "v0.2_testAcc"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccBlueprintAssignment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_blueprint_assignment", "test")
+	r := BlueprintAssignmentResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBlueprintAssignmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccBlueprintAssignment_basic(data, "testAcc_basicSubscription", "v0.1_testAcc"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckBlueprintAssignmentExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccBlueprintAssignment_requiresImport(data, "testAcc_basicSubscription", "v0.1_testAcc"),
-				ExpectError: acceptance.RequiresImportError("azurerm_blueprint_assignment"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "testAcc_basicSubscription", "v0.1_testAcc"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data, "testAcc_basicSubscription", "v0.1_testAcc"),
+			ExpectError: acceptance.RequiresImportError("azurerm_blueprint_assignment"),
 		},
 	})
 }
@@ -83,44 +75,36 @@ func TestAccBlueprintAssignment_requiresImport(t *testing.T) {
 // Scenario: BP with RG's, locking and parameters/policies stored at Subscription, applied to subscription
 func TestAccBlueprintAssignment_subscriptionComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_blueprint_assignment", "test")
+	r := BlueprintAssignmentResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBlueprintAssignmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccBlueprintAssignment_subscriptionComplete(data, "testAcc_subscriptionComplete", "v0.1_testAcc"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckBlueprintAssignmentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.subscriptionComplete(data, "testAcc_subscriptionComplete", "v0.1_testAcc"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 // Scenario: BP stored at Root Management Group, applied to Subscription
 func TestAccBlueprintAssignment_managementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_blueprint_assignment", "test")
+	r := BlueprintAssignmentResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBlueprintAssignmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccBlueprintAssignment_rootManagementGroup(data, "testAcc_basicRootManagementGroup", "v0.1_testAcc"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckBlueprintAssignmentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.rootManagementGroup(data, "testAcc_basicRootManagementGroup", "v0.1_testAcc"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckBlueprintAssignmentExists(resourceName string) resource.TestCheckFunc {
+func (t BlueprintAssignmentResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -144,33 +128,7 @@ func testCheckBlueprintAssignmentExists(resourceName string) resource.TestCheckF
 	}
 }
 
-func testCheckAzureRMBlueprintAssignmentDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Blueprints.AssignmentsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_blueprint_assignment" {
-			continue
-		}
-
-		id, err := parse.AssignmentID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, id.Scope, id.Name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on Blueprint.AssignmentClient: %+v", err)
-			}
-		}
-
-		return nil
-	}
-
-	return nil
-}
-
-func testAccBlueprintAssignment_basic(data acceptance.TestData, bpName string, version string) string {
+func (BlueprintAssignmentResource) basic(data acceptance.TestData, bpName string, version string) string {
 	subscription := data.Client().SubscriptionIDAlt
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -231,7 +189,7 @@ resource "azurerm_blueprint_assignment" "test" {
 // This test config creates a UM-MSI and assigns Owner to the target subscription.  This is necessary due to the changes
 // the referenced Blueprint Version needs to make to successfully apply.  If the test does not exit cleanly, "dangling"
 // resources can include the Role Assignment(s) at the Subscription, which will need to be removed
-func testAccBlueprintAssignment_subscriptionComplete(data acceptance.TestData, bpName string, version string) string {
+func (BlueprintAssignmentResource) subscriptionComplete(data acceptance.TestData, bpName string, version string) string {
 	subscription := data.Client().SubscriptionIDAlt
 
 	return fmt.Sprintf(`
@@ -323,7 +281,7 @@ resource "azurerm_blueprint_assignment" "test" {
 `, subscription, bpName, version, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccBlueprintAssignment_rootManagementGroup(data acceptance.TestData, bpName string, version string) string {
+func (BlueprintAssignmentResource) rootManagementGroup(data acceptance.TestData, bpName string, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -394,8 +352,8 @@ resource "azurerm_blueprint_assignment" "test" {
 `, bpName, version, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccBlueprintAssignment_requiresImport(data acceptance.TestData, bpName string, version string) string {
-	template := testAccBlueprintAssignment_basic(data, bpName, version)
+func (BlueprintAssignmentResource) requiresImport(data acceptance.TestData, bpName string, version string) string {
+	template := BlueprintAssignmentResource{}.basic(data, bpName, version)
 
 	return fmt.Sprintf(`
 %s
