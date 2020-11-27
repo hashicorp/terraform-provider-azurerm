@@ -1,7 +1,7 @@
 package databasemigration_test
 
 import (
-	`context`
+	"context"
 	"fmt"
 	"testing"
 
@@ -110,7 +110,7 @@ func (t DatabaseMigrationProjectResource) Exists(ctx context.Context, clients *c
 }
 
 func (DatabaseMigrationProjectResource) basic(data acceptance.TestData) string {
-	template := DatabaseMigrationProjectResource{}.basic(data)
+	template := DatabaseMigrationServiceResource{}.basic(data)
 
 	return fmt.Sprintf(`
 %s
