@@ -90,7 +90,7 @@ func (client JobsClient) CancelJobPreparer(ctx context.Context, resourceGroupNam
 		"transformName":     autorest.Encode("path", transformName),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -178,7 +178,7 @@ func (client JobsClient) CreatePreparer(ctx context.Context, resourceGroupName s
 		"transformName":     autorest.Encode("path", transformName),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -259,7 +259,7 @@ func (client JobsClient) DeletePreparer(ctx context.Context, resourceGroupName s
 		"transformName":     autorest.Encode("path", transformName),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -337,7 +337,7 @@ func (client JobsClient) GetPreparer(ctx context.Context, resourceGroupName stri
 		"transformName":     autorest.Encode("path", transformName),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -420,7 +420,7 @@ func (client JobsClient) ListPreparer(ctx context.Context, resourceGroupName str
 		"transformName":     autorest.Encode("path", transformName),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -544,7 +544,7 @@ func (client JobsClient) UpdatePreparer(ctx context.Context, resourceGroupName s
 		"transformName":     autorest.Encode("path", transformName),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

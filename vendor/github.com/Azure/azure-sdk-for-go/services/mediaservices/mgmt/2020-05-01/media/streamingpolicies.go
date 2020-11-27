@@ -133,7 +133,7 @@ func (client StreamingPoliciesClient) CreatePreparer(ctx context.Context, resour
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -212,7 +212,7 @@ func (client StreamingPoliciesClient) DeletePreparer(ctx context.Context, resour
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -288,7 +288,7 @@ func (client StreamingPoliciesClient) GetPreparer(ctx context.Context, resourceG
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -371,7 +371,7 @@ func (client StreamingPoliciesClient) ListPreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

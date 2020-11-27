@@ -42,12 +42,96 @@ func NewLiveEventsClientWithBaseURI(baseURI string, subscriptionID string) LiveE
 	return LiveEventsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Create creates a Live Event.
+// Allocate a live event is in StandBy state after allocation completes, and is ready to start.
 // Parameters:
 // resourceGroupName - the name of the resource group within the Azure subscription.
 // accountName - the Media Services account name.
-// liveEventName - the name of the Live Event.
-// parameters - live Event properties needed for creation.
+// liveEventName - the name of the live event, maximum length is 32.
+func (client LiveEventsClient) Allocate(ctx context.Context, resourceGroupName string, accountName string, liveEventName string) (result LiveEventsAllocateFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/LiveEventsClient.Allocate")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: liveEventName,
+			Constraints: []validation.Constraint{{Target: "liveEventName", Name: validation.MaxLength, Rule: 32, Chain: nil},
+				{Target: "liveEventName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "liveEventName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]+(-*[a-zA-Z0-9])*$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("media.LiveEventsClient", "Allocate", err.Error())
+	}
+
+	req, err := client.AllocatePreparer(ctx, resourceGroupName, accountName, liveEventName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "media.LiveEventsClient", "Allocate", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.AllocateSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "media.LiveEventsClient", "Allocate", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// AllocatePreparer prepares the Allocate request.
+func (client LiveEventsClient) AllocatePreparer(ctx context.Context, resourceGroupName string, accountName string, liveEventName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"accountName":       autorest.Encode("path", accountName),
+		"liveEventName":     autorest.Encode("path", liveEventName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-05-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Media/mediaservices/{accountName}/liveEvents/{liveEventName}/allocate", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// AllocateSender sends the Allocate request. The method will close the
+// http.Response Body if it receives an error.
+func (client LiveEventsClient) AllocateSender(req *http.Request) (future LiveEventsAllocateFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// AllocateResponder handles the response to the Allocate request. The method always
+// closes the http.Response Body.
+func (client LiveEventsClient) AllocateResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
+// Create creates a new live event.
+// Parameters:
+// resourceGroupName - the name of the resource group within the Azure subscription.
+// accountName - the Media Services account name.
+// liveEventName - the name of the live event, maximum length is 32.
+// parameters - live event properties needed for creation.
 // autoStart - the flag indicates if the resource should be automatically started on creation.
 func (client LiveEventsClient) Create(ctx context.Context, resourceGroupName string, accountName string, liveEventName string, parameters LiveEvent, autoStart *bool) (result LiveEventsCreateFuture, err error) {
 	if tracing.IsEnabled() {
@@ -95,7 +179,7 @@ func (client LiveEventsClient) CreatePreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -130,18 +214,18 @@ func (client LiveEventsClient) CreateSender(req *http.Request) (future LiveEvent
 func (client LiveEventsClient) CreateResponder(resp *http.Response) (result LiveEvent, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
 	return
 }
 
-// Delete deletes a Live Event.
+// Delete deletes a live event.
 // Parameters:
 // resourceGroupName - the name of the resource group within the Azure subscription.
 // accountName - the Media Services account name.
-// liveEventName - the name of the Live Event.
+// liveEventName - the name of the live event, maximum length is 32.
 func (client LiveEventsClient) Delete(ctx context.Context, resourceGroupName string, accountName string, liveEventName string) (result LiveEventsDeleteFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/LiveEventsClient.Delete")
@@ -185,7 +269,7 @@ func (client LiveEventsClient) DeletePreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -221,11 +305,11 @@ func (client LiveEventsClient) DeleteResponder(resp *http.Response) (result auto
 	return
 }
 
-// Get gets a Live Event.
+// Get gets properties of a live event.
 // Parameters:
 // resourceGroupName - the name of the resource group within the Azure subscription.
 // accountName - the Media Services account name.
-// liveEventName - the name of the Live Event.
+// liveEventName - the name of the live event, maximum length is 32.
 func (client LiveEventsClient) Get(ctx context.Context, resourceGroupName string, accountName string, liveEventName string) (result LiveEvent, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/LiveEventsClient.Get")
@@ -275,7 +359,7 @@ func (client LiveEventsClient) GetPreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -306,7 +390,7 @@ func (client LiveEventsClient) GetResponder(resp *http.Response) (result LiveEve
 	return
 }
 
-// List lists the Live Events in the account.
+// List lists all the live events in the account.
 // Parameters:
 // resourceGroupName - the name of the resource group within the Azure subscription.
 // accountName - the Media Services account name.
@@ -354,7 +438,7 @@ func (client LiveEventsClient) ListPreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -422,11 +506,13 @@ func (client LiveEventsClient) ListComplete(ctx context.Context, resourceGroupNa
 	return
 }
 
-// Reset resets an existing Live Event.
+// Reset resets an existing live event. All live outputs for the live event are deleted and the live event is stopped
+// and will be started again. All assets used by the live outputs and streaming locators created on these assets are
+// unaffected.
 // Parameters:
 // resourceGroupName - the name of the resource group within the Azure subscription.
 // accountName - the Media Services account name.
-// liveEventName - the name of the Live Event.
+// liveEventName - the name of the live event, maximum length is 32.
 func (client LiveEventsClient) Reset(ctx context.Context, resourceGroupName string, accountName string, liveEventName string) (result LiveEventsResetFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/LiveEventsClient.Reset")
@@ -470,7 +556,7 @@ func (client LiveEventsClient) ResetPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -506,11 +592,11 @@ func (client LiveEventsClient) ResetResponder(resp *http.Response) (result autor
 	return
 }
 
-// Start starts an existing Live Event.
+// Start a live event in Stopped or StandBy state will be in Running state after the start operation completes.
 // Parameters:
 // resourceGroupName - the name of the resource group within the Azure subscription.
 // accountName - the Media Services account name.
-// liveEventName - the name of the Live Event.
+// liveEventName - the name of the live event, maximum length is 32.
 func (client LiveEventsClient) Start(ctx context.Context, resourceGroupName string, accountName string, liveEventName string) (result LiveEventsStartFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/LiveEventsClient.Start")
@@ -554,7 +640,7 @@ func (client LiveEventsClient) StartPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -590,11 +676,11 @@ func (client LiveEventsClient) StartResponder(resp *http.Response) (result autor
 	return
 }
 
-// Stop stops an existing Live Event.
+// Stop stops a running live event.
 // Parameters:
 // resourceGroupName - the name of the resource group within the Azure subscription.
 // accountName - the Media Services account name.
-// liveEventName - the name of the Live Event.
+// liveEventName - the name of the live event, maximum length is 32.
 // parameters - liveEvent stop parameters
 func (client LiveEventsClient) Stop(ctx context.Context, resourceGroupName string, accountName string, liveEventName string, parameters LiveEventActionInput) (result LiveEventsStopFuture, err error) {
 	if tracing.IsEnabled() {
@@ -639,7 +725,7 @@ func (client LiveEventsClient) StopPreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -677,12 +763,12 @@ func (client LiveEventsClient) StopResponder(resp *http.Response) (result autore
 	return
 }
 
-// Update updates a existing Live Event.
+// Update updates settings on an existing live event.
 // Parameters:
 // resourceGroupName - the name of the resource group within the Azure subscription.
 // accountName - the Media Services account name.
-// liveEventName - the name of the Live Event.
-// parameters - live Event properties needed for creation.
+// liveEventName - the name of the live event, maximum length is 32.
+// parameters - live event properties needed for patch.
 func (client LiveEventsClient) Update(ctx context.Context, resourceGroupName string, accountName string, liveEventName string, parameters LiveEvent) (result LiveEventsUpdateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/LiveEventsClient.Update")
@@ -726,7 +812,7 @@ func (client LiveEventsClient) UpdatePreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
