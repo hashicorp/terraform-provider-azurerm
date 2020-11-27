@@ -1,65 +1,128 @@
 package parse
 
-import "testing"
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
 
-func TestLoadBalancerInboundNATRuleIDParser(t *testing.T) {
+import (
+	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
+)
+
+var _ resourceid.Formatter = LoadBalancerInboundNatRuleId{}
+
+func TestLoadBalancerInboundNatRuleIDFormatter(t *testing.T) {
+	actual := NewLoadBalancerInboundNatRuleID("12345678-1234-9876-4563-123456789012", "resGroup1", "loadBalancer1", "rule1").ID("")
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/loadBalancers/loadBalancer1/inboundNatRules/rule1"
+	if actual != expected {
+		t.Fatalf("Expected %q but got %q", expected, actual)
+	}
+}
+
+func TestLoadBalancerInboundNatRuleID(t *testing.T) {
 	testData := []struct {
-		input    string
-		expected *LoadBalancerInboundNATRuleId
+		Input    string
+		Error    bool
+		Expected *LoadBalancerInboundNatRuleId
 	}{
+
 		{
-			// load balancer id
-			input:    "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/loadBalancers/lb1",
-			expected: nil,
+			// empty
+			Input: "",
+			Error: true,
 		},
+
 		{
-			// lower-case
-			input:    "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/loadBalancers/lb1/inboundnatrules/rule1",
-			expected: nil,
+			// missing SubscriptionId
+			Input: "/",
+			Error: true,
 		},
+
 		{
-			// camel case
-			input: "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/loadBalancers/lb1/inboundNatRules/rule1",
-			expected: &LoadBalancerInboundNATRuleId{
-				ResourceGroup:      "group1",
-				LoadBalancerName:   "lb1",
+			// missing value for SubscriptionId
+			Input: "/subscriptions/",
+			Error: true,
+		},
+
+		{
+			// missing ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/",
+			Error: true,
+		},
+
+		{
+			// missing value for ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
+			Error: true,
+		},
+
+		{
+			// missing LoadBalancerName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/",
+			Error: true,
+		},
+
+		{
+			// missing value for LoadBalancerName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/loadBalancers/",
+			Error: true,
+		},
+
+		{
+			// missing InboundNatRuleName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/loadBalancers/loadBalancer1/",
+			Error: true,
+		},
+
+		{
+			// missing value for InboundNatRuleName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/loadBalancers/loadBalancer1/inboundNatRules/",
+			Error: true,
+		},
+
+		{
+			// valid
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/loadBalancers/loadBalancer1/inboundNatRules/rule1",
+			Expected: &LoadBalancerInboundNatRuleId{
+				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:      "resGroup1",
+				LoadBalancerName:   "loadBalancer1",
 				InboundNatRuleName: "rule1",
 			},
 		},
+
 		{
-			// title case
-			input:    "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/Loadbalancers/lb1/Inboundnatrules/rule1",
-			expected: nil,
-		},
-		{
-			// pascal case
-			input:    "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/LoadBalancers/lb1/InboundNatRules/rule1",
-			expected: nil,
+			// upper-cased
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NETWORK/LOADBALANCERS/LOADBALANCER1/INBOUNDNATRULES/RULE1",
+			Error: true,
 		},
 	}
-	for _, test := range testData {
-		t.Logf("Testing %q..", test.input)
-		actual, err := LoadBalancerInboundNATRuleID(test.input)
-		if err != nil && test.expected == nil {
-			continue
-		} else {
-			if err == nil && test.expected == nil {
-				t.Fatalf("Expected an error but didn't get one")
-			} else if err != nil && test.expected != nil {
-				t.Fatalf("Expected no error but got: %+v", err)
+
+	for _, v := range testData {
+		t.Logf("[DEBUG] Testing %q", v.Input)
+
+		actual, err := LoadBalancerInboundNatRuleID(v.Input)
+		if err != nil {
+			if v.Error {
+				continue
 			}
+
+			t.Fatalf("Expect a value but got an error: %s", err)
+		}
+		if v.Error {
+			t.Fatal("Expect an error but didn't get one")
 		}
 
-		if actual.ResourceGroup != test.expected.ResourceGroup {
-			t.Fatalf("Expected ResourceGroup to be %q but was %q", test.expected.ResourceGroup, actual.ResourceGroup)
+		if actual.SubscriptionId != v.Expected.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
 		}
-
-		if actual.LoadBalancerName != test.expected.LoadBalancerName {
-			t.Fatalf("Expected LoadBalancerName to be %q but was %q", test.expected.LoadBalancerName, actual.LoadBalancerName)
+		if actual.ResourceGroup != v.Expected.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
-
-		if actual.InboundNatRuleName != test.expected.InboundNatRuleName {
-			t.Fatalf("Expected name to be %q but was %q", test.expected.InboundNatRuleName, actual.InboundNatRuleName)
+		if actual.LoadBalancerName != v.Expected.LoadBalancerName {
+			t.Fatalf("Expected %q but got %q for LoadBalancerName", v.Expected.LoadBalancerName, actual.LoadBalancerName)
+		}
+		if actual.InboundNatRuleName != v.Expected.InboundNatRuleName {
+			t.Fatalf("Expected %q but got %q for InboundNatRuleName", v.Expected.InboundNatRuleName, actual.InboundNatRuleName)
 		}
 	}
 }

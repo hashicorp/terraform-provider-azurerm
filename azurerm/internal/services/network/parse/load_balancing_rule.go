@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,26 +9,42 @@ import (
 )
 
 type LoadBalancingRuleId struct {
+	SubscriptionId   string
 	ResourceGroup    string
 	LoadBalancerName string
 	Name             string
 }
 
+func NewLoadBalancingRuleID(subscriptionId, resourceGroup, loadBalancerName, name string) LoadBalancingRuleId {
+	return LoadBalancingRuleId{
+		SubscriptionId:   subscriptionId,
+		ResourceGroup:    resourceGroup,
+		LoadBalancerName: loadBalancerName,
+		Name:             name,
+	}
+}
+
+func (id LoadBalancingRuleId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/loadBalancers/%s/loadBalancingRules/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName, id.Name)
+}
+
+// LoadBalancingRuleID parses a LoadBalancingRule ID into an LoadBalancingRuleId struct
 func LoadBalancingRuleID(input string) (*LoadBalancingRuleId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing Load Balancer Rule ID %q: %+v", input, err)
-	}
-
-	ruleId := LoadBalancingRuleId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if ruleId.LoadBalancerName, err = id.PopSegment("loadBalancers"); err != nil {
 		return nil, err
 	}
 
-	if ruleId.Name, err = id.PopSegment("loadBalancingRules"); err != nil {
+	resourceId := LoadBalancingRuleId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.LoadBalancerName, err = id.PopSegment("loadBalancers"); err != nil {
+		return nil, err
+	}
+	if resourceId.Name, err = id.PopSegment("loadBalancingRules"); err != nil {
 		return nil, err
 	}
 
@@ -34,5 +52,5 @@ func LoadBalancingRuleID(input string) (*LoadBalancingRuleId, error) {
 		return nil, err
 	}
 
-	return &ruleId, nil
+	return &resourceId, nil
 }

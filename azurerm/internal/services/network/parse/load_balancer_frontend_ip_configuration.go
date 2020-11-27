@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,39 +9,42 @@ import (
 )
 
 type LoadBalancerFrontendIpConfigurationId struct {
+	SubscriptionId              string
 	ResourceGroup               string
 	LoadBalancerName            string
 	FrontendIPConfigurationName string
 }
 
-func NewLoadBalancerFrontendIPConfigurationId(loadBalancer LoadBalancerId, name string) LoadBalancerFrontendIpConfigurationId {
+func NewLoadBalancerFrontendIpConfigurationID(subscriptionId, resourceGroup, loadBalancerName, frontendIPConfigurationName string) LoadBalancerFrontendIpConfigurationId {
 	return LoadBalancerFrontendIpConfigurationId{
-		ResourceGroup:               loadBalancer.ResourceGroup,
-		LoadBalancerName:            loadBalancer.Name,
-		FrontendIPConfigurationName: name,
+		SubscriptionId:              subscriptionId,
+		ResourceGroup:               resourceGroup,
+		LoadBalancerName:            loadBalancerName,
+		FrontendIPConfigurationName: frontendIPConfigurationName,
 	}
 }
 
-func (id LoadBalancerFrontendIpConfigurationId) ID(subscriptionId string) string {
-	baseId := NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName).ID(subscriptionId)
-	return fmt.Sprintf("%s/frontendIPConfigurations/%s", baseId, id.FrontendIPConfigurationName)
+func (id LoadBalancerFrontendIpConfigurationId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/loadBalancers/%s/frontendIPConfigurations/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName, id.FrontendIPConfigurationName)
 }
 
+// LoadBalancerFrontendIpConfigurationID parses a LoadBalancerFrontendIpConfiguration ID into an LoadBalancerFrontendIpConfigurationId struct
 func LoadBalancerFrontendIpConfigurationID(input string) (*LoadBalancerFrontendIpConfigurationId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing Load Balancer Frontend IP Configuration ID %q: %+v", input, err)
-	}
-
-	frontendIPConfigurationId := LoadBalancerFrontendIpConfigurationId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if frontendIPConfigurationId.LoadBalancerName, err = id.PopSegment("loadBalancers"); err != nil {
 		return nil, err
 	}
 
-	if frontendIPConfigurationId.FrontendIPConfigurationName, err = id.PopSegment("frontendIPConfigurations"); err != nil {
+	resourceId := LoadBalancerFrontendIpConfigurationId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.LoadBalancerName, err = id.PopSegment("loadBalancers"); err != nil {
+		return nil, err
+	}
+	if resourceId.FrontendIPConfigurationName, err = id.PopSegment("frontendIPConfigurations"); err != nil {
 		return nil, err
 	}
 
@@ -47,5 +52,5 @@ func LoadBalancerFrontendIpConfigurationID(input string) (*LoadBalancerFrontendI
 		return nil, err
 	}
 
-	return &frontendIPConfigurationId, nil
+	return &resourceId, nil
 }
