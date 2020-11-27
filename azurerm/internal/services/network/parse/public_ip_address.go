@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,21 +9,37 @@ import (
 )
 
 type PublicIpAddressId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
+func NewPublicIpAddressID(subscriptionId, resourceGroup, name string) PublicIpAddressId {
+	return PublicIpAddressId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id PublicIpAddressId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/publicIPAddresses/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+}
+
+// PublicIpAddressID parses a PublicIpAddress ID into an PublicIpAddressId struct
 func PublicIpAddressID(input string) (*PublicIpAddressId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Public IP Address ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	ipAddress := PublicIpAddressId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := PublicIpAddressId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if ipAddress.Name, err = id.PopSegment("publicIPAddresses"); err != nil {
+	if resourceId.Name, err = id.PopSegment("publicIPAddresses"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +47,5 @@ func PublicIpAddressID(input string) (*PublicIpAddressId, error) {
 		return nil, err
 	}
 
-	return &ipAddress, nil
+	return &resourceId, nil
 }
