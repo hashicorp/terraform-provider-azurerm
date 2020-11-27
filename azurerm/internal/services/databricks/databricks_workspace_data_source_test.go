@@ -7,27 +7,28 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
+
+type DatabricksWorkspaceDataSource struct {
+}
 
 func TestAccDatabricksWorkspaceDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_databricks_workspace", "test")
+	r := DatabricksWorkspaceDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceDatabricksWorkspace_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestMatchResourceAttr(data.ResourceName, "workspace_url", regexp.MustCompile("azuredatabricks.net")),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "workspace_id"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				resource.TestMatchResourceAttr(data.ResourceName, "workspace_url", regexp.MustCompile("azuredatabricks.net")),
+				check.That(data.ResourceName).Key("workspace_id").Exists(),
+			),
 		},
 	})
 }
 
-func testAccDataSourceDatabricksWorkspace_basic(data acceptance.TestData) string {
+func (DatabricksWorkspaceDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
