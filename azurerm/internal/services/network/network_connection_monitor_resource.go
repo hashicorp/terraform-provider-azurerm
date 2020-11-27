@@ -501,7 +501,6 @@ func resourceArmNetworkConnectionMonitorCreateUpdate(d *schema.ResourceData, met
 }
 
 func resourceArmNetworkConnectionMonitorRead(d *schema.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.ConnectionMonitorsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -526,8 +525,8 @@ func resourceArmNetworkConnectionMonitorRead(d *schema.ResourceData, meta interf
 
 	d.Set("name", id.Name)
 
-	networkWatcherId := parse.NewNetworkWatcherID(id.ResourceGroup, id.NetworkWatcherName)
-	d.Set("network_watcher_id", networkWatcherId.ID(subscriptionId))
+	networkWatcherId := parse.NewNetworkWatcherID(id.SubscriptionId, id.ResourceGroup, id.NetworkWatcherName)
+	d.Set("network_watcher_id", networkWatcherId.ID(""))
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))

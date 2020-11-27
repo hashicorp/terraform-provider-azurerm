@@ -2,23 +2,23 @@ package parse
 
 import "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 
-type NetworkPacketCaptureId struct {
-	ResourceGroup string
-	WatcherName   string
-	Name          string
+type PacketCaptureId struct {
+	ResourceGroup      string
+	NetworkWatcherName string
+	Name               string
 }
 
-func NetworkPacketCaptureID(input string) (*NetworkPacketCaptureId, error) {
+func PacketCaptureID(input string) (*PacketCaptureId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	packetCapture := NetworkPacketCaptureId{
+	packetCapture := PacketCaptureId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if packetCapture.WatcherName, err = id.PopSegment("networkWatchers"); err != nil {
+	if packetCapture.NetworkWatcherName, err = id.PopSegment("networkWatchers"); err != nil {
 		return nil, err
 	}
 

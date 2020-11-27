@@ -9,7 +9,7 @@ func TestNetworkPacketCaptureID(t *testing.T) {
 		Name   string
 		Input  string
 		Error  bool
-		Expect *NetworkPacketCaptureId
+		Expect *PacketCaptureId
 	}{
 		{
 			Name:  "Empty",
@@ -50,10 +50,10 @@ func TestNetworkPacketCaptureID(t *testing.T) {
 			Name:  "Namespace Network Packet Capture Value",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/networkWatchers/watcher1/packetCaptures/packetCapture1",
 			Error: false,
-			Expect: &NetworkPacketCaptureId{
-				ResourceGroup: "group1",
-				WatcherName:   "watcher1",
-				Name:          "packetCapture1",
+			Expect: &PacketCaptureId{
+				ResourceGroup:      "group1",
+				NetworkWatcherName: "watcher1",
+				Name:               "packetCapture1",
 			},
 		},
 		{
@@ -66,7 +66,7 @@ func TestNetworkPacketCaptureID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := NetworkPacketCaptureID(v.Input)
+		actual, err := PacketCaptureID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -79,8 +79,8 @@ func TestNetworkPacketCaptureID(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for Name", v.Expect.Name, actual.Name)
 		}
 
-		if actual.WatcherName != v.Expect.WatcherName {
-			t.Fatalf("Expected %q but got %q for Name", v.Expect.WatcherName, actual.WatcherName)
+		if actual.NetworkWatcherName != v.Expect.NetworkWatcherName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expect.NetworkWatcherName, actual.NetworkWatcherName)
 		}
 
 		if actual.ResourceGroup != v.Expect.ResourceGroup {
