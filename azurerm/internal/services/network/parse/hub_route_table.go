@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,27 +9,42 @@ import (
 )
 
 type HubRouteTableId struct {
-	SubscriptionId string // placeholder for the generated value
+	SubscriptionId string
 	ResourceGroup  string
 	VirtualHubName string
 	Name           string
 }
 
+func NewHubRouteTableID(subscriptionId, resourceGroup, virtualHubName, name string) HubRouteTableId {
+	return HubRouteTableId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		VirtualHubName: virtualHubName,
+		Name:           name,
+	}
+}
+
+func (id HubRouteTableId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualHubs/%s/hubRouteTables/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VirtualHubName, id.Name)
+}
+
+// HubRouteTableID parses a HubRouteTable ID into an HubRouteTableId struct
 func HubRouteTableID(input string) (*HubRouteTableId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing virtualHubRouteTable ID %q: %+v", input, err)
-	}
-
-	virtualHubRouteTable := HubRouteTableId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if virtualHubRouteTable.VirtualHubName, err = id.PopSegment("virtualHubs"); err != nil {
 		return nil, err
 	}
 
-	if virtualHubRouteTable.Name, err = id.PopSegment("hubRouteTables"); err != nil {
+	resourceId := HubRouteTableId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.VirtualHubName, err = id.PopSegment("virtualHubs"); err != nil {
+		return nil, err
+	}
+	if resourceId.Name, err = id.PopSegment("hubRouteTables"); err != nil {
 		return nil, err
 	}
 
@@ -35,5 +52,5 @@ func HubRouteTableID(input string) (*HubRouteTableId, error) {
 		return nil, err
 	}
 
-	return &virtualHubRouteTable, nil
+	return &resourceId, nil
 }
