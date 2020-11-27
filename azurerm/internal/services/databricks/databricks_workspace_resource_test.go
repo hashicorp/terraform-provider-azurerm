@@ -1,10 +1,10 @@
 package databricks_test
 
 import (
-	`context`
+	"context"
 	"fmt"
 	"regexp"
-	`strings`
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -12,14 +12,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks`
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks/parse"
-	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils`
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 type DatabricksWorkspaceResource struct {
 }
-
 
 func TestAzureRMDatabrickWorkspaceName(t *testing.T) {
 	const errEmpty = "cannot be an empty string"
