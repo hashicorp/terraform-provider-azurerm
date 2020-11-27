@@ -14,7 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMDatabaseMigrationService_basic(t *testing.T) {
+func TestAccDatabaseMigrationService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_database_migration_service", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -34,7 +34,7 @@ func TestAccAzureRMDatabaseMigrationService_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDatabaseMigrationService_complete(t *testing.T) {
+func TestAccDatabaseMigrationService_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_database_migration_service", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -55,7 +55,7 @@ func TestAccAzureRMDatabaseMigrationService_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDatabaseMigrationService_requiresImport(t *testing.T) {
+func TestAccDatabaseMigrationService_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_database_migration_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -74,7 +74,7 @@ func TestAccAzureRMDatabaseMigrationService_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDatabaseMigrationService_update(t *testing.T) {
+func TestAccDatabaseMigrationService_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_database_migration_service", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },

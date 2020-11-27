@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMDatabaseMigrationService_basic(t *testing.T) {
+func TestAccDatabaseMigrationServiceDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_database_migration_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
