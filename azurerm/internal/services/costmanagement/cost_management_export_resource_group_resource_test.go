@@ -1,9 +1,8 @@
 package costmanagement_test
 
 import (
-	`context`
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
