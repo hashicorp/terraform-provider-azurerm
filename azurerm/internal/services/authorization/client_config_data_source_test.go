@@ -12,7 +12,7 @@ import (
 
 type ClientConfigDataSource struct{}
 
-func TestAccDataSourceAzureRMClientConfig_basic(t *testing.T) {
+func TestAccClientConfigDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_client_config", "current")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	tenantId := os.Getenv("ARM_TENANT_ID")

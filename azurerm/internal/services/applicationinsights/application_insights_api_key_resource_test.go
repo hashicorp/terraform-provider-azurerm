@@ -19,7 +19,7 @@ import (
 type AppInsightsAPIKey struct {
 }
 
-func TestAccAzureRMApplicationInsightsAPIKey_no_permission(t *testing.T) {
+func TestAccApplicationInsightsAPIKey_no_permission(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
 	r := AppInsightsAPIKey{}
 
@@ -31,7 +31,7 @@ func TestAccAzureRMApplicationInsightsAPIKey_no_permission(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMApplicationInsightsAPIKey_requiresImport(t *testing.T) {
+func TestAccApplicationInsightsAPIKey_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
 	r := AppInsightsAPIKey{}
 
@@ -51,7 +51,7 @@ func TestAccAzureRMApplicationInsightsAPIKey_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMApplicationInsightsAPIKey_read_telemetry_permissions(t *testing.T) {
+func TestAccApplicationInsightsAPIKey_read_telemetry_permissions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
 	r := AppInsightsAPIKey{}
 
@@ -68,7 +68,7 @@ func TestAccAzureRMApplicationInsightsAPIKey_read_telemetry_permissions(t *testi
 	})
 }
 
-func TestAccAzureRMApplicationInsightsAPIKey_write_annotations_permission(t *testing.T) {
+func TestAccApplicationInsightsAPIKey_write_annotations_permission(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
 	r := AppInsightsAPIKey{}
 
@@ -85,7 +85,7 @@ func TestAccAzureRMApplicationInsightsAPIKey_write_annotations_permission(t *tes
 	})
 }
 
-func TestAccAzureRMApplicationInsightsAPIKey_authenticate_permission(t *testing.T) {
+func TestAccApplicationInsightsAPIKey_authenticate_permission(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
 	r := AppInsightsAPIKey{}
 
@@ -102,7 +102,7 @@ func TestAccAzureRMApplicationInsightsAPIKey_authenticate_permission(t *testing.
 	})
 }
 
-func TestAccAzureRMApplicationInsightsAPIKey_full_permissions(t *testing.T) {
+func TestAccApplicationInsightsAPIKey_full_permissions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
 	r := AppInsightsAPIKey{}
 

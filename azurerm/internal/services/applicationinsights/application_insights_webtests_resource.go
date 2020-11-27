@@ -22,12 +22,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApplicationInsightsWebTests() *schema.Resource {
+func resourceApplicationInsightsWebTests() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApplicationInsightsWebTestsCreateUpdate,
-		Read:   resourceArmApplicationInsightsWebTestsRead,
-		Update: resourceArmApplicationInsightsWebTestsCreateUpdate,
-		Delete: resourceArmApplicationInsightsWebTestsDelete,
+		Create: resourceApplicationInsightsWebTestsCreateUpdate,
+		Read:   resourceApplicationInsightsWebTestsRead,
+		Update: resourceApplicationInsightsWebTestsCreateUpdate,
+		Delete: resourceApplicationInsightsWebTestsDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.WebTestID(id)
 			return err
@@ -129,7 +129,7 @@ func resourceArmApplicationInsightsWebTests() *schema.Resource {
 	}
 }
 
-func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.WebTestsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -203,10 +203,10 @@ func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, 
 
 	d.SetId(*resp.ID)
 
-	return resourceArmApplicationInsightsWebTestsRead(d, meta)
+	return resourceApplicationInsightsWebTestsRead(d, meta)
 }
 
-func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsWebTestsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.WebTestsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -267,7 +267,7 @@ func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta int
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmApplicationInsightsWebTestsDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsWebTestsDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.WebTestsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
