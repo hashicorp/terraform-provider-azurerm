@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmBatchApplication() *schema.Resource {
+func resourceBatchApplication() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmBatchApplicationCreate,
-		Read:   resourceArmBatchApplicationRead,
-		Update: resourceArmBatchApplicationUpdate,
-		Delete: resourceArmBatchApplicationDelete,
+		Create: resourceBatchApplicationCreate,
+		Read:   resourceBatchApplicationRead,
+		Update: resourceBatchApplicationUpdate,
+		Delete: resourceBatchApplicationDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -74,7 +74,7 @@ func resourceArmBatchApplication() *schema.Resource {
 	}
 }
 
-func resourceArmBatchApplicationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBatchApplicationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.ApplicationClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -118,10 +118,10 @@ func resourceArmBatchApplicationCreate(d *schema.ResourceData, meta interface{})
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmBatchApplicationRead(d, meta)
+	return resourceBatchApplicationRead(d, meta)
 }
 
-func resourceArmBatchApplicationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBatchApplicationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.ApplicationClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -153,7 +153,7 @@ func resourceArmBatchApplicationRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceArmBatchApplicationUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBatchApplicationUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.ApplicationClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -179,10 +179,10 @@ func resourceArmBatchApplicationUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error updating Batch Application %q (Account Name %q / Resource Group %q): %+v", id.Name, id.BatchAccountName, id.ResourceGroup, err)
 	}
 
-	return resourceArmBatchApplicationRead(d, meta)
+	return resourceBatchApplicationRead(d, meta)
 }
 
-func resourceArmBatchApplicationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBatchApplicationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.ApplicationClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

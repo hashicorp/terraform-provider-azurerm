@@ -11,8 +11,8 @@ import (
 var _ resourceid.Formatter = ManagedCertificateId{}
 
 func TestManagedCertificateIDFormatter(t *testing.T) {
-	actual := NewManagedCertificateID("00000000-0000-0000-0000-000000000000", "resGroup1", "customhost.contoso.com").ID("")
-	expected := "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Web/certificates/customhost.contoso.com"
+	actual := NewManagedCertificateID("12345678-1234-9876-4563-123456789012", "resGroup1", "customhost.contoso.com").ID("")
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/certificates/customhost.contoso.com"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -45,33 +45,33 @@ func TestManagedCertificateID(t *testing.T) {
 
 		{
 			// missing ResourceGroup
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/",
 			Error: true,
 		},
 
 		{
 			// missing value for ResourceGroup
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
 			Error: true,
 		},
 
 		{
 			// missing CertificateName
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Web/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/",
 			Error: true,
 		},
 
 		{
 			// missing value for CertificateName
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Web/certificates/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/certificates/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Web/certificates/customhost.contoso.com",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/certificates/customhost.contoso.com",
 			Expected: &ManagedCertificateId{
-				SubscriptionId:  "00000000-0000-0000-0000-000000000000",
+				SubscriptionId:  "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:   "resGroup1",
 				CertificateName: "customhost.contoso.com",
 			},
@@ -79,7 +79,7 @@ func TestManagedCertificateID(t *testing.T) {
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/00000000-0000-0000-0000-000000000000/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.WEB/CERTIFICATES/CUSTOMHOST.CONTOSO.COM",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.WEB/CERTIFICATES/CUSTOMHOST.CONTOSO.COM",
 			Error: true,
 		},
 	}

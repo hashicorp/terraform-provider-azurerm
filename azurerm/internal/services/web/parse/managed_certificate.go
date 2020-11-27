@@ -27,6 +27,7 @@ func (id ManagedCertificateId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.CertificateName)
 }
 
+// ManagedCertificateID parses a ManagedCertificate ID into an ManagedCertificateId struct
 func ManagedCertificateID(input string) (*ManagedCertificateId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
