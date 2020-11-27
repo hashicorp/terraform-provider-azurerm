@@ -13,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmBlueprintPublishedVersion() *schema.Resource {
+func dataSourceBlueprintPublishedVersion() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmBlueprintPublishedVersionRead,
+		Read: dataSourceBlueprintPublishedVersionRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -77,7 +77,7 @@ func dataSourceArmBlueprintPublishedVersion() *schema.Resource {
 	}
 }
 
-func dataSourceArmBlueprintPublishedVersionRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceBlueprintPublishedVersionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Blueprints.PublishedBlueprintsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
