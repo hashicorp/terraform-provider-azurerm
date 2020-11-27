@@ -12,3 +12,5 @@ package network
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=LoadBalancerOutboundRule -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/loadBalancers/loadBalancer1/outboundRules/rule1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=LoadBalancerProbe -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/loadBalancers/loadBalancer1/probes/probe1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=LoadBalancingRule -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/loadBalancers/loadBalancer1/loadBalancingRules/rule1
+
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=NatGateway -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/natGateways/gateway1
