@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,26 +9,42 @@ import (
 )
 
 type ServerKeyId struct {
-	ResourceGroup string
-	ServerName    string
-	KeyName       string
+	SubscriptionId string
+	ResourceGroup  string
+	ServerName     string
+	KeyName        string
 }
 
+func NewServerKeyID(subscriptionId, resourceGroup, serverName, keyName string) ServerKeyId {
+	return ServerKeyId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		ServerName:     serverName,
+		KeyName:        keyName,
+	}
+}
+
+func (id ServerKeyId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DBforPostgreSQL/servers/%s/keys/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServerName, id.KeyName)
+}
+
+// ServerKeyID parses a ServerKey ID into an ServerKeyId struct
 func ServerKeyID(input string) (*ServerKeyId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse Postgres Server Key ID %q: %+v", input, err)
-	}
-
-	server := ServerKeyId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if server.ServerName, err = id.PopSegment("servers"); err != nil {
 		return nil, err
 	}
 
-	if server.KeyName, err = id.PopSegment("keys"); err != nil {
+	resourceId := ServerKeyId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.ServerName, err = id.PopSegment("servers"); err != nil {
+		return nil, err
+	}
+	if resourceId.KeyName, err = id.PopSegment("keys"); err != nil {
 		return nil, err
 	}
 
@@ -34,5 +52,5 @@ func ServerKeyID(input string) (*ServerKeyId, error) {
 		return nil, err
 	}
 
-	return &server, nil
+	return &resourceId, nil
 }
