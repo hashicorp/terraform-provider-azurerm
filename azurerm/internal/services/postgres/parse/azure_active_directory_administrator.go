@@ -25,7 +25,7 @@ func NewAzureActiveDirectoryAdministratorID(subscriptionId, resourceGroup, serve
 }
 
 func (id AzureActiveDirectoryAdministratorId) ID(_ string) string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DBforPostgreSQL/servers/%s/Administrators/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DBforPostgreSQL/servers/%s/administrators/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServerName, id.AdministratorName)
 }
 
@@ -44,7 +44,7 @@ func AzureActiveDirectoryAdministratorID(input string) (*AzureActiveDirectoryAdm
 	if resourceId.ServerName, err = id.PopSegment("servers"); err != nil {
 		return nil, err
 	}
-	if resourceId.AdministratorName, err = id.PopSegment("Administrators"); err != nil {
+	if resourceId.AdministratorName, err = id.PopSegment("administrators"); err != nil {
 		return nil, err
 	}
 

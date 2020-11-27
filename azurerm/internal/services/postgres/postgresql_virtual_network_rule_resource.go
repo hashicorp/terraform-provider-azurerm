@@ -150,7 +150,7 @@ func resourceArmPostgreSQLVirtualNetworkRuleRead(d *schema.ResourceData, meta in
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.SubscriptionId, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading PostgreSQL Virtual Network Rule %q - removing from state", d.Id())

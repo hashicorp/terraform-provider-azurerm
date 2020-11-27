@@ -72,5 +72,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 A PostgreSQL Active Directory Administrator can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_postgresql_active_directory_administrator.administrator /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.DBforPostgreSQL/servers/myserver/Administrators/activeDirectory
+terraform import azurerm_postgresql_active_directory_administrator.administrator /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.DBforPostgreSQL/servers/myserver/administrators/activeDirectory
 ```
