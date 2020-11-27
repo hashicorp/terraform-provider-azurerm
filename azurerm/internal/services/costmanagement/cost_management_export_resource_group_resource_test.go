@@ -1,4 +1,4 @@
-package tests
+package costmanagement_test
 
 import (
 	"fmt"
