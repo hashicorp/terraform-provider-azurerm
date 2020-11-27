@@ -29,12 +29,12 @@ func resourceArmLoadBalancerNatPool() *schema.Resource {
 		Delete: resourceArmLoadBalancerNatPoolDelete,
 
 		Importer: loadBalancerSubResourceImporter(func(input string) (*parse.LoadBalancerId, error) {
-			id, err := parse.LoadBalancerInboundNATPoolID(input)
+			id, err := parse.LoadBalancerInboundNatPoolID(input)
 			if err != nil {
 				return nil, err
 			}
 
-			lbId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName)
+			lbId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
 			return &lbId, nil
 		}),
 
@@ -188,16 +188,15 @@ func resourceArmLoadBalancerNatPoolCreateUpdate(d *schema.ResourceData, meta int
 
 func resourceArmLoadBalancerNatPoolRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.LoadBalancersClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LoadBalancerInboundNATPoolID(d.Id())
+	id, err := parse.LoadBalancerInboundNatPoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	loadBalancerId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName)
+	loadBalancerId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
 	loadBalancer, exists, err := retrieveLoadBalancerById(ctx, client, loadBalancerId)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Load Balancer by ID: %+v", err)
@@ -234,7 +233,7 @@ func resourceArmLoadBalancerNatPoolRead(d *schema.ResourceData, meta interface{}
 			}
 
 			frontendIPConfigName = feid.FrontendIPConfigurationName
-			frontendIPConfigID = feid.ID(subscriptionId)
+			frontendIPConfigID = feid.ID("")
 		}
 		d.Set("frontend_ip_configuration_id", frontendIPConfigID)
 		d.Set("frontend_ip_configuration_name", frontendIPConfigName)
@@ -258,17 +257,16 @@ func resourceArmLoadBalancerNatPoolRead(d *schema.ResourceData, meta interface{}
 
 func resourceArmLoadBalancerNatPoolDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.LoadBalancersClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LoadBalancerInboundNATPoolID(d.Id())
+	id, err := parse.LoadBalancerInboundNatPoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	loadBalancerId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName)
-	loadBalancerID := loadBalancerId.ID(subscriptionId)
+	loadBalancerId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
+	loadBalancerID := loadBalancerId.ID("")
 	locks.ByID(loadBalancerID)
 	defer locks.UnlockByID(loadBalancerID)
 
