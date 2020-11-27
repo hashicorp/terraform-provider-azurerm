@@ -302,7 +302,6 @@ func resourceArmMediaStreamingEndpointUpdate(d *schema.ResourceData, meta interf
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("Error waiting for scaling of Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", streamingEndpointName, accountName, resourceGroup, err)
 		}
-
 	}
 
 	if _, ok := d.GetOk("access_control"); ok {
@@ -358,7 +357,6 @@ func resourceArmMediaStreamingEndpointUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmMediaStreamingEndpointRead(d *schema.ResourceData, meta interface{}) error {
-
 	client := meta.(*clients.Client).Media.StreamingEndpointsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -387,7 +385,6 @@ func resourceArmMediaStreamingEndpointRead(d *schema.ResourceData, meta interfac
 	}
 
 	if props := resp.StreamingEndpointProperties; props != nil {
-
 		if scaleUnits := props.ScaleUnits; scaleUnits != nil {
 			d.Set("scale_units", scaleUnits)
 		}
@@ -485,7 +482,6 @@ func expandAzureRmAccessControl(d *schema.ResourceData) *media.StreamingEndpoint
 				Allow: &ipRanges,
 			}
 		}
-
 	}
 	// Get Akamai information
 	if raw, ok := accessControl["akamai"]; ok {
@@ -511,13 +507,11 @@ func expandAzureRmAccessControl(d *schema.ResourceData) *media.StreamingEndpoint
 					}
 				}
 				akamaiSignatureHeaderAuthenticationKeyList[index] = akamaiSignatureHeaderAuthenticationKey
-
 			}
 			accessControlResult.Akamai = &media.AkamaiAccessControl{
 				AkamaiSignatureHeaderAuthenticationKeyList: &akamaiSignatureHeaderAuthenticationKeyList,
 			}
 		}
-
 	}
 
 	return accessControlResult
@@ -574,7 +568,6 @@ func flattenAzureRmAccessControl(accessControl *media.StreamingEndpointAccessCon
 		result["akamai"] = []interface{}{map[string]interface{}{
 			"akamai_signature_header_authentication_key": akamaiSignatureKeyList,
 		}}
-
 	}
 
 	return []interface{}{result}
