@@ -1,39 +1,45 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type VPNGatewayId struct {
-	ResourceGroup string
-	Name          string
+type VpnGatewayId struct {
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func (id VPNGatewayId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/vpnGateways/%s",
-		subscriptionId, id.ResourceGroup, id.Name)
-}
-
-func NewVPNGatewayID(resourceGroup, name string) VPNGatewayId {
-	return VPNGatewayId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
+func NewVpnGatewayID(subscriptionId, resourceGroup, name string) VpnGatewayId {
+	return VpnGatewayId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
 }
 
-func VPNGatewayID(input string) (*VPNGatewayId, error) {
+func (id VpnGatewayId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/vpnGateways/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+}
+
+// VpnGatewayID parses a VpnGateway ID into an VpnGatewayId struct
+func VpnGatewayID(input string) (*VpnGatewayId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse VPN Gateway ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	gateway := VPNGatewayId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := VpnGatewayId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if gateway.Name, err = id.PopSegment("vpnGateways"); err != nil {
+	if resourceId.Name, err = id.PopSegment("vpnGateways"); err != nil {
 		return nil, err
 	}
 
@@ -41,5 +47,5 @@ func VPNGatewayID(input string) (*VPNGatewayId, error) {
 		return nil, err
 	}
 
-	return &gateway, nil
+	return &resourceId, nil
 }

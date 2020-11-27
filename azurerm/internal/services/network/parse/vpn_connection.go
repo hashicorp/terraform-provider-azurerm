@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,45 +9,48 @@ import (
 )
 
 type VpnConnectionId struct {
+	SubscriptionId string
 	ResourceGroup  string
 	VpnGatewayName string
 	Name           string
 }
 
-func (id VpnConnectionId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/vpnGateways/%s/vpnConnections/%s",
-		subscriptionId, id.ResourceGroup, id.VpnGatewayName, id.Name)
-}
-
-func NewVpnConnectionID(resourceGroup, gateway, name string) VpnConnectionId {
+func NewVpnConnectionID(subscriptionId, resourceGroup, vpnGatewayName, name string) VpnConnectionId {
 	return VpnConnectionId{
+		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
-		VpnGatewayName: gateway,
+		VpnGatewayName: vpnGatewayName,
 		Name:           name,
 	}
 }
 
+func (id VpnConnectionId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/vpnGateways/%s/vpnConnections/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VpnGatewayName, id.Name)
+}
+
+// VpnConnectionID parses a VpnConnection ID into an VpnConnectionId struct
 func VpnConnectionID(input string) (*VpnConnectionId, error) {
-	rawId, err := azure.ParseAzureResourceID(input)
+	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing VPNGateway Connection ID %q: %+v", input, err)
-	}
-
-	id := VpnConnectionId{
-		ResourceGroup: rawId.ResourceGroup,
-	}
-
-	if id.VpnGatewayName, err = rawId.PopSegment("vpnGateways"); err != nil {
 		return nil, err
 	}
 
-	if id.Name, err = rawId.PopSegment("vpnConnections"); err != nil {
+	resourceId := VpnConnectionId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.VpnGatewayName, err = id.PopSegment("vpnGateways"); err != nil {
+		return nil, err
+	}
+	if resourceId.Name, err = id.PopSegment("vpnConnections"); err != nil {
 		return nil, err
 	}
 
-	if err := rawId.ValidateNoEmptySegments(input); err != nil {
+	if err := id.ValidateNoEmptySegments(input); err != nil {
 		return nil, err
 	}
 
-	return &id, nil
+	return &resourceId, nil
 }
