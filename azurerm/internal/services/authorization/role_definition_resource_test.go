@@ -16,7 +16,7 @@ import (
 
 type RoleDefinitionResource struct{}
 
-func TestAccAzureRMRoleDefinition_basic(t *testing.T) {
+func TestAccRoleDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
 	r := RoleDefinitionResource{}
 
@@ -31,7 +31,7 @@ func TestAccAzureRMRoleDefinition_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMRoleDefinition_requiresImport(t *testing.T) {
+func TestAccRoleDefinition_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
 	r := RoleDefinitionResource{}
 	id := uuid.New().String()
@@ -49,7 +49,7 @@ func TestAccAzureRMRoleDefinition_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMRoleDefinition_complete(t *testing.T) {
+func TestAccRoleDefinition_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
 	r := RoleDefinitionResource{}
 
@@ -64,7 +64,7 @@ func TestAccAzureRMRoleDefinition_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMRoleDefinition_update(t *testing.T) {
+func TestAccRoleDefinition_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
 	r := RoleDefinitionResource{}
 	id := uuid.New().String()
@@ -87,7 +87,7 @@ func TestAccAzureRMRoleDefinition_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMRoleDefinition_updateEmptyId(t *testing.T) {
+func TestAccRoleDefinition_updateEmptyId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
 	r := RoleDefinitionResource{}
 
@@ -109,7 +109,7 @@ func TestAccAzureRMRoleDefinition_updateEmptyId(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMRoleDefinition_emptyName(t *testing.T) {
+func TestAccRoleDefinition_emptyName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
 	r := RoleDefinitionResource{}
 
@@ -124,7 +124,7 @@ func TestAccAzureRMRoleDefinition_emptyName(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMRoleDefinition_managementGroup(t *testing.T) {
+func TestAccRoleDefinition_managementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
 	r := RoleDefinitionResource{}
 
