@@ -258,7 +258,7 @@ func resourceArmMediaStreamingEndpointCreate(d *schema.ResourceData, meta interf
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Streaming Endpoint % in Media Services Account % (Resource Group %q): %+v", streamingEndpointName, accountName, resourceGroup, err)
+		return fmt.Errorf("Error waiting for creation of Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", streamingEndpointName, accountName, resourceGroup, err)
 	}
 
 	endpoint, err := client.Get(ctx, resourceGroup, accountName, streamingEndpointName)
@@ -300,7 +300,7 @@ func resourceArmMediaStreamingEndpointUpdate(d *schema.ResourceData, meta interf
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for scaling of Streaming Endpoint % in Media Services Account % (Resource Group %q): %+v", streamingEndpointName, accountName, resourceGroup, err)
+			return fmt.Errorf("Error waiting for scaling of Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", streamingEndpointName, accountName, resourceGroup, err)
 		}
 
 	}
@@ -344,7 +344,7 @@ func resourceArmMediaStreamingEndpointUpdate(d *schema.ResourceData, meta interf
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Streaming Endpoint % in Media Services Account % (Resource Group %q): %+v", streamingEndpointName, accountName, resourceGroup, err)
+		return fmt.Errorf("Error waiting for creation of Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", streamingEndpointName, accountName, resourceGroup, err)
 	}
 
 	endpoint, err := client.Get(ctx, resourceGroup, accountName, streamingEndpointName)
@@ -371,7 +371,7 @@ func resourceArmMediaStreamingEndpointRead(d *schema.ResourceData, meta interfac
 	resp, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Streaming Endpoint %q was not found in Media Services Account % and Resource Group %q - removing from state", id.Name, id.AccountName, id.ResourceGroup)
+			log.Printf("[INFO] Streaming Endpoint %q was not found in Media Services Account %q and Resource Group %q - removing from state", id.Name, id.AccountName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
@@ -442,11 +442,11 @@ func resourceArmMediaStreamingEndpointDelete(d *schema.ResourceData, meta interf
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.AccountName, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Streaming Endpoint % in Media Services Account % (Resource Group %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
+		return fmt.Errorf("Error deleting Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Streaming Endpoint % in Media Services Account % (Resource Group %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
+		return fmt.Errorf("Error waiting for deletion of Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
 	}
 
 	return nil
@@ -457,11 +457,9 @@ func expandAzureRmAccessControl(d *schema.ResourceData) *media.StreamingEndpoint
 	if len(accessControls) == 0 {
 		return nil
 	}
-
 	accessControlResult := new(media.StreamingEndpointAccessControl)
 	accessControl := accessControls[0].(map[string]interface{})
-
-	//Get IP information
+	// Get IP information
 	if raw, ok := accessControl["ip"]; ok {
 		ipsList := raw.(*schema.Set).List()
 		if len(ipsList) > 0 {
@@ -481,9 +479,7 @@ func expandAzureRmAccessControl(d *schema.ResourceData) *media.StreamingEndpoint
 				if subnetPrefixLengthRaw != "" {
 					ipRange.SubnetPrefixLength = utils.Int32(int32(subnetPrefixLengthRaw.(int)))
 				}
-
 				ipRanges[index] = ipRange
-
 			}
 			accessControlResult.IP = &media.IPAccessControl{
 				Allow: &ipRanges,
@@ -491,7 +487,7 @@ func expandAzureRmAccessControl(d *schema.ResourceData) *media.StreamingEndpoint
 		}
 
 	}
-	//Get Akamai information
+	// Get Akamai information
 	if raw, ok := accessControl["akamai"]; ok {
 		akamaiList := raw.(*schema.Set).List()
 		if len(akamaiList) > 0 {
@@ -547,17 +543,14 @@ func flattenAzureRmAccessControl(accessControl *media.StreamingEndpointAccessCon
 			if ipAllow.SubnetPrefixLength != nil {
 				allow["subnet_prefix_length"] = ipAllow.SubnetPrefixLength
 			}
-
 			if allow != nil {
 				allows[i] = allow
 			}
-
 		}
 
 		result["ip"] = []interface{}{map[string]interface{}{
 			"allow": allows,
 		}}
-
 	}
 
 	if accessControl.Akamai != nil {
@@ -573,11 +566,9 @@ func flattenAzureRmAccessControl(accessControl *media.StreamingEndpointAccessCon
 			if key.Identifier != nil {
 				akamaiSignatureHeaderKey["identifier"] = key.Identifier
 			}
-
 			if akamaiSignatureKeyList != nil {
 				akamaiSignatureKeyList[i] = akamaiSignatureHeaderKey
 			}
-
 		}
 
 		result["akamai"] = []interface{}{map[string]interface{}{

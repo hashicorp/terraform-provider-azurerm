@@ -102,12 +102,12 @@ func testAccAzureRMStreamingEndpoint_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_media_streaming_endpoint" "test" {
-	name                        = "endpoint1"
-	resource_group_name         = azurerm_resource_group.test.name
-	location                    = azurerm_resource_group.test.location
-	media_services_account_name = azurerm_media_services_account.test.name
-	scale_units                 = 1
-  }
+  name                        = "endpoint1"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  media_services_account_name = azurerm_media_services_account.test.name
+  scale_units                 = 1
+}
 `, template)
 }
 
@@ -116,15 +116,15 @@ func testAccAzureRMStreamingEndpoint_CDN(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_media_streaming_endpoint" "test" {
-	name                        = "endpoint1"
-	resource_group_name         = azurerm_resource_group.test.name
-	location                    = azurerm_resource_group.test.location
-	media_services_account_name = azurerm_media_services_account.test.name
-	scale_units                 = 1
-	cdn_enabled                 = true
-	cdn_provider 	            = "StandardVerizon"
-	cdn_profile					= "MyCDNProfile"
-  }
+  name                        = "endpoint1"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  media_services_account_name = azurerm_media_services_account.test.name
+  scale_units                 = 1
+  cdn_enabled                 = true
+  cdn_provider                = "StandardVerizon"
+  cdn_profile                 = "MyCDNProfile"
+}
 `, template)
 }
 
@@ -133,44 +133,44 @@ func testAccAzureRMStreamingEndpoint_maxCacheAge(data acceptance.TestData) strin
 	return fmt.Sprintf(`
 %s
 resource "azurerm_media_streaming_endpoint" "test" {
-	name                        = "endpoint1"
-	resource_group_name         = azurerm_resource_group.test.name
-	location                    = azurerm_resource_group.test.location
-	media_services_account_name = azurerm_media_services_account.test.name
-	scale_units                 = 1
-	access_control {
-		ip  {
-		  allow {
-			name = "AllowedIP"
-			address = "192.168.1.1"
-		  }
-   
-		   allow {
-			name = "AnotherIp"
-			address = "192.168.1.2"
-		  }
-	   }
-   
-	   akamai {
-		 akamai_signature_header_authentication_key{
-			 identifier ="id1"
-			 expiration ="2030-12-31T16:00:00Z"
-			 base64_key ="dGVzdGlkMQ=="
-   
-		 }
-		 
-		 akamai_signature_header_authentication_key{
-			 identifier ="id2"
-			 expiration ="2032-01-28T16:00:00Z"
-			 base64_key ="dGVzdGlkMQ=="
-   
-		 }
-   
-	   }
-   
-	 }
-	 max_cache_age = 60
+  name                        = "endpoint1"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  media_services_account_name = azurerm_media_services_account.test.name
+  scale_units                 = 1
+  access_control {
+    ip {
+      allow {
+        name    = "AllowedIP"
+        address = "192.168.1.1"
+      }
+
+      allow {
+        name    = "AnotherIp"
+        address = "192.168.1.2"
+      }
+    }
+
+    akamai {
+      akamai_signature_header_authentication_key {
+        identifier = "id1"
+        expiration = "2030-12-31T16:00:00Z"
+        base64_key = "dGVzdGlkMQ=="
+
+      }
+
+      akamai_signature_header_authentication_key {
+        identifier = "id2"
+        expiration = "2032-01-28T16:00:00Z"
+        base64_key = "dGVzdGlkMQ=="
+
+      }
+
+    }
+
   }
+  max_cache_age = 60
+}
 `, template)
 }
 
