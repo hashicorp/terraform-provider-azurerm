@@ -172,7 +172,6 @@ func resourceArmVirtualHubRouteTableCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmVirtualHubRouteTableRead(d *schema.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.HubRouteTableClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -194,7 +193,7 @@ func resourceArmVirtualHubRouteTableRead(d *schema.ResourceData, meta interface{
 	}
 
 	d.Set("name", id.Name)
-	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.ResourceGroup, id.VirtualHubName).ID(subscriptionId))
+	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName).ID(""))
 
 	if props := resp.HubRouteTableProperties; props != nil {
 		d.Set("labels", utils.FlattenStringSlice(props.Labels))

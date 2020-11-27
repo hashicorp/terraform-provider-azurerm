@@ -10,7 +10,7 @@ var _ resourceid.Formatter = HubVirtualNetworkConnectionId{}
 
 func TestVirtualHubConnectionIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	vhubid := NewVirtualHubID("group1", "vhub1")
+	vhubid := NewVirtualHubID(subscriptionId, "group1", "vhub1")
 	actual := NewHubVirtualNetworkConnectionID(vhubid, "conn1").ID(subscriptionId)
 	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/virtualHubs/vhub1/hubVirtualNetworkConnections/conn1"
 	if actual != expected {

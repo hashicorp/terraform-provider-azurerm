@@ -7,6 +7,7 @@ import (
 )
 
 type VirtualHubRouteTableId struct {
+	SubscriptionId string // placeholder for the generated value
 	ResourceGroup  string
 	VirtualHubName string
 	Name           string

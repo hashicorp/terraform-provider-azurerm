@@ -7,6 +7,7 @@ import (
 )
 
 type HubVirtualNetworkConnectionId struct {
+	SubscriptionId string // placeholder value
 	ResourceGroup  string
 	VirtualHubName string
 	Name           string

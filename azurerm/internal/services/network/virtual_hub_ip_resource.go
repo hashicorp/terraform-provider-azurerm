@@ -159,7 +159,6 @@ func resourceArmVirtualHubIPCreateUpdate(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmVirtualHubIPRead(d *schema.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.VirtualHubIPClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -181,7 +180,7 @@ func resourceArmVirtualHubIPRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	d.Set("name", id.Name)
-	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.ResourceGroup, id.VirtualHubName).ID(subscriptionId))
+	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName).ID(""))
 
 	if props := resp.HubIPConfigurationPropertiesFormat; props != nil {
 		d.Set("private_ip_address", props.PrivateIPAddress)

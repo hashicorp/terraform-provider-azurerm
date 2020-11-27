@@ -127,7 +127,6 @@ func resourceArmVirtualHubBgpConnectionCreate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmVirtualHubBgpConnectionRead(d *schema.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.VirtualHubBgpConnectionClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -149,7 +148,7 @@ func resourceArmVirtualHubBgpConnectionRead(d *schema.ResourceData, meta interfa
 	}
 
 	d.Set("name", id.Name)
-	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.ResourceGroup, id.VirtualHubName).ID(subscriptionId))
+	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName).ID(""))
 
 	if props := resp.BgpConnectionProperties; props != nil {
 		d.Set("peer_asn", props.PeerAsn)

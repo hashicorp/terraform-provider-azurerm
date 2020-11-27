@@ -7,6 +7,7 @@ import (
 )
 
 type VirtualHubIPId struct {
+	SubscriptionId string // placeholder for the generator
 	ResourceGroup  string
 	VirtualHubName string
 	Name           string
