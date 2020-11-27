@@ -6,21 +6,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-// NOTE: there's some nice things we can do with this around validation
-// since these top level objects exist
-
-type RouteFilterResourceID struct {
+type RouteFilterId struct {
 	ResourceGroup string
 	Name          string
 }
 
-func ParseRouteFilterID(input string) (*RouteFilterResourceID, error) {
+func RouteFilterID(input string) (*RouteFilterId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Route Filter ID %q: %+v", input, err)
 	}
 
-	routeFilter := RouteFilterResourceID{
+	routeFilter := RouteFilterId{
 		ResourceGroup: id.ResourceGroup,
 	}
 

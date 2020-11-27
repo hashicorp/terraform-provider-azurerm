@@ -27,7 +27,7 @@ func resourceArmRouteFilter() *schema.Resource {
 		Delete: resourceArmRouteFilterDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.ParseRouteFilterID(id)
+			_, err := parse.RouteFilterID(id)
 			return err
 		}),
 
@@ -159,7 +159,7 @@ func resourceArmRouteFilterRead(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ParseRouteFilterID(d.Id())
+	id, err := parse.RouteFilterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -193,7 +193,7 @@ func resourceArmRouteFilterDelete(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ParseRouteFilterID(d.Id())
+	id, err := parse.RouteFilterID(d.Id())
 	if err != nil {
 		return err
 	}

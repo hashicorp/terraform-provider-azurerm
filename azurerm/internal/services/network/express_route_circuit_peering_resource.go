@@ -413,7 +413,7 @@ func expandExpressRouteCircuitIpv6PeeringConfig(input []interface{}) (*network.I
 	}
 	routeFilterId := v["route_filter_id"].(string)
 	if routeFilterId != "" {
-		if _, err := parse.ParseRouteFilterID(routeFilterId); err != nil {
+		if _, err := parse.RouteFilterID(routeFilterId); err != nil {
 			return nil, err
 		}
 		peeringConfig.RouteFilter = &network.SubResource{
