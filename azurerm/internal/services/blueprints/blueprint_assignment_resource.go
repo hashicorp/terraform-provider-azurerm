@@ -227,18 +227,15 @@ func resourceBlueprintAssignmentRead(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	resourceScope := id.Scope
-	assignmentName := id.Name
-
-	resp, err := client.Get(ctx, resourceScope, assignmentName)
+	resp, err := client.Get(ctx, id.Scope, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] the Blueprint Assignment %q does not exist - removing from state", assignmentName)
+			log.Printf("[INFO] the Blueprint Assignment %q does not exist - removing from state", id.Name)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Read failed for Blueprint Assignment (%q): %+v", assignmentName, err)
+		return fmt.Errorf("Read failed for Blueprint Assignment (%q): %+v", id.Name, err)
 	}
 
 	if resp.Name != nil {
@@ -303,22 +300,19 @@ func resourceBlueprintAssignmentDelete(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	assignmentID, err := parse.AssignmentID(d.Id())
+	id, err := parse.AssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	name := assignmentID.Name
-	targetScope := assignmentID.Scope
-
 	// We use none here to align the previous behaviour of the blueprint resource
 	// TODO: we could add a features flag for the blueprint to empower terraform when deleting the blueprint to delete all the generated resources as well
-	resp, err := client.Delete(ctx, targetScope, name, blueprint.None)
+	resp, err := client.Delete(ctx, id.Scope, id.Name, blueprint.None)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil
 		}
-		return fmt.Errorf("failed to delete Blueprint Assignment %q from scope %q: %+v", name, targetScope, err)
+		return fmt.Errorf("failed to delete Blueprint Assignment %q from scope %q: %+v", id.Name, id.Scope, err)
 	}
 
 	stateConf := &resource.StateChangeConf{
@@ -330,12 +324,12 @@ func resourceBlueprintAssignmentDelete(d *schema.ResourceData, meta interface{})
 			string(blueprint.Failed),
 		},
 		Target:  []string{"NotFound"},
-		Refresh: blueprintAssignmentDeleteStateRefreshFunc(ctx, client, targetScope, name),
+		Refresh: blueprintAssignmentDeleteStateRefreshFunc(ctx, client, id.Scope, id.Name),
 		Timeout: d.Timeout(schema.TimeoutDelete),
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Failed waiting for Blueprint Assignment %q (Scope %q): %+v", name, targetScope, err)
+		return fmt.Errorf("Failed waiting for Blueprint Assignment %q (Scope %q): %+v", id.Name, id.Scope, err)
 	}
 
 	return nil

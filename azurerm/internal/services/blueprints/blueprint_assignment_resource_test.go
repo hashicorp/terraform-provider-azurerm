@@ -1,6 +1,7 @@
 package blueprints_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -105,27 +106,17 @@ func TestAccBlueprintAssignment_managementGroup(t *testing.T) {
 }
 
 func (t BlueprintAssignmentResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Blueprint Assignment not found: %s", resourceName)
-		}
-		id, err := parse.AssignmentID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Blueprints.AssignmentsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		if resp, err := client.Get(ctx, id.Scope, id.Name); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Blueprint Assignment %q (scope %q) was not found", id.Name, id.Scope)
-			}
-			return fmt.Errorf("Bad: Get on Blueprint Assignment %q (scope %q): %+v", id.Name, id.Scope, err)
-		}
-		return nil
+	id, err := parse.AssignmentID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	resp, err := clients.Blueprints.AssignmentsClient.Get(ctx, id.Scope, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Blueprint Assignment %q (scope %q) was not found", id.Name, id.Scope)
+	}
+
+	return utils.Bool(resp.AssignmentProperties != nil), nil
 }
 
 func (BlueprintAssignmentResource) basic(data acceptance.TestData, bpName string, version string) string {
