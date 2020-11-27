@@ -6,12 +6,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = VirtualHubConnectionId{}
+var _ resourceid.Formatter = HubVirtualNetworkConnectionId{}
 
 func TestVirtualHubConnectionIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
 	vhubid := NewVirtualHubID("group1", "vhub1")
-	actual := NewVirtualHubConnectionID(vhubid, "conn1").ID(subscriptionId)
+	actual := NewHubVirtualNetworkConnectionID(vhubid, "conn1").ID(subscriptionId)
 	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/virtualHubs/vhub1/hubVirtualNetworkConnections/conn1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
@@ -22,7 +22,7 @@ func TestVirtualHubConnectionID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *VirtualHubConnectionId
+		Expected *HubVirtualNetworkConnectionId
 	}{
 		{
 			Name:     "Empty",
@@ -52,7 +52,7 @@ func TestVirtualHubConnectionID(t *testing.T) {
 		{
 			Name:  "Completed",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/virtualHubs/example/hubVirtualNetworkConnections/connection1",
-			Expected: &VirtualHubConnectionId{
+			Expected: &HubVirtualNetworkConnectionId{
 				Name:           "connection1",
 				VirtualHubName: "example",
 				ResourceGroup:  "foo",
@@ -63,7 +63,7 @@ func TestVirtualHubConnectionID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := VirtualHubConnectionID(v.Input)
+		actual, err := HubVirtualNetworkConnectionID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
