@@ -1,15 +1,15 @@
 package automation_test
 
 import (
+	"context"
 	"fmt"
-	"strings"
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -66,7 +66,7 @@ func TestParseAzureRmAutomationVariableValue(t *testing.T) {
 			if tc.IsNil {
 				value = nil
 			}
-			actual, err := ParseAzureAutomationVariableValue(tc.Resource, value)
+			actual, err := automation.ParseAzureAutomationVariableValue(tc.Resource, value)
 			if tc.HasError && err == nil {
 				t.Fatalf("Expect parseAzureAutomationVariableValue to return error for resource %q and value %s", tc.Resource, tc.Value)
 			}
@@ -81,54 +81,20 @@ func TestParseAzureRmAutomationVariableValue(t *testing.T) {
 	}
 }
 
-func testCheckAzureRMAutomationVariableExists(resourceName string, varType string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Automation.VariableClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Automation %s Variable not found: %s", varType, resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		accountName := rs.Primary.Attributes["automation_account_name"]
-
-		if resp, err := client.Get(ctx, resourceGroup, accountName, name); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Automation %s Variable %q (Automation Account Name %q / Resource Group %q) does not exist", varType, name, accountName, resourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on automationVariableClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMAutomationVariableDestroy(s *terraform.State, varType string) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Automation.VariableClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	resourceName := fmt.Sprintf("azurerm_automation_variable_%s", strings.ToLower(varType))
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != resourceName {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		accountName := rs.Primary.Attributes["automation_account_name"]
-
-		if resp, err := client.Get(ctx, resourceGroup, accountName, name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on automationVariableClient: %+v", err)
-			}
-		}
-
-		return nil
+func testCheckAzureRMAutomationVariableExists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState, varType string) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resourceGroup := id.ResourceGroup
+	accountName := id.Path["automationAccounts"]
+	name := id.Path["variables"]
+
+	resp, err := clients.Automation.VariableClient.Get(ctx, resourceGroup, accountName, name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Automation %s Variable %q (Automation Account Name %q / Resource Group %q) does not exist", varType, name, accountName, resourceGroup)
+	}
+
+	return utils.Bool(resp.VariableProperties != nil), nil
 }

@@ -1,98 +1,86 @@
 package automation_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
+
+type AutomationVariableStringResource struct {
+}
 
 func TestAccAzureRMAutomationVariableString_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_variable_string", "test")
+	r := AutomationVariableStringResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationVariableStringDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAutomationVariableString_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationVariableStringExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "value", "Hello, Terraform Basic Test."),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAutomationVariableString_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_variable_string", "test")
+	r := AutomationVariableStringResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationVariableStringDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAutomationVariableString_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationVariableStringExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "This variable is created by Terraform acceptance test."),
-					resource.TestCheckResourceAttr(data.ResourceName, "value", "Hello, Terraform Complete Test."),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("description").HasValue("This variable is created by Terraform acceptance test."),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMAutomationVariableString_basicCompleteUpdate(t *testing.T) {
+func TestAccAzureRMAutomationVariableString_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_variable_string", "test")
+	r := AutomationVariableStringResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationVariableStringDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAutomationVariableString_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationVariableStringExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "value", "Hello, Terraform Basic Test."),
-				),
-			},
-			{
-				Config: testAccAzureRMAutomationVariableString_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationVariableStringExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "This variable is created by Terraform acceptance test."),
-					resource.TestCheckResourceAttr(data.ResourceName, "value", "Hello, Terraform Complete Test."),
-				),
-			},
-			{
-				Config: testAccAzureRMAutomationVariableString_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationVariableStringExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "value", "Hello, Terraform Basic Test."),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("description").HasValue("This variable is created by Terraform acceptance test."),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMAutomationVariableStringExists(resourceName string) resource.TestCheckFunc {
-	return testCheckAzureRMAutomationVariableExists(resourceName, "String")
+func (t AutomationVariableStringResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	return testCheckAzureRMAutomationVariableExists(ctx, clients, state, "String")
 }
 
-func testCheckAzureRMAutomationVariableStringDestroy(s *terraform.State) error {
-	return testCheckAzureRMAutomationVariableDestroy(s, "String")
-}
-
-func testAccAzureRMAutomationVariableString_basic(data acceptance.TestData) string {
+func (AutomationVariableStringResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -119,7 +107,7 @@ resource "azurerm_automation_variable_string" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAutomationVariableString_complete(data acceptance.TestData) string {
+func (AutomationVariableStringResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

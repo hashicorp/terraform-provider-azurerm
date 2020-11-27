@@ -6,27 +6,27 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
+
+type AutomationVariableBoolDataSource struct {
+}
 
 func TestAccDataSourceAzureRMAutomationVariableBool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_automation_variable_bool", "test")
+	r := AutomationVariableBoolDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAutomationVariableBool_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "value", "false"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("value").HasValue("false"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAutomationVariableBool_basic(data acceptance.TestData) string {
-	config := testAccAzureRMAutomationVariableBool_basic(data)
+func (AutomationVariableBoolDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -35,5 +35,5 @@ data "azurerm_automation_variable_bool" "test" {
   resource_group_name     = azurerm_automation_variable_bool.test.resource_group_name
   automation_account_name = azurerm_automation_variable_bool.test.automation_account_name
 }
-`, config)
+`, AutomationVariableBoolResource{}.basic(data))
 }
