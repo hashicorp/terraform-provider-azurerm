@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAutomationCredential() *schema.Resource {
+func resourceAutomationCredential() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAutomationCredentialCreateUpdate,
-		Read:   resourceArmAutomationCredentialRead,
-		Update: resourceArmAutomationCredentialCreateUpdate,
-		Delete: resourceArmAutomationCredentialDelete,
+		Create: resourceAutomationCredentialCreateUpdate,
+		Read:   resourceAutomationCredentialRead,
+		Update: resourceAutomationCredentialCreateUpdate,
+		Delete: resourceAutomationCredentialDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -68,7 +68,7 @@ func resourceArmAutomationCredential() *schema.Resource {
 	}
 }
 
-func resourceArmAutomationCredentialCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationCredentialCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.CredentialClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -120,10 +120,10 @@ func resourceArmAutomationCredentialCreateUpdate(d *schema.ResourceData, meta in
 
 	d.SetId(*read.ID)
 
-	return resourceArmAutomationCredentialRead(d, meta)
+	return resourceAutomationCredentialRead(d, meta)
 }
 
-func resourceArmAutomationCredentialRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationCredentialRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.CredentialClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -157,7 +157,7 @@ func resourceArmAutomationCredentialRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceArmAutomationCredentialDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationCredentialDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.CredentialClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

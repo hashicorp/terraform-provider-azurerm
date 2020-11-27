@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAutomationConnection() *schema.Resource {
+func resourceAutomationConnection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAutomationConnectionCreateUpdate,
-		Read:   resourceArmAutomationConnectionRead,
-		Update: resourceArmAutomationConnectionCreateUpdate,
-		Delete: resourceArmAutomationConnectionDelete,
+		Create: resourceAutomationConnectionCreateUpdate,
+		Read:   resourceAutomationConnectionRead,
+		Update: resourceAutomationConnectionCreateUpdate,
+		Delete: resourceAutomationConnectionDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.ConnectionID(id)
@@ -78,7 +78,7 @@ func resourceArmAutomationConnection() *schema.Resource {
 	}
 }
 
-func resourceArmAutomationConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.ConnectionClient
 	connectionTypeClient := meta.(*clients.Client).Automation.ConnectionTypeClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -149,10 +149,10 @@ func resourceArmAutomationConnectionCreateUpdate(d *schema.ResourceData, meta in
 
 	d.SetId(*read.ID)
 
-	return resourceArmAutomationConnectionRead(d, meta)
+	return resourceAutomationConnectionRead(d, meta)
 }
 
-func resourceArmAutomationConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.ConnectionClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -191,7 +191,7 @@ func resourceArmAutomationConnectionRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceArmAutomationConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.ConnectionClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
