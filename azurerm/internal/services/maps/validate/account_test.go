@@ -1,8 +1,8 @@
-package maps
+package validate
 
 import "testing"
 
-func TestValidateName(t *testing.T) {
+func TestAccountName(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Expected bool
@@ -56,7 +56,7 @@ func TestValidateName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		warnings, errors := ValidateName()(v.Name, "name")
+		warnings, errors := AccountName()(v.Name, "name")
 		if len(warnings) != 0 {
 			t.Fatalf("Expected no warnings but got %d", len(warnings))
 		}
