@@ -9,7 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMDatabricksWorkspace_basic(t *testing.T) {
+func TestAccDatabricksWorkspaceDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_databricks_workspace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

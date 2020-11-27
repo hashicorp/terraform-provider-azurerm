@@ -101,7 +101,7 @@ func TestAzureRMDatabrickWorkspaceName(t *testing.T) {
 	}
 }
 
-func TestAccAzureRMDatabricksWorkspace_basic(t *testing.T) {
+func TestAccDatabricksWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -123,7 +123,7 @@ func TestAccAzureRMDatabricksWorkspace_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDatabricksWorkspace_requiresImport(t *testing.T) {
+func TestAccDatabricksWorkspace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -142,7 +142,7 @@ func TestAccAzureRMDatabricksWorkspace_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDatabricksWorkspace_complete(t *testing.T) {
+func TestAccDatabricksWorkspace_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -167,7 +167,7 @@ func TestAccAzureRMDatabricksWorkspace_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDatabricksWorkspace_update(t *testing.T) {
+func TestAccDatabricksWorkspace_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
