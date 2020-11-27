@@ -14,6 +14,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	privateDnsParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/parse"
+	privateDnsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -75,7 +77,7 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 							Required: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: parse.ValidatePrivateDnsZoneResourceID,
+								ValidateFunc: privateDnsValidate.PrivateDnsZoneID,
 							},
 						},
 					},
@@ -302,19 +304,25 @@ func resourceArmPrivateEndpointCreateUpdate(d *schema.ResourceData, meta interfa
 	for _, v := range privateDnsZoneGroup {
 		item := v.(map[string]interface{})
 		dnsGroupName := item["name"].(string)
-		privateDnsZoneIds := item["private_dns_zone_ids"].([]interface{})
-		privateDnsZones, err := parse.PrivateDnsZoneResourceIDs(privateDnsZoneIds)
-		if err != nil {
-			return err
+		privateDnsZoneIdsRaw := item["private_dns_zone_ids"].([]interface{})
+		privateDnsZoneIds := make([]privateDnsParse.PrivateDnsZoneId, 0)
+		for _, item := range privateDnsZoneIdsRaw {
+			v := item.(string)
+
+			privateDnsZone, err := privateDnsParse.PrivateDnsZoneID(v)
+			if err != nil {
+				return err
+			}
+			privateDnsZoneIds = append(privateDnsZoneIds, *privateDnsZone)
 		}
 
 		privateDnsZoneConfigs := make([]network.PrivateDNSZoneConfig, 0)
 
-		for _, item := range *privateDnsZones {
+		for _, item := range privateDnsZoneIds {
 			v := network.PrivateDNSZoneConfig{
 				Name: utils.String(item.Name),
 				PrivateDNSZonePropertiesFormat: &network.PrivateDNSZonePropertiesFormat{
-					PrivateDNSZoneID: utils.String(item.ID),
+					PrivateDNSZoneID: utils.String(item.ID("")),
 				},
 			}
 
@@ -455,7 +463,7 @@ func resourceArmPrivateEndpointDelete(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	privateEndpoint, err := parse.PrivateEndpointResourceID(d.Id())
+	privateEndpoint, err := parse.PrivateEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -486,12 +494,12 @@ func resourceArmPrivateDnsZoneGroupDelete(d *schema.ResourceData, meta interface
 		return nil
 	}
 
-	privateEndpoint, err := parse.PrivateEndpointResourceID(d.Id())
+	privateEndpoint, err := parse.PrivateEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	privateDnsZoneGroupId, err := parse.PrivateDnsZoneGroupResourceID(oldId)
+	privateDnsZoneGroupId, err := privateDnsParse.PrivateDnsZoneGroupID(oldId)
 	if err != nil {
 		return err
 	}
