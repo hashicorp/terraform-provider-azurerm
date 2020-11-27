@@ -146,23 +146,23 @@ func resourceArmKustoAttachedDatabaseConfigurationRead(d *schema.ResourceData, m
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KustoAttachedDatabaseConfigurationID(d.Id())
+	id, err := parse.AttachedDatabaseConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	configuration, err := client.Get(ctx, id.ResourceGroup, id.Cluster, id.Name)
+	configuration, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(configuration.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Kusto Attached Database Configuration %q (Resource Group %q, Cluster %q): %+v", id.Name, id.ResourceGroup, id.Cluster, err)
+		return fmt.Errorf("Error retrieving Kusto Attached Database Configuration %q (Resource Group %q, Cluster %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, err)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("cluster_name", id.Cluster)
+	d.Set("cluster_name", id.ClusterName)
 
 	if location := configuration.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -183,18 +183,18 @@ func resourceArmKustoAttachedDatabaseConfigurationDelete(d *schema.ResourceData,
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KustoAttachedDatabaseConfigurationID(d.Id())
+	id, err := parse.AttachedDatabaseConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Cluster, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ClusterName, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Kusto Attached Database Configuration %q (Resource Group %q, Cluster %q): %+v", id.Name, id.ResourceGroup, id.Cluster, err)
+		return fmt.Errorf("Error deleting Kusto Attached Database Configuration %q (Resource Group %q, Cluster %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Kusto Attached Database Configuration %q (Resource Group %q, Cluster %q): %+v", id.Name, id.ResourceGroup, id.Cluster, err)
+		return fmt.Errorf("Error waiting for deletion of Kusto Attached Database Configuration %q (Resource Group %q, Cluster %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, err)
 	}
 
 	return nil
