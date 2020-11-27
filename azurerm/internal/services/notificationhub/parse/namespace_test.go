@@ -8,21 +8,21 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = NotificationHubId{}
+var _ resourceid.Formatter = NamespaceId{}
 
-func TestNotificationHubIDFormatter(t *testing.T) {
-	actual := NewNotificationHubID("12345678-1234-9876-4563-123456789012", "resGroup1", "namespace1", "hub1").ID("")
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.NotificationHubs/namespaces/namespace1/notificationHubs/hub1"
+func TestNamespaceIDFormatter(t *testing.T) {
+	actual := NewNamespaceID("12345678-1234-9876-4563-123456789012", "resGroup1", "namespace1").ID("")
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.NotificationHubs/namespaces/namespace1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestNotificationHubID(t *testing.T) {
+func TestNamespaceID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *NotificationHubId
+		Expected *NamespaceId
 	}{
 
 		{
@@ -56,43 +56,30 @@ func TestNotificationHubID(t *testing.T) {
 		},
 
 		{
-			// missing NamespaceName
+			// missing Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.NotificationHubs/",
 			Error: true,
 		},
 
 		{
-			// missing value for NamespaceName
+			// missing value for Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.NotificationHubs/namespaces/",
 			Error: true,
 		},
 
 		{
-			// missing Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.NotificationHubs/namespaces/namespace1/",
-			Error: true,
-		},
-
-		{
-			// missing value for Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.NotificationHubs/namespaces/namespace1/notificationHubs/",
-			Error: true,
-		},
-
-		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.NotificationHubs/namespaces/namespace1/notificationHubs/hub1",
-			Expected: &NotificationHubId{
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.NotificationHubs/namespaces/namespace1",
+			Expected: &NamespaceId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
-				NamespaceName:  "namespace1",
-				Name:           "hub1",
+				Name:           "namespace1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NOTIFICATIONHUBS/NAMESPACES/NAMESPACE1/NOTIFICATIONHUBS/HUB1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NOTIFICATIONHUBS/NAMESPACES/NAMESPACE1",
 			Error: true,
 		},
 	}
@@ -100,7 +87,7 @@ func TestNotificationHubID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := NotificationHubID(v.Input)
+		actual, err := NamespaceID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -117,9 +104,6 @@ func TestNotificationHubID(t *testing.T) {
 		}
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
-		}
-		if actual.NamespaceName != v.Expected.NamespaceName {
-			t.Fatalf("Expected %q but got %q for NamespaceName", v.Expected.NamespaceName, actual.NamespaceName)
 		}
 		if actual.Name != v.Expected.Name {
 			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)

@@ -8,21 +8,21 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = NotificationHubId{}
+var _ resourceid.Formatter = NotificationHubAuthorizationRuleId{}
 
-func TestNotificationHubIDFormatter(t *testing.T) {
-	actual := NewNotificationHubID("12345678-1234-9876-4563-123456789012", "resGroup1", "namespace1", "hub1").ID("")
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.NotificationHubs/namespaces/namespace1/notificationHubs/hub1"
+func TestNotificationHubAuthorizationRuleIDFormatter(t *testing.T) {
+	actual := NewNotificationHubAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "resGroup1", "namespace1", "hub1", "authorizationRule1").ID("")
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.NotificationHubs/namespaces/namespace1/notificationHubs/hub1/AuthorizationRules/authorizationRule1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestNotificationHubID(t *testing.T) {
+func TestNotificationHubAuthorizationRuleID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *NotificationHubId
+		Expected *NotificationHubAuthorizationRuleId
 	}{
 
 		{
@@ -68,31 +68,44 @@ func TestNotificationHubID(t *testing.T) {
 		},
 
 		{
-			// missing Name
+			// missing NotificationHubName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.NotificationHubs/namespaces/namespace1/",
 			Error: true,
 		},
 
 		{
-			// missing value for Name
+			// missing value for NotificationHubName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.NotificationHubs/namespaces/namespace1/notificationHubs/",
 			Error: true,
 		},
 
 		{
+			// missing AuthorizationRuleName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.NotificationHubs/namespaces/namespace1/notificationHubs/hub1/",
+			Error: true,
+		},
+
+		{
+			// missing value for AuthorizationRuleName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.NotificationHubs/namespaces/namespace1/notificationHubs/hub1/AuthorizationRules/",
+			Error: true,
+		},
+
+		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.NotificationHubs/namespaces/namespace1/notificationHubs/hub1",
-			Expected: &NotificationHubId{
-				SubscriptionId: "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:  "resGroup1",
-				NamespaceName:  "namespace1",
-				Name:           "hub1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.NotificationHubs/namespaces/namespace1/notificationHubs/hub1/AuthorizationRules/authorizationRule1",
+			Expected: &NotificationHubAuthorizationRuleId{
+				SubscriptionId:        "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:         "resGroup1",
+				NamespaceName:         "namespace1",
+				NotificationHubName:   "hub1",
+				AuthorizationRuleName: "authorizationRule1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NOTIFICATIONHUBS/NAMESPACES/NAMESPACE1/NOTIFICATIONHUBS/HUB1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NOTIFICATIONHUBS/NAMESPACES/NAMESPACE1/NOTIFICATIONHUBS/HUB1/AUTHORIZATIONRULES/AUTHORIZATIONRULE1",
 			Error: true,
 		},
 	}
@@ -100,7 +113,7 @@ func TestNotificationHubID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := NotificationHubID(v.Input)
+		actual, err := NotificationHubAuthorizationRuleID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -121,8 +134,11 @@ func TestNotificationHubID(t *testing.T) {
 		if actual.NamespaceName != v.Expected.NamespaceName {
 			t.Fatalf("Expected %q but got %q for NamespaceName", v.Expected.NamespaceName, actual.NamespaceName)
 		}
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.NotificationHubName != v.Expected.NotificationHubName {
+			t.Fatalf("Expected %q but got %q for NotificationHubName", v.Expected.NotificationHubName, actual.NotificationHubName)
+		}
+		if actual.AuthorizationRuleName != v.Expected.AuthorizationRuleName {
+			t.Fatalf("Expected %q but got %q for AuthorizationRuleName", v.Expected.AuthorizationRuleName, actual.AuthorizationRuleName)
 		}
 	}
 }
