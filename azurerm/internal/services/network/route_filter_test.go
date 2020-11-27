@@ -2,13 +2,15 @@ package network
 
 import (
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 )
 
 func TestParseRouteFilter(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *RouteFilterResourceID
+		Expected *parse.RouteFilterResourceID
 	}{
 		{
 			Name:     "Empty",
@@ -28,7 +30,7 @@ func TestParseRouteFilter(t *testing.T) {
 		{
 			Name:  "Completed",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/routeFilters/example",
-			Expected: &RouteFilterResourceID{
+			Expected: &parse.RouteFilterResourceID{
 				Name:          "example",
 				ResourceGroup: "foo",
 			},
@@ -38,7 +40,7 @@ func TestParseRouteFilter(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ParseRouteFilterID(v.Input)
+		actual, err := parse.ParseRouteFilterID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

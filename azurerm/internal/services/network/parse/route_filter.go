@@ -1,4 +1,4 @@
-package network
+package parse
 
 import (
 	"fmt"
