@@ -1,6 +1,9 @@
 ## 2.39.0 (Unreleased)
 
+IMPROVEMENTS: 
+
 * `azurerm_traffic_manager_profile` - allow up to `2147483647` for the `ttl` property [GH-9522]
+* `azurerm_keyvault_certificate` - add `3072` to allowed values for `key_size` [GH-9524]
 
 ## 2.38.0 (November 27, 2020)
 
