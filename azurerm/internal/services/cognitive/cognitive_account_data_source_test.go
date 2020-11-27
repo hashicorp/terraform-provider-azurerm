@@ -1,4 +1,4 @@
-package tests
+package cognitive_test
 
 import (
 	"fmt"
