@@ -206,14 +206,14 @@ func TestAccAzureRMTrafficManagerProfile_updateTTL(t *testing.T) {
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMTrafficManagerProfile_withTTLLowerLimit(data, "Geographic"),
+				Config: testAccAzureRMTrafficManagerProfile_withTTL(data, "Geographic", 0),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMTrafficManagerProfileExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMTrafficManagerProfile_withTTLUpperLimit(data, "Geographic"),
+				Config: testAccAzureRMTrafficManagerProfile_withTTL(data, "Geographic", 2147483647),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMTrafficManagerProfileExists(data.ResourceName),
 				),
@@ -553,7 +553,7 @@ resource "azurerm_traffic_manager_profile" "test" {
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMTrafficManagerProfile_withTTLLowerLimit(data acceptance.TestData, method string) string {
+func testAccAzureRMTrafficManagerProfile_withTTL(data acceptance.TestData, method string, ttl int) string {
 	template := testAccAzureRMTrafficManagerProfile_template(data)
 	return fmt.Sprintf(`
 %s
@@ -565,7 +565,7 @@ resource "azurerm_traffic_manager_profile" "test" {
 
   dns_config {
     relative_name = "acctest-tmp-%d"
-    ttl           = 0
+    ttl           = %d
   }
 
   monitor_config {
@@ -574,29 +574,5 @@ resource "azurerm_traffic_manager_profile" "test" {
     path     = "/"
   }
 }
-`, template, data.RandomInteger, method, data.RandomInteger)
-}
-
-func testAccAzureRMTrafficManagerProfile_withTTLUpperLimit(data acceptance.TestData, method string) string {
-	template := testAccAzureRMTrafficManagerProfile_template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_traffic_manager_profile" "test" {
-  name                   = "acctest-TMP-%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  traffic_routing_method = "%s"
-
-  dns_config {
-    relative_name = "acctest-tmp-%d"
-    ttl           = 2147483647
-  }
-
-  monitor_config {
-    protocol = "https"
-    port     = 443
-    path     = "/"
-  }
-}
-`, template, data.RandomInteger, method, data.RandomInteger)
+`, template, data.RandomInteger, method, data.RandomInteger, ttl)
 }
