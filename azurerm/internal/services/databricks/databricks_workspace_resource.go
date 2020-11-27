@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDatabricksWorkspace() *schema.Resource {
+func resourceDatabricksWorkspace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDatabricksWorkspaceCreateUpdate,
-		Read:   resourceArmDatabricksWorkspaceRead,
-		Update: resourceArmDatabricksWorkspaceCreateUpdate,
-		Delete: resourceArmDatabricksWorkspaceDelete,
+		Create: resourceDatabricksWorkspaceCreateUpdate,
+		Read:   resourceDatabricksWorkspaceRead,
+		Update: resourceDatabricksWorkspaceCreateUpdate,
+		Delete: resourceDatabricksWorkspaceDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -125,7 +125,7 @@ func resourceArmDatabricksWorkspace() *schema.Resource {
 	}
 }
 
-func resourceArmDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataBricks.WorkspacesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -200,10 +200,10 @@ func resourceArmDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta int
 
 	d.SetId(*read.ID)
 
-	return resourceArmDatabricksWorkspaceRead(d, meta)
+	return resourceDatabricksWorkspaceRead(d, meta)
 }
 
-func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataBricks.WorkspacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -254,7 +254,7 @@ func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmDatabricksWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDatabricksWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataBricks.WorkspacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
