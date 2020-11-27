@@ -34,7 +34,7 @@ func resourceArmVirtualHubRouteTable() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.VirtualHubRouteTableID(id)
+			_, err := parse.HubRouteTableID(id)
 			return err
 		}),
 
@@ -176,7 +176,7 @@ func resourceArmVirtualHubRouteTableRead(d *schema.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualHubRouteTableID(d.Id())
+	id, err := parse.HubRouteTableID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -210,7 +210,7 @@ func resourceArmVirtualHubRouteTableDelete(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualHubRouteTableID(d.Id())
+	id, err := parse.HubRouteTableID(d.Id())
 	if err != nil {
 		return err
 	}

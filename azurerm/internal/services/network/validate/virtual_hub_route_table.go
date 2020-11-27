@@ -13,7 +13,7 @@ func VirtualHubRouteTableID(i interface{}, k string) (warnings []string, errors 
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
 	}
 
-	if _, err := parse.VirtualHubRouteTableID(v); err != nil {
+	if _, err := parse.HubRouteTableID(v); err != nil {
 		return nil, []error{err}
 	}
 

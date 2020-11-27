@@ -6,20 +6,20 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type VirtualHubRouteTableId struct {
+type HubRouteTableId struct {
 	SubscriptionId string // placeholder for the generated value
 	ResourceGroup  string
 	VirtualHubName string
 	Name           string
 }
 
-func VirtualHubRouteTableID(input string) (*VirtualHubRouteTableId, error) {
+func HubRouteTableID(input string) (*HubRouteTableId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("parsing virtualHubRouteTable ID %q: %+v", input, err)
 	}
 
-	virtualHubRouteTable := VirtualHubRouteTableId{
+	virtualHubRouteTable := HubRouteTableId{
 		ResourceGroup: id.ResourceGroup,
 	}
 

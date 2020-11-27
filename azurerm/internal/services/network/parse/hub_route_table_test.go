@@ -8,7 +8,7 @@ func TestVirtualHubRouteTableID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *VirtualHubRouteTableId
+		Expected *HubRouteTableId
 	}{
 		{
 			Name:     "Empty",
@@ -38,7 +38,7 @@ func TestVirtualHubRouteTableID(t *testing.T) {
 		{
 			Name:  "network HubRouteTable ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/virtualHubs/virtualHub1/hubRouteTables/routeTable1",
-			Expected: &VirtualHubRouteTableId{
+			Expected: &HubRouteTableId{
 				ResourceGroup:  "resourceGroup1",
 				VirtualHubName: "virtualHub1",
 				Name:           "routeTable1",
@@ -54,7 +54,7 @@ func TestVirtualHubRouteTableID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.Name)
 
-		actual, err := VirtualHubRouteTableID(v.Input)
+		actual, err := HubRouteTableID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
