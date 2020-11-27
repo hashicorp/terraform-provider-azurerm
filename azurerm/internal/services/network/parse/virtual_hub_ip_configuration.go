@@ -6,20 +6,20 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type VirtualHubIPId struct {
-	SubscriptionId string // placeholder for the generator
-	ResourceGroup  string
-	VirtualHubName string
-	Name           string
+type VirtualHubIpConfigurationId struct {
+	SubscriptionId      string // placeholder for the generator
+	ResourceGroup       string
+	VirtualHubName      string
+	IpConfigurationName string
 }
 
-func VirtualHubIPID(input string) (*VirtualHubIPId, error) {
+func VirtualHubIpConfigurationID(input string) (*VirtualHubIpConfigurationId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("parsing virtualHubIP ID %q: %+v", input, err)
 	}
 
-	virtualHubIP := VirtualHubIPId{
+	virtualHubIP := VirtualHubIpConfigurationId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
@@ -27,7 +27,7 @@ func VirtualHubIPID(input string) (*VirtualHubIPId, error) {
 		return nil, err
 	}
 
-	if virtualHubIP.Name, err = id.PopSegment("ipConfigurations"); err != nil {
+	if virtualHubIP.IpConfigurationName, err = id.PopSegment("ipConfigurations"); err != nil {
 		return nil, err
 	}
 

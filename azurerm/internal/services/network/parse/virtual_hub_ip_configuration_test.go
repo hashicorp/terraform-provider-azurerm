@@ -8,7 +8,7 @@ func TestVirtualHubIPID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *VirtualHubIPId
+		Expected *VirtualHubIpConfigurationId
 	}{
 		{
 			Name:     "Empty",
@@ -38,10 +38,10 @@ func TestVirtualHubIPID(t *testing.T) {
 		{
 			Name:  "network VirtualHubIP ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/virtualHubs/virtualHub1/ipConfigurations/ipConfig1",
-			Expected: &VirtualHubIPId{
-				ResourceGroup:  "resourceGroup1",
-				VirtualHubName: "virtualHub1",
-				Name:           "ipConfig1",
+			Expected: &VirtualHubIpConfigurationId{
+				ResourceGroup:       "resourceGroup1",
+				VirtualHubName:      "virtualHub1",
+				IpConfigurationName: "ipConfig1",
 			},
 		},
 		{
@@ -54,7 +54,7 @@ func TestVirtualHubIPID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.Name)
 
-		actual, err := VirtualHubIPID(v.Input)
+		actual, err := VirtualHubIpConfigurationID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -70,8 +70,8 @@ func TestVirtualHubIPID(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for VirtualHubName", v.Expected.VirtualHubName, actual.VirtualHubName)
 		}
 
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.IpConfigurationName != v.Expected.IpConfigurationName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.IpConfigurationName, actual.IpConfigurationName)
 		}
 	}
 }
