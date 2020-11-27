@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAutomationConnectionCertificate() *schema.Resource {
+func resourceAutomationConnectionCertificate() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAutomationConnectionCertificateCreateUpdate,
-		Read:   resourceArmAutomationConnectionCertificateRead,
-		Update: resourceArmAutomationConnectionCertificateCreateUpdate,
-		Delete: resourceArmAutomationConnectionCertificateDelete,
+		Create: resourceAutomationConnectionCertificateCreateUpdate,
+		Read:   resourceAutomationConnectionCertificateRead,
+		Update: resourceAutomationConnectionCertificateCreateUpdate,
+		Delete: resourceAutomationConnectionCertificateDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			_, err := parse.ConnectionID(id)
@@ -74,7 +74,7 @@ func resourceArmAutomationConnectionCertificate() *schema.Resource {
 	}
 }
 
-func resourceArmAutomationConnectionCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.ConnectionClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -127,10 +127,10 @@ func resourceArmAutomationConnectionCertificateCreateUpdate(d *schema.ResourceDa
 
 	d.SetId(*read.ID)
 
-	return resourceArmAutomationConnectionCertificateRead(d, meta)
+	return resourceAutomationConnectionCertificateRead(d, meta)
 }
 
-func resourceArmAutomationConnectionCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.ConnectionClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -167,7 +167,7 @@ func resourceArmAutomationConnectionCertificateRead(d *schema.ResourceData, meta
 	return nil
 }
 
-func resourceArmAutomationConnectionCertificateDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionCertificateDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.ConnectionClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

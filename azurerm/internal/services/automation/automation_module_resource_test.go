@@ -17,7 +17,7 @@ import (
 type AutomationModuleResource struct {
 }
 
-func TestAccAzureRMAutomationModule_basic(t *testing.T) {
+func TestAccAutomationModule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_module", "test")
 	r := AutomationModuleResource{}
 
@@ -32,7 +32,7 @@ func TestAccAzureRMAutomationModule_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationModule_requiresImport(t *testing.T) {
+func TestAccAutomationModule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_module", "test")
 	r := AutomationModuleResource{}
 
@@ -47,7 +47,7 @@ func TestAccAzureRMAutomationModule_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationModule_multipleModules(t *testing.T) {
+func TestAccAutomationModule_multipleModules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_module", "test")
 	r := AutomationModuleResource{}
 

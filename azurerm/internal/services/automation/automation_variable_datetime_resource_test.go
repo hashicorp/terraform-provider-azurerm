@@ -15,7 +15,7 @@ import (
 type AutomationVariableDateTimeResource struct {
 }
 
-func TestAccAzureRMAutomationVariableDateTime_basic(t *testing.T) {
+func TestAccAutomationVariableDateTime_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_variable_datetime", "test")
 	r := AutomationVariableDateTimeResource{}
 
@@ -31,7 +31,7 @@ func TestAccAzureRMAutomationVariableDateTime_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationVariableDateTime_complete(t *testing.T) {
+func TestAccAutomationVariableDateTime_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_variable_datetime", "test")
 	r := AutomationVariableDateTimeResource{}
 
@@ -48,7 +48,7 @@ func TestAccAzureRMAutomationVariableDateTime_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationVariableDateTime_basicCompleteUpdate(t *testing.T) {
+func TestAccAutomationVariableDateTime_basicCompleteUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_variable_datetime", "test")
 	r := AutomationVariableDateTimeResource{}
 

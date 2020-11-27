@@ -28,7 +28,7 @@ var (
 
 var testCertBase64 = base64.StdEncoding.EncodeToString(testCertRaw)
 
-func TestAccAzureRMAutomationCertificate_basic(t *testing.T) {
+func TestAccAutomationCertificate_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_certificate", "test")
 	r := AutomationCertificateResource{}
 
@@ -43,7 +43,7 @@ func TestAccAzureRMAutomationCertificate_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationCertificate_requiresImport(t *testing.T) {
+func TestAccAutomationCertificate_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_certificate", "test")
 	r := AutomationCertificateResource{}
 
@@ -58,7 +58,7 @@ func TestAccAzureRMAutomationCertificate_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationCertificate_complete(t *testing.T) {
+func TestAccAutomationCertificate_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_certificate", "test")
 	r := AutomationCertificateResource{}
 	testCertThumbprint := strings.TrimSpace(string(testCertThumbprintRaw))
@@ -76,7 +76,7 @@ func TestAccAzureRMAutomationCertificate_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationCertificate_update(t *testing.T) {
+func TestAccAutomationCertificate_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_certificate", "test")
 	r := AutomationCertificateResource{}
 

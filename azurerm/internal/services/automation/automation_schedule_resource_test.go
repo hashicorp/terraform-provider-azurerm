@@ -18,7 +18,7 @@ import (
 type AutomationScheduleResource struct {
 }
 
-func TestAccAzureRMAutomationSchedule_oneTime_basic(t *testing.T) {
+func TestAccAutomationSchedule_oneTime_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
 	r := AutomationScheduleResource{}
 
@@ -33,7 +33,7 @@ func TestAccAzureRMAutomationSchedule_oneTime_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationSchedule_requiresImport(t *testing.T) {
+func TestAccAutomationSchedule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
 	r := AutomationScheduleResource{}
 
@@ -48,7 +48,7 @@ func TestAccAzureRMAutomationSchedule_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationSchedule_oneTime_complete(t *testing.T) {
+func TestAccAutomationSchedule_oneTime_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
 	r := AutomationScheduleResource{}
 
@@ -68,7 +68,7 @@ func TestAccAzureRMAutomationSchedule_oneTime_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationSchedule_oneTime_update(t *testing.T) {
+func TestAccAutomationSchedule_oneTime_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
 	r := AutomationScheduleResource{}
 
@@ -95,7 +95,7 @@ func TestAccAzureRMAutomationSchedule_oneTime_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationSchedule_hourly(t *testing.T) {
+func TestAccAutomationSchedule_hourly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
 	r := AutomationScheduleResource{}
 
@@ -110,7 +110,7 @@ func TestAccAzureRMAutomationSchedule_hourly(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationSchedule_daily(t *testing.T) {
+func TestAccAutomationSchedule_daily(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
 	r := AutomationScheduleResource{}
 
@@ -125,7 +125,7 @@ func TestAccAzureRMAutomationSchedule_daily(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationSchedule_weekly(t *testing.T) {
+func TestAccAutomationSchedule_weekly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
 	r := AutomationScheduleResource{}
 
@@ -140,7 +140,7 @@ func TestAccAzureRMAutomationSchedule_weekly(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationSchedule_monthly(t *testing.T) {
+func TestAccAutomationSchedule_monthly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
 	r := AutomationScheduleResource{}
 
@@ -155,7 +155,7 @@ func TestAccAzureRMAutomationSchedule_monthly(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationSchedule_weekly_advanced(t *testing.T) {
+func TestAccAutomationSchedule_weekly_advanced(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
 	r := AutomationScheduleResource{}
 
@@ -170,7 +170,7 @@ func TestAccAzureRMAutomationSchedule_weekly_advanced(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationSchedule_monthly_advanced_by_day(t *testing.T) {
+func TestAccAutomationSchedule_monthly_advanced_by_day(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
 	r := AutomationScheduleResource{}
 
@@ -185,7 +185,7 @@ func TestAccAzureRMAutomationSchedule_monthly_advanced_by_day(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationSchedule_monthly_advanced_by_week_day(t *testing.T) {
+func TestAccAutomationSchedule_monthly_advanced_by_week_day(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
 	r := AutomationScheduleResource{}
 

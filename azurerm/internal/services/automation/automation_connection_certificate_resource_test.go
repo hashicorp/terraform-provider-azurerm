@@ -17,7 +17,7 @@ import (
 type AutomationConnectionCertificateResource struct {
 }
 
-func TestAccAzureRMAutomationConnectionCertificate_basic(t *testing.T) {
+func TestAccAutomationConnectionCertificate_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection_certificate", "test")
 	r := AutomationConnectionCertificateResource{}
 
@@ -32,7 +32,7 @@ func TestAccAzureRMAutomationConnectionCertificate_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationConnectionCertificate_requiresImport(t *testing.T) {
+func TestAccAutomationConnectionCertificate_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection_certificate", "test")
 	r := AutomationConnectionCertificateResource{}
 
@@ -47,7 +47,7 @@ func TestAccAzureRMAutomationConnectionCertificate_requiresImport(t *testing.T) 
 	})
 }
 
-func TestAccAzureRMAutomationConnectionCertificate_complete(t *testing.T) {
+func TestAccAutomationConnectionCertificate_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection_certificate", "test")
 	r := AutomationConnectionCertificateResource{}
 
@@ -62,7 +62,7 @@ func TestAccAzureRMAutomationConnectionCertificate_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationConnectionCertificate_update(t *testing.T) {
+func TestAccAutomationConnectionCertificate_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection_certificate", "test")
 	r := AutomationConnectionCertificateResource{}
 

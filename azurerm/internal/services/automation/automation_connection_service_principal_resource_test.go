@@ -17,7 +17,7 @@ import (
 type AutomationConnectionServicePrincipalResource struct {
 }
 
-func TestAccAzureRMAutomationConnectionServicePrincipal_basic(t *testing.T) {
+func TestAccAutomationConnectionServicePrincipal_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection_service_principal", "test")
 	r := AutomationConnectionServicePrincipalResource{}
 
@@ -32,7 +32,7 @@ func TestAccAzureRMAutomationConnectionServicePrincipal_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationConnectionServicePrincipal_requiresImport(t *testing.T) {
+func TestAccAutomationConnectionServicePrincipal_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection_service_principal", "test")
 	r := AutomationConnectionServicePrincipalResource{}
 
@@ -47,7 +47,7 @@ func TestAccAzureRMAutomationConnectionServicePrincipal_requiresImport(t *testin
 	})
 }
 
-func TestAccAzureRMAutomationConnectionServicePrincipal_complete(t *testing.T) {
+func TestAccAutomationConnectionServicePrincipal_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection_service_principal", "test")
 	r := AutomationConnectionServicePrincipalResource{}
 
@@ -62,7 +62,7 @@ func TestAccAzureRMAutomationConnectionServicePrincipal_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationConnectionServicePrincipal_update(t *testing.T) {
+func TestAccAutomationConnectionServicePrincipal_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection_service_principal", "test")
 	r := AutomationConnectionServicePrincipalResource{}
 

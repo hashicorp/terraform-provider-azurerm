@@ -17,7 +17,7 @@ import (
 type AutomationRunbookResource struct {
 }
 
-func TestAccAzureRMAutomationRunbook_PSWorkflow(t *testing.T) {
+func TestAccAutomationRunbook_PSWorkflow(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
 	r := AutomationRunbookResource{}
 
@@ -32,7 +32,7 @@ func TestAccAzureRMAutomationRunbook_PSWorkflow(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationRunbook_requiresImport(t *testing.T) {
+func TestAccAutomationRunbook_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
 	r := AutomationRunbookResource{}
 
@@ -47,7 +47,7 @@ func TestAccAzureRMAutomationRunbook_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationRunbook_PSWorkflowWithHash(t *testing.T) {
+func TestAccAutomationRunbook_PSWorkflowWithHash(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
 	r := AutomationRunbookResource{}
 
@@ -63,7 +63,7 @@ func TestAccAzureRMAutomationRunbook_PSWorkflowWithHash(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationRunbook_PSWithContent(t *testing.T) {
+func TestAccAutomationRunbook_PSWithContent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
 	r := AutomationRunbookResource{}
 
@@ -80,7 +80,7 @@ func TestAccAzureRMAutomationRunbook_PSWithContent(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationRunbook_PSWorkflowWithoutUri(t *testing.T) {
+func TestAccAutomationRunbook_PSWorkflowWithoutUri(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
 	r := AutomationRunbookResource{}
 
@@ -95,7 +95,7 @@ func TestAccAzureRMAutomationRunbook_PSWorkflowWithoutUri(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationRunbook_withJobSchedule(t *testing.T) {
+func TestAccAutomationRunbook_withJobSchedule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
 	r := AutomationRunbookResource{}
 

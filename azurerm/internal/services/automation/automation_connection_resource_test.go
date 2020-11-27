@@ -17,7 +17,7 @@ import (
 type AutomationConnectionResource struct {
 }
 
-func TestAccAzureRMAutomationConnection_basic(t *testing.T) {
+func TestAccAutomationConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection", "test")
 	r := AutomationConnectionResource{}
 
@@ -32,7 +32,7 @@ func TestAccAzureRMAutomationConnection_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationConnection_requiresImport(t *testing.T) {
+func TestAccAutomationConnection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection", "test")
 	r := AutomationConnectionResource{}
 
@@ -47,7 +47,7 @@ func TestAccAzureRMAutomationConnection_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationConnection_complete(t *testing.T) {
+func TestAccAutomationConnection_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection", "test")
 	r := AutomationConnectionResource{}
 
@@ -62,7 +62,7 @@ func TestAccAzureRMAutomationConnection_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationConnection_update(t *testing.T) {
+func TestAccAutomationConnection_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection", "test")
 	r := AutomationConnectionResource{}
 

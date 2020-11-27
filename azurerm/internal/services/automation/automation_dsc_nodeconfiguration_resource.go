@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAutomationDscNodeConfiguration() *schema.Resource {
+func resourceAutomationDscNodeConfiguration() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAutomationDscNodeConfigurationCreateUpdate,
-		Read:   resourceArmAutomationDscNodeConfigurationRead,
-		Update: resourceArmAutomationDscNodeConfigurationCreateUpdate,
-		Delete: resourceArmAutomationDscNodeConfigurationDelete,
+		Create: resourceAutomationDscNodeConfigurationCreateUpdate,
+		Read:   resourceAutomationDscNodeConfigurationRead,
+		Update: resourceAutomationDscNodeConfigurationCreateUpdate,
+		Delete: resourceAutomationDscNodeConfigurationDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -66,7 +66,7 @@ func resourceArmAutomationDscNodeConfiguration() *schema.Resource {
 	}
 }
 
-func resourceArmAutomationDscNodeConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationDscNodeConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.DscNodeConfigurationClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -125,10 +125,10 @@ func resourceArmAutomationDscNodeConfigurationCreateUpdate(d *schema.ResourceDat
 
 	d.SetId(*read.ID)
 
-	return resourceArmAutomationDscNodeConfigurationRead(d, meta)
+	return resourceAutomationDscNodeConfigurationRead(d, meta)
 }
 
-func resourceArmAutomationDscNodeConfigurationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationDscNodeConfigurationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.DscNodeConfigurationClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -161,7 +161,7 @@ func resourceArmAutomationDscNodeConfigurationRead(d *schema.ResourceData, meta 
 	return nil
 }
 
-func resourceArmAutomationDscNodeConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationDscNodeConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.DscNodeConfigurationClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

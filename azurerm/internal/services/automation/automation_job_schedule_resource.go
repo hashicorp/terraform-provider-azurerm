@@ -18,11 +18,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAutomationJobSchedule() *schema.Resource {
+func resourceAutomationJobSchedule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAutomationJobScheduleCreate,
-		Read:   resourceArmAutomationJobScheduleRead,
-		Delete: resourceArmAutomationJobScheduleDelete,
+		Create: resourceAutomationJobScheduleCreate,
+		Read:   resourceAutomationJobScheduleRead,
+		Delete: resourceAutomationJobScheduleDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -96,7 +96,7 @@ func resourceArmAutomationJobSchedule() *schema.Resource {
 	}
 }
 
-func resourceArmAutomationJobScheduleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationJobScheduleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.JobScheduleClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -192,10 +192,10 @@ func resourceArmAutomationJobScheduleCreate(d *schema.ResourceData, meta interfa
 
 	d.SetId(*read.ID)
 
-	return resourceArmAutomationJobScheduleRead(d, meta)
+	return resourceAutomationJobScheduleRead(d, meta)
 }
 
-func resourceArmAutomationJobScheduleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationJobScheduleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.JobScheduleClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -241,7 +241,7 @@ func resourceArmAutomationJobScheduleRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func resourceArmAutomationJobScheduleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationJobScheduleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.JobScheduleClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

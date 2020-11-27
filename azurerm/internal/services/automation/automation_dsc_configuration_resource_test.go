@@ -17,7 +17,7 @@ import (
 type AutomationDscConfigurationResource struct {
 }
 
-func TestAccAzureRMAutomationDscConfiguration_basic(t *testing.T) {
+func TestAccAutomationDscConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_dsc_configuration", "test")
 	r := AutomationDscConfigurationResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
@@ -38,7 +38,7 @@ func TestAccAzureRMAutomationDscConfiguration_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationDscConfiguration_requiresImport(t *testing.T) {
+func TestAccAutomationDscConfiguration_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_dsc_configuration", "test")
 	r := AutomationDscConfigurationResource{}
 

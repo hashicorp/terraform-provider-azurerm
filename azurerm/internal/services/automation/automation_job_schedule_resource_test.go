@@ -18,7 +18,7 @@ import (
 type AutomationJobScheduleResource struct {
 }
 
-func TestAccAzureRMAutomationJobSchedule_basic(t *testing.T) {
+func TestAccAutomationJobSchedule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_job_schedule", "test")
 	r := AutomationJobScheduleResource{}
 
@@ -33,7 +33,7 @@ func TestAccAzureRMAutomationJobSchedule_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationJobSchedule_complete(t *testing.T) {
+func TestAccAutomationJobSchedule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_job_schedule", "test")
 	r := AutomationJobScheduleResource{}
 
@@ -48,7 +48,7 @@ func TestAccAzureRMAutomationJobSchedule_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationJobSchedule_update(t *testing.T) {
+func TestAccAutomationJobSchedule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_job_schedule", "test")
 	r := AutomationJobScheduleResource{}
 
@@ -75,7 +75,7 @@ func TestAccAzureRMAutomationJobSchedule_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationJobSchedule_requiresImport(t *testing.T) {
+func TestAccAutomationJobSchedule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_job_schedule", "test")
 	r := AutomationJobScheduleResource{}
 

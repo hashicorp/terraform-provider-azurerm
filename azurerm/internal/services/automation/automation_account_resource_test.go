@@ -11,14 +11,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 type AutomationAccountResource struct {
 }
 
-func TestAccAzureRMAutomationAccount_basic(t *testing.T) {
+func TestAccAutomationAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_account", "test")
 	r := AutomationAccountResource{}
 
@@ -37,7 +36,7 @@ func TestAccAzureRMAutomationAccount_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationAccount_requiresImport(t *testing.T) {
+func TestAccAutomationAccount_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_account", "test")
 	r := AutomationAccountResource{}
 
@@ -55,7 +54,7 @@ func TestAccAzureRMAutomationAccount_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationAccount_complete(t *testing.T) {
+func TestAccAutomationAccount_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_account", "test")
 	r := AutomationAccountResource{}
 

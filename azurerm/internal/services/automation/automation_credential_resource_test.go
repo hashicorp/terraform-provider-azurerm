@@ -17,7 +17,7 @@ import (
 type AutomationCredentialResource struct {
 }
 
-func TestAccAzureRMAutomationCredential_basic(t *testing.T) {
+func TestAccAutomationCredential_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_credential", "test")
 	r := AutomationCredentialResource{}
 
@@ -33,7 +33,7 @@ func TestAccAzureRMAutomationCredential_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationCredential_requiresImport(t *testing.T) {
+func TestAccAutomationCredential_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_credential", "test")
 	r := AutomationCredentialResource{}
 
@@ -48,7 +48,7 @@ func TestAccAzureRMAutomationCredential_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationCredential_complete(t *testing.T) {
+func TestAccAutomationCredential_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_credential", "test")
 	r := AutomationCredentialResource{}
 

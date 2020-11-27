@@ -15,7 +15,7 @@ import (
 type AutomationVariableBoolResource struct {
 }
 
-func TestAccAzureRMAutomationVariableBool_basic(t *testing.T) {
+func TestAccAutomationVariableBool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_variable_bool", "test")
 	r := AutomationVariableBoolResource{}
 
@@ -31,7 +31,7 @@ func TestAccAzureRMAutomationVariableBool_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationVariableBool_complete(t *testing.T) {
+func TestAccAutomationVariableBool_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_variable_bool", "test")
 	r := AutomationVariableBoolResource{}
 
@@ -48,7 +48,7 @@ func TestAccAzureRMAutomationVariableBool_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationVariableBool_basicCompleteUpdate(t *testing.T) {
+func TestAccAutomationVariableBool_basicCompleteUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_variable_bool", "test")
 	r := AutomationVariableBoolResource{}
 

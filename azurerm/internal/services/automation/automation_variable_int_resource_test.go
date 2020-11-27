@@ -14,7 +14,7 @@ import (
 type AutomationVariableIntResource struct {
 }
 
-func TestAccAzureRMAutomationVariableInt_basic(t *testing.T) {
+func TestAccAutomationVariableInt_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_variable_int", "test")
 	r := AutomationVariableIntResource{}
 
@@ -30,7 +30,7 @@ func TestAccAzureRMAutomationVariableInt_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationVariableInt_complete(t *testing.T) {
+func TestAccAutomationVariableInt_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_variable_int", "test")
 	r := AutomationVariableIntResource{}
 
@@ -47,7 +47,7 @@ func TestAccAzureRMAutomationVariableInt_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationVariableInt_basicCompleteUpdate(t *testing.T) {
+func TestAccAutomationVariableInt_basicCompleteUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_variable_int", "test")
 	r := AutomationVariableIntResource{}
 
