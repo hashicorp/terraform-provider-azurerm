@@ -6,23 +6,23 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = FirewallPolicyId{}
+var _ resourceid.Formatter = FirewallPolicyRuleCollectionGroupId{}
 
-func TestFirewallPolicyIDFormatter(t *testing.T) {
+func TestFirewallPolicyRuleCollectionGroupIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	actual := NewFirewallPolicyID("group1", "policy1").ID(subscriptionId)
-	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/firewallPolicies/policy1"
+	actual := NewFirewallPolicyRuleCollectionGroupID(NewFirewallPolicyID("group1", "policy1"), "group1").ID(subscriptionId)
+	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/firewallPolicies/policy1/ruleCollectionGroups/group1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestFirewallPolicyID(t *testing.T) {
+func TestFirewallPolicyRuleCollectionGroupID(t *testing.T) {
 	testData := []struct {
 		Name   string
 		Input  string
 		Error  bool
-		Expect *FirewallPolicyId
+		Expect *FirewallPolicyRuleCollectionGroupId
 	}{
 		{
 			Name:  "Empty",
@@ -50,21 +50,22 @@ func TestFirewallPolicyID(t *testing.T) {
 			Error: true,
 		},
 		{
-			Name:  "Vulnerable segments",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/foo/bar/firewallPolicies/policy1",
+			Name:  "No Group Name",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/firewallPolicies/policy1/ruleCollectionGroups",
 			Error: true,
 		},
 		{
-			Name:  "Missing starting slash",
-			Input: "subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/firewallPolicies/policy1",
+			Name:  "The ID of old API version (2020-03-01)",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/firewallPolicies/policy1/ruleGroups/rulegroup1",
 			Error: true,
 		},
 		{
 			Name:  "Correct Case",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/firewallPolicies/policy1",
-			Expect: &FirewallPolicyId{
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/firewallPolicies/policy1/ruleCollectionGroups/rulegroup1",
+			Expect: &FirewallPolicyRuleCollectionGroupId{
 				ResourceGroup: "group1",
-				Name:          "policy1",
+				PolicyName:    "policy1",
+				Name:          "rulegroup1",
 			},
 		},
 	}
@@ -72,7 +73,7 @@ func TestFirewallPolicyID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := FirewallPolicyID(v.Input)
+		actual, err := FirewallPolicyRuleCollectionGroupID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
