@@ -1,6 +1,7 @@
 package databasemigration_test
 
 import (
+	`context`
 	"fmt"
 	"testing"
 
@@ -9,155 +10,107 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type DatabaseMigrationProjectResource struct {
+}
+
 func TestAccDatabaseMigrationProject_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_database_migration_project", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDatabaseMigrationProjectDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDatabaseMigrationProject_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDatabaseMigrationProjectExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "source_platform", "SQL"),
-					resource.TestCheckResourceAttr(data.ResourceName, "target_platform", "SQLDB"),
-				),
-			},
-			data.ImportStep(),
+	r := DatabaseMigrationProjectResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("source_platform").HasValue("SQL"),
+				check.That(data.ResourceName).Key("target_platform").HasValue("SQLDB"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccDatabaseMigrationProject_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_database_migration_project", "test")
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDatabaseMigrationProjectDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDatabaseMigrationProject_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDatabaseMigrationProjectExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "source_platform", "SQL"),
-					resource.TestCheckResourceAttr(data.ResourceName, "target_platform", "SQLDB"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.name", "Test"),
-				),
-			},
-			data.ImportStep(),
+	r := DatabaseMigrationProjectResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("source_platform").HasValue("SQL"),
+				check.That(data.ResourceName).Key("target_platform").HasValue("SQLDB"),
+				check.That(data.ResourceName).Key("tags.name").HasValue("Test"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccDatabaseMigrationProject_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_database_migration_project", "test")
+	r := DatabaseMigrationProjectResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDatabaseMigrationProjectDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDatabaseMigrationProject_basic(data),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMDatabaseMigrationProject_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
 func TestAccDatabaseMigrationProject_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_database_migration_project", "test")
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDatabaseMigrationProjectDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDatabaseMigrationProject_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDatabaseMigrationProjectExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMDatabaseMigrationProject_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDatabaseMigrationProjectExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.name", "Test"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMDatabaseMigrationProject_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDatabaseMigrationProjectExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := DatabaseMigrationProjectResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.name").HasValue("Test"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMDatabaseMigrationProjectExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Database Migration Project not found: %s", resourceName)
-		}
-
-		id, err := parse.ProjectID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).DatabaseMigration.ProjectsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Database Migration Project (Project Name %q / Service Name %q / Group Name %q) does not exist", id.Name, id.ServiceName, id.ResourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on ProjectsClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMDatabaseMigrationProjectDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).DatabaseMigration.ProjectsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_database_migration_project" {
-			continue
-		}
-
-		id, err := parse.ProjectID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on ProjectsClient: %+v", err)
-			}
-		}
-
-		return nil
+func (t DatabaseMigrationProjectResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ProjectID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.DatabaseMigration.ProjectsClient.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Database Migration Project (Project Name %q / Service Name %q / Group Name %q) does not exist", id.Name, id.ServiceName, id.ResourceGroup)
+	}
+
+	return utils.Bool(resp.ProjectProperties != nil), nil
 }
 
-func testAccAzureRMDatabaseMigrationProject_basic(data acceptance.TestData) string {
-	template := testAccAzureRMDatabaseMigrationService_basic(data)
+func (DatabaseMigrationProjectResource) basic(data acceptance.TestData) string {
+	template := DatabaseMigrationProjectResource{}.basic(data)
 
 	return fmt.Sprintf(`
 %s
@@ -173,8 +126,8 @@ resource "azurerm_database_migration_project" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMDatabaseMigrationProject_complete(data acceptance.TestData) string {
-	template := testAccAzureRMDatabaseMigrationService_basic(data)
+func (DatabaseMigrationProjectResource) complete(data acceptance.TestData) string {
+	template := DatabaseMigrationProjectResource{}.basic(data)
 
 	return fmt.Sprintf(`
 %s
@@ -193,8 +146,8 @@ resource "azurerm_database_migration_project" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMDatabaseMigrationProject_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMDatabaseMigrationProject_basic(data)
+func (DatabaseMigrationProjectResource) requiresImport(data acceptance.TestData) string {
+	template := DatabaseMigrationProjectResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 

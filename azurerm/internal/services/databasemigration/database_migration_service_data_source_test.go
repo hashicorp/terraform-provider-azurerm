@@ -6,28 +6,28 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
+
+type DatabaseMigrationServiceDataSource struct {
+}
 
 func TestAccDatabaseMigrationServiceDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_database_migration_service", "test")
+	r := DatabaseMigrationServiceDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceDatabaseMigrationService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Standard_1vCores"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Standard_1vCores"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceDatabaseMigrationService_basic(data acceptance.TestData) string {
-	config := testAccAzureRMDatabaseMigrationService_basic(data)
+func (DatabaseMigrationServiceDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -35,5 +35,5 @@ data "azurerm_database_migration_service" "test" {
   resource_group_name = azurerm_database_migration_service.test.resource_group_name
   name                = azurerm_database_migration_service.test.name
 }
-`, config)
+`, DatabaseMigrationServiceResource{}.basic(data))
 }

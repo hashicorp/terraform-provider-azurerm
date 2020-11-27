@@ -6,28 +6,28 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
+
+type DatabaseMigrationProjectDataSource struct {
+}
 
 func TestAccDatabaseMigrationProjectDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_database_migration_project", "test")
+	r := DatabaseMigrationProjectDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceDatabaseMigrationProject_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "source_platform", "SQL"),
-					resource.TestCheckResourceAttr(data.ResourceName, "target_platform", "SQLDB"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("source_platform").HasValue("SQL"),
+				check.That(data.ResourceName).Key("target_platform").HasValue("SQLDB"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceDatabaseMigrationProject_basic(data acceptance.TestData) string {
-	config := testAccAzureRMDatabaseMigrationProject_basic(data)
+func (DatabaseMigrationProjectDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -36,5 +36,5 @@ data "azurerm_database_migration_project" "test" {
   service_name        = azurerm_database_migration_project.test.service_name
   resource_group_name = azurerm_database_migration_project.test.resource_group_name
 }
-`, config)
+`, DatabaseMigrationProjectResource{}.basic(data))
 }
