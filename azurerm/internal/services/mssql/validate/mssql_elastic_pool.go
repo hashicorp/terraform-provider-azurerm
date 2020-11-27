@@ -16,7 +16,7 @@ func MsSqlElasticPoolID(i interface{}, k string) (warnings []string, errors []er
 		return warnings, errors
 	}
 
-	if _, err := parse.MSSqlElasticPoolID(v); err != nil {
+	if _, err := parse.ElasticPoolID(v); err != nil {
 		errors = append(errors, fmt.Errorf("Can not parse %q as a MsSql Elastic Pool resource id: %v", k, err))
 	}
 

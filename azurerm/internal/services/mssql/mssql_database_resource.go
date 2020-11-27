@@ -33,7 +33,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 		Update: resourceArmMsSqlDatabaseCreateUpdate,
 		Delete: resourceArmMsSqlDatabaseDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.MsSqlDatabaseID(id)
+			_, err := parse.DatabaseID(id)
 			return err
 		}),
 
@@ -305,7 +305,7 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 
 	name := d.Get("name").(string)
 	sqlServerId := d.Get("server_id").(string)
-	serverId, _ := parse.MsSqlServerID(sqlServerId)
+	serverId, _ := parse.ServerID(sqlServerId)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, serverId.ResourceGroup, serverId.Name, name)
@@ -498,27 +498,27 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MsSqlDatabaseID(d.Id())
+	id, err := parse.DatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.MsSqlServer, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading MsSql Database %s (MsSql Server Name %q / Resource Group %q): %s", id.Name, id.MsSqlServer, id.ResourceGroup, err)
+		return fmt.Errorf("reading MsSql Database %s (MsSql Server Name %q / Resource Group %q): %s", id.Name, id.ServerName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
 
 	serverClient := meta.(*clients.Client).MSSQL.ServersClient
 
-	serverResp, err := serverClient.Get(ctx, id.ResourceGroup, id.MsSqlServer)
+	serverResp, err := serverClient.Get(ctx, id.ResourceGroup, id.ServerName)
 	if err != nil || *serverResp.ID == "" {
-		return fmt.Errorf("making Read request on MsSql Server  %q (Resource Group %q): %s", id.MsSqlServer, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on MsSql Server  %q (Resource Group %q): %s", id.ServerName, id.ResourceGroup, err)
 	}
 	d.Set("server_id", serverResp.ID)
 
@@ -545,14 +545,14 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("zone_redundant", props.ZoneRedundant)
 	}
 
-	threat, err := threatClient.Get(ctx, id.ResourceGroup, id.MsSqlServer, id.Name)
+	threat, err := threatClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err == nil {
 		if err := d.Set("threat_detection_policy", flattenArmMsSqlServerThreatDetectionPolicy(d, threat)); err != nil {
 			return fmt.Errorf("setting `threat_detection_policy`: %+v", err)
 		}
 	}
 
-	auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.MsSqlServer, id.Name)
+	auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
 		return fmt.Errorf("failure in reading SQL Database %q: %v Blob Auditing Policies", id.Name, err)
 	}
@@ -564,18 +564,18 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 
 	// Hyper Scale SKU's do not currently support LRP and do not honour normal SRP operations
 	if !strings.HasPrefix(skuName, "HS") && !strings.HasPrefix(skuName, "DW") {
-		longTermPolicy, err := longTermRetentionClient.Get(ctx, id.ResourceGroup, id.MsSqlServer, id.Name)
+		longTermPolicy, err := longTermRetentionClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 		if err != nil {
-			return fmt.Errorf("Error retrieving Long Term Policies for Database %q (Sql Server %q ;Resource Group %q): %+v", id.Name, id.MsSqlServer, id.ResourceGroup, err)
+			return fmt.Errorf("Error retrieving Long Term Policies for Database %q (Sql Server %q ;Resource Group %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
 		}
 		flattenlongTermPolicy := helper.FlattenLongTermRetentionPolicy(&longTermPolicy, d)
 		if err := d.Set("long_term_retention_policy", flattenlongTermPolicy); err != nil {
 			return fmt.Errorf("failure in setting `long_term_retention_policy`: %+v", err)
 		}
 
-		shortTermPolicy, err := shortTermRetentionClient.Get(ctx, id.ResourceGroup, id.MsSqlServer, id.Name)
+		shortTermPolicy, err := shortTermRetentionClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 		if err != nil {
-			return fmt.Errorf("Error retrieving Short Term Policies for Database %q (Sql Server %q ;Resource Group %q): %+v", id.Name, id.MsSqlServer, id.ResourceGroup, err)
+			return fmt.Errorf("Error retrieving Short Term Policies for Database %q (Sql Server %q ;Resource Group %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
 		}
 
 		flattenShortTermPolicy := helper.FlattenShortTermRetentionPolicy(&shortTermPolicy, d)
@@ -597,21 +597,21 @@ func resourceArmMsSqlDatabaseDelete(d *schema.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MsSqlDatabaseID(d.Id())
+	id, err := parse.DatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.MsSqlServer, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting MsSql Database %q ( MsSql Server %q / Resource Group %q): %+v", id.Name, id.MsSqlServer, id.ResourceGroup, err)
+		return fmt.Errorf("deleting MsSql Database %q ( MsSql Server %q / Resource Group %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("waiting for MsSql Database %q ( MsSql Server %q / Resource Group %q) to be deleted: %+v", id.Name, id.MsSqlServer, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for MsSql Database %q ( MsSql Server %q / Resource Group %q) to be deleted: %+v", id.Name, id.ServerName, id.ResourceGroup, err)
 	}
 
 	return nil
