@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks/parse"
+	resourcesParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -236,15 +237,15 @@ func resourceDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if props := resp.WorkspaceProperties; props != nil {
-		managedResourceGroupID, err := azure.ParseAzureResourceID(*props.ManagedResourceGroupID)
+		managedResourceGroupID, err := resourcesParse.ResourceGroupID(*props.ManagedResourceGroupID)
 		if err != nil {
 			return err
 		}
 		d.Set("managed_resource_group_id", props.ManagedResourceGroupID)
-		d.Set("managed_resource_group_name", managedResourceGroupID.ResourceGroup)
+		d.Set("managed_resource_group_name", managedResourceGroupID.Name)
 
 		if err := d.Set("custom_parameters", flattenWorkspaceCustomParameters(props.Parameters)); err != nil {
-			return fmt.Errorf("Error setting `custom_parameters`: %+v", err)
+			return fmt.Errorf("setting `custom_parameters`: %+v", err)
 		}
 
 		d.Set("workspace_url", props.WorkspaceURL)
