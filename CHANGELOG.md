@@ -6,6 +6,11 @@ IMPROVEMENTS:
 * `azurerm_keyvault_certificate` - add `3072` to allowed values for `key_size` [GH-9524]
 * `azurerm_notification_hub_authorization_rule` - adding validation at import time to ensure the ID is for a Notification Hub Authorization Rule [GH-9529]
 * `azurerm_notification_hub_namespace` - adding validation at import time to ensure the ID is for a Notification Hub Namespace [GH-9529]
+* `azurerm_postgresql_active_directory_administrator` - validating during import that the ID is for a PostgreSQL Active Directory Administrator [GH-9532]
+* `azurerm_postgresql_configuration` - validating during import that the ID is for a PostgreSQL Configuration [GH-9532]
+* `azurerm_postgresql_database` - validating during import that the ID is for a PostgreSQL Database [GH-9532]
+* `azurerm_postgresql_firewall_rule` - validating during import that the ID is for a PostgreSQL Firewall Rule [GH-9532]
+* `azurerm_postgresql_virtual_network_rule` - validating during import that the ID is for a PostgreSQL Virtual Network Rule [GH-9532]
 * `azurerm_traffic_manager_profile` - allow up to `2147483647` for the `ttl` property [GH-9522]
 
 ## 2.38.0 (November 27, 2020)
