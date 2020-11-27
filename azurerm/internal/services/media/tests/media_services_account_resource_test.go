@@ -83,7 +83,7 @@ func testCheckAzureRMMediaServicesAccountExists(resourceName string) resource.Te
 			return fmt.Errorf("Media service not found: %s", resourceName)
 		}
 
-		id, err := parse.MediaServicesAccountID(rs.Primary.ID)
+		id, err := parse.MediaServiceID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -109,7 +109,7 @@ func testCheckAzureRMMediaServicesAccountDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.MediaServicesAccountID(rs.Primary.ID)
+		id, err := parse.MediaServiceID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
