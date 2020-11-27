@@ -1,3 +1,7 @@
+## 2.39.0 (Unreleased)
+
+* `azurerm_traffic_manager_profile` - allow up to `2147483647` for the `ttl` property [GH-9522]
+
 ## 2.38.0 (November 27, 2020)
 
 FEATURES:
