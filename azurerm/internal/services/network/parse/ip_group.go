@@ -1,4 +1,4 @@
-package network
+package parse
 
 import (
 	"fmt"
@@ -6,18 +6,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type IpGroupResourceID struct {
+type IpGroupId struct {
 	ResourceGroup string
 	Name          string
 }
 
-func ParseIpGroupID(input string) (*IpGroupResourceID, error) {
+func IpGroupID(input string) (*IpGroupId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse IP Group ID %q: %+v", input, err)
 	}
 
-	ipGroup := IpGroupResourceID{
+	ipGroup := IpGroupId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
