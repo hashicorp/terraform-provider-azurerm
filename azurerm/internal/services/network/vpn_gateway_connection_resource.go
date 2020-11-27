@@ -56,7 +56,7 @@ func resourceArmVPNGatewayConnection() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.VPNGatewayID,
+				ValidateFunc: validate.VpnGatewayID,
 			},
 
 			"remote_vpn_site_id": {
