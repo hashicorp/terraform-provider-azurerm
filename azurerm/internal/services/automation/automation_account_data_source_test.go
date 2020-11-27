@@ -29,12 +29,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-auto-%s"
-  location = "%s"
+  name     = "acctestRG-auto-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_automation_account" "test" {
-  name                = "acctestautomationAccount-%d"
+  name                = "acctestautomationAccount-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Basic"
@@ -44,5 +44,5 @@ data "azurerm_automation_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
   name                = azurerm_automation_account.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }

@@ -99,7 +99,7 @@ func (t AutomationConnectionServicePrincipalResource) Exists(ctx context.Context
 
 	resp, err := clients.Automation.ConnectionClient.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Automation Connection (Service Pricipal) %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Automation Connection (Service Principal) %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.ConnectionProperties != nil), nil

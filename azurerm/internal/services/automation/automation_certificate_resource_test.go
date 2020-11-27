@@ -101,7 +101,6 @@ func TestAccAutomationCertificate_update(t *testing.T) {
 }
 
 func (t AutomationCertificateResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err

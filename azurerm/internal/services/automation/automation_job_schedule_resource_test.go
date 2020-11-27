@@ -205,7 +205,6 @@ resource "azurerm_automation_job_schedule" "test" {
 }
 
 func (AutomationJobScheduleResource) requiresImport(data acceptance.TestData) string {
-	template := AutomationJobScheduleResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
