@@ -305,7 +305,7 @@ func resourceArmApiManagementService() *schema.Resource {
 							Type:          schema.TypeBool,
 							Optional:      true,
 							Default:       false,
-							ConflictsWith: []string{"triple_des_ciphers_enabled"},
+							ConflictsWith: []string{"security.triple_des_ciphers_enabled"},
 							Deprecated:    "this has been renamed to the boolean attribute `triple_des_ciphers_enabled`.",
 						},
 
@@ -313,7 +313,7 @@ func resourceArmApiManagementService() *schema.Resource {
 							Type:          schema.TypeBool,
 							Optional:      true,
 							Default:       false,
-							ConflictsWith: []string{"enable_triple_des_ciphers"},
+							ConflictsWith: []string{"security.enable_triple_des_ciphers"},
 						},
 
 						"tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled": {
@@ -1217,10 +1217,10 @@ func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*str
 		frontendProtocolTls11 = v["enable_frontend_tls11"].(bool)
 
 		// TODO: Remove and simplify after deprecation
-		if v, ok := d.GetOk("enable_triple_des_ciphers"); ok {
+		if v, ok := d.GetOk("security.enable_triple_des_ciphers"); ok {
 			tripleDesCiphers = v.(bool)
 		}
-		if v, ok := d.GetOk("triple_des_ciphers_enabled"); ok {
+		if v, ok := d.GetOk("security.triple_des_ciphers_enabled"); ok {
 			tripleDesCiphers = v.(bool)
 		}
 
