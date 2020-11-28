@@ -300,10 +300,20 @@ func resourceArmApiManagementService() *schema.Resource {
 							Default:  false,
 						},
 
+						// TODO: Remove after deprecation
+						"enable_triple_des_ciphers": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							Default:       false,
+							ConflictsWith: []string{"triple_des_ciphers_enabled"},
+							Deprecated:    "this has been renamed to the boolean attribute `triple_des_ciphers_enabled`.",
+						},
+
 						"triple_des_ciphers_enabled": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
+							Type:          schema.TypeBool,
+							Optional:      true,
+							Default:       false,
+							ConflictsWith: []string{"enable_triple_des_ciphers"},
 						},
 
 						"tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled": {
@@ -1205,7 +1215,14 @@ func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*str
 		frontendProtocolSsl3 = v["enable_frontend_ssl30"].(bool)
 		frontendProtocolTls10 = v["enable_frontend_tls10"].(bool)
 		frontendProtocolTls11 = v["enable_frontend_tls11"].(bool)
-		tripleDesCiphers = v["triple_des_ciphers_enabled"].(bool)
+
+		// TODO: Remove and simplify after deprecation
+		if v, ok := d.GetOk("enable_triple_des_ciphers"); ok {
+			tripleDesCiphers = v.(bool)
+		}
+		if v, ok := d.GetOk("triple_des_ciphers_enabled"); ok {
+			tripleDesCiphers = v.(bool)
+		}
 
 		tlsEcdheEcdsaWithAes256CbcShaCiphers = v["tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled"].(bool)
 		tlsEcdheEcdsaWithAes128CbcShaCiphers = v["tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled"].(bool)
@@ -1269,6 +1286,7 @@ func flattenApiManagementSecurityCustomProperties(input map[string]*string) []in
 	output["enable_frontend_ssl30"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolSsl3)
 	output["enable_frontend_tls10"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls10)
 	output["enable_frontend_tls11"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls11)
+	output["enable_triple_des_ciphers"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers)
 	output["triple_des_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers)
 	output["tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheEcdsaWithAes256CbcShaCiphers)
 	output["tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheEcdsaWithAes128CbcShaCiphers)
