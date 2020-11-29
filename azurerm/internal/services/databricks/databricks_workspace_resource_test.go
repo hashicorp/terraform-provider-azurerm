@@ -113,7 +113,7 @@ func TestAccDatabricksWorkspace_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, "standard"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("managed_resource_group_id").Exists(),
@@ -131,7 +131,7 @@ func TestAccDatabricksWorkspace_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, "standard"),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -193,6 +193,35 @@ func TestAccDatabricksWorkspace_update(t *testing.T) {
 	})
 }
 
+func TestAccDatabricksWorkspace_updateSKU(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+	r := DatabricksWorkspaceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "trial"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data, "standard"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data, "trial"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t DatabricksWorkspaceResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.WorkspaceID(state.ID)
 	if err != nil {
@@ -207,7 +236,7 @@ func (t DatabricksWorkspaceResource) Exists(ctx context.Context, clients *client
 	return utils.Bool(resp.WorkspaceProperties != nil), nil
 }
 
-func (DatabricksWorkspaceResource) basic(data acceptance.TestData) string {
+func (DatabricksWorkspaceResource) basic(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -222,13 +251,13 @@ resource "azurerm_databricks_workspace" "test" {
   name                = "acctestDBW-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "standard"
+  sku                 = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku)
 }
 
 func (DatabricksWorkspaceResource) requiresImport(data acceptance.TestData) string {
-	template := DatabricksWorkspaceResource{}.basic(data)
+	template := DatabricksWorkspaceResource{}.basic(data, "standard")
 	return fmt.Sprintf(`
 %s
 
