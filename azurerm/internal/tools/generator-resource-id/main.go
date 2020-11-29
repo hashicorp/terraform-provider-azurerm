@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"time"
 	"unicode"
 )
 
@@ -660,11 +659,18 @@ func goFmtAndWriteToFile(filePath, fileContents string) error {
 type GolangCodeFormatter struct{}
 
 func (f GolangCodeFormatter) Format(input string) (*string, error) {
-	filePath := f.randomFilePath()
-	if err := f.writeContentsToFile(filePath, input); err != nil {
+	tmpfile, err := ioutil.TempFile("", "temp-*.go")
+	if err != nil {
+		return nil, fmt.Errorf("creating temp file: %+v", err)
+	}
+
+	defer os.Remove(tmpfile.Name()) // clean up
+
+	filePath := tmpfile.Name()
+
+	if _, err := tmpfile.WriteString(input); err != nil {
 		return nil, fmt.Errorf("writing contents to %q: %+v", filePath, err)
 	}
-	defer f.deleteFileContents(filePath)
 
 	f.runGoFmt(filePath)
 	f.runGoImports(filePath)
@@ -675,11 +681,6 @@ func (f GolangCodeFormatter) Format(input string) (*string, error) {
 	}
 
 	return contents, nil
-}
-
-func (f GolangCodeFormatter) randomFilePath() string {
-	time := time.Now().Unix()
-	return fmt.Sprintf("%stemp-%d.go", os.TempDir(), time)
 }
 
 func (f GolangCodeFormatter) runGoFmt(filePath string) {
@@ -696,10 +697,6 @@ func (f GolangCodeFormatter) runGoImports(filePath string) {
 	_ = cmd.Wait()
 }
 
-func (f GolangCodeFormatter) deleteFileContents(filePath string) {
-	_ = os.Remove(filePath)
-}
-
 func (f GolangCodeFormatter) readFileContents(filePath string) (*string, error) {
 	data, err := ioutil.ReadFile(filePath)
 	if err != nil {
@@ -708,18 +705,4 @@ func (f GolangCodeFormatter) readFileContents(filePath string) (*string, error) 
 
 	contents := string(data)
 	return &contents, nil
-}
-
-func (GolangCodeFormatter) writeContentsToFile(filePath, contents string) error {
-	file, err := os.Create(filePath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	if _, err = file.WriteString(contents); err != nil {
-		return err
-	}
-
-	return nil
 }
