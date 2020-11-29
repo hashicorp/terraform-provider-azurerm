@@ -13,6 +13,10 @@ IMPROVEMENTS:
 * `azurerm_postgresql_virtual_network_rule` - validating during import that the ID is for a PostgreSQL Virtual Network Rule [GH-9532]
 * `azurerm_traffic_manager_profile` - allow up to `2147483647` for the `ttl` property [GH-9522]
 
+BUG FIXES:
+
+* `azurerm_storage_account` - fixing an issue where `allow_blob_public_access` and `min_tls_version` are now available is US Government Cloud ([#9128](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9128))
+
 ## 2.38.0 (November 27, 2020)
 
 FEATURES:
