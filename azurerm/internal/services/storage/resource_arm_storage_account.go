@@ -666,12 +666,12 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	// For all Clouds except Public and USGovernmentCloud, don't specify "allow_blob_public_access" and "min_tls_version" in request body.
-	// USGovernmentCloud allow_blob_public_access and min_tls_version allowed as of issue 9128
 	// https://github.com/terraform-providers/terraform-provider-azurerm/issues/7812
 	// https://github.com/terraform-providers/terraform-provider-azurerm/issues/8083
+	// USGovernmentCloud allow_blob_public_access and min_tls_version allowed as of issue 9128
 	// https://github.com/terraform-providers/terraform-provider-azurerm/issues/9128
-	if envName != autorestAzure.PublicCloud.Name || envName != autorestAzure.USGovernmentCloud.Name {
-		if allowBlobPublicAccess || minimumTLSVersion != string(storage.TLS10) {
+	if envName != autorestAzure.PublicCloud.Name && envName != autorestAzure.USGovernmentCloud.Name {
+		if allowBlobPublicAccess && minimumTLSVersion != string(storage.TLS10) {
 			return fmt.Errorf(`"allow_blob_public_access" and "min_tls_version" are not supported for a Storage Account located in %q`, envName)
 		}
 	} else {
@@ -925,7 +925,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/8083
 		// USGovernmentCloud "min_tls_version" allowed as of issue 9128
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/9128
-		if envName != autorestAzure.PublicCloud.Name || envName != autorestAzure.USGovernmentCloud.Name {
+		if envName != autorestAzure.PublicCloud.Name && envName != autorestAzure.USGovernmentCloud.Name {
 			if minimumTLSVersion != string(storage.TLS10) {
 				return fmt.Errorf(`"min_tls_version" is not supported for a Storage Account located in %q`, envName)
 			}
@@ -1142,7 +1142,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/8083
 		// USGovernmentCloud "min_tls_version" allowed as of issue 9128
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/9128
-		if meta.(*clients.Client).Account.Environment.Name != autorestAzure.PublicCloud.Name || meta.(*clients.Client).Account.Environment.Name != autorestAzure.USGovernmentCloud.Name {
+		if meta.(*clients.Client).Account.Environment.Name != autorestAzure.PublicCloud.Name && meta.(*clients.Client).Account.Environment.Name != autorestAzure.USGovernmentCloud.Name {
 			d.Set("min_tls_version", string(storage.TLS10))
 		} else {
 			// For storage account created using old API, the response of GET call will not return "min_tls_version", either.
