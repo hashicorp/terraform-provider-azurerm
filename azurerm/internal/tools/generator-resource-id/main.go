@@ -215,13 +215,18 @@ type ResourceIdGenerator struct {
 }
 
 func (id ResourceIdGenerator) Code() string {
+	insensitive := id.codeForParserInsensitive()
+	stringsImport := ""
+	if strings.Contains(insensitive, "strings") {
+		stringsImport = "\n\t\"strings\""
+	}
 	return fmt.Sprintf(`
 package parse
 
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
 
 import (
-	"fmt"
+	"fmt"%s
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -231,7 +236,7 @@ import (
 %s
 %s
 %s
-`, id.codeForType(), id.codeForConstructor(), id.codeForFormatter(), id.codeForParser(), id.codeForParserInsensitive())
+`, stringsImport, id.codeForType(), id.codeForConstructor(), id.codeForFormatter(), id.codeForParser(), insensitive)
 }
 
 func (id ResourceIdGenerator) codeForType() string {
