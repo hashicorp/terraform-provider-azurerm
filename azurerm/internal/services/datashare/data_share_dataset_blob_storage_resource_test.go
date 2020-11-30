@@ -1,145 +1,113 @@
 package datashare_test
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/datashare/mgmt/2019-11-01/datashare"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccDataShareDataSetBlobStorageFile_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_blob_storage", "test")
+type DataShareDataSetBlobStorageResource struct {
+}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDataShareDataSetDestroy("azurerm_data_share_dataset_blob_storage"),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataShareDataSetBlobStorageFile_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataShareDataSetExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "display_name"),
-				),
-			},
-			data.ImportStep(),
+func TestAccDataShareDataSetBlobStorage_basicFile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_blob_storage", "test")
+	r := DataShareDataSetBlobStorageResource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basicFile(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("display_name").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccDataShareDataSetBlobStorageFolder_basic(t *testing.T) {
+func TestAccDataShareDataSetBlobStorage_basicFolder(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_blob_storage", "test")
+	r := DataShareDataSetBlobStorageResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDataShareDataSetDestroy("azurerm_data_share_dataset_blob_storage"),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataShareDataSetBlobStorageFolder_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataShareDataSetExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "display_name"),
-				),
-			},
-			data.ImportStep(),
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basicFolder(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("display_name").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccDataShareDataSetBlobStorageContainer_basic(t *testing.T) {
+func TestAccDataShareDataSetBlobStorage_basicContainer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_blob_storage", "test")
+	r := DataShareDataSetBlobStorageResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDataShareDataSetDestroy("azurerm_data_share_dataset_blob_storage"),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataShareDataSetBlobStorageContainer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataShareDataSetExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "display_name"),
-				),
-			},
-			data.ImportStep(),
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basicContainer(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("display_name").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccDataShareDataSetBlobStorage_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_blob_storage", "test")
+	r := DataShareDataSetBlobStorageResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDataShareDataSetDestroy("azurerm_data_share_dataset_blob_storage"),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataShareDataSetBlobStorageFile_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataShareDataSetExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccDataShareDataSetBlobStorage_requiresImport),
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basicFile(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckDataShareDataSetExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).DataShare.DataSetClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("DataShare DataSet not found: %s", resourceName)
-		}
-		id, err := parse.DataSetID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.ShareName, id.Name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: data share data set %q does not exist", id.Name)
-			}
-			return fmt.Errorf("bad: Get on DataShare DataSet Client: %+v", err)
-		}
-		return nil
+func (t DataShareDataSetBlobStorageResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.DataSetID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	resp, err := clients.DataShare.DataSetClient.Get(ctx, id.ResourceGroup, id.AccountName, id.ShareName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Data Share Data Set %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	switch resp := resp.Value.(type) {
+	case datashare.BlobDataSet:
+		return utils.Bool(resp.BlobProperties != nil), nil
+
+	case datashare.BlobFolderDataSet:
+		return utils.Bool(resp.BlobFolderProperties != nil), nil
+
+	case datashare.BlobContainerDataSet:
+		return utils.Bool(resp.BlobContainerProperties != nil), nil
+	}
+
+	return nil, fmt.Errorf("Data Share Data %q (Resource Group %q / accountName %q / shareName %q) is not a datalake store gen2 dataset", id.Name, id.ResourceGroup, id.AccountName, id.ShareName)
 }
 
-// nolint
-func testCheckDataShareDataSetDestroy(resourceTypeName string) func(s *terraform.State) error {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).DataShare.DataSetClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		for _, rs := range s.RootModule().Resources {
-			if rs.Type != resourceTypeName {
-				continue
-			}
-			id, err := parse.DataSetID(rs.Primary.ID)
-			if err != nil {
-				return err
-			}
-			if resp, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.ShareName, id.Name); err != nil {
-				if !utils.ResponseWasNotFound(resp.Response) {
-					return fmt.Errorf("bad: get on data share data set client: %+v", err)
-				}
-			}
-			return nil
-		}
-		return nil
-	}
-}
-
-func testAccDataShareDataSetBlobStorage_template(data acceptance.TestData) string {
+func (DataShareDataSetBlobStorageResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -194,8 +162,7 @@ resource "azurerm_role_assignment" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(12))
 }
 
-func testAccDataShareDataSetBlobStorageFile_basic(data acceptance.TestData) string {
-	config := testAccDataShareDataSetBlobStorage_template(data)
+func (r DataShareDataSetBlobStorageResource) basicFile(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -213,11 +180,10 @@ resource "azurerm_data_share_dataset_blob_storage" "test" {
     azurerm_role_assignment.test,
   ]
 }
-`, config, data.RandomInteger, os.Getenv("ARM_SUBSCRIPTION_ID"))
+`, r.template(data), data.RandomInteger, os.Getenv("ARM_SUBSCRIPTION_ID"))
 }
 
-func testAccDataShareDataSetBlobStorageFolder_basic(data acceptance.TestData) string {
-	config := testAccDataShareDataSetBlobStorage_template(data)
+func (r DataShareDataSetBlobStorageResource) basicFolder(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -235,11 +201,10 @@ resource "azurerm_data_share_dataset_blob_storage" "test" {
     azurerm_role_assignment.test,
   ]
 }
-`, config, data.RandomInteger, os.Getenv("ARM_SUBSCRIPTION_ID"))
+`, r.template(data), data.RandomInteger, os.Getenv("ARM_SUBSCRIPTION_ID"))
 }
 
-func testAccDataShareDataSetBlobStorageContainer_basic(data acceptance.TestData) string {
-	config := testAccDataShareDataSetBlobStorage_template(data)
+func (r DataShareDataSetBlobStorageResource) basicContainer(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -256,11 +221,10 @@ resource "azurerm_data_share_dataset_blob_storage" "test" {
     azurerm_role_assignment.test,
   ]
 }
-`, config, data.RandomInteger, os.Getenv("ARM_SUBSCRIPTION_ID"))
+`, r.template(data), data.RandomInteger, os.Getenv("ARM_SUBSCRIPTION_ID"))
 }
 
-func testAccDataShareDataSetBlobStorage_requiresImport(data acceptance.TestData) string {
-	config := testAccDataShareDataSetBlobStorageFile_basic(data)
+func (r DataShareDataSetBlobStorageResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -274,5 +238,5 @@ resource "azurerm_data_share_dataset_blob_storage" "import" {
     subscription_id     = azurerm_data_share_dataset_blob_storage.test.storage_account.0.subscription_id
   }
 }
-`, config)
+`, r.basicFile(data))
 }

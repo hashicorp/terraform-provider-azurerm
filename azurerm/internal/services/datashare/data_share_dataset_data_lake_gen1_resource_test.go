@@ -1,73 +1,93 @@
 package datashare_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/datashare/mgmt/2019-11-01/datashare"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccDataShareDataSetDataLakeGen1File_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_data_lake_gen1", "test")
+type DataShareDataSetDataLakeGen1Resource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDataShareDataSetDestroy("azurerm_data_share_dataset_data_lake_gen1"),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataShareDataSetDataLakeGen1File_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataShareDataSetExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "display_name"),
-				),
-			},
-			data.ImportStep(),
+func TestAccDataShareDataSetDataLakeGen1F_basicFile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_data_lake_gen1", "test")
+	r := DataShareDataSetDataLakeGen1Resource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicFile(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("display_name").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccDataShareDataSetDataLakeGen1Folder_basic(t *testing.T) {
+func TestAccDataShareDataSetDataLakeGen1_basicFolder(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_data_lake_gen1", "test")
+	r := DataShareDataSetDataLakeGen1Resource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDataShareDataSetDestroy("azurerm_data_share_dataset_data_lake_gen1"),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataShareDataSetDataLakeGen1Folder_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataShareDataSetExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "display_name"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicFolder(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("display_name").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccDataShareDataSetDataLakeGen1_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_data_lake_gen1", "test")
+	r := DataShareDataSetDataLakeGen1Resource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDataShareDataSetDestroy("azurerm_data_share_dataset_data_lake_gen1"),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataShareDataSetDataLakeGen1File_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataShareDataSetExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccDataShareDataSetDataLakeGen1_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicFile(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testAccDataShareDataSetDataLakeGen1_template(data acceptance.TestData) string {
+func (t DataShareDataSetDataLakeGen1Resource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.DataSetID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := clients.DataShare.DataSetClient.Get(ctx, id.ResourceGroup, id.AccountName, id.ShareName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Data Share Data Set %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	switch resp := resp.Value.(type) {
+	case datashare.ADLSGen1FileDataSet:
+		return utils.Bool(resp.ADLSGen1FileProperties != nil), nil
+
+	case datashare.ADLSGen1FolderDataSet:
+		return utils.Bool(resp.ADLSGen1FolderProperties != nil), nil
+	}
+
+	return nil, fmt.Errorf("Data Share Data %q (Resource Group %q / accountName %q / shareName %q) is not a datalake store gen1 dataset", id.Name, id.ResourceGroup, id.AccountName, id.ShareName)
+}
+
+func (DataShareDataSetDataLakeGen1Resource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -125,8 +145,7 @@ resource "azurerm_role_assignment" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(12))
 }
 
-func testAccDataShareDataSetDataLakeGen1File_basic(data acceptance.TestData) string {
-	config := testAccDataShareDataSetDataLakeGen1_template(data)
+func (r DataShareDataSetDataLakeGen1Resource) basicFile(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -140,11 +159,10 @@ resource "azurerm_data_share_dataset_data_lake_gen1" "test" {
     azurerm_role_assignment.test,
   ]
 }
-`, config, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccDataShareDataSetDataLakeGen1Folder_basic(data acceptance.TestData) string {
-	config := testAccDataShareDataSetDataLakeGen1_template(data)
+func (r DataShareDataSetDataLakeGen1Resource) basicFolder(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -157,11 +175,10 @@ resource "azurerm_data_share_dataset_data_lake_gen1" "test" {
     azurerm_role_assignment.test,
   ]
 }
-`, config, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccDataShareDataSetDataLakeGen1_requiresImport(data acceptance.TestData) string {
-	config := testAccDataShareDataSetDataLakeGen1File_basic(data)
+func (r DataShareDataSetDataLakeGen1Resource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_data_share_dataset_data_lake_gen1" "import" {
@@ -170,5 +187,5 @@ resource "azurerm_data_share_dataset_data_lake_gen1" "import" {
   data_lake_store_id = azurerm_data_share_dataset_data_lake_gen1.test.data_lake_store_id
   folder_path        = azurerm_data_share_dataset_data_lake_gen1.test.folder_path
 }
-`, config)
+`, r.basicFile(data))
 }

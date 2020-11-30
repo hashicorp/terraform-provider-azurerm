@@ -6,31 +6,29 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
+
+type DataShareDatasetKustoDatabaseDataSource struct {
+}
 
 func TestAccDataShareDatasetKustoDatabaseDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_share_dataset_kusto_database", "test")
+	r := DataShareDatasetKustoDatabaseDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDataShareDataSetDestroy("azurerm_data_share_dataset_kusto_database"),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceDataShareDatasetKustoDatabase_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataShareDataSetExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "kusto_database_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "display_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "kusto_cluster_location"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("kusto_database_id").Exists(),
+				check.That(data.ResourceName).Key("display_name").Exists(),
+				check.That(data.ResourceName).Key("kusto_cluster_location").Exists(),
+			),
 		},
 	})
 }
 
-func testAccDataSourceDataShareDatasetKustoDatabase_basic(data acceptance.TestData) string {
-	config := testAccDataShareDataSetKustoDatabase_basic(data)
+func (DataShareDatasetKustoDatabaseDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -38,5 +36,5 @@ data "azurerm_data_share_dataset_kusto_database" "test" {
   name     = azurerm_data_share_dataset_kusto_database.test.name
   share_id = azurerm_data_share_dataset_kusto_database.test.share_id
 }
-`, config)
+`, DataShareDataSetKustoDatabaseResource{}.basic(data))
 }

@@ -6,32 +6,30 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
+
+type DataShareDatasetDataLakeGen2DataSource struct {
+}
 
 func TestAccDataShareDatasetDataLakeGen2DataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_share_dataset_data_lake_gen2", "test")
+	r := DataShareDatasetDataLakeGen2DataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDataShareDataSetDestroy("azurerm_data_share_dataset_data_lake_gen2"),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceDataShareDatasetDataLakeGen2_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataShareDataSetExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "storage_account_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "file_system_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "file_path"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "display_name"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("storage_account_id").Exists(),
+				check.That(data.ResourceName).Key("file_system_name").Exists(),
+				check.That(data.ResourceName).Key("file_path").Exists(),
+				check.That(data.ResourceName).Key("display_name").Exists(),
+			),
 		},
 	})
 }
 
-func testAccDataSourceDataShareDatasetDataLakeGen2_basic(data acceptance.TestData) string {
-	config := testAccDataShareDataSetDataLakeGen2File_basic(data)
+func (DataShareDatasetDataLakeGen2DataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -39,5 +37,5 @@ data "azurerm_data_share_dataset_data_lake_gen2" "test" {
   name     = azurerm_data_share_dataset_data_lake_gen2.test.name
   share_id = azurerm_data_share_dataset_data_lake_gen2.test.share_id
 }
-`, config)
+`, DataShareDataSetDataLakeGen2Resource{}.basicFile(data))
 }

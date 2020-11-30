@@ -1,54 +1,74 @@
 package datashare_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+type DataShareDataSetKustoDatabaseResource struct {
+}
 
 func TestAccDataShareDataSetKustoDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_kusto_database", "test")
+	r := DataShareDataSetKustoDatabaseResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDataShareDataSetDestroy("azurerm_data_share_dataset_kusto_database"),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataShareDataSetKustoDatabase_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataShareDataSetExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "display_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "kusto_cluster_location"),
-				),
-			},
-			data.ImportStep(),
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("display_name").Exists(),
+				check.That(data.ResourceName).Key("kusto_cluster_location").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccDataShareDataSetKustoDatabase_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_kusto_database", "test")
+	r := DataShareDataSetKustoDatabaseResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDataShareDataSetDestroy("azurerm_data_share_dataset_kusto_database"),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataShareDataSetKustoDatabase_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataShareDataSetExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccDataShareDataSetKustoDatabase_requiresImport),
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testAccDataShareDataSetKustoDatabase_template(data acceptance.TestData) string {
+func (t DataShareDataSetKustoDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.DataSetID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	respRaw, err := clients.DataShare.DataSetClient.Get(ctx, id.ResourceGroup, id.AccountName, id.ShareName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Data Share Data Set %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	resp, ok := respRaw.Value.AsKustoDatabaseDataSet()
+	if !ok {
+		return nil, fmt.Errorf("Data Share Data Set %q (Resource Group %q / accountName %q) is not Kusto Database DataSet", id.ShareName, id.ResourceGroup, id.AccountName)
+	}
+
+	return utils.Bool(resp.KustoDatabaseDataSetProperties != nil), nil
+}
+
+func (DataShareDataSetKustoDatabaseResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -100,8 +120,7 @@ resource "azurerm_role_assignment" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(12))
 }
 
-func testAccDataShareDataSetKustoDatabase_basic(data acceptance.TestData) string {
-	config := testAccDataShareDataSetKustoDatabase_template(data)
+func (r DataShareDataSetKustoDatabaseResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -113,11 +132,10 @@ resource "azurerm_data_share_dataset_kusto_database" "test" {
     azurerm_role_assignment.test,
   ]
 }
-`, config, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccDataShareDataSetKustoDatabase_requiresImport(data acceptance.TestData) string {
-	config := testAccDataShareDataSetKustoDatabase_basic(data)
+func (r DataShareDataSetKustoDatabaseResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -126,5 +144,5 @@ resource "azurerm_data_share_dataset_kusto_database" "import" {
   share_id          = azurerm_data_share.test.id
   kusto_database_id = azurerm_kusto_database.test.id
 }
-`, config)
+`, r.template(data))
 }
