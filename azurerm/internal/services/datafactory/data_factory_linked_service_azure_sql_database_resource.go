@@ -176,28 +176,28 @@ func resourceArmDataFactoryLinkedServiceAzureSQLDatabaseRead(d *schema.ResourceD
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataFactoryLinkedServiceID(d.Id())
+	id, err := parse.LinkedServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.DataFactory, id.Name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Data Factory Linked Service AzureSQLDatabase %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.DataFactory, id.ResourceGroup, err)
+		return fmt.Errorf("Error retrieving Data Factory Linked Service AzureSQLDatabase %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("data_factory_name", id.DataFactory)
+	d.Set("data_factory_name", id.FactoryName)
 
 	sql, ok := resp.Properties.AsAzureSQLDatabaseLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service AzureSQLDatabase %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.DataFactory, id.ResourceGroup, datafactory.TypeAzureSQLDatabase, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service AzureSQLDatabase %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeAzureSQLDatabase, *resp.Type)
 	}
 
 	d.Set("additional_properties", sql.AdditionalProperties)
@@ -227,15 +227,15 @@ func resourceArmDataFactoryLinkedServiceAzureSQLDatabaseDelete(d *schema.Resourc
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataFactoryLinkedServiceID(d.Id())
+	id, err := parse.LinkedServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	response, err := client.Delete(ctx, id.ResourceGroup, id.DataFactory, id.Name)
+	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("deleting Data Factory Linked Service AzureSQLDatabase %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.DataFactory, id.ResourceGroup, err)
+			return fmt.Errorf("deleting Data Factory Linked Service AzureSQLDatabase %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.FactoryName, id.ResourceGroup, err)
 		}
 	}
 

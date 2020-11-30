@@ -1147,7 +1147,6 @@ func testCheckAzureRMApplicationGatewayDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := client.Get(ctx, resourceGroup, gatewayName)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
@@ -4419,6 +4418,7 @@ resource "azurerm_application_gateway" "test" {
 }
 `, template, data.RandomInteger)
 }
+
 func testAccAzureRMApplicationGateway_webApplicationFirewall_disabledRuleGroups(data acceptance.TestData) string {
 	template := testAccAzureRMApplicationGateway_template(data)
 	return fmt.Sprintf(`
@@ -4736,6 +4736,7 @@ resource "azurerm_application_gateway" "test" {
 }
 `, template, data.RandomInteger, data.RandomInteger)
 }
+
 func testAccAzureRMApplicationGateway_webApplicationFirewall_exclusions_one(data acceptance.TestData) string {
 	template := testAccAzureRMApplicationGateway_template(data)
 	return fmt.Sprintf(`

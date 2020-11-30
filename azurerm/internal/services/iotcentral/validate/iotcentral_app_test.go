@@ -60,7 +60,8 @@ func TestIotCentralAppName(t *testing.T) {
 		{
 			Value: "abcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcde123",
 			Error: false,
-		}, {
+		},
+		{
 			Value: "a",
 			Error: true,
 		},

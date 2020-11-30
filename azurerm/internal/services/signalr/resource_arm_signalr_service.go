@@ -34,7 +34,7 @@ func resourceArmSignalRService() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.SignalRServiceID(id)
+			_, err := parse.ServiceID(id)
 			return err
 		}),
 
@@ -227,27 +227,27 @@ func resourceArmSignalRServiceRead(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SignalRServiceID(d.Id())
+	id, err := parse.ServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.SignalRName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] SignalR %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] SignalR %q was not found in Resource Group %q - removing from state!", id.SignalRName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error getting SignalR %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error getting SignalR %q (Resource Group %q): %+v", id.SignalRName, id.ResourceGroup, err)
 	}
 
-	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.Name)
+	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.SignalRName)
 	if err != nil {
-		return fmt.Errorf("Error getting keys of SignalR %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error getting keys of SignalR %q (Resource Group %q): %+v", id.SignalRName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.SignalRName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	if location := resp.Location; location != nil {
@@ -286,7 +286,7 @@ func resourceArmSignalRServiceUpdate(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SignalRServiceID(d.Id())
+	id, err := parse.ServiceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -317,12 +317,12 @@ func resourceArmSignalRServiceUpdate(d *schema.ResourceData, meta interface{}) e
 		parameters.Tags = tags.Expand(tagsRaw)
 	}
 
-	future, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters)
+	future, err := client.Update(ctx, id.ResourceGroup, id.SignalRName, parameters)
 	if err != nil {
-		return fmt.Errorf("updating SignalR Service %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("updating SignalR Service %q (Resource Group %q): %+v", id.SignalRName, id.ResourceGroup, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the update of SignalR Service %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for the update of SignalR Service %q (Resource Group %q): %+v", id.SignalRName, id.ResourceGroup, err)
 	}
 
 	return resourceArmSignalRServiceRead(d, meta)
@@ -333,21 +333,21 @@ func resourceArmSignalRServiceDelete(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SignalRServiceID(d.Id())
+	id, err := parse.ServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.SignalRName)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("deleting SignalR Service %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("deleting SignalR Service %q (Resource Group %q): %+v", id.SignalRName, id.ResourceGroup, err)
 		}
 		return nil
 	}
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for the deletion of SignalR Service %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for the deletion of SignalR Service %q (Resource Group %q): %+v", id.SignalRName, id.ResourceGroup, err)
 		}
 	}
 

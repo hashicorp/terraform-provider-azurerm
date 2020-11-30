@@ -14,7 +14,7 @@ func MariaDbServerServerID(i interface{}, k string) (warnings []string, errors [
 		return warnings, errors
 	}
 
-	if _, err := parse.MariaDbServerServerID(v); err != nil {
+	if _, err := parse.ServerID(v); err != nil {
 		errors = append(errors, fmt.Errorf("cannot parse %q as a MariaDB Server resource id: %v", k, err))
 	}
 

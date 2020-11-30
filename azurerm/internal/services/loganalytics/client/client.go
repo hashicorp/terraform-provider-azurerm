@@ -7,6 +7,7 @@ import (
 )
 
 type Client struct {
+	ClusterClient              *operationalinsights.ClustersClient
 	DataExportClient           *operationalinsights.DataExportsClient
 	DataSourcesClient          *operationalinsights.DataSourcesClient
 	LinkedServicesClient       *operationalinsights.LinkedServicesClient
@@ -19,6 +20,9 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) *Client {
+	ClusterClient := operationalinsights.NewClustersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ClusterClient.Client, o.ResourceManagerAuthorizer)
+
 	DataExportClient := operationalinsights.NewDataExportsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&DataExportClient.Client, o.ResourceManagerAuthorizer)
 
@@ -47,6 +51,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&LinkedStorageAccountClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
+		ClusterClient:              &ClusterClient,
 		DataExportClient:           &DataExportClient,
 		DataSourcesClient:          &DataSourcesClient,
 		LinkedServicesClient:       &LinkedServicesClient,

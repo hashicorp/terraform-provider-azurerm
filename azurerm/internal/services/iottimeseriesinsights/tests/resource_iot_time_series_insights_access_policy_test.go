@@ -75,7 +75,7 @@ func testCheckAzureRMIoTTimeSeriesInsightsAccessPolicyExists(name string) resour
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		id, err := parse.TimeSeriesInsightsAccessPolicyID(rs.Primary.ID)
+		id, err := parse.AccessPolicyID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -98,12 +98,11 @@ func testCheckAzureRMIoTTimeSeriesInsightsAccessPolicyDestroy(s *terraform.State
 			continue
 		}
 
-		id, err := parse.TimeSeriesInsightsAccessPolicyID(rs.Primary.ID)
+		id, err := parse.AccessPolicyID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 		resp, err := client.Get(ctx, id.ResourceGroup, id.EnvironmentName, id.Name)
-
 		if err != nil {
 			return nil
 		}

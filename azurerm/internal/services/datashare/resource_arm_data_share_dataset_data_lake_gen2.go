@@ -13,7 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare/helper"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare/validate"
-	storageParsers "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
+	storageParsers "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -32,7 +32,7 @@ func resourceArmDataShareDataSetDataLakeGen2() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DataShareDataSetID(id)
+			_, err := parse.DataSetID(id)
 			return err
 		}),
 
@@ -88,13 +88,14 @@ func resourceArmDataShareDataSetDataLakeGen2() *schema.Resource {
 		},
 	}
 }
+
 func resourceArmDataShareDataSetDataLakeGen2Create(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
-	shareId, err := parse.DataShareID(d.Get("share_id").(string))
+	shareId, err := parse.ShareID(d.Get("share_id").(string))
 	if err != nil {
 		return err
 	}
@@ -110,7 +111,7 @@ func resourceArmDataShareDataSetDataLakeGen2Create(d *schema.ResourceData, meta 
 		return tf.ImportAsExistsError("azurerm_data_share_dataset_data_lake_gen2", *existingId)
 	}
 
-	strId, err := storageParsers.ParseAccountID(d.Get("storage_account_id").(string))
+	strId, err := storageParsers.StorageAccountID(d.Get("storage_account_id").(string))
 	if err != nil {
 		return err
 	}
@@ -175,7 +176,7 @@ func resourceArmDataShareDataSetDataLakeGen2Read(d *schema.ResourceData, meta in
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataShareDataSetID(d.Id())
+	id, err := parse.DataSetID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -235,7 +236,7 @@ func resourceArmDataShareDataSetDataLakeGen2Delete(d *schema.ResourceData, meta 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataShareDataSetID(d.Id())
+	id, err := parse.DataSetID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -40,7 +40,7 @@ func PostgreSQLServerID(i interface{}, k string) (warnings []string, errors []er
 		return warnings, errors
 	}
 
-	if _, err := parse.PostgreSQLServerID(v); err != nil {
+	if _, err := parse.ServerID(v); err != nil {
 		errors = append(errors, fmt.Errorf("Can not parse %q as a Postgres Server resource id: %v", k, err))
 	}
 

@@ -239,7 +239,9 @@ func testCheckAzureRMCertHostingEnvProfileIdMatchesAseId(aseResourceName, certRe
 			return fmt.Errorf("Bad: Get on certificatesClient: %+v", err)
 		}
 
-		if *certResp.HostingEnvironmentProfile.ID != aseId {
+		if certResp.HostingEnvironmentProfile == nil || certResp.HostingEnvironmentProfile.ID == nil {
+			return fmt.Errorf("bad: Certificate hostingEnvironmentProfile or ID was nil")
+		} else if *certResp.HostingEnvironmentProfile.ID != aseId {
 			return fmt.Errorf("Bad: Certificate hostingEnvironmentProfile.ID (%s) not equal to ASE ID (%s)", *certResp.HostingEnvironmentProfile.ID, aseId)
 		}
 
@@ -259,7 +261,6 @@ func testCheckAzureRMAppServiceEnvironmentDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil

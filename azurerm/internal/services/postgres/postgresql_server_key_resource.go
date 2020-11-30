@@ -29,7 +29,7 @@ func resourceArmPostgreSQLServerKey() *schema.Resource {
 		Delete: resourceArmPostgreSQLServerKeyDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.PostgreSQLServerKeyID(id)
+			_, err := parse.ServerKeyID(id)
 			return err
 		}),
 
@@ -70,7 +70,7 @@ func getPostgreSQLServerKeyName(ctx context.Context, vaultsClient *keyvault.Vaul
 	if keyVaultIDRaw == nil {
 		return nil, fmt.Errorf("cannot get the keyvault ID from keyvault URL %q", keyVaultKeyID.KeyVaultBaseUrl)
 	}
-	keyVaultID, err := keyVaultParse.KeyVaultID(*keyVaultIDRaw)
+	keyVaultID, err := keyVaultParse.VaultID(*keyVaultIDRaw)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func resourceArmPostgreSQLServerKeyCreateUpdate(d *schema.ResourceData, meta int
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	serverID, err := parse.PostgreSQLServerID(d.Get("server_id").(string))
+	serverID, err := parse.ServerID(d.Get("server_id").(string))
 	if err != nil {
 		return err
 	}
@@ -146,20 +146,20 @@ func resourceArmPostgreSQLServerKeyRead(d *schema.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PostgreSQLServerKeyID(d.Id())
+	id, err := parse.ServerKeyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := keysClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	resp, err := keysClient.Get(ctx, id.ResourceGroup, id.ServerName, id.KeyName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] PostgreSQL Server Key %q was not found (Resource Group %q / Server %q)", id.Name, id.ResourceGroup, id.ServerName)
+			log.Printf("[WARN] PostgreSQL Server Key %q was not found (Resource Group %q / Server %q)", id.KeyName, id.ResourceGroup, id.ServerName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving PostgreSQL Server Key %q (Resource Group %q / Server %q): %+v", id.Name, id.ResourceGroup, id.ServerName, err)
+		return fmt.Errorf("retrieving PostgreSQL Server Key %q (Resource Group %q / Server %q): %+v", id.KeyName, id.ResourceGroup, id.ServerName, err)
 	}
 
 	respServer, err := serversClient.Get(ctx, id.ResourceGroup, id.ServerName)
@@ -180,7 +180,7 @@ func resourceArmPostgreSQLServerKeyDelete(d *schema.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PostgreSQLServerKeyID(d.Id())
+	id, err := parse.ServerKeyID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -188,12 +188,12 @@ func resourceArmPostgreSQLServerKeyDelete(d *schema.ResourceData, meta interface
 	locks.ByName(id.ServerName, postgreSQLServerResourceName)
 	defer locks.UnlockByName(id.ServerName, postgreSQLServerResourceName)
 
-	future, err := client.Delete(ctx, id.ServerName, id.Name, id.ResourceGroup)
+	future, err := client.Delete(ctx, id.ServerName, id.KeyName, id.ResourceGroup)
 	if err != nil {
-		return fmt.Errorf("deleting PostgreSQL Server Key %q (Resource Group %q / Server %q): %+v", id.Name, id.ResourceGroup, id.ServerName, err)
+		return fmt.Errorf("deleting PostgreSQL Server Key %q (Resource Group %q / Server %q): %+v", id.KeyName, id.ResourceGroup, id.ServerName, err)
 	}
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of PostgreSQL Server Key %q (Resource Group %q / Server %q): %+v", id.Name, id.ResourceGroup, id.ServerName, err)
+		return fmt.Errorf("waiting for deletion of PostgreSQL Server Key %q (Resource Group %q / Server %q): %+v", id.KeyName, id.ResourceGroup, id.ServerName, err)
 	}
 
 	return nil

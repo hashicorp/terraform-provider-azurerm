@@ -17,10 +17,9 @@ func resourceStorageShareStateResourceV0V1() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: ValidateArmStorageShareName,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
 			"resource_group_name": azure.SchemaResourceGroupName(),
 			"storage_account_name": {

@@ -66,9 +66,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `os_disk_size_gb` - The size of the OS Disk on each Node in this Node Pool.
 
+* `os_disk_type` - The type of the OS Disk on each Node in this Node Pool.
+
 * `os_type` - The operating system used on each Node in this Node Pool.
 
 * `priority` - The priority of the Virtual Machines in the Virtual Machine Scale Set backing this Node Pool.
+
+* `proximity_placement_group_id` - The ID of the Proximity Placement Group where the Virtual Machine Scale Set backing this Node Pool will be placed.
 
 * `spot_max_price` - The maximum price being paid for Virtual Machines in this Scale Set. `-1` means the current on-demand price for a Virtual Machine.
 

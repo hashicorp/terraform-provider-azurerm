@@ -18,15 +18,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAutomationConnectionClassicCertificate() *schema.Resource {
+func resourceAutomationConnectionClassicCertificate() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAutomationConnectionClassicCertificateCreateUpdate,
-		Read:   resourceArmAutomationConnectionClassicCertificateRead,
-		Update: resourceArmAutomationConnectionClassicCertificateCreateUpdate,
-		Delete: resourceArmAutomationConnectionClassicCertificateDelete,
+		Create: resourceAutomationConnectionClassicCertificateCreateUpdate,
+		Read:   resourceAutomationConnectionClassicCertificateRead,
+		Update: resourceAutomationConnectionClassicCertificateCreateUpdate,
+		Delete: resourceAutomationConnectionClassicCertificateDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
-			_, err := parse.AutomationConnectionID(id)
+			_, err := parse.ConnectionID(id)
 			return err
 		}, importAutomationConnection("AzureClassicCertificate")),
 
@@ -80,7 +80,7 @@ func resourceArmAutomationConnectionClassicCertificate() *schema.Resource {
 	}
 }
 
-func resourceArmAutomationConnectionClassicCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionClassicCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.ConnectionClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -134,20 +134,20 @@ func resourceArmAutomationConnectionClassicCertificateCreateUpdate(d *schema.Res
 
 	d.SetId(*read.ID)
 
-	return resourceArmAutomationConnectionClassicCertificateRead(d, meta)
+	return resourceAutomationConnectionClassicCertificateRead(d, meta)
 }
 
-func resourceArmAutomationConnectionClassicCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionClassicCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.ConnectionClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AutomationConnectionID(d.Id())
+	id, err := parse.ConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -159,7 +159,7 @@ func resourceArmAutomationConnectionClassicCertificateRead(d *schema.ResourceDat
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("automation_account_name", id.AccountName)
+	d.Set("automation_account_name", id.AutomationAccountName)
 	d.Set("description", resp.Description)
 
 	if props := resp.ConnectionProperties; props != nil {
@@ -177,17 +177,17 @@ func resourceArmAutomationConnectionClassicCertificateRead(d *schema.ResourceDat
 	return nil
 }
 
-func resourceArmAutomationConnectionClassicCertificateDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionClassicCertificateDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.ConnectionClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AutomationConnectionID(d.Id())
+	id, err := parse.ConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.AccountName, id.Name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil

@@ -22,12 +22,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmCdnEndpoint() *schema.Resource {
+func resourceCdnEndpoint() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCdnEndpointCreate,
-		Read:   resourceArmCdnEndpointRead,
-		Update: resourceArmCdnEndpointUpdate,
-		Delete: resourceArmCdnEndpointDelete,
+		Create: resourceCdnEndpointCreate,
+		Read:   resourceCdnEndpointRead,
+		Update: resourceCdnEndpointUpdate,
+		Delete: resourceCdnEndpointDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -37,7 +37,7 @@ func resourceArmCdnEndpoint() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.CdnEndpointID(id)
+			_, err := parse.EndpointID(id)
 			return err
 		}),
 
@@ -214,7 +214,7 @@ func resourceArmCdnEndpoint() *schema.Resource {
 	}
 }
 
-func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCdnEndpointCreate(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	endpointsClient := meta.(*clients.Client).Cdn.EndpointsClient
 	profilesClient := meta.(*clients.Client).Cdn.ProfilesClient
@@ -316,22 +316,22 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error retrieving CDN Endpoint %q (Profile %q / Resource Group %q): %+v", name, profileName, resourceGroup, err)
 	}
 
-	id, err := parse.CdnEndpointID(*read.ID)
+	id, err := parse.EndpointID(*read.ID)
 	if err != nil {
 		return err
 	}
 
 	d.SetId(id.ID(subscriptionId))
 
-	return resourceArmCdnEndpointRead(d, meta)
+	return resourceCdnEndpointRead(d, meta)
 }
 
-func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
 	endpointsClient := meta.(*clients.Client).Cdn.EndpointsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CdnEndpointID(d.Id())
+	id, err := parse.EndpointID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -405,15 +405,15 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error waiting for the CDN Endpoint %q (Profile %q / Resource Group %q) to finish updating: %+v", id.Name, id.ProfileName, id.ResourceGroup, err)
 	}
 
-	return resourceArmCdnEndpointRead(d, meta)
+	return resourceCdnEndpointRead(d, meta)
 }
 
-func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error {
+func resourceCdnEndpointRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.EndpointsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CdnEndpointID(d.Id())
+	id, err := parse.EndpointID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -484,12 +484,12 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmCdnEndpointDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceCdnEndpointDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.EndpointsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CdnEndpointID(d.Id())
+	id, err := parse.EndpointID(d.Id())
 	if err != nil {
 		return err
 	}

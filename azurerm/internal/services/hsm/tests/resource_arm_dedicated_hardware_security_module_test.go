@@ -127,9 +127,9 @@ func testCheckAzureRMDedicatedHardwareSecurityModuleExists(resourceName string) 
 		if err != nil {
 			return err
 		}
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.DedicatedHSMName); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Dedicated HardwareSecurityModule %q does not exist", id.Name)
+				return fmt.Errorf("bad: Dedicated HardwareSecurityModule %q does not exist", id.DedicatedHSMName)
 			}
 			return fmt.Errorf("bad: Get on HardwareSecurityModules.DedicatedHsmClient: %+v", err)
 		}
@@ -149,7 +149,7 @@ func testCheckAzureRMDedicatedHardwareSecurityModuleDestroy(s *terraform.State) 
 		if err != nil {
 			return err
 		}
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.DedicatedHSMName); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("bad: Get on HardwareSecurityModules.DedicatedHsmClient: %+v", err)
 			}

@@ -797,7 +797,7 @@ func keyVaultRefreshFunc(vaultUri string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		log.Printf("[DEBUG] Checking to see if KeyVault %q is available..", vaultUri)
 
-		var PTransport = &http.Transport{Proxy: http.ProxyFromEnvironment}
+		PTransport := &http.Transport{Proxy: http.ProxyFromEnvironment}
 
 		client := &http.Client{
 			Transport: PTransport,

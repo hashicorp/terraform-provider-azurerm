@@ -29,7 +29,7 @@ func resourceManagedApplicationDefinition() *schema.Resource {
 		Delete: resourceManagedApplicationDefinitionDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.ManagedApplicationDefinitionID(id)
+			_, err := parse.ApplicationDefinitionID(id)
 			return err
 		}),
 
@@ -201,7 +201,7 @@ func resourceManagedApplicationDefinitionRead(d *schema.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ManagedApplicationDefinitionID(d.Id())
+	id, err := parse.ApplicationDefinitionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -249,7 +249,7 @@ func resourceManagedApplicationDefinitionDelete(d *schema.ResourceData, meta int
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ManagedApplicationDefinitionID(d.Id())
+	id, err := parse.ApplicationDefinitionID(d.Id())
 	if err != nil {
 		return err
 	}

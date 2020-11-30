@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -109,7 +109,7 @@ func testCheckAzureRMStorageSyncExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("storage Sync Service not found: %s", resourceName)
 		}
 
-		id, err := parsers.ParseStorageSyncID(rs.Primary.ID)
+		id, err := parse.StorageSyncServiceID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -137,7 +137,7 @@ func testCheckAzureRMStorageSyncDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parsers.ParseStorageSyncID(rs.Primary.ID)
+		id, err := parse.StorageSyncServiceID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

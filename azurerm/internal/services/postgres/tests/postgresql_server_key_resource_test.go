@@ -85,12 +85,12 @@ func testCheckAzureRMPostgreSQLServerKeyDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.PostgreSQLServerKeyID(rs.Primary.ID)
+		id, err := parse.ServerKeyID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.KeyName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("retrieving PostgreSQL Server Key: %+v", err)
@@ -114,15 +114,15 @@ func testCheckAzureRMPostgreSQLServerKeyExists(resourceName string) resource.Tes
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.PostgreSQLServerKeyID(rs.Primary.ID)
+		id, err := parse.ServerKeyID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.KeyName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: PostgreSQL Server Key %q (Resource Group %q / Server %q) does not exist", id.Name, id.ResourceGroup, id.ServerName)
+				return fmt.Errorf("Bad: PostgreSQL Server Key %q (Resource Group %q / Server %q) does not exist", id.KeyName, id.ResourceGroup, id.ServerName)
 			}
 			return fmt.Errorf("Bad: Get on PostgreSQLServerKeysClient: %+v", err)
 		}

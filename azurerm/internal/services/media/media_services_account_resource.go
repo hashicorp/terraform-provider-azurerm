@@ -33,7 +33,7 @@ func resourceArmMediaServicesAccount() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.MediaServicesAccountID(id)
+			_, err := parse.MediaServiceID(id)
 			return err
 		}),
 
@@ -119,7 +119,7 @@ func resourceArmMediaServicesAccountRead(d *schema.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MediaServicesAccountID(d.Id())
+	id, err := parse.MediaServiceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -159,7 +159,7 @@ func resourceArmMediaServicesAccountDelete(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MediaServicesAccountID(d.Id())
+	id, err := parse.MediaServiceID(d.Id())
 	if err != nil {
 		return err
 	}

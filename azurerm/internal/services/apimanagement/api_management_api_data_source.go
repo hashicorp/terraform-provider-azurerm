@@ -180,6 +180,7 @@ func flattenApiManagementApiDataSourceProtocols(input *[]apimanagement.Protocol)
 
 	return results
 }
+
 func flattenApiManagementApiDataSourceSubscriptionKeyParamNames(paramNames *apimanagement.SubscriptionKeyParameterNamesContract) []interface{} {
 	if paramNames == nil {
 		return make([]interface{}, 0)

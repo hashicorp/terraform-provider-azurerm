@@ -30,7 +30,7 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 		Delete: resourceArmMsSqlVirtualMachineDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.MssqlVmID(id)
+			_, err := parse.SqlVirtualMachineID(id)
 			return err
 		}),
 
@@ -291,7 +291,7 @@ func resourceArmMsSqlVirtualMachineRead(d *schema.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MssqlVmID(d.Id())
+	id, err := parse.SqlVirtualMachineID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -346,7 +346,7 @@ func resourceArmMsSqlVirtualMachineDelete(d *schema.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MssqlVmID(d.Id())
+	id, err := parse.SqlVirtualMachineID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -380,7 +380,7 @@ func expandArmSqlVirtualMachineAutoPatchingSettings(input []interface{}) *sqlvir
 }
 
 func flattenArmSqlVirtualMachineAutoPatching(autoPatching *sqlvirtualmachine.AutoPatchingSettings) []interface{} {
-	if autoPatching == nil || !*autoPatching.Enable {
+	if autoPatching == nil || autoPatching.Enable == nil || !*autoPatching.Enable {
 		return []interface{}{}
 	}
 

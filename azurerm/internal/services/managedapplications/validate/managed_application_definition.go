@@ -14,7 +14,7 @@ func ManagedApplicationDefinitionID(i interface{}, k string) (warnings []string,
 		return
 	}
 
-	if _, err := parse.ManagedApplicationDefinitionID(v); err != nil {
+	if _, err := parse.ApplicationDefinitionID(v); err != nil {
 		errors = append(errors, fmt.Errorf("cannot parse %q as a resource id: %v", k, err))
 		return
 	}

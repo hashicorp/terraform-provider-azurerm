@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	dataLakeParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare/parse"
-	StorageParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
+	StorageParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 )
 
 func DataShareAccountName() schema.SchemaValidateFunc {
@@ -30,7 +30,7 @@ func DatashareAccountID(i interface{}, k string) (warnings []string, errors []er
 		return warnings, errors
 	}
 
-	if _, err := parse.DataShareAccountID(v); err != nil {
+	if _, err := parse.AccountID(v); err != nil {
 		errors = append(errors, fmt.Errorf("can not parse %q as a Datashare account id: %v", k, err))
 	}
 
@@ -50,7 +50,7 @@ func DataShareID(i interface{}, k string) (warnings []string, errors []error) {
 		return warnings, errors
 	}
 
-	if _, err := parse.DataShareID(v); err != nil {
+	if _, err := parse.ShareID(v); err != nil {
 		errors = append(errors, fmt.Errorf("can not parse %q as a data share id: %v", k, err))
 	}
 
@@ -70,7 +70,7 @@ func DatalakeStoreID(i interface{}, k string) (warnings []string, errors []error
 		return warnings, errors
 	}
 
-	if _, err := dataLakeParse.DataLakeStoreID(v); err != nil {
+	if _, err := dataLakeParse.AccountID(v); err != nil {
 		errors = append(errors, fmt.Errorf("can not parse %q as a Data Lake Store id: %v", k, err))
 	}
 
@@ -84,7 +84,7 @@ func StorageAccountID(i interface{}, k string) (warnings []string, errors []erro
 		return warnings, errors
 	}
 
-	if _, err := StorageParse.ParseAccountID(v); err != nil {
+	if _, err := StorageParse.StorageAccountID(v); err != nil {
 		errors = append(errors, fmt.Errorf("can not parse %q as a Storage Account id: %v", k, err))
 	}
 

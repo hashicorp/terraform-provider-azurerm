@@ -99,13 +99,11 @@ func schemaKubernetesAddOnProfiles() *schema.Schema {
 				"http_application_routing": {
 					Type:     schema.TypeList,
 					MaxItems: 1,
-					ForceNew: true,
 					Optional: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"enabled": {
 								Type:     schema.TypeBool,
-								ForceNew: true,
 								Required: true,
 							},
 							"http_application_routing_zone_name": {
@@ -248,7 +246,7 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 }
 
 func filterUnsupportedKubernetesAddOns(input map[string]*containerservice.ManagedClusterAddonProfile, env azure.Environment) (*map[string]*containerservice.ManagedClusterAddonProfile, error) {
-	var filter = func(input map[string]*containerservice.ManagedClusterAddonProfile, key string) (*map[string]*containerservice.ManagedClusterAddonProfile, error) {
+	filter := func(input map[string]*containerservice.ManagedClusterAddonProfile, key string) (*map[string]*containerservice.ManagedClusterAddonProfile, error) {
 		output := input
 		if v, ok := output[key]; ok {
 			if v.Enabled != nil && *v.Enabled {

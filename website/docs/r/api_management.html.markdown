@@ -83,7 +83,8 @@ The following arguments are supported:
 
 * `sign_up` - (Optional) A `sign_up` block as defined below.
 
-* `virtual_network_type` - (Optional) The type of virtual network you want to use, valid values include: `None`, `External`, `Internal`.
+* `virtual_network_type` - (Optional) The type of virtual network you want to use, valid values include: `None`, `External`, `Internal`. 
+> **NOTE:** Please ensure that in the subnet, inbound port 3443 is open when `virtual_network_type` is `Internal` or `External`. And please ensure other necessary ports are open according to [api management network configuration](https://docs.microsoft.com/en-us/azure/api-management/api-management-using-with-vnet#-common-network-configuration-issues).
 
 * `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below. Required when `virtual_network_type` is `External` or `Internal`.
 
@@ -325,10 +326,10 @@ An `identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the API Management Service.
-* `update` - (Defaults to 60 minutes) Used when updating the API Management Service.
+* `create` - (Defaults to 3 hours) Used when creating the API Management Service.
+* `update` - (Defaults to 3 hours) Used when updating the API Management Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management Service.
-* `delete` - (Defaults to 60 minutes) Used when deleting the API Management Service.
+* `delete` - (Defaults to 3 hours) Used when deleting the API Management Service.
 
 ## Import
 

@@ -13,7 +13,7 @@ func MsSqlServerID(i interface{}, k string) (warnings []string, errors []error) 
 		return warnings, errors
 	}
 
-	if _, err := parse.MsSqlServerID(v); err != nil {
+	if _, err := parse.ServerID(v); err != nil {
 		errors = append(errors, fmt.Errorf("Can not parse %q as a MsSql Server resource id: %v", k, err))
 	}
 

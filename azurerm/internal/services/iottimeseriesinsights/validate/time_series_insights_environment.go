@@ -13,7 +13,7 @@ func TimeSeriesInsightsEnvironmentID(i interface{}, k string) (warnings []string
 		return
 	}
 
-	if _, err := parse.TimeSeriesInsightsEnvironmentID(v); err != nil {
+	if _, err := parse.EnvironmentID(v); err != nil {
 		errors = append(errors, fmt.Errorf("Can not parse %q as a resource id: %v", k, err))
 		return
 	}

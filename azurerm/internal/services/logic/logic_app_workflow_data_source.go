@@ -86,6 +86,7 @@ func dataSourceArmLogicAppWorkflow() *schema.Resource {
 		},
 	}
 }
+
 func dataSourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logic.WorkflowClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
