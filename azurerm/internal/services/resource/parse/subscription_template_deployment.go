@@ -36,6 +36,10 @@ func SubscriptionTemplateDeploymentID(input string) (*SubscriptionTemplateDeploy
 		SubscriptionId: id.SubscriptionID,
 	}
 
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
 	if resourceId.DeploymentName, err = id.PopSegment("deployments"); err != nil {
 		return nil, err
 	}

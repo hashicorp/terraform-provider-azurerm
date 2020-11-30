@@ -40,6 +40,14 @@ func HostPoolID(input string) (*HostPoolId, error) {
 		ResourceGroup:  id.ResourceGroup,
 	}
 
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
 	if resourceId.Name, err = id.PopSegment("hostPools"); err != nil {
 		return nil, err
 	}
@@ -66,6 +74,14 @@ func HostPoolIDInsensitively(input string) (*HostPoolId, error) {
 	resourceId := HostPoolId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	// find the correct casing for the 'hostPools' segment

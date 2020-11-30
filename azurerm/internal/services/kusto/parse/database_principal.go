@@ -45,6 +45,14 @@ func DatabasePrincipalID(input string) (*DatabasePrincipalId, error) {
 		ResourceGroup:  id.ResourceGroup,
 	}
 
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
 	if resourceId.ClusterName, err = id.PopSegment("Clusters"); err != nil {
 		return nil, err
 	}

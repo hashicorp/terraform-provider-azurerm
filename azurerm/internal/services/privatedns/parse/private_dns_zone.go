@@ -39,6 +39,14 @@ func PrivateDnsZoneID(input string) (*PrivateDnsZoneId, error) {
 		ResourceGroup:  id.ResourceGroup,
 	}
 
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
 	if resourceId.Name, err = id.PopSegment("privateDnsZones"); err != nil {
 		return nil, err
 	}

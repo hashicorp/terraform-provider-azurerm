@@ -41,6 +41,14 @@ func ConnectionMonitorID(input string) (*ConnectionMonitorId, error) {
 		ResourceGroup:  id.ResourceGroup,
 	}
 
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
 	if resourceId.NetworkWatcherName, err = id.PopSegment("networkWatchers"); err != nil {
 		return nil, err
 	}

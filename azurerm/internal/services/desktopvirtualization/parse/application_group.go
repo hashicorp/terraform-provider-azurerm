@@ -40,6 +40,14 @@ func ApplicationGroupID(input string) (*ApplicationGroupId, error) {
 		ResourceGroup:  id.ResourceGroup,
 	}
 
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
 	if resourceId.Name, err = id.PopSegment("applicationGroups"); err != nil {
 		return nil, err
 	}
@@ -66,6 +74,14 @@ func ApplicationGroupIDInsensitively(input string) (*ApplicationGroupId, error) 
 	resourceId := ApplicationGroupId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	// find the correct casing for the 'applicationGroups' segment

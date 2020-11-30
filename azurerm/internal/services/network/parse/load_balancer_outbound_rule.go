@@ -41,6 +41,14 @@ func LoadBalancerOutboundRuleID(input string) (*LoadBalancerOutboundRuleId, erro
 		ResourceGroup:  id.ResourceGroup,
 	}
 
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
 	if resourceId.LoadBalancerName, err = id.PopSegment("loadBalancers"); err != nil {
 		return nil, err
 	}

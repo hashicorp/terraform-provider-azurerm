@@ -41,6 +41,14 @@ func VpnSiteLinkID(input string) (*VpnSiteLinkId, error) {
 		ResourceGroup:  id.ResourceGroup,
 	}
 
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
 	if resourceId.VpnSiteName, err = id.PopSegment("vpnSites"); err != nil {
 		return nil, err
 	}

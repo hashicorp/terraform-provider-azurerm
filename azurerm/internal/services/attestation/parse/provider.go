@@ -39,6 +39,14 @@ func ProviderID(input string) (*ProviderId, error) {
 		ResourceGroup:  id.ResourceGroup,
 	}
 
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
 	if resourceId.AttestationProviderName, err = id.PopSegment("attestationProviders"); err != nil {
 		return nil, err
 	}

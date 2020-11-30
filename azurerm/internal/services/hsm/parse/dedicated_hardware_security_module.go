@@ -39,6 +39,14 @@ func DedicatedHardwareSecurityModuleID(input string) (*DedicatedHardwareSecurity
 		ResourceGroup:  id.ResourceGroup,
 	}
 
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
 	if resourceId.DedicatedHSMName, err = id.PopSegment("dedicatedHSMs"); err != nil {
 		return nil, err
 	}

@@ -39,6 +39,14 @@ func ResourceGroupTemplateDeploymentID(input string) (*ResourceGroupTemplateDepl
 		ResourceGroup:  id.ResourceGroup,
 	}
 
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
 	if resourceId.DeploymentName, err = id.PopSegment("deployments"); err != nil {
 		return nil, err
 	}
