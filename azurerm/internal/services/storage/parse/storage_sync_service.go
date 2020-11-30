@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,26 +9,37 @@ import (
 )
 
 type StorageSyncServiceId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func (id StorageSyncServiceId) ID(subscriptionId string) string {
+func NewStorageSyncServiceID(subscriptionId, resourceGroup, name string) StorageSyncServiceId {
+	return StorageSyncServiceId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id StorageSyncServiceId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.StorageSync/storageSyncServices/%s"
-	return fmt.Sprintf(fmtString, subscriptionId, id.ResourceGroup, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
+// StorageSyncServiceID parses a StorageSyncService ID into an StorageSyncServiceId struct
 func StorageSyncServiceID(input string) (*StorageSyncServiceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	storageSync := StorageSyncServiceId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := StorageSyncServiceId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if storageSync.Name, err = id.PopSegment("storageSyncServices"); err != nil {
+	if resourceId.Name, err = id.PopSegment("storageSyncServices"); err != nil {
 		return nil, err
 	}
 
@@ -34,5 +47,5 @@ func StorageSyncServiceID(input string) (*StorageSyncServiceId, error) {
 		return nil, err
 	}
 
-	return &storageSync, nil
+	return &resourceId, nil
 }

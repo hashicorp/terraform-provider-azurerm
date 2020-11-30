@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,45 +9,47 @@ import (
 )
 
 type StorageContainerResourceManagerId struct {
+	SubscriptionId     string
 	ResourceGroup      string
 	StorageAccountName string
 	BlobServiceName    string
 	ContainerName      string
 }
 
-func (id StorageContainerResourceManagerId) ID(subscriptionId string) string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Storage/storageAccounts/%s/blobServices/%s/containers/%s"
-	return fmt.Sprintf(fmtString, subscriptionId, id.ResourceGroup, id.StorageAccountName, id.BlobServiceName, id.ContainerName)
-}
-
-func NewStorageContainerResourceManagerID(resourceGroup, accountName, blobServiceName, containerName string) StorageContainerResourceManagerId {
+func NewStorageContainerResourceManagerID(subscriptionId, resourceGroup, storageAccountName, blobServiceName, containerName string) StorageContainerResourceManagerId {
 	return StorageContainerResourceManagerId{
-		ContainerName:      containerName,
-		StorageAccountName: accountName,
-		BlobServiceName:    blobServiceName,
+		SubscriptionId:     subscriptionId,
 		ResourceGroup:      resourceGroup,
+		StorageAccountName: storageAccountName,
+		BlobServiceName:    blobServiceName,
+		ContainerName:      containerName,
 	}
 }
 
+func (id StorageContainerResourceManagerId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Storage/storageAccounts/%s/blobServices/%s/containers/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.StorageAccountName, id.BlobServiceName, id.ContainerName)
+}
+
+// StorageContainerResourceManagerID parses a StorageContainerResourceManager ID into an StorageContainerResourceManagerId struct
 func StorageContainerResourceManagerID(input string) (*StorageContainerResourceManagerId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	cache := StorageContainerResourceManagerId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := StorageContainerResourceManagerId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if cache.ContainerName, err = id.PopSegment("containers"); err != nil {
+	if resourceId.StorageAccountName, err = id.PopSegment("storageAccounts"); err != nil {
 		return nil, err
 	}
-
-	if cache.BlobServiceName, err = id.PopSegment("blobServices"); err != nil {
+	if resourceId.BlobServiceName, err = id.PopSegment("blobServices"); err != nil {
 		return nil, err
 	}
-
-	if cache.StorageAccountName, err = id.PopSegment("storageAccounts"); err != nil {
+	if resourceId.ContainerName, err = id.PopSegment("containers"); err != nil {
 		return nil, err
 	}
 
@@ -53,5 +57,5 @@ func StorageContainerResourceManagerID(input string) (*StorageContainerResourceM
 		return nil, err
 	}
 
-	return &cache, nil
+	return &resourceId, nil
 }

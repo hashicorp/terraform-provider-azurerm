@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,37 +9,37 @@ import (
 )
 
 type StorageAccountId struct {
-	Name           string
-	ResourceGroup  string
 	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func NewAccountId(subscriptionId, resourceGroup, name string) StorageAccountId {
+func NewStorageAccountID(subscriptionId, resourceGroup, name string) StorageAccountId {
 	return StorageAccountId{
-		Name:           name,
-		ResourceGroup:  resourceGroup,
 		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
 }
 
-// the subscriptionId isn't used here, this is just to comply with the interface for now..
 func (id StorageAccountId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Storage/storageAccounts/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
+// StorageAccountID parses a StorageAccount ID into an StorageAccountId struct
 func StorageAccountID(input string) (*StorageAccountId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	account := StorageAccountId{
-		ResourceGroup:  id.ResourceGroup,
+	resourceId := StorageAccountId{
 		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if account.Name, err = id.PopSegment("storageAccounts"); err != nil {
+	if resourceId.Name, err = id.PopSegment("storageAccounts"); err != nil {
 		return nil, err
 	}
 
@@ -45,5 +47,5 @@ func StorageAccountID(input string) (*StorageAccountId, error) {
 		return nil, err
 	}
 
-	return &account, nil
+	return &resourceId, nil
 }

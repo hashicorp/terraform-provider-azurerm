@@ -1,80 +1,112 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-func TestParseAccountID(t *testing.T) {
+var _ resourceid.Formatter = StorageAccountId{}
+
+func TestStorageAccountIDFormatter(t *testing.T) {
+	actual := NewStorageAccountID("12345678-1234-9876-4563-123456789012", "resGroup1", "storageAccount1").ID("")
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Storage/storageAccounts/storageAccount1"
+	if actual != expected {
+		t.Fatalf("Expected %q but got %q", expected, actual)
+	}
+}
+
+func TestStorageAccountID(t *testing.T) {
 	testData := []struct {
-		input    string
-		expected *StorageAccountId
+		Input    string
+		Error    bool
+		Expected *StorageAccountId
 	}{
+
 		{
-			input:    "",
-			expected: nil,
+			// empty
+			Input: "",
+			Error: true,
 		},
+
 		{
-			input:    "/subscriptions/00000000-0000-0000-0000-000000000000",
-			expected: nil,
+			// missing SubscriptionId
+			Input: "/",
+			Error: true,
 		},
+
 		{
-			input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups",
-			expected: nil,
+			// missing value for SubscriptionId
+			Input: "/subscriptions/",
+			Error: true,
 		},
+
 		{
-			input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/hello",
-			expected: nil,
+			// missing ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/",
+			Error: true,
 		},
+
 		{
-			// wrong case
-			input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/hello/storageaccounts/account1",
-			expected: nil,
+			// missing value for ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
+			Error: true,
 		},
+
 		{
-			input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/hello/storageAccounts/account1",
-			expected: &StorageAccountId{
-				SubscriptionId: "00000000-0000-0000-0000-000000000000",
-				Name:           "account1",
-				ResourceGroup:  "hello",
+			// missing Name
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Storage/",
+			Error: true,
+		},
+
+		{
+			// missing value for Name
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Storage/storageAccounts/",
+			Error: true,
+		},
+
+		{
+			// valid
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Storage/storageAccounts/storageAccount1",
+			Expected: &StorageAccountId{
+				SubscriptionId: "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:  "resGroup1",
+				Name:           "storageAccount1",
 			},
+		},
+
+		{
+			// upper-cased
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.STORAGE/STORAGEACCOUNTS/STORAGEACCOUNT1",
+			Error: true,
 		},
 	}
 
 	for _, v := range testData {
-		t.Logf("[DEBUG] Testing %q..", v.input)
-		actual, err := StorageAccountID(v.input)
+		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		// if we get something there shouldn't be an error
-		if v.expected != nil && err == nil {
-			continue
+		actual, err := StorageAccountID(v.Input)
+		if err != nil {
+			if v.Error {
+				continue
+			}
+
+			t.Fatalf("Expect a value but got an error: %s", err)
+		}
+		if v.Error {
+			t.Fatal("Expect an error but didn't get one")
 		}
 
-		// if nothing's expected we should get an error
-		if v.expected == nil && err != nil {
-			continue
+		if actual.SubscriptionId != v.Expected.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
 		}
-
-		if v.expected == nil && actual == nil {
-			continue
+		if actual.ResourceGroup != v.Expected.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
-
-		if v.expected == nil && actual != nil {
-			t.Fatalf("Expected nothing but got %+v", actual)
-		}
-		if v.expected != nil && actual == nil {
-			t.Fatalf("Expected %+v but got nil", actual)
-		}
-
-		if v.expected.SubscriptionId != actual.SubscriptionId {
-			t.Fatalf("Expected SubscriptionID to be %q but got %q", v.expected.SubscriptionId, actual.SubscriptionId)
-		}
-
-		if v.expected.ResourceGroup != actual.ResourceGroup {
-			t.Fatalf("Expected ResourceGroup to be %q but got %q", v.expected.ResourceGroup, actual.ResourceGroup)
-		}
-
-		if v.expected.Name != actual.Name {
-			t.Fatalf("Expected Name to be %q but got %q", v.expected.Name, actual.Name)
+		if actual.Name != v.Expected.Name {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 	}
 }

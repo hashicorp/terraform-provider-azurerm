@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,44 +9,42 @@ import (
 )
 
 type EncryptionScopeId struct {
-	Name               string
-	StorageAccountName string
-	ResourceGroup      string
 	SubscriptionId     string
+	ResourceGroup      string
+	StorageAccountName string
+	Name               string
 }
 
-// the subscriptionId isn't used here, this is just to comply with the interface for now..
-func (id EncryptionScopeId) ID(_ string) string {
-	fmtString := "%s/encryptionScopes/%s"
-	accountId := NewAccountId(id.SubscriptionId, id.ResourceGroup, id.StorageAccountName).ID("")
-	return fmt.Sprintf(fmtString, accountId, id.Name)
-}
-
-func NewEncryptionScopeId(resourceGroup, storageAccount, name string) EncryptionScopeId {
+func NewEncryptionScopeID(subscriptionId, resourceGroup, storageAccountName, name string) EncryptionScopeId {
 	return EncryptionScopeId{
-		Name:               name,
-		StorageAccountName: storageAccount,
+		SubscriptionId:     subscriptionId,
 		ResourceGroup:      resourceGroup,
-		SubscriptionId:     "TODO",
+		StorageAccountName: storageAccountName,
+		Name:               name,
 	}
 }
 
+func (id EncryptionScopeId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Storage/storageAccounts/%s/encryptionScopes/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.StorageAccountName, id.Name)
+}
+
+// EncryptionScopeID parses a EncryptionScope ID into an EncryptionScopeId struct
 func EncryptionScopeID(input string) (*EncryptionScopeId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	es := EncryptionScopeId{
-		ResourceGroup:  id.ResourceGroup,
+	resourceId := EncryptionScopeId{
 		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if es.StorageAccountName, err = id.PopSegment("storageAccounts"); err != nil {
+	if resourceId.StorageAccountName, err = id.PopSegment("storageAccounts"); err != nil {
 		return nil, err
 	}
-
-	if es.Name, err = id.PopSegment("encryptionScopes"); err != nil {
+	if resourceId.Name, err = id.PopSegment("encryptionScopes"); err != nil {
 		return nil, err
 	}
 
@@ -52,5 +52,5 @@ func EncryptionScopeID(input string) (*EncryptionScopeId, error) {
 		return nil, err
 	}
 
-	return &es, nil
+	return &resourceId, nil
 }
