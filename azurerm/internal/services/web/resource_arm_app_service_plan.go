@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -27,7 +28,7 @@ func resourceArmAppServicePlan() *schema.Resource {
 		Update: resourceArmAppServicePlanCreateUpdate,
 		Delete: resourceArmAppServicePlanDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := ParseAppServicePlanID(id)
+			_, err := parse.AppServicePlanID(id)
 			return err
 		}),
 
@@ -231,31 +232,31 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseAppServicePlanID(d.Id())
+	id, err := parse.AppServicePlanID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerfarmName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] App Service Plan %q was not found in Resource Group %q - removnig from state!", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] App Service Plan %q was not found in Resource Group %q - removnig from state!", id.ServerfarmName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on App Service Plan %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error making Read request on App Service Plan %q (Resource Group %q): %+v", id.ServerfarmName, id.ResourceGroup, err)
 	}
 
 	// A 404 doesn't error from the app service plan sdk so we'll add this check here to catch resource not found responses
 	// TODO This block can be removed if https://github.com/Azure/azure-sdk-for-go/issues/5407 gets addressed.
 	if utils.ResponseWasNotFound(resp.Response) {
-		log.Printf("[DEBUG] App Service Plan %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
+		log.Printf("[DEBUG] App Service Plan %q was not found in Resource Group %q - removing from state!", id.ServerfarmName, id.ResourceGroup)
 		d.SetId("")
 		return nil
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.ServerfarmName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -298,17 +299,17 @@ func resourceArmAppServicePlanDelete(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseAppServicePlanID(d.Id())
+	id, err := parse.AppServicePlanID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting App Service Plan %q (Resource Group %q)", id.Name, id.ResourceGroup)
+	log.Printf("[DEBUG] Deleting App Service Plan %q (Resource Group %q)", id.ServerfarmName, id.ResourceGroup)
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.ServerfarmName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting App Service Plan %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("Error deleting App Service Plan %q (Resource Group %q): %+v", id.ServerfarmName, id.ResourceGroup, err)
 		}
 	}
 
