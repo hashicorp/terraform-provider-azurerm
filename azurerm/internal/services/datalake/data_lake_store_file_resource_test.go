@@ -1,4 +1,4 @@
-package tests
+package datalake_test
 
 import (
 	"fmt"
@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -32,7 +31,7 @@ func TestValidateAzureDataLakeStoreRemoteFilePath(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := datalake.ValidateDataLakeStoreRemoteFilePath()(tc.Value, "unittest")
+		_, errors := ValidateDataLakeStoreRemoteFilePath()(tc.Value, "unittest")
 
 		if len(errors) != tc.Errors {
 			t.Fatalf("Expected validateDataLakeStoreRemoteFilePath to trigger '%d' errors for '%s' - got '%d'", tc.Errors, tc.Value, len(errors))

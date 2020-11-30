@@ -1,4 +1,4 @@
-package tests
+package datalake_test
 
 import (
 	"fmt"
