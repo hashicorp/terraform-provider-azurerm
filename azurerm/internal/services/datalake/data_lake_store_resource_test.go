@@ -1,6 +1,7 @@
 package datalake_test
 
 import (
+	`context`
 	"fmt"
 	"net/http"
 	"strconv"
@@ -8,224 +9,166 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure`
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils`
 )
+
+type DataLakeStoreResource struct {
+}
 
 func TestAccDataLakeStore_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
+	r := DataLakeStoreResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDataLakeStoreDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataLakeStore_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataLakeStoreExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tier", "Consumption"),
-					resource.TestCheckResourceAttr(data.ResourceName, "encryption_state", "Enabled"),
-					resource.TestCheckResourceAttr(data.ResourceName, "encryption_type", "ServiceManaged"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tier").HasValue("Consumption"),
+				check.That(data.ResourceName).Key("encryption_state").HasValue("Enabled"),
+				check.That(data.ResourceName).Key("encryption_type").HasValue("ServiceManaged"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccDataLakeStore_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
+	r := DataLakeStoreResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDataLakeStoreDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataLakeStore_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataLakeStoreExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccDataLakeStore_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_data_lake_store"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_data_lake_store"),
 		},
 	})
 }
 
 func TestAccDataLakeStore_tier(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
+	r := DataLakeStoreResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDataLakeStoreDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataLakeStore_tier(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataLakeStoreExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tier", "Commitment_1TB"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.tier(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tier").HasValue("Commitment_1TB"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccDataLakeStore_encryptionDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
+	r := DataLakeStoreResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDataLakeStoreDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataLakeStore_encryptionDisabled(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataLakeStoreExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "encryption_state", "Disabled"),
-					resource.TestCheckResourceAttr(data.ResourceName, "encryption_type", ""),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.encryptionDisabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("encryption_state").HasValue("Disabled"),
+				check.That(data.ResourceName).Key("encryption_type").HasValue(""),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccDataLakeStore_firewallUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
+	r := DataLakeStoreResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDataLakeStoreDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataLakeStore_firewall(data, "Enabled", "Enabled"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataLakeStoreExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "firewall_state", "Enabled"),
-					resource.TestCheckResourceAttr(data.ResourceName, "firewall_allow_azure_ips", "Enabled"),
-				),
-			},
-			{
-				Config: testAccDataLakeStore_firewall(data, "Enabled", "Disabled"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataLakeStoreExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "firewall_state", "Enabled"),
-					resource.TestCheckResourceAttr(data.ResourceName, "firewall_allow_azure_ips", "Disabled"),
-				),
-			},
-			{
-				Config: testAccDataLakeStore_firewall(data, "Disabled", "Enabled"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataLakeStoreExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "firewall_state", "Disabled"),
-					resource.TestCheckResourceAttr(data.ResourceName, "firewall_allow_azure_ips", "Enabled"),
-				),
-			},
-			{
-				Config: testAccDataLakeStore_firewall(data, "Disabled", "Disabled"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataLakeStoreExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "firewall_state", "Disabled"),
-					resource.TestCheckResourceAttr(data.ResourceName, "firewall_allow_azure_ips", "Disabled"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.firewall(data, "Enabled", "Enabled"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("firewall_state").HasValue("Enabled"),
+				check.That(data.ResourceName).Key("firewall_allow_azure_ips").HasValue("Enabled"),
+			),
+		},
+		{
+			Config: r.firewall(data, "Enabled", "Disabled"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("firewall_state").HasValue("Enabled"),
+				check.That(data.ResourceName).Key("firewall_allow_azure_ips").HasValue("Disabled"),
+			),
+		},
+		{
+			Config: r.firewall(data, "Disabled", "Enabled"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("firewall_state").HasValue("Disabled"),
+				check.That(data.ResourceName).Key("firewall_allow_azure_ips").HasValue("Enabled"),
+			),
+		},
+		{
+			Config: r.firewall(data, "Disabled", "Disabled"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("firewall_state").HasValue("Disabled"),
+				check.That(data.ResourceName).Key("firewall_allow_azure_ips").HasValue("Disabled"),
+			),
 		},
 	})
 }
 
 func TestAccDataLakeStore_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
+	r := DataLakeStoreResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDataLakeStoreDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataLakeStore_withTags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataLakeStoreExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
-				),
-			},
-			{
-				Config: testAccDataLakeStore_withTagsUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataLakeStoreExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withTags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+			),
 		},
+		{
+			Config: r.withTagsUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckDataLakeStoreExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Datalake.StoreAccountsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		accountName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for data lake store: %s", accountName)
-		}
-
-		resp, err := conn.Get(ctx, resourceGroup, accountName)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on dataLakeStoreAccountClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Date Lake Store %q (resource group: %q) does not exist", accountName, resourceGroup)
-		}
-
-		return nil
-	}
-}
-
-func testCheckDataLakeStoreDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).Datalake.StoreAccountsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_data_lake_store" {
-			continue
-		}
-
-		accountName := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, accountName)
-		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("Data Lake Store still exists:\n%#v", resp)
+func (t DataLakeStoreResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	name := id.Path["accounts"]
+
+	resp, err := clients.Datalake.StoreAccountsClient.Get(ctx, id.ResourceGroup, name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Date Lake Store %q (resource group: %q): %+v", name, id.ResourceGroup, err)
+	}
+
+	return utils.Bool(resp.DataLakeStoreAccountProperties != nil), nil
+
 }
 
-func testAccDataLakeStore_basic(data acceptance.TestData) string {
+func (DataLakeStoreResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -244,8 +187,8 @@ resource "azurerm_data_lake_store" "test" {
 `, data.RandomInteger, data.Locations.Primary, strconv.Itoa(data.RandomInteger)[2:17])
 }
 
-func testAccDataLakeStore_requiresImport(data acceptance.TestData) string {
-	template := testAccDataLakeStore_basic(data)
+func (DataLakeStoreResource) requiresImport(data acceptance.TestData) string {
+	template := DataLakeStoreResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -257,7 +200,7 @@ resource "azurerm_data_lake_store" "import" {
 `, template)
 }
 
-func testAccDataLakeStore_tier(data acceptance.TestData) string {
+func (DataLakeStoreResource) tier(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -277,7 +220,7 @@ resource "azurerm_data_lake_store" "test" {
 `, data.RandomInteger, data.Locations.Primary, strconv.Itoa(data.RandomInteger)[2:17])
 }
 
-func testAccDataLakeStore_encryptionDisabled(data acceptance.TestData) string {
+func (DataLakeStoreResource) encryptionDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -297,7 +240,7 @@ resource "azurerm_data_lake_store" "test" {
 `, data.RandomInteger, data.Locations.Primary, strconv.Itoa(data.RandomInteger)[2:17])
 }
 
-func testAccDataLakeStore_firewall(data acceptance.TestData, firewallState string, firewallAllowAzureIPs string) string {
+func (DataLakeStoreResource) firewall(data acceptance.TestData, firewallState string, firewallAllowAzureIPs string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -318,7 +261,7 @@ resource "azurerm_data_lake_store" "test" {
 `, data.RandomInteger, data.Locations.Primary, strconv.Itoa(data.RandomInteger)[2:17], firewallState, firewallAllowAzureIPs)
 }
 
-func testAccDataLakeStore_withTags(data acceptance.TestData) string {
+func (DataLakeStoreResource) withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -342,7 +285,7 @@ resource "azurerm_data_lake_store" "test" {
 `, data.RandomInteger, data.Locations.Primary, strconv.Itoa(data.RandomInteger)[2:17])
 }
 
-func testAccDataLakeStore_withTagsUpdate(data acceptance.TestData) string {
+func (DataLakeStoreResource) withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

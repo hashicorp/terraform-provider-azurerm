@@ -1,6 +1,7 @@
 package datalake_test
 
 import (
+	`context`
 	"fmt"
 	"net/http"
 	"strconv"
@@ -8,169 +9,117 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure`
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils`
 )
+
+type DataLakeAnalyticsFirewallRuleResource struct {
+}
 
 func TestAccDataLakeAnalyticsFirewallRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_analytics_firewall_rule", "test")
+	r := DataLakeAnalyticsFirewallRuleResource{}
 	startIP := "1.1.1.1"
 	endIP := "2.2.2.2"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDataLakeAnalyticsFirewallRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataLakeAnalyticsFirewallRule_basic(data, startIP, endIP),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataLakeAnalyticsFirewallRuleExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "start_ip_address", startIP),
-					resource.TestCheckResourceAttr(data.ResourceName, "end_ip_address", endIP),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, startIP, endIP),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("start_ip_address").HasValue(startIP),
+				check.That(data.ResourceName).Key("end_ip_address").HasValue(endIP),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccDataLakeAnalyticsFirewallRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_analytics_firewall_rule", "test")
+	r := DataLakeAnalyticsFirewallRuleResource{}
 	startIP := "1.1.1.1"
 	endIP := "2.2.2.2"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDataLakeAnalyticsFirewallRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataLakeAnalyticsFirewallRule_basic(data, startIP, endIP),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataLakeAnalyticsFirewallRuleExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "start_ip_address", startIP),
-					resource.TestCheckResourceAttr(data.ResourceName, "end_ip_address", endIP),
-				),
-			},
-			{
-				Config:      testAccDataLakeAnalyticsFirewallRule_requiresImport(data, startIP, endIP),
-				ExpectError: acceptance.RequiresImportError("azurerm_data_lake_analytics_firewall_rule"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, startIP, endIP),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("start_ip_address").HasValue(startIP),
+				check.That(data.ResourceName).Key("end_ip_address").HasValue(endIP),
+			),
+		},
+		{
+			Config:      r.requiresImport(data, startIP, endIP),
+			ExpectError: acceptance.RequiresImportError("azurerm_data_lake_analytics_firewall_rule"),
 		},
 	})
 }
 
 func TestAccDataLakeAnalyticsFirewallRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_analytics_firewall_rule", "test")
+	r := DataLakeAnalyticsFirewallRuleResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDataLakeAnalyticsFirewallRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataLakeAnalyticsFirewallRule_basic(data, "1.1.1.1", "2.2.2.2"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataLakeAnalyticsFirewallRuleExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "start_ip_address", "1.1.1.1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "end_ip_address", "2.2.2.2"),
-				),
-			},
-			{
-				Config: testAccDataLakeAnalyticsFirewallRule_basic(data, "2.2.2.2", "3.3.3.3"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataLakeAnalyticsFirewallRuleExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "start_ip_address", "2.2.2.2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "end_ip_address", "3.3.3.3"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "1.1.1.1", "2.2.2.2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("start_ip_address").HasValue("1.1.1.1"),
+				check.That(data.ResourceName).Key("end_ip_address").HasValue("2.2.2.2"),
+			),
+		},
+		{
+			Config: r.basic(data, "2.2.2.2", "3.3.3.3"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("start_ip_address").HasValue("2.2.2.2"),
+				check.That(data.ResourceName).Key("end_ip_address").HasValue("3.3.3.3"),
+			),
 		},
 	})
 }
 
 func TestAccDataLakeAnalyticsFirewallRule_azureServices(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_analytics_firewall_rule", "test")
+	r := DataLakeAnalyticsFirewallRuleResource{}
 	azureServicesIP := "0.0.0.0"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDataLakeAnalyticsFirewallRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataLakeAnalyticsFirewallRule_basic(data, azureServicesIP, azureServicesIP),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataLakeAnalyticsFirewallRuleExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "start_ip_address", azureServicesIP),
-					resource.TestCheckResourceAttr(data.ResourceName, "end_ip_address", azureServicesIP),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, azureServicesIP, azureServicesIP),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("start_ip_address").HasValue(azureServicesIP),
+				check.That(data.ResourceName).Key("end_ip_address").HasValue(azureServicesIP),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckDataLakeAnalyticsFirewallRuleExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Datalake.AnalyticsFirewallRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		firewallRuleName := rs.Primary.Attributes["name"]
-		accountName := rs.Primary.Attributes["account_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for data lake store firewall rule: %s", firewallRuleName)
-		}
-
-		resp, err := conn.Get(ctx, resourceGroup, accountName, firewallRuleName)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on dataLakeAnalyticsFirewallRulesClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Date Lake Analytics Firewall Rule %q (Account %q / Resource Group: %q) does not exist", firewallRuleName, accountName, resourceGroup)
-		}
-
-		return nil
-	}
-}
-
-func testCheckDataLakeAnalyticsFirewallRuleDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).Datalake.AnalyticsFirewallRulesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_data_lake_analytics_firewall_rule" {
-			continue
-		}
-
-		firewallRuleName := rs.Primary.Attributes["name"]
-		accountName := rs.Primary.Attributes["account_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, accountName, firewallRuleName)
-		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("Data Lake Analytics Firewall Rule still exists:\n%#v", resp)
+func (t DataLakeAnalyticsFirewallRuleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	accountName := id.Path["accounts"]
+	name := id.Path["firewallRules"]
+
+	resp, err := clients.Datalake.AnalyticsFirewallRulesClient.Get(ctx, id.ResourceGroup, accountName, name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Date Lake Analytics Firewall Rule %q (Account %q / Resource Group: %q) does not exist", firewallRuleName, accountName, resourceGroup)
+	}
+
+	return utils.Bool(resp.FirewallRuleProperties != nil), nil
 }
 
-func testAccDataLakeAnalyticsFirewallRule_basic(data acceptance.TestData, startIP, endIP string) string {
+func (DataLakeAnalyticsFirewallRuleResource) basic(data acceptance.TestData, startIP, endIP string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -205,8 +154,8 @@ resource "azurerm_data_lake_analytics_firewall_rule" "test" {
 `, data.RandomInteger, data.Locations.Primary, strconv.Itoa(data.RandomInteger)[10:17], startIP, endIP)
 }
 
-func testAccDataLakeAnalyticsFirewallRule_requiresImport(data acceptance.TestData, startIP, endIP string) string {
-	template := testAccDataLakeAnalyticsFirewallRule_basic(data, startIP, endIP)
+func (DataLakeAnalyticsFirewallRuleResource) requiresImport(data acceptance.TestData, startIP, endIP string) string {
+	template := DataLakeAnalyticsFirewallRuleResource{}.basic(data, startIP, endIP)
 	return fmt.Sprintf(`
 %s
 

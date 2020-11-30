@@ -128,24 +128,24 @@ func resourceDataLakeStoreFileRead(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parseDataLakeStoreFileId(d.Id(), client.AdlsFileSystemDNSSuffix)
+	id, err := ParseDataLakeStoreFileId(d.Id(), client.AdlsFileSystemDNSSuffix)
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.GetFileStatus(ctx, id.storageAccountName, id.filePath, utils.Bool(true))
+	resp, err := client.GetFileStatus(ctx, id.StorageAccountName, id.FilePath, utils.Bool(true))
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] Data Lake Store File %q was not found (Account %q)", id.filePath, id.storageAccountName)
+			log.Printf("[WARN] Data Lake Store File %q was not found (Account %q)", id.FilePath, id.StorageAccountName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Azure Data Lake Store File %q (Account %q): %+v", id.filePath, id.storageAccountName, err)
+		return fmt.Errorf("Error making Read request on Azure Data Lake Store File %q (Account %q): %+v", id.FilePath, id.StorageAccountName, err)
 	}
 
-	d.Set("account_name", id.storageAccountName)
-	d.Set("remote_file_path", id.filePath)
+	d.Set("account_name", id.StorageAccountName)
+	d.Set("remote_file_path", id.FilePath)
 
 	return nil
 }
@@ -155,15 +155,15 @@ func resourceDataLakeStoreFileDelete(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parseDataLakeStoreFileId(d.Id(), client.AdlsFileSystemDNSSuffix)
+	id, err := ParseDataLakeStoreFileId(d.Id(), client.AdlsFileSystemDNSSuffix)
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.storageAccountName, id.filePath, utils.Bool(false))
+	resp, err := client.Delete(ctx, id.StorageAccountName, id.FilePath, utils.Bool(false))
 	if err != nil {
 		if !response.WasNotFound(resp.Response.Response) {
-			return fmt.Errorf("Error issuing delete request for Data Lake Store File %q (Account %q): %+v", id.filePath, id.storageAccountName, err)
+			return fmt.Errorf("Error issuing delete request for Data Lake Store File %q (Account %q): %+v", id.FilePath, id.StorageAccountName, err)
 		}
 	}
 
@@ -171,11 +171,11 @@ func resourceDataLakeStoreFileDelete(d *schema.ResourceData, meta interface{}) e
 }
 
 type dataLakeStoreFileId struct {
-	storageAccountName string
-	filePath           string
+	StorageAccountName string
+	FilePath           string
 }
 
-func parseDataLakeStoreFileId(input string, suffix string) (*dataLakeStoreFileId, error) {
+func ParseDataLakeStoreFileId(input string, suffix string) (*dataLakeStoreFileId, error) {
 	// Example: tomdevdls1.azuredatalakestore.net/test/example.txt
 	// we add a scheme to the start of this so it parses correctly
 	uri, err := url.Parse(fmt.Sprintf("https://%s", input))
@@ -189,8 +189,8 @@ func parseDataLakeStoreFileId(input string, suffix string) (*dataLakeStoreFileId
 	accountName := strings.ReplaceAll(uri.Host, replacement, "")
 
 	file := dataLakeStoreFileId{
-		storageAccountName: accountName,
-		filePath:           uri.Path,
+		StorageAccountName: accountName,
+		FilePath:           uri.Path,
 	}
 	return &file, nil
 }

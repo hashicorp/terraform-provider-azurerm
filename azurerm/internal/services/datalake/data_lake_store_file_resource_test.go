@@ -1,21 +1,26 @@
 package datalake_test
 
 import (
+	`context`
 	"fmt"
 	"io/ioutil"
 	"math/rand"
-	"net/http"
 	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestValidateAzureDataLakeStoreRemoteFilePath(t *testing.T) {
+type DataLakeStoreFileResource struct {
+}
+
+func TestValidateDataLakeStoreRemoteFilePath(t *testing.T) {
 	cases := []struct {
 		Value  string
 		Errors int
@@ -31,7 +36,7 @@ func TestValidateAzureDataLakeStoreRemoteFilePath(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := ValidateDataLakeStoreRemoteFilePath()(tc.Value, "unittest")
+		_, errors := datalake.ValidateDataLakeStoreRemoteFilePath()(tc.Value, "unittest")
 
 		if len(errors) != tc.Errors {
 			t.Fatalf("Expected validateDataLakeStoreRemoteFilePath to trigger '%d' errors for '%s' - got '%d'", tc.Errors, tc.Value, len(errors))
@@ -41,25 +46,22 @@ func TestValidateAzureDataLakeStoreRemoteFilePath(t *testing.T) {
 
 func TestAccDataLakeStoreFile_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store_file", "test")
+	r := DataLakeStoreFileResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDataLakeStoreFileDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataLakeStoreFile_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataLakeStoreFileExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("local_file_path"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("local_file_path"),
 	})
 }
 
 func TestAccDataLakeStoreFile_largefiles(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store_file", "test")
+	r := DataLakeStoreFileResource{}
 
 	// "large" in this context is anything greater than 4 megabytes
 	largeSize := 12 * 1024 * 1024 // 12 mb
@@ -79,99 +81,51 @@ func TestAccDataLakeStoreFile_largefiles(t *testing.T) {
 		t.Errorf("Unable to close temporary file %q: %v", tmpfile.Name(), err)
 	}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDataLakeStoreFileDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataLakeStoreFile_largefiles(data, tmpfile.Name()),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataLakeStoreFileExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("local_file_path"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.largefiles(data, tmpfile.Name()),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("local_file_path"),
 	})
 }
 
 func TestAccDataLakeStoreFile_requiresimport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store_file", "test")
+	r := DataLakeStoreFileResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDataLakeStoreFileDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataLakeStoreFile_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataLakeStoreFileExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccDataLakeStoreFile_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_data_lake_store_file"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_data_lake_store_file"),
 		},
 	})
 }
 
-func testCheckDataLakeStoreFileExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Datalake.StoreFilesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		remoteFilePath := rs.Primary.Attributes["remote_file_path"]
-		accountName := rs.Primary.Attributes["account_name"]
-
-		resp, err := conn.GetFileStatus(ctx, accountName, remoteFilePath, utils.Bool(true))
-		if err != nil {
-			return fmt.Errorf("Bad: Get on dataLakeStoreFileClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Date Lake Store File Rule %q (Account %q) does not exist", remoteFilePath, accountName)
-		}
-
-		return nil
-	}
-}
-
-func testCheckDataLakeStoreFileDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).Datalake.StoreFilesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_data_lake_store_file" {
-			continue
-		}
-
-		remoteFilePath := rs.Primary.Attributes["remote_file_path"]
-		accountName := rs.Primary.Attributes["account_name"]
-
-		resp, err := conn.GetFileStatus(ctx, accountName, remoteFilePath, utils.Bool(true))
-		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("Data Lake Store File still exists:\n%#v", resp)
+func (t DataLakeStoreFileResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	client := clients.Datalake.StoreFilesClient
+	id, err := datalake.ParseDataLakeStoreFileId(state.ID, client.AdlsFileSystemDNSSuffix)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := client.GetFileStatus(ctx, id.StorageAccountName, id.FilePath, utils.Bool(true))
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Date Lake Store File Rule %q (Account %q) does not exist", id.FilePath, id.StorageAccountName)
+	}
+
+	return utils.Bool(resp.FileStatus != nil), nil
 }
 
-func testAccDataLakeStoreFile_basic(data acceptance.TestData) string {
+func (DataLakeStoreFileResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -197,7 +151,7 @@ resource "azurerm_data_lake_store_file" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Locations.Primary)
 }
 
-func testAccDataLakeStoreFile_largefiles(data acceptance.TestData, file string) string {
+func (DataLakeStoreFileResource) largefiles(data acceptance.TestData, file string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -223,8 +177,8 @@ resource "azurerm_data_lake_store_file" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Locations.Primary, file)
 }
 
-func testAccDataLakeStoreFile_requiresImport(data acceptance.TestData) string {
-	template := testAccDataLakeStoreFile_basic(data)
+func (DataLakeStoreFileResource) requiresImport(data acceptance.TestData) string {
+	template := DataLakeStoreFileResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 

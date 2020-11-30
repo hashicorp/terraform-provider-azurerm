@@ -6,46 +6,43 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceDataLakeStore_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_data_lake_store", "test")
+type DataLakeStoreDataSource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceDataLakeStore_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataLakeStoreExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tier", "Consumption"),
-				),
-			},
+func TestAccDataLakeStoreDataSource_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_data_lake_store", "test")
+	r := DataLakeStoreDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("tier").HasValue("Consumption"),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceDataLakeStore_tier(t *testing.T) {
+func TestAccDataLakeStoreDataSource_tier(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_lake_store", "test")
+	r := DataLakeStoreDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceDataLakeStore_tier(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "tier", "Commitment_1TB"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.hello", "world"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.tier(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("tier").HasValue("Commitment_1TB"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.hello").HasValue("world"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceDataLakeStore_basic(data acceptance.TestData) string {
+func (DataLakeStoreDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -69,7 +66,7 @@ data "azurerm_data_lake_store" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Locations.Primary)
 }
 
-func testAccDataSourceDataLakeStore_tier(data acceptance.TestData) string {
+func (DataLakeStoreDataSource) tier(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
