@@ -132,16 +132,16 @@ func resourceArmSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interfac
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, name, elasticPool)
 	if err != nil {
-		return err
+		return fmt.Errorf("creating/updating ElasticPool %q (Server %q / Resource Group %q): %+v", name, serverName, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return err
+		return fmt.Errorf("waiting for creation/update of ElasticPool %q (Server %q / Resource Group %q): %+v", name, serverName, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, serverName, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("retrieving ElasticPool %q (Server %q / Resource Group %q): %+v", name, serverName, resGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read SQL ElasticPool %q (resource group %q, server %q) ID", name, serverName, resGroup)
@@ -180,16 +180,38 @@ func resourceArmSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if elasticPool := resp.ElasticPoolProperties; elasticPool != nil {
-		d.Set("edition", string(elasticPool.Edition))
-		d.Set("dtu", int(*elasticPool.Dtu))
-		d.Set("db_dtu_min", int(*elasticPool.DatabaseDtuMin))
-		d.Set("db_dtu_max", int(*elasticPool.DatabaseDtuMax))
-		d.Set("pool_size", int(*elasticPool.StorageMB))
-
-		if date := elasticPool.CreationDate; date != nil {
-			d.Set("creation_date", date.Format(time.RFC3339))
+	if props := resp.ElasticPoolProperties; props != nil {
+		creationDate := ""
+		if props.CreationDate != nil {
+			creationDate = props.CreationDate.Format(time.RFC3339)
 		}
+		d.Set("creation_date", creationDate)
+
+		dtu := 0
+		if props.Dtu != nil {
+			dtu = int(*props.Dtu)
+		}
+		d.Set("dtu", dtu)
+
+		databaseDtuMin := 0
+		if props.DatabaseDtuMin != nil {
+			databaseDtuMin = int(*props.DatabaseDtuMin)
+		}
+		d.Set("db_dtu_min", databaseDtuMin)
+
+		databaseDtuMax := 0
+		if props.DatabaseDtuMax != nil {
+			databaseDtuMax = int(*props.DatabaseDtuMax)
+		}
+		d.Set("db_dtu_max", databaseDtuMax)
+
+		d.Set("edition", string(props.Edition))
+
+		storageMb := 0
+		if props.StorageMB != nil {
+			storageMb = int(*props.StorageMB)
+		}
+		d.Set("pool_size", storageMb)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
