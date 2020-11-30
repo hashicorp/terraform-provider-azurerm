@@ -276,7 +276,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 						"component_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.ApplicationInsightsID,
+							ValidateFunc: validate.ComponentID,
 						},
 						"failed_location_count": {
 							Type:         schema.TypeInt,
