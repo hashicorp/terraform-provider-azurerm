@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,31 +9,48 @@ import (
 )
 
 type FirewallRuleId struct {
-	SubscriptionID string
+	SubscriptionId string
 	ResourceGroup  string
 	WorkspaceName  string
 	Name           string
 }
 
+func NewFirewallRuleID(subscriptionId, resourceGroup, workspaceName, name string) FirewallRuleId {
+	return FirewallRuleId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		WorkspaceName:  workspaceName,
+		Name:           name,
+	}
+}
+
+func (id FirewallRuleId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Synapse/workspaces/%s/firewallRules/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.Name)
+}
+
+// FirewallRuleID parses a FirewallRule ID into an FirewallRuleId struct
 func FirewallRuleID(input string) (*FirewallRuleId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing synapseWorkspace ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	FirewallRuleId := FirewallRuleId{
-		SubscriptionID: id.SubscriptionID,
+	resourceId := FirewallRuleId{
+		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
-	if FirewallRuleId.WorkspaceName, err = id.PopSegment("workspaces"); err != nil {
+
+	if resourceId.WorkspaceName, err = id.PopSegment("workspaces"); err != nil {
 		return nil, err
 	}
-	if FirewallRuleId.Name, err = id.PopSegment("firewallRules"); err != nil {
+	if resourceId.Name, err = id.PopSegment("firewallRules"); err != nil {
 		return nil, err
 	}
+
 	if err := id.ValidateNoEmptySegments(input); err != nil {
 		return nil, err
 	}
 
-	return &FirewallRuleId, nil
+	return &resourceId, nil
 }
