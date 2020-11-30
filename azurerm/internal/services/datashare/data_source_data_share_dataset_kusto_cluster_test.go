@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceDataShareKustoClusterDataset_basic(t *testing.T) {
+func TestAccDataShareKustoClusterDatasetDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_share_dataset_kusto_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

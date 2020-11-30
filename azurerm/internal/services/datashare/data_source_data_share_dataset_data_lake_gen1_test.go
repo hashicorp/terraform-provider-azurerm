@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceDataShareDatasetDataLakeGen1_basic(t *testing.T) {
+func TestAccDataShareDatasetDataLakeGen1DataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_share_dataset_data_lake_gen1", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

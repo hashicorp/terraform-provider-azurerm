@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceDataShareDatasetBlobStorage_basic(t *testing.T) {
+func TestAccDataShareDatasetBlobStorageDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_share_dataset_blob_storage", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

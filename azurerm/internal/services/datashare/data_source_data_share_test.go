@@ -9,7 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceDataShare_basic(t *testing.T) {
+func TestAccDataShareDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_share", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
@@ -27,7 +27,7 @@ func TestAccDataSourceDataShare_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceDataShare_snapshotSchedule(t *testing.T) {
+func TestAccDataShareDataSource_snapshotSchedule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_share", "test")
 	startTime := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
 
