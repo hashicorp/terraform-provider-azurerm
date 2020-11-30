@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,24 +9,34 @@ import (
 )
 
 type SubscriptionTemplateDeploymentId struct {
+	SubscriptionId string
 	DeploymentName string
 }
 
-func NewSubscriptionTemplateDeploymentID(name string) SubscriptionTemplateDeploymentId {
+func NewSubscriptionTemplateDeploymentID(subscriptionId, deploymentName string) SubscriptionTemplateDeploymentId {
 	return SubscriptionTemplateDeploymentId{
-		DeploymentName: name,
+		SubscriptionId: subscriptionId,
+		DeploymentName: deploymentName,
 	}
 }
 
+func (id SubscriptionTemplateDeploymentId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/providers/Microsoft.Resources/deployments/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.DeploymentName)
+}
+
+// SubscriptionTemplateDeploymentID parses a SubscriptionTemplateDeployment ID into an SubscriptionTemplateDeploymentId struct
 func SubscriptionTemplateDeploymentID(input string) (*SubscriptionTemplateDeploymentId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	deploymentId := SubscriptionTemplateDeploymentId{}
+	resourceId := SubscriptionTemplateDeploymentId{
+		SubscriptionId: id.SubscriptionID,
+	}
 
-	if deploymentId.DeploymentName, err = id.PopSegment("deployments"); err != nil {
+	if resourceId.DeploymentName, err = id.PopSegment("deployments"); err != nil {
 		return nil, err
 	}
 
@@ -32,9 +44,5 @@ func SubscriptionTemplateDeploymentID(input string) (*SubscriptionTemplateDeploy
 		return nil, err
 	}
 
-	return &deploymentId, nil
-}
-
-func (id SubscriptionTemplateDeploymentId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/providers/Microsoft.Resources/deployments/%s", subscriptionId, id.DeploymentName)
+	return &resourceId, nil
 }

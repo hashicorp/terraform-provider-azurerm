@@ -100,7 +100,7 @@ func resourceGroupTemplateDeploymentResourceCreate(d *schema.ResourceData, meta 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewResourceGroupTemplateDeploymentID(d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := parse.NewResourceGroupTemplateDeploymentID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	existing, err := client.Get(ctx, id.ResourceGroup, id.DeploymentName)
 	if err != nil {
@@ -109,7 +109,7 @@ func resourceGroupTemplateDeploymentResourceCreate(d *schema.ResourceData, meta 
 		}
 	}
 	if existing.Properties != nil {
-		return tf.ImportAsExistsError("azurerm_resource_group_template_deployment", id.ID(subscriptionId))
+		return tf.ImportAsExistsError("azurerm_resource_group_template_deployment", id.ID(""))
 	}
 
 	template, err := expandTemplateDeploymentBody(d.Get("template_content").(string))
@@ -150,7 +150,7 @@ func resourceGroupTemplateDeploymentResourceCreate(d *schema.ResourceData, meta 
 		return fmt.Errorf("waiting for creation of Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroup, err)
 	}
 
-	d.SetId(id.ID(subscriptionId))
+	d.SetId(id.ID(""))
 	return resourceGroupTemplateDeploymentResourceRead(d, meta)
 }
 

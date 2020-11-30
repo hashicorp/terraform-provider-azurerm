@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -11,35 +13,33 @@ type ResourceGroupId struct {
 	ResourceGroup  string
 }
 
+func NewResourceGroupID(subscriptionId, resourceGroup string) ResourceGroupId {
+	return ResourceGroupId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+	}
+}
+
 func (id ResourceGroupId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup)
 }
 
-func NewResourceGroupID(subscriptionId, name string) ResourceGroupId {
-	return ResourceGroupId{
-		SubscriptionId: subscriptionId,
-		ResourceGroup:  name,
-	}
-}
-
+// ResourceGroupID parses a ResourceGroup ID into an ResourceGroupId struct
 func ResourceGroupID(input string) (*ResourceGroupId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Resource Group ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	group := ResourceGroupId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if group.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID contained no `resourceGroups` segment!")
+	resourceId := ResourceGroupId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
 	if err := id.ValidateNoEmptySegments(input); err != nil {
 		return nil, err
 	}
 
-	return &group, nil
+	return &resourceId, nil
 }

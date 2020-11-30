@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,28 +9,37 @@ import (
 )
 
 type ResourceGroupTemplateDeploymentId struct {
+	SubscriptionId string
 	ResourceGroup  string
 	DeploymentName string
 }
 
-func NewResourceGroupTemplateDeploymentID(resourceGroup, name string) ResourceGroupTemplateDeploymentId {
+func NewResourceGroupTemplateDeploymentID(subscriptionId, resourceGroup, deploymentName string) ResourceGroupTemplateDeploymentId {
 	return ResourceGroupTemplateDeploymentId{
+		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
-		DeploymentName: name,
+		DeploymentName: deploymentName,
 	}
 }
 
+func (id ResourceGroupTemplateDeploymentId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Resources/deployments/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DeploymentName)
+}
+
+// ResourceGroupTemplateDeploymentID parses a ResourceGroupTemplateDeployment ID into an ResourceGroupTemplateDeploymentId struct
 func ResourceGroupTemplateDeploymentID(input string) (*ResourceGroupTemplateDeploymentId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	deploymentId := ResourceGroupTemplateDeploymentId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := ResourceGroupTemplateDeploymentId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if deploymentId.DeploymentName, err = id.PopSegment("deployments"); err != nil {
+	if resourceId.DeploymentName, err = id.PopSegment("deployments"); err != nil {
 		return nil, err
 	}
 
@@ -36,9 +47,5 @@ func ResourceGroupTemplateDeploymentID(input string) (*ResourceGroupTemplateDepl
 		return nil, err
 	}
 
-	return &deploymentId, nil
-}
-
-func (id ResourceGroupTemplateDeploymentId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Resources/deployments/%s", subscriptionId, id.ResourceGroup, id.DeploymentName)
+	return &resourceId, nil
 }

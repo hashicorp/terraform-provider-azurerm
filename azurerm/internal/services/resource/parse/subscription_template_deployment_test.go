@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"testing"
 
@@ -9,47 +11,86 @@ import (
 var _ resourceid.Formatter = SubscriptionTemplateDeploymentId{}
 
 func TestSubscriptionTemplateDeploymentIDFormatter(t *testing.T) {
-	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	actual := NewSubscriptionTemplateDeploymentID("deploy1").ID(subscriptionId)
-	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/providers/Microsoft.Resources/deployments/deploy1"
+	actual := NewSubscriptionTemplateDeploymentID("12345678-1234-9876-4563-123456789012", "deploy1").ID("")
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.Resources/deployments/deploy1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestSubscriptionTemplateDeploymentIDParser(t *testing.T) {
+func TestSubscriptionTemplateDeploymentID(t *testing.T) {
 	testData := []struct {
-		input    string
-		expected *SubscriptionTemplateDeploymentId
+		Input    string
+		Error    bool
+		Expected *SubscriptionTemplateDeploymentId
 	}{
+
 		{
-			// camel case
-			input: "/subscriptions/12345678-1234-5678-1234-123456789012/providers/Microsoft.Resources/deployments/deploy1",
-			expected: &SubscriptionTemplateDeploymentId{
+			// empty
+			Input: "",
+			Error: true,
+		},
+
+		{
+			// missing SubscriptionId
+			Input: "/",
+			Error: true,
+		},
+
+		{
+			// missing value for SubscriptionId
+			Input: "/subscriptions/",
+			Error: true,
+		},
+
+		{
+			// missing DeploymentName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.Resources/",
+			Error: true,
+		},
+
+		{
+			// missing value for DeploymentName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.Resources/deployments/",
+			Error: true,
+		},
+
+		{
+			// valid
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.Resources/deployments/deploy1",
+			Expected: &SubscriptionTemplateDeploymentId{
+				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				DeploymentName: "deploy1",
 			},
 		},
+
 		{
-			// title case
-			input:    "/subscriptions/12345678-1234-5678-1234-123456789012/providers/Microsoft.Resources/Deployments/deploy1",
-			expected: nil,
+			// upper-cased
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/PROVIDERS/MICROSOFT.RESOURCES/DEPLOYMENTS/DEPLOY1",
+			Error: true,
 		},
 	}
-	for _, test := range testData {
-		t.Logf("Testing %q..", test.input)
-		actual, err := SubscriptionTemplateDeploymentID(test.input)
-		if err != nil && test.expected == nil {
-			continue
-		} else {
-			if err == nil && test.expected == nil {
-				t.Fatalf("Expected an error but didn't get one")
-			} else if err != nil && test.expected != nil {
-				t.Fatalf("Expected no error but got: %+v", err)
+
+	for _, v := range testData {
+		t.Logf("[DEBUG] Testing %q", v.Input)
+
+		actual, err := SubscriptionTemplateDeploymentID(v.Input)
+		if err != nil {
+			if v.Error {
+				continue
 			}
+
+			t.Fatalf("Expect a value but got an error: %s", err)
+		}
+		if v.Error {
+			t.Fatal("Expect an error but didn't get one")
 		}
 
-		if actual.DeploymentName != test.expected.DeploymentName {
-			t.Fatalf("Expected name to be %q but was %q", test.expected.DeploymentName, actual.DeploymentName)
+		if actual.SubscriptionId != v.Expected.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
+		}
+		if actual.DeploymentName != v.Expected.DeploymentName {
+			t.Fatalf("Expected %q but got %q for DeploymentName", v.Expected.DeploymentName, actual.DeploymentName)
 		}
 	}
 }

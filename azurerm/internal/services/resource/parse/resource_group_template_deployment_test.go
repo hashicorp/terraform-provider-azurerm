@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"testing"
 
@@ -9,52 +11,102 @@ import (
 var _ resourceid.Formatter = ResourceGroupTemplateDeploymentId{}
 
 func TestResourceGroupTemplateDeploymentIDFormatter(t *testing.T) {
-	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	actual := NewResourceGroupTemplateDeploymentID("group1", "deploy1").ID(subscriptionId)
-	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Resources/deployments/deploy1"
+	actual := NewResourceGroupTemplateDeploymentID("12345678-1234-9876-4563-123456789012", "group1", "deploy1").ID("")
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Resources/deployments/deploy1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestResourceGroupTemplateDeploymentIDParser(t *testing.T) {
+func TestResourceGroupTemplateDeploymentID(t *testing.T) {
 	testData := []struct {
-		input    string
-		expected *ResourceGroupTemplateDeploymentId
+		Input    string
+		Error    bool
+		Expected *ResourceGroupTemplateDeploymentId
 	}{
+
 		{
-			// camel case
-			input: "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Resources/deployments/deploy1",
-			expected: &ResourceGroupTemplateDeploymentId{
+			// empty
+			Input: "",
+			Error: true,
+		},
+
+		{
+			// missing SubscriptionId
+			Input: "/",
+			Error: true,
+		},
+
+		{
+			// missing value for SubscriptionId
+			Input: "/subscriptions/",
+			Error: true,
+		},
+
+		{
+			// missing ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/",
+			Error: true,
+		},
+
+		{
+			// missing value for ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
+			Error: true,
+		},
+
+		{
+			// missing DeploymentName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Resources/",
+			Error: true,
+		},
+
+		{
+			// missing value for DeploymentName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Resources/deployments/",
+			Error: true,
+		},
+
+		{
+			// valid
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Resources/deployments/deploy1",
+			Expected: &ResourceGroupTemplateDeploymentId{
+				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "group1",
 				DeploymentName: "deploy1",
 			},
 		},
+
 		{
-			// title case
-			input:    "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Resources/Deployments/deploy1",
-			expected: nil,
+			// upper-cased
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/GROUP1/PROVIDERS/MICROSOFT.RESOURCES/DEPLOYMENTS/DEPLOY1",
+			Error: true,
 		},
 	}
-	for _, test := range testData {
-		t.Logf("Testing %q..", test.input)
-		actual, err := ResourceGroupTemplateDeploymentID(test.input)
-		if err != nil && test.expected == nil {
-			continue
-		} else {
-			if err == nil && test.expected == nil {
-				t.Fatalf("Expected an error but didn't get one")
-			} else if err != nil && test.expected != nil {
-				t.Fatalf("Expected no error but got: %+v", err)
+
+	for _, v := range testData {
+		t.Logf("[DEBUG] Testing %q", v.Input)
+
+		actual, err := ResourceGroupTemplateDeploymentID(v.Input)
+		if err != nil {
+			if v.Error {
+				continue
 			}
+
+			t.Fatalf("Expect a value but got an error: %s", err)
+		}
+		if v.Error {
+			t.Fatal("Expect an error but didn't get one")
 		}
 
-		if actual.ResourceGroup != test.expected.ResourceGroup {
-			t.Fatalf("Expected ResourceGroup to be %q but was %q", test.expected.ResourceGroup, actual.ResourceGroup)
+		if actual.SubscriptionId != v.Expected.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
 		}
-
-		if actual.DeploymentName != test.expected.DeploymentName {
-			t.Fatalf("Expected name to be %q but was %q", test.expected.DeploymentName, actual.DeploymentName)
+		if actual.ResourceGroup != v.Expected.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
+		}
+		if actual.DeploymentName != v.Expected.DeploymentName {
+			t.Fatalf("Expected %q but got %q for DeploymentName", v.Expected.DeploymentName, actual.DeploymentName)
 		}
 	}
 }
