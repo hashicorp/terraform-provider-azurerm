@@ -59,7 +59,7 @@ func SynapseWorkspaceID(i interface{}, k string) (warnings []string, errors []er
 		return
 	}
 
-	if _, err := parse.SynapseWorkspaceID(v); err != nil {
+	if _, err := parse.WorkspaceID(v); err != nil {
 		errors = append(errors, fmt.Errorf("can not parse %q as a synapse workspace resource id: %v", k, err))
 		return
 	}
