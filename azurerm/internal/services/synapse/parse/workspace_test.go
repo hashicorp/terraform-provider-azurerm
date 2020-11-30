@@ -8,7 +8,7 @@ func TestSynapseWorkspaceID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *SynapseWorkspaceId
+		Expected *WorkspaceId
 	}{
 		{
 			Name:     "Empty",
@@ -38,7 +38,7 @@ func TestSynapseWorkspaceID(t *testing.T) {
 		{
 			Name:  "synapse Workspace ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Synapse/workspaces/workspace1",
-			Expected: &SynapseWorkspaceId{
+			Expected: &WorkspaceId{
 				ResourceGroup: "resourceGroup1",
 				Name:          "workspace1",
 			},

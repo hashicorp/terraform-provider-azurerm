@@ -6,11 +6,11 @@ import (
 )
 
 type RoleAssignmentId struct {
-	Workspace             SynapseWorkspaceId
+	Workspace             WorkspaceId
 	DataPlaneAssignmentId string
 }
 
-func NewRoleAssignmentId(workspace SynapseWorkspaceId, dataPlaneAssignmentId string) RoleAssignmentId {
+func NewRoleAssignmentId(workspace WorkspaceId, dataPlaneAssignmentId string) RoleAssignmentId {
 	return RoleAssignmentId{
 		Workspace:             workspace,
 		DataPlaneAssignmentId: dataPlaneAssignmentId,

@@ -6,29 +6,29 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type SynapseWorkspaceId struct {
-	SubscriptionID string
+type WorkspaceId struct {
+	SubscriptionId string
 	ResourceGroup  string
 	Name           string
 }
 
-func NewSynapseWorkspaceId(subscriptionId, resourceGroup, name string) SynapseWorkspaceId {
-	return SynapseWorkspaceId{
-		SubscriptionID: subscriptionId,
+func NewSynapseWorkspaceId(subscriptionId, resourceGroup, name string) WorkspaceId {
+	return WorkspaceId{
+		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
 		Name:           name,
 	}
 }
 
-func SynapseWorkspaceID(input string) (*SynapseWorkspaceId, error) {
+func SynapseWorkspaceID(input string) (*WorkspaceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("parsing synapseWorkspace ID %q: %+v", input, err)
 	}
 
-	synapseWorkspace := SynapseWorkspaceId{
+	synapseWorkspace := WorkspaceId{
 		ResourceGroup:  id.ResourceGroup,
-		SubscriptionID: id.SubscriptionID,
+		SubscriptionId: id.SubscriptionID,
 	}
 	if synapseWorkspace.Name, err = id.PopSegment("workspaces"); err != nil {
 		return nil, err
@@ -40,6 +40,6 @@ func SynapseWorkspaceID(input string) (*SynapseWorkspaceId, error) {
 	return &synapseWorkspace, nil
 }
 
-func (id SynapseWorkspaceId) ID(_ string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Synapse/workspaces/%s", id.SubscriptionID, id.ResourceGroup, id.Name)
+func (id WorkspaceId) ID(_ string) string {
+	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Synapse/workspaces/%s", id.SubscriptionId, id.ResourceGroup, id.Name)
 }
