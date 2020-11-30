@@ -18,7 +18,6 @@ import (
 type RoleAssignmentResource struct{}
 
 func TestAccRoleAssignment(t *testing.T) {
-
 	// NOTE: this is a combined test rather than separate split out tests due to
 	// Azure only being happy about provisioning a couple at a time
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
@@ -232,7 +231,7 @@ func (r RoleAssignmentResource) Exists(ctx context.Context, client *clients.Clie
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Role Assingment for role %q (Scope %q): %+v", id.RoleID, id.Scope, err)
+		return nil, fmt.Errorf("retrieving Role Assignment for role %q (Scope %q): %+v", id.RoleID, id.Scope, err)
 	}
 	return utils.Bool(true), nil
 }
