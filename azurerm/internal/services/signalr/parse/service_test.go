@@ -8,7 +8,7 @@ func TestSignalRServiceId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *SignalRServiceId
+		Expected *ServiceId
 	}{
 		{
 			Name:     "Empty",
@@ -38,8 +38,8 @@ func TestSignalRServiceId(t *testing.T) {
 		{
 			Name:  "SignalR Service ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.SignalRService/SignalR/service1",
-			Expected: &SignalRServiceId{
-				Name:          "service1",
+			Expected: &ServiceId{
+				SignalRName:   "service1",
 				ResourceGroup: "resGroup1",
 			},
 		},
@@ -53,7 +53,7 @@ func TestSignalRServiceId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := SignalRServiceID(v.Input)
+		actual, err := ServiceID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -62,8 +62,8 @@ func TestSignalRServiceId(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.SignalRName != v.Expected.SignalRName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.SignalRName, actual.SignalRName)
 		}
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {

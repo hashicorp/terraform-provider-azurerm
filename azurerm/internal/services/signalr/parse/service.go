@@ -6,22 +6,22 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type SignalRServiceId struct {
+type ServiceId struct {
 	ResourceGroup string
-	Name          string
+	SignalRName   string
 }
 
-func SignalRServiceID(input string) (*SignalRServiceId, error) {
+func ServiceID(input string) (*ServiceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse SignalR Service ID %q: %+v", input, err)
 	}
 
-	service := SignalRServiceId{
+	service := ServiceId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if service.Name, err = id.PopSegment("SignalR"); err != nil {
+	if service.SignalRName, err = id.PopSegment("SignalR"); err != nil {
 		return nil, err
 	}
 
