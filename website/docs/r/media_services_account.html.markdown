@@ -62,7 +62,7 @@ A `storage_account` block supports the following:
 
 * `identity` - (Optional) An `identity` block is documented below.
 
-* `storage_authentication` - (Optional) Specifies the storage authentication type. 
+* `storage_authentication_type` - (Optional) Specifies the storage authentication type. 
 Possible value is  `ManagedIdentity` or `System`.
 
 * `tags` - (Optional) A mapping of tags assigned to the resource.
