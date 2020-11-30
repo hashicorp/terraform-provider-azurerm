@@ -24,7 +24,7 @@ func StorageSyncId(i interface{}, k string) (warnings []string, errors []error) 
 		return warnings, errors
 	}
 
-	if _, err := parse.ParseStorageSyncID(v); err != nil {
+	if _, err := parse.StorageSyncServiceID(v); err != nil {
 		errors = append(errors, fmt.Errorf("can not parse %q as a Storage Sync resource id: %v", k, err))
 	}
 

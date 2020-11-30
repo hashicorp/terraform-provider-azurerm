@@ -6,23 +6,23 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type StorageSyncId struct {
-	Name          string
+type StorageSyncServiceId struct {
 	ResourceGroup string
+	Name          string
 }
 
-func (id StorageSyncId) ID(subscriptionId string) string {
+func (id StorageSyncServiceId) ID(subscriptionId string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.StorageSync/storageSyncServices/%s"
 	return fmt.Sprintf(fmtString, subscriptionId, id.ResourceGroup, id.Name)
 }
 
-func ParseStorageSyncID(input string) (*StorageSyncId, error) {
+func StorageSyncServiceID(input string) (*StorageSyncServiceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	storageSync := StorageSyncId{
+	storageSync := StorageSyncServiceId{
 		ResourceGroup: id.ResourceGroup,
 	}
 

@@ -42,9 +42,9 @@ func TestParseStorageSyncGroupID(t *testing.T) {
 			Name:  "Sync Group Id",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.StorageSync/storageSyncServices/sync1/syncGroups/group1",
 			Expected: &StorageSyncGroupId{
-				Name:            "group1",
-				StorageSyncName: "sync1",
-				ResourceGroup:   "resGroup1",
+				SyncGroupName:          "group1",
+				StorageSyncServiceName: "sync1",
+				ResourceGroup:          "resGroup1",
 			},
 		},
 		{
@@ -66,12 +66,12 @@ func TestParseStorageSyncGroupID(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.SyncGroupName != v.Expected.SyncGroupName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.SyncGroupName, actual.SyncGroupName)
 		}
 
-		if actual.StorageSyncName != v.Expected.StorageSyncName {
-			t.Fatalf("Expected %q but got %q for Storage Sync Name", v.Expected.Name, actual.Name)
+		if actual.StorageSyncServiceName != v.Expected.StorageSyncServiceName {
+			t.Fatalf("Expected %q but got %q for Storage Sync Name", v.Expected.SyncGroupName, actual.SyncGroupName)
 		}
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {

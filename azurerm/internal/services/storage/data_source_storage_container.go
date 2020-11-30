@@ -98,7 +98,7 @@ func dataSourceArmStorageContainerRead(d *schema.ResourceData, meta interface{})
 	d.Set("has_immutability_policy", props.HasImmutabilityPolicy)
 	d.Set("has_legal_hold", props.HasLegalHold)
 
-	resourceManagerId := parse.NewStorageContainerResourceManagerId(account.ResourceGroup, accountName, containerName)
+	resourceManagerId := parse.NewStorageContainerResourceManagerID(account.ResourceGroup, accountName, "default", containerName)
 	d.Set("resource_manager_id", resourceManagerId.ID(storageClient.SubscriptionId))
 
 	return nil

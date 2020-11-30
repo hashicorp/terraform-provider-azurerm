@@ -6,7 +6,7 @@ func TestParseStorageSyncID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *StorageSyncId
+		Expected *StorageSyncServiceId
 	}{
 		{
 			Name:     "Empty",
@@ -36,7 +36,7 @@ func TestParseStorageSyncID(t *testing.T) {
 		{
 			Name:  "Storage Sync ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.StorageSync/storageSyncServices/Sync1",
-			Expected: &StorageSyncId{
+			Expected: &StorageSyncServiceId{
 				Name:          "Sync1",
 				ResourceGroup: "resGroup1",
 			},
@@ -51,7 +51,7 @@ func TestParseStorageSyncID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ParseStorageSyncID(v.Input)
+		actual, err := StorageSyncServiceID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

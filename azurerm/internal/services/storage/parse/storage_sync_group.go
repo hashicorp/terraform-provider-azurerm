@@ -3,9 +3,9 @@ package parse
 import "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 
 type StorageSyncGroupId struct {
-	Name            string
-	StorageSyncName string
-	ResourceGroup   string
+	ResourceGroup          string
+	StorageSyncServiceName string
+	SyncGroupName          string
 }
 
 func StorageSyncGroupID(input string) (*StorageSyncGroupId, error) {
@@ -18,11 +18,11 @@ func StorageSyncGroupID(input string) (*StorageSyncGroupId, error) {
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if storageSyncGroup.StorageSyncName, err = id.PopSegment("storageSyncServices"); err != nil {
+	if storageSyncGroup.StorageSyncServiceName, err = id.PopSegment("storageSyncServices"); err != nil {
 		return nil, err
 	}
 
-	if storageSyncGroup.Name, err = id.PopSegment("syncGroups"); err != nil {
+	if storageSyncGroup.SyncGroupName, err = id.PopSegment("syncGroups"); err != nil {
 		return nil, err
 	}
 

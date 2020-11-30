@@ -76,7 +76,7 @@ func resourceArmStorageEncryptionScopeCreate(d *schema.ResourceData, meta interf
 	defer cancel()
 
 	name := d.Get("name").(string)
-	accountId, err := parse.AccountID(d.Get("storage_account_id").(string))
+	accountId, err := parse.StorageAccountID(d.Get("storage_account_id").(string))
 	if err != nil {
 		return err
 	}
@@ -140,8 +140,8 @@ func resourceArmStorageEncryptionScopeUpdate(d *schema.ResourceData, meta interf
 			},
 		},
 	}
-	if _, err := client.Patch(ctx, id.ResourceGroup, id.AccountName, id.Name, props); err != nil {
-		return fmt.Errorf("updating Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
+	if _, err := client.Patch(ctx, id.ResourceGroup, id.StorageAccountName, id.Name, props); err != nil {
+		return fmt.Errorf("updating Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q): %+v", id.Name, id.StorageAccountName, id.ResourceGroup, err)
 	}
 
 	return resourceArmStorageEncryptionScopeRead(d, meta)
@@ -156,9 +156,9 @@ func resourceArmStorageEncryptionScopeRead(d *schema.ResourceData, meta interfac
 	if err != nil {
 		return err
 	}
-	accountId := parse.NewAccountId(id.SubscriptionId, id.ResourceGroup, id.AccountName)
+	accountId := parse.NewAccountId(id.SubscriptionId, id.ResourceGroup, id.StorageAccountName)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.StorageAccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Storage Encryption Scope %q does not exist - removing from state", d.Id())
@@ -166,16 +166,16 @@ func resourceArmStorageEncryptionScopeRead(d *schema.ResourceData, meta interfac
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q): %+v", id.Name, id.StorageAccountName, id.ResourceGroup, err)
 	}
 
 	if resp.EncryptionScopeProperties == nil {
-		return fmt.Errorf("retrieving Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q): `properties` was nil", id.Name, id.AccountName, id.ResourceGroup)
+		return fmt.Errorf("retrieving Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q): `properties` was nil", id.Name, id.StorageAccountName, id.ResourceGroup)
 	}
 
 	props := *resp.EncryptionScopeProperties
 	if strings.EqualFold(string(props.State), string(storage.Disabled)) {
-		log.Printf("[INFO] Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q) does not exist - removing from state", id.Name, id.AccountName, id.ResourceGroup)
+		log.Printf("[INFO] Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q) does not exist - removing from state", id.Name, id.StorageAccountName, id.ResourceGroup)
 		d.SetId("")
 		return nil
 	}
@@ -212,8 +212,8 @@ func resourceArmStorageEncryptionScopeDelete(d *schema.ResourceData, meta interf
 		},
 	}
 
-	if _, err = client.Put(ctx, id.ResourceGroup, id.AccountName, id.Name, props); err != nil {
-		return fmt.Errorf("disabling Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
+	if _, err = client.Put(ctx, id.ResourceGroup, id.StorageAccountName, id.Name, props); err != nil {
+		return fmt.Errorf("disabling Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q): %+v", id.Name, id.StorageAccountName, id.ResourceGroup, err)
 	}
 
 	return nil

@@ -147,7 +147,7 @@ func resourceArmStorageDataLakeGen2PathCreate(d *schema.ResourceData, meta inter
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	storageID, err := parse.AccountID(d.Get("storage_account_id").(string))
+	storageID, err := parse.StorageAccountID(d.Get("storage_account_id").(string))
 	if err != nil {
 		return err
 	}
@@ -241,7 +241,7 @@ func resourceArmStorageDataLakeGen2PathUpdate(d *schema.ResourceData, meta inter
 		return err
 	}
 
-	storageID, err := parse.AccountID(d.Get("storage_account_id").(string))
+	storageID, err := parse.StorageAccountID(d.Get("storage_account_id").(string))
 	if err != nil {
 		return err
 	}

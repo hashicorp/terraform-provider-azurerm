@@ -39,10 +39,10 @@ func TestParseStorageContainerResourceManagerID(t *testing.T) {
 			Name:  "Storage Containers Resource Manager ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Storage/storageAccounts/account1/blobServices/default/containers/container1",
 			Expected: &StorageContainerResourceManagerId{
-				ResourceGroup:   "resGroup1",
-				AccountName:     "account1",
-				BlobServiceName: "default",
-				Name:            "container1",
+				ResourceGroup:      "resGroup1",
+				StorageAccountName: "account1",
+				BlobServiceName:    "default",
+				ContainerName:      "container1",
 			},
 		},
 		{
@@ -69,16 +69,16 @@ func TestParseStorageContainerResourceManagerID(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.ContainerName != v.Expected.ContainerName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.ContainerName, actual.ContainerName)
 		}
 
 		if actual.BlobServiceName != v.Expected.BlobServiceName {
 			t.Fatalf("Expected %q but got %q for Blob Service Name", v.Expected.BlobServiceName, actual.BlobServiceName)
 		}
 
-		if actual.AccountName != v.Expected.AccountName {
-			t.Fatalf("Expected %q but got %q for Account Name", v.Expected.AccountName, actual.AccountName)
+		if actual.StorageAccountName != v.Expected.StorageAccountName {
+			t.Fatalf("Expected %q but got %q for Account Name", v.Expected.StorageAccountName, actual.StorageAccountName)
 		}
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {

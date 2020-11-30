@@ -7,23 +7,23 @@ import (
 )
 
 type StorageContainerResourceManagerId struct {
-	Name            string
-	AccountName     string
-	BlobServiceName string
-	ResourceGroup   string
+	ResourceGroup      string
+	StorageAccountName string
+	BlobServiceName    string
+	ContainerName      string
 }
 
 func (id StorageContainerResourceManagerId) ID(subscriptionId string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Storage/storageAccounts/%s/blobServices/%s/containers/%s"
-	return fmt.Sprintf(fmtString, subscriptionId, id.ResourceGroup, id.AccountName, id.BlobServiceName, id.Name)
+	return fmt.Sprintf(fmtString, subscriptionId, id.ResourceGroup, id.StorageAccountName, id.BlobServiceName, id.ContainerName)
 }
 
-func NewStorageContainerResourceManagerId(resourceGroup, accountName, containerName string) StorageContainerResourceManagerId {
+func NewStorageContainerResourceManagerID(resourceGroup, accountName, blobServiceName, containerName string) StorageContainerResourceManagerId {
 	return StorageContainerResourceManagerId{
-		Name:            containerName,
-		AccountName:     accountName,
-		BlobServiceName: "default",
-		ResourceGroup:   resourceGroup,
+		ContainerName:      containerName,
+		StorageAccountName: accountName,
+		BlobServiceName:    blobServiceName,
+		ResourceGroup:      resourceGroup,
 	}
 }
 
@@ -37,7 +37,7 @@ func StorageContainerResourceManagerID(input string) (*StorageContainerResourceM
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if cache.Name, err = id.PopSegment("containers"); err != nil {
+	if cache.ContainerName, err = id.PopSegment("containers"); err != nil {
 		return nil, err
 	}
 
@@ -45,7 +45,7 @@ func StorageContainerResourceManagerID(input string) (*StorageContainerResourceM
 		return nil, err
 	}
 
-	if cache.AccountName, err = id.PopSegment("storageAccounts"); err != nil {
+	if cache.StorageAccountName, err = id.PopSegment("storageAccounts"); err != nil {
 		return nil, err
 	}
 

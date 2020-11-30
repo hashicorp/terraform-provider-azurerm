@@ -7,25 +7,25 @@ import (
 )
 
 type EncryptionScopeId struct {
-	Name           string
-	AccountName    string
-	ResourceGroup  string
-	SubscriptionId string
+	Name               string
+	StorageAccountName string
+	ResourceGroup      string
+	SubscriptionId     string
 }
 
 // the subscriptionId isn't used here, this is just to comply with the interface for now..
 func (id EncryptionScopeId) ID(_ string) string {
 	fmtString := "%s/encryptionScopes/%s"
-	accountId := NewAccountId(id.SubscriptionId, id.ResourceGroup, id.AccountName).ID("")
+	accountId := NewAccountId(id.SubscriptionId, id.ResourceGroup, id.StorageAccountName).ID("")
 	return fmt.Sprintf(fmtString, accountId, id.Name)
 }
 
-func NewEncryptionScopeId(storageAccount AccountId, name string) EncryptionScopeId {
+func NewEncryptionScopeId(resourceGroup, storageAccount, name string) EncryptionScopeId {
 	return EncryptionScopeId{
-		Name:           name,
-		AccountName:    storageAccount.Name,
-		ResourceGroup:  storageAccount.ResourceGroup,
-		SubscriptionId: storageAccount.SubscriptionId,
+		Name:               name,
+		StorageAccountName: storageAccount,
+		ResourceGroup:      resourceGroup,
+		SubscriptionId:     "TODO",
 	}
 }
 
@@ -40,7 +40,7 @@ func EncryptionScopeID(input string) (*EncryptionScopeId, error) {
 		SubscriptionId: id.SubscriptionID,
 	}
 
-	if es.AccountName, err = id.PopSegment("storageAccounts"); err != nil {
+	if es.StorageAccountName, err = id.PopSegment("storageAccounts"); err != nil {
 		return nil, err
 	}
 
