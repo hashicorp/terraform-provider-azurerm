@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,21 +9,45 @@ import (
 )
 
 type CertificateOrderId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
+func NewCertificateOrderID(subscriptionId, resourceGroup, name string) CertificateOrderId {
+	return CertificateOrderId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id CertificateOrderId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/certificateOrders/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+}
+
+// CertificateOrderID parses a CertificateOrder ID into an CertificateOrderId struct
 func CertificateOrderID(input string) (*CertificateOrderId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse App Service Certificate Order ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	order := CertificateOrderId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := CertificateOrderId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if order.Name, err = id.PopSegment("certificateOrders"); err != nil {
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.Name, err = id.PopSegment("certificateOrders"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +55,5 @@ func CertificateOrderID(input string) (*CertificateOrderId, error) {
 		return nil, err
 	}
 
-	return &order, nil
+	return &resourceId, nil
 }
