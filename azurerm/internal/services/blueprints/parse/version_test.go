@@ -2,7 +2,7 @@ package parse
 
 import "testing"
 
-func TestBlueprintVersionID(t *testing.T) {
+func TestVersionID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string

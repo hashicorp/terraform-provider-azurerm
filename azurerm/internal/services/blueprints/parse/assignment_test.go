@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestBlueprintAssignmentID(t *testing.T) {
+func TestAssignmentID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
