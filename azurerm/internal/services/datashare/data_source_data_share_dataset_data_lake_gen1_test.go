@@ -1,4 +1,4 @@
-package tests
+package datashare_test
 
 import (
 	"fmt"
