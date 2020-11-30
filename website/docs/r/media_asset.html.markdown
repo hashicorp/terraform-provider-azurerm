@@ -58,13 +58,13 @@ The following arguments are supported:
 
 ---
 
-* `alternate_id` - (Optional) The alternate ID of the Asset..
+* `alternate_id` - (Optional) The alternate ID of the Asset.
 
 * `container` - (Optional) The name of the asset blob container.
 
 * `description` - (Optional) The Asset description.
 
-* `storage_account_name` - (Optional) The name of the storage account.
+* `storage_account_name` - (Optional) The name of the storage account where to store the media asset.
 
 ## Attributes Reference
 
