@@ -8,7 +8,7 @@ func TestServiceFabricMeshSecretValueId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *ServiceFabricMeshSecretValueId
+		Expected *SecretValueId
 	}{
 		{
 			Name:     "Empty",
@@ -38,8 +38,8 @@ func TestServiceFabricMeshSecretValueId(t *testing.T) {
 		{
 			Name:  "Service Fabric Mesh Secret Value ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.ServiceFabricMesh/secrets/Secret1/values/Value1",
-			Expected: &ServiceFabricMeshSecretValueId{
-				Name:          "Value1",
+			Expected: &SecretValueId{
+				ValueName:     "Value1",
 				SecretName:    "Secret1",
 				ResourceGroup: "resGroup1",
 			},
@@ -54,7 +54,7 @@ func TestServiceFabricMeshSecretValueId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ServiceFabricMeshSecretValueID(v.Input)
+		actual, err := SecretValueID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -63,8 +63,8 @@ func TestServiceFabricMeshSecretValueId(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.ValueName != v.Expected.ValueName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.ValueName, actual.ValueName)
 		}
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {

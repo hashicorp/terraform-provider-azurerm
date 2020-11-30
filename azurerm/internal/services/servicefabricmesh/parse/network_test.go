@@ -8,7 +8,7 @@ func TestServiceFabricMeshNetworkId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *ServiceFabricMeshNetworkId
+		Expected *NetworkId
 	}{
 		{
 			Name:     "Empty",
@@ -38,7 +38,7 @@ func TestServiceFabricMeshNetworkId(t *testing.T) {
 		{
 			Name:  "Service Fabric Mesh Network ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.ServiceFabricMesh/networks/Network1",
-			Expected: &ServiceFabricMeshNetworkId{
+			Expected: &NetworkId{
 				Name:          "Network1",
 				ResourceGroup: "resGroup1",
 			},
@@ -53,7 +53,7 @@ func TestServiceFabricMeshNetworkId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ServiceFabricMeshNetworkID(v.Input)
+		actual, err := NetworkID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

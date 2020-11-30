@@ -6,22 +6,27 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type ServiceFabricMeshSecretId struct {
+type SecretValueId struct {
 	ResourceGroup string
-	Name          string
+	SecretName    string
+	ValueName     string
 }
 
-func ServiceFabricMeshSecretID(input string) (*ServiceFabricMeshSecretId, error) {
+func SecretValueID(input string) (*SecretValueId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Service Fabric Mesh Secret ID %q: %+v", input, err)
 	}
 
-	secret := ServiceFabricMeshSecretId{
+	value := SecretValueId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if secret.Name, err = id.PopSegment("secrets"); err != nil {
+	if value.SecretName, err = id.PopSegment("secrets"); err != nil {
+		return nil, err
+	}
+
+	if value.ValueName, err = id.PopSegment("values"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +34,5 @@ func ServiceFabricMeshSecretID(input string) (*ServiceFabricMeshSecretId, error)
 		return nil, err
 	}
 
-	return &secret, nil
+	return &value, nil
 }
