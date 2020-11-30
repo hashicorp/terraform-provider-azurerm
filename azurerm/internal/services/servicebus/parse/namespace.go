@@ -6,18 +6,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type ServiceBusNamespaceId struct {
-	Name          string
+type NamespaceId struct {
 	ResourceGroup string
+	Name          string
 }
 
-func ServiceBusNamespaceID(input string) (*ServiceBusNamespaceId, error) {
+func NamespaceID(input string) (*NamespaceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse Service Bus Namespace ID %q: %+v", input, err)
 	}
 
-	namespace := ServiceBusNamespaceId{
+	namespace := NamespaceId{
 		ResourceGroup: id.ResourceGroup,
 	}
 

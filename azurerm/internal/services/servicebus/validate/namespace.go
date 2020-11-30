@@ -15,7 +15,7 @@ func ServiceBusNamespaceID(i interface{}, k string) (warnings []string, errors [
 		return
 	}
 
-	if _, err := parse.ServiceBusNamespaceID(v); err != nil {
+	if _, err := parse.NamespaceID(v); err != nil {
 		errors = append(errors, fmt.Errorf("cannot parse %q as a Service Bus Namespace ID: %+v", k, err))
 		return
 	}

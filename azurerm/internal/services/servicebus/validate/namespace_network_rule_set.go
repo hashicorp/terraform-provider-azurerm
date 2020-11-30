@@ -13,7 +13,7 @@ func ServiceBusNamespaceNetworkRuleSetID(i interface{}, k string) (warnings []st
 		return
 	}
 
-	if _, err := parse.ServiceBusNamespaceNetworkRuleSetID(v); err != nil {
+	if _, err := parse.NamespaceNetworkRuleSetID(v); err != nil {
 		errors = append(errors, fmt.Errorf("cannot parse %q as a Service Bus Namespace Network Rule Set ID: %+v", k, err))
 		return
 	}

@@ -7,7 +7,7 @@ func TestServiceBusNamespaceNetworkRuleID(t *testing.T) {
 		Name     string
 		Input    string
 		Error    bool
-		Expected *ServiceBusNamespaceNetworkRuleSetId
+		Expected *NamespaceNetworkRuleSetId
 	}{
 		{
 			Name:  "Empty",
@@ -47,10 +47,10 @@ func TestServiceBusNamespaceNetworkRuleID(t *testing.T) {
 		{
 			Name:  "Service Bus Namespace Network Rule ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.ServiceBus/namespaces/namespace1/networkrulesets/default",
-			Expected: &ServiceBusNamespaceNetworkRuleSetId{
-				Name:          "default",
-				NamespaceName: "namespace1",
-				ResourceGroup: "resGroup1",
+			Expected: &NamespaceNetworkRuleSetId{
+				NetworkrulesetName: "default",
+				NamespaceName:      "namespace1",
+				ResourceGroup:      "resGroup1",
 			},
 		},
 		{
@@ -63,7 +63,7 @@ func TestServiceBusNamespaceNetworkRuleID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ServiceBusNamespaceNetworkRuleSetID(v.Input)
+		actual, err := NamespaceNetworkRuleSetID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -72,8 +72,8 @@ func TestServiceBusNamespaceNetworkRuleID(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.NetworkrulesetName != v.Expected.NetworkrulesetName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.NetworkrulesetName, actual.NetworkrulesetName)
 		}
 
 		if actual.NamespaceName != v.Expected.NamespaceName {

@@ -9,7 +9,7 @@ func TestServiceBusNamespaceID(t *testing.T) {
 		Name     string
 		Input    string
 		Error    bool
-		Expected *ServiceBusNamespaceId
+		Expected *NamespaceId
 	}{
 		{
 			Name:  "Empty",
@@ -39,7 +39,7 @@ func TestServiceBusNamespaceID(t *testing.T) {
 		{
 			Name:  "Service Bus Namespace ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.ServiceBus/namespaces/namespace1",
-			Expected: &ServiceBusNamespaceId{
+			Expected: &NamespaceId{
 				ResourceGroup: "resGroup1",
 				Name:          "namespace1",
 			},
@@ -54,7 +54,7 @@ func TestServiceBusNamespaceID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ServiceBusNamespaceID(v.Input)
+		actual, err := NamespaceID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
