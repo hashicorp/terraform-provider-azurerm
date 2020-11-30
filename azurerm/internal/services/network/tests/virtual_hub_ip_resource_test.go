@@ -13,6 +13,10 @@ import (
 )
 
 func TestAccAzureRMVirtualHubIP_basic(t *testing.T) {
+	if true {
+		t.Skip("Skipping due to API issue preventing deletion")
+		return
+	}
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_ip", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -32,6 +36,10 @@ func TestAccAzureRMVirtualHubIP_basic(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualHubIP_requiresImport(t *testing.T) {
+	if true {
+		t.Skip("Skipping due to API issue preventing deletion")
+		return
+	}
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_ip", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -54,6 +62,10 @@ func TestAccAzureRMVirtualHubIP_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualHubIP_complete(t *testing.T) {
+	if true {
+		t.Skip("Skipping due to API issue preventing deletion")
+		return
+	}
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_ip", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -73,6 +85,10 @@ func TestAccAzureRMVirtualHubIP_complete(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualHubIP_update(t *testing.T) {
+	if true {
+		t.Skip("Skipping due to API issue preventing deletion")
+		return
+	}
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_ip", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
