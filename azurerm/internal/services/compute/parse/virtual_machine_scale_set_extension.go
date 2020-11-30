@@ -41,6 +41,14 @@ func VirtualMachineScaleSetExtensionID(input string) (*VirtualMachineScaleSetExt
 		ResourceGroup:  id.ResourceGroup,
 	}
 
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
 	if resourceId.VirtualMachineScaleSetName, err = id.PopSegment("virtualMachineScaleSets"); err != nil {
 		return nil, err
 	}

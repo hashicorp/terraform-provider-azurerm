@@ -41,6 +41,14 @@ func VpnConnectionID(input string) (*VpnConnectionId, error) {
 		ResourceGroup:  id.ResourceGroup,
 	}
 
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
 	if resourceId.VpnGatewayName, err = id.PopSegment("vpnGateways"); err != nil {
 		return nil, err
 	}

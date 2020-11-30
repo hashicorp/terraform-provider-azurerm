@@ -39,6 +39,14 @@ func EmbeddedID(input string) (*EmbeddedId, error) {
 		ResourceGroup:  id.ResourceGroup,
 	}
 
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
 	if resourceId.CapacityName, err = id.PopSegment("capacities"); err != nil {
 		return nil, err
 	}

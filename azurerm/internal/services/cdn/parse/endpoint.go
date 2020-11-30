@@ -41,6 +41,14 @@ func EndpointID(input string) (*EndpointId, error) {
 		ResourceGroup:  id.ResourceGroup,
 	}
 
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
 	if resourceId.ProfileName, err = id.PopSegment("profiles"); err != nil {
 		return nil, err
 	}

@@ -41,6 +41,14 @@ func ProjectID(input string) (*ProjectId, error) {
 		ResourceGroup:  id.ResourceGroup,
 	}
 
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
 	if resourceId.ServiceName, err = id.PopSegment("services"); err != nil {
 		return nil, err
 	}

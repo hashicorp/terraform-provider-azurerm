@@ -296,12 +296,14 @@ func (id ResourceIdGenerator) codeForParser() string {
 
 	parserStatements := make([]string, 0)
 	for _, segment := range id.Segments {
-		if strings.EqualFold(segment.SegmentKey, "subscriptions") && id.HasSubscriptionId {
-			// direct assigned above
-			continue
-		}
-		if strings.EqualFold(segment.SegmentKey, "resourceGroups") && id.HasResourceGroup {
-			// direct assigned above
+		isSubscription := strings.EqualFold(segment.SegmentKey, "subscriptions") && id.HasSubscriptionId
+		isResourceGroup := strings.EqualFold(segment.SegmentKey, "resourceGroups") && id.HasResourceGroup
+		if isSubscription || isResourceGroup {
+			parserStatements = append(parserStatements, fmt.Sprintf(`
+	if resourceId.%[1]s == "" {
+		return nil, fmt.Errorf("ID was missing the '%[2]s' element")
+	}
+`, segment.FieldName, segment.SegmentKey))
 			continue
 		}
 
@@ -349,12 +351,14 @@ func (id ResourceIdGenerator) codeForParserInsensitive() string {
 
 	parserStatements := make([]string, 0)
 	for _, segment := range id.Segments {
-		if strings.EqualFold(segment.SegmentKey, "subscriptions") && id.HasSubscriptionId {
-			// direct assigned above
-			continue
-		}
-		if strings.EqualFold(segment.SegmentKey, "resourceGroups") && id.HasResourceGroup {
-			// direct assigned above
+		isSubscription := strings.EqualFold(segment.SegmentKey, "subscriptions") && id.HasSubscriptionId
+		isResourceGroup := strings.EqualFold(segment.SegmentKey, "resourceGroups") && id.HasResourceGroup
+		if isSubscription || isResourceGroup {
+			parserStatements = append(parserStatements, fmt.Sprintf(`
+	if resourceId.%[1]s == "" {
+		return nil, fmt.Errorf("ID was missing the '%[2]s' element")
+	}
+`, segment.FieldName, segment.SegmentKey))
 			continue
 		}
 

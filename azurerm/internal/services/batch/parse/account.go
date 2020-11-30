@@ -39,6 +39,14 @@ func AccountID(input string) (*AccountId, error) {
 		ResourceGroup:  id.ResourceGroup,
 	}
 
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
 	if resourceId.BatchAccountName, err = id.PopSegment("batchAccounts"); err != nil {
 		return nil, err
 	}
