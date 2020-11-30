@@ -3,7 +3,6 @@ package datalake_test
 import (
 	`context`
 	"fmt"
-	"net/http"
 	"strconv"
 	"testing"
 

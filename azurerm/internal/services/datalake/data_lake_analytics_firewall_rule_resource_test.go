@@ -3,7 +3,6 @@ package datalake_test
 import (
 	`context`
 	"fmt"
-	"net/http"
 	"strconv"
 	"testing"
 
@@ -113,7 +112,7 @@ func (t DataLakeAnalyticsFirewallRuleResource) Exists(ctx context.Context, clien
 
 	resp, err := clients.Datalake.AnalyticsFirewallRulesClient.Get(ctx, id.ResourceGroup, accountName, name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Date Lake Analytics Firewall Rule %q (Account %q / Resource Group: %q) does not exist", firewallRuleName, accountName, resourceGroup)
+		return nil, fmt.Errorf("retrieving Date Lake Analytics Firewall Rule %q (Account %q / Resource Group: %q) does not exist", name, accountName, id.ResourceGroup)
 	}
 
 	return utils.Bool(resp.FirewallRuleProperties != nil), nil
