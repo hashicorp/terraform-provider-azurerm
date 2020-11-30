@@ -77,7 +77,7 @@ func resourceArmDataShare() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.DataShareSyncName(),
+							ValidateFunc: validate.SnapshotScheduleName(),
 						},
 
 						"recurrence": {
