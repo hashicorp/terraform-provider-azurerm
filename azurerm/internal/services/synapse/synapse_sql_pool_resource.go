@@ -351,7 +351,7 @@ func resourceArmSynapseSqlPoolRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	d.Set("name", id.Name)
-	d.Set("synapse_workspace_id", id.Workspace.String())
+	d.Set("synapse_workspace_id", id.Workspace.ID(""))
 	if resp.Sku != nil {
 		d.Set("sku_name", resp.Sku.Name)
 	}

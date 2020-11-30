@@ -246,7 +246,7 @@ func resourceArmSynapseSparkPoolRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("retrieving Synapse Spark Pool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.Workspace.ResourceGroup, id.Workspace.Name, err)
 	}
 	d.Set("name", id.Name)
-	d.Set("synapse_workspace_id", id.Workspace.String())
+	d.Set("synapse_workspace_id", id.Workspace.ID(""))
 	if props := resp.BigDataPoolResourceProperties; props != nil {
 		if err := d.Set("auto_pause", flattenArmSparkPoolAutoPauseProperties(props.AutoPause)); err != nil {
 			return fmt.Errorf("setting `auto_pause`: %+v", err)
