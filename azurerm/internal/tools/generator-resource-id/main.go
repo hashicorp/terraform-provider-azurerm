@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path"
 	"strings"
 	"unicode"
 )
@@ -30,17 +31,16 @@ func main() {
 }
 
 func run(servicePackagePath, name, id string, shouldRewrite bool) error {
-	parsersPath := fmt.Sprintf("%s/parse", servicePackagePath)
-	if err := os.Mkdir(parsersPath, 0644); !os.IsExist(err) {
+	parsersPath := path.Join(servicePackagePath, "/parse")
+	if err := os.Mkdir(parsersPath, 0755); err != nil && !os.IsExist(err) {
 		return fmt.Errorf("creating parse directory at %q: %+v", parsersPath, err)
 	}
+
 	fileName := convertToSnakeCase(name)
 	if strings.HasSuffix(fileName, "_test") {
 		// e.g. "webtest" in applicationInsights
 		fileName += "_id"
 	}
-	parserFilePath := fmt.Sprintf("%s/%s.go", parsersPath, fileName)
-	parserTestsFilePath := fmt.Sprintf("%s/%s_test.go", parsersPath, fileName)
 	resourceId, err := NewResourceID(name, id)
 	if err != nil {
 		return err
@@ -50,11 +50,15 @@ func run(servicePackagePath, name, id string, shouldRewrite bool) error {
 		ResourceId:    *resourceId,
 		ShouldRewrite: shouldRewrite,
 	}
+
+	parserFilePath := fmt.Sprintf("%s/%s.go", parsersPath, fileName)
 	if err := goFmtAndWriteToFile(parserFilePath, generator.Code()); err != nil {
-		return err
+		return fmt.Errorf("generating Parser at %q: %+v", parserFilePath, err)
 	}
+
+	parserTestsFilePath := fmt.Sprintf("%s/%s_test.go", parsersPath, fileName)
 	if err := goFmtAndWriteToFile(parserTestsFilePath, generator.TestCode()); err != nil {
-		return err
+		return fmt.Errorf("generating Parser Tests at %q: %+v", parserTestsFilePath, err)
 	}
 
 	return nil
