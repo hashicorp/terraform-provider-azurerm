@@ -819,6 +819,25 @@ func TestAccAzureRMStorageAccount_largeFileShare(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageAccount_withPremiumBlockBlobStorageAndEnabledHns(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageAccount_withPremiumBlockBlobStorageAndEnabledHns(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMStorageAccountExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure resource group exists in API
@@ -1112,7 +1131,7 @@ resource "azurerm_storage_account" "test" {
   }
 }
 
-	`, data.RandomInteger, data.Locations.Primary, data.RandomString, tlsVersion)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, tlsVersion)
 }
 
 func testAccAzureRMStorageAccount_allowBlobPublicAccess(data acceptance.TestData) string {
@@ -1141,7 +1160,7 @@ resource "azurerm_storage_account" "test" {
   }
 }
 
-	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func testAccAzureRMStorageAccount_disAllowBlobPublicAccess(data acceptance.TestData) string {
@@ -1170,7 +1189,7 @@ resource "azurerm_storage_account" "test" {
   }
 }
 
-	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func testAccAzureRMStorageAccount_isHnsEnabledTrue(data acceptance.TestData) string {
@@ -2083,6 +2102,31 @@ resource "azurerm_storage_account" "test" {
   tags = {
     environment = "production"
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func testAccAzureRMStorageAccount_withPremiumBlockBlobStorageAndEnabledHns(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                      = "acctestsa%s"
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  account_kind              = "BlockBlobStorage"
+  account_tier              = "Premium"
+  account_replication_type  = "LRS"
+  is_hns_enabled            = true
+  min_tls_version           = "TLS1_2"
+  enable_https_traffic_only = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
