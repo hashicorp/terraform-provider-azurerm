@@ -8,7 +8,7 @@ func TestSynapseFirewallRuleID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *SynapseFirewallRuleId
+		Expected *FirewallRuleId
 	}{
 		{
 			Name:     "Empty",
@@ -38,7 +38,7 @@ func TestSynapseFirewallRuleID(t *testing.T) {
 		{
 			Name:  "synapse Firewall Rule ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Synapse/workspaces/workspace1/firewallRules/rule1",
-			Expected: &SynapseFirewallRuleId{
+			Expected: &FirewallRuleId{
 				Workspace: &SynapseWorkspaceId{
 					ResourceGroup: "resourceGroup1",
 					Name:          "workspace1",
@@ -56,7 +56,7 @@ func TestSynapseFirewallRuleID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.Name)
 
-		actual, err := SynapseFirewallRuleID(v.Input)
+		actual, err := FirewallRuleID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

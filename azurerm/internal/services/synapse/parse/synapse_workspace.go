@@ -12,6 +12,14 @@ type SynapseWorkspaceId struct {
 	Name           string
 }
 
+func NewSynapseWorkspaceId(subscriptionId, resourceGroup, name string) SynapseWorkspaceId {
+	return SynapseWorkspaceId{
+		SubscriptionID: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
 func SynapseWorkspaceID(input string) (*SynapseWorkspaceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -32,6 +40,6 @@ func SynapseWorkspaceID(input string) (*SynapseWorkspaceId, error) {
 	return &synapseWorkspace, nil
 }
 
-func (id *SynapseWorkspaceId) String() string {
+func (id SynapseWorkspaceId) ID(_ string) string {
 	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Synapse/workspaces/%s", id.SubscriptionID, id.ResourceGroup, id.Name)
 }

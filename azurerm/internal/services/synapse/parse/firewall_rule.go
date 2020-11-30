@@ -6,24 +6,24 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type SynapseFirewallRuleId struct {
-	Workspace *SynapseWorkspaceId
-	Name      string
+type FirewallRuleId struct {
+	SubscriptionID string
+	ResourceGroup  string
+	WorkspaceName  string
+	Name           string
 }
 
-func SynapseFirewallRuleID(input string) (*SynapseFirewallRuleId, error) {
+func FirewallRuleID(input string) (*FirewallRuleId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("parsing synapseWorkspace ID %q: %+v", input, err)
 	}
 
-	FirewallRuleId := SynapseFirewallRuleId{
-		Workspace: &SynapseWorkspaceId{
-			SubscriptionID: id.SubscriptionID,
-			ResourceGroup:  id.ResourceGroup,
-		},
+	FirewallRuleId := FirewallRuleId{
+		SubscriptionID: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
-	if FirewallRuleId.Workspace.Name, err = id.PopSegment("workspaces"); err != nil {
+	if FirewallRuleId.WorkspaceName, err = id.PopSegment("workspaces"); err != nil {
 		return nil, err
 	}
 	if FirewallRuleId.Name, err = id.PopSegment("firewallRules"); err != nil {
