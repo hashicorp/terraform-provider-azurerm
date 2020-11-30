@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -77,7 +78,7 @@ func resourceArmSqlActiveDirectoryAdministratorCreateUpdate(d *schema.ResourceDa
 		existing, err := client.Get(ctx, resGroup, serverName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing SQL Administrator (Resource Group %q, Server %q): %+v", resGroup, serverName, err)
+				return fmt.Errorf("checking for presence of existing SQL Administrator (Server %q / Resource Group %q): %+v", serverName, resGroup, err)
 			}
 		}
 
@@ -97,18 +98,17 @@ func resourceArmSqlActiveDirectoryAdministratorCreateUpdate(d *schema.ResourceDa
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, parameters)
 	if err != nil {
-		return fmt.Errorf("Error issuing create/update request for SQL Administrator (Resource Group %q, Server %q): %+v", resGroup, serverName, err)
+		return fmt.Errorf("creating/updating AAD Administrator (Server %q / Resource Group %q): %+v", serverName, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting on create/update future for SQL Administrator (Resource Group %q, Server %q): %+v", resGroup, serverName, err)
+		return fmt.Errorf("waiting for creation/update of AAD Administrator (Server %q / Resource Group %q): %+v", serverName, resGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resGroup, serverName)
 	if err != nil {
-		return fmt.Errorf("Error issuing get request for SQL Administrator (Resource Group %q, Server %q): %+v", resGroup, serverName, err)
+		return fmt.Errorf("retrieving SQL Administrator (Resource Group %q, Server %q): %+v", resGroup, serverName, err)
 	}
-
 	d.SetId(*resp.ID)
 
 	return nil
@@ -119,27 +119,25 @@ func resourceArmSqlActiveDirectoryAdministratorRead(d *schema.ResourceData, meta
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.AzureActiveDirectoryAdministratorID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	serverName := id.Path["servers"]
-
-	resp, err := client.Get(ctx, resourceGroup, serverName)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading SQL AD administrator %q - removing from state", d.Id())
+			log.Printf("[INFO] AAD Administrator %q (Server %q / Resource Group %q) was not found - removing from state", id.AdministratorName, id.ServerName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error reading SQL AD administrator: %+v", err)
+		return fmt.Errorf("retrieving AAD Administrator %q (Server %q / Resource Group %q): %+v", id.AdministratorName, id.ServerName, id.ResourceGroup, err)
 	}
 
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("server_name", serverName)
+	d.Set("server_name", id.ServerName)
+	d.Set("resource_group_name", id.ResourceGroup)
+
 	d.Set("login", resp.Login)
 	d.Set("object_id", resp.Sid.String())
 	d.Set("tenant_id", resp.TenantID.String())
@@ -152,17 +150,17 @@ func resourceArmSqlActiveDirectoryAdministratorDelete(d *schema.ResourceData, me
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.AzureActiveDirectoryAdministratorID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	serverName := id.Path["servers"]
-
-	_, err = client.Delete(ctx, resourceGroup, serverName)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ServerName)
 	if err != nil {
-		return fmt.Errorf("Error deleting SQL AD administrator: %+v", err)
+		return fmt.Errorf("deleting AAD Administrator %q (Server %q / Resource Group %q): %+v", id.AdministratorName, id.ServerName, id.ResourceGroup, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of AAD Administrator %q (Server %q / Resource Group %q): %+v", id.AdministratorName, id.ServerName, id.ResourceGroup, err)
 	}
 
 	return nil
