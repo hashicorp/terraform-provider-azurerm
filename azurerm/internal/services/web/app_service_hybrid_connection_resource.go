@@ -30,7 +30,7 @@ func resourceArmAppServiceHybridConnection() *schema.Resource {
 		Delete: resourceArmAppServiceHybridConnectionDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := ParseAppServiceHybridConnectionID(id)
+			_, err := HybridConnectionID(id)
 			return err
 		}),
 

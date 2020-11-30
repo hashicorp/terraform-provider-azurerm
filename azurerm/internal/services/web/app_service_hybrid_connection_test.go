@@ -6,7 +6,7 @@ func TestParseAppServiceHybridConnectionID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *AppServiceHybridConnectionResourceID
+		Expected *HybridConnectionId
 	}{
 		{
 			Name:     "Empty",
@@ -47,11 +47,11 @@ func TestParseAppServiceHybridConnectionID(t *testing.T) {
 		{
 			Name:  "App Service Hybrid Connection Resource ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-00000000000/resourceGroups/testResourceGroup1/providers/Microsoft.Web/sites/testApp1/hybridConnectionNamespaces/testNamespace1/relays/testRelay1",
-			Expected: &AppServiceHybridConnectionResourceID{
-				ResourceGroup: "testResourceGroup1",
-				Name:          "testRelay1",
-				AppName:       "testApp1",
-				Namespace:     "testNamespace1",
+			Expected: &HybridConnectionId{
+				ResourceGroup:                 "testResourceGroup1",
+				RelayName:                     "testRelay1",
+				SiteName:                      "testApp1",
+				HybridConnectionNamespaceName: "testNamespace1",
 			},
 		},
 	}
@@ -59,7 +59,7 @@ func TestParseAppServiceHybridConnectionID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ParseAppServiceHybridConnectionID(v.Input)
+		actual, err := HybridConnectionID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -68,20 +68,20 @@ func TestParseAppServiceHybridConnectionID(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %s but got %s for Name", v.Expected.Name, actual.Name)
+		if actual.RelayName != v.Expected.RelayName {
+			t.Fatalf("Expected %s but got %s for Name", v.Expected.RelayName, actual.RelayName)
 		}
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %s but got %s for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
 
-		if actual.AppName != v.Expected.AppName {
-			t.Fatalf("Expected %s but got %s for AppName", v.Expected.AppName, actual.AppName)
+		if actual.SiteName != v.Expected.SiteName {
+			t.Fatalf("Expected %s but got %s for SiteName", v.Expected.SiteName, actual.SiteName)
 		}
 
-		if actual.Namespace != v.Expected.Namespace {
-			t.Fatalf("Expected %s but got %s for Namespace", v.Expected.Namespace, actual.Namespace)
+		if actual.HybridConnectionNamespaceName != v.Expected.HybridConnectionNamespaceName {
+			t.Fatalf("Expected %s but got %s for Namespace", v.Expected.HybridConnectionNamespaceName, actual.HybridConnectionNamespaceName)
 		}
 	}
 }
