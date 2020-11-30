@@ -7,8 +7,9 @@ import (
 )
 
 type SlotVirtualNetworkSwiftConnectionId struct {
-	VirtualNetworkSwiftConnectionId
-	SlotName string
+	ResourceGroup string
+	SiteName      string
+	SlotName      string
 }
 
 func SlotVirtualNetworkSwiftConnectionID(resourceId string) (*SlotVirtualNetworkSwiftConnectionId, error) {
@@ -23,7 +24,8 @@ func SlotVirtualNetworkSwiftConnectionID(resourceId string) (*SlotVirtualNetwork
 	}
 
 	slotVirtualNetworkId := &SlotVirtualNetworkSwiftConnectionId{
-		VirtualNetworkSwiftConnectionId: *virtualNetworkId,
+		ResourceGroup: virtualNetworkId.ResourceGroup,
+		SiteName:      virtualNetworkId.SiteName,
 	}
 
 	if slotVirtualNetworkId.SlotName, err = id.PopSegment("slots"); err != nil {

@@ -7,8 +7,8 @@ import (
 )
 
 type VirtualNetworkSwiftConnectionId struct {
-	SiteName      string
 	ResourceGroup string
+	SiteName      string
 }
 
 func VirtualNetworkSwiftConnectionID(resourceId string) (*VirtualNetworkSwiftConnectionId, error) {

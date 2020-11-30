@@ -6,7 +6,7 @@ func TestParseAppServiceEnvironmentID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *AppServiceEnvironmentResourceID
+		Expected *AppServiceEnvironmentId
 	}{
 		{
 			Name:     "Empty",
@@ -36,9 +36,9 @@ func TestParseAppServiceEnvironmentID(t *testing.T) {
 		{
 			Name:  "Valid",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/testGroup1/providers/Microsoft.Web/hostingEnvironments/TestASEv2",
-			Expected: &AppServiceEnvironmentResourceID{
-				ResourceGroup: "testGroup1",
-				Name:          "TestASEv2",
+			Expected: &AppServiceEnvironmentId{
+				ResourceGroup:          "testGroup1",
+				HostingEnvironmentName: "TestASEv2",
 			},
 		},
 		{
@@ -60,8 +60,8 @@ func TestParseAppServiceEnvironmentID(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.HostingEnvironmentName != v.Expected.HostingEnvironmentName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.HostingEnvironmentName, actual.HostingEnvironmentName)
 		}
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {

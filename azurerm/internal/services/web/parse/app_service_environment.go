@@ -6,22 +6,22 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type AppServiceEnvironmentResourceID struct {
-	ResourceGroup string
-	Name          string
+type AppServiceEnvironmentId struct {
+	ResourceGroup          string
+	HostingEnvironmentName string
 }
 
-func AppServiceEnvironmentID(input string) (*AppServiceEnvironmentResourceID, error) {
+func AppServiceEnvironmentID(input string) (*AppServiceEnvironmentId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse App Service Environment ID %q: %+v", input, err)
 	}
 
-	appServiceEnvironment := AppServiceEnvironmentResourceID{
+	appServiceEnvironment := AppServiceEnvironmentId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if appServiceEnvironment.Name, err = id.PopSegment("hostingEnvironments"); err != nil {
+	if appServiceEnvironment.HostingEnvironmentName, err = id.PopSegment("hostingEnvironments"); err != nil {
 		return nil, err
 	}
 

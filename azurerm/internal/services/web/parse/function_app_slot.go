@@ -6,29 +6,29 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type FunctionAppSlotResourceID struct {
-	ResourceGroup   string
-	FunctionAppName string
-	Name            string
+type FunctionAppSlotId struct {
+	ResourceGroup string
+	SiteName      string
+	SlotName      string
 }
 
-func FunctionAppSlotID(input string) (*FunctionAppSlotResourceID, error) {
+func FunctionAppSlotID(input string) (*FunctionAppSlotId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse App Service Slot ID %q: %+v", input, err)
 	}
 
-	slot := FunctionAppSlotResourceID{
-		ResourceGroup:   id.ResourceGroup,
-		FunctionAppName: id.Path["sites"],
-		Name:            id.Path["slots"],
+	slot := FunctionAppSlotId{
+		ResourceGroup: id.ResourceGroup,
+		SiteName:      id.Path["sites"],
+		SlotName:      id.Path["slots"],
 	}
 
-	if slot.FunctionAppName, err = id.PopSegment("sites"); err != nil {
+	if slot.SiteName, err = id.PopSegment("sites"); err != nil {
 		return nil, err
 	}
 
-	if slot.Name, err = id.PopSegment("slots"); err != nil {
+	if slot.SlotName, err = id.PopSegment("slots"); err != nil {
 		return nil, err
 	}
 
