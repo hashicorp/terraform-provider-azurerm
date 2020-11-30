@@ -1,8 +1,8 @@
-package web
+package validate
 
 import "testing"
 
-func TestValidateAppServiceSourceControlToken(t *testing.T) {
+func TestValidateSourceControlToken(t *testing.T) {
 	testCases := []struct {
 		Input string
 		Valid bool
@@ -17,7 +17,7 @@ func TestValidateAppServiceSourceControlToken(t *testing.T) {
 
 	for _, v := range testCases {
 		t.Logf("[DEBUG] Testing %q..", v.Input)
-		warns, err := ValidateAppServiceSourceControlTokenName()(v.Input, "id")
+		warns, err := SourceControlTokenName()(v.Input, "id")
 		if len(warns) > 0 {
 			t.Fatalf("Got warnings when they should be errors")
 		}
