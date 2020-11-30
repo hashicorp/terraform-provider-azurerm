@@ -2,7 +2,7 @@ package validate
 
 import "testing"
 
-func TestGlobalScheduleID(t *testing.T) {
+func TestScheduleID(t *testing.T) {
 	cases := []struct {
 		ID    string
 		Valid bool
