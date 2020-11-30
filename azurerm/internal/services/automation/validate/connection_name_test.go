@@ -62,7 +62,7 @@ func TestAutomationConnectionName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := AutomationConnectionName(v.input, "name")
+		_, errors := ConnectionName(v.input, "name")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)
