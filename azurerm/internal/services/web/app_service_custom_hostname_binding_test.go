@@ -80,7 +80,7 @@ func TestParseAppServiceCustomHostnameBinding(t *testing.T) {
 		}
 
 		if actual.AppServiceName != v.Expected.AppServiceName {
-			t.Fatalf("Expected %q but got %q for AppServiceName", v.Expected.AppServiceName, actual.AppServiceName)
+			t.Fatalf("Expected %q but got %q for SiteName", v.Expected.AppServiceName, actual.AppServiceName)
 		}
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {

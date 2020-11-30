@@ -1,4 +1,4 @@
-package web
+package parse
 
 import (
 	"testing"
@@ -8,7 +8,7 @@ func TestParseAppServiceSlot(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *AppServiceSlotResourceID
+		Expected *AppServiceSlotId
 	}{
 		{
 			Name:     "Empty",
@@ -48,10 +48,10 @@ func TestParseAppServiceSlot(t *testing.T) {
 		{
 			Name:  "App Service Slot Resource ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/site1/slots/slot1",
-			Expected: &AppServiceSlotResourceID{
-				Name:           "slot1",
-				AppServiceName: "site1",
-				ResourceGroup:  "mygroup1",
+			Expected: &AppServiceSlotId{
+				SlotName:      "slot1",
+				SiteName:      "site1",
+				ResourceGroup: "mygroup1",
 			},
 		},
 		{
@@ -64,7 +64,7 @@ func TestParseAppServiceSlot(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ParseAppServiceSlotID(v.Input)
+		actual, err := AppServiceSlotID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -73,12 +73,12 @@ func TestParseAppServiceSlot(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.SlotName != v.Expected.SlotName {
+			t.Fatalf("Expected %q but got %q for SlotName", v.Expected.SlotName, actual.SlotName)
 		}
 
-		if actual.AppServiceName != v.Expected.AppServiceName {
-			t.Fatalf("Expected %q but got %q for AppServiceName", v.Expected.Name, actual.Name)
+		if actual.SiteName != v.Expected.SiteName {
+			t.Fatalf("Expected %q but got %q for SiteName", v.Expected.SiteName, actual.SiteName)
 		}
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
