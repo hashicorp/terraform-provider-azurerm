@@ -136,7 +136,7 @@ func resourceArmSynapseFirewallRuleRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("reading Synapse Firewall Rule %q (Workspace %q / Resource Group %q): %+v", id.Name, id.WorkspaceName, id.ResourceGroup, err)
 	}
 
-	workspaceId := parse.NewWorkspaceId(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID("")
+	workspaceId := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID("")
 	d.Set("name", id.Name)
 	d.Set("synapse_workspace_id", workspaceId)
 
