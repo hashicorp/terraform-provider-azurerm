@@ -52,7 +52,7 @@ func TestAppConfigurationName(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := AppConfigurationName(tc.Value, "azurerm_app_configuration")
+		_, errors := ConfigurationStoreName(tc.Value, "azurerm_app_configuration")
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected the Azure App Configuration Name to trigger a validation error: %v", tc)
 		}
