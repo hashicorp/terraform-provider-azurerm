@@ -28,7 +28,7 @@ func RoleAssignmentID(input string) (*RoleAssignmentId, error) {
 		return nil, fmt.Errorf("expected an ID in the format `{workspaceId}|{id} but got %q", input)
 	}
 
-	workspaceId, err := SynapseWorkspaceID(segments[0])
+	workspaceId, err := WorkspaceID(segments[0])
 	if err != nil {
 		return nil, err
 	}

@@ -12,7 +12,7 @@ type WorkspaceId struct {
 	Name           string
 }
 
-func NewSynapseWorkspaceId(subscriptionId, resourceGroup, name string) WorkspaceId {
+func NewWorkspaceId(subscriptionId, resourceGroup, name string) WorkspaceId {
 	return WorkspaceId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
@@ -20,7 +20,7 @@ func NewSynapseWorkspaceId(subscriptionId, resourceGroup, name string) Workspace
 	}
 }
 
-func SynapseWorkspaceID(input string) (*WorkspaceId, error) {
+func WorkspaceID(input string) (*WorkspaceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("parsing synapseWorkspace ID %q: %+v", input, err)

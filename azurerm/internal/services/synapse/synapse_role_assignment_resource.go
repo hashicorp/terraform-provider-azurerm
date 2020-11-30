@@ -71,7 +71,7 @@ func resourceArmSynapseRoleAssignmentCreate(d *schema.ResourceData, meta interfa
 	defer cancel()
 	environment := meta.(*clients.Client).Account.Environment
 
-	workspaceId, err := parse.SynapseWorkspaceID(d.Get("synapse_workspace_id").(string))
+	workspaceId, err := parse.WorkspaceID(d.Get("synapse_workspace_id").(string))
 	if err != nil {
 		return err
 	}

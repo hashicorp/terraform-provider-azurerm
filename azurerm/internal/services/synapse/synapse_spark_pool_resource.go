@@ -166,7 +166,7 @@ func resourceArmSynapseSparkPoolCreateUpdate(d *schema.ResourceData, meta interf
 	defer cancel()
 
 	name := d.Get("name").(string)
-	workspaceId, _ := parse.SynapseWorkspaceID(d.Get("synapse_workspace_id").(string))
+	workspaceId, _ := parse.WorkspaceID(d.Get("synapse_workspace_id").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name, name)
@@ -247,7 +247,7 @@ func resourceArmSynapseSparkPoolRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("retrieving Synapse Spark Pool %q (Workspace %q / Resource Group %q): %+v", id.BigDataPoolName, id.WorkspaceName, id.ResourceGroup, err)
 	}
 	d.Set("name", id.BigDataPoolName)
-	workspaceId := parse.NewSynapseWorkspaceId(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID("")
+	workspaceId := parse.NewWorkspaceId(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID("")
 	d.Set("synapse_workspace_id", workspaceId)
 
 	if props := resp.BigDataPoolResourceProperties; props != nil {

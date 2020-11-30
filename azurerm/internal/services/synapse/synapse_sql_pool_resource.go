@@ -172,7 +172,7 @@ func resourceArmSynapseSqlPoolCreate(d *schema.ResourceData, meta interface{}) e
 	defer cancel()
 
 	name := d.Get("name").(string)
-	workspaceId, err := parse.SynapseWorkspaceID(d.Get("synapse_workspace_id").(string))
+	workspaceId, err := parse.WorkspaceID(d.Get("synapse_workspace_id").(string))
 	if err != nil {
 		return err
 	}
@@ -349,7 +349,7 @@ func resourceArmSynapseSqlPoolRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("retrieving Transparent Data Encryption settings of Synapse SqlPool %q (Workspace %q / Resource Group %q): %+v", id.Name, id.WorkspaceName, id.ResourceGroup, err)
 	}
 
-	workspaceId := parse.NewSynapseWorkspaceId(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID("")
+	workspaceId := parse.NewWorkspaceId(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID("")
 
 	d.Set("name", id.Name)
 	d.Set("synapse_workspace_id", workspaceId)

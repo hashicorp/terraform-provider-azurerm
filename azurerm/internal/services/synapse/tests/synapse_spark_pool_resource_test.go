@@ -110,7 +110,7 @@ func testCheckAzureRMSynapseSparkPoolExists(resourceName string) resource.TestCh
 		}
 
 		name := rs.Primary.Attributes["name"]
-		workspaceId, err := parse.SynapseWorkspaceID(rs.Primary.Attributes["synapse_workspace_id"])
+		workspaceId, err := parse.WorkspaceID(rs.Primary.Attributes["synapse_workspace_id"])
 		if err != nil {
 			return err
 		}
@@ -135,7 +135,7 @@ func testCheckAzureRMSynapseSparkPoolDestroy(s *terraform.State) error {
 		}
 
 		name := rs.Primary.Attributes["name"]
-		workspaceId, err := parse.SynapseWorkspaceID(rs.Primary.Attributes["synapse_workspace_id"])
+		workspaceId, err := parse.WorkspaceID(rs.Primary.Attributes["synapse_workspace_id"])
 		if err != nil {
 			return err
 		}

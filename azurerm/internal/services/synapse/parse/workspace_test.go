@@ -53,7 +53,7 @@ func TestSynapseWorkspaceID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.Name)
 
-		actual, err := SynapseWorkspaceID(v.Input)
+		actual, err := WorkspaceID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

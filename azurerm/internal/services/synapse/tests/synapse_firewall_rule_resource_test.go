@@ -83,7 +83,7 @@ func testCheckAzureRMSynapseFirewallRuleExists(resourceName string) resource.Tes
 		}
 
 		name := rs.Primary.Attributes["name"]
-		workspaceId, err := parse.SynapseWorkspaceID(rs.Primary.Attributes["synapse_workspace_id"])
+		workspaceId, err := parse.WorkspaceID(rs.Primary.Attributes["synapse_workspace_id"])
 		if err != nil {
 			return err
 		}
@@ -108,7 +108,7 @@ func testCheckAzureRMSynapseFirewallRuleDestroy(s *terraform.State) error {
 		}
 
 		name := rs.Primary.Attributes["name"]
-		workspaceId, err := parse.SynapseWorkspaceID(rs.Primary.Attributes["synapse_workspace_id"])
+		workspaceId, err := parse.WorkspaceID(rs.Primary.Attributes["synapse_workspace_id"])
 		if err != nil {
 			return err
 		}
