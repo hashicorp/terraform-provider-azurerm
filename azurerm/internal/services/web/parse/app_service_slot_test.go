@@ -1,88 +1,128 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-func TestParseAppServiceSlot(t *testing.T) {
+var _ resourceid.Formatter = AppServiceSlotId{}
+
+func TestAppServiceSlotIDFormatter(t *testing.T) {
+	actual := NewAppServiceSlotID("12345678-1234-9876-4563-123456789012", "resGroup1", "site1", "slot1").ID("")
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/slots/slot1"
+	if actual != expected {
+		t.Fatalf("Expected %q but got %q", expected, actual)
+	}
+}
+
+func TestAppServiceSlotID(t *testing.T) {
 	testData := []struct {
-		Name     string
 		Input    string
+		Error    bool
 		Expected *AppServiceSlotId
 	}{
+
 		{
-			Name:     "Empty",
-			Input:    "",
-			Expected: nil,
+			// empty
+			Input: "",
+			Error: true,
 		},
+
 		{
-			Name:     "No Resource Groups Segment",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000",
-			Expected: nil,
+			// missing SubscriptionId
+			Input: "/",
+			Error: true,
 		},
+
 		{
-			Name:     "No Resource Groups Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/",
-			Expected: nil,
+			// missing value for SubscriptionId
+			Input: "/subscriptions/",
+			Error: true,
 		},
+
 		{
-			Name:     "Resource Group ID",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/",
-			Expected: nil,
+			// missing ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/",
+			Error: true,
 		},
+
 		{
-			Name:     "Missing Sites Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/",
-			Expected: nil,
+			// missing value for ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
+			Error: true,
 		},
+
 		{
-			Name:     "App Service Resource ID",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/site1",
-			Expected: nil,
+			// missing SiteName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/",
+			Error: true,
 		},
+
 		{
-			Name:     "Missing Slots Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/site1/slots/",
-			Expected: nil,
+			// missing value for SiteName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/",
+			Error: true,
 		},
+
 		{
-			Name:  "App Service Slot Resource ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/site1/slots/slot1",
+			// missing SlotName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/",
+			Error: true,
+		},
+
+		{
+			// missing value for SlotName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/slots/",
+			Error: true,
+		},
+
+		{
+			// valid
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/slots/slot1",
 			Expected: &AppServiceSlotId{
-				SlotName:      "slot1",
-				SiteName:      "site1",
-				ResourceGroup: "mygroup1",
+				SubscriptionId: "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:  "resGroup1",
+				SiteName:       "site1",
+				SlotName:       "slot1",
 			},
 		},
+
 		{
-			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/Sites/site1/Slots/slot1",
-			Expected: nil,
+			// upper-cased
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.WEB/SITES/SITE1/SLOTS/SLOT1",
+			Error: true,
 		},
 	}
 
 	for _, v := range testData {
-		t.Logf("[DEBUG] Testing %q", v.Name)
+		t.Logf("[DEBUG] Testing %q", v.Input)
 
 		actual, err := AppServiceSlotID(v.Input)
 		if err != nil {
-			if v.Expected == nil {
+			if v.Error {
 				continue
 			}
 
-			t.Fatalf("Expected a value but got an error: %s", err)
+			t.Fatalf("Expect a value but got an error: %s", err)
+		}
+		if v.Error {
+			t.Fatal("Expect an error but didn't get one")
 		}
 
-		if actual.SlotName != v.Expected.SlotName {
-			t.Fatalf("Expected %q but got %q for SlotName", v.Expected.SlotName, actual.SlotName)
+		if actual.SubscriptionId != v.Expected.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
 		}
-
+		if actual.ResourceGroup != v.Expected.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
+		}
 		if actual.SiteName != v.Expected.SiteName {
 			t.Fatalf("Expected %q but got %q for SiteName", v.Expected.SiteName, actual.SiteName)
 		}
-
-		if actual.ResourceGroup != v.Expected.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for Resource Group", v.Expected.ResourceGroup, actual.ResourceGroup)
+		if actual.SlotName != v.Expected.SlotName {
+			t.Fatalf("Expected %q but got %q for SlotName", v.Expected.SlotName, actual.SlotName)
 		}
 	}
 }
