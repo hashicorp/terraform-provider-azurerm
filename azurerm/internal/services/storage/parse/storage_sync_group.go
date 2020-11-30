@@ -41,6 +41,14 @@ func StorageSyncGroupID(input string) (*StorageSyncGroupId, error) {
 		ResourceGroup:  id.ResourceGroup,
 	}
 
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
 	if resourceId.StorageSyncServiceName, err = id.PopSegment("storageSyncServices"); err != nil {
 		return nil, err
 	}
