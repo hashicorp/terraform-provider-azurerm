@@ -13,7 +13,7 @@ func SqlDatabaseID(i interface{}, k string) (warnings []string, errors []error) 
 		return
 	}
 
-	if _, err := parse.SqlDatabaseID(v); err != nil {
+	if _, err := parse.DatabaseID(v); err != nil {
 		errors = append(errors, fmt.Errorf("can not parse %q as a Sql Database resource id: %v", k, err))
 		return
 	}
