@@ -66,7 +66,7 @@ func resourceArmAppServiceVirtualNetworkSwiftConnectionCreateUpdate(d *schema.Re
 	}
 
 	resourceGroup := appID.ResourceGroup
-	name := appID.Name
+	name := appID.SiteName
 	subnetName := subnetID.Name
 	virtualNetworkName := subnetID.VirtualNetworkName
 

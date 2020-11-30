@@ -72,7 +72,7 @@ func resourceArmAppServiceSlotVirtualNetworkSwiftConnectionCreateUpdate(d *schem
 	}
 
 	resourceGroup := appID.ResourceGroup
-	name := appID.Name
+	name := appID.SiteName
 	subnetName := subnetID.Name
 	virtualNetworkName := subnetID.VirtualNetworkName
 	slotName := d.Get("slot_name").(string)

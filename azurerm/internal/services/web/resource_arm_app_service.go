@@ -360,7 +360,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 
 	siteConfig, err := expandAppServiceSiteConfig(d.Get("site_config"))
 	if err != nil {
-		return fmt.Errorf("Error expanding `site_config` for App Service %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error expanding `site_config` for App Service %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
 	}
 
 	siteEnvelope := web.Site{
@@ -376,7 +376,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 
 	siteEnvelope.SiteProperties.ClientCertEnabled = utils.Bool(d.Get("client_cert_enabled").(bool))
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, siteEnvelope)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
 	if err != nil {
 		return err
 	}
@@ -394,7 +394,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		// update the main configuration
 		siteConfig, err := expandAppServiceSiteConfig(d.Get("site_config"))
 		if err != nil {
-			return fmt.Errorf("Error expanding `site_config` for App Service %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("Error expanding `site_config` for App Service %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
 		}
 		siteConfigResource := web.SiteConfigResource{
 			SiteConfig: siteConfig,
@@ -406,8 +406,8 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 			siteConfigResource.SiteConfig.ScmType = web.ScmTypeNone
 		}
 
-		if _, err := client.CreateOrUpdateConfiguration(ctx, id.ResourceGroup, id.Name, siteConfigResource); err != nil {
-			return fmt.Errorf("Error updating Configuration for App Service %q: %+v", id.Name, err)
+		if _, err := client.CreateOrUpdateConfiguration(ctx, id.ResourceGroup, id.SiteName, siteConfigResource); err != nil {
+			return fmt.Errorf("Error updating Configuration for App Service %q: %+v", id.SiteName, err)
 		}
 	}
 
@@ -416,9 +416,9 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		sourceControlProperties := expandAppServiceSiteSourceControl(d)
 		sourceControl := &web.SiteSourceControl{}
 		sourceControl.SiteSourceControlProperties = sourceControlProperties
-		scFuture, err := client.CreateOrUpdateSourceControl(ctx, id.ResourceGroup, id.Name, *sourceControl)
+		scFuture, err := client.CreateOrUpdateSourceControl(ctx, id.ResourceGroup, id.SiteName, *sourceControl)
 		if err != nil {
-			return fmt.Errorf("failed to update App Service Source Control for %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("failed to update App Service Source Control for %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
 		}
 
 		err = scFuture.WaitForCompletionRef(ctx, client.Client)
@@ -426,7 +426,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 			return fmt.Errorf("failed waiting for App Service Source Control configuration: %+v", err)
 		}
 
-		sc, err := client.GetSourceControl(ctx, id.ResourceGroup, id.Name)
+		sc, err := client.GetSourceControl(ctx, id.ResourceGroup, id.SiteName)
 		if err != nil {
 			return fmt.Errorf("failed reading back App Service Source Control for %q", *sc.Name)
 		}
@@ -440,22 +440,22 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 			SiteAuthSettingsProperties: &authSettingsProperties,
 		}
 
-		if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroup, id.Name, authSettings); err != nil {
-			return fmt.Errorf("Error updating Authentication Settings for App Service %q: %+v", id.Name, err)
+		if _, err := client.UpdateAuthSettings(ctx, id.ResourceGroup, id.SiteName, authSettings); err != nil {
+			return fmt.Errorf("Error updating Authentication Settings for App Service %q: %+v", id.SiteName, err)
 		}
 	}
 
 	if d.HasChange("backup") {
 		backupRaw := d.Get("backup").([]interface{})
 		if backup := expandAppServiceBackup(backupRaw); backup != nil {
-			_, err = client.UpdateBackupConfiguration(ctx, id.ResourceGroup, id.Name, *backup)
+			_, err = client.UpdateBackupConfiguration(ctx, id.ResourceGroup, id.SiteName, *backup)
 			if err != nil {
-				return fmt.Errorf("Error updating Backup Settings for App Service %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("Error updating Backup Settings for App Service %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
 			}
 		} else {
-			_, err = client.DeleteBackupConfiguration(ctx, id.ResourceGroup, id.Name)
+			_, err = client.DeleteBackupConfiguration(ctx, id.ResourceGroup, id.SiteName)
 			if err != nil {
-				return fmt.Errorf("Error removing Backup Settings for App Service %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("Error removing Backup Settings for App Service %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
 			}
 		}
 	}
@@ -470,8 +470,8 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 			},
 		}
 
-		if _, err := client.Update(ctx, id.ResourceGroup, id.Name, sitePatchResource); err != nil {
-			return fmt.Errorf("Error updating App Service ARR Affinity setting %q: %+v", id.Name, err)
+		if _, err := client.Update(ctx, id.ResourceGroup, id.SiteName, sitePatchResource); err != nil {
+			return fmt.Errorf("Error updating App Service ARR Affinity setting %q: %+v", id.SiteName, err)
 		}
 	}
 
@@ -483,8 +483,8 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 			Properties: appSettings,
 		}
 
-		if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.Name, settings); err != nil {
-			return fmt.Errorf("Error updating Application Settings for App Service %q: %+v", id.Name, err)
+		if _, err := client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, settings); err != nil {
+			return fmt.Errorf("Error updating Application Settings for App Service %q: %+v", id.SiteName, err)
 		}
 	}
 
@@ -501,8 +501,8 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 			SiteLogsConfigProperties: &logs,
 		}
 
-		if _, err := client.UpdateDiagnosticLogsConfig(ctx, id.ResourceGroup, id.Name, logsResource); err != nil {
-			return fmt.Errorf("Error updating Diagnostics Logs for App Service %q: %+v", id.Name, err)
+		if _, err := client.UpdateDiagnosticLogsConfig(ctx, id.ResourceGroup, id.SiteName, logsResource); err != nil {
+			return fmt.Errorf("Error updating Diagnostics Logs for App Service %q: %+v", id.SiteName, err)
 		}
 	}
 
@@ -513,8 +513,8 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 			Properties: storageAccounts,
 		}
 
-		if _, err := client.UpdateAzureStorageAccounts(ctx, id.ResourceGroup, id.Name, properties); err != nil {
-			return fmt.Errorf("Error updating Storage Accounts for App Service %q: %+v", id.Name, err)
+		if _, err := client.UpdateAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName, properties); err != nil {
+			return fmt.Errorf("Error updating Storage Accounts for App Service %q: %+v", id.SiteName, err)
 		}
 	}
 
@@ -525,28 +525,28 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 			Properties: connectionStrings,
 		}
 
-		if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroup, id.Name, properties); err != nil {
-			return fmt.Errorf("Error updating Connection Strings for App Service %q: %+v", id.Name, err)
+		if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroup, id.SiteName, properties); err != nil {
+			return fmt.Errorf("Error updating Connection Strings for App Service %q: %+v", id.SiteName, err)
 		}
 	}
 
 	if d.HasChange("identity") {
-		site, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		site, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 		if err != nil {
-			return fmt.Errorf("Error getting configuration for App Service %q: %+v", id.Name, err)
+			return fmt.Errorf("Error getting configuration for App Service %q: %+v", id.SiteName, err)
 		}
 
 		appServiceIdentityRaw := d.Get("identity").([]interface{})
 		appServiceIdentity := expandAppServiceIdentity(appServiceIdentityRaw)
 		site.Identity = appServiceIdentity
 
-		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, site)
+		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, site)
 		if err != nil {
-			return fmt.Errorf("Error updating Managed Service Identity for App Service %q: %+v", id.Name, err)
+			return fmt.Errorf("Error updating Managed Service Identity for App Service %q: %+v", id.SiteName, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error updating Managed Service Identity for App Service %q: %+v", id.Name, err)
+			return fmt.Errorf("Error updating Managed Service Identity for App Service %q: %+v", id.SiteName, err)
 		}
 	}
 
@@ -563,69 +563,69 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] App Service %q (resource group %q) was not found - removing from state", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] App Service %q (resource group %q) was not found - removing from state", id.SiteName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM App Service %q: %+v", id.Name, err)
+		return fmt.Errorf("Error making Read request on AzureRM App Service %q: %+v", id.SiteName, err)
 	}
 
-	configResp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.Name)
+	configResp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(configResp.Response) {
-			log.Printf("[DEBUG] Configuration of App Service %q (resource group %q) was not found", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] Configuration of App Service %q (resource group %q) was not found", id.SiteName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM App Service Configuration %q: %+v", id.Name, err)
+		return fmt.Errorf("Error making Read request on AzureRM App Service Configuration %q: %+v", id.SiteName, err)
 	}
 
-	authResp, err := client.GetAuthSettings(ctx, id.ResourceGroup, id.Name)
+	authResp, err := client.GetAuthSettings(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving the AuthSettings for App Service %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error retrieving the AuthSettings for App Service %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
 	}
 
-	backupResp, err := client.GetBackupConfiguration(ctx, id.ResourceGroup, id.Name)
+	backupResp, err := client.GetBackupConfiguration(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(backupResp.Response) {
-			return fmt.Errorf("Error retrieving the BackupConfiguration for App Service %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("Error retrieving the BackupConfiguration for App Service %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
 		}
 	}
 
-	logsResp, err := client.GetDiagnosticLogsConfiguration(ctx, id.ResourceGroup, id.Name)
+	logsResp, err := client.GetDiagnosticLogsConfiguration(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving the DiagnosticsLogsConfiguration for App Service %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error retrieving the DiagnosticsLogsConfiguration for App Service %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
 	}
 
-	appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.Name)
+	appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(appSettingsResp.Response) {
-			log.Printf("[DEBUG] Application Settings of App Service %q (resource group %q) were not found", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] Application Settings of App Service %q (resource group %q) were not found", id.SiteName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM App Service AppSettings %q: %+v", id.Name, err)
+		return fmt.Errorf("Error making Read request on AzureRM App Service AppSettings %q: %+v", id.SiteName, err)
 	}
 
-	storageAccountsResp, err := client.ListAzureStorageAccounts(ctx, id.ResourceGroup, id.Name)
+	storageAccountsResp, err := client.ListAzureStorageAccounts(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM App Service Storage Accounts %q: %+v", id.Name, err)
+		return fmt.Errorf("Error making Read request on AzureRM App Service Storage Accounts %q: %+v", id.SiteName, err)
 	}
 
-	connectionStringsResp, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.Name)
+	connectionStringsResp, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM App Service ConnectionStrings %q: %+v", id.Name, err)
+		return fmt.Errorf("Error making Read request on AzureRM App Service ConnectionStrings %q: %+v", id.SiteName, err)
 	}
 
-	scmResp, err := client.GetSourceControl(ctx, id.ResourceGroup, id.Name)
+	scmResp, err := client.GetSourceControl(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM App Service Source Control %q: %+v", id.Name, err)
+		return fmt.Errorf("Error making Read request on AzureRM App Service Source Control %q: %+v", id.SiteName, err)
 	}
 
-	siteCredFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.Name)
+	siteCredFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		return err
 	}
@@ -635,10 +635,10 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	siteCredResp, err := siteCredFuture.Result(*client)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM App Service Site Credential %q: %+v", id.Name, err)
+		return fmt.Errorf("Error making Read request on AzureRM App Service Site Credential %q: %+v", id.SiteName, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.SiteName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -723,11 +723,11 @@ func resourceArmAppServiceDelete(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting App Service %q (resource group %q)", id.Name, id.ResourceGroup)
+	log.Printf("[DEBUG] Deleting App Service %q (resource group %q)", id.SiteName, id.ResourceGroup)
 
 	deleteMetrics := true
 	deleteEmptyServerFarm := false
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name, &deleteMetrics, &deleteEmptyServerFarm)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.SiteName, &deleteMetrics, &deleteEmptyServerFarm)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return err

@@ -6,22 +6,22 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type AppServiceResourceID struct {
+type AppServiceId struct {
 	ResourceGroup string
-	Name          string
+	SiteName      string
 }
 
-func AppServiceID(input string) (*AppServiceResourceID, error) {
+func AppServiceID(input string) (*AppServiceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse App Service ID %q: %+v", input, err)
 	}
 
-	appService := AppServiceResourceID{
+	appService := AppServiceId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if appService.Name, err = id.PopSegment("sites"); err != nil {
+	if appService.SiteName, err = id.PopSegment("sites"); err != nil {
 		return nil, err
 	}
 

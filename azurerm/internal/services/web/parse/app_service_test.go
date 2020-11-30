@@ -8,7 +8,7 @@ func TestParseAppService(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *AppServiceResourceID
+		Expected *AppServiceId
 	}{
 		{
 			Name:     "Empty",
@@ -38,8 +38,8 @@ func TestParseAppService(t *testing.T) {
 		{
 			Name:  "App Service Resource ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/site1",
-			Expected: &AppServiceResourceID{
-				Name:          "site1",
+			Expected: &AppServiceId{
+				SiteName:      "site1",
 				ResourceGroup: "mygroup1",
 			},
 		},
@@ -62,8 +62,8 @@ func TestParseAppService(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.SiteName != v.Expected.SiteName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.SiteName, actual.SiteName)
 		}
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
