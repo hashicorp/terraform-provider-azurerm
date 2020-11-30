@@ -83,7 +83,7 @@ func resourceArmVirtualDesktopApplicationGroup() *schema.Resource {
 			"host_pool_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.VirtualDesktopHostPoolID,
+				ValidateFunc: validate.HostPoolID,
 			},
 
 			"friendly_name": {
