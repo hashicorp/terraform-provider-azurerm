@@ -17,7 +17,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataLakeAnalyticsFirewallRule() *schema.Resource {
+func resourceDataLakeAnalyticsFirewallRule() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmDateLakeAnalyticsFirewallRuleCreateUpdate,
 		Read:   resourceArmDateLakeAnalyticsFirewallRuleRead,

@@ -39,18 +39,18 @@ func TestValidateAzureDataLakeStoreRemoteFilePath(t *testing.T) {
 	}
 }
 
-func TestAccAzureRMDataLakeStoreFile_basic(t *testing.T) {
+func TestAccDataLakeStoreFile_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store_file", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataLakeStoreFileDestroy,
+		CheckDestroy: testCheckDataLakeStoreFileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataLakeStoreFile_basic(data),
+				Config: testAccDataLakeStoreFile_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataLakeStoreFileExists(data.ResourceName),
+					testCheckDataLakeStoreFileExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("local_file_path"),
@@ -58,7 +58,7 @@ func TestAccAzureRMDataLakeStoreFile_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDataLakeStoreFile_largefiles(t *testing.T) {
+func TestAccDataLakeStoreFile_largefiles(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store_file", "test")
 
 	// "large" in this context is anything greater than 4 megabytes
@@ -82,12 +82,12 @@ func TestAccAzureRMDataLakeStoreFile_largefiles(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataLakeStoreFileDestroy,
+		CheckDestroy: testCheckDataLakeStoreFileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataLakeStoreFile_largefiles(data, tmpfile.Name()),
+				Config: testAccDataLakeStoreFile_largefiles(data, tmpfile.Name()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataLakeStoreFileExists(data.ResourceName),
+					testCheckDataLakeStoreFileExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("local_file_path"),
@@ -95,29 +95,29 @@ func TestAccAzureRMDataLakeStoreFile_largefiles(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDataLakeStoreFile_requiresimport(t *testing.T) {
+func TestAccDataLakeStoreFile_requiresimport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store_file", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataLakeStoreFileDestroy,
+		CheckDestroy: testCheckDataLakeStoreFileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataLakeStoreFile_basic(data),
+				Config: testAccDataLakeStoreFile_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataLakeStoreFileExists(data.ResourceName),
+					testCheckDataLakeStoreFileExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMDataLakeStoreFile_requiresImport(data),
+				Config:      testAccDataLakeStoreFile_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_data_lake_store_file"),
 			},
 		},
 	})
 }
 
-func testCheckAzureRMDataLakeStoreFileExists(resourceName string) resource.TestCheckFunc {
+func testCheckDataLakeStoreFileExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := acceptance.AzureProvider.Meta().(*clients.Client).Datalake.StoreFilesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -144,7 +144,7 @@ func testCheckAzureRMDataLakeStoreFileExists(resourceName string) resource.TestC
 	}
 }
 
-func testCheckAzureRMDataLakeStoreFileDestroy(s *terraform.State) error {
+func testCheckDataLakeStoreFileDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).Datalake.StoreFilesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -171,7 +171,7 @@ func testCheckAzureRMDataLakeStoreFileDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMDataLakeStoreFile_basic(data acceptance.TestData) string {
+func testAccDataLakeStoreFile_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -197,7 +197,7 @@ resource "azurerm_data_lake_store_file" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Locations.Primary)
 }
 
-func testAccAzureRMDataLakeStoreFile_largefiles(data acceptance.TestData, file string) string {
+func testAccDataLakeStoreFile_largefiles(data acceptance.TestData, file string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -223,8 +223,8 @@ resource "azurerm_data_lake_store_file" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Locations.Primary, file)
 }
 
-func testAccAzureRMDataLakeStoreFile_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMDataLakeStoreFile_basic(data)
+func testAccDataLakeStoreFile_requiresImport(data acceptance.TestData) string {
+	template := testAccDataLakeStoreFile_basic(data)
 	return fmt.Sprintf(`
 %s
 

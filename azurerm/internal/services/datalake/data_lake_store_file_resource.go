@@ -20,11 +20,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataLakeStoreFile() *schema.Resource {
+func resourceDataLakeStoreFile() *schema.Resource {
 	return &schema.Resource{
-		Create:        resourceArmDataLakeStoreFileCreate,
-		Read:          resourceArmDataLakeStoreFileRead,
-		Delete:        resourceArmDataLakeStoreFileDelete,
+		Create:        resourceDataLakeStoreFileCreate,
+		Read:          resourceDataLakeStoreFileRead,
+		Delete:        resourceDataLakeStoreFileDelete,
 		MigrateState:  ResourceDataLakeStoreFileMigrateState,
 		SchemaVersion: 1,
 		Importer: &schema.ResourceImporter{
@@ -61,7 +61,7 @@ func resourceArmDataLakeStoreFile() *schema.Resource {
 	}
 }
 
-func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Datalake.StoreFilesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -120,10 +120,10 @@ func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}
 	}
 
 	d.SetId(id)
-	return resourceArmDataLakeStoreFileRead(d, meta)
+	return resourceDataLakeStoreFileRead(d, meta)
 }
 
-func resourceArmDataLakeStoreFileRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataLakeStoreFileRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Datalake.StoreFilesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -150,7 +150,7 @@ func resourceArmDataLakeStoreFileRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceArmDataLakeStoreFileDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataLakeStoreFileDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Datalake.StoreFilesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

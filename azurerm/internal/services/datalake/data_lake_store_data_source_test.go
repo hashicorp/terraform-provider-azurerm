@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMDataLakeStore_basic(t *testing.T) {
+func TestAccDataSourceDataLakeStore_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_lake_store", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -18,7 +18,7 @@ func TestAccDataSourceAzureRMDataLakeStore_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceDataLakeStore_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataLakeStoreExists(data.ResourceName),
+					testCheckDataLakeStoreExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tier", "Consumption"),
 				),
 			},
@@ -26,7 +26,7 @@ func TestAccDataSourceAzureRMDataLakeStore_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMDataLakeStore_tier(t *testing.T) {
+func TestAccDataSourceDataLakeStore_tier(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_lake_store", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
