@@ -108,14 +108,14 @@ func testCheckAzureRMVirtualHubIPExists(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Virtual Hub IP not found: %s", resourceName)
 		}
 
-		id, err := parse.VirtualHubIPID(rs.Primary.ID)
+		id, err := parse.VirtualHubIpConfigurationID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.Name); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.IpConfigurationName); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Virtual Hub IP %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
+				return fmt.Errorf("Bad: Virtual Hub IP %q (Resource Group %q) does not exist", id.IpConfigurationName, id.ResourceGroup)
 			}
 			return fmt.Errorf("Bad: Get on network.VirtualHubIPClient: %+v", err)
 		}
@@ -133,12 +133,12 @@ func testCheckAzureRMVirtualHubIPDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.VirtualHubIPID(rs.Primary.ID)
+		id, err := parse.VirtualHubIpConfigurationID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.Name); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.IpConfigurationName); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Get on network.VirtualHubIPClient: %+v", err)
 			}

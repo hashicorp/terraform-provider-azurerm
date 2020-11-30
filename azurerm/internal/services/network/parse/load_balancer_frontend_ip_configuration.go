@@ -1,45 +1,50 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type LoadBalancerFrontendIPConfigurationId struct {
-	ResourceGroup    string
-	LoadBalancerName string
-	Name             string
+type LoadBalancerFrontendIpConfigurationId struct {
+	SubscriptionId              string
+	ResourceGroup               string
+	LoadBalancerName            string
+	FrontendIPConfigurationName string
 }
 
-func NewLoadBalancerFrontendIPConfigurationId(loadBalancer LoadBalancerId, name string) LoadBalancerFrontendIPConfigurationId {
-	return LoadBalancerFrontendIPConfigurationId{
-		ResourceGroup:    loadBalancer.ResourceGroup,
-		LoadBalancerName: loadBalancer.Name,
-		Name:             name,
+func NewLoadBalancerFrontendIpConfigurationID(subscriptionId, resourceGroup, loadBalancerName, frontendIPConfigurationName string) LoadBalancerFrontendIpConfigurationId {
+	return LoadBalancerFrontendIpConfigurationId{
+		SubscriptionId:              subscriptionId,
+		ResourceGroup:               resourceGroup,
+		LoadBalancerName:            loadBalancerName,
+		FrontendIPConfigurationName: frontendIPConfigurationName,
 	}
 }
 
-func (id LoadBalancerFrontendIPConfigurationId) ID(subscriptionId string) string {
-	baseId := NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName).ID(subscriptionId)
-	return fmt.Sprintf("%s/frontendIPConfigurations/%s", baseId, id.Name)
+func (id LoadBalancerFrontendIpConfigurationId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/loadBalancers/%s/frontendIPConfigurations/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName, id.FrontendIPConfigurationName)
 }
 
-func LoadBalancerFrontendIPConfigurationID(input string) (*LoadBalancerFrontendIPConfigurationId, error) {
+// LoadBalancerFrontendIpConfigurationID parses a LoadBalancerFrontendIpConfiguration ID into an LoadBalancerFrontendIpConfigurationId struct
+func LoadBalancerFrontendIpConfigurationID(input string) (*LoadBalancerFrontendIpConfigurationId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing Load Balancer Frontend IP Configuration ID %q: %+v", input, err)
-	}
-
-	frontendIPConfigurationId := LoadBalancerFrontendIPConfigurationId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if frontendIPConfigurationId.LoadBalancerName, err = id.PopSegment("loadBalancers"); err != nil {
 		return nil, err
 	}
 
-	if frontendIPConfigurationId.Name, err = id.PopSegment("frontendIPConfigurations"); err != nil {
+	resourceId := LoadBalancerFrontendIpConfigurationId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.LoadBalancerName, err = id.PopSegment("loadBalancers"); err != nil {
+		return nil, err
+	}
+	if resourceId.FrontendIPConfigurationName, err = id.PopSegment("frontendIPConfigurations"); err != nil {
 		return nil, err
 	}
 
@@ -47,5 +52,5 @@ func LoadBalancerFrontendIPConfigurationID(input string) (*LoadBalancerFrontendI
 		return nil, err
 	}
 
-	return &frontendIPConfigurationId, nil
+	return &resourceId, nil
 }

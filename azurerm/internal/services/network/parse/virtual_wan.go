@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,33 +9,37 @@ import (
 )
 
 type VirtualWanId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func (id VirtualWanId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualWans/%s",
-		subscriptionId, id.ResourceGroup, id.Name)
-}
-
-func NewVirtualWanID(resourceGroup, name string) VirtualWanId {
+func NewVirtualWanID(subscriptionId, resourceGroup, name string) VirtualWanId {
 	return VirtualWanId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
 }
 
+func (id VirtualWanId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualWans/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+}
+
+// VirtualWanID parses a VirtualWan ID into an VirtualWanId struct
 func VirtualWanID(input string) (*VirtualWanId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing Virtual Wan ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	vwanId := VirtualWanId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := VirtualWanId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if vwanId.Name, err = id.PopSegment("virtualWans"); err != nil {
+	if resourceId.Name, err = id.PopSegment("virtualWans"); err != nil {
 		return nil, err
 	}
 
@@ -41,5 +47,5 @@ func VirtualWanID(input string) (*VirtualWanId, error) {
 		return nil, err
 	}
 
-	return &vwanId, nil
+	return &resourceId, nil
 }

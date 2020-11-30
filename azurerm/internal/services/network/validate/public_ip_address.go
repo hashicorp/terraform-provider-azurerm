@@ -13,7 +13,7 @@ func PublicIPAddressID(i interface{}, k string) (warnings []string, errors []err
 		return
 	}
 
-	if _, err := parse.PublicIPAddressID(v); err != nil {
+	if _, err := parse.PublicIpAddressID(v); err != nil {
 		errors = append(errors, fmt.Errorf("Can not parse %q as a resource id: %v", k, err))
 		return
 	}

@@ -17,7 +17,7 @@ func NetworkConnectionMonitorID(i interface{}, k string) (warnings []string, err
 		return
 	}
 
-	if _, err := parse.NetworkConnectionMonitorID(v); err != nil {
+	if _, err := parse.ConnectionMonitorID(v); err != nil {
 		errors = append(errors, fmt.Errorf("Can not parse %q as a resource id: %v", k, err))
 		return
 	}

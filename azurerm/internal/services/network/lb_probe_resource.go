@@ -33,7 +33,7 @@ func resourceArmLoadBalancerProbe() *schema.Resource {
 				return nil, err
 			}
 
-			lbId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName)
+			lbId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
 			return &lbId, nil
 		}),
 
@@ -195,7 +195,7 @@ func resourceArmLoadBalancerProbeRead(d *schema.ResourceData, meta interface{}) 
 		return err
 	}
 
-	loadBalancerId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName)
+	loadBalancerId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
 	loadBalancer, exists, err := retrieveLoadBalancerById(ctx, client, loadBalancerId)
 	if err != nil {
 		return fmt.Errorf("Error Getting Load Balancer By ID: %+v", err)
@@ -206,10 +206,10 @@ func resourceArmLoadBalancerProbeRead(d *schema.ResourceData, meta interface{}) 
 		return nil
 	}
 
-	config, _, exists := FindLoadBalancerProbeByName(loadBalancer, id.Name)
+	config, _, exists := FindLoadBalancerProbeByName(loadBalancer, id.ProbeName)
 	if !exists {
 		d.SetId("")
-		log.Printf("[INFO] Load Balancer Probe %q not found. Removing from state", id.Name)
+		log.Printf("[INFO] Load Balancer Probe %q not found. Removing from state", id.ProbeName)
 		return nil
 	}
 
@@ -247,7 +247,7 @@ func resourceArmLoadBalancerProbeRead(d *schema.ResourceData, meta interface{}) 
 			}
 		}
 		if err := d.Set("load_balancer_rules", loadBalancerRules); err != nil {
-			return fmt.Errorf("Error setting `load_balancer_rules` (Load Balancer Probe %q): %+v", id.Name, err)
+			return fmt.Errorf("Error setting `load_balancer_rules` (Load Balancer Probe %q): %+v", id.ProbeName, err)
 		}
 	}
 
@@ -256,7 +256,6 @@ func resourceArmLoadBalancerProbeRead(d *schema.ResourceData, meta interface{}) 
 
 func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.LoadBalancersClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -265,8 +264,8 @@ func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	loadBalancerId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName)
-	loadBalancerID := loadBalancerId.ID(subscriptionId)
+	loadBalancerId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
+	loadBalancerID := loadBalancerId.ID("")
 	locks.ByID(loadBalancerID)
 	defer locks.UnlockByID(loadBalancerID)
 
@@ -279,7 +278,7 @@ func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}
 		return nil
 	}
 
-	_, index, exists := FindLoadBalancerProbeByName(loadBalancer, id.Name)
+	_, index, exists := FindLoadBalancerProbeByName(loadBalancer, id.ProbeName)
 	if !exists {
 		return nil
 	}

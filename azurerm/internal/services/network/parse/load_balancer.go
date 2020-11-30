@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,32 +9,37 @@ import (
 )
 
 type LoadBalancerId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func NewLoadBalancerID(resourceGroup, name string) LoadBalancerId {
+func NewLoadBalancerID(subscriptionId, resourceGroup, name string) LoadBalancerId {
 	return LoadBalancerId{
-		Name:          name,
-		ResourceGroup: resourceGroup,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
 }
 
-func (id LoadBalancerId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/loadBalancers/%s", subscriptionId, id.ResourceGroup, id.Name)
+func (id LoadBalancerId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/loadBalancers/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
+// LoadBalancerID parses a LoadBalancer ID into an LoadBalancerId struct
 func LoadBalancerID(input string) (*LoadBalancerId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing Load Balancer ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	loadBalancer := LoadBalancerId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := LoadBalancerId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if loadBalancer.Name, err = id.PopSegment("loadBalancers"); err != nil {
+	if resourceId.Name, err = id.PopSegment("loadBalancers"); err != nil {
 		return nil, err
 	}
 
@@ -40,5 +47,5 @@ func LoadBalancerID(input string) (*LoadBalancerId, error) {
 		return nil, err
 	}
 
-	return &loadBalancer, nil
+	return &resourceId, nil
 }

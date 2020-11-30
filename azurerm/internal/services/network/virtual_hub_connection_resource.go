@@ -220,12 +220,11 @@ func resourceArmVirtualHubConnectionCreateOrUpdate(d *schema.ResourceData, meta 
 }
 
 func resourceArmVirtualHubConnectionRead(d *schema.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.HubVirtualNetworkConnectionClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualHubConnectionID(d.Id())
+	id, err := parse.HubVirtualNetworkConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -241,7 +240,7 @@ func resourceArmVirtualHubConnectionRead(d *schema.ResourceData, meta interface{
 	}
 
 	d.Set("name", id.Name)
-	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.ResourceGroup, id.VirtualHubName).ID(subscriptionId))
+	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName).ID(""))
 
 	if props := resp.HubVirtualNetworkConnectionProperties; props != nil {
 		// The following two attributes are deprecated by API (which will always return `true`).
@@ -270,7 +269,7 @@ func resourceArmVirtualHubConnectionDelete(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualHubConnectionID(d.Id())
+	id, err := parse.HubVirtualNetworkConnectionID(d.Id())
 	if err != nil {
 		return err
 	}

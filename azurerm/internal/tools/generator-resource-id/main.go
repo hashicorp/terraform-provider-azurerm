@@ -160,7 +160,11 @@ func NewResourceID(typeName, resourceId string) (*ResourceId, error) {
 					key = fmt.Sprintf("%sy", key)
 				}
 
-				if strings.HasSuffix(key, "s") {
+				// handles `PublicIPAddressesName`
+				if strings.HasSuffix(key, "sses") {
+					key = strings.TrimSuffix(key, "sses")
+					key = fmt.Sprintf("%sss", key)
+				} else if strings.HasSuffix(key, "s") {
 					key = strings.TrimSuffix(key, "s")
 				}
 
