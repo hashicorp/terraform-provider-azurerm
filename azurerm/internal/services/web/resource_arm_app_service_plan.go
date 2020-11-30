@@ -3,7 +3,6 @@ package web
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 	"time"
 
@@ -15,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -44,7 +44,7 @@ func resourceArmAppServicePlan() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAppServicePlanName,
+				ValidateFunc: validate.AppServicePlanName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -360,14 +360,4 @@ func flattenAppServicePlanSku(input *web.SkuDescription) []interface{} {
 	outputs = append(outputs, output)
 
 	return outputs
-}
-
-func validateAppServicePlanName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if matched := regexp.MustCompile(`^[0-9a-zA-Z-_]{1,60}$`).Match([]byte(value)); !matched {
-		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters, dashes and underscores up to 60 characters in length", k))
-	}
-
-	return warnings, errors
 }
