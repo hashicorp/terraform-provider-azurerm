@@ -1,4 +1,4 @@
-package web
+package parse
 
 import (
 	"testing"
@@ -8,7 +8,7 @@ func TestParseAppServiceCertificateOrder(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *AppServiceCertificateOrderResourceID
+		Expected *CertificateOrderId
 	}{
 		{
 			Name:     "Empty",
@@ -43,7 +43,7 @@ func TestParseAppServiceCertificateOrder(t *testing.T) {
 		{
 			Name:  "App Service Certificate Order Resource ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/certificateOrders/order1",
-			Expected: &AppServiceCertificateOrderResourceID{
+			Expected: &CertificateOrderId{
 				Name:          "order1",
 				ResourceGroup: "mygroup1",
 			},
@@ -58,7 +58,7 @@ func TestParseAppServiceCertificateOrder(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ParseAppServiceCertificateOrderID(v.Input)
+		actual, err := CertificateOrderID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -25,7 +26,7 @@ func resourceArmAppServiceCertificateOrder() *schema.Resource {
 		Update: resourceArmAppServiceCertificateOrderCreateUpdate,
 		Delete: resourceArmAppServiceCertificateOrderDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := ParseAppServiceCertificateOrderID(id)
+			_, err := parse.CertificateOrderID(id)
 			return err
 		}),
 
@@ -251,7 +252,7 @@ func resourceArmAppServiceCertificateOrderRead(d *schema.ResourceData, meta inte
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseAppServiceCertificateOrderID(d.Id())
+	id, err := parse.CertificateOrderID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -317,7 +318,7 @@ func resourceArmAppServiceCertificateOrderDelete(d *schema.ResourceData, meta in
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseAppServiceCertificateOrderID(d.Id())
+	id, err := parse.CertificateOrderID(d.Id())
 	if err != nil {
 		return err
 	}

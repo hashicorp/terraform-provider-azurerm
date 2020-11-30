@@ -1,4 +1,4 @@
-package web
+package parse
 
 import (
 	"fmt"
@@ -6,18 +6,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type AppServiceCertificateOrderResourceID struct {
+type CertificateOrderId struct {
 	ResourceGroup string
 	Name          string
 }
 
-func ParseAppServiceCertificateOrderID(input string) (*AppServiceCertificateOrderResourceID, error) {
+func CertificateOrderID(input string) (*CertificateOrderId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse App Service Certificate Order ID %q: %+v", input, err)
 	}
 
-	order := AppServiceCertificateOrderResourceID{
+	order := CertificateOrderId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
