@@ -14,7 +14,7 @@ Manages a File within an Azure Storage File Share.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "azuretest"
+  name     = "example-resources"
   location = "West Europe"
 }
 
@@ -61,8 +61,6 @@ The following arguments are supported:
 * `content_encoding` - (Optional) Specifies which content encodings have been applied to the file.
 
 * `content_disposition` - (Optional) Sets the file’s Content-Disposition header.
-
-* `parallelism` - (Optional)  The number of workers per CPU core to run for concurrent uploads. Defaults to `4`.
 
 * `metadata` - (Optional) A mapping of metadata to assign to this file.
 
