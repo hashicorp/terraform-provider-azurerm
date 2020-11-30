@@ -103,7 +103,7 @@ func resourceArmMediaServicesAccount() *schema.Resource {
 				},
 			},
 
-			"storage_authentication": {
+			"storage_authentication_type": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
@@ -142,13 +142,11 @@ func resourceArmMediaServicesAccountCreateUpdate(d *schema.ResourceData, meta in
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		mediaServiceIdentity := expandAzureRmMediaServiceIdentity(d)
-		parameters.Identity = mediaServiceIdentity
+		parameters.Identity = expandAzureRmMediaServiceIdentity(d)
 	}
 
-	if _, ok := d.GetOk("storage_authentication"); ok {
-		storageAuthentication := d.Get("storage_authentication").(string)
-		parameters.StorageAuthentication = media.StorageAuthentication(storageAuthentication)
+	if v, ok := d.GetOk("storage_authentication"); ok {
+		parameters.StorageAuthentication = media.StorageAuthentication(v.(string))
 	}
 
 	if _, e := client.CreateOrUpdate(ctx, resourceGroup, accountName, parameters); e != nil {
@@ -198,8 +196,7 @@ func resourceArmMediaServicesAccountRead(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	identity := flattenAzureRmMediaServicedentity(resp.Identity)
-	if err := d.Set("identity", identity); err != nil {
+	if err := d.Set("identity", flattenAzureRmMediaServicedentity(resp.Identity)); err != nil {
 		return fmt.Errorf("Error flattening `identity`: %s", err)
 	}
 

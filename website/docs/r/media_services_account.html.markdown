@@ -66,8 +66,6 @@ A `storage_account` block supports the following:
 Possible value is  `ManagedIdentity` or `System`.
 
 * `tags` - (Optional) A mapping of tags assigned to the resource.
-
-
 ---
 
 A `identity` block supports the following:
