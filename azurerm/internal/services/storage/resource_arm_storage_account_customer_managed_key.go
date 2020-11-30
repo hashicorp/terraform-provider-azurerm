@@ -75,7 +75,7 @@ func resourceArmStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceD
 	defer cancel()
 
 	storageAccountIDRaw := d.Get("storage_account_id").(string)
-	storageAccountID, err := storageParse.AccountID(storageAccountIDRaw)
+	storageAccountID, err := storageParse.StorageAccountID(storageAccountIDRaw)
 	if err != nil {
 		return err
 	}
@@ -172,7 +172,7 @@ func resourceArmStorageAccountCustomerManagedKeyRead(d *schema.ResourceData, met
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	storageAccountID, err := storageParse.AccountID(d.Id())
+	storageAccountID, err := storageParse.StorageAccountID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -237,7 +237,7 @@ func resourceArmStorageAccountCustomerManagedKeyDelete(d *schema.ResourceData, m
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	storageAccountID, err := storageParse.AccountID(d.Id())
+	storageAccountID, err := storageParse.StorageAccountID(d.Id())
 	if err != nil {
 		return err
 	}
