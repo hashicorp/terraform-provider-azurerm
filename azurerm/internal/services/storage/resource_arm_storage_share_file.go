@@ -226,14 +226,6 @@ func resourceArmStorageShareFileUpdate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	/*
-		metaDataRaw := d.Get("metadata").(map[string]interface{})
-		metaData := ExpandMetaData(metaDataRaw)
-
-		if _, err := client.SetMetaData(ctx, id.AccountName, id.ShareName, id.DirectoryName, id.FileName, metaData); err != nil {
-			return fmt.Errorf("updating MetaData for File %q (File Share %q / Account %q): %+v", id.FileName, id.ShareName, id.AccountName, err)
-		}*/
-
 	return resourceArmStorageShareFileRead(d, meta)
 }
 
@@ -312,16 +304,3 @@ func resourceArmStorageShareFileDelete(d *schema.ResourceData, meta interface{})
 
 	return nil
 }
-
-/*
-func storageShareDirectoryRefreshFunc(ctx context.Context, client *directories.Client, accountName, shareName, directoryName string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, accountName, shareName, directoryName)
-		if err != nil {
-			return nil, strconv.Itoa(res.StatusCode), fmt.Errorf("Error retrieving Directory %q (File Share %q / Account %q): %s", directoryName, shareName, accountName, err)
-		}
-
-		return res, strconv.Itoa(res.StatusCode), nil
-	}
-}
-*/
