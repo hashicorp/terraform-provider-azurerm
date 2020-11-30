@@ -59,6 +59,7 @@ func resourceArmApiManagementPolicy() *schema.Resource {
 	}
 }
 
+
 func resourceArmApiManagementPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.PolicyClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -178,8 +179,7 @@ func resourceArmApiManagementPolicyDelete(d *schema.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	apiManagementID := d.Get("api_management_id").(string)
-	id, err := parse.ApiManagementPolicyID(apiManagementID)
+	id, err := parse.ApiManagementPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
