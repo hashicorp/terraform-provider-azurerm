@@ -8,7 +8,7 @@ func TestServiceFabricClusterId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *ServiceFabricClusterId
+		Expected *ClusterId
 	}{
 		{
 			Name:     "Empty",
@@ -38,7 +38,7 @@ func TestServiceFabricClusterId(t *testing.T) {
 		{
 			Name:  "Service Fabric Cluster ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.ServiceFabric/clusters/Cluster1",
-			Expected: &ServiceFabricClusterId{
+			Expected: &ClusterId{
 				Name:          "Cluster1",
 				ResourceGroup: "resGroup1",
 			},
@@ -53,7 +53,7 @@ func TestServiceFabricClusterId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ServiceFabricClusterID(v.Input)
+		actual, err := ClusterID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
