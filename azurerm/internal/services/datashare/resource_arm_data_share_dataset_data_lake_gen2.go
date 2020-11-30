@@ -42,14 +42,14 @@ func resourceArmDataShareDataSetDataLakeGen2() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DatashareDataSetName(),
+				ValidateFunc: validate.DataSetName(),
 			},
 
 			"share_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DataShareID,
+				ValidateFunc: validate.ShareID,
 			},
 
 			"storage_account_id": {

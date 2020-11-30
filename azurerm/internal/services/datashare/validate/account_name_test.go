@@ -44,7 +44,7 @@ func TestAccountName(t *testing.T) {
 			valid: true,
 		},
 	}
-	validationFunction := DataShareAccountName()
+	validationFunction := AccountName()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := validationFunction(tt.input, "")

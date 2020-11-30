@@ -25,7 +25,7 @@ func dataSourceDataShareAccount() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.DataShareAccountName(),
+				ValidateFunc: validate.AccountName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),

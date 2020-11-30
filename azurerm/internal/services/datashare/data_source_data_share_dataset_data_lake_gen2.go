@@ -25,13 +25,13 @@ func dataSourceDataShareDatasetDataLakeGen2() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.DatashareDataSetName(),
+				ValidateFunc: validate.DataSetName(),
 			},
 
 			"share_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.DataShareID,
+				ValidateFunc: validate.ShareID,
 			},
 
 			"storage_account_id": {
