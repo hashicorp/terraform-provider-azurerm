@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,41 +9,48 @@ import (
 )
 
 type DatabaseId struct {
-	ResourceGroup string
-	ServerName    string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	ServerName     string
+	Name           string
 }
 
-func NewDatabaseID(resourceGroup, serverName, name string) DatabaseId {
+func NewDatabaseID(subscriptionId, resourceGroup, serverName, name string) DatabaseId {
 	return DatabaseId{
-		ResourceGroup: resourceGroup,
-		ServerName:    serverName,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		ServerName:     serverName,
+		Name:           name,
 	}
 }
 
-func (id DatabaseId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Sql/servers/%s/databases/%s", subscriptionId, id.ResourceGroup, id.ServerName, id.Name)
+func (id DatabaseId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Sql/servers/%s/databases/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServerName, id.Name)
 }
 
+// DatabaseID parses a Database ID into an DatabaseId struct
 func DatabaseID(input string) (*DatabaseId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing Synapse Sql Pool ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	sqlDatabaseId := DatabaseId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := DatabaseId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
-	if sqlDatabaseId.ServerName, err = id.PopSegment("servers"); err != nil {
+
+	if resourceId.ServerName, err = id.PopSegment("servers"); err != nil {
 		return nil, err
 	}
-	if sqlDatabaseId.Name, err = id.PopSegment("databases"); err != nil {
+	if resourceId.Name, err = id.PopSegment("databases"); err != nil {
 		return nil, err
 	}
+
 	if err := id.ValidateNoEmptySegments(input); err != nil {
 		return nil, err
 	}
 
-	return &sqlDatabaseId, nil
+	return &resourceId, nil
 }
