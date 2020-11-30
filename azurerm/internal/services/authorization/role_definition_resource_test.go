@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -140,15 +141,17 @@ func TestAccRoleDefinition_managementGroup(t *testing.T) {
 }
 
 func (r RoleDefinitionResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	scope := state.Attributes["scope"]
-	roleDefinitionId := state.Attributes["role_definition_id"]
+	id, err := parse.RoleDefinitionId(state.ID)
+	if err != nil {
+		return nil, err
+	}
 
-	resp, err := client.Authorization.RoleDefinitionsClient.Get(ctx, scope, roleDefinitionId)
+	resp, err := client.Authorization.RoleDefinitionsClient.Get(ctx, id.Scope, id.RoleID)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Role Definition %q (Scope %q): %+v", roleDefinitionId, scope, err)
+		return nil, fmt.Errorf("retrieving Role Definition %q (Scope %q): %+v", id.RoleID, id.Scope, err)
 	}
 	return utils.Bool(true), nil
 }
