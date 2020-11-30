@@ -26,7 +26,7 @@ func resourceArmAppServiceCustomHostnameBinding() *schema.Resource {
 		Read:   resourceArmAppServiceCustomHostnameBindingRead,
 		Delete: resourceArmAppServiceCustomHostnameBindingDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.AppServiceCustomHostnameBindingID(id)
+			_, err := parse.HostnameBindingID(id)
 			return err
 		}),
 
@@ -152,23 +152,23 @@ func resourceArmAppServiceCustomHostnameBindingRead(d *schema.ResourceData, meta
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AppServiceCustomHostnameBindingID(d.Id())
+	id, err := parse.HostnameBindingID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.GetHostNameBinding(ctx, id.ResourceGroup, id.AppServiceName, id.Name)
+	resp, err := client.GetHostNameBinding(ctx, id.ResourceGroup, id.SiteName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] App Service Hostname Binding %q (App Service %q / Resource Group %q) was not found - removing from state", id.Name, id.AppServiceName, id.ResourceGroup)
+			log.Printf("[DEBUG] App Service Hostname Binding %q (App Service %q / Resource Group %q) was not found - removing from state", id.Name, id.SiteName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Custom Hostname Binding %q (App Service %q / Resource Group %q): %+v", id.Name, id.AppServiceName, id.ResourceGroup, err)
+		return fmt.Errorf("Error retrieving Custom Hostname Binding %q (App Service %q / Resource Group %q): %+v", id.Name, id.SiteName, id.ResourceGroup, err)
 	}
 
 	d.Set("hostname", id.Name)
-	d.Set("app_service_name", id.AppServiceName)
+	d.Set("app_service_name", id.SiteName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.HostNameBindingProperties; props != nil {
@@ -185,20 +185,20 @@ func resourceArmAppServiceCustomHostnameBindingDelete(d *schema.ResourceData, me
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AppServiceCustomHostnameBindingID(d.Id())
+	id, err := parse.HostnameBindingID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(id.AppServiceName, appServiceCustomHostnameBindingResourceName)
-	defer locks.UnlockByName(id.AppServiceName, appServiceCustomHostnameBindingResourceName)
+	locks.ByName(id.SiteName, appServiceCustomHostnameBindingResourceName)
+	defer locks.UnlockByName(id.SiteName, appServiceCustomHostnameBindingResourceName)
 
-	log.Printf("[DEBUG] Deleting App Service Hostname Binding %q (App Service %q / Resource Group %q)", id.Name, id.AppServiceName, id.ResourceGroup)
+	log.Printf("[DEBUG] Deleting App Service Hostname Binding %q (App Service %q / Resource Group %q)", id.Name, id.SiteName, id.ResourceGroup)
 
-	resp, err := client.DeleteHostNameBinding(ctx, id.ResourceGroup, id.AppServiceName, id.Name)
+	resp, err := client.DeleteHostNameBinding(ctx, id.ResourceGroup, id.SiteName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting Custom Hostname Binding %q (App Service %q / Resource Group %q): %+v", id.Name, id.AppServiceName, id.ResourceGroup, err)
+			return fmt.Errorf("Error deleting Custom Hostname Binding %q (App Service %q / Resource Group %q): %+v", id.Name, id.SiteName, id.ResourceGroup, err)
 		}
 	}
 

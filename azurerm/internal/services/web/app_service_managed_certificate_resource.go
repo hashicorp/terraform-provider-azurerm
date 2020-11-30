@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 
-
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -113,17 +112,17 @@ func resourceArmAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData,
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	customHostnameBindingId, err := parse.AppServiceCustomHostnameBindingID(d.Get("custom_hostname_binding_id").(string))
+	customHostnameBindingId, err := parse.HostnameBindingID(d.Get("custom_hostname_binding_id").(string))
 	if err != nil {
 		return err
 	}
 
-	binding, err := appServiceClient.GetHostNameBinding(ctx, customHostnameBindingId.ResourceGroup, customHostnameBindingId.AppServiceName, customHostnameBindingId.Name)
+	binding, err := appServiceClient.GetHostNameBinding(ctx, customHostnameBindingId.ResourceGroup, customHostnameBindingId.SiteName, customHostnameBindingId.Name)
 	if err != nil {
 		return fmt.Errorf("failed retrieving Hostname Binding to update for Managed Certificate")
 	}
 
-	appService, err := appServiceClient.Get(ctx, customHostnameBindingId.ResourceGroup, customHostnameBindingId.AppServiceName)
+	appService, err := appServiceClient.Get(ctx, customHostnameBindingId.ResourceGroup, customHostnameBindingId.SiteName)
 	if err != nil {
 		return fmt.Errorf("could not retrieve App Service Custom Hostname details for %q", customHostnameBindingId.Name)
 	}
@@ -224,7 +223,7 @@ func resourceArmAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData,
 		return fmt.Errorf("could not read Thumbprint for Managed Certificate %q (resource group %q) to apply to Custom Hostname Binsing", id.CertificateName, id.ResourceGroup)
 	}
 
-	_, err = appServiceClient.CreateOrUpdateHostNameBinding(ctx, customHostnameBindingId.ResourceGroup, customHostnameBindingId.AppServiceName, customHostnameBindingId.Name, binding)
+	_, err = appServiceClient.CreateOrUpdateHostNameBinding(ctx, customHostnameBindingId.ResourceGroup, customHostnameBindingId.SiteName, customHostnameBindingId.Name, binding)
 	if err != nil {
 		return fmt.Errorf("failed to update Hostname Binding for %q (resource group %q): %+v", customHostnameBindingId.Name, customHostnameBindingId.ResourceGroup, err)
 	}
@@ -287,12 +286,12 @@ func resourceArmAppServiceManagedCertificateDelete(d *schema.ResourceData, meta 
 		return fmt.Errorf("could not remove certificate from Hostname Binding, missing `custom_hostname_binding_id`")
 	}
 
-	hostnameBinding, err := parse.AppServiceCustomHostnameBindingID(hostnameBindingRaw.(string))
+	hostnameBinding, err := parse.HostnameBindingID(hostnameBindingRaw.(string))
 	if err != nil {
 		return err
 	}
 
-	binding, err := appServiceClient.GetHostNameBinding(ctx, hostnameBinding.ResourceGroup, hostnameBinding.AppServiceName, hostnameBinding.Name)
+	binding, err := appServiceClient.GetHostNameBinding(ctx, hostnameBinding.ResourceGroup, hostnameBinding.SiteName, hostnameBinding.Name)
 	if err != nil {
 		return err
 	}
@@ -301,11 +300,10 @@ func resourceArmAppServiceManagedCertificateDelete(d *schema.ResourceData, meta 
 		binding.HostNameBindingProperties.SslState = web.SslStateDisabled
 		binding.HostNameBindingProperties.Thumbprint = nil
 	}
-	_, err = appServiceClient.CreateOrUpdateHostNameBinding(ctx, hostnameBinding.ResourceGroup, hostnameBinding.AppServiceName, hostnameBinding.Name, binding)
+	_, err = appServiceClient.CreateOrUpdateHostNameBinding(ctx, hostnameBinding.ResourceGroup, hostnameBinding.SiteName, hostnameBinding.Name, binding)
 	if err != nil {
 		return fmt.Errorf("could not remove Managed Certificate %q from Hostname Binding %q (resource group %q): %+v", id.CertificateName, hostnameBinding.Name, hostnameBinding.ResourceGroup, err)
 	}
-
 
 	log.Printf("[DEBUG] Deleting App Service Certificate %q (Resource Group %q)", id.CertificateName, id.ResourceGroup)
 
