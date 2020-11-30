@@ -35,7 +35,7 @@ func main() {
 func run(servicePackagePath, name, id string, shouldRewrite, shouldValidate bool) error {
 	servicePackage, err := parseServicePackageName(servicePackagePath)
 	if err != nil {
-		return fmt.Errorf("determing Service Package Name for %q: %+v", servicePackagePath, err)
+		return fmt.Errorf("determining Service Package Name for %q: %+v", servicePackagePath, err)
 	}
 
 	parsersPath := path.Join(servicePackagePath, "/parse")
