@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,27 +9,43 @@ import (
 )
 
 type NamespaceId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
+func NewNamespaceID(subscriptionId, resourceGroup, name string) NamespaceId {
+	return NamespaceId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id NamespaceId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ServiceBus/namespaces/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+}
+
+// NamespaceID parses a Namespace ID into an NamespaceId struct
 func NamespaceID(input string) (*NamespaceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse Service Bus Namespace ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	namespace := NamespaceId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := NamespaceId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if namespace.Name, err = id.PopSegment("namespaces"); err != nil {
-		return nil, fmt.Errorf("unable to parse Service Bus Namespace ID %q: %+v", input, err)
+	if resourceId.Name, err = id.PopSegment("namespaces"); err != nil {
+		return nil, err
 	}
 
 	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, fmt.Errorf("unable to parse Service Bus Namespace ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	return &namespace, nil
+	return &resourceId, nil
 }
