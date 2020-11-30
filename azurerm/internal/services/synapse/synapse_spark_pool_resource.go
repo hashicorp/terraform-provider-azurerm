@@ -33,7 +33,7 @@ func resourceArmSynapseSparkPool() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.SynapseSparkPoolID(id)
+			_, err := parse.SparkPoolID(id)
 			return err
 		}),
 
@@ -231,21 +231,21 @@ func resourceArmSynapseSparkPoolRead(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SynapseSparkPoolID(d.Id())
+	id, err := parse.SparkPoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name)
+	resp, err := client.Get(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.BigDataPoolName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Synapse Spark Pool %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Synapse Spark Pool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.Workspace.ResourceGroup, id.Workspace.Name, err)
+		return fmt.Errorf("retrieving Synapse Spark Pool %q (Resource Group %q / workspaceName %q): %+v", id.BigDataPoolName, id.Workspace.ResourceGroup, id.Workspace.Name, err)
 	}
-	d.Set("name", id.Name)
+	d.Set("name", id.BigDataPoolName)
 	d.Set("synapse_workspace_id", id.Workspace.ID(""))
 	if props := resp.BigDataPoolResourceProperties; props != nil {
 		if err := d.Set("auto_pause", flattenArmSparkPoolAutoPauseProperties(props.AutoPause)); err != nil {
@@ -270,18 +270,18 @@ func resourceArmSynapseSparkPoolDelete(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SynapseSparkPoolID(d.Id())
+	id, err := parse.SparkPoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name)
+	future, err := client.Delete(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.BigDataPoolName)
 	if err != nil {
-		return fmt.Errorf("deleting Synapse Spark Pool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.Workspace.ResourceGroup, id.Workspace.Name, err)
+		return fmt.Errorf("deleting Synapse Spark Pool %q (Resource Group %q / workspaceName %q): %+v", id.BigDataPoolName, id.Workspace.ResourceGroup, id.Workspace.Name, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deleting Synapse Spark Pool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.Workspace.ResourceGroup, id.Workspace.Name, err)
+		return fmt.Errorf("waiting for deleting Synapse Spark Pool %q (Resource Group %q / workspaceName %q): %+v", id.BigDataPoolName, id.Workspace.ResourceGroup, id.Workspace.Name, err)
 	}
 	return nil
 }

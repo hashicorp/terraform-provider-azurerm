@@ -8,7 +8,7 @@ func TestSynapseSparkPoolID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *SynapseSparkPoolId
+		Expected *SparkPoolId
 	}{
 		{
 			Name:     "Empty",
@@ -38,12 +38,12 @@ func TestSynapseSparkPoolID(t *testing.T) {
 		{
 			Name:  "synapse BigDataPool ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Synapse/workspaces/workspace1/bigDataPools/sparkPool1",
-			Expected: &SynapseSparkPoolId{
+			Expected: &SparkPoolId{
 				Workspace: &SynapseWorkspaceId{
 					ResourceGroup: "resourceGroup1",
 					Name:          "workspace1",
 				},
-				Name: "sparkPool1",
+				BigDataPoolName: "sparkPool1",
 			},
 		},
 		{
@@ -56,7 +56,7 @@ func TestSynapseSparkPoolID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.Name)
 
-		actual, err := SynapseSparkPoolID(v.Input)
+		actual, err := SparkPoolID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -72,8 +72,8 @@ func TestSynapseSparkPoolID(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for WorkspaceName", v.Expected.Workspace.Name, actual.Workspace.Name)
 		}
 
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.BigDataPoolName != v.Expected.BigDataPoolName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.BigDataPoolName, actual.BigDataPoolName)
 		}
 	}
 }
