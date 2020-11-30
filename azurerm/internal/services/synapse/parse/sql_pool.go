@@ -6,18 +6,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type SynapseSqlPoolId struct {
+type SqlPoolId struct {
 	Workspace *SynapseWorkspaceId
 	Name      string
 }
 
-func SynapseSqlPoolID(input string) (*SynapseSqlPoolId, error) {
+func SqlPoolID(input string) (*SqlPoolId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("parsing Synapse Sql Pool ID %q: %+v", input, err)
 	}
 
-	synapseSqlPool := SynapseSqlPoolId{
+	synapseSqlPool := SqlPoolId{
 		Workspace: &SynapseWorkspaceId{
 			SubscriptionID: id.SubscriptionID,
 			ResourceGroup:  id.ResourceGroup,

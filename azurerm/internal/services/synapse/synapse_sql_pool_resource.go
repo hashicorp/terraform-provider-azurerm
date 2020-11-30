@@ -44,7 +44,7 @@ func resourceArmSynapseSqlPool() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-				if _, err := parse.SynapseSqlPoolID(d.Id()); err != nil {
+				if _, err := parse.SqlPoolID(d.Id()); err != nil {
 					return []*schema.ResourceData{d}, err
 				}
 
@@ -267,7 +267,7 @@ func resourceArmSynapseSqlPoolUpdate(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SynapseSqlPoolID(d.Id())
+	id, err := parse.SqlPoolID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -330,7 +330,7 @@ func resourceArmSynapseSqlPoolRead(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SynapseSqlPoolID(d.Id())
+	id, err := parse.SqlPoolID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -373,7 +373,7 @@ func resourceArmSynapseSqlPoolDelete(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SynapseSqlPoolID(d.Id())
+	id, err := parse.SqlPoolID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -406,7 +406,7 @@ func synapseSqlPoolScaleStateRefreshFunc(ctx context.Context, client *synapse.SQ
 // backend service restore and backup only accept id format of sql database
 // so if the id is sqlPool, we need to construct the corresponding sql database id
 func constructSourceDatabaseId(id string, _ string) string {
-	sqlPoolId, err := parse.SynapseSqlPoolID(id)
+	sqlPoolId, err := parse.SqlPoolID(id)
 	if err != nil {
 		return id
 	}

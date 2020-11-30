@@ -8,7 +8,7 @@ func TestSynapseSqlPoolID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *SynapseSqlPoolId
+		Expected *SqlPoolId
 	}{
 		{
 			Name:     "Empty",
@@ -38,7 +38,7 @@ func TestSynapseSqlPoolID(t *testing.T) {
 		{
 			Name:  "synapse SqlPool ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Synapse/workspaces/workspace1/sqlPools/sqlPool1",
-			Expected: &SynapseSqlPoolId{
+			Expected: &SqlPoolId{
 				Workspace: &SynapseWorkspaceId{
 					ResourceGroup: "resourceGroup1",
 					Name:          "workspace1",
@@ -56,7 +56,7 @@ func TestSynapseSqlPoolID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.Name)
 
-		actual, err := SynapseSqlPoolID(v.Input)
+		actual, err := SqlPoolID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

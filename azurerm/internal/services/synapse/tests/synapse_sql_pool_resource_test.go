@@ -106,7 +106,7 @@ func testCheckAzureRMSynapseSqlPoolExists(resourceName string) resource.TestChec
 		if !ok {
 			return fmt.Errorf("synapse SqlPool not found: %s", resourceName)
 		}
-		id, err := parse.SynapseSqlPoolID(rs.Primary.ID)
+		id, err := parse.SqlPoolID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -128,7 +128,7 @@ func testCheckAzureRMSynapseSqlPoolDestroy(s *terraform.State) error {
 		if rs.Type != "azurerm_synapse_sql_pool" {
 			continue
 		}
-		id, err := parse.SynapseSqlPoolID(rs.Primary.ID)
+		id, err := parse.SqlPoolID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
