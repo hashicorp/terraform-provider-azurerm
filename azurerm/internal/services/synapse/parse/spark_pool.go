@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -13,25 +15,42 @@ type SparkPoolId struct {
 	BigDataPoolName string
 }
 
+func NewSparkPoolID(subscriptionId, resourceGroup, workspaceName, bigDataPoolName string) SparkPoolId {
+	return SparkPoolId{
+		SubscriptionId:  subscriptionId,
+		ResourceGroup:   resourceGroup,
+		WorkspaceName:   workspaceName,
+		BigDataPoolName: bigDataPoolName,
+	}
+}
+
+func (id SparkPoolId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Synapse/workspaces/%s/bigDataPools/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.BigDataPoolName)
+}
+
+// SparkPoolID parses a SparkPool ID into an SparkPoolId struct
 func SparkPoolID(input string) (*SparkPoolId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing synapse Spark Pool ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	synapseSparkPool := SparkPoolId{
+	resourceId := SparkPoolId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
-	if synapseSparkPool.WorkspaceName, err = id.PopSegment("workspaces"); err != nil {
+
+	if resourceId.WorkspaceName, err = id.PopSegment("workspaces"); err != nil {
 		return nil, err
 	}
-	if synapseSparkPool.BigDataPoolName, err = id.PopSegment("bigDataPools"); err != nil {
+	if resourceId.BigDataPoolName, err = id.PopSegment("bigDataPools"); err != nil {
 		return nil, err
 	}
+
 	if err := id.ValidateNoEmptySegments(input); err != nil {
 		return nil, err
 	}
 
-	return &synapseSparkPool, nil
+	return &resourceId, nil
 }

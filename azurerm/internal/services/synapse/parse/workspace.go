@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -12,7 +14,7 @@ type WorkspaceId struct {
 	Name           string
 }
 
-func NewWorkspaceId(subscriptionId, resourceGroup, name string) WorkspaceId {
+func NewWorkspaceID(subscriptionId, resourceGroup, name string) WorkspaceId {
 	return WorkspaceId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
@@ -20,26 +22,30 @@ func NewWorkspaceId(subscriptionId, resourceGroup, name string) WorkspaceId {
 	}
 }
 
+func (id WorkspaceId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Synapse/workspaces/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+}
+
+// WorkspaceID parses a Workspace ID into an WorkspaceId struct
 func WorkspaceID(input string) (*WorkspaceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing synapseWorkspace ID %q: %+v", input, err)
-	}
-
-	synapseWorkspace := WorkspaceId{
-		ResourceGroup:  id.ResourceGroup,
-		SubscriptionId: id.SubscriptionID,
-	}
-	if synapseWorkspace.Name, err = id.PopSegment("workspaces"); err != nil {
 		return nil, err
 	}
+
+	resourceId := WorkspaceId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.Name, err = id.PopSegment("workspaces"); err != nil {
+		return nil, err
+	}
+
 	if err := id.ValidateNoEmptySegments(input); err != nil {
 		return nil, err
 	}
 
-	return &synapseWorkspace, nil
-}
-
-func (id WorkspaceId) ID(_ string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Synapse/workspaces/%s", id.SubscriptionId, id.ResourceGroup, id.Name)
+	return &resourceId, nil
 }
