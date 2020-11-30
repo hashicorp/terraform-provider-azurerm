@@ -7,12 +7,12 @@ import (
 )
 
 type SubscriptionTemplateDeploymentId struct {
-	Name string
+	DeploymentName string
 }
 
 func NewSubscriptionTemplateDeploymentID(name string) SubscriptionTemplateDeploymentId {
 	return SubscriptionTemplateDeploymentId{
-		Name: name,
+		DeploymentName: name,
 	}
 }
 
@@ -24,7 +24,7 @@ func SubscriptionTemplateDeploymentID(input string) (*SubscriptionTemplateDeploy
 
 	deploymentId := SubscriptionTemplateDeploymentId{}
 
-	if deploymentId.Name, err = id.PopSegment("deployments"); err != nil {
+	if deploymentId.DeploymentName, err = id.PopSegment("deployments"); err != nil {
 		return nil, err
 	}
 
@@ -36,5 +36,5 @@ func SubscriptionTemplateDeploymentID(input string) (*SubscriptionTemplateDeploy
 }
 
 func (id SubscriptionTemplateDeploymentId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/providers/Microsoft.Resources/deployments/%s", subscriptionId, id.Name)
+	return fmt.Sprintf("/subscriptions/%s/providers/Microsoft.Resources/deployments/%s", subscriptionId, id.DeploymentName)
 }

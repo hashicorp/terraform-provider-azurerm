@@ -30,7 +30,7 @@ func TestParseResourceGroup(t *testing.T) {
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/",
 			Expected: &ResourceGroupId{
 				SubscriptionId: "00000000-0000-0000-0000-000000000000",
-				Name:           "foo",
+				ResourceGroup:  "foo",
 			},
 		},
 		{
@@ -57,8 +57,8 @@ func TestParseResourceGroup(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.ResourceGroup != v.Expected.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
 	}
 }

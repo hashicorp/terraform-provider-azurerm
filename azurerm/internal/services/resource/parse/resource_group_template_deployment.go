@@ -7,14 +7,14 @@ import (
 )
 
 type ResourceGroupTemplateDeploymentId struct {
-	ResourceGroup string
-	Name          string
+	ResourceGroup  string
+	DeploymentName string
 }
 
 func NewResourceGroupTemplateDeploymentID(resourceGroup, name string) ResourceGroupTemplateDeploymentId {
 	return ResourceGroupTemplateDeploymentId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
+		ResourceGroup:  resourceGroup,
+		DeploymentName: name,
 	}
 }
 
@@ -28,7 +28,7 @@ func ResourceGroupTemplateDeploymentID(input string) (*ResourceGroupTemplateDepl
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if deploymentId.Name, err = id.PopSegment("deployments"); err != nil {
+	if deploymentId.DeploymentName, err = id.PopSegment("deployments"); err != nil {
 		return nil, err
 	}
 
@@ -40,5 +40,5 @@ func ResourceGroupTemplateDeploymentID(input string) (*ResourceGroupTemplateDepl
 }
 
 func (id ResourceGroupTemplateDeploymentId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Resources/deployments/%s", subscriptionId, id.ResourceGroup, id.Name)
+	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Resources/deployments/%s", subscriptionId, id.ResourceGroup, id.DeploymentName)
 }

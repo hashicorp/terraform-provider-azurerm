@@ -26,7 +26,7 @@ func TestSubscriptionTemplateDeploymentIDParser(t *testing.T) {
 			// camel case
 			input: "/subscriptions/12345678-1234-5678-1234-123456789012/providers/Microsoft.Resources/deployments/deploy1",
 			expected: &SubscriptionTemplateDeploymentId{
-				Name: "deploy1",
+				DeploymentName: "deploy1",
 			},
 		},
 		{
@@ -48,8 +48,8 @@ func TestSubscriptionTemplateDeploymentIDParser(t *testing.T) {
 			}
 		}
 
-		if actual.Name != test.expected.Name {
-			t.Fatalf("Expected name to be %q but was %q", test.expected.Name, actual.Name)
+		if actual.DeploymentName != test.expected.DeploymentName {
+			t.Fatalf("Expected name to be %q but was %q", test.expected.DeploymentName, actual.DeploymentName)
 		}
 	}
 }

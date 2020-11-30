@@ -8,18 +8,18 @@ import (
 
 type ResourceGroupId struct {
 	SubscriptionId string
-	Name           string
+	ResourceGroup  string
 }
 
 func (id ResourceGroupId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup)
 }
 
 func NewResourceGroupID(subscriptionId, name string) ResourceGroupId {
 	return ResourceGroupId{
 		SubscriptionId: subscriptionId,
-		Name:           name,
+		ResourceGroup:  name,
 	}
 }
 
@@ -30,10 +30,10 @@ func ResourceGroupID(input string) (*ResourceGroupId, error) {
 	}
 
 	group := ResourceGroupId{
-		Name: id.ResourceGroup,
+		ResourceGroup: id.ResourceGroup,
 	}
 
-	if group.Name == "" {
+	if group.ResourceGroup == "" {
 		return nil, fmt.Errorf("ID contained no `resourceGroups` segment!")
 	}
 

@@ -242,7 +242,7 @@ func resourceDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}) e
 			return err
 		}
 		d.Set("managed_resource_group_id", props.ManagedResourceGroupID)
-		d.Set("managed_resource_group_name", managedResourceGroupID.Name)
+		d.Set("managed_resource_group_name", managedResourceGroupID.ResourceGroup)
 
 		if err := d.Set("custom_parameters", flattenWorkspaceCustomParameters(props.Parameters)); err != nil {
 			return fmt.Errorf("setting `custom_parameters`: %+v", err)
