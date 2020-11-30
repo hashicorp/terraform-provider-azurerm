@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,21 +9,37 @@ import (
 )
 
 type SecretId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
+func NewSecretID(subscriptionId, resourceGroup, name string) SecretId {
+	return SecretId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id SecretId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ServiceFabricMesh/secrets/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+}
+
+// SecretID parses a Secret ID into an SecretId struct
 func SecretID(input string) (*SecretId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Service Fabric Mesh Secret ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	secret := SecretId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := SecretId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if secret.Name, err = id.PopSegment("secrets"); err != nil {
+	if resourceId.Name, err = id.PopSegment("secrets"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +47,5 @@ func SecretID(input string) (*SecretId, error) {
 		return nil, err
 	}
 
-	return &secret, nil
+	return &resourceId, nil
 }

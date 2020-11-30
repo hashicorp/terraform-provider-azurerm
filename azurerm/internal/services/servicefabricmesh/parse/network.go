@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,21 +9,37 @@ import (
 )
 
 type NetworkId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
+func NewNetworkID(subscriptionId, resourceGroup, name string) NetworkId {
+	return NetworkId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id NetworkId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ServiceFabricMesh/networks/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+}
+
+// NetworkID parses a Network ID into an NetworkId struct
 func NetworkID(input string) (*NetworkId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Service Fabric Mesh Network ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	network := NetworkId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := NetworkId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if network.Name, err = id.PopSegment("networks"); err != nil {
+	if resourceId.Name, err = id.PopSegment("networks"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +47,5 @@ func NetworkID(input string) (*NetworkId, error) {
 		return nil, err
 	}
 
-	return &network, nil
+	return &resourceId, nil
 }

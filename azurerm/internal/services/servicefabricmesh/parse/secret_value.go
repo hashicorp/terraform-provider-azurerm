@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,26 +9,42 @@ import (
 )
 
 type SecretValueId struct {
-	ResourceGroup string
-	SecretName    string
-	ValueName     string
+	SubscriptionId string
+	ResourceGroup  string
+	SecretName     string
+	ValueName      string
 }
 
+func NewSecretValueID(subscriptionId, resourceGroup, secretName, valueName string) SecretValueId {
+	return SecretValueId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		SecretName:     secretName,
+		ValueName:      valueName,
+	}
+}
+
+func (id SecretValueId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ServiceFabricMesh/secrets/%s/values/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SecretName, id.ValueName)
+}
+
+// SecretValueID parses a SecretValue ID into an SecretValueId struct
 func SecretValueID(input string) (*SecretValueId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Service Fabric Mesh Secret ID %q: %+v", input, err)
-	}
-
-	value := SecretValueId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if value.SecretName, err = id.PopSegment("secrets"); err != nil {
 		return nil, err
 	}
 
-	if value.ValueName, err = id.PopSegment("values"); err != nil {
+	resourceId := SecretValueId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SecretName, err = id.PopSegment("secrets"); err != nil {
+		return nil, err
+	}
+	if resourceId.ValueName, err = id.PopSegment("values"); err != nil {
 		return nil, err
 	}
 
@@ -34,5 +52,5 @@ func SecretValueID(input string) (*SecretValueId, error) {
 		return nil, err
 	}
 
-	return &value, nil
+	return &resourceId, nil
 }

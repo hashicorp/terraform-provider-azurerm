@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,21 +9,37 @@ import (
 )
 
 type ApplicationId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
+func NewApplicationID(subscriptionId, resourceGroup, name string) ApplicationId {
+	return ApplicationId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id ApplicationId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ServiceFabricMesh/applications/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+}
+
+// ApplicationID parses a Application ID into an ApplicationId struct
 func ApplicationID(input string) (*ApplicationId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Service Fabric Mesh Application ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	cluster := ApplicationId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := ApplicationId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if cluster.Name, err = id.PopSegment("applications"); err != nil {
+	if resourceId.Name, err = id.PopSegment("applications"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +47,5 @@ func ApplicationID(input string) (*ApplicationId, error) {
 		return nil, err
 	}
 
-	return &cluster, nil
+	return &resourceId, nil
 }
