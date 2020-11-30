@@ -8,33 +8,33 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type AppServiceId struct {
+type CertificateOrderId struct {
 	SubscriptionId string
 	ResourceGroup  string
-	SiteName       string
+	Name           string
 }
 
-func NewAppServiceID(subscriptionId, resourceGroup, siteName string) AppServiceId {
-	return AppServiceId{
+func NewCertificateOrderID(subscriptionId, resourceGroup, name string) CertificateOrderId {
+	return CertificateOrderId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
-		SiteName:       siteName,
+		Name:           name,
 	}
 }
 
-func (id AppServiceId) ID(_ string) string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SiteName)
+func (id CertificateOrderId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/certificateOrders/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
-// AppServiceID parses a AppService ID into an AppServiceId struct
-func AppServiceID(input string) (*AppServiceId, error) {
+// CertificateOrderID parses a CertificateOrder ID into an CertificateOrderId struct
+func CertificateOrderID(input string) (*CertificateOrderId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := AppServiceId{
+	resourceId := CertificateOrderId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -47,7 +47,7 @@ func AppServiceID(input string) (*AppServiceId, error) {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.SiteName, err = id.PopSegment("sites"); err != nil {
+	if resourceId.Name, err = id.PopSegment("certificateOrders"); err != nil {
 		return nil, err
 	}
 

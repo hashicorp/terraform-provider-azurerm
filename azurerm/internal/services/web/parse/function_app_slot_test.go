@@ -8,21 +8,21 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = SlotVirtualNetworkSwiftConnectionId{}
+var _ resourceid.Formatter = FunctionAppSlotId{}
 
-func TestSlotVirtualNetworkSwiftConnectionIDFormatter(t *testing.T) {
-	actual := NewSlotVirtualNetworkSwiftConnectionID("12345678-1234-9876-4563-123456789012", "resGroup1", "site1", "slot1", "virtualNetwork").ID("")
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/slots/slot1/networkconfig/virtualNetwork"
+func TestFunctionAppSlotIDFormatter(t *testing.T) {
+	actual := NewFunctionAppSlotID("12345678-1234-9876-4563-123456789012", "resGroup1", "site1", "slot1").ID("")
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/slots/slot1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestSlotVirtualNetworkSwiftConnectionID(t *testing.T) {
+func TestFunctionAppSlotID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *SlotVirtualNetworkSwiftConnectionId
+		Expected *FunctionAppSlotId
 	}{
 
 		{
@@ -80,32 +80,19 @@ func TestSlotVirtualNetworkSwiftConnectionID(t *testing.T) {
 		},
 
 		{
-			// missing NetworkconfigName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/slots/slot1/",
-			Error: true,
-		},
-
-		{
-			// missing value for NetworkconfigName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/slots/slot1/networkconfig/",
-			Error: true,
-		},
-
-		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/slots/slot1/networkconfig/virtualNetwork",
-			Expected: &SlotVirtualNetworkSwiftConnectionId{
-				SubscriptionId:    "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:     "resGroup1",
-				SiteName:          "site1",
-				SlotName:          "slot1",
-				NetworkconfigName: "virtualNetwork",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/slots/slot1",
+			Expected: &FunctionAppSlotId{
+				SubscriptionId: "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:  "resGroup1",
+				SiteName:       "site1",
+				SlotName:       "slot1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.WEB/SITES/SITE1/SLOTS/SLOT1/NETWORKCONFIG/VIRTUALNETWORK",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.WEB/SITES/SITE1/SLOTS/SLOT1",
 			Error: true,
 		},
 	}
@@ -113,7 +100,7 @@ func TestSlotVirtualNetworkSwiftConnectionID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := SlotVirtualNetworkSwiftConnectionID(v.Input)
+		actual, err := FunctionAppSlotID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -136,9 +123,6 @@ func TestSlotVirtualNetworkSwiftConnectionID(t *testing.T) {
 		}
 		if actual.SlotName != v.Expected.SlotName {
 			t.Fatalf("Expected %q but got %q for SlotName", v.Expected.SlotName, actual.SlotName)
-		}
-		if actual.NetworkconfigName != v.Expected.NetworkconfigName {
-			t.Fatalf("Expected %q but got %q for NetworkconfigName", v.Expected.NetworkconfigName, actual.NetworkconfigName)
 		}
 	}
 }

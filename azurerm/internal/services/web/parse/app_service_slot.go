@@ -8,33 +8,35 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type AppServiceId struct {
+type AppServiceSlotId struct {
 	SubscriptionId string
 	ResourceGroup  string
 	SiteName       string
+	SlotName       string
 }
 
-func NewAppServiceID(subscriptionId, resourceGroup, siteName string) AppServiceId {
-	return AppServiceId{
+func NewAppServiceSlotID(subscriptionId, resourceGroup, siteName, slotName string) AppServiceSlotId {
+	return AppServiceSlotId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
 		SiteName:       siteName,
+		SlotName:       slotName,
 	}
 }
 
-func (id AppServiceId) ID(_ string) string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SiteName)
+func (id AppServiceSlotId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s/slots/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SiteName, id.SlotName)
 }
 
-// AppServiceID parses a AppService ID into an AppServiceId struct
-func AppServiceID(input string) (*AppServiceId, error) {
+// AppServiceSlotID parses a AppServiceSlot ID into an AppServiceSlotId struct
+func AppServiceSlotID(input string) (*AppServiceSlotId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := AppServiceId{
+	resourceId := AppServiceSlotId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -48,6 +50,9 @@ func AppServiceID(input string) (*AppServiceId, error) {
 	}
 
 	if resourceId.SiteName, err = id.PopSegment("sites"); err != nil {
+		return nil, err
+	}
+	if resourceId.SlotName, err = id.PopSegment("slots"); err != nil {
 		return nil, err
 	}
 

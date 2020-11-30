@@ -8,33 +8,33 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type AppServiceId struct {
+type FunctionAppId struct {
 	SubscriptionId string
 	ResourceGroup  string
 	SiteName       string
 }
 
-func NewAppServiceID(subscriptionId, resourceGroup, siteName string) AppServiceId {
-	return AppServiceId{
+func NewFunctionAppID(subscriptionId, resourceGroup, siteName string) FunctionAppId {
+	return FunctionAppId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
 		SiteName:       siteName,
 	}
 }
 
-func (id AppServiceId) ID(_ string) string {
+func (id FunctionAppId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SiteName)
 }
 
-// AppServiceID parses a AppService ID into an AppServiceId struct
-func AppServiceID(input string) (*AppServiceId, error) {
+// FunctionAppID parses a FunctionApp ID into an FunctionAppId struct
+func FunctionAppID(input string) (*FunctionAppId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := AppServiceId{
+	resourceId := FunctionAppId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}

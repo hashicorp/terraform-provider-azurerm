@@ -8,21 +8,21 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = AppServiceEnvironmentId{}
+var _ resourceid.Formatter = AppServicePlanId{}
 
-func TestAppServiceEnvironmentIDFormatter(t *testing.T) {
-	actual := NewAppServiceEnvironmentID("12345678-1234-9876-4563-123456789012", "resGroup1", "hostingEnvironment1").ID("")
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/hostingEnvironments/hostingEnvironment1"
+func TestAppServicePlanIDFormatter(t *testing.T) {
+	actual := NewAppServicePlanID("12345678-1234-9876-4563-123456789012", "resGroup1", "farm1").ID("")
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/serverfarms/farm1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestAppServiceEnvironmentID(t *testing.T) {
+func TestAppServicePlanID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *AppServiceEnvironmentId
+		Expected *AppServicePlanId
 	}{
 
 		{
@@ -56,30 +56,30 @@ func TestAppServiceEnvironmentID(t *testing.T) {
 		},
 
 		{
-			// missing HostingEnvironmentName
+			// missing ServerfarmName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/",
 			Error: true,
 		},
 
 		{
-			// missing value for HostingEnvironmentName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/hostingEnvironments/",
+			// missing value for ServerfarmName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/serverfarms/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/hostingEnvironments/hostingEnvironment1",
-			Expected: &AppServiceEnvironmentId{
-				SubscriptionId:         "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:          "resGroup1",
-				HostingEnvironmentName: "hostingEnvironment1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/serverfarms/farm1",
+			Expected: &AppServicePlanId{
+				SubscriptionId: "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:  "resGroup1",
+				ServerfarmName: "farm1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.WEB/HOSTINGENVIRONMENTS/HOSTINGENVIRONMENT1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.WEB/SERVERFARMS/FARM1",
 			Error: true,
 		},
 	}
@@ -87,7 +87,7 @@ func TestAppServiceEnvironmentID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := AppServiceEnvironmentID(v.Input)
+		actual, err := AppServicePlanID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -105,8 +105,8 @@ func TestAppServiceEnvironmentID(t *testing.T) {
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
-		if actual.HostingEnvironmentName != v.Expected.HostingEnvironmentName {
-			t.Fatalf("Expected %q but got %q for HostingEnvironmentName", v.Expected.HostingEnvironmentName, actual.HostingEnvironmentName)
+		if actual.ServerfarmName != v.Expected.ServerfarmName {
+			t.Fatalf("Expected %q but got %q for ServerfarmName", v.Expected.ServerfarmName, actual.ServerfarmName)
 		}
 	}
 }

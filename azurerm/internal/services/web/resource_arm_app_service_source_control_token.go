@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -24,7 +25,7 @@ func resourceArmAppServiceSourceControlToken() *schema.Resource {
 		Update: resourceArmAppServiceSourceControlTokenCreateUpdate,
 		Delete: resourceArmAppServiceSourceControlTokenDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := ValidateAppServiceSourceControlTokenName()(id, "id")
+			_, err := validate.SourceControlTokenName()(id, "id")
 			if len(err) > 0 {
 				return fmt.Errorf("%s", err)
 			}
@@ -43,7 +44,7 @@ func resourceArmAppServiceSourceControlToken() *schema.Resource {
 			"type": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: ValidateAppServiceSourceControlTokenName(),
+				ValidateFunc: validate.SourceControlTokenName(),
 			},
 
 			"token": {
