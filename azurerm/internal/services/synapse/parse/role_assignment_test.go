@@ -8,7 +8,7 @@ func TestSynapseRoleAssignmentID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *SynapseRoleAssignmentId
+		Expected *RoleAssignmentId
 	}{
 		{
 			Name:     "Empty",
@@ -28,12 +28,12 @@ func TestSynapseRoleAssignmentID(t *testing.T) {
 		{
 			Name:  "synapse Role Assignment ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Synapse/workspaces/workspace1|00000000",
-			Expected: &SynapseRoleAssignmentId{
-				Workspace: &SynapseWorkspaceId{
+			Expected: &RoleAssignmentId{
+				Workspace: SynapseWorkspaceId{
 					ResourceGroup: "resourceGroup1",
 					Name:          "workspace1",
 				},
-				Id: "00000000",
+				DataPlaneAssignmentId: "00000000",
 			},
 		},
 		{
@@ -46,7 +46,7 @@ func TestSynapseRoleAssignmentID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.Name)
 
-		actual, err := SynapseRoleAssignmentID(v.Input)
+		actual, err := RoleAssignmentID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -62,8 +62,8 @@ func TestSynapseRoleAssignmentID(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for WorkspaceName", v.Expected.Workspace.Name, actual.Workspace.Name)
 		}
 
-		if actual.Id != v.Expected.Id {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Id, actual.Id)
+		if actual.DataPlaneAssignmentId != v.Expected.DataPlaneAssignmentId {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.DataPlaneAssignmentId, actual.DataPlaneAssignmentId)
 		}
 	}
 }
