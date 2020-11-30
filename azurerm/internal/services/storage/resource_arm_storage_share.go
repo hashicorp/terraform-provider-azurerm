@@ -223,8 +223,8 @@ func resourceArmStorageShareRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("flattening `metadata`: %+v", err)
 	}
 
-	resourceManagerId := parse.NewStorageShareResourceManagerID(account.ResourceGroup, id.AccountName, "default", id.Name)
-	d.Set("resource_manager_id", resourceManagerId.ID(storageClient.SubscriptionId))
+	resourceManagerId := parse.NewStorageShareResourceManagerID(storageClient.SubscriptionId, account.ResourceGroup, id.AccountName, "default", id.Name)
+	d.Set("resource_manager_id", resourceManagerId.ID(""))
 
 	return nil
 }
