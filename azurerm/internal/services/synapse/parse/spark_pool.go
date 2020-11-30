@@ -7,7 +7,9 @@ import (
 )
 
 type SparkPoolId struct {
-	Workspace       *WorkspaceId
+	SubscriptionId  string
+	ResourceGroup   string
+	WorkspaceName   string
 	BigDataPoolName string
 }
 
@@ -18,12 +20,10 @@ func SparkPoolID(input string) (*SparkPoolId, error) {
 	}
 
 	synapseSparkPool := SparkPoolId{
-		Workspace: &WorkspaceId{
-			SubscriptionId: id.SubscriptionID,
-			ResourceGroup:  id.ResourceGroup,
-		},
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
-	if synapseSparkPool.Workspace.Name, err = id.PopSegment("workspaces"); err != nil {
+	if synapseSparkPool.WorkspaceName, err = id.PopSegment("workspaces"); err != nil {
 		return nil, err
 	}
 	if synapseSparkPool.BigDataPoolName, err = id.PopSegment("bigDataPools"); err != nil {

@@ -39,11 +39,9 @@ func TestSynapseSqlPoolID(t *testing.T) {
 			Name:  "synapse SqlPool ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Synapse/workspaces/workspace1/sqlPools/sqlPool1",
 			Expected: &SqlPoolId{
-				Workspace: &WorkspaceId{
-					ResourceGroup: "resourceGroup1",
-					Name:          "workspace1",
-				},
-				Name: "sqlPool1",
+				ResourceGroup: "resourceGroup1",
+				WorkspaceName: "workspace1",
+				Name:          "sqlPool1",
 			},
 		},
 		{
@@ -64,12 +62,12 @@ func TestSynapseSqlPoolID(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Workspace.ResourceGroup != v.Expected.Workspace.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.Workspace.ResourceGroup, actual.Workspace.ResourceGroup)
+		if actual.ResourceGroup != v.Expected.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
 
-		if actual.Workspace.Name != v.Expected.Workspace.Name {
-			t.Fatalf("Expected %q but got %q for Workspace Name", v.Expected.Workspace.Name, actual.Workspace.Name)
+		if actual.WorkspaceName != v.Expected.WorkspaceName {
+			t.Fatalf("Expected %q but got %q for Workspace Name", v.Expected.WorkspaceName, actual.WorkspaceName)
 		}
 
 		if actual.Name != v.Expected.Name {

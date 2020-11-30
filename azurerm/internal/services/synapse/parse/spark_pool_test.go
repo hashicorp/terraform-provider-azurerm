@@ -39,10 +39,8 @@ func TestSynapseSparkPoolID(t *testing.T) {
 			Name:  "synapse BigDataPool ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Synapse/workspaces/workspace1/bigDataPools/sparkPool1",
 			Expected: &SparkPoolId{
-				Workspace: &WorkspaceId{
-					ResourceGroup: "resourceGroup1",
-					Name:          "workspace1",
-				},
+				ResourceGroup:   "resourceGroup1",
+				WorkspaceName:   "workspace1",
 				BigDataPoolName: "sparkPool1",
 			},
 		},
@@ -64,12 +62,12 @@ func TestSynapseSparkPoolID(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Workspace.ResourceGroup != v.Expected.Workspace.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.Workspace.ResourceGroup, actual.Workspace.ResourceGroup)
+		if actual.ResourceGroup != v.Expected.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
 
-		if actual.Workspace.Name != v.Expected.Workspace.Name {
-			t.Fatalf("Expected %q but got %q for WorkspaceName", v.Expected.Workspace.Name, actual.Workspace.Name)
+		if actual.WorkspaceName != v.Expected.WorkspaceName {
+			t.Fatalf("Expected %q but got %q for WorkspaceName", v.Expected.WorkspaceName, actual.WorkspaceName)
 		}
 
 		if actual.BigDataPoolName != v.Expected.BigDataPoolName {

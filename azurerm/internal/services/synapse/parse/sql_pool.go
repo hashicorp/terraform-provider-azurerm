@@ -7,8 +7,10 @@ import (
 )
 
 type SqlPoolId struct {
-	Workspace *WorkspaceId
-	Name      string
+	SubscriptionId string
+	ResourceGroup  string
+	WorkspaceName  string
+	Name           string
 }
 
 func SqlPoolID(input string) (*SqlPoolId, error) {
@@ -18,12 +20,10 @@ func SqlPoolID(input string) (*SqlPoolId, error) {
 	}
 
 	synapseSqlPool := SqlPoolId{
-		Workspace: &WorkspaceId{
-			SubscriptionId: id.SubscriptionID,
-			ResourceGroup:  id.ResourceGroup,
-		},
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
-	if synapseSqlPool.Workspace.Name, err = id.PopSegment("workspaces"); err != nil {
+	if synapseSqlPool.WorkspaceName, err = id.PopSegment("workspaces"); err != nil {
 		return nil, err
 	}
 	if synapseSqlPool.Name, err = id.PopSegment("sqlPools"); err != nil {
