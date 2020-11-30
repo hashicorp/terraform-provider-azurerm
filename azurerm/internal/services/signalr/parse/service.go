@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,21 +9,37 @@ import (
 )
 
 type ServiceId struct {
-	ResourceGroup string
-	SignalRName   string
+	SubscriptionId string
+	ResourceGroup  string
+	SignalRName    string
 }
 
+func NewServiceID(subscriptionId, resourceGroup, signalRName string) ServiceId {
+	return ServiceId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		SignalRName:    signalRName,
+	}
+}
+
+func (id ServiceId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.SignalRService/SignalR/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SignalRName)
+}
+
+// ServiceID parses a Service ID into an ServiceId struct
 func ServiceID(input string) (*ServiceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse SignalR Service ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	service := ServiceId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := ServiceId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if service.SignalRName, err = id.PopSegment("SignalR"); err != nil {
+	if resourceId.SignalRName, err = id.PopSegment("SignalR"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +47,5 @@ func ServiceID(input string) (*ServiceId, error) {
 		return nil, err
 	}
 
-	return &service, nil
+	return &resourceId, nil
 }
