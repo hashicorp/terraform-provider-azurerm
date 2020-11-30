@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,21 +9,45 @@ import (
 )
 
 type AppServiceId struct {
-	ResourceGroup string
-	SiteName      string
+	SubscriptionId string
+	ResourceGroup  string
+	SiteName       string
 }
 
+func NewAppServiceID(subscriptionId, resourceGroup, siteName string) AppServiceId {
+	return AppServiceId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		SiteName:       siteName,
+	}
+}
+
+func (id AppServiceId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SiteName)
+}
+
+// AppServiceID parses a AppService ID into an AppServiceId struct
 func AppServiceID(input string) (*AppServiceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse App Service ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	appService := AppServiceId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := AppServiceId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if appService.SiteName, err = id.PopSegment("sites"); err != nil {
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.SiteName, err = id.PopSegment("sites"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +55,5 @@ func AppServiceID(input string) (*AppServiceId, error) {
 		return nil, err
 	}
 
-	return &appService, nil
+	return &resourceId, nil
 }
