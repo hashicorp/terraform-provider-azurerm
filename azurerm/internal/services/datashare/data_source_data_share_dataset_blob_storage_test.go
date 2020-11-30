@@ -8,18 +8,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMDataShareDatasetBlobStorage_basic(t *testing.T) {
+func TestAccDataSourceDataShareDatasetBlobStorage_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_share_dataset_blob_storage", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataShareDataSetDestroy("azurerm_data_share_dataset_blob_storage"),
+		CheckDestroy: testCheckDataShareDataSetDestroy("azurerm_data_share_dataset_blob_storage"),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceDataShareDatasetBlobStorage_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataShareDataSetExists(data.ResourceName),
+					testCheckDataShareDataSetExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "container_name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "storage_account.0.name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "storage_account.0.resource_group_name"),
@@ -33,7 +33,7 @@ func TestAccDataSourceAzureRMDataShareDatasetBlobStorage_basic(t *testing.T) {
 }
 
 func testAccDataSourceDataShareDatasetBlobStorage_basic(data acceptance.TestData) string {
-	config := testAccAzureRMDataShareDataSetBlobStorageFile_basic(data)
+	config := testAccDataShareDataSetBlobStorageFile_basic(data)
 	return fmt.Sprintf(`
 %s
 

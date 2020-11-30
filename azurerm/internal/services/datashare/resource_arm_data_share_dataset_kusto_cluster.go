@@ -18,11 +18,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataShareDataSetKustoCluster() *schema.Resource {
+func resourceDataShareDataSetKustoCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataShareDataSetKustoClusterCreate,
-		Read:   resourceArmDataShareDataSetKustoClusterRead,
-		Delete: resourceArmDataShareDataSetKustoClusterDelete,
+		Create: resourceDataShareDataSetKustoClusterCreate,
+		Read:   resourceDataShareDataSetKustoClusterRead,
+		Delete: resourceDataShareDataSetKustoClusterDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -70,7 +70,7 @@ func resourceArmDataShareDataSetKustoCluster() *schema.Resource {
 	}
 }
 
-func resourceArmDataShareDataSetKustoClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataShareDataSetKustoClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -114,10 +114,10 @@ func resourceArmDataShareDataSetKustoClusterCreate(d *schema.ResourceData, meta 
 	}
 
 	d.SetId(*respId)
-	return resourceArmDataShareDataSetKustoClusterRead(d, meta)
+	return resourceDataShareDataSetKustoClusterRead(d, meta)
 }
 
-func resourceArmDataShareDataSetKustoClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataShareDataSetKustoClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	shareClient := meta.(*clients.Client).DataShare.SharesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -162,7 +162,7 @@ func resourceArmDataShareDataSetKustoClusterRead(d *schema.ResourceData, meta in
 	return nil
 }
 
-func resourceArmDataShareDataSetKustoClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataShareDataSetKustoClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

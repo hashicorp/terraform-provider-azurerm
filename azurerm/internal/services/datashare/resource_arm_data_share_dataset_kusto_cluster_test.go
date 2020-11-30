@@ -8,18 +8,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccAzureRMDataShareKustoClusterDataSet_basic(t *testing.T) {
+func TestAccDataShareKustoClusterDataSet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_kusto_cluster", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataShareDataSetDestroy("azurerm_data_share_dataset_kusto_cluster"),
+		CheckDestroy: testCheckDataShareDataSetDestroy("azurerm_data_share_dataset_kusto_cluster"),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataShareKustoClusterDataSet_basic(data),
+				Config: testAccDataShareKustoClusterDataSet_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataShareDataSetExists(data.ResourceName),
+					testCheckDataShareDataSetExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "display_name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "kusto_cluster_location"),
 				),
@@ -29,27 +29,27 @@ func TestAccAzureRMDataShareKustoClusterDataSet_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDataShareKustoClusterDataSet_requiresImport(t *testing.T) {
+func TestAccDataShareKustoClusterDataSet_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_kusto_cluster", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataShareDataSetDestroy("azurerm_data_share_dataset_kusto_cluster"),
+		CheckDestroy: testCheckDataShareDataSetDestroy("azurerm_data_share_dataset_kusto_cluster"),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataShareKustoClusterDataSet_basic(data),
+				Config: testAccDataShareKustoClusterDataSet_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataShareDataSetExists(data.ResourceName),
+					testCheckDataShareDataSetExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
-			data.RequiresImportErrorStep(testAccAzureRMDataShareKustoClusterDataSet_requiresImport),
+			data.RequiresImportErrorStep(testAccDataShareKustoClusterDataSet_requiresImport),
 		},
 	})
 }
 
-func testAccAzureRMDataShareKustoClusterDataSet_template(data acceptance.TestData) string {
+func testAccDataShareKustoClusterDataSet_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -94,8 +94,8 @@ resource "azurerm_role_assignment" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(12))
 }
 
-func testAccAzureRMDataShareKustoClusterDataSet_basic(data acceptance.TestData) string {
-	config := testAccAzureRMDataShareKustoClusterDataSet_template(data)
+func testAccDataShareKustoClusterDataSet_basic(data acceptance.TestData) string {
+	config := testAccDataShareKustoClusterDataSet_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -110,8 +110,8 @@ resource "azurerm_data_share_dataset_kusto_cluster" "test" {
 `, config, data.RandomInteger)
 }
 
-func testAccAzureRMDataShareKustoClusterDataSet_requiresImport(data acceptance.TestData) string {
-	config := testAccAzureRMDataShareKustoClusterDataSet_basic(data)
+func testAccDataShareKustoClusterDataSet_requiresImport(data acceptance.TestData) string {
+	config := testAccDataShareKustoClusterDataSet_basic(data)
 	return fmt.Sprintf(`
 %s
 

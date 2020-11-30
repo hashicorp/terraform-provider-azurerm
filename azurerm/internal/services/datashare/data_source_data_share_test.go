@@ -9,7 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMDataShare_basic(t *testing.T) {
+func TestAccDataSourceDataShare_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_share", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
@@ -18,7 +18,7 @@ func TestAccDataSourceAzureRMDataShare_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceDataShare_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataShareExists(data.ResourceName),
+					testCheckDataShareExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "account_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "kind"),
 				),
@@ -27,7 +27,7 @@ func TestAccDataSourceAzureRMDataShare_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMDataShare_snapshotSchedule(t *testing.T) {
+func TestAccDataSourceDataShare_snapshotSchedule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_share", "test")
 	startTime := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
 
@@ -36,9 +36,9 @@ func TestAccDataSourceAzureRMDataShare_snapshotSchedule(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMDataShare_snapshotSchedule(data, startTime),
+				Config: testAccDataSourceDataShare_snapshotSchedule(data, startTime),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataShareExists(data.ResourceName),
+					testCheckDataShareExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "snapshot_schedule.0.name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "snapshot_schedule.0.recurrence"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "snapshot_schedule.0.start_time"),
@@ -49,7 +49,7 @@ func TestAccDataSourceAzureRMDataShare_snapshotSchedule(t *testing.T) {
 }
 
 func testAccDataSourceDataShare_basic(data acceptance.TestData) string {
-	config := testAccAzureRMDataShare_basic(data)
+	config := testAccDataShare_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -60,8 +60,8 @@ data "azurerm_data_share" "test" {
 `, config)
 }
 
-func testAccDataSourceAzureRMDataShare_snapshotSchedule(data acceptance.TestData, startTime string) string {
-	config := testAccAzureRMDataShare_snapshotSchedule(data, startTime)
+func testAccDataSourceDataShare_snapshotSchedule(data acceptance.TestData, startTime string) string {
+	config := testAccDataShare_snapshotSchedule(data, startTime)
 	return fmt.Sprintf(`
 %s
 

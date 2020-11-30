@@ -15,7 +15,7 @@ import (
 
 func dataSourceDataShareDatasetBlobStorage() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmDataShareDatasetBlobStorageRead,
+		Read: dataSourceDataShareDatasetBlobStorageRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -80,7 +80,7 @@ func dataSourceDataShareDatasetBlobStorage() *schema.Resource {
 	}
 }
 
-func dataSourceArmDataShareDatasetBlobStorageRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDataShareDatasetBlobStorageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

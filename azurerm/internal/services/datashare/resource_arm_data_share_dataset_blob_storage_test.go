@@ -13,18 +13,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMDataShareDataSetBlobStorageFile_basic(t *testing.T) {
+func TestAccDataShareDataSetBlobStorageFile_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_blob_storage", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataShareDataSetDestroy("azurerm_data_share_dataset_blob_storage"),
+		CheckDestroy: testCheckDataShareDataSetDestroy("azurerm_data_share_dataset_blob_storage"),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataShareDataSetBlobStorageFile_basic(data),
+				Config: testAccDataShareDataSetBlobStorageFile_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataShareDataSetExists(data.ResourceName),
+					testCheckDataShareDataSetExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "display_name"),
 				),
 			},
@@ -33,18 +33,18 @@ func TestAccAzureRMDataShareDataSetBlobStorageFile_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDataShareDataSetBlobStorageFolder_basic(t *testing.T) {
+func TestAccDataShareDataSetBlobStorageFolder_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_blob_storage", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataShareDataSetDestroy("azurerm_data_share_dataset_blob_storage"),
+		CheckDestroy: testCheckDataShareDataSetDestroy("azurerm_data_share_dataset_blob_storage"),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataShareDataSetBlobStorageFolder_basic(data),
+				Config: testAccDataShareDataSetBlobStorageFolder_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataShareDataSetExists(data.ResourceName),
+					testCheckDataShareDataSetExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "display_name"),
 				),
 			},
@@ -53,18 +53,18 @@ func TestAccAzureRMDataShareDataSetBlobStorageFolder_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDataShareDataSetBlobStorageContainer_basic(t *testing.T) {
+func TestAccDataShareDataSetBlobStorageContainer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_blob_storage", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataShareDataSetDestroy("azurerm_data_share_dataset_blob_storage"),
+		CheckDestroy: testCheckDataShareDataSetDestroy("azurerm_data_share_dataset_blob_storage"),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataShareDataSetBlobStorageContainer_basic(data),
+				Config: testAccDataShareDataSetBlobStorageContainer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataShareDataSetExists(data.ResourceName),
+					testCheckDataShareDataSetExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "display_name"),
 				),
 			},
@@ -73,26 +73,26 @@ func TestAccAzureRMDataShareDataSetBlobStorageContainer_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDataShareDataSetBlobStorage_requiresImport(t *testing.T) {
+func TestAccDataShareDataSetBlobStorage_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_blob_storage", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataShareDataSetDestroy("azurerm_data_share_dataset_blob_storage"),
+		CheckDestroy: testCheckDataShareDataSetDestroy("azurerm_data_share_dataset_blob_storage"),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataShareDataSetBlobStorageFile_basic(data),
+				Config: testAccDataShareDataSetBlobStorageFile_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataShareDataSetExists(data.ResourceName),
+					testCheckDataShareDataSetExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMDataShareDataSetBlobStorage_requiresImport),
+			data.RequiresImportErrorStep(testAccDataShareDataSetBlobStorage_requiresImport),
 		},
 	})
 }
 
-func testCheckAzureRMDataShareDataSetExists(resourceName string) resource.TestCheckFunc {
+func testCheckDataShareDataSetExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).DataShare.DataSetClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -115,7 +115,7 @@ func testCheckAzureRMDataShareDataSetExists(resourceName string) resource.TestCh
 }
 
 // nolint
-func testCheckAzureRMDataShareDataSetDestroy(resourceTypeName string) func(s *terraform.State) error {
+func testCheckDataShareDataSetDestroy(resourceTypeName string) func(s *terraform.State) error {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).DataShare.DataSetClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -139,7 +139,7 @@ func testCheckAzureRMDataShareDataSetDestroy(resourceTypeName string) func(s *te
 	}
 }
 
-func testAccAzureRMDataShareDataSetBlobStorage_template(data acceptance.TestData) string {
+func testAccDataShareDataSetBlobStorage_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -194,8 +194,8 @@ resource "azurerm_role_assignment" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(12))
 }
 
-func testAccAzureRMDataShareDataSetBlobStorageFile_basic(data acceptance.TestData) string {
-	config := testAccAzureRMDataShareDataSetBlobStorage_template(data)
+func testAccDataShareDataSetBlobStorageFile_basic(data acceptance.TestData) string {
+	config := testAccDataShareDataSetBlobStorage_template(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -216,8 +216,8 @@ resource "azurerm_data_share_dataset_blob_storage" "test" {
 `, config, data.RandomInteger, os.Getenv("ARM_SUBSCRIPTION_ID"))
 }
 
-func testAccAzureRMDataShareDataSetBlobStorageFolder_basic(data acceptance.TestData) string {
-	config := testAccAzureRMDataShareDataSetBlobStorage_template(data)
+func testAccDataShareDataSetBlobStorageFolder_basic(data acceptance.TestData) string {
+	config := testAccDataShareDataSetBlobStorage_template(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -238,8 +238,8 @@ resource "azurerm_data_share_dataset_blob_storage" "test" {
 `, config, data.RandomInteger, os.Getenv("ARM_SUBSCRIPTION_ID"))
 }
 
-func testAccAzureRMDataShareDataSetBlobStorageContainer_basic(data acceptance.TestData) string {
-	config := testAccAzureRMDataShareDataSetBlobStorage_template(data)
+func testAccDataShareDataSetBlobStorageContainer_basic(data acceptance.TestData) string {
+	config := testAccDataShareDataSetBlobStorage_template(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -259,8 +259,8 @@ resource "azurerm_data_share_dataset_blob_storage" "test" {
 `, config, data.RandomInteger, os.Getenv("ARM_SUBSCRIPTION_ID"))
 }
 
-func testAccAzureRMDataShareDataSetBlobStorage_requiresImport(data acceptance.TestData) string {
-	config := testAccAzureRMDataShareDataSetBlobStorageFile_basic(data)
+func testAccDataShareDataSetBlobStorage_requiresImport(data acceptance.TestData) string {
+	config := testAccDataShareDataSetBlobStorageFile_basic(data)
 	return fmt.Sprintf(`
 %s
 

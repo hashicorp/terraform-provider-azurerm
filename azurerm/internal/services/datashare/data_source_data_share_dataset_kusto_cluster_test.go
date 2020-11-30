@@ -8,18 +8,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMDataShareKustoClusterDataset_basic(t *testing.T) {
+func TestAccDataSourceDataShareKustoClusterDataset_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_share_dataset_kusto_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataShareDataSetDestroy("azurerm_data_share_dataset_kusto_cluster"),
+		CheckDestroy: testCheckDataShareDataSetDestroy("azurerm_data_share_dataset_kusto_cluster"),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceDataShareKustoClusterDataset_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataShareDataSetExists(data.ResourceName),
+					testCheckDataShareDataSetExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "kusto_cluster_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "display_name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "kusto_cluster_location"),
@@ -30,7 +30,7 @@ func TestAccDataSourceAzureRMDataShareKustoClusterDataset_basic(t *testing.T) {
 }
 
 func testAccDataSourceDataShareKustoClusterDataset_basic(data acceptance.TestData) string {
-	config := testAccAzureRMDataShareKustoClusterDataSet_basic(data)
+	config := testAccDataShareKustoClusterDataSet_basic(data)
 	return fmt.Sprintf(`
 %s
 

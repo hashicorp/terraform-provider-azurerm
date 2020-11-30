@@ -14,7 +14,7 @@ import (
 
 func dataSourceDataShareDatasetKustoCluster() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmDataShareDatasetKustoClusterRead,
+		Read: dataSourceDataShareDatasetKustoClusterRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -51,7 +51,7 @@ func dataSourceDataShareDatasetKustoCluster() *schema.Resource {
 	}
 }
 
-func dataSourceArmDataShareDatasetKustoClusterRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDataShareDatasetKustoClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

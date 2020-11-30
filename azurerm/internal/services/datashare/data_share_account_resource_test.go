@@ -12,18 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMDataShareAccount_basic(t *testing.T) {
+func TestAccDataShareAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_account", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataShareAccountDestroy,
+		CheckDestroy: testCheckDataShareAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataShareAccount_basic(data),
+				Config: testAccDataShareAccount_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataShareAccountExists(data.ResourceName),
+					testCheckDataShareAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.tenant_id"),
 				),
@@ -33,83 +33,83 @@ func TestAccAzureRMDataShareAccount_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDataShareAccount_requiresImport(t *testing.T) {
+func TestAccDataShareAccount_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_account", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataShareAccountDestroy,
+		CheckDestroy: testCheckDataShareAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataShareAccount_basic(data),
+				Config: testAccDataShareAccount_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataShareAccountExists(data.ResourceName),
+					testCheckDataShareAccountExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMDataShareAccount_requiresImport),
+			data.RequiresImportErrorStep(testAccDataShareAccount_requiresImport),
 		},
 	})
 }
 
-func TestAccAzureRMDataShareAccount_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_share_account", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataShareAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDataShareAccount_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataShareAccountExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.tenant_id"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMDataShareAccount_update(t *testing.T) {
+func TestAccDataShareAccount_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataShareAccountDestroy,
+		CheckDestroy: testCheckDataShareAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataShareAccount_basic(data),
+				Config: testAccDataShareAccount_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataShareAccountExists(data.ResourceName),
+					testCheckDataShareAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.tenant_id"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccDataShareAccount_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_share_account", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckDataShareAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataShareAccount_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckDataShareAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.tenant_id"),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMDataShareAccount_complete(data),
+				Config: testAccDataShareAccount_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataShareAccountExists(data.ResourceName),
+					testCheckDataShareAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.tenant_id"),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMDataShareAccount_update(data),
+				Config: testAccDataShareAccount_update(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataShareAccountExists(data.ResourceName),
+					testCheckDataShareAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.tenant_id"),
 				),
 			},
 			{
-				Config: testAccAzureRMDataShareAccount_basic(data),
+				Config: testAccDataShareAccount_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataShareAccountExists(data.ResourceName),
+					testCheckDataShareAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.tenant_id"),
 				),
@@ -120,7 +120,7 @@ func TestAccAzureRMDataShareAccount_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDataShareAccountExists(resourceName string) resource.TestCheckFunc {
+func testCheckDataShareAccountExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).DataShare.AccountClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -142,7 +142,7 @@ func testCheckAzureRMDataShareAccountExists(resourceName string) resource.TestCh
 	}
 }
 
-func testCheckAzureRMDataShareAccountDestroy(s *terraform.State) error {
+func testCheckDataShareAccountDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).DataShare.AccountClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -164,7 +164,7 @@ func testCheckAzureRMDataShareAccountDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMDataShareAccount_template(data acceptance.TestData) string {
+func testAccDataShareAccount_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -177,8 +177,8 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMDataShareAccount_basic(data acceptance.TestData) string {
-	template := testAccAzureRMDataShareAccount_template(data)
+func testAccDataShareAccount_basic(data acceptance.TestData) string {
+	template := testAccDataShareAccount_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -193,8 +193,8 @@ resource "azurerm_data_share_account" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMDataShareAccount_requiresImport(data acceptance.TestData) string {
-	config := testAccAzureRMDataShareAccount_basic(data)
+func testAccDataShareAccount_requiresImport(data acceptance.TestData) string {
+	config := testAccDataShareAccount_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -209,8 +209,8 @@ resource "azurerm_data_share_account" "import" {
 `, config)
 }
 
-func testAccAzureRMDataShareAccount_complete(data acceptance.TestData) string {
-	template := testAccAzureRMDataShareAccount_template(data)
+func testAccDataShareAccount_complete(data acceptance.TestData) string {
+	template := testAccDataShareAccount_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -229,8 +229,8 @@ resource "azurerm_data_share_account" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMDataShareAccount_update(data acceptance.TestData) string {
-	template := testAccAzureRMDataShareAccount_template(data)
+func testAccDataShareAccount_update(data acceptance.TestData) string {
+	template := testAccDataShareAccount_template(data)
 	return fmt.Sprintf(`
 %s
 

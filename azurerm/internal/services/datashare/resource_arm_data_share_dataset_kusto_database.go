@@ -18,11 +18,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataShareDataSetKustoDatabase() *schema.Resource {
+func resourceDataShareDataSetKustoDatabase() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataShareDataSetKustoDatabaseCreate,
-		Read:   resourceArmDataShareDataSetKustoDatabaseRead,
-		Delete: resourceArmDataShareDataSetKustoDatabaseDelete,
+		Create: resourceDataShareDataSetKustoDatabaseCreate,
+		Read:   resourceDataShareDataSetKustoDatabaseRead,
+		Delete: resourceDataShareDataSetKustoDatabaseDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -70,7 +70,7 @@ func resourceArmDataShareDataSetKustoDatabase() *schema.Resource {
 	}
 }
 
-func resourceArmDataShareDataSetKustoDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataShareDataSetKustoDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -115,10 +115,10 @@ func resourceArmDataShareDataSetKustoDatabaseCreate(d *schema.ResourceData, meta
 
 	d.SetId(*respId)
 
-	return resourceArmDataShareDataSetKustoDatabaseRead(d, meta)
+	return resourceDataShareDataSetKustoDatabaseRead(d, meta)
 }
 
-func resourceArmDataShareDataSetKustoDatabaseRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataShareDataSetKustoDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	shareClient := meta.(*clients.Client).DataShare.SharesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -163,7 +163,7 @@ func resourceArmDataShareDataSetKustoDatabaseRead(d *schema.ResourceData, meta i
 	return nil
 }
 
-func resourceArmDataShareDataSetKustoDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataShareDataSetKustoDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

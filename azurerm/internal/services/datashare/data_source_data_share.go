@@ -15,7 +15,7 @@ import (
 
 func dataSourceDataShare() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmDataShareRead,
+		Read: dataSourceDataShareRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -75,7 +75,7 @@ func dataSourceDataShare() *schema.Resource {
 	}
 }
 
-func dataSourceArmDataShareRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDataShareRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.SharesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	syncClient := meta.(*clients.Client).DataShare.SynchronizationClient

@@ -13,18 +13,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMDataShare_basic(t *testing.T) {
+func TestAccDataShare_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataShareDestroy,
+		CheckDestroy: testCheckDataShareDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataShare_basic(data),
+				Config: testAccDataShare_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataShareExists(data.ResourceName),
+					testCheckDataShareExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -32,69 +32,36 @@ func TestAccAzureRMDataShare_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDataShare_requiresImport(t *testing.T) {
+func TestAccDataShare_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataShareDestroy,
+		CheckDestroy: testCheckDataShareDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataShare_basic(data),
+				Config: testAccDataShare_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataShareExists(data.ResourceName),
+					testCheckDataShareExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMDataShare_requiresImport),
+			data.RequiresImportErrorStep(testAccDataShare_requiresImport),
 		},
 	})
 }
 
-func TestAccAzureRMDataShare_complete(t *testing.T) {
+func TestAccDataShare_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataShareDestroy,
+		CheckDestroy: testCheckDataShareDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataShare_complete(data),
+				Config: testAccDataShare_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataShareExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMDataShare_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_share", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataShareDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDataShare_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataShareExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMDataShare_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataShareExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMDataShare_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataShareExists(data.ResourceName),
+					testCheckDataShareExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -102,7 +69,40 @@ func TestAccAzureRMDataShare_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDataShare_snapshotSchedule(t *testing.T) {
+func TestAccDataShare_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_share", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckDataShareDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataShare_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckDataShareExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccDataShare_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckDataShareExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccDataShare_update(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckDataShareExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccDataShare_snapshotSchedule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share", "test")
 	startTime := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
 	startTime2 := time.Now().Add(time.Hour * 8).Format(time.RFC3339)
@@ -110,33 +110,33 @@ func TestAccAzureRMDataShare_snapshotSchedule(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataShareDestroy,
+		CheckDestroy: testCheckDataShareDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataShare_basic(data),
+				Config: testAccDataShare_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataShareExists(data.ResourceName),
+					testCheckDataShareExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMDataShare_snapshotSchedule(data, startTime),
+				Config: testAccDataShare_snapshotSchedule(data, startTime),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataShareExists(data.ResourceName),
+					testCheckDataShareExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMDataShare_snapshotScheduleUpdated(data, startTime2),
+				Config: testAccDataShare_snapshotScheduleUpdated(data, startTime2),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataShareExists(data.ResourceName),
+					testCheckDataShareExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMDataShare_basic(data),
+				Config: testAccDataShare_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataShareExists(data.ResourceName),
+					testCheckDataShareExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -144,7 +144,7 @@ func TestAccAzureRMDataShare_snapshotSchedule(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDataShareExists(resourceName string) resource.TestCheckFunc {
+func testCheckDataShareExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).DataShare.SharesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -166,7 +166,7 @@ func testCheckAzureRMDataShareExists(resourceName string) resource.TestCheckFunc
 	}
 }
 
-func testCheckAzureRMDataShareDestroy(s *terraform.State) error {
+func testCheckDataShareDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).DataShare.SharesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -188,7 +188,7 @@ func testCheckAzureRMDataShareDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMDataShare_template(data acceptance.TestData) string {
+func testAccDataShare_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -214,8 +214,8 @@ resource "azurerm_data_share_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMDataShare_basic(data acceptance.TestData) string {
-	template := testAccAzureRMDataShare_template(data)
+func testAccDataShare_basic(data acceptance.TestData) string {
+	template := testAccDataShare_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -227,8 +227,8 @@ resource "azurerm_data_share" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMDataShare_requiresImport(data acceptance.TestData) string {
-	config := testAccAzureRMDataShare_basic(data)
+func testAccDataShare_requiresImport(data acceptance.TestData) string {
+	config := testAccDataShare_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -240,8 +240,8 @@ resource "azurerm_data_share" "import" {
 `, config)
 }
 
-func testAccAzureRMDataShare_complete(data acceptance.TestData) string {
-	template := testAccAzureRMDataShare_template(data)
+func testAccDataShare_complete(data acceptance.TestData) string {
+	template := testAccDataShare_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -255,8 +255,8 @@ resource "azurerm_data_share" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMDataShare_update(data acceptance.TestData) string {
-	template := testAccAzureRMDataShare_template(data)
+func testAccDataShare_update(data acceptance.TestData) string {
+	template := testAccDataShare_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -270,8 +270,8 @@ resource "azurerm_data_share" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMDataShare_snapshotSchedule(data acceptance.TestData, startTime string) string {
-	template := testAccAzureRMDataShare_template(data)
+func testAccDataShare_snapshotSchedule(data acceptance.TestData, startTime string) string {
+	template := testAccDataShare_template(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -289,8 +289,8 @@ resource "azurerm_data_share" "test" {
 `, template, data.RandomInteger, startTime)
 }
 
-func testAccAzureRMDataShare_snapshotScheduleUpdated(data acceptance.TestData, startTime string) string {
-	template := testAccAzureRMDataShare_template(data)
+func testAccDataShare_snapshotScheduleUpdated(data acceptance.TestData, startTime string) string {
+	template := testAccDataShare_template(data)
 	return fmt.Sprintf(`
 %[1]s
 

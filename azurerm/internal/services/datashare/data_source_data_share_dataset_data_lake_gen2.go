@@ -15,7 +15,7 @@ import (
 
 func dataSourceDataShareDatasetDataLakeGen2() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmDataShareDatasetDataLakeGen2Read,
+		Read: dataSourceDataShareDatasetDataLakeGen2Read,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -62,7 +62,7 @@ func dataSourceDataShareDatasetDataLakeGen2() *schema.Resource {
 	}
 }
 
-func dataSourceArmDataShareDatasetDataLakeGen2Read(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDataShareDatasetDataLakeGen2Read(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
