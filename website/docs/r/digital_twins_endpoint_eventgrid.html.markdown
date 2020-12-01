@@ -36,7 +36,7 @@ resource "azurerm_eventgrid_topic" "example" {
 
 resource "azurerm_digital_twins_endpoint_eventgrid" "example" {
   name                                 = "example-EG"
-  digital_twins_instance_id            = azurerm_digital_twins_instance.example.id
+  digital_twins_id                     = azurerm_digital_twins_instance.example.id
   eventgrid_topic_endpoint             = azurerm_eventgrid_topic.example.endpoint
   eventgrid_topic_primary_access_key   = azurerm_eventgrid_topic.example.primary_access_key
   eventgrid_topic_secondary_access_key = azurerm_eventgrid_topic.example.secondary_access_key
@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Digital Twins Eventgrid Endpoint. Changing this forces a new Digital Twins Eventgrid Endpoint to be created.
 
-* `digital_twins_instance_id` - (Required) The resource ID of the Digital Twins Instance. Changing this forces a new Digital Twins Eventgrid Endpoint to be created.
+* `digital_twins_id` - (Required) The resource ID of the Digital Twins Instance. Changing this forces a new Digital Twins Eventgrid Endpoint to be created.
 
 * `eventgrid_topic_endpoint` - (Required) The endpoint of the Event Grid Topic.
 

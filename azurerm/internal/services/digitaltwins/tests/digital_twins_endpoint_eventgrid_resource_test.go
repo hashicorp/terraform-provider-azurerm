@@ -139,7 +139,7 @@ func (r DigitalTwinsEndpointEventGridResource) basic(data acceptance.TestData) s
 
 resource "azurerm_digital_twins_endpoint_eventgrid" "test" {
   name                                 = "acctest-EG-%d"
-  digital_twins_instance_id            = azurerm_digital_twins_instance.test.id
+  digital_twins_id                     = azurerm_digital_twins_instance.test.id
   eventgrid_topic_endpoint             = azurerm_eventgrid_topic.test.endpoint
   eventgrid_topic_primary_access_key   = azurerm_eventgrid_topic.test.primary_access_key
   eventgrid_topic_secondary_access_key = azurerm_eventgrid_topic.test.secondary_access_key
@@ -153,7 +153,7 @@ func (r DigitalTwinsEndpointEventGridResource) requiresImport(data acceptance.Te
 
 resource "azurerm_digital_twins_endpoint_eventgrid" "import" {
   name                                 = azurerm_digital_twins_endpoint_eventgrid.test.name
-  digital_twins_instance_id            = azurerm_digital_twins_endpoint_eventgrid.test.digital_twins_instance_id
+  digital_twins_id                     = azurerm_digital_twins_endpoint_eventgrid.test.digital_twins_id
   eventgrid_topic_endpoint             = azurerm_digital_twins_endpoint_eventgrid.test.eventgrid_topic_endpoint
   eventgrid_topic_primary_access_key   = azurerm_digital_twins_endpoint_eventgrid.test.eventgrid_topic_primary_access_key
   eventgrid_topic_secondary_access_key = azurerm_digital_twins_endpoint_eventgrid.test.eventgrid_topic_secondary_access_key
@@ -173,7 +173,7 @@ resource "azurerm_eventgrid_topic" "test_alt" {
 
 resource "azurerm_digital_twins_endpoint_eventgrid" "test" {
   name                                 = "acctest-EG-%[2]d"
-  digital_twins_instance_id            = azurerm_digital_twins_instance.test.id
+  digital_twins_id                     = azurerm_digital_twins_instance.test.id
   eventgrid_topic_endpoint             = azurerm_eventgrid_topic.test_alt.endpoint
   eventgrid_topic_primary_access_key   = azurerm_eventgrid_topic.test_alt.primary_access_key
   eventgrid_topic_secondary_access_key = azurerm_eventgrid_topic.test_alt.secondary_access_key
@@ -193,7 +193,7 @@ resource "azurerm_eventgrid_topic" "test_alt" {
 
 resource "azurerm_digital_twins_endpoint_eventgrid" "test" {
   name                                 = "acctest-EG-%[2]d"
-  digital_twins_instance_id            = azurerm_digital_twins_instance.test.id
+  digital_twins_id                     = azurerm_digital_twins_instance.test.id
   eventgrid_topic_endpoint             = azurerm_eventgrid_topic.test.endpoint
   eventgrid_topic_primary_access_key   = azurerm_eventgrid_topic.test.primary_access_key
   eventgrid_topic_secondary_access_key = azurerm_eventgrid_topic.test.secondary_access_key
@@ -221,7 +221,7 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_digital_twins_endpoint_eventgrid" "test" {
   name                                 = "acctest-EG-%[3]d"
-  digital_twins_instance_id            = azurerm_digital_twins_instance.test.id
+  digital_twins_id                     = azurerm_digital_twins_instance.test.id
   eventgrid_topic_endpoint             = azurerm_eventgrid_topic.test.endpoint
   eventgrid_topic_primary_access_key   = azurerm_eventgrid_topic.test.primary_access_key
   eventgrid_topic_secondary_access_key = azurerm_eventgrid_topic.test.secondary_access_key
@@ -251,7 +251,7 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_digital_twins_endpoint_eventgrid" "test" {
   name                                 = "acctest-EG-%[3]d"
-  digital_twins_instance_id            = azurerm_digital_twins_instance.test.id
+  digital_twins_id                     = azurerm_digital_twins_instance.test.id
   eventgrid_topic_endpoint             = azurerm_eventgrid_topic.test.endpoint
   eventgrid_topic_primary_access_key   = azurerm_eventgrid_topic.test.primary_access_key
   eventgrid_topic_secondary_access_key = azurerm_eventgrid_topic.test.secondary_access_key
