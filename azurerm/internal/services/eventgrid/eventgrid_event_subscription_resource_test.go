@@ -1,6 +1,7 @@
 package eventgrid_test
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"testing"
@@ -8,281 +9,209 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type EventGridEventSubscriptionResource struct {
+}
+
 func TestAccEventGridEventSubscription_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
+	r := EventGridEventSubscriptionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventGridEventSubscriptionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventGridEventSubscription_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventGridEventSubscriptionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "event_delivery_schema", "EventGridSchema"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("event_delivery_schema").HasValue("EventGridSchema"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccEventGridEventSubscription_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
+	r := EventGridEventSubscriptionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventGridEventSubscriptionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventGridEventSubscription_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventGridEventSubscriptionExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccEventGridEventSubscription_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_eventgrid_event_subscription"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_eventgrid_event_subscription"),
 		},
 	})
 }
 
 func TestAccEventGridEventSubscription_eventHubID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
+	r := EventGridEventSubscriptionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventGridEventSubscriptionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventGridEventSubscription_eventHubID(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventGridEventSubscriptionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "event_delivery_schema", "CloudEventSchemaV1_0"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "eventhub_endpoint_id"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.eventHubID(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("event_delivery_schema").HasValue("CloudEventSchemaV1_0"),
+				check.That(data.ResourceName).Key("eventhub_endpoint_id").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccEventGridEventSubscription_serviceBusQueueID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
+	r := EventGridEventSubscriptionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventGridEventSubscriptionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventGridEventSubscription_serviceBusQueueID(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventGridEventSubscriptionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "event_delivery_schema", "CloudEventSchemaV1_0"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "service_bus_queue_endpoint_id"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.serviceBusQueueID(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("event_delivery_schema").HasValue("CloudEventSchemaV1_0"),
+				check.That(data.ResourceName).Key("service_bus_queue_endpoint_id").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccEventGridEventSubscription_serviceBusTopicID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
+	r := EventGridEventSubscriptionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventGridEventSubscriptionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventGridEventSubscription_serviceBusTopicID(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventGridEventSubscriptionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "event_delivery_schema", "CloudEventSchemaV1_0"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "service_bus_topic_endpoint_id"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.serviceBusTopicID(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("event_delivery_schema").HasValue("CloudEventSchemaV1_0"),
+				check.That(data.ResourceName).Key("service_bus_topic_endpoint_id").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccEventGridEventSubscription_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
+	r := EventGridEventSubscriptionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventGridEventSubscriptionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventGridEventSubscription_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventGridEventSubscriptionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "event_delivery_schema", "EventGridSchema"),
-					resource.TestCheckResourceAttr(data.ResourceName, "storage_queue_endpoint.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "storage_blob_dead_letter_destination.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "included_event_types.0", "Microsoft.Resources.ResourceWriteSuccess"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retry_policy.0.max_delivery_attempts", "11"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retry_policy.0.event_time_to_live", "11"),
-					resource.TestCheckResourceAttr(data.ResourceName, "labels.0", "test"),
-					resource.TestCheckResourceAttr(data.ResourceName, "labels.2", "test2"),
-				),
-			},
-			{
-				Config: testAccEventGridEventSubscription_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventGridEventSubscriptionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "included_event_types.0", "Microsoft.Storage.BlobCreated"),
-					resource.TestCheckResourceAttr(data.ResourceName, "included_event_types.1", "Microsoft.Storage.BlobDeleted"),
-					resource.TestCheckResourceAttr(data.ResourceName, "subject_filter.0.subject_ends_with", ".jpg"),
-					resource.TestCheckResourceAttr(data.ResourceName, "subject_filter.0.subject_begins_with", "test/test"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retry_policy.0.max_delivery_attempts", "10"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retry_policy.0.event_time_to_live", "12"),
-					resource.TestCheckResourceAttr(data.ResourceName, "labels.0", "test4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "labels.2", "test6"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("event_delivery_schema").HasValue("EventGridSchema"),
+				check.That(data.ResourceName).Key("storage_queue_endpoint.#").HasValue("1"),
+				check.That(data.ResourceName).Key("storage_blob_dead_letter_destination.#").HasValue("1"),
+				check.That(data.ResourceName).Key("included_event_types.0").HasValue("Microsoft.Resources.ResourceWriteSuccess"),
+				check.That(data.ResourceName).Key("retry_policy.0.max_delivery_attempts").HasValue("11"),
+				check.That(data.ResourceName).Key("retry_policy.0.event_time_to_live").HasValue("11"),
+				check.That(data.ResourceName).Key("labels.0").HasValue("test"),
+				check.That(data.ResourceName).Key("labels.2").HasValue("test2"),
+			),
+		},
+		{
+			Config: r.update(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("included_event_types.0").HasValue("Microsoft.Storage.BlobCreated"),
+				check.That(data.ResourceName).Key("included_event_types.1").HasValue("Microsoft.Storage.BlobDeleted"),
+				check.That(data.ResourceName).Key("subject_filter.0.subject_ends_with").HasValue(".jpg"),
+				check.That(data.ResourceName).Key("subject_filter.0.subject_begins_with").HasValue("test/test"),
+				check.That(data.ResourceName).Key("retry_policy.0.max_delivery_attempts").HasValue("10"),
+				check.That(data.ResourceName).Key("retry_policy.0.event_time_to_live").HasValue("12"),
+				check.That(data.ResourceName).Key("labels.0").HasValue("test4"),
+				check.That(data.ResourceName).Key("labels.2").HasValue("test6"),
+			),
 		},
 	})
 }
 
 func TestAccEventGridEventSubscription_filter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
+	r := EventGridEventSubscriptionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventGridEventSubscriptionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventGridEventSubscription_filter(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventGridEventSubscriptionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "included_event_types.0", "Microsoft.Storage.BlobCreated"),
-					resource.TestCheckResourceAttr(data.ResourceName, "included_event_types.1", "Microsoft.Storage.BlobDeleted"),
-					resource.TestCheckResourceAttr(data.ResourceName, "subject_filter.0.subject_ends_with", ".jpg"),
-					resource.TestCheckResourceAttr(data.ResourceName, "subject_filter.0.subject_begins_with", "test/test"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.filter(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("included_event_types.0").HasValue("Microsoft.Storage.BlobCreated"),
+				check.That(data.ResourceName).Key("included_event_types.1").HasValue("Microsoft.Storage.BlobDeleted"),
+				check.That(data.ResourceName).Key("subject_filter.0.subject_ends_with").HasValue(".jpg"),
+				check.That(data.ResourceName).Key("subject_filter.0.subject_begins_with").HasValue("test/test"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccEventGridEventSubscription_advancedFilter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
+	r := EventGridEventSubscriptionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventGridEventSubscriptionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventGridEventSubscription_advancedFilter(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventGridEventSubscriptionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.bool_equals.0.key", "subject"),
-					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.bool_equals.0.value", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.number_greater_than.0.key", "data.metadataVersion"),
-					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.number_greater_than.0.value", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.number_greater_than_or_equals.0.key", "data.contentLength"),
-					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.number_greater_than_or_equals.0.value", "42"),
-					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.number_less_than.0.key", "data.contentLength"),
-					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.number_less_than.0.value", "42.1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.number_less_than_or_equals.0.key", "data.metadataVersion"),
-					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.number_less_than_or_equals.0.value", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.number_in.0.key", "data.contentLength"),
-					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.number_in.0.values.0", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.number_not_in.0.key", "data.contentLength"),
-					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.number_not_in.0.values.0", "5"),
-					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.string_begins_with.0.key", "subject"),
-					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.string_begins_with.0.values.0", "foo"),
-					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.string_ends_with.0.key", "subject"),
-					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.string_ends_with.0.values.0", "bar"),
-					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.string_contains.0.key", "data.contentType"),
-					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.string_contains.0.values.0", "application"),
-					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.string_in.0.key", "data.blobType"),
-					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.string_in.0.values.0", "Block"),
-					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.string_not_in.0.key", "data.blobType"),
-					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.string_not_in.0.values.0", "Page"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.advancedFilter(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("advanced_filter.0.bool_equals.0.key").HasValue("subject"),
+				check.That(data.ResourceName).Key("advanced_filter.0.bool_equals.0.value").HasValue("true"),
+				check.That(data.ResourceName).Key("advanced_filter.0.number_greater_than.0.key").HasValue("data.metadataVersion"),
+				check.That(data.ResourceName).Key("advanced_filter.0.number_greater_than.0.value").HasValue("1"),
+				check.That(data.ResourceName).Key("advanced_filter.0.number_greater_than_or_equals.0.key").HasValue("data.contentLength"),
+				check.That(data.ResourceName).Key("advanced_filter.0.number_greater_than_or_equals.0.value").HasValue("42"),
+				check.That(data.ResourceName).Key("advanced_filter.0.number_less_than.0.key").HasValue("data.contentLength"),
+				check.That(data.ResourceName).Key("advanced_filter.0.number_less_than.0.value").HasValue("42.1"),
+				check.That(data.ResourceName).Key("advanced_filter.0.number_less_than_or_equals.0.key").HasValue("data.metadataVersion"),
+				check.That(data.ResourceName).Key("advanced_filter.0.number_less_than_or_equals.0.value").HasValue("2"),
+				check.That(data.ResourceName).Key("advanced_filter.0.number_in.0.key").HasValue("data.contentLength"),
+				check.That(data.ResourceName).Key("advanced_filter.0.number_in.0.values.0").HasValue("0"),
+				check.That(data.ResourceName).Key("advanced_filter.0.number_not_in.0.key").HasValue("data.contentLength"),
+				check.That(data.ResourceName).Key("advanced_filter.0.number_not_in.0.values.0").HasValue("5"),
+				check.That(data.ResourceName).Key("advanced_filter.0.string_begins_with.0.key").HasValue("subject"),
+				check.That(data.ResourceName).Key("advanced_filter.0.string_begins_with.0.values.0").HasValue("foo"),
+				check.That(data.ResourceName).Key("advanced_filter.0.string_ends_with.0.key").HasValue("subject"),
+				check.That(data.ResourceName).Key("advanced_filter.0.string_ends_with.0.values.0").HasValue("bar"),
+				check.That(data.ResourceName).Key("advanced_filter.0.string_contains.0.key").HasValue("data.contentType"),
+				check.That(data.ResourceName).Key("advanced_filter.0.string_contains.0.values.0").HasValue("application"),
+				check.That(data.ResourceName).Key("advanced_filter.0.string_in.0.key").HasValue("data.blobType"),
+				check.That(data.ResourceName).Key("advanced_filter.0.string_in.0.values.0").HasValue("Block"),
+				check.That(data.ResourceName).Key("advanced_filter.0.string_not_in.0.key").HasValue("data.blobType"),
+				check.That(data.ResourceName).Key("advanced_filter.0.string_not_in.0.values.0").HasValue("Page"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckEventGridEventSubscriptionDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).EventGrid.EventSubscriptionsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_eventgrid_event_subscription" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		scope := rs.Primary.Attributes["scope"]
-
-		resp, err := client.Get(ctx, scope, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("EventGrid Event Subscription still exists:\n%#v", resp)
-		}
+func (EventGridEventSubscriptionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.EventSubscriptionID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
-
-func testCheckEventGridEventSubscriptionExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).EventGrid.EventSubscriptionsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		scope, hasScope := rs.Primary.Attributes["scope"]
-		if !hasScope {
-			return fmt.Errorf("Bad: no scope found in state for EventGrid Event Subscription: %s", name)
-		}
-
-		resp, err := client.Get(ctx, scope, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: EventGrid Event Subscription %q (scope: %s) does not exist", name, scope)
-			}
-
-			return fmt.Errorf("Bad: Get on eventGridEventSubscriptionsClient: %s", err)
-		}
-
-		return nil
+	resp, err := clients.EventGrid.EventSubscriptionsClient.Get(ctx, id.Scope, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving EventGrid Event Subscription %q (scope: %q): %+v", id.Name, id.Scope, err)
 	}
+
+	return utils.Bool(resp.EventSubscriptionProperties != nil), nil
 }
 
-func testAccEventGridEventSubscription_basic(data acceptance.TestData) string {
+func (EventGridEventSubscriptionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -350,8 +279,8 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccEventGridEventSubscription_requiresImport(data acceptance.TestData) string {
-	template := testAccEventGridEventSubscription_basic(data)
+func (EventGridEventSubscriptionResource) requiresImport(data acceptance.TestData) string {
+	template := EventGridEventSubscriptionResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -362,7 +291,7 @@ resource "azurerm_eventgrid_event_subscription" "import" {
 `, template)
 }
 
-func testAccEventGridEventSubscription_update(data acceptance.TestData) string {
+func (EventGridEventSubscriptionResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -436,7 +365,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccEventGridEventSubscription_eventHubID(data acceptance.TestData) string {
+func (EventGridEventSubscriptionResource) eventHubID(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -472,7 +401,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccEventGridEventSubscription_serviceBusQueueID(data acceptance.TestData) string {
+func (EventGridEventSubscriptionResource) serviceBusQueueID(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -503,7 +432,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccEventGridEventSubscription_serviceBusTopicID(data acceptance.TestData) string {
+func (EventGridEventSubscriptionResource) serviceBusTopicID(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -533,7 +462,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccEventGridEventSubscription_filter(data acceptance.TestData) string {
+func (EventGridEventSubscriptionResource) filter(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -580,7 +509,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccEventGridEventSubscription_advancedFilter(data acceptance.TestData) string {
+func (EventGridEventSubscriptionResource) advancedFilter(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -1,120 +1,70 @@
 package eventgrid_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type EventGridDomainTopicResource struct {
+}
+
 func TestAccEventGridDomainTopic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain_topic", "test")
+	r := EventGridDomainTopicResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventGridDomainTopicDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventGridDomainTopic_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventGridDomainTopicExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccEventGridDomainTopic_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain_topic", "test")
+	r := EventGridDomainTopicResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventGridTopicDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventGridDomainTopic_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventGridDomainTopicExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccEventGridDomainTopic_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_eventgrid_domain_topic"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_eventgrid_domain_topic"),
 		},
 	})
 }
 
-func testCheckEventGridDomainTopicDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).EventGrid.DomainTopicsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_eventgrid_domain_topic" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		domainName := rs.Primary.Attributes["domain_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, domainName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("EventGrid Domain Topic still exists:\n%#v", resp)
-		}
+func (EventGridDomainTopicResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.DomainTopicID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
-
-func testCheckEventGridDomainTopicExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).EventGrid.DomainTopicsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		domainName := rs.Primary.Attributes["domain_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for EventGrid Domain Topic: %s", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, domainName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: EventGrid Domain Topic %q (resource group: %s) does not exist", name, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on EventGrid.DomainTopicsClient: %s", err)
-		}
-
-		return nil
+	resp, err := clients.EventGrid.DomainTopicsClient.Get(ctx, id.ResourceGroup, id.DomainName, id.TopicName)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving EventGrid Domain Topic %q (resource group: %q): %+v", id.TopicName, id.ResourceGroup, err)
 	}
+
+	return utils.Bool(resp.DomainTopicProperties != nil), nil
 }
 
-func testAccEventGridDomainTopic_basic(data acceptance.TestData) string {
+func (EventGridDomainTopicResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -136,8 +86,8 @@ resource "azurerm_eventgrid_domain_topic" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccEventGridDomainTopic_requiresImport(data acceptance.TestData) string {
-	template := testAccEventGridDomainTopic_basic(data)
+func (EventGridDomainTopicResource) requiresImport(data acceptance.TestData) string {
+	template := EventGridDomainTopicResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_eventgrid_domain_topic" "import" {

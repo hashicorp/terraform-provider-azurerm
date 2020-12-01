@@ -6,30 +6,29 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
+
+type EventGridTopicDataSource struct {
+}
 
 func TestAccEventGridTopicDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventgrid_topic", "test")
+	r := EventGridTopicDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventGridTopicDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceEventGridTopic_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "endpoint"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("endpoint").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+			),
 		},
 	})
 }
 
-func testAccEventGridTopicDataSource_basic(data acceptance.TestData) string {
-	template := testAccEventGridTopic_basic(data)
+func (EventGridTopicDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -37,5 +36,5 @@ data "azurerm_eventgrid_topic" "test" {
   name                = azurerm_eventgrid_topic.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, template)
+`, EventGridTopicResource{}.basic(data))
 }

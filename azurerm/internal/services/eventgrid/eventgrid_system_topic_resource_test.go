@@ -1,145 +1,93 @@
 package eventgrid_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type EventGridSystemTopicResource struct {
+}
+
 func TestAccEventGridSystemTopic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic", "test")
+	r := EventGridSystemTopicResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventGridSystemTopicDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventGridSystemTopic_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventGridSystemTopicExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "source_arm_resource_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "topic_type"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "metric_arm_resource_id"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("source_arm_resource_id").Exists(),
+				check.That(data.ResourceName).Key("topic_type").Exists(),
+				check.That(data.ResourceName).Key("metric_arm_resource_id").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccEventGridSystemTopic_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic", "test")
+	r := EventGridSystemTopicResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventGridSystemTopicDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventGridSystemTopic_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventGridSystemTopicExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccEventGridSystemTopic_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_eventgrid_system_topic"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_eventgrid_system_topic"),
 		},
 	})
 }
 
 func TestAccEventGridSystemTopic_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic", "test")
+	r := EventGridSystemTopicResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventGridSystemTopicDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventGridSystemTopic_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventGridSystemTopicExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.Foo", "Bar"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "source_arm_resource_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "topic_type"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "metric_arm_resource_id"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.Foo").HasValue("Bar"),
+				check.That(data.ResourceName).Key("source_arm_resource_id").Exists(),
+				check.That(data.ResourceName).Key("topic_type").Exists(),
+				check.That(data.ResourceName).Key("metric_arm_resource_id").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckEventGridSystemTopicDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).EventGrid.SystemTopicsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_eventgrid_system_topic" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Event Grid System Topic still exists:\n%#v", resp)
-		}
+func (EventGridSystemTopicResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.SystemTopicID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
-
-func testCheckEventGridSystemTopicExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).EventGrid.SystemTopicsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Event Grid System Topic: %s", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Event Grid System Topic %q (resource group: %s) does not exist", name, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on EventGridSystemTopicsClient: %s", err)
-		}
-
-		return nil
+	resp, err := clients.EventGrid.SystemTopicsClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Event Grid System Topic %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
 	}
+
+	return utils.Bool(resp.SystemTopicProperties != nil), nil
 }
 
-func testAccEventGridSystemTopic_basic(data acceptance.TestData) string {
+func (EventGridSystemTopicResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -168,8 +116,7 @@ resource "azurerm_eventgrid_system_topic" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(12), data.RandomIntOfLength(10))
 }
 
-func testAccEventGridSystemTopic_requiresImport(data acceptance.TestData) string {
-	template := testAccEventGridSystemTopic_basic(data)
+func (r EventGridSystemTopicResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -180,10 +127,10 @@ resource "azurerm_eventgrid_system_topic" "import" {
   source_arm_resource_id = azurerm_eventgrid_system_topic.test.source_arm_resource_id
   topic_type             = azurerm_eventgrid_system_topic.test.topic_type
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccEventGridSystemTopic_complete(data acceptance.TestData) string {
+func (EventGridSystemTopicResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

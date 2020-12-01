@@ -1,165 +1,109 @@
 package eventgrid_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type EventGridDomainResource struct {
+}
+
 func TestAccEventGridDomain_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain", "test")
+	r := EventGridDomainResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventGridDomainDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventGridDomain_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventGridDomainExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "endpoint"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("endpoint").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccEventGridDomain_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain", "test")
+	r := EventGridDomainResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventGridDomainDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventGridDomain_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventGridDomainExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccEventGridDomain_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_eventgrid_domain"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_eventgrid_domain"),
 		},
 	})
 }
 
 func TestAccEventGridDomain_mapping(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain", "test")
+	r := EventGridDomainResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventGridDomainDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventGridDomain_mapping(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventGridDomainExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "input_mapping_fields.0.topic", "test"),
-					resource.TestCheckResourceAttr(data.ResourceName, "input_mapping_fields.0.topic", "test"),
-					resource.TestCheckResourceAttr(data.ResourceName, "input_mapping_default_values.0.data_version", "1.0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "input_mapping_default_values.0.subject", "DefaultSubject"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.mapping(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("input_mapping_fields.0.topic").HasValue("test"),
+				check.That(data.ResourceName).Key("input_mapping_fields.0.topic").HasValue("test"),
+				check.That(data.ResourceName).Key("input_mapping_default_values.0.data_version").HasValue("1.0"),
+				check.That(data.ResourceName).Key("input_mapping_default_values.0.subject").HasValue("DefaultSubject"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccEventGridDomain_basicWithTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain", "test")
+	r := EventGridDomainResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventGridDomainDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventGridDomain_basicWithTags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventGridDomainExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.foo", "bar"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicWithTags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.foo").HasValue("bar"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckEventGridDomainDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).EventGrid.DomainsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_eventgrid_domain" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("EventGrid Domain still exists:\n%#v", resp)
-		}
+func (EventGridDomainResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.DomainID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
-
-func testCheckEventGridDomainExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).EventGrid.DomainsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for EventGrid Domain: %s", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: EventGrid Domain %q (resource group: %s) does not exist", name, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on eventGridDomainsClient: %s", err)
-		}
-
-		return nil
+	resp, err := clients.EventGrid.DomainsClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving EventGrid Domain %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
 	}
+
+	return utils.Bool(resp.DomainProperties != nil), nil
 }
 
-func testAccEventGridDomain_basic(data acceptance.TestData) string {
+func (EventGridDomainResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -178,8 +122,8 @@ resource "azurerm_eventgrid_domain" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccEventGridDomain_requiresImport(data acceptance.TestData) string {
-	template := testAccEventGridDomain_basic(data)
+func (EventGridDomainResource) requiresImport(data acceptance.TestData) string {
+	template := EventGridDomainResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -191,7 +135,7 @@ resource "azurerm_eventgrid_domain" "import" {
 `, template)
 }
 
-func testAccEventGridDomain_mapping(data acceptance.TestData) string {
+func (EventGridDomainResource) mapping(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -222,7 +166,7 @@ resource "azurerm_eventgrid_domain" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccEventGridDomain_basicWithTags(data acceptance.TestData) string {
+func (EventGridDomainResource) basicWithTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
