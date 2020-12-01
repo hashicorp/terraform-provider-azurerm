@@ -1,114 +1,94 @@
-package tests
+package trafficmanager_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"path"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+type TrafficManagerEndpointResource struct{}
 
 func TestAccAzureRMTrafficManagerEndpoint_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testExternal")
 	azureResourceName := "azurerm_traffic_manager_endpoint.testAzure"
+	r := TrafficManagerEndpointResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMTrafficManagerEndpoint_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTrafficManagerEndpointExists(azureResourceName),
-					testCheckAzureRMTrafficManagerEndpointExists(data.ResourceName),
-					resource.TestCheckResourceAttr(azureResourceName, "endpoint_status", "Enabled"),
-					resource.TestCheckResourceAttr(data.ResourceName, "endpoint_status", "Enabled"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(azureResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(azureResourceName).Key("endpoint_status").HasValue("Enabled"),
+				check.That(data.ResourceName).Key("endpoint_status").HasValue("Enabled"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMTrafficManagerEndpoint_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testAzure")
 	externalResourceName := "azurerm_traffic_manager_endpoint.testExternal"
+	r := TrafficManagerEndpointResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMTrafficManagerEndpoint_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTrafficManagerEndpointExists(data.ResourceName),
-					testCheckAzureRMTrafficManagerEndpointExists(externalResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "endpoint_status", "Enabled"),
-					resource.TestCheckResourceAttr(externalResourceName, "endpoint_status", "Enabled"),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMTrafficManagerEndpoint_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(externalResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("endpoint_status").HasValue("Enabled"),
+				check.That(externalResourceName).Key("endpoint_status").HasValue("Enabled"),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
 func TestAccAzureRMTrafficManagerEndpoint_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testAzure")
-	externalResourceName := "azurerm_traffic_manager_endpoint.testExternal"
+	r := TrafficManagerEndpointResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMTrafficManagerEndpoint_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTrafficManagerEndpointExists(data.ResourceName),
-					testCheckAzureRMTrafficManagerEndpointExists(externalResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "endpoint_status", "Enabled"),
-					resource.TestCheckResourceAttr(externalResourceName, "endpoint_status", "Enabled"),
-					testCheckAzureRMTrafficManagerEndpointDisappears(data.ResourceName),
-				),
-				ExpectNonEmptyPlan: true,
-			},
-		},
+	data.ResourceTest(t, r, []resource.TestStep{
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
 	})
 }
 
 func TestAccAzureRMTrafficManagerEndpoint_basicDisableExternal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testAzure")
 	externalResourceName := "azurerm_traffic_manager_endpoint.testExternal"
+	r := TrafficManagerEndpointResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMTrafficManagerEndpoint_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTrafficManagerEndpointExists(data.ResourceName),
-					testCheckAzureRMTrafficManagerEndpointExists(externalResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "endpoint_status", "Enabled"),
-					resource.TestCheckResourceAttr(externalResourceName, "endpoint_status", "Enabled"),
-				),
-			},
-			{
-				Config: testAccAzureRMTrafficManagerEndpoint_basicDisableExternal(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTrafficManagerEndpointExists(data.ResourceName),
-					testCheckAzureRMTrafficManagerEndpointExists(externalResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "endpoint_status", "Enabled"),
-					resource.TestCheckResourceAttr(externalResourceName, "endpoint_status", "Disabled"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(externalResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("endpoint_status").HasValue("Enabled"),
+				check.That(externalResourceName).Key("endpoint_status").HasValue("Enabled"),
+			),
+		},
+		{
+			Config: r.basicDisableExternal(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(externalResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("endpoint_status").HasValue("Enabled"),
+				check.That(externalResourceName).Key("endpoint_status").HasValue("Disabled"),
+			),
 		},
 	})
 }
@@ -117,30 +97,26 @@ func TestAccAzureRMTrafficManagerEndpoint_basicDisableExternal(t *testing.T) {
 func TestAccAzureRMTrafficManagerEndpoint_updateWeight(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testExternal")
 	secondResourceName := "azurerm_traffic_manager_endpoint.testExternalNew"
+	r := TrafficManagerEndpointResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMTrafficManagerEndpoint_weight(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTrafficManagerEndpointExists(data.ResourceName),
-					testCheckAzureRMTrafficManagerEndpointExists(secondResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "weight", "50"),
-					resource.TestCheckResourceAttr(secondResourceName, "weight", "50"),
-				),
-			},
-			{
-				Config: testAccAzureRMTrafficManagerEndpoint_updateWeight(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTrafficManagerEndpointExists(data.ResourceName),
-					testCheckAzureRMTrafficManagerEndpointExists(secondResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "weight", "25"),
-					resource.TestCheckResourceAttr(secondResourceName, "weight", "75"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.weight(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(secondResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("weight").HasValue("50"),
+				check.That(secondResourceName).Key("weight").HasValue("50"),
+			),
+		},
+		{
+			Config: r.updateWeight(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(secondResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("weight").HasValue("25"),
+				check.That(secondResourceName).Key("weight").HasValue("75"),
+			),
 		},
 	})
 }
@@ -148,38 +124,34 @@ func TestAccAzureRMTrafficManagerEndpoint_updateWeight(t *testing.T) {
 func TestAccAzureRMTrafficManagerEndpoint_updateSubnets(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testExternal")
 	secondResourceName := "azurerm_traffic_manager_endpoint.testExternalNew"
+	r := TrafficManagerEndpointResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMTrafficManagerEndpoint_subnets(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTrafficManagerEndpointExists(data.ResourceName),
-					testCheckAzureRMTrafficManagerEndpointExists(secondResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "subnet.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "subnet.0.first", "1.2.3.0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "subnet.0.scope", "24"),
-					resource.TestCheckResourceAttr(data.ResourceName, "subnet.1.first", "11.12.13.14"),
-					resource.TestCheckResourceAttr(data.ResourceName, "subnet.1.last", "11.12.13.14"),
-					resource.TestCheckResourceAttr(secondResourceName, "subnet.#", "1"),
-					resource.TestCheckResourceAttr(secondResourceName, "subnet.0.first", "21.22.23.24"),
-					resource.TestCheckResourceAttr(secondResourceName, "subnet.0.scope", "32"),
-				),
-			},
-			{
-				Config: testAccAzureRMTrafficManagerEndpoint_updateSubnets(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTrafficManagerEndpointExists(data.ResourceName),
-					testCheckAzureRMTrafficManagerEndpointExists(secondResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "subnet.#", "0"),
-					resource.TestCheckResourceAttr(secondResourceName, "subnet.#", "1"),
-					resource.TestCheckResourceAttr(secondResourceName, "subnet.0.first", "12.34.56.78"),
-					resource.TestCheckResourceAttr(secondResourceName, "subnet.0.last", "12.34.56.78"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.subnets(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(secondResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subnet.#").HasValue("2"),
+				check.That(data.ResourceName).Key("subnet.0.first").HasValue("1.2.3.0"),
+				check.That(data.ResourceName).Key("subnet.0.scope").HasValue("24"),
+				check.That(data.ResourceName).Key("subnet.1.first").HasValue("11.12.13.14"),
+				check.That(data.ResourceName).Key("subnet.1.last").HasValue("11.12.13.14"),
+				check.That(secondResourceName).Key("subnet.#").HasValue("1"),
+				check.That(secondResourceName).Key("subnet.0.first").HasValue("21.22.23.24"),
+				check.That(secondResourceName).Key("subnet.0.scope").HasValue("32"),
+			),
+		},
+		{
+			Config: r.updateSubnets(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(secondResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subnet.#").HasValue("0"),
+				check.That(secondResourceName).Key("subnet.#").HasValue("1"),
+				check.That(secondResourceName).Key("subnet.0.first").HasValue("12.34.56.78"),
+				check.That(secondResourceName).Key("subnet.0.last").HasValue("12.34.56.78"),
+			),
 		},
 	})
 }
@@ -187,34 +159,30 @@ func TestAccAzureRMTrafficManagerEndpoint_updateSubnets(t *testing.T) {
 func TestAccAzureRMTrafficManagerEndpoint_updateCustomeHeaders(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testExternal")
 	secondResourceName := "azurerm_traffic_manager_endpoint.testExternalNew"
+	r := TrafficManagerEndpointResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMTrafficManagerEndpoint_headers(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTrafficManagerEndpointExists(data.ResourceName),
-					testCheckAzureRMTrafficManagerEndpointExists(secondResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_header.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_header.0.name", "header"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_header.0.value", "www.bing.com"),
-					resource.TestCheckResourceAttr(secondResourceName, "custom_header.#", "0"),
-				),
-			},
-			{
-				Config: testAccAzureRMTrafficManagerEndpoint_updateHeaders(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTrafficManagerEndpointExists(data.ResourceName),
-					testCheckAzureRMTrafficManagerEndpointExists(secondResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_header.#", "0"),
-					resource.TestCheckResourceAttr(secondResourceName, "custom_header.#", "1"),
-					resource.TestCheckResourceAttr(secondResourceName, "custom_header.0.name", "header"),
-					resource.TestCheckResourceAttr(secondResourceName, "custom_header.0.value", "www.bing.com"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.headers(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(secondResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("custom_header.#").HasValue("1"),
+				check.That(data.ResourceName).Key("custom_header.0.name").HasValue("header"),
+				check.That(data.ResourceName).Key("custom_header.0.value").HasValue("www.bing.com"),
+				check.That(secondResourceName).Key("custom_header.#").HasValue("0"),
+			),
+		},
+		{
+			Config: r.updateHeaders(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(secondResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("custom_header.#").HasValue("0"),
+				check.That(secondResourceName).Key("custom_header.#").HasValue("1"),
+				check.That(secondResourceName).Key("custom_header.0.name").HasValue("header"),
+				check.That(secondResourceName).Key("custom_header.0.value").HasValue("www.bing.com"),
+			),
 		},
 	})
 }
@@ -223,195 +191,120 @@ func TestAccAzureRMTrafficManagerEndpoint_updateCustomeHeaders(t *testing.T) {
 func TestAccAzureRMTrafficManagerEndpoint_updatePriority(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testExternal")
 	secondResourceName := "azurerm_traffic_manager_endpoint.testExternalNew"
+	r := TrafficManagerEndpointResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMTrafficManagerEndpoint_priority(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTrafficManagerEndpointExists(data.ResourceName),
-					testCheckAzureRMTrafficManagerEndpointExists(secondResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "priority", "1"),
-					resource.TestCheckResourceAttr(secondResourceName, "priority", "2"),
-				),
-			},
-			{
-				Config: testAccAzureRMTrafficManagerEndpoint_updatePriority(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTrafficManagerEndpointExists(data.ResourceName),
-					testCheckAzureRMTrafficManagerEndpointExists(secondResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "priority", "3"),
-					resource.TestCheckResourceAttr(secondResourceName, "priority", "2"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.priority(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(secondResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("priority").HasValue("1"),
+				check.That(secondResourceName).Key("priority").HasValue("2"),
+			),
+		},
+		{
+			Config: r.updatePriority(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(secondResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("priority").HasValue("3"),
+				check.That(secondResourceName).Key("priority").HasValue("2"),
+			),
 		},
 	})
 }
 
 func TestAccAzureRMTrafficManagerEndpoint_nestedEndpoints(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "nested")
+	r := TrafficManagerEndpointResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMTrafficManagerEndpoint_nestedEndpoints(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTrafficManagerEndpointExists("azurerm_traffic_manager_endpoint.nested"),
-					testCheckAzureRMTrafficManagerEndpointExists("azurerm_traffic_manager_endpoint.externalChild"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.nestedEndpoints(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That("azurerm_traffic_manager_endpoint.nested").ExistsInAzure(r),
+				check.That("azurerm_traffic_manager_endpoint.externalChild").ExistsInAzure(r),
+			),
 		},
 	})
 }
 
 func TestAccAzureRMTrafficManagerEndpoint_location(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "test")
+	r := TrafficManagerEndpointResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMTrafficManagerEndpoint_location(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTrafficManagerEndpointExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMTrafficManagerEndpoint_locationUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTrafficManagerEndpointExists(data.ResourceName),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.location(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.locationUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
 func TestAccAzureRMTrafficManagerEndpoint_withGeoMappings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "test")
+	r := TrafficManagerEndpointResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMTrafficManagerEndpoint_geoMappings(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTrafficManagerEndpointExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "geo_mappings.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "geo_mappings.0", "GB"),
-					resource.TestCheckResourceAttr(data.ResourceName, "geo_mappings.1", "FR"),
-				),
-			},
-			{
-				Config: testAccAzureRMTrafficManagerEndpoint_geoMappingsUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTrafficManagerEndpointExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "geo_mappings.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "geo_mappings.0", "FR"),
-					resource.TestCheckResourceAttr(data.ResourceName, "geo_mappings.1", "DE"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.geoMappings(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("geo_mappings.#").HasValue("2"),
+				check.That(data.ResourceName).Key("geo_mappings.0").HasValue("GB"),
+				check.That(data.ResourceName).Key("geo_mappings.1").HasValue("FR"),
+			),
+		},
+		{
+			Config: r.geoMappingsUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("geo_mappings.#").HasValue("2"),
+				check.That(data.ResourceName).Key("geo_mappings.0").HasValue("FR"),
+				check.That(data.ResourceName).Key("geo_mappings.1").HasValue("DE"),
+			),
 		},
 	})
 }
 
-func testCheckAzureRMTrafficManagerEndpointExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).TrafficManager.EndpointsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (r TrafficManagerEndpointResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	name := state.Attributes["name"]
+	endpointType := state.Attributes["type"]
+	profileName := state.Attributes["profile_name"]
+	resourceGroup := state.Attributes["resource_group_name"]
 
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
+	resp, err := client.TrafficManager.EndpointsClient.Get(ctx, resourceGroup, profileName, path.Base(endpointType), name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
 		}
-
-		name := rs.Primary.Attributes["name"]
-		endpointType := rs.Primary.Attributes["type"]
-		profileName := rs.Primary.Attributes["profile_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Traffic Manager Profile: %s", name)
-		}
-
-		// Ensure resource group/virtual network combination exists in API
-		resp, err := conn.Get(ctx, resourceGroup, profileName, path.Base(endpointType), name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on trafficManagerEndpointsClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Traffic Manager Endpoint %q (resource group: %q) does not exist", name, resourceGroup)
-		}
-
-		return nil
+		return nil, fmt.Errorf("retrieving Traffic Manager Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
+	return utils.Bool(true), nil
 }
 
-func testCheckAzureRMTrafficManagerEndpointDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).TrafficManager.EndpointsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (r TrafficManagerEndpointResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	name := state.Attributes["name"]
+	endpointType := state.Attributes["type"]
+	profileName := state.Attributes["profile_name"]
+	resourceGroup := state.Attributes["resource_group_name"]
 
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		endpointType := rs.Primary.Attributes["type"]
-		profileName := rs.Primary.Attributes["profile_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Traffic Manager Profile: %s", name)
-		}
-
-		// Ensure resource group/virtual network combination exists in API
-		if _, err := conn.Delete(ctx, resourceGroup, profileName, path.Base(endpointType), name); err != nil {
-			return fmt.Errorf("Bad: Delete on trafficManagerEndpointsClient: %+v", err)
-		}
-
-		return nil
+	if _, err := client.TrafficManager.EndpointsClient.Delete(ctx, resourceGroup, profileName, path.Base(endpointType), name); err != nil {
+		return nil, fmt.Errorf("deleting Traffic Manager Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
+	return utils.Bool(true), nil
 }
 
-func testCheckAzureRMTrafficManagerEndpointDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).TrafficManager.EndpointsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_traffic_manager_endpoint" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		endpointType := rs.Primary.Attributes["type"]
-		profileName := rs.Primary.Attributes["profile_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		resp, err := conn.Get(ctx, resourceGroup, profileName, path.Base(endpointType), name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Traffic Manager Endpoint sitll exists:\n%#v", resp.EndpointProperties)
-		}
-	}
-
-	return nil
-}
-
-func testAccAzureRMTrafficManagerEndpoint_basic(data acceptance.TestData) string {
+func (r TrafficManagerEndpointResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -467,8 +360,8 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMTrafficManagerEndpoint_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMTrafficManagerEndpoint_basic(data)
+func (r TrafficManagerEndpointResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -483,7 +376,7 @@ resource "azurerm_traffic_manager_endpoint" "import" {
 `, template)
 }
 
-func testAccAzureRMTrafficManagerEndpoint_basicDisableExternal(data acceptance.TestData) string {
+func (r TrafficManagerEndpointResource) basicDisableExternal(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -540,7 +433,7 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMTrafficManagerEndpoint_weight(data acceptance.TestData) string {
+func (r TrafficManagerEndpointResource) weight(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -588,7 +481,7 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMTrafficManagerEndpoint_updateWeight(data acceptance.TestData) string {
+func (r TrafficManagerEndpointResource) updateWeight(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -636,7 +529,7 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMTrafficManagerEndpoint_priority(data acceptance.TestData) string {
+func (r TrafficManagerEndpointResource) priority(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -684,7 +577,7 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMTrafficManagerEndpoint_updatePriority(data acceptance.TestData) string {
+func (r TrafficManagerEndpointResource) updatePriority(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -732,7 +625,7 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMTrafficManagerEndpoint_subnets(data acceptance.TestData) string {
+func (r TrafficManagerEndpointResource) subnets(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -790,7 +683,7 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMTrafficManagerEndpoint_updateSubnets(data acceptance.TestData) string {
+func (r TrafficManagerEndpointResource) updateSubnets(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -840,7 +733,7 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMTrafficManagerEndpoint_headers(data acceptance.TestData) string {
+func (r TrafficManagerEndpointResource) headers(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -892,7 +785,7 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMTrafficManagerEndpoint_updateHeaders(data acceptance.TestData) string {
+func (r TrafficManagerEndpointResource) updateHeaders(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -944,7 +837,7 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMTrafficManagerEndpoint_nestedEndpoints(data acceptance.TestData) string {
+func (r TrafficManagerEndpointResource) nestedEndpoints(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1010,7 +903,7 @@ resource "azurerm_traffic_manager_endpoint" "externalChild" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMTrafficManagerEndpoint_location(data acceptance.TestData) string {
+func (r TrafficManagerEndpointResource) location(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1049,7 +942,7 @@ resource "azurerm_traffic_manager_endpoint" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMTrafficManagerEndpoint_locationUpdated(data acceptance.TestData) string {
+func (r TrafficManagerEndpointResource) locationUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1088,7 +981,7 @@ resource "azurerm_traffic_manager_endpoint" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMTrafficManagerEndpoint_geoMappings(data acceptance.TestData) string {
+func (r TrafficManagerEndpointResource) geoMappings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1131,7 +1024,7 @@ resource "azurerm_traffic_manager_endpoint" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMTrafficManagerEndpoint_geoMappingsUpdated(data acceptance.TestData) string {
+func (r TrafficManagerEndpointResource) geoMappingsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
