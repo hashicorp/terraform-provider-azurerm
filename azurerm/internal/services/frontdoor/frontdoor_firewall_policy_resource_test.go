@@ -56,7 +56,7 @@ func TestAccFrontDoorFirewallPolicy_update(t *testing.T) {
 			Config: r.update(data, false),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("testAccFrontDoorWAF%d")),
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("testAccFrontDoorWAF%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("mode").HasValue("Prevention"),
 			),
 		},
@@ -64,7 +64,7 @@ func TestAccFrontDoorFirewallPolicy_update(t *testing.T) {
 			Config: r.update(data, true),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("testAccFrontDoorWAF%d")),
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("testAccFrontDoorWAF%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("mode").HasValue("Prevention"),
 				check.That(data.ResourceName).Key("custom_rule.1.name").HasValue("Rule2"),
 				check.That(data.ResourceName).Key("custom_rule.2.name").HasValue("Rule3"),
@@ -75,7 +75,7 @@ func TestAccFrontDoorFirewallPolicy_update(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				testCheckFrontDoorFirewallPolicyAttrNotExists(data.ResourceName, "custom_rule.1.name"),
-				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("testAccFrontDoorWAF%d")),
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("testAccFrontDoorWAF%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("mode").HasValue("Prevention"),
 			),
 		},
@@ -91,7 +91,7 @@ func TestAccFrontDoorFirewallPolicy_complete(t *testing.T) {
 			Config: r.update(data, true),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("testAccFrontDoorWAF%d")),
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("testAccFrontDoorWAF%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("mode").HasValue("Prevention"),
 				check.That(data.ResourceName).Key("redirect_url").HasValue("https://www.contoso.com"),
 				check.That(data.ResourceName).Key("custom_block_response_status_code").HasValue("403"),
