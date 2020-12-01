@@ -1,4 +1,4 @@
-// Package media implements the Azure ARM Media service API version 2018-07-01.
+// Package media implements the Azure ARM Media service API version 2020-05-01.
 //
 //
 package media
