@@ -1,4 +1,4 @@
-package tests
+package trafficmanager_test
 
 import (
 	"fmt"
@@ -6,22 +6,21 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
+
+type TrafficManagerGeographicalLocationDataSource struct{}
 
 func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_europe(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_traffic_manager_geographical_location", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDataSourceTrafficManagerGeographicalLocation_template("Europe"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "id", "GEO-EU"),
-					resource.TestCheckResourceAttr(data.ResourceName, "name", "Europe"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: TrafficManagerGeographicalLocationDataSource{}.template("Europe"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("id").HasValue("GEO-EU"),
+				check.That(data.ResourceName).Key("name").HasValue("Europe"),
+			),
 		},
 	})
 }
@@ -29,17 +28,13 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_europe(t *testin
 func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_germany(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_traffic_manager_geographical_location", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDataSourceTrafficManagerGeographicalLocation_template("Germany"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "id", "DE"),
-					resource.TestCheckResourceAttr(data.ResourceName, "name", "Germany"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: TrafficManagerGeographicalLocationDataSource{}.template("Germany"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("id").HasValue("DE"),
+				check.That(data.ResourceName).Key("name").HasValue("Germany"),
+			),
 		},
 	})
 }
@@ -47,17 +42,13 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_germany(t *testi
 func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_unitedKingdom(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_traffic_manager_geographical_location", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDataSourceTrafficManagerGeographicalLocation_template("United Kingdom"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "id", "GB"),
-					resource.TestCheckResourceAttr(data.ResourceName, "name", "United Kingdom"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: TrafficManagerGeographicalLocationDataSource{}.template("United Kingdom"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("id").HasValue("GB"),
+				check.That(data.ResourceName).Key("name").HasValue("United Kingdom"),
+			),
 		},
 	})
 }
@@ -65,22 +56,18 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_unitedKingdom(t 
 func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_world(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_traffic_manager_geographical_location", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDataSourceTrafficManagerGeographicalLocation_template("World"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "id", "WORLD"),
-					resource.TestCheckResourceAttr(data.ResourceName, "name", "World"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: TrafficManagerGeographicalLocationDataSource{}.template("World"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("id").HasValue("WORLD"),
+				check.That(data.ResourceName).Key("name").HasValue("World"),
+			),
 		},
 	})
 }
 
-func testAccAzureRMDataSourceTrafficManagerGeographicalLocation_template(name string) string {
+func (d TrafficManagerGeographicalLocationDataSource) template(name string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
