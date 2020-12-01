@@ -6,7 +6,7 @@ func TestApiManagementDiagnosticID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *ApiManagementDiagnosticId
+		Expected *DiagnosticId
 	}{
 		{
 			Name:     "Empty",
@@ -46,7 +46,7 @@ func TestApiManagementDiagnosticID(t *testing.T) {
 		{
 			Name:  "Diagnostic ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/service1/diagnostics/diagnostic1",
-			Expected: &ApiManagementDiagnosticId{
+			Expected: &DiagnosticId{
 				Name:          "diagnostic1",
 				ServiceName:   "service1",
 				ResourceGroup: "resGroup1",
@@ -62,7 +62,7 @@ func TestApiManagementDiagnosticID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ApiManagementDiagnosticID(v.Input)
+		actual, err := DiagnosticID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
