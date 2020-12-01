@@ -1,4 +1,4 @@
-package digitaltwins
+package digitaltwins_test
 
 import (
 	"fmt"
