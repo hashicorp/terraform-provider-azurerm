@@ -42,6 +42,13 @@ func resourceArmResourceGroup() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
+			"managed_by": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -72,6 +79,10 @@ func resourceArmResourceGroupCreateUpdate(d *schema.ResourceData, meta interface
 	parameters := resources.Group{
 		Location: utils.String(location),
 		Tags:     tags.Expand(t),
+	}
+
+	if v, ok := d.GetOk("managed_by"); ok {
+		parameters.ManagedBy = utils.String(v.(string))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, name, parameters); err != nil {
@@ -111,6 +122,11 @@ func resourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) erro
 
 	d.Set("name", resp.Name)
 	d.Set("location", location.NormalizeNilable(resp.Location))
+
+	if resp.ManagedBy != nil {
+		d.Set("managed_by", resp.ManagedBy)
+	}
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 

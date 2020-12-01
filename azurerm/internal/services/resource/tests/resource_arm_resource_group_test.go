@@ -84,6 +84,20 @@ func TestAccResourceGroup_withTags(t *testing.T) {
 	})
 }
 
+func TestAccResourceGroup_withManagedBy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test2")
+	testResource := ResourceGroupResource{}
+	data.ResourceTest(t, testResource, []resource.TestStep{
+		{
+			Config: testResource.withManagedByConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(testResource),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t ResourceGroupResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	resourceGroup := state.Attributes["name"]
 
@@ -170,4 +184,23 @@ resource "azurerm_resource_group" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (t ResourceGroupResource) withManagedByConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_resource_group" "test2" {
+  name       = "acctestRG2-%d"
+  location   = "%s"
+  managed_by = azurerm_resource_group.test.id
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
