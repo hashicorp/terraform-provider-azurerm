@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceDevTestSchedules() *schema.Resource {
+func resourceDevTestLabSchedules() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDevTestSchedulesCreateUpdate,
-		Read:   resourceDevTestSchedulesRead,
-		Update: resourceDevTestSchedulesCreateUpdate,
-		Delete: resourceDevTestSchedulesDelete,
+		Create: resourceDevTestLabSchedulesCreateUpdate,
+		Read:   resourceDevTestLabSchedulesRead,
+		Update: resourceDevTestLabSchedulesCreateUpdate,
+		Delete: resourceDevTestLabSchedulesDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -177,7 +177,7 @@ func resourceDevTestSchedules() *schema.Resource {
 	}
 }
 
-func resourceDevTestSchedulesCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDevTestLabSchedulesCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevTestLabs.LabSchedulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -261,10 +261,10 @@ func resourceDevTestSchedulesCreateUpdate(d *schema.ResourceData, meta interface
 
 	d.SetId(*read.ID)
 
-	return resourceDevTestSchedulesRead(d, meta)
+	return resourceDevTestLabSchedulesRead(d, meta)
 }
 
-func resourceDevTestSchedulesRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDevTestLabSchedulesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevTestLabs.LabSchedulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -319,7 +319,7 @@ func resourceDevTestSchedulesRead(d *schema.ResourceData, meta interface{}) erro
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceDevTestSchedulesDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDevTestLabSchedulesDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMExtensionClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

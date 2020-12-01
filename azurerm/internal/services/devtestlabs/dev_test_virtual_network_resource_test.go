@@ -1,16 +1,22 @@
 package devtestlabs_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+type DevTestVirtualNetworkResource struct {
+}
 
 func TestValidateDevTestVirtualNetworkName(t *testing.T) {
 	validNames := []string{
@@ -42,127 +48,75 @@ func TestValidateDevTestVirtualNetworkName(t *testing.T) {
 
 func TestAccDevTestVirtualNetwork_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_virtual_network", "test")
+	r := DevTestVirtualNetworkResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestVirtualNetworkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDevTestVirtualNetwork_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDevTestVirtualNetworkExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccDevTestVirtualNetwork_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_virtual_network", "test")
+	r := DevTestVirtualNetworkResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestVirtualNetworkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDevTestVirtualNetwork_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDevTestVirtualNetworkExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
-			{
-				Config:      testAccDevTestVirtualNetwork_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_dev_test_virtual_network"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_dev_test_virtual_network"),
 		},
 	})
 }
 
 func TestAccDevTestVirtualNetwork_subnet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_virtual_network", "test")
+	r := DevTestVirtualNetworkResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestVirtualNetworkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDevTestVirtualNetwork_subnets(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDevTestVirtualNetworkExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "subnet.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "subnet.0.use_public_ip_address", "Deny"),
-					resource.TestCheckResourceAttr(data.ResourceName, "subnet.0.use_in_virtual_machine_creation", "Allow"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.subnets(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subnet.#").HasValue("1"),
+				check.That(data.ResourceName).Key("subnet.0.use_public_ip_address").HasValue("Deny"),
+				check.That(data.ResourceName).Key("subnet.0.use_in_virtual_machine_creation").HasValue("Allow"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckDevTestVirtualNetworkExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.VirtualNetworksClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		virtualNetworkName := rs.Primary.Attributes["name"]
-		labName := rs.Primary.Attributes["lab_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, labName, virtualNetworkName, "")
-		if err != nil {
-			return fmt.Errorf("Bad: Get devTestVirtualNetworksClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: DevTest Virtual Network %q (Lab %q / Resource Group: %q) does not exist", virtualNetworkName, labName, resourceGroup)
-		}
-
-		return nil
+func (DevTestVirtualNetworkResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-}
+	labName := id.Path["labs"]
+	name := id.Path["virtualnetworks"]
 
-func testCheckDevTestVirtualNetworkDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.VirtualNetworksClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_dev_test_virtual_network" {
-			continue
-		}
-
-		virtualNetworkName := rs.Primary.Attributes["name"]
-		labName := rs.Primary.Attributes["lab_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, labName, virtualNetworkName, "")
-		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("DevTest Virtual Network still exists:\n%#v", resp)
+	resp, err := clients.DevTestLabs.VirtualNetworksClient.Get(ctx, id.ResourceGroup, labName, name, "")
+	if err != nil {
+		return nil, fmt.Errorf("retrieving DevTest Virtual Network %q (Lab %q / Resource Group: %q) does not exist", name, labName, id.ResourceGroup)
 	}
 
-	return nil
+	return utils.Bool(resp.VirtualNetworkProperties != nil), nil
 }
 
-func testAccDevTestVirtualNetwork_basic(data acceptance.TestData) string {
+func (DevTestVirtualNetworkResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -187,8 +141,7 @@ resource "azurerm_dev_test_virtual_network" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccDevTestVirtualNetwork_requiresImport(data acceptance.TestData) string {
-	template := testAccDevTestVirtualNetwork_basic(data)
+func (r DevTestVirtualNetworkResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -197,10 +150,10 @@ resource "azurerm_dev_test_virtual_network" "import" {
   lab_name            = azurerm_dev_test_virtual_network.test.lab_name
   resource_group_name = azurerm_dev_test_virtual_network.test.resource_group_name
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccDevTestVirtualNetwork_subnets(data acceptance.TestData) string {
+func (DevTestVirtualNetworkResource) subnets(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

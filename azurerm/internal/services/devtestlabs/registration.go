@@ -21,7 +21,7 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_dev_test_lab":             dataSourceDevTest(),
+		"azurerm_dev_test_lab":             dataSourceDevTestLab(),
 		"azurerm_dev_test_virtual_network": dataSourceArmDevTestVirtualNetwork(),
 	}
 }
@@ -30,8 +30,8 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_dev_test_global_vm_shutdown_schedule": resourceDevTestGlobalVMShutdownSchedule(),
-		"azurerm_dev_test_lab":                         resourceDevTest(),
-		"azurerm_dev_test_schedule":                    resourceDevTestSchedules(),
+		"azurerm_dev_test_lab":                         resourceDevTestLab(),
+		"azurerm_dev_test_schedule":                    resourceDevTestLabSchedules(),
 		"azurerm_dev_test_linux_virtual_machine":       resourceArmDevTestLinuxVirtualMachine(),
 		"azurerm_dev_test_policy":                      resourceArmDevTestPolicy(),
 		"azurerm_dev_test_virtual_network":             resourceArmDevTestVirtualNetwork(),

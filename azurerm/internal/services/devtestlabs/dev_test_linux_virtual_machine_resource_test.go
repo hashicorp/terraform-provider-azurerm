@@ -1,208 +1,154 @@
 package devtestlabs_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+type DevTestLinuxVirtualMachineResource struct {
+}
 
 func TestAccDevTestLinuxVirtualMachine_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_linux_virtual_machine", "test")
+	r := DevTestLinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestLinuxVirtualMachineDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDevTestLinuxVirtualMachine_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDevTestLinuxVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "gallery_image_reference.0.publisher", "Canonical"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
-			data.ImportStep(
-				// not returned from the API
-				"lab_subnet_name",
-				"lab_virtual_network_id",
-				"password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("gallery_image_reference.0.publisher").HasValue("Canonical"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),
 		},
+		data.ImportStep(
+			// not returned from the API
+			"lab_subnet_name",
+			"lab_virtual_network_id",
+			"password",
+		),
 	})
 }
 
 func TestAccDevTestLinuxVirtualMachine_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_linux_virtual_machine", "test")
+	r := DevTestLinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestLinuxVirtualMachineDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDevTestLinuxVirtualMachine_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDevTestLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccDevTestLinuxVirtualMachine_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_dev_test_lab_linux_virtual_machine"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_dev_test_lab_linux_virtual_machine"),
 		},
 	})
 }
 
 func TestAccDevTestLinuxVirtualMachine_basicSSH(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_linux_virtual_machine", "test")
+	r := DevTestLinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestLinuxVirtualMachineDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDevTestLinuxVirtualMachine_basicSSH(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDevTestLinuxVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "gallery_image_reference.0.publisher", "Canonical"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
-			data.ImportStep(
-				// not returned from the API
-				"lab_subnet_name",
-				"lab_virtual_network_id",
-				"password",
-				"ssh_key",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicSSH(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("gallery_image_reference.0.publisher").HasValue("Canonical"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),
 		},
+		data.ImportStep(
+			// not returned from the API
+			"lab_subnet_name",
+			"lab_virtual_network_id",
+			"password",
+			"ssh_key",
+		),
 	})
 }
 
 func TestAccDevTestLinuxVirtualMachine_inboundNatRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_linux_virtual_machine", "test")
+	r := DevTestLinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestLinuxVirtualMachineDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDevTestLinuxVirtualMachine_inboundNatRules(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDevTestLinuxVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "disallow_public_ip_address", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "gallery_image_reference.0.publisher", "Canonical"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.Acceptance", "Test"),
-				),
-			},
-			data.ImportStep(
-				// not returned from the API
-				"inbound_nat_rule",
-				"lab_subnet_name",
-				"lab_virtual_network_id",
-				"password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.inboundNatRules(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("disallow_public_ip_address").HasValue("true"),
+				check.That(data.ResourceName).Key("gallery_image_reference.0.publisher").HasValue("Canonical"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.Acceptance").HasValue("Test"),
 			),
 		},
+		data.ImportStep(
+			// not returned from the API
+			"inbound_nat_rule",
+			"lab_subnet_name",
+			"lab_virtual_network_id",
+			"password",
+		),
 	})
 }
 
 func TestAccDevTestLinuxVirtualMachine_updateStorage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_linux_virtual_machine", "test")
+	r := DevTestLinuxVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestLinuxVirtualMachineDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDevTestLinuxVirtualMachine_storage(data, "Standard"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDevTestLinuxVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "gallery_image_reference.0.publisher", "Canonical"),
-					resource.TestCheckResourceAttr(data.ResourceName, "storage_type", "Standard"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
-			{
-				Config: testAccDevTestLinuxVirtualMachine_storage(data, "Premium"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDevTestLinuxVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "gallery_image_reference.0.publisher", "Canonical"),
-					resource.TestCheckResourceAttr(data.ResourceName, "storage_type", "Premium"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.storage(data, "Standard"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("gallery_image_reference.0.publisher").HasValue("Canonical"),
+				check.That(data.ResourceName).Key("storage_type").HasValue("Standard"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
+		},
+		{
+			Config: r.storage(data, "Premium"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("gallery_image_reference.0.publisher").HasValue("Canonical"),
+				check.That(data.ResourceName).Key("storage_type").HasValue("Premium"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
 		},
 	})
 }
 
-func testCheckDevTestLinuxVirtualMachineExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.VirtualMachinesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		virtualMachineName := rs.Primary.Attributes["name"]
-		labName := rs.Primary.Attributes["lab_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, labName, virtualMachineName, "")
-		if err != nil {
-			return fmt.Errorf("Bad: Get devTestVirtualMachinesClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: DevTest Linux Virtual Machine %q (Lab %q / Resource Group: %q) does not exist", virtualMachineName, labName, resourceGroup)
-		}
-
-		return nil
+func (DevTestLinuxVirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-}
+	labName := id.Path["labs"]
+	name := id.Path["virtualmachines"]
 
-func testCheckDevTestLinuxVirtualMachineDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.VirtualMachinesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_dev_test_linux_virtual_machine" {
-			continue
-		}
-
-		virtualMachineName := rs.Primary.Attributes["name"]
-		labName := rs.Primary.Attributes["lab_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, labName, virtualMachineName, "")
-		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("DevTest Linux Virtual Machine still exists:\n%#v", resp)
+	resp, err := clients.DevTestLabs.VirtualMachinesClient.Get(ctx, id.ResourceGroup, labName, name, "")
+	if err != nil {
+		return nil, fmt.Errorf("retrieving DevTest Linux Virtual Machine %q (Lab %q / Resource Group: %q) does not exist", name, labName, id.ResourceGroup)
 	}
 
-	return nil
+	return utils.Bool(resp.LabVirtualMachineProperties != nil), nil
 }
 
-func testAccDevTestLinuxVirtualMachine_basic(data acceptance.TestData) string {
-	template := testAccDevTestLinuxVirtualMachine_template(data)
+func (DevTestLinuxVirtualMachineResource) basic(data acceptance.TestData) string {
+	template := DevTestLinuxVirtualMachineResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -228,8 +174,8 @@ resource "azurerm_dev_test_linux_virtual_machine" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccDevTestLinuxVirtualMachine_requiresImport(data acceptance.TestData) string {
-	template := testAccDevTestLinuxVirtualMachine_basic(data)
+func (DevTestLinuxVirtualMachineResource) requiresImport(data acceptance.TestData) string {
+	template := DevTestLinuxVirtualMachineResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -255,8 +201,8 @@ resource "azurerm_dev_test_linux_virtual_machine" "import" {
 `, template)
 }
 
-func testAccDevTestLinuxVirtualMachine_basicSSH(data acceptance.TestData) string {
-	template := testAccDevTestLinuxVirtualMachine_template(data)
+func (DevTestLinuxVirtualMachineResource) basicSSH(data acceptance.TestData) string {
+	template := DevTestLinuxVirtualMachineResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -282,8 +228,8 @@ resource "azurerm_dev_test_linux_virtual_machine" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccDevTestLinuxVirtualMachine_inboundNatRules(data acceptance.TestData) string {
-	template := testAccDevTestLinuxVirtualMachine_template(data)
+func (DevTestLinuxVirtualMachineResource) inboundNatRules(data acceptance.TestData) string {
+	template := DevTestLinuxVirtualMachineResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -324,8 +270,8 @@ resource "azurerm_dev_test_linux_virtual_machine" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccDevTestLinuxVirtualMachine_storage(data acceptance.TestData, storageType string) string {
-	template := testAccDevTestLinuxVirtualMachine_template(data)
+func (DevTestLinuxVirtualMachineResource) storage(data acceptance.TestData, storageType string) string {
+	template := DevTestLinuxVirtualMachineResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -351,7 +297,7 @@ resource "azurerm_dev_test_linux_virtual_machine" "test" {
 `, template, data.RandomInteger, storageType)
 }
 
-func testAccDevTestLinuxVirtualMachine_template(data acceptance.TestData) string {
+func (DevTestLinuxVirtualMachineResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
