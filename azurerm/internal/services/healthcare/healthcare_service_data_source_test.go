@@ -1,4 +1,4 @@
-package tests
+package healthcare_test
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccAzureRMDataSourceHealthCareService_basic(t *testing.T) {
+func TestAccHealthCareServiceDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_healthcare_service", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -31,7 +31,7 @@ func TestAccAzureRMDataSourceHealthCareService_basic(t *testing.T) {
 }
 
 func testAccAzureRMDataSourceHealthcareService_basic(data acceptance.TestData) string {
-	resource := testAccAzureRMHealthCareService_basic(data)
+	resource := testAccHealthCareService_basic(data)
 	return fmt.Sprintf(`
 %s
 

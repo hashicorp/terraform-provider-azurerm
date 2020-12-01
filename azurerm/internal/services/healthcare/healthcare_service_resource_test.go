@@ -1,4 +1,4 @@
-package tests
+package healthcare_test
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare/parse"
 )
 
-func TestAccAzureRMHealthCareService_basic(t *testing.T) {
+func TestAccHealthCareService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -21,7 +21,7 @@ func TestAccAzureRMHealthCareService_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMHealthCareServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHealthCareService_basic(data),
+				Config: testAccHealthCareService_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMHealthCareServiceExists(data.ResourceName),
 				),
@@ -31,7 +31,7 @@ func TestAccAzureRMHealthCareService_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHealthCareService_requiresImport(t *testing.T) {
+func TestAccHealthCareService_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -40,17 +40,17 @@ func TestAccAzureRMHealthCareService_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMHealthCareServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHealthCareService_basic(data),
+				Config: testAccHealthCareService_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMHealthCareServiceExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMHealthCareService_requiresImport),
+			data.RequiresImportErrorStep(testAccHealthCareService_requiresImport),
 		},
 	})
 }
 
-func TestAccAzureRMHealthCareService_complete(t *testing.T) {
+func TestAccHealthCareService_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -59,7 +59,7 @@ func TestAccAzureRMHealthCareService_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMHealthCareServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHealthCareService_complete(data),
+				Config: testAccHealthCareService_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMHealthCareServiceExists(data.ResourceName),
 				),
@@ -124,7 +124,7 @@ func testCheckAzureRMHealthCareServiceDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMHealthCareService_basic(data acceptance.TestData) string {
+func testAccHealthCareService_basic(data acceptance.TestData) string {
 	// currently only supported in "ukwest", "northcentralus", "westus2".
 	location := "westus2"
 
@@ -153,8 +153,8 @@ resource "azurerm_healthcare_service" "test" {
 `, data.RandomInteger, location, data.RandomIntOfLength(17)) // name can only be 24 chars long
 }
 
-func testAccAzureRMHealthCareService_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMHealthCareService_basic(data)
+func testAccHealthCareService_requiresImport(data acceptance.TestData) string {
+	template := testAccHealthCareService_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -170,7 +170,7 @@ resource "azurerm_healthcare_service" "import" {
 `, template)
 }
 
-func testAccAzureRMHealthCareService_complete(data acceptance.TestData) string {
+func testAccHealthCareService_complete(data acceptance.TestData) string {
 	// currently only supported in "ukwest", "northcentralus", "westus2".
 	location := "westus2"
 
