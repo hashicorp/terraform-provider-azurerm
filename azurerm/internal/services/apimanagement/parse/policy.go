@@ -4,19 +4,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type ApiManagementPolicyId struct {
+type PolicyId struct {
 	ResourceGroup string
 	ServiceName   string
 	Name          string
 }
 
-func ApiManagementPolicyID(input string) (*ApiManagementPolicyId, error) {
+func PolicyID(input string) (*PolicyId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	policy := ApiManagementPolicyId{
+	policy := PolicyId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
