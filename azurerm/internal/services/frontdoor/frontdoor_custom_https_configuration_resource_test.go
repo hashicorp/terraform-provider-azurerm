@@ -1,4 +1,4 @@
-package tests
+package frontdoor_test
 
 import (
 	"fmt"
