@@ -63,7 +63,7 @@ func (t DevSpaceControllerResource) Exists(ctx context.Context, clients *clients
 
 	resp, err := clients.DevSpace.ControllersClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving DevSpace Controller %q (Resource Group: %q) does not exist", id.Name, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving DevSpace Controller %q (Resource Group: %q): %v", id.Name, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.ControllerProperties != nil), nil
