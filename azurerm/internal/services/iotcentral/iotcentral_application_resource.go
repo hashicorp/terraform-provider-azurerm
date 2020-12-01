@@ -41,7 +41,7 @@ func resourceIotCentralApplication() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.IotCentralAppName,
+				ValidateFunc: validate.ApplicationName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -51,14 +51,14 @@ func resourceIotCentralApplication() *schema.Resource {
 			"sub_domain": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.IotCentralAppSubdomain,
+				ValidateFunc: validate.ApplicationSubdomain,
 			},
 
 			"display_name": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validate.IotCentralAppDisplayName,
+				ValidateFunc: validate.ApplicationDisplayName,
 			},
 
 			"sku": {
@@ -76,7 +76,7 @@ func resourceIotCentralApplication() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validate.IotCentralAppTemplateName,
+				ValidateFunc: validate.ApplicationTemplateName,
 			},
 
 			"tags": tags.Schema(),
