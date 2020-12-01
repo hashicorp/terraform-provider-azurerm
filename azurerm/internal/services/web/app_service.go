@@ -812,7 +812,7 @@ func schemaAppServiceIpRestriction() *schema.Schema {
 				"ip_address": {
 					Type:         schema.TypeString,
 					Optional:     true,
-					ValidateFunc: validation.IsCIDR,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"subnet_id": {
@@ -1848,6 +1848,12 @@ func expandAppServiceIpRestriction(input interface{}) ([]web.IPSecurityRestricti
 		ipSecurityRestriction := web.IPSecurityRestriction{}
 		if ipAddress == "Any" {
 			continue
+		}
+
+		// if ipAddress doesn't look like an ipAddress, set Tag to serviceTag
+		firstChar := ipAddress[0]
+		if !('0' <= firstChar && firstChar <= '9') {
+			ipSecurityRestriction.Tag = web.ServiceTag
 		}
 
 		if ipAddress != "" {
