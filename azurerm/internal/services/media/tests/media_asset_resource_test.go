@@ -23,6 +23,28 @@ func TestAccAzureRMMediaAsset_basic(t *testing.T) {
 			{
 				Config: testAccAzureRMMediaAsset_basic(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(data.ResourceName, "name", "Asset-Content1"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMMediaAsset_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_media_asset", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMediaAssetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMediaAsset_complete(data),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(data.ResourceName, "alternate_id", "Asset-alternateid"),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_account_name", fmt.Sprintf("acctestsa1%s", data.RandomString)),
+					resource.TestCheckResourceAttr(data.ResourceName, "container", "asset-container"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "Asset description"),
 				),
 			},
@@ -31,7 +53,7 @@ func TestAccAzureRMMediaAsset_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMediaAsset_alternate_id(t *testing.T) {
+func TestAccAzureRMMediaAsset_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_asset", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -40,47 +62,27 @@ func TestAccAzureRMMediaAsset_alternate_id(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMediaAssetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMediaAsset_alternate_id(data),
+				Config: testAccAzureRMMediaAsset_basic(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "alternate_id", "assetalternateid"),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", "Asset-Content1"),
 				),
 			},
 			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMMediaAsset_custom_container(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_media_asset", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMediaAssetDestroy,
-		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMediaAsset_custom_container(data),
+				Config: testAccAzureRMMediaAsset_complete(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "container", "assetcontainer"),
+					resource.TestCheckResourceAttr(data.ResourceName, "alternate_id", "Asset-alternateid"),
+					resource.TestCheckResourceAttr(data.ResourceName, "container", "asset-container"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "Asset description"),
 				),
 			},
 			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMMediaAsset_storage_account(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_media_asset", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMediaAssetDestroy,
-		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMediaAsset_storage_account(data),
+				Config: testAccAzureRMMediaAsset_basic(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "storage_account_name", fmt.Sprintf("acctestsa1%s", data.RandomString)),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "alternate_id", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", "Asset-Content1"),
 				),
 			},
 			data.ImportStep(),
@@ -121,62 +123,30 @@ func testAccAzureRMMediaAsset_basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_media_asset" "test" {
-  name                        = "asset%s"
-  description                 = "Asset description"
+  name                        = "Asset-Content1"
   resource_group_name         = azurerm_resource_group.test.name
   media_services_account_name = azurerm_media_services_account.test.name
 }
 
-`, template, data.RandomString)
+`, template)
 }
 
-func testAccAzureRMMediaAsset_alternate_id(data acceptance.TestData) string {
+func testAccAzureRMMediaAsset_complete(data acceptance.TestData) string {
 	template := testAccAzureRMMediaAsset_template(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_media_asset" "test" {
-  name                        = "asset%s"
-  description                 = "Asset description"
-  resource_group_name         = azurerm_resource_group.test.name
-  media_services_account_name = azurerm_media_services_account.test.name
-  alternate_id                = "assetalternateid"
-}
-
-`, template, data.RandomString)
-}
-
-func testAccAzureRMMediaAsset_storage_account(data acceptance.TestData) string {
-	template := testAccAzureRMMediaAsset_template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_media_asset" "test" {
-  name                        = "asset%s"
+  name                        = "Asset-Content1"
   description                 = "Asset description"
   resource_group_name         = azurerm_resource_group.test.name
   media_services_account_name = azurerm_media_services_account.test.name
   storage_account_name        = azurerm_storage_account.test.name
+  alternate_id                = "Asset-alternateid"
+  container                   = "asset-container"
 }
 
-`, template, data.RandomString)
-}
-
-func testAccAzureRMMediaAsset_custom_container(data acceptance.TestData) string {
-	template := testAccAzureRMMediaAsset_template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_media_asset" "test" {
-  name                        = "asset%s"
-  description                 = "Asset description"
-  resource_group_name         = azurerm_resource_group.test.name
-  media_services_account_name = azurerm_media_services_account.test.name
-  storage_account_name        = azurerm_storage_account.test.name
-  container                   = "assetcontainer"
-}
-
-`, template, data.RandomString)
+`, template)
 }
 
 func testAccAzureRMMediaAsset_template(data acceptance.TestData) string {

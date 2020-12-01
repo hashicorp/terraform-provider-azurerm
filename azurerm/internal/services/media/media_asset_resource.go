@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/parse"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -43,8 +44,8 @@ func resourceArmMediaAssets() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile("^[-a-z0-9]{3,24}$"),
-					"Asset name must be 3 - 24 characters long, contain only lowercase letters and numbers.",
+					regexp.MustCompile("^[-a-zA-Z0-9]{1,128}$"),
+					"Asset name must be 1 - 128 characters long, contain only letters, hyphen and numbers.",
 				),
 			},
 
@@ -61,25 +62,34 @@ func resourceArmMediaAssets() *schema.Resource {
 			},
 
 			"alternate_id": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"container": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Computed:     true,
+				ValidateFunc: validate.StorageContainerName,
 			},
 
 			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"storage_account_name": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 				Computed: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile("^([a-z0-9]{3,24})$"),
+					"Storage Account Name can only consist of lowercase letters and numbers, and must be between 3 and 24 characters long.",
+				),
 			},
 		},
 	}
@@ -94,20 +104,23 @@ func resourceArmMediaAssetsCreateUpdate(d *schema.ResourceData, meta interface{}
 	resourceGroup := d.Get("resource_group_name").(string)
 	accountName := d.Get("media_services_account_name").(string)
 	description := d.Get("description").(string)
-	alternateId := d.Get("alternate_id").(string)
-	container := d.Get("container").(string)
-	storageAccountName := d.Get("storage_account_name").(string)
 
 	parameters := media.Asset{
 		AssetProperties: &media.AssetProperties{
-			Description:        &description,
-			AlternateID:        &alternateId,
-			StorageAccountName: &storageAccountName,
+			Description: utils.String(description),
 		},
 	}
 
-	if container != "" {
-		parameters.Container = &container
+	if v, ok := d.GetOk("container"); ok {
+		parameters.Container = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("alternate_id"); ok {
+		parameters.AlternateID = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("storage_account_name"); ok {
+		parameters.StorageAccountName = utils.String(v.(string))
 	}
 
 	if _, e := client.CreateOrUpdate(ctx, resourceGroup, accountName, assetName, parameters); e != nil {
@@ -148,10 +161,12 @@ func resourceArmMediaAssetsRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("media_services_account_name", id.AccountName)
-	d.Set("description", resp.AssetProperties.Description)
-	d.Set("alternate_id", resp.AssetProperties.AlternateID)
-	d.Set("container", resp.AssetProperties.Container)
-	d.Set("storage_account_name", resp.AssetProperties.StorageAccountName)
+	if resp.AssetProperties != nil {
+		d.Set("description", resp.AssetProperties.Description)
+		d.Set("alternate_id", resp.AssetProperties.AlternateID)
+		d.Set("container", resp.AssetProperties.Container)
+		d.Set("storage_account_name", resp.AssetProperties.StorageAccountName)
+	}
 
 	return nil
 }
@@ -175,4 +190,5 @@ func resourceArmMediaAssetsDelete(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	return nil
+
 }
