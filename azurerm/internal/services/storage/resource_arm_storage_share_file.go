@@ -42,7 +42,6 @@ func resourceArmStorageShareFile() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
-				// TODO: add validation
 			},
 			"storage_share_id": {
 				Type:         schema.TypeString,
@@ -109,10 +108,10 @@ func resourceArmStorageShareFileCreate(d *schema.ResourceData, meta interface{})
 
 	account, err := storageClient.FindAccount(ctx, storageShareID.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for File %q (Share %q): %s", storageShareID.AccountName, fileName, storageShareID.Name, err)
+		return fmt.Errorf("eretrieving Account %q for File %q (Share %q): %s", storageShareID.AccountName, fileName, storageShareID.Name, err)
 	}
 	if account == nil {
-		return fmt.Errorf("Unable to locate Storage Account %q!", storageShareID.AccountName)
+		return fmt.Errorf("unable to locate Storage Account %q!", storageShareID.AccountName)
 	}
 
 	fileSharesClient, err := storageClient.FileSharesClient(ctx, *account)
@@ -130,13 +129,13 @@ func resourceArmStorageShareFileCreate(d *schema.ResourceData, meta interface{})
 
 	client, err := storageClient.FileShareFilesClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building File Share Directories Client: %s", err)
+		return fmt.Errorf("building File Share Directories Client: %s", err)
 	}
 
 	existing, err := client.GetProperties(ctx, storageShareID.AccountName, storageShareID.Name, path, fileName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of existing File %q (File Share %q / Storage Account %q / Resource Group %q): %s", fileName, storageShareID.Name, storageShareID.AccountName, account.ResourceGroup, err)
+			return fmt.Errorf("checking for presence of existing File %q (File Share %q / Storage Account %q / Resource Group %q): %s", fileName, storageShareID.Name, storageShareID.AccountName, account.ResourceGroup, err)
 		}
 	}
 
@@ -202,7 +201,7 @@ func resourceArmStorageShareFileUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving Account %q for File %q (Share %q): %s", id.AccountName, id.FileName, id.ShareName, err)
 	}
 	if account == nil {
-		return fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
+		return fmt.Errorf("unable to locate Storage Account %q!", id.AccountName)
 	}
 
 	fileSharesClient, err := storageClient.FileSharesClient(ctx, *account)
@@ -226,7 +225,7 @@ func resourceArmStorageShareFileUpdate(d *schema.ResourceData, meta interface{})
 	existing, err := client.GetProperties(ctx, id.AccountName, id.ShareName, id.DirectoryName, id.FileName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of existing File %q (File Share %q / Storage Account %q / Resource Group %q): %s", id.FileName, id.ShareName, id.AccountName, account.ResourceGroup, err)
+			return fmt.Errorf("checking for presence of existing File %q (File Share %q / Storage Account %q / Resource Group %q): %s", id.FileName, id.ShareName, id.AccountName, account.ResourceGroup, err)
 		}
 	}
 
@@ -243,7 +242,7 @@ func resourceArmStorageShareFileUpdate(d *schema.ResourceData, meta interface{})
 		}
 
 		if _, err := client.SetProperties(ctx, id.AccountName, id.ShareName, id.DirectoryName, id.FileName, input); err != nil {
-			return fmt.Errorf("Error creating File %q (File Share %q / Account %q): %+v", id.FileName, id.ShareName, id.AccountName, err)
+			return fmt.Errorf("creating File %q (File Share %q / Account %q): %+v", id.FileName, id.ShareName, id.AccountName, err)
 		}
 	}
 
@@ -262,7 +261,7 @@ func resourceArmStorageShareFileRead(d *schema.ResourceData, meta interface{}) e
 
 	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for File %q (Share %q): %s", id.AccountName, id.FileName, id.ShareName, err)
+		return fmt.Errorf("retrieving Account %q for File %q (Share %q): %s", id.AccountName, id.FileName, id.ShareName, err)
 	}
 	if account == nil {
 		log.Printf("[WARN] Unable to determine Storage Account for Storage Share File %q (Share %s, Account %s) - assuming removed & removing from state", id.FileName, id.ShareName, id.AccountName)
@@ -287,12 +286,12 @@ func resourceArmStorageShareFileRead(d *schema.ResourceData, meta interface{}) e
 
 	client, err := storageClient.FileShareFilesClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building File Share Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("building File Share Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
 	}
 
 	props, err := client.GetProperties(ctx, id.AccountName, id.ShareName, id.DirectoryName, id.FileName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Storage Share %q (File Share %q / Account %q / Resource Group %q): %s", id.DirectoryName, id.ShareName, id.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("retrieving Storage Share %q (File Share %q / Account %q / Resource Group %q): %s", id.DirectoryName, id.ShareName, id.AccountName, account.ResourceGroup, err)
 	}
 
 	d.Set("name", id.FileName)
@@ -300,7 +299,7 @@ func resourceArmStorageShareFileRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("storage_share_id", parse.NewStorageShareDataPlaneId(id.AccountName, storageClient.Environment.StorageEndpointSuffix, id.ShareName).ID(""))
 
 	if err := d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
-		return fmt.Errorf("Error setting `metadata`: %s", err)
+		return fmt.Errorf("setting `metadata`: %s", err)
 	}
 	d.Set("content_type", props.ContentType)
 	d.Set("content_encoding", props.ContentEncoding)
@@ -322,19 +321,19 @@ func resourceArmStorageShareFileDelete(d *schema.ResourceData, meta interface{})
 
 	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for File %q (Share %q): %s", id.AccountName, id.FileName, id.ShareName, err)
+		return fmt.Errorf("retrieving Account %q for File %q (Share %q): %s", id.AccountName, id.FileName, id.ShareName, err)
 	}
 	if account == nil {
-		return fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
+		return fmt.Errorf("unable to locate Storage Account %q", id.AccountName)
 	}
 
 	client, err := storageClient.FileShareFilesClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building File Share File Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("building File Share File Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
 	}
 
 	if _, err := client.Delete(ctx, id.AccountName, id.ShareName, id.DirectoryName, id.FileName); err != nil {
-		return fmt.Errorf("Error deleting Storage Share File %q (File Share %q / Account %q / Resource Group %q): %s", id.FileName, id.ShareName, id.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("deleting Storage Share File %q (File Share %q / Account %q / Resource Group %q): %s", id.FileName, id.ShareName, id.AccountName, account.ResourceGroup, err)
 	}
 
 	return nil
