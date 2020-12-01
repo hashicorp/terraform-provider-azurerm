@@ -1,4 +1,4 @@
-package web
+package web_test
 
 import (
 	"fmt"
@@ -6,31 +6,28 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
+
+type FunctionAppHostKeysDataSource struct{}
 
 func TestAccDataSourceAzureRMFunctionAppHostKeys_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_function_app_host_keys", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMFunctionAppHostKeys_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					testCheckAzureRMFunctionAppHasNoContentShare(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "default_function_key"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: FunctionAppHostKeysDataSource{}.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckAzureRMFunctionAppHasNoContentShare(data.ResourceName),
+				check.That(data.ResourceName).Key("primary_key").Exists(),
+				check.That(data.ResourceName).Key("default_function_key").Exists(),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMFunctionAppHostKeys_basic(data acceptance.TestData) string {
-	template := testAccAzureRMFunctionApp_basic(data)
+func (d FunctionAppHostKeysDataSource) basic(data acceptance.TestData) string {
+	template := FunctionAppResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 

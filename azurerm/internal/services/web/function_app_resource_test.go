@@ -1,82 +1,74 @@
-package tests
+package web_test
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"regexp"
 	"strings"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type FunctionAppResource struct{}
+
 func TestAccAzureRMFunctionApp_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					testCheckAzureRMFunctionAppHasNoContentShare(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "version", "~1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "outbound_ip_addresses"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "possible_outbound_ip_addresses"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "custom_domain_verification_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.tenant_id"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckAzureRMFunctionAppHasNoContentShare(data.ResourceName),
+				check.That(data.ResourceName).Key("version").HasValue("~1"),
+				check.That(data.ResourceName).Key("outbound_ip_addresses").Exists(),
+				check.That(data.ResourceName).Key("possible_outbound_ip_addresses").Exists(),
+				check.That(data.ResourceName).Key("custom_domain_verification_id").Exists(),
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 // TODO remove in 3.0
 func TestAccAzureRMFunctionApp_deprecatedConnectionString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_deprecatedConnectionString(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.deprecatedConnectionString(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 // TODO remove in 3.0
 func TestAccAzureRMFunctionApp_deprecatedConnectionStringMissingError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      testAccAzureRMFunctionApp_deprecatedConnectionStringMissingError(data),
-				ExpectError: regexp.MustCompile("one of `storage_connection_string` or `storage_account_name` and `storage_account_access_key` must be specified"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config:      r.deprecatedConnectionStringMissingError(data),
+			ExpectError: regexp.MustCompile("one of `storage_connection_string` or `storage_account_name` and `storage_account_access_key` must be specified"),
 		},
 	})
 }
@@ -84,920 +76,770 @@ func TestAccAzureRMFunctionApp_deprecatedConnectionStringMissingError(t *testing
 // TODO remove in 3.0
 func TestAccAzureRMFunctionApp_deprecatedNeedBothSAAtrributesError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      testAccAzureRMFunctionApp_deprecatedConnectionStringBothSpecifiedError(data),
-				ExpectError: regexp.MustCompile("both `storage_account_name` and `storage_account_access_key` must be specified"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config:      r.deprecatedConnectionStringBothSpecifiedError(data),
+			ExpectError: regexp.MustCompile("both `storage_account_name` and `storage_account_access_key` must be specified"),
 		},
 	})
 }
 
 func TestAccAzureRMFunctionApp_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					testCheckAzureRMFunctionAppHasNoContentShare(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMFunctionApp_requiresImport),
+	r := FunctionAppResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckAzureRMFunctionAppHasNoContentShare(data.ResourceName),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
 func TestAccAzureRMFunctionApp_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_tags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "production"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.tags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("production"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMFunctionApp_tagsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_tags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "production"),
-				),
-			},
-			{
-				Config: testAccAzureRMFunctionApp_tagsUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "production"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.hello", "Berlin"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.tags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("production"),
+			),
+		},
+		{
+			Config: r.tagsUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("production"),
+				check.That(data.ResourceName).Key("tags.hello").HasValue("Berlin"),
+			),
 		},
 	})
 }
 
 func TestAccAzureRMFunctionApp_appSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMFunctionApp_appSettings(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMFunctionApp_appSettingsUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("app_settings.%", "app_settings.AzureWebJobsDashboard", "app_settings.AzureWebJobsStorage"),
-			{
-				Config: testAccAzureRMFunctionApp_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.appSettings(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.appSettingsUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("app_settings.%", "app_settings.AzureWebJobsDashboard", "app_settings.AzureWebJobsStorage"),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMFunctionApp_siteConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_alwaysOn(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.always_on", "true"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.alwaysOn(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.always_on").HasValue("true"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMFunctionApp_healthCheck(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_healthCheck(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.health_check_path", "/"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.healthCheck(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.health_check_path").HasValue("/"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMFunctionApp_linuxFxVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_linuxFxVersion(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "kind", "functionapp,linux,container"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.linux_fx_version", "DOCKER|(golang:latest)"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.linuxFxVersion(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				resource.TestCheckResourceAttr(data.ResourceName, "kind", "functionapp,linux,container"),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOCKER|(golang:latest)"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMFunctionApp_connectionStrings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_connectionStrings(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.163594034.name", "Example"),
-					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.163594034.type", "PostgreSQL"),
-					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.163594034.value", "some-postgresql-connection-string"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.connectionStrings(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("connection_string.#").HasValue("1"),
+				check.That(data.ResourceName).Key("connection_string.163594034.name").HasValue("Example"),
+				check.That(data.ResourceName).Key("connection_string.163594034.type").HasValue("PostgreSQL"),
+				check.That(data.ResourceName).Key("connection_string.163594034.value").HasValue("some-postgresql-connection-string"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 // TODO - Refactor this into more granular tests - currently fails due to race condition in a `ForceNew` step when changed to `kind = linux`
 func TestAccAzureRMFunctionApp_siteConfigMulti(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "app_settings.%", "0"),
-				),
-			},
-			{
-				Config: testAccAzureRMFunctionApp_appSettings(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "app_settings.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "app_settings.hello", "world"),
-				),
-			},
-			{
-				Config: testAccAzureRMFunctionApp_appSettingsAlwaysOn(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "app_settings.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "app_settings.hello", "world"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.always_on", "true"),
-				),
-			},
-			{
-				Config: testAccAzureRMFunctionApp_appSettingsAlwaysOnLinuxFxVersion(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "kind", "functionapp,linux,container"),
-					resource.TestCheckResourceAttr(data.ResourceName, "app_settings.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "app_settings.hello", "world"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.always_on", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.linux_fx_version", "DOCKER|(golang:latest)"),
-				),
-			},
-			{
-				Config: testAccAzureRMFunctionApp_appSettingsAlwaysOnLinuxFxVersionConnectionStrings(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "kind", "functionapp,linux,container"),
-					resource.TestCheckResourceAttr(data.ResourceName, "app_settings.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "app_settings.hello", "world"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.always_on", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.linux_fx_version", "DOCKER|(golang:latest)"),
-					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.163594034.name", "Example"),
-					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.163594034.type", "PostgreSQL"),
-					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.163594034.value", "some-postgresql-connection-string"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings.%").HasValue("0"),
+			),
+		},
+		{
+			Config: r.appSettings(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings.%").HasValue("1"),
+				check.That(data.ResourceName).Key("app_settings.hello").HasValue("world"),
+			),
+		},
+		{
+			Config: r.appSettingsAlwaysOn(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings.%").HasValue("1"),
+				check.That(data.ResourceName).Key("app_settings.hello").HasValue("world"),
+				check.That(data.ResourceName).Key("site_config.0.always_on").HasValue("true"),
+			),
+		},
+		{
+			Config: r.appSettingsAlwaysOnLinuxFxVersion(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				resource.TestCheckResourceAttr(data.ResourceName, "kind", "functionapp,linux,container"),
+				check.That(data.ResourceName).Key("app_settings.%").HasValue("1"),
+				check.That(data.ResourceName).Key("app_settings.hello").HasValue("world"),
+				check.That(data.ResourceName).Key("site_config.0.always_on").HasValue("true"),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOCKER|(golang:latest)"),
+			),
+		},
+		{
+			Config: r.appSettingsAlwaysOnLinuxFxVersionConnectionStrings(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				resource.TestCheckResourceAttr(data.ResourceName, "kind", "functionapp,linux,container"),
+				check.That(data.ResourceName).Key("app_settings.%").HasValue("1"),
+				check.That(data.ResourceName).Key("app_settings.hello").HasValue("world"),
+				check.That(data.ResourceName).Key("site_config.0.always_on").HasValue("true"),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOCKER|(golang:latest)"),
+				check.That(data.ResourceName).Key("connection_string.163594034.name").HasValue("Example"),
+				check.That(data.ResourceName).Key("connection_string.163594034.type").HasValue("PostgreSQL"),
+				check.That(data.ResourceName).Key("connection_string.163594034.value").HasValue("some-postgresql-connection-string"),
+			),
 		},
 	})
 }
 
 func TestAccAzureRMFunctionApp_updateVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_version(data, "~1"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "version", "~1"),
-				),
-			},
-			{
-				Config: testAccAzureRMFunctionApp_version(data, "~2"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "version", "~2"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.version(data, "~1"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("version").HasValue("~1"),
+			),
+		},
+		{
+			Config: r.version(data, "~2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("version").HasValue("~2"),
+			),
 		},
 	})
 }
 
 func TestAccAzureRMFunctionApp_3264bit(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.use_32_bit_worker_process", "true"),
-				),
-			},
-			{
-				Config: testAccAzureRMFunctionApp_64bit(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.use_32_bit_worker_process", "false"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.use_32_bit_worker_process").HasValue("true"),
+			),
+		},
+		{
+			Config: r.app64bit(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.use_32_bit_worker_process").HasValue("false"),
+			),
 		},
 	})
 }
 
 func TestAccAzureRMFunctionApp_httpsOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_httpsOnly(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "https_only", "true"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.httpsOnly(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_only").HasValue("true"),
+			),
 		},
 	})
 }
 
 func TestAccAzureRMFunctionApp_dailyMemoryTimeQuota(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_consumptionPlan(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "daily_memory_time_quota", "0"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMFunctionApp_dailyMemoryTimeQuota(data, 1000),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "daily_memory_time_quota", "1000"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.consumptionPlan(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("daily_memory_time_quota").HasValue("0"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.dailyMemoryTimeQuota(data, 1000),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("daily_memory_time_quota").HasValue("1000"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMFunctionApp_consumptionPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_consumptionPlan(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					testCheckAzureRMFunctionAppHasContentShare(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.use_32_bit_worker_process", "true"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.consumptionPlan(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckAzureRMFunctionAppHasContentShare(data.ResourceName),
+				check.That(data.ResourceName).Key("site_config.0.use_32_bit_worker_process").HasValue("true"),
+			),
 		},
 	})
 }
 
 func TestAccAzureRMFunctionApp_consumptionPlanUppercaseName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_consumptionPlanUppercaseName(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					testCheckAzureRMFunctionAppHasContentShare(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.use_32_bit_worker_process", "true"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.consumptionPlanUppercaseName(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckAzureRMFunctionAppHasContentShare(data.ResourceName),
+				check.That(data.ResourceName).Key("site_config.0.use_32_bit_worker_process").HasValue("true"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMFunctionApp_createIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_basicIdentity(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
-					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.tenant_id", validate.UUIDRegExp),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicIdentity(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
+				resource.TestMatchResourceAttr(data.ResourceName, "identity.0.tenant_id", validate.UUIDRegExp),
+			),
 		},
 	})
 }
 
 func TestAccAzureRMFunctionApp_updateIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.#", "0"),
-				),
-			},
-			{
-				Config: testAccAzureRMFunctionApp_basicIdentity(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
-					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.tenant_id", validate.UUIDRegExp),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.#").HasValue("0"),
+			),
+		},
+		{
+			Config: r.basicIdentity(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
+				resource.TestMatchResourceAttr(data.ResourceName, "identity.0.tenant_id", validate.UUIDRegExp),
+			),
 		},
 	})
 }
 
 func TestAccAzureRMFunctionApp_userAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_userAssignedIdentity(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "UserAssigned"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.identity_ids.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.principal_id", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.tenant_id", ""),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMFunctionApp_userAssignedIdentityUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "UserAssigned"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.identity_ids.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.principal_id", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.tenant_id", ""),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.userAssignedIdentity(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsEmpty(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsEmpty(),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.userAssignedIdentityUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("2"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsEmpty(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsEmpty(),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMFunctionApp_loggingDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_loggingDisabled(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					testCheckAzureRMFunctionAppHasNoContentShare(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enable_builtin_logging", "false"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.loggingDisabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckAzureRMFunctionAppHasNoContentShare(data.ResourceName),
+				check.That(data.ResourceName).Key("enable_builtin_logging").HasValue("false"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMFunctionApp_updateLogging(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enable_builtin_logging", "true"),
-				),
-			},
-			{
-				Config: testAccAzureRMFunctionApp_loggingDisabled(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enable_builtin_logging", "false"),
-				),
-			},
-			{
-				Config: testAccAzureRMFunctionApp_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enable_builtin_logging", "true"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enable_builtin_logging").HasValue("true"),
+			),
+		},
+		{
+			Config: r.loggingDisabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enable_builtin_logging").HasValue("false"),
+			),
+		},
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enable_builtin_logging").HasValue("true"),
+			),
 		},
 	})
 }
 
 func TestAccAzureRMFunctionApp_authSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
-
 	tenantID := os.Getenv("ARM_TENANT_ID")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_authSettings(data, tenantID),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.runtime_version", "1.0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.unauthenticated_client_action", "RedirectToLoginPage"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.token_refresh_extension_hours", "75"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.token_store_enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.additional_login_params.test_key", "test_value"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.allowed_external_redirect_urls.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.allowed_external_redirect_urls.0", "https://terra.form"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.authSettings(data, tenantID),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auth_settings.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("auth_settings.0.issuer").HasValue(fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
+				check.That(data.ResourceName).Key("auth_settings.0.runtime_version").HasValue("1.0"),
+				check.That(data.ResourceName).Key("auth_settings.0.unauthenticated_client_action").HasValue("RedirectToLoginPage"),
+				check.That(data.ResourceName).Key("auth_settings.0.token_refresh_extension_hours").HasValue("75"),
+				check.That(data.ResourceName).Key("auth_settings.0.token_store_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("auth_settings.0.additional_login_params.test_key").HasValue("test_value"),
+				check.That(data.ResourceName).Key("auth_settings.0.allowed_external_redirect_urls.#").HasValue("1"),
+				check.That(data.ResourceName).Key("auth_settings.0.allowed_external_redirect_urls.0").HasValue("https://terra.form"),
+				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.client_id").HasValue("aadclientid"),
+				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.client_secret").HasValue("aadsecret"),
+				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.allowed_audiences.#").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMFunctionApp_corsSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_corsSettings(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.cors.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.cors.0.support_credentials", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.cors.0.allowed_origins.#", "4"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.corsSettings(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.cors.#").HasValue("1"),
+				check.That(data.ResourceName).Key("site_config.0.cors.0.support_credentials").HasValue("true"),
+				check.That(data.ResourceName).Key("site_config.0.cors.0.allowed_origins.#").HasValue("4"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMFunctionApp_enableHttp2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_enableHttp2(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.http2_enabled", "true"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.enableHttp2(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.http2_enabled").HasValue("true"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMFunctionApp_minTlsVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_minTlsVersion(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.min_tls_version", "1.2"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.minTlsVersion(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.min_tls_version").HasValue("1.2"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMFunctionApp_ftpsState(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_ftpsState(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ftps_state", "AllAllowed"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.ftpsState(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.ftps_state").HasValue("AllAllowed"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMFunctionApp_preWarmedInstanceCount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_preWarmedInstanceCount(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.pre_warmed_instance_count", "1"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.preWarmedInstanceCount(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.pre_warmed_instance_count").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMFunctionApp_oneIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_oneIpRestriction(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10/32"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.oneIpRestriction(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.ip_address").HasValue("10.10.10.10/32"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMFunctionApp_oneVNetSubnetIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_oneVNetSubnetIpRestriction(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.oneVNetSubnetIpRestriction(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMFunctionApp_ipRestrictionRemoved(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				// This configuration includes a single explicit ip_restriction
-				Config: testAccAzureRMFunctionApp_oneIpRestriction(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.#", "1"),
-				),
-			},
-			{
-				// This configuration has no site_config blocks at all.
-				Config: testAccAzureRMFunctionApp_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.#", "1"),
-				),
-			},
-			{
-				// This configuration explicitly sets ip_restriction to [] using attribute syntax.
-				Config: testAccAzureRMFunctionApp_ipRestrictionRemoved(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.#", "0"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// This configuration includes a single explicit ip_restriction
+			Config: r.oneIpRestriction(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("1"),
+			),
+		},
+		{
+			// This configuration has no site_config blocks at all.
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("1"),
+			),
+		},
+		{
+			// This configuration explicitly sets ip_restriction to [] using attribute syntax.
+			Config: r.ipRestrictionRemoved(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("0"),
+			),
 		},
 	})
 }
 
 func TestAccAzureRMFunctionApp_manyIpRestrictions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_manyIpRestrictions(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.manyIpRestrictions(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMFunctionApp_scmUseMainIPRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_scmUseMainIPRestriction(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := FunctionAppResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.scmUseMainIPRestriction(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMFunctionApp_scmOneIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_scmOneIpRestriction(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := FunctionAppResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.scmOneIpRestriction(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMFunctionApp_updateStorageAccountKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMFunctionApp_updateStorageAccountKey(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMFunctionApp_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.updateStorageAccountKey(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMFunctionApp_withSourceControl(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_withSourceControl(data, "main"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withSourceControl(data, "main"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMFunctionApp_sourceControlUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_withSourceControl(data, "main"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMFunctionApp_withSourceControl(data, "development"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withSourceControl(data, "main"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.withSourceControl(data, "development"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMFunctionAppDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServicesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_function_app" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-			return err
-		}
-
-		return nil
+func (r FunctionAppResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.FunctionAppID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := client.Web.AppServicesClient.Get(ctx, id.ResourceGroup, id.SiteName)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
+		}
+		return nil, fmt.Errorf("retrieving Function App %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func testCheckAzureRMFunctionAppExists(resourceName string) resource.TestCheckFunc {
@@ -1094,7 +936,7 @@ func testCheckAzureRMFunctionAppHasNoContentShare(resourceName string) resource.
 	}
 }
 
-func testAccAzureRMFunctionApp_basic(data acceptance.TestData) string {
+func (r FunctionAppResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1135,7 +977,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMFunctionApp_withSourceControl(data acceptance.TestData, branch string) string {
+func (r FunctionAppResource) withSourceControl(data acceptance.TestData, branch string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1183,8 +1025,8 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, branch)
 }
 
-func testAccAzureRMFunctionApp_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMFunctionApp_basic(data)
+func (r FunctionAppResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1199,7 +1041,7 @@ resource "azurerm_function_app" "import" {
 `, template)
 }
 
-func testAccAzureRMFunctionApp_tags(data acceptance.TestData) string {
+func (r FunctionAppResource) tags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1244,7 +1086,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMFunctionApp_tagsUpdated(data acceptance.TestData) string {
+func (r FunctionAppResource) tagsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1290,7 +1132,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMFunctionApp_version(data acceptance.TestData, version string) string {
+func (r FunctionAppResource) version(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1332,7 +1174,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, version)
 }
 
-func testAccAzureRMFunctionApp_appSettings(data acceptance.TestData) string {
+func (r FunctionAppResource) appSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1377,7 +1219,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMFunctionApp_appSettingsUpdate(data acceptance.TestData) string {
+func (r FunctionAppResource) appSettingsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1424,7 +1266,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMFunctionApp_alwaysOn(data acceptance.TestData) string {
+func (r FunctionAppResource) alwaysOn(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1469,7 +1311,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMFunctionApp_healthCheck(data acceptance.TestData) string {
+func (r FunctionAppResource) healthCheck(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1514,7 +1356,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMFunctionApp_linuxFxVersion(data acceptance.TestData) string {
+func (r FunctionAppResource) linuxFxVersion(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1564,7 +1406,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMFunctionApp_connectionStrings(data acceptance.TestData) string {
+func (r FunctionAppResource) connectionStrings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1611,7 +1453,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMFunctionApp_appSettingsAlwaysOn(data acceptance.TestData) string {
+func (r FunctionAppResource) appSettingsAlwaysOn(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1660,7 +1502,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMFunctionApp_appSettingsAlwaysOnLinuxFxVersion(data acceptance.TestData) string {
+func (r FunctionAppResource) appSettingsAlwaysOnLinuxFxVersion(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1714,7 +1556,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMFunctionApp_appSettingsAlwaysOnLinuxFxVersionConnectionStrings(data acceptance.TestData) string {
+func (r FunctionAppResource) appSettingsAlwaysOnLinuxFxVersionConnectionStrings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1774,7 +1616,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMFunctionApp_64bit(data acceptance.TestData) string {
+func (r FunctionAppResource) app64bit(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1819,7 +1661,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMFunctionApp_httpsOnly(data acceptance.TestData) string {
+func (r FunctionAppResource) httpsOnly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1861,7 +1703,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMFunctionApp_dailyMemoryTimeQuota(data acceptance.TestData, dailyMemoryTimeQuota int) string {
+func (r FunctionAppResource) dailyMemoryTimeQuota(data acceptance.TestData, dailyMemoryTimeQuota int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1904,7 +1746,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, dailyMemoryTimeQuota)
 }
 
-func testAccAzureRMFunctionApp_consumptionPlan(data acceptance.TestData) string {
+func (r FunctionAppResource) consumptionPlan(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1946,7 +1788,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMFunctionApp_consumptionPlanUppercaseName(data acceptance.TestData) string {
+func (r FunctionAppResource) consumptionPlanUppercaseName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1988,7 +1830,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMFunctionApp_basicIdentity(data acceptance.TestData) string {
+func (r FunctionAppResource) basicIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2033,7 +1875,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMFunctionApp_userAssignedIdentity(data acceptance.TestData) string {
+func (r FunctionAppResource) userAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2085,7 +1927,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMFunctionApp_userAssignedIdentityUpdated(data acceptance.TestData) string {
+func (r FunctionAppResource) userAssignedIdentityUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2143,7 +1985,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMFunctionApp_loggingDisabled(data acceptance.TestData) string {
+func (r FunctionAppResource) loggingDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2185,7 +2027,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMFunctionApp_authSettings(data acceptance.TestData, tenantID string) string {
+func (r FunctionAppResource) authSettings(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2252,7 +2094,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, tenantID)
 }
 
-func testAccAzureRMFunctionApp_corsSettings(data acceptance.TestData) string {
+func (r FunctionAppResource) corsSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2306,7 +2148,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMFunctionApp_enableHttp2(data acceptance.TestData) string {
+func (r FunctionAppResource) enableHttp2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2351,7 +2193,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMFunctionApp_minTlsVersion(data acceptance.TestData) string {
+func (r FunctionAppResource) minTlsVersion(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2396,7 +2238,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMFunctionApp_ftpsState(data acceptance.TestData) string {
+func (r FunctionAppResource) ftpsState(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2441,7 +2283,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMFunctionApp_preWarmedInstanceCount(data acceptance.TestData) string {
+func (r FunctionAppResource) preWarmedInstanceCount(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2486,7 +2328,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMFunctionApp_oneIpRestriction(data acceptance.TestData) string {
+func (r FunctionAppResource) oneIpRestriction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2533,7 +2375,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMFunctionApp_oneVNetSubnetIpRestriction(data acceptance.TestData) string {
+func (r FunctionAppResource) oneVNetSubnetIpRestriction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2594,7 +2436,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMFunctionApp_manyIpRestrictions(data acceptance.TestData) string {
+func (r FunctionAppResource) manyIpRestrictions(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2653,7 +2495,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMFunctionApp_ipRestrictionRemoved(data acceptance.TestData) string {
+func (r FunctionAppResource) ipRestrictionRemoved(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2698,7 +2540,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMFunctionApp_scmUseMainIPRestriction(data acceptance.TestData) string {
+func (r FunctionAppResource) scmUseMainIPRestriction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2746,7 +2588,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMFunctionApp_scmOneIpRestriction(data acceptance.TestData) string {
+func (r FunctionAppResource) scmOneIpRestriction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2794,7 +2636,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMFunctionApp_deprecatedConnectionString(data acceptance.TestData) string {
+func (r FunctionAppResource) deprecatedConnectionString(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2834,7 +2676,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMFunctionApp_deprecatedConnectionStringMissingError(data acceptance.TestData) string {
+func (r FunctionAppResource) deprecatedConnectionStringMissingError(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2873,7 +2715,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMFunctionApp_deprecatedConnectionStringBothSpecifiedError(data acceptance.TestData) string {
+func (r FunctionAppResource) deprecatedConnectionStringBothSpecifiedError(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2913,7 +2755,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMFunctionApp_updateStorageAccountKey(data acceptance.TestData) string {
+func (r FunctionAppResource) updateStorageAccountKey(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
