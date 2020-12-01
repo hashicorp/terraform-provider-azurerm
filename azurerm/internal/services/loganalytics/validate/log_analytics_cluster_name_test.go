@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestLogAnalyticsClustersName(t *testing.T) {
+func TestLogAnalyticsClusterName(t *testing.T) {
 	testCases := []struct {
 		Name     string
 		Input    string
@@ -64,7 +64,7 @@ func TestLogAnalyticsClustersName(t *testing.T) {
 	for _, v := range testCases {
 		t.Logf("[DEBUG] Testing %q..", v.Name)
 
-		_, errors := LogAnalyticsClustersName(v.Input, "name")
+		_, errors := LogAnalyticsClusterName(v.Input, "name")
 		result := len(errors) == 0
 		if result != v.Expected {
 			t.Fatalf("Expected the result to be %t but got %t (and %d errors)", v.Expected, result, len(errors))

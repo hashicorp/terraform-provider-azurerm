@@ -6,10 +6,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 )
 
-func LogAnalyticsClustersName(i interface{}, k string) (warnings []string, errors []error) {
-	return logAnalyticsGenericName(i, k)
-}
-
 func LogAnalyticsClusterId(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
