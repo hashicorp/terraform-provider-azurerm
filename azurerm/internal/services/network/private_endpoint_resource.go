@@ -26,7 +26,7 @@ import (
 func resourceArmPrivateEndpoint() *schema.Resource {
 	return &schema.Resource{
 		// TODO: add a state migration to ensure the ID's stable
-		Create: resourceArmPrivateEndpointCreateUpdate,
+		Create: resourceArmPrivateEndpointCreate,
 		Read:   resourceArmPrivateEndpointRead,
 		Update: resourceArmPrivateEndpointUpdate,
 		Delete: resourceArmPrivateEndpointDelete,
@@ -209,9 +209,7 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 	}
 }
 
-func resourceArmPrivateEndpointCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	// TODO: split this into a Create and an Update
-
+func resourceArmPrivateEndpointCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PrivateEndpointClient
 	dnsClient := meta.(*clients.Client).Network.PrivateDnsZoneGroupClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -224,17 +222,15 @@ func resourceArmPrivateEndpointCreateUpdate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("validating the configuration for the Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-			}
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("checking for presence of existing Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
+	}
 
-		if existing.PrivateEndpointProperties != nil {
-			return tf.ImportAsExistsError("azurerm_private_endpoint", id.ID(""))
-		}
+	if existing.PrivateEndpointProperties != nil {
+		return tf.ImportAsExistsError("azurerm_private_endpoint", id.ID(""))
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -268,36 +264,8 @@ func resourceArmPrivateEndpointCreateUpdate(d *schema.ResourceData, meta interfa
 
 	d.SetId(id.ID(""))
 
-	// now create the dns zone group
-	// first I have to see if the dns zone group exists, if it does I need to delete it an re-create it because you can only have one per private endpoint
-	if d.HasChange("private_dns_zone_group") || d.IsNewResource() {
-		// TODO: shouldn't this be pulling the list from Azure?!
-		oldRaw, newRaw := d.GetChange("private_dns_zone_group")
-		oldPrivateDnsZoneGroup := make(map[string]interface{})
-		if oldRaw != nil {
-			for _, v := range oldRaw.([]interface{}) {
-				oldPrivateDnsZoneGroup = v.(map[string]interface{})
-			}
-		}
-
-		newPrivateDnsZoneGroup := make(map[string]interface{})
-		if newRaw != nil {
-			for _, v := range newRaw.([]interface{}) {
-				newPrivateDnsZoneGroup = v.(map[string]interface{})
-			}
-		}
-
-		needToRemove := len(newPrivateDnsZoneGroup) == 0 && len(oldPrivateDnsZoneGroup) != 0
-		nameHasChanged := (len(newPrivateDnsZoneGroup) != 0 && len(oldPrivateDnsZoneGroup) != 0) && oldPrivateDnsZoneGroup["name"].(string) != newPrivateDnsZoneGroup["name"].(string)
-		if needToRemove || nameHasChanged {
-			log.Printf("[DEBUG] Deleting the Existing Private DNS Zone Group associated with Private Endpoint %q / Resource Group %q..", id.Name, id.ResourceGroup)
-			if err := deletePrivateDnsZoneGroupForPrivateEndpoint(ctx, dnsClient, id); err != nil {
-				return err
-			}
-			log.Printf("[DEBUG] Deleted the Existing Private DNS Zone Group associated with Private Endpoint %q / Resource Group %q.", id.Name, id.ResourceGroup)
-		}
-	}
-
+	// 1 Private Endpoint can have 1 Private DNS Zone Group
+	// since this is a new resource, there shouldn't be an existing one - so there's no need to delete it
 	if len(privateDnsZoneGroup) > 0 {
 		log.Printf("[DEBUG] Creating Private DNS Zone Group associated with Private Endpoint %q / Resource Group %q..", id.Name, id.ResourceGroup)
 		if err := createPrivateDnsZoneGroupForPrivateEndpoint(ctx, dnsClient, id, privateDnsZoneGroup); err != nil {
