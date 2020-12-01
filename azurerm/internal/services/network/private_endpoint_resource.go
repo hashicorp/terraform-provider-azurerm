@@ -28,7 +28,7 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 		// TODO: add a state migration to ensure the ID's stable
 		Create: resourceArmPrivateEndpointCreateUpdate,
 		Read:   resourceArmPrivateEndpointRead,
-		Update: resourceArmPrivateEndpointCreateUpdate,
+		Update: resourceArmPrivateEndpointUpdate,
 		Delete: resourceArmPrivateEndpointDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -301,6 +301,91 @@ func resourceArmPrivateEndpointCreateUpdate(d *schema.ResourceData, meta interfa
 	if len(privateDnsZoneGroup) > 0 {
 		log.Printf("[DEBUG] Creating Private DNS Zone Group associated with Private Endpoint %q / Resource Group %q..", id.Name, id.ResourceGroup)
 		if err := createPrivateDnsZoneGroupForPrivateEndpoint(ctx, dnsClient, id, privateDnsZoneGroup); err != nil {
+			return err
+		}
+		log.Printf("[DEBUG] Created the Existing Private DNS Zone Group associated with Private Endpoint %q / Resource Group %q.", id.Name, id.ResourceGroup)
+	}
+
+	return resourceArmPrivateEndpointRead(d, meta)
+}
+
+func resourceArmPrivateEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.PrivateEndpointClient
+	dnsClient := meta.(*clients.Client).Network.PrivateDnsZoneGroupClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.PrivateEndpointID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	if err := ValidatePrivateEndpointSettings(d); err != nil {
+		return fmt.Errorf("validating the configuration for the Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	location := azure.NormalizeLocation(d.Get("location").(string))
+	privateDnsZoneGroup := d.Get("private_dns_zone_group").([]interface{})
+	privateServiceConnections := d.Get("private_service_connection").([]interface{})
+	subnetId := d.Get("subnet_id").(string)
+
+	// TODO: in future it'd be nice to support conditional updates here, but one problem at a time
+	parameters := network.PrivateEndpoint{
+		Location: utils.String(location),
+		PrivateEndpointProperties: &network.PrivateEndpointProperties{
+			PrivateLinkServiceConnections:       expandArmPrivateLinkEndpointServiceConnection(privateServiceConnections, false),
+			ManualPrivateLinkServiceConnections: expandArmPrivateLinkEndpointServiceConnection(privateServiceConnections, true),
+			Subnet: &network.Subnet{
+				ID: utils.String(subnetId),
+			},
+		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
+	if err != nil {
+		if strings.EqualFold(err.Error(), "is missing required parameter 'group Id'") {
+			return fmt.Errorf("updating Private Endpoint %q (Resource Group %q) due to missing 'group Id', ensure that the 'subresource_names' type is populated: %+v", id.Name, id.ResourceGroup, err)
+		} else {
+			return fmt.Errorf("updating Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
+	}
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for update of Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	// 1 Private Endpoint can have 1 Private DNS Zone Group - so to update we need to Delete & Recreate
+	if d.HasChange("private_dns_zone_group") {
+		// TODO: shouldn't this be pulling the list from Azure?!
+		oldRaw, newRaw := d.GetChange("private_dns_zone_group")
+		oldPrivateDnsZoneGroup := make(map[string]interface{})
+		if oldRaw != nil {
+			for _, v := range oldRaw.([]interface{}) {
+				oldPrivateDnsZoneGroup = v.(map[string]interface{})
+			}
+		}
+
+		newPrivateDnsZoneGroup := make(map[string]interface{})
+		if newRaw != nil {
+			for _, v := range newRaw.([]interface{}) {
+				newPrivateDnsZoneGroup = v.(map[string]interface{})
+			}
+		}
+
+		needToRemove := len(newPrivateDnsZoneGroup) == 0 && len(oldPrivateDnsZoneGroup) != 0
+		nameHasChanged := (len(newPrivateDnsZoneGroup) != 0 && len(oldPrivateDnsZoneGroup) != 0) && oldPrivateDnsZoneGroup["name"].(string) != newPrivateDnsZoneGroup["name"].(string)
+		if needToRemove || nameHasChanged {
+			log.Printf("[DEBUG] Deleting the Existing Private DNS Zone Group associated with Private Endpoint %q / Resource Group %q..", id.Name, id.ResourceGroup)
+			if err := deletePrivateDnsZoneGroupForPrivateEndpoint(ctx, dnsClient, *id); err != nil {
+				return err
+			}
+			log.Printf("[DEBUG] Deleted the Existing Private DNS Zone Group associated with Private Endpoint %q / Resource Group %q.", id.Name, id.ResourceGroup)
+		}
+	}
+
+	if len(privateDnsZoneGroup) > 0 {
+		log.Printf("[DEBUG] Creating Private DNS Zone Group associated with Private Endpoint %q / Resource Group %q..", id.Name, id.ResourceGroup)
+		if err := createPrivateDnsZoneGroupForPrivateEndpoint(ctx, dnsClient, *id, privateDnsZoneGroup); err != nil {
 			return err
 		}
 		log.Printf("[DEBUG] Created the Existing Private DNS Zone Group associated with Private Endpoint %q / Resource Group %q.", id.Name, id.ResourceGroup)
