@@ -56,7 +56,7 @@ func TestServiceEndpointPolicyName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %s: %q", v.Name, v.Input)
 
-		_, errors := ServiceEndpointPolicyName(v.Input, "")
+		_, errors := SubnetServiceEndpointPolicyName(v.Input, "")
 		isError := len(errors) != 0
 		if v.Error != isError {
 			t.Fatalf("Expected %t but got %t", v.Error, isError)
