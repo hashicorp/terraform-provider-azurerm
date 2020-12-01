@@ -3,6 +3,7 @@ package tests
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -10,6 +11,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+func consumptionBudgetTestStartDate() time.Time {
+	utcNow := time.Now().UTC()
+	startDate := time.Date(utcNow.Year(), utcNow.Month(), 1, 0, 0, 0, 0, utcNow.Location())
+
+	return startDate
+}
 
 func TestAccAzureRMConsumptionBudgetSubscription_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_consumption_budget_subscription", "test")
@@ -192,7 +200,7 @@ resource "azurerm_consumption_budget_subscription" "test" {
   time_grain = "Monthly"
 
   time_period {
-    start_date = "2020-11-01T00:00:00Z"
+    start_date = "%s"
   }
 
   notification {
@@ -206,7 +214,7 @@ resource "azurerm_consumption_budget_subscription" "test" {
     ]
   }
 }
-`, data.RandomInteger)
+`, data.RandomInteger, consumptionBudgetTestStartDate().Format(time.RFC3339))
 }
 
 func testAccAzureRMConsumptionBudgetSubscription_basicUpdate(data acceptance.TestData) string {
@@ -228,8 +236,8 @@ resource "azurerm_consumption_budget_subscription" "test" {
 
   // Add end_date
   time_period {
-    start_date = "2020-11-01T00:00:00Z"
-    end_date   = "2020-12-01T00:00:00Z"
+    start_date = "%s"
+    end_date   = "%s"
   }
 
   // Changed threshold and operator
@@ -244,7 +252,7 @@ resource "azurerm_consumption_budget_subscription" "test" {
     ]
   }
 }
-`, data.RandomInteger)
+`, data.RandomInteger, consumptionBudgetTestStartDate().Format(time.RFC3339), consumptionBudgetTestStartDate().AddDate(1, 1, 0).Format(time.RFC3339))
 }
 
 func testAccAzureRMConsumptionBudgetSubscription_complete(data acceptance.TestData) string {
@@ -275,8 +283,8 @@ resource "azurerm_consumption_budget_subscription" "test" {
   time_grain = "Monthly"
 
   time_period {
-    start_date = "2020-11-01T00:00:00Z"
-    end_date   = "2020-12-01T00:00:00Z"
+    start_date = "%s"
+    end_date   = "%s"
   }
 
   filter {
@@ -328,7 +336,7 @@ resource "azurerm_consumption_budget_subscription" "test" {
     ]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, consumptionBudgetTestStartDate().Format(time.RFC3339), consumptionBudgetTestStartDate().AddDate(1, 1, 0).Format(time.RFC3339))
 }
 
 func testAccAzureRMConsumptionBudgetSubscription_completeUpdate(data acceptance.TestData) string {
@@ -361,7 +369,7 @@ resource "azurerm_consumption_budget_subscription" "test" {
 
   // Removed end_date
   time_period {
-    start_date = "2020-11-01T00:00:00Z"
+    start_date = "%s"
   }
 
   filter {
@@ -425,7 +433,7 @@ resource "azurerm_consumption_budget_subscription" "test" {
     ]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, consumptionBudgetTestStartDate().Format(time.RFC3339))
 }
 
 func testAccAzureRMConsumptionBudgetSubscription_usageCategory(data acceptance.TestData) string {
@@ -445,7 +453,7 @@ resource "azurerm_consumption_budget_subscription" "test" {
   time_grain = "Monthly"
 
   time_period {
-    start_date = "2020-11-01T00:00:00Z"
+    start_date = "%s"
   }
 
   filter {
@@ -465,5 +473,5 @@ resource "azurerm_consumption_budget_subscription" "test" {
     ]
   }
 }
-`, data.RandomInteger)
+`, data.RandomInteger, consumptionBudgetTestStartDate().Format(time.RFC3339))
 }
