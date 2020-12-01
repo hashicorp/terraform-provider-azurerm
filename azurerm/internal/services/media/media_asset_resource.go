@@ -190,5 +190,4 @@ func resourceArmMediaAssetsDelete(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	return nil
-
 }
