@@ -1,132 +1,82 @@
 package devspace_test
 
 import (
+	"context"
 	"fmt"
-	"log"
-	"net/http"
 	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+type DevSpaceControllerResource struct {
+}
 
 func TestAccDevSpaceController_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_devspace_controller", "test")
+	r := DevSpaceControllerResource{}
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevSpaceControllerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDevSpaceController_basic(data, clientId, clientSecret),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDevSpaceControllerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, clientId, clientSecret),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
 		},
 	})
 }
 
 func TestAccDevSpaceController_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_devspace_controller", "test")
+	r := DevSpaceControllerResource{}
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevSpaceControllerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDevSpaceController_basic(data, clientId, clientSecret),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDevSpaceControllerExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccDevSpaceController_requiresImport(data, clientId, clientSecret),
-				ExpectError: acceptance.RequiresImportError("azurerm_devspace_controller"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, clientId, clientSecret),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data, clientId, clientSecret),
+			ExpectError: acceptance.RequiresImportError("azurerm_devspace_controller"),
 		},
 	})
 }
 
-func testCheckDevSpaceControllerExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).DevSpace.ControllersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		id, err := parse.ControllerID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		result, err := client.Get(ctx, id.ResourceGroup, id.Name)
-
-		if err == nil {
-			return nil
-		}
-
-		if result.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: DevSpace Controller %q (Resource Group: %q) does not exist", id.Name, id.ResourceGroup)
-		}
-
-		return fmt.Errorf("Bad: Get devSpaceControllerClient: %+v", err)
-	}
-}
-
-func testCheckDevSpaceControllerDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).DevSpace.ControllersClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_devspace_controller" {
-			continue
-		}
-
-		log.Printf("[WARN] azurerm_devspace_controller still exists in state file.")
-
-		id, err := parse.ControllerID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		result, err := client.Get(ctx, id.ResourceGroup, id.Name)
-
-		if err == nil {
-			return fmt.Errorf("DevSpace Controller still exists:\n%#v", result)
-		}
-
-		if result.StatusCode != http.StatusNotFound {
-			return err
-		}
+func (t DevSpaceControllerResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ControllerID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.DevSpace.ControllersClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving DevSpace Controller %q (Resource Group: %q) does not exist", id.Name, id.ResourceGroup)
+	}
+
+	return utils.Bool(resp.ControllerProperties != nil), nil
 }
 
-func testAccDevSpaceController_basic(data acceptance.TestData, clientId string, clientSecret string) string {
+func (DevSpaceControllerResource) basic(data acceptance.TestData, clientId string, clientSecret string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-devspace-%d"
   location = "%s"
 }
 
@@ -167,8 +117,8 @@ resource "azurerm_devspace_controller" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, clientId, clientSecret, data.RandomInteger)
 }
 
-func testAccDevSpaceController_requiresImport(data acceptance.TestData, clientId string, clientSecret string) string {
-	template := testAccDevSpaceController_basic(data, clientId, clientSecret)
+func (r DevSpaceControllerResource) requiresImport(data acceptance.TestData, clientId string, clientSecret string) string {
+
 	return fmt.Sprintf(`
 %s
 
@@ -180,5 +130,5 @@ resource "azurerm_devspace_controller" "import" {
   target_container_host_credentials_base64 = base64encode(azurerm_kubernetes_cluster.test.kube_config_raw)
   sku_name                                 = azurerm_devspace_controller.test.sku_name
 }
-`, template)
+`, r.basic(data, clientId, clientSecret))
 }
