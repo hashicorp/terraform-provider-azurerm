@@ -32,25 +32,6 @@ func TestAccAzureRMApiManagementPolicy_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMApiManagementPolicy_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_policy", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementPolicyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementPolicy_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementPolicyExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMApiManagementPolicy_requiresImport),
-		},
-	})
-}
-
 func TestAccAzureRMApiManagementPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_policy", "test")
 
@@ -163,12 +144,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_api_management" "test" {
-  name                = "acctestAM-%d"
+  name                = "acctestAM-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
@@ -180,19 +161,7 @@ resource "azurerm_api_management_policy" "test" {
   api_management_id = azurerm_api_management.test.id
   xml_link          = "https://raw.githubusercontent.com/terraform-providers/terraform-provider-azurerm/master/azurerm/internal/services/apimanagement/tests/testdata/api_management_policy_test.xml"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func testAccAzureRMApiManagementPolicy_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementPolicy_basic(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_api_management_policy" "import" {
-  api_management_id = azurerm_api_management_policy.test.api_management_id
-  xml_link          = azurerm_api_management_policy.test.xml_link
-}
-`, template)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func testAccAzureRMApiManagementPolicy_customPolicy(data acceptance.TestData) string {
@@ -202,25 +171,17 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_api_management" "test" {
-  name                = "acctestAM-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  publisher_name      = "pub1"
-  publisher_email     = "pub1@email.com"
-  sku_name            = "Developer_1"
-}
-
-resource "azurerm_api_management_named_value" "test" {
-  name                = "acctestnamedvalue-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  api_management_name = azurerm_api_management.test.name
-  display_name        = "Test"
-  value               = "test"
+ name                = "acctestAM-%[1]d"
+ location            = azurerm_resource_group.test.location
+ resource_group_name = azurerm_resource_group.test.name
+ publisher_name      = "pub1"
+ publisher_email     = "pub1@email.com"
+ sku_name            = "Developer_1"
 }
 
 resource "azurerm_api_management_policy" "test" {
@@ -230,11 +191,11 @@ resource "azurerm_api_management_policy" "test" {
 <policies>
   <inbound>
     <set-variable name="abc" value="@(context.Request.Headers.GetValueOrDefault("X-Header-Name", ""))" />
-    <find-and-replace from="xyz" to="{{${azurerm_api_management_named_value.test.name}}}" />
+    <find-and-replace from="xyz" to="foo" />
   </inbound>
 </policies>
 XML
 
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
