@@ -1,4 +1,4 @@
-package tests
+package eventgrid_test
 
 import (
 	"fmt"
