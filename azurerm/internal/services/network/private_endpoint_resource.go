@@ -305,7 +305,7 @@ func resourceArmPrivateEndpointCreateUpdate(d *schema.ResourceData, meta interfa
 		item := v.(map[string]interface{})
 		dnsGroupName := item["name"].(string)
 		privateDnsZoneIdsRaw := item["private_dns_zone_ids"].([]interface{})
-		privateDnsZoneIds := make([]privateDnsParse.PrivateDnsZoneId, 0)
+		privateDnsZoneConfigs := make([]network.PrivateDNSZoneConfig, 0)
 		for _, item := range privateDnsZoneIdsRaw {
 			v := item.(string)
 
@@ -313,20 +313,13 @@ func resourceArmPrivateEndpointCreateUpdate(d *schema.ResourceData, meta interfa
 			if err != nil {
 				return err
 			}
-			privateDnsZoneIds = append(privateDnsZoneIds, *privateDnsZone)
-		}
 
-		privateDnsZoneConfigs := make([]network.PrivateDNSZoneConfig, 0)
-
-		for _, item := range privateDnsZoneIds {
-			v := network.PrivateDNSZoneConfig{
-				Name: utils.String(item.Name),
+			privateDnsZoneConfigs = append(privateDnsZoneConfigs, network.PrivateDNSZoneConfig{
+				Name: utils.String(privateDnsZone.Name),
 				PrivateDNSZonePropertiesFormat: &network.PrivateDNSZonePropertiesFormat{
-					PrivateDNSZoneID: utils.String(item.ID("")),
+					PrivateDNSZoneID: utils.String(privateDnsZone.ID("")),
 				},
-			}
-
-			privateDnsZoneConfigs = append(privateDnsZoneConfigs, v)
+			})
 		}
 
 		parameters := network.PrivateDNSZoneGroup{}
@@ -341,14 +334,6 @@ func resourceArmPrivateEndpointCreateUpdate(d *schema.ResourceData, meta interfa
 		}
 		if err = future.WaitForCompletionRef(ctx, dnsClient.Client); err != nil {
 			return fmt.Errorf("waiting for creation of Private DNS Zone Group %q Private Endpoint %q (Resource Group %q): %+v", dnsGroupName, name, resourceGroup, err)
-		}
-
-		resp, err := dnsClient.Get(ctx, resourceGroup, name, dnsGroupName)
-		if err != nil {
-			return fmt.Errorf("retrieving Private DNS Zone Group %q (Resource Group %q): %+v", dnsGroupName, resourceGroup, err)
-		}
-		if resp.ID == nil || *resp.ID == "" {
-			return fmt.Errorf("API returns a nil/empty id on Private DNS Zone Group %q (Resource Group %q): %+v", dnsGroupName, resourceGroup, err)
 		}
 	}
 
