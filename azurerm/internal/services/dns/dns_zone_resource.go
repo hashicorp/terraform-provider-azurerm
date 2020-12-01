@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDnsZone() *schema.Resource {
+func resourceDnsZone() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDnsZoneCreateUpdate,
-		Read:   resourceArmDnsZoneRead,
-		Update: resourceArmDnsZoneCreateUpdate,
-		Delete: resourceArmDnsZoneDelete,
+		Create: resourceDnsZoneCreateUpdate,
+		Read:   resourceDnsZoneRead,
+		Update: resourceDnsZoneCreateUpdate,
+		Delete: resourceDnsZoneDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -141,7 +141,7 @@ func resourceArmDnsZone() *schema.Resource {
 	}
 }
 
-func resourceArmDnsZoneCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsZoneCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.ZonesClient
 	recordSetsClient := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -207,10 +207,10 @@ func resourceArmDnsZoneCreateUpdate(d *schema.ResourceData, meta interface{}) er
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDnsZoneRead(d, meta)
+	return resourceDnsZoneRead(d, meta)
 }
 
-func resourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	zonesClient := meta.(*clients.Client).Dns.ZonesClient
 	recordSetsClient := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -256,7 +256,7 @@ func resourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmDnsZoneDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsZoneDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.ZonesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

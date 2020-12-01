@@ -13,7 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
 )
 
-func TestAccAzureRMDnsPtrRecord_basic(t *testing.T) {
+func TestAccDnsPtrRecord_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_ptr_record", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -22,7 +22,7 @@ func TestAccAzureRMDnsPtrRecord_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsPtrRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDnsPtrRecord_basic(data),
+				Config: testAccDnsPtrRecord_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsPtrRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
@@ -33,7 +33,7 @@ func TestAccAzureRMDnsPtrRecord_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDnsPtrRecord_requiresImport(t *testing.T) {
+func TestAccDnsPtrRecord_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_ptr_record", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -42,20 +42,20 @@ func TestAccAzureRMDnsPtrRecord_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsPtrRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDnsPtrRecord_basic(data),
+				Config: testAccDnsPtrRecord_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsPtrRecordExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMDnsPtrRecord_requiresImport(data),
+				Config:      testAccDnsPtrRecord_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_dns_ptr_record"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMDnsPtrRecord_updateRecords(t *testing.T) {
+func TestAccDnsPtrRecord_updateRecords(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_ptr_record", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -64,7 +64,7 @@ func TestAccAzureRMDnsPtrRecord_updateRecords(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsPtrRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDnsPtrRecord_basic(data),
+				Config: testAccDnsPtrRecord_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsPtrRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "records.#", "2"),
@@ -72,7 +72,7 @@ func TestAccAzureRMDnsPtrRecord_updateRecords(t *testing.T) {
 			},
 
 			{
-				Config: testAccAzureRMDnsPtrRecord_updateRecords(data),
+				Config: testAccDnsPtrRecord_updateRecords(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsPtrRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "records.#", "3"),
@@ -82,7 +82,7 @@ func TestAccAzureRMDnsPtrRecord_updateRecords(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDnsPtrRecord_withTags(t *testing.T) {
+func TestAccDnsPtrRecord_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_ptr_record", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -91,7 +91,7 @@ func TestAccAzureRMDnsPtrRecord_withTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsPtrRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDnsPtrRecord_withTags(data),
+				Config: testAccDnsPtrRecord_withTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsPtrRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
@@ -99,7 +99,7 @@ func TestAccAzureRMDnsPtrRecord_withTags(t *testing.T) {
 			},
 
 			{
-				Config: testAccAzureRMDnsPtrRecord_withTagsUpdate(data),
+				Config: testAccDnsPtrRecord_withTagsUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsPtrRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
@@ -168,7 +168,7 @@ func testCheckAzureRMDnsPtrRecordDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMDnsPtrRecord_basic(data acceptance.TestData) string {
+func testAccDnsPtrRecord_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

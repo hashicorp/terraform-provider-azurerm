@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDnsMxRecord() *schema.Resource {
+func resourceDnsMxRecord() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDnsMxRecordCreateUpdate,
-		Read:   resourceArmDnsMxRecordRead,
-		Update: resourceArmDnsMxRecordCreateUpdate,
-		Delete: resourceArmDnsMxRecordDelete,
+		Create: resourceDnsMxRecordCreateUpdate,
+		Read:   resourceDnsMxRecordRead,
+		Update: resourceDnsMxRecordCreateUpdate,
+		Delete: resourceDnsMxRecordDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -71,7 +71,7 @@ func resourceArmDnsMxRecord() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmDnsMxRecordHash,
+				Set: resourceDnsMxRecordHash,
 			},
 
 			"ttl": {
@@ -89,7 +89,7 @@ func resourceArmDnsMxRecord() *schema.Resource {
 	}
 }
 
-func resourceArmDnsMxRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsMxRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -138,10 +138,10 @@ func resourceArmDnsMxRecordCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDnsMxRecordRead(d, meta)
+	return resourceDnsMxRecordRead(d, meta)
 }
 
-func resourceArmDnsMxRecordRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsMxRecordRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -173,7 +173,7 @@ func resourceArmDnsMxRecordRead(d *schema.ResourceData, meta interface{}) error 
 	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
-func resourceArmDnsMxRecordDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsMxRecordDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -234,7 +234,7 @@ func expandAzureRmDnsMxRecords(d *schema.ResourceData) *[]dns.MxRecord {
 	return &records
 }
 
-func resourceArmDnsMxRecordHash(v interface{}) int {
+func resourceDnsMxRecordHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
