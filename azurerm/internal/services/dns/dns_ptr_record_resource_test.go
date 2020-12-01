@@ -1,4 +1,4 @@
-package tests
+package dns_test
 
 import (
 	"fmt"
@@ -13,18 +13,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
 )
 
-func TestAccAzureRMDnsNsRecord_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_dns_ns_record", "test")
+func TestAccAzureRMDnsPtrRecord_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dns_ptr_record", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
+		CheckDestroy: testCheckAzureRMDnsPtrRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDnsNsRecord_basic(data),
+				Config: testAccAzureRMDnsPtrRecord_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsNsRecordExists(data.ResourceName),
+					testCheckAzureRMDnsPtrRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
 				),
 			},
@@ -33,47 +33,48 @@ func TestAccAzureRMDnsNsRecord_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDnsNsRecord_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_dns_ns_record", "test")
+func TestAccAzureRMDnsPtrRecord_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dns_ptr_record", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
+		CheckDestroy: testCheckAzureRMDnsPtrRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDnsNsRecord_basic(data),
+				Config: testAccAzureRMDnsPtrRecord_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsNsRecordExists(data.ResourceName),
+					testCheckAzureRMDnsPtrRecordExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMDnsNsRecord_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_dns_ns_record"),
+				Config:      testAccAzureRMDnsPtrRecord_requiresImport(data),
+				ExpectError: acceptance.RequiresImportError("azurerm_dns_ptr_record"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMDnsNsRecord_updateRecords(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_dns_ns_record", "test")
+func TestAccAzureRMDnsPtrRecord_updateRecords(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dns_ptr_record", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
+		CheckDestroy: testCheckAzureRMDnsPtrRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDnsNsRecord_basic(data),
+				Config: testAccAzureRMDnsPtrRecord_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsNsRecordExists(data.ResourceName),
+					testCheckAzureRMDnsPtrRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "records.#", "2"),
 				),
 			},
+
 			{
-				Config: testAccAzureRMDnsNsRecord_updateRecords(data),
+				Config: testAccAzureRMDnsPtrRecord_updateRecords(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsNsRecordExists(data.ResourceName),
+					testCheckAzureRMDnsPtrRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "records.#", "3"),
 				),
 			},
@@ -81,25 +82,26 @@ func TestAccAzureRMDnsNsRecord_updateRecords(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDnsNsRecord_withTags(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_dns_ns_record", "test")
+func TestAccAzureRMDnsPtrRecord_withTags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dns_ptr_record", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
+		CheckDestroy: testCheckAzureRMDnsPtrRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDnsNsRecord_withTags(data),
+				Config: testAccAzureRMDnsPtrRecord_withTags(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsNsRecordExists(data.ResourceName),
+					testCheckAzureRMDnsPtrRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
 				),
 			},
+
 			{
-				Config: testAccAzureRMDnsNsRecord_withTagsUpdate(data),
+				Config: testAccAzureRMDnsPtrRecord_withTagsUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsNsRecordExists(data.ResourceName),
+					testCheckAzureRMDnsPtrRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 				),
 			},
@@ -108,7 +110,7 @@ func TestAccAzureRMDnsNsRecord_withTags(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDnsNsRecordExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMDnsPtrRecordExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.RecordSetsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -119,52 +121,54 @@ func testCheckAzureRMDnsNsRecordExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.NsRecordID(rs.Primary.ID)
+		id, err := parse.PtrRecordID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.DnszoneName, id.NSName, dns.NS)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.DnszoneName, id.PTRName, dns.PTR)
 		if err != nil {
-			return fmt.Errorf("Bad: Get DNS NS Record: %+v", err)
+			return fmt.Errorf("Bad: Get PTR RecordSet: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: DNS NS record %s (resource group: %s) does not exist", id.NSName, id.ResourceGroup)
+			return fmt.Errorf("Bad: DNS PTR record %s (resource group: %s) does not exist", id.PTRName, id.ResourceGroup)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMDnsNsRecordDestroy(s *terraform.State) error {
+func testCheckAzureRMDnsPtrRecordDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.RecordSetsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_dns_ns_record" {
+		if rs.Type != "azurerm_dns_ptr_record" {
 			continue
 		}
 
-		id, err := parse.NsRecordID(rs.Primary.ID)
+		id, err := parse.PtrRecordID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.DnszoneName, id.NSName, dns.NS)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.DnszoneName, id.PTRName, dns.PTR)
 		if err != nil {
-			return nil
+			if resp.StatusCode == http.StatusNotFound {
+				return nil
+			}
+
+			return err
 		}
 
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("DNS NS Record still exists:\n%#v", resp.RecordSetProperties)
-		}
+		return fmt.Errorf("DNS PTR record still exists:\n%#v", resp)
 	}
 
 	return nil
 }
 
-func testAccAzureRMDnsNsRecord_basic(data acceptance.TestData) string {
+func testAccAzureRMDnsPtrRecord_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -180,34 +184,32 @@ resource "azurerm_dns_zone" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_dns_ns_record" "test" {
-  name                = "mynsrecord%d"
+resource "azurerm_dns_ptr_record" "test" {
+  name                = "testptrrecord%d"
   resource_group_name = azurerm_resource_group.test.name
   zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
-
-  records = ["ns1.contoso.com", "ns2.contoso.com"]
+  records             = ["hashicorp.com", "microsoft.com"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDnsNsRecord_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMDnsNsRecord_basic(data)
+func testAccAzureRMDnsPtrRecord_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMDnsPtrRecord_basic(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_dns_ns_record" "import" {
-  name                = azurerm_dns_ns_record.test.name
-  resource_group_name = azurerm_dns_ns_record.test.resource_group_name
-  zone_name           = azurerm_dns_ns_record.test.zone_name
+resource "azurerm_dns_ptr_record" "import" {
+  name                = azurerm_dns_ptr_record.test.name
+  resource_group_name = azurerm_dns_ptr_record.test.resource_group_name
+  zone_name           = azurerm_dns_ptr_record.test.zone_name
   ttl                 = 300
-
-  records = ["ns1.contoso.com", "ns2.contoso.com"]
+  records             = ["hashicorp.com", "microsoft.com"]
 }
 `, template)
 }
 
-func testAccAzureRMDnsNsRecord_updateRecords(data acceptance.TestData) string {
+func testAccAzureRMDnsPtrRecord_updateRecords(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -223,18 +225,17 @@ resource "azurerm_dns_zone" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_dns_ns_record" "test" {
-  name                = "mynsrecord%d"
+resource "azurerm_dns_ptr_record" "test" {
+  name                = "testptrrecord%d"
   resource_group_name = azurerm_resource_group.test.name
   zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
-
-  records = ["ns1.contoso.com", "ns2.contoso.com", "ns3.contoso.com"]
+  records             = ["hashicorp.com", "microsoft.com", "reddit.com"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDnsNsRecord_withTags(data acceptance.TestData) string {
+func testAccAzureRMDnsPtrRecord_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -250,23 +251,22 @@ resource "azurerm_dns_zone" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_dns_ns_record" "test" {
-  name                = "mynsrecord%d"
+resource "azurerm_dns_ptr_record" "test" {
+  name                = "testptrrecord%d"
   resource_group_name = azurerm_resource_group.test.name
   zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
-
-  records = ["ns1.contoso.com", "ns2.contoso.com"]
+  records             = ["hashicorp.com", "microsoft.com"]
 
   tags = {
-    environment = "Production"
-    cost_center = "MSFT"
+    environment = "Dev"
+    cost_center = "Ops"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDnsNsRecord_withTagsUpdate(data acceptance.TestData) string {
+func testAccAzureRMDnsPtrRecord_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -282,16 +282,15 @@ resource "azurerm_dns_zone" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_dns_ns_record" "test" {
-  name                = "mynsrecord%d"
+resource "azurerm_dns_ptr_record" "test" {
+  name                = "testptrrecord%d"
   resource_group_name = azurerm_resource_group.test.name
   zone_name           = azurerm_dns_zone.test.name
   ttl                 = 300
-
-  records = ["ns1.contoso.com", "ns2.contoso.com"]
+  records             = ["hashicorp.com", "microsoft.com"]
 
   tags = {
-    environment = "staging"
+    environment = "Stage"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

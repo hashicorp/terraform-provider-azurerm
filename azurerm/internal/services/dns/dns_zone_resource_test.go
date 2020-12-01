@@ -1,4 +1,4 @@
-package tests
+package dns_test
 
 import (
 	"fmt"
