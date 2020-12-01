@@ -112,7 +112,7 @@ func (t DataLakeStoreFirewallRuleResource) Exists(ctx context.Context, clients *
 
 	resp, err := clients.Datalake.StoreFirewallRulesClient.Get(ctx, resourceGroup, accountName, name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Date Lake Store Firewall Rule %q (Account %q / Resource Group: %q) does not exist", name, accountName, resourceGroup)
+		return nil, fmt.Errorf("retrieving Date Lake Store Firewall Rule %q (Account %q / Resource Group: %q): %v", name, accountName, resourceGroup, err)
 	}
 
 	return utils.Bool(resp.FirewallRuleProperties != nil), nil

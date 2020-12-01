@@ -119,7 +119,7 @@ func (t DataLakeStoreFileResource) Exists(ctx context.Context, clients *clients.
 
 	resp, err := client.GetFileStatus(ctx, id.StorageAccountName, id.FilePath, utils.Bool(true))
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Date Lake Store File Rule %q (Account %q) does not exist", id.FilePath, id.StorageAccountName)
+		return nil, fmt.Errorf("retrieving Date Lake Store File Rule %q (Account %q): %v", id.FilePath, id.StorageAccountName, err)
 	}
 
 	return utils.Bool(resp.FileStatus != nil), nil
