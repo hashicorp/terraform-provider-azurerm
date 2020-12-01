@@ -6,7 +6,7 @@ func TestApiManagementApiDiagnosticID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *ApiManagementApiDiagnosticId
+		Expected *ApiDiagnosticId
 	}{
 		{
 			Name:     "Empty",
@@ -56,11 +56,11 @@ func TestApiManagementApiDiagnosticID(t *testing.T) {
 		{
 			Name:  "Diagnostic ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/service1/apis/api1/diagnostics/applicationinsights",
-			Expected: &ApiManagementApiDiagnosticId{
-				Name:          "applicationinsights",
-				ApiName:       "api1",
-				ServiceName:   "service1",
-				ResourceGroup: "resGroup1",
+			Expected: &ApiDiagnosticId{
+				DiagnosticName: "applicationinsights",
+				ApiName:        "api1",
+				ServiceName:    "service1",
+				ResourceGroup:  "resGroup1",
 			},
 		},
 		{
@@ -71,11 +71,11 @@ func TestApiManagementApiDiagnosticID(t *testing.T) {
 		{
 			Name:  "From ACC test",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acctestRG-200904094049117016/providers/Microsoft.ApiManagement/service/acctestAM-200904094049117016/apis/acctestAMA-200904094049117016/diagnostics/applicationinsights",
-			Expected: &ApiManagementApiDiagnosticId{
-				Name:          "applicationinsights",
-				ApiName:       "acctestAMA-200904094049117016",
-				ServiceName:   "acctestAM-200904094049117016",
-				ResourceGroup: "acctestRG-200904094049117016",
+			Expected: &ApiDiagnosticId{
+				DiagnosticName: "applicationinsights",
+				ApiName:        "acctestAMA-200904094049117016",
+				ServiceName:    "acctestAM-200904094049117016",
+				ResourceGroup:  "acctestRG-200904094049117016",
 			},
 		},
 	}
@@ -83,7 +83,7 @@ func TestApiManagementApiDiagnosticID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ApiManagementApiDiagnosticID(v.Input)
+		actual, err := ApiDiagnosticID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -92,8 +92,8 @@ func TestApiManagementApiDiagnosticID(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.DiagnosticName != v.Expected.DiagnosticName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.DiagnosticName, actual.DiagnosticName)
 		}
 
 		if actual.ApiName != v.Expected.ApiName {

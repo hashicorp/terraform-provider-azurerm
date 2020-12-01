@@ -6,20 +6,20 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type ApiManagementApiDiagnosticId struct {
-	ResourceGroup string
-	ServiceName   string
-	ApiName       string
-	Name          string
+type ApiDiagnosticId struct {
+	ResourceGroup  string
+	ServiceName    string
+	ApiName        string
+	DiagnosticName string
 }
 
-func ApiManagementApiDiagnosticID(input string) (*ApiManagementApiDiagnosticId, error) {
+func ApiDiagnosticID(input string) (*ApiDiagnosticId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("parsing Api Management Diagnostic ID %q: %+v", input, err)
 	}
 
-	diagnostic := ApiManagementApiDiagnosticId{
+	diagnostic := ApiDiagnosticId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
@@ -31,7 +31,7 @@ func ApiManagementApiDiagnosticID(input string) (*ApiManagementApiDiagnosticId, 
 		return nil, err
 	}
 
-	if diagnostic.Name, err = id.PopSegment("diagnostics"); err != nil {
+	if diagnostic.DiagnosticName, err = id.PopSegment("diagnostics"); err != nil {
 		return nil, err
 	}
 
