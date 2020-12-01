@@ -45,7 +45,7 @@ func resourceManagedApplication() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ManagedApplicationName,
+				ValidateFunc: validate.ApplicationName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -67,7 +67,7 @@ func resourceManagedApplication() *schema.Resource {
 			"application_definition_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.ManagedApplicationDefinitionID,
+				ValidateFunc: validate.ApplicationDefinitionID,
 			},
 
 			"parameters": {

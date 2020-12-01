@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestManagedApplicationName(t *testing.T) {
+func TestApplicationName(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
@@ -59,7 +59,7 @@ func TestManagedApplicationName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := ManagedApplicationName(v.input, "name")
+		_, errors := ApplicationName(v.input, "name")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)

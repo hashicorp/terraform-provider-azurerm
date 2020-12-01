@@ -59,7 +59,7 @@ func TestManagedApplicationDefinitionName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := ManagedApplicationDefinitionName(v.input, "name")
+		_, errors := ApplicationDefinitionName(v.input, "name")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)
@@ -105,7 +105,7 @@ func TestManagedApplicationDefinitionDisplayName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := ManagedApplicationDefinitionDisplayName(v.input, "display_name")
+		_, errors := ApplicationDefinitionDisplayName(v.input, "display_name")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)
@@ -139,7 +139,7 @@ func TestManagedApplicationDefinitionDescription(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := ManagedApplicationDefinitionDescription(v.input, "description")
+		_, errors := ApplicationDefinitionDescription(v.input, "description")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)
