@@ -141,7 +141,7 @@ func (DevTestLinuxVirtualMachineResource) Exists(ctx context.Context, clients *c
 
 	resp, err := clients.DevTestLabs.VirtualMachinesClient.Get(ctx, id.ResourceGroup, labName, name, "")
 	if err != nil {
-		return nil, fmt.Errorf("retrieving DevTest Linux Virtual Machine %q (Lab %q / Resource Group: %q) does not exist", name, labName, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving DevTest Linux Virtual Machine %q (Lab %q / Resource Group: %q): %v", name, labName, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.LabVirtualMachineProperties != nil), nil

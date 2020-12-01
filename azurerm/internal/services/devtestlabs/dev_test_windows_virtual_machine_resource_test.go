@@ -3,7 +3,6 @@ package devtestlabs_test
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -119,7 +118,7 @@ func (DevTestVirtualMachineResource) Exists(ctx context.Context, clients *client
 
 	resp, err := clients.DevTestLabs.VirtualMachinesClient.Get(ctx, id.ResourceGroup, labName, name, "")
 	if err != nil {
-		return nil, fmt.Errorf("retrieving DevTest Windows Virtual Machine %q (Lab %q / Resource Group: %q) does not exist", name, labName, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving DevTest Windows Virtual Machine %q (Lab %q / Resource Group: %q): %v", name, labName, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.LabVirtualMachineProperties != nil), nil

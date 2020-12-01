@@ -110,7 +110,7 @@ func (DevTestVirtualNetworkResource) Exists(ctx context.Context, clients *client
 
 	resp, err := clients.DevTestLabs.VirtualNetworksClient.Get(ctx, id.ResourceGroup, labName, name, "")
 	if err != nil {
-		return nil, fmt.Errorf("retrieving DevTest Virtual Network %q (Lab %q / Resource Group: %q) does not exist", name, labName, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving DevTest Virtual Network %q (Lab %q / Resource Group: %q): %v", name, labName, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.VirtualNetworkProperties != nil), nil

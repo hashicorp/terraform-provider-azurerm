@@ -80,7 +80,7 @@ func (DevTestPolicyResource) Exists(ctx context.Context, clients *clients.Client
 
 	resp, err := clients.DevTestLabs.PoliciesClient.Get(ctx, id.ResourceGroup, labName, policySetName, name, "")
 	if err != nil {
-		return nil, fmt.Errorf("retrieving DevTest Policy %q (Policy Set %q / Lab %q / Resource Group: %q) does not exist", name, policySetName, labName, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving DevTest Policy %q (Policy Set %q / Lab %q / Resource Group: %q): %v", name, policySetName, labName, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.PolicyProperties != nil), nil
