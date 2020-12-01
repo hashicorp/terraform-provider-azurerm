@@ -18,11 +18,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmEventGridDomainTopic() *schema.Resource {
+func resourceEventGridDomainTopic() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmEventGridDomainTopicCreate,
-		Read:   resourceArmEventGridDomainTopicRead,
-		Delete: resourceArmEventGridDomainTopicDelete,
+		Create: resourceEventGridDomainTopicCreate,
+		Read:   resourceEventGridDomainTopicRead,
+		Delete: resourceEventGridDomainTopicDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -67,7 +67,7 @@ func resourceArmEventGridDomainTopic() *schema.Resource {
 	}
 }
 
-func resourceArmEventGridDomainTopicCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridDomainTopicCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.DomainTopicsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -108,10 +108,10 @@ func resourceArmEventGridDomainTopicCreate(d *schema.ResourceData, meta interfac
 
 	d.SetId(*read.ID)
 
-	return resourceArmEventGridDomainTopicRead(d, meta)
+	return resourceEventGridDomainTopicRead(d, meta)
 }
 
-func resourceArmEventGridDomainTopicRead(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridDomainTopicRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.DomainTopicsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -139,7 +139,7 @@ func resourceArmEventGridDomainTopicRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceArmEventGridDomainTopicDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridDomainTopicDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.DomainTopicsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
