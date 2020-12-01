@@ -13,7 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/parse"
 )
 
-func TestAccAzureRMVirtualDesktopApplicationGroup_basic(t *testing.T) {
+func TestAccVirtualDesktopApplicationGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_application_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -22,7 +22,7 @@ func TestAccAzureRMVirtualDesktopApplicationGroup_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDesktopVirtualizationApplicationGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVirtualDesktopApplicationGroup_basic(data),
+				Config: testAccVirtualDesktopApplicationGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDesktopVirtualizationApplicationGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
@@ -32,7 +32,7 @@ func TestAccAzureRMVirtualDesktopApplicationGroup_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMVirtualDesktopApplicationGroup_complete(t *testing.T) {
+func TestAccVirtualDesktopApplicationGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_application_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -41,7 +41,7 @@ func TestAccAzureRMVirtualDesktopApplicationGroup_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDesktopVirtualizationApplicationGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVirtualDesktopApplicationGroup_complete(data),
+				Config: testAccVirtualDesktopApplicationGroup_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDesktopVirtualizationApplicationGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
@@ -51,7 +51,7 @@ func TestAccAzureRMVirtualDesktopApplicationGroup_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMVirtualDesktopApplicationGroup_update(t *testing.T) {
+func TestAccVirtualDesktopApplicationGroup_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_application_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -60,21 +60,21 @@ func TestAccAzureRMVirtualDesktopApplicationGroup_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDesktopVirtualizationApplicationGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVirtualDesktopApplicationGroup_basic(data),
+				Config: testAccVirtualDesktopApplicationGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDesktopVirtualizationApplicationGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
 			{
-				Config: testAccAzureRMVirtualDesktopApplicationGroup_complete(data),
+				Config: testAccVirtualDesktopApplicationGroup_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDesktopVirtualizationApplicationGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 				),
 			},
 			{
-				Config: testAccAzureRMVirtualDesktopApplicationGroup_basic(data),
+				Config: testAccVirtualDesktopApplicationGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDesktopVirtualizationApplicationGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
@@ -84,7 +84,7 @@ func TestAccAzureRMVirtualDesktopApplicationGroup_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMVirtualDesktopApplicationGroup_requiresImport(t *testing.T) {
+func TestAccVirtualDesktopApplicationGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_application_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -93,13 +93,13 @@ func TestAccAzureRMVirtualDesktopApplicationGroup_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDesktopVirtualizationApplicationGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVirtualDesktopApplicationGroup_basic(data),
+				Config: testAccVirtualDesktopApplicationGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDesktopVirtualizationApplicationGroupExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMVirtualDesktopApplicationGroup_requiresImport(data),
+				Config:      testAccVirtualDesktopApplicationGroup_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_virtual_desktop_application_group"),
 			},
 		},
@@ -164,7 +164,7 @@ func testCheckAzureRMDesktopVirtualizationApplicationGroupDestroy(s *terraform.S
 	return nil
 }
 
-func testAccAzureRMVirtualDesktopApplicationGroup_basic(data acceptance.TestData) string {
+func testAccVirtualDesktopApplicationGroup_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -193,7 +193,7 @@ resource "azurerm_virtual_desktop_application_group" "test" {
 `, data.RandomInteger, data.Locations.Secondary, data.RandomIntOfLength(8))
 }
 
-func testAccAzureRMVirtualDesktopApplicationGroup_complete(data acceptance.TestData) string {
+func testAccVirtualDesktopApplicationGroup_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -230,8 +230,8 @@ resource "azurerm_virtual_desktop_application_group" "test" {
 `, data.RandomInteger, data.Locations.Secondary, data.RandomIntOfLength(8))
 }
 
-func testAccAzureRMVirtualDesktopApplicationGroup_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualDesktopApplicationGroup_basic(data)
+func testAccVirtualDesktopApplicationGroup_requiresImport(data acceptance.TestData) string {
+	template := testAccVirtualDesktopApplicationGroup_basic(data)
 	return fmt.Sprintf(`
 %s
 

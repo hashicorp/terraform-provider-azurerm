@@ -13,7 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/parse"
 )
 
-func TestAccAzureRMVirtualDesktopHostPool_basic(t *testing.T) {
+func TestAccVirtualDesktopHostPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -22,7 +22,7 @@ func TestAccAzureRMVirtualDesktopHostPool_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDesktopVirtualizationHostPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVirtualDesktopHostPool_basic(data),
+				Config: testAccVirtualDesktopHostPool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDesktopVirtualizationHostPoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
@@ -32,7 +32,7 @@ func TestAccAzureRMVirtualDesktopHostPool_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMVirtualDesktopHostPool_complete(t *testing.T) {
+func TestAccVirtualDesktopHostPool_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -41,7 +41,7 @@ func TestAccAzureRMVirtualDesktopHostPool_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDesktopVirtualizationHostPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVirtualDesktopHostPool_complete(data),
+				Config: testAccVirtualDesktopHostPool_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDesktopVirtualizationHostPoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
@@ -51,7 +51,7 @@ func TestAccAzureRMVirtualDesktopHostPool_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMVirtualDesktopHostPool_update(t *testing.T) {
+func TestAccVirtualDesktopHostPool_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -60,21 +60,21 @@ func TestAccAzureRMVirtualDesktopHostPool_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDesktopVirtualizationHostPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVirtualDesktopHostPool_basic(data),
+				Config: testAccVirtualDesktopHostPool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDesktopVirtualizationHostPoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
 			{
-				Config: testAccAzureRMVirtualDesktopHostPool_complete(data),
+				Config: testAccVirtualDesktopHostPool_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDesktopVirtualizationHostPoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 				),
 			},
 			{
-				Config: testAccAzureRMVirtualDesktopHostPool_basic(data),
+				Config: testAccVirtualDesktopHostPool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDesktopVirtualizationHostPoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
@@ -84,7 +84,7 @@ func TestAccAzureRMVirtualDesktopHostPool_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMVirtualDesktopHostPool_requiresImport(t *testing.T) {
+func TestAccVirtualDesktopHostPool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -93,13 +93,13 @@ func TestAccAzureRMVirtualDesktopHostPool_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDesktopVirtualizationHostPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVirtualDesktopHostPool_basic(data),
+				Config: testAccVirtualDesktopHostPool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDesktopVirtualizationHostPoolExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMVirtualDesktopHostPool_requiresImport(data),
+				Config:      testAccVirtualDesktopHostPool_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_virtual_desktop_host_pool"),
 			},
 		},
@@ -166,7 +166,7 @@ func testCheckAzureRMDesktopVirtualizationHostPoolDestroy(s *terraform.State) er
 	return nil
 }
 
-func testAccAzureRMVirtualDesktopHostPool_basic(data acceptance.TestData) string {
+func testAccVirtualDesktopHostPool_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -188,7 +188,7 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
 `, data.RandomInteger, data.Locations.Secondary, data.RandomString)
 }
 
-func testAccAzureRMVirtualDesktopHostPool_complete(data acceptance.TestData) string {
+func testAccVirtualDesktopHostPool_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -229,8 +229,8 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
 `, data.RandomInteger, data.Locations.Secondary, data.RandomString)
 }
 
-func testAccAzureRMVirtualDesktopHostPool_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualDesktopHostPool_basic(data)
+func testAccVirtualDesktopHostPool_requiresImport(data acceptance.TestData) string {
+	template := testAccVirtualDesktopHostPool_basic(data)
 	return fmt.Sprintf(`
 %s
 
