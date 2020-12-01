@@ -331,6 +331,11 @@ func resourceArmPrivateEndpointRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("reading Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
+	privateDnsZoneIds, err := retrievePrivateDnsZoneGroupsForPrivateEndpoint(ctx, dnsClient, *id)
+	if err != nil {
+		return err
+	}
+
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
@@ -347,26 +352,16 @@ func resourceArmPrivateEndpointRead(d *schema.ResourceData, meta interface{}) er
 				privateIpAddress = getPrivateIpAddress(ctx, nicsClient, *nic.ID)
 			}
 		}
-		// TODO: why not pass in the Private IP Address here?!
-		flattenedConnection := flattenArmPrivateLinkEndpointServiceConnection(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections)
-		for _, item := range flattenedConnection {
-			v := item.(map[string]interface{})
-			v["private_ip_address"] = privateIpAddress
-		}
+		flattenedConnection := flattenArmPrivateLinkEndpointServiceConnection(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections, privateIpAddress)
 		if err := d.Set("private_service_connection", flattenedConnection); err != nil {
 			return fmt.Errorf("setting `private_service_connection`: %+v", err)
 		}
 
 		subnetId := ""
-		if subnet := props.Subnet; subnet != nil {
-			subnetId = *subnet.ID
+		if props.Subnet != nil && props.Subnet.ID != nil {
+			subnetId = *props.Subnet.ID
 		}
 		d.Set("subnet_id", subnetId)
-	}
-
-	privateDnsZoneIds, err := retrievePrivateDnsZoneGroupsForPrivateEndpoint(ctx, dnsClient, *id)
-	if err != nil {
-		return err
 	}
 
 	privateDnsZoneConfigs := make([]interface{}, 0)
@@ -480,7 +475,7 @@ func flattenArmCustomDnsConfigs(customDnsConfigs *[]network.CustomDNSConfigPrope
 	return results
 }
 
-func flattenArmPrivateLinkEndpointServiceConnection(serviceConnections *[]network.PrivateLinkServiceConnection, manualServiceConnections *[]network.PrivateLinkServiceConnection) []interface{} {
+func flattenArmPrivateLinkEndpointServiceConnection(serviceConnections *[]network.PrivateLinkServiceConnection, manualServiceConnections *[]network.PrivateLinkServiceConnection, privateIPAddress string) []interface{} {
 	results := make([]interface{}, 0)
 	if serviceConnections == nil && manualServiceConnections == nil {
 		return results
@@ -508,6 +503,7 @@ func flattenArmPrivateLinkEndpointServiceConnection(serviceConnections *[]networ
 				"name":                           name,
 				"is_manual_connection":           false,
 				"private_connection_resource_id": privateConnectionId,
+				"private_ip_address":             privateIPAddress,
 				"subresource_names":              subResourceNames,
 			})
 		}
@@ -540,6 +536,7 @@ func flattenArmPrivateLinkEndpointServiceConnection(serviceConnections *[]networ
 				"name":                           name,
 				"is_manual_connection":           true,
 				"private_connection_resource_id": privateConnectionId,
+				"private_ip_address":             privateIPAddress,
 				"request_message":                requestMessage,
 				"subresource_names":              subResourceNames,
 			})
