@@ -4,19 +4,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type ApiManagementLoggerId struct {
+type LoggerId struct {
 	ResourceGroup string
 	ServiceName   string
 	Name          string
 }
 
-func ApiManagementLoggerID(input string) (*ApiManagementLoggerId, error) {
+func LoggerID(input string) (*LoggerId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	logger := ApiManagementLoggerId{
+	logger := LoggerId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
