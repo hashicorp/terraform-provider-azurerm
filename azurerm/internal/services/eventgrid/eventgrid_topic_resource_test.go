@@ -12,18 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMEventGridTopic_basic(t *testing.T) {
+func TestAccEventGridTopic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_topic", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridTopicDestroy,
+		CheckDestroy: testCheckEventGridTopicDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridTopic_basic(data),
+				Config: testAccEventGridTopic_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridTopicExists(data.ResourceName),
+					testCheckEventGridTopicExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "endpoint"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
@@ -34,40 +34,40 @@ func TestAccAzureRMEventGridTopic_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMEventGridTopic_requiresImport(t *testing.T) {
+func TestAccEventGridTopic_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_topic", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridTopicDestroy,
+		CheckDestroy: testCheckEventGridTopicDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridTopic_basic(data),
+				Config: testAccEventGridTopic_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridTopicExists(data.ResourceName),
+					testCheckEventGridTopicExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMEventGridTopic_requiresImport(data),
+				Config:      testAccEventGridTopic_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_eventgrid_topic"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMEventGridTopic_mapping(t *testing.T) {
+func TestAccEventGridTopic_mapping(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_topic", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridTopicDestroy,
+		CheckDestroy: testCheckEventGridTopicDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridTopic_mapping(data),
+				Config: testAccEventGridTopic_mapping(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridTopicExists(data.ResourceName),
+					testCheckEventGridTopicExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "input_mapping_fields.0.topic", "test"),
 					resource.TestCheckResourceAttr(data.ResourceName, "input_mapping_fields.0.topic", "test"),
 					resource.TestCheckResourceAttr(data.ResourceName, "input_mapping_default_values.0.data_version", "1.0"),
@@ -79,18 +79,18 @@ func TestAccAzureRMEventGridTopic_mapping(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMEventGridTopic_basicWithTags(t *testing.T) {
+func TestAccEventGridTopic_basicWithTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_topic", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridTopicDestroy,
+		CheckDestroy: testCheckEventGridTopicDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridTopic_basicWithTags(data),
+				Config: testAccEventGridTopic_basicWithTags(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridTopicExists(data.ResourceName),
+					testCheckEventGridTopicExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.foo", "bar"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "endpoint"),
@@ -103,7 +103,7 @@ func TestAccAzureRMEventGridTopic_basicWithTags(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMEventGridTopicDestroy(s *terraform.State) error {
+func testCheckEventGridTopicDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).EventGrid.TopicsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -132,7 +132,7 @@ func testCheckAzureRMEventGridTopicDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMEventGridTopicExists(resourceName string) resource.TestCheckFunc {
+func testCheckEventGridTopicExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).EventGrid.TopicsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -162,7 +162,7 @@ func testCheckAzureRMEventGridTopicExists(resourceName string) resource.TestChec
 	}
 }
 
-func testAccAzureRMEventGridTopic_basic(data acceptance.TestData) string {
+func testAccEventGridTopic_basic(data acceptance.TestData) string {
 	// TODO: confirm if this is still the case
 	// currently only supported in "West Central US" & "West US 2"
 	location := "westus2"
@@ -184,8 +184,8 @@ resource "azurerm_eventgrid_topic" "test" {
 `, data.RandomInteger, location, data.RandomInteger)
 }
 
-func testAccAzureRMEventGridTopic_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMEventGridTopic_basic(data)
+func testAccEventGridTopic_requiresImport(data acceptance.TestData) string {
+	template := testAccEventGridTopic_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -197,7 +197,7 @@ resource "azurerm_eventgrid_topic" "import" {
 `, template)
 }
 
-func testAccAzureRMEventGridTopic_mapping(data acceptance.TestData) string {
+func testAccEventGridTopic_mapping(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -223,7 +223,7 @@ resource "azurerm_eventgrid_topic" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMEventGridTopic_basicWithTags(data acceptance.TestData) string {
+func testAccEventGridTopic_basicWithTags(data acceptance.TestData) string {
 	// currently only supported in "West Central US" & "West US 2"
 	location := "westus2"
 	return fmt.Sprintf(`

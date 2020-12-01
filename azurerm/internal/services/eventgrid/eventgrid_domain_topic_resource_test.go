@@ -12,18 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMEventGridDomainTopic_basic(t *testing.T) {
+func TestAccEventGridDomainTopic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain_topic", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridDomainTopicDestroy,
+		CheckDestroy: testCheckEventGridDomainTopicDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridDomainTopic_basic(data),
+				Config: testAccEventGridDomainTopic_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridDomainTopicExists(data.ResourceName),
+					testCheckEventGridDomainTopicExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -31,29 +31,29 @@ func TestAccAzureRMEventGridDomainTopic_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMEventGridDomainTopic_requiresImport(t *testing.T) {
+func TestAccEventGridDomainTopic_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain_topic", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridTopicDestroy,
+		CheckDestroy: testCheckEventGridTopicDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridDomainTopic_basic(data),
+				Config: testAccEventGridDomainTopic_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridDomainTopicExists(data.ResourceName),
+					testCheckEventGridDomainTopicExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMEventGridDomainTopic_requiresImport(data),
+				Config:      testAccEventGridDomainTopic_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_eventgrid_domain_topic"),
 			},
 		},
 	})
 }
 
-func testCheckAzureRMEventGridDomainTopicDestroy(s *terraform.State) error {
+func testCheckEventGridDomainTopicDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).EventGrid.DomainTopicsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -83,7 +83,7 @@ func testCheckAzureRMEventGridDomainTopicDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMEventGridDomainTopicExists(resourceName string) resource.TestCheckFunc {
+func testCheckEventGridDomainTopicExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).EventGrid.DomainTopicsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -114,7 +114,7 @@ func testCheckAzureRMEventGridDomainTopicExists(resourceName string) resource.Te
 	}
 }
 
-func testAccAzureRMEventGridDomainTopic_basic(data acceptance.TestData) string {
+func testAccEventGridDomainTopic_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -136,8 +136,8 @@ resource "azurerm_eventgrid_domain_topic" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMEventGridDomainTopic_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMEventGridDomainTopic_basic(data)
+func testAccEventGridDomainTopic_requiresImport(data acceptance.TestData) string {
+	template := testAccEventGridDomainTopic_basic(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_eventgrid_domain_topic" "import" {

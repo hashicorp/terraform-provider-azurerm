@@ -12,18 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMEventGridEventSubscription_basic(t *testing.T) {
+func TestAccEventGridEventSubscription_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridEventSubscriptionDestroy,
+		CheckDestroy: testCheckEventGridEventSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridEventSubscription_basic(data),
+				Config: testAccEventGridEventSubscription_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridEventSubscriptionExists(data.ResourceName),
+					testCheckEventGridEventSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "event_delivery_schema", "EventGridSchema"),
 				),
 			},
@@ -32,40 +32,40 @@ func TestAccAzureRMEventGridEventSubscription_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMEventGridEventSubscription_requiresImport(t *testing.T) {
+func TestAccEventGridEventSubscription_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridEventSubscriptionDestroy,
+		CheckDestroy: testCheckEventGridEventSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridEventSubscription_basic(data),
+				Config: testAccEventGridEventSubscription_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridEventSubscriptionExists(data.ResourceName),
+					testCheckEventGridEventSubscriptionExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMEventGridEventSubscription_requiresImport(data),
+				Config:      testAccEventGridEventSubscription_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_eventgrid_event_subscription"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMEventGridEventSubscription_eventHubID(t *testing.T) {
+func TestAccEventGridEventSubscription_eventHubID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridEventSubscriptionDestroy,
+		CheckDestroy: testCheckEventGridEventSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridEventSubscription_eventHubID(data),
+				Config: testAccEventGridEventSubscription_eventHubID(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridEventSubscriptionExists(data.ResourceName),
+					testCheckEventGridEventSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "event_delivery_schema", "CloudEventSchemaV1_0"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "eventhub_endpoint_id"),
 				),
@@ -75,18 +75,18 @@ func TestAccAzureRMEventGridEventSubscription_eventHubID(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMEventGridEventSubscription_serviceBusQueueID(t *testing.T) {
+func TestAccEventGridEventSubscription_serviceBusQueueID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridEventSubscriptionDestroy,
+		CheckDestroy: testCheckEventGridEventSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridEventSubscription_serviceBusQueueID(data),
+				Config: testAccEventGridEventSubscription_serviceBusQueueID(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridEventSubscriptionExists(data.ResourceName),
+					testCheckEventGridEventSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "event_delivery_schema", "CloudEventSchemaV1_0"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "service_bus_queue_endpoint_id"),
 				),
@@ -96,18 +96,18 @@ func TestAccAzureRMEventGridEventSubscription_serviceBusQueueID(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMEventGridEventSubscription_serviceBusTopicID(t *testing.T) {
+func TestAccEventGridEventSubscription_serviceBusTopicID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridEventSubscriptionDestroy,
+		CheckDestroy: testCheckEventGridEventSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridEventSubscription_serviceBusTopicID(data),
+				Config: testAccEventGridEventSubscription_serviceBusTopicID(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridEventSubscriptionExists(data.ResourceName),
+					testCheckEventGridEventSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "event_delivery_schema", "CloudEventSchemaV1_0"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "service_bus_topic_endpoint_id"),
 				),
@@ -117,18 +117,18 @@ func TestAccAzureRMEventGridEventSubscription_serviceBusTopicID(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMEventGridEventSubscription_update(t *testing.T) {
+func TestAccEventGridEventSubscription_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridEventSubscriptionDestroy,
+		CheckDestroy: testCheckEventGridEventSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridEventSubscription_basic(data),
+				Config: testAccEventGridEventSubscription_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridEventSubscriptionExists(data.ResourceName),
+					testCheckEventGridEventSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "event_delivery_schema", "EventGridSchema"),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_queue_endpoint.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_blob_dead_letter_destination.#", "1"),
@@ -140,9 +140,9 @@ func TestAccAzureRMEventGridEventSubscription_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMEventGridEventSubscription_update(data),
+				Config: testAccEventGridEventSubscription_update(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridEventSubscriptionExists(data.ResourceName),
+					testCheckEventGridEventSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "included_event_types.0", "Microsoft.Storage.BlobCreated"),
 					resource.TestCheckResourceAttr(data.ResourceName, "included_event_types.1", "Microsoft.Storage.BlobDeleted"),
 					resource.TestCheckResourceAttr(data.ResourceName, "subject_filter.0.subject_ends_with", ".jpg"),
@@ -157,18 +157,18 @@ func TestAccAzureRMEventGridEventSubscription_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMEventGridEventSubscription_filter(t *testing.T) {
+func TestAccEventGridEventSubscription_filter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridEventSubscriptionDestroy,
+		CheckDestroy: testCheckEventGridEventSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridEventSubscription_filter(data),
+				Config: testAccEventGridEventSubscription_filter(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridEventSubscriptionExists(data.ResourceName),
+					testCheckEventGridEventSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "included_event_types.0", "Microsoft.Storage.BlobCreated"),
 					resource.TestCheckResourceAttr(data.ResourceName, "included_event_types.1", "Microsoft.Storage.BlobDeleted"),
 					resource.TestCheckResourceAttr(data.ResourceName, "subject_filter.0.subject_ends_with", ".jpg"),
@@ -180,18 +180,18 @@ func TestAccAzureRMEventGridEventSubscription_filter(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMEventGridEventSubscription_advancedFilter(t *testing.T) {
+func TestAccEventGridEventSubscription_advancedFilter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridEventSubscriptionDestroy,
+		CheckDestroy: testCheckEventGridEventSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridEventSubscription_advancedFilter(data),
+				Config: testAccEventGridEventSubscription_advancedFilter(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridEventSubscriptionExists(data.ResourceName),
+					testCheckEventGridEventSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.bool_equals.0.key", "subject"),
 					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.bool_equals.0.value", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.number_greater_than.0.key", "data.metadataVersion"),
@@ -223,7 +223,7 @@ func TestAccAzureRMEventGridEventSubscription_advancedFilter(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMEventGridEventSubscriptionDestroy(s *terraform.State) error {
+func testCheckEventGridEventSubscriptionDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).EventGrid.EventSubscriptionsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -252,7 +252,7 @@ func testCheckAzureRMEventGridEventSubscriptionDestroy(s *terraform.State) error
 	return nil
 }
 
-func testCheckAzureRMEventGridEventSubscriptionExists(resourceName string) resource.TestCheckFunc {
+func testCheckEventGridEventSubscriptionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).EventGrid.EventSubscriptionsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -282,7 +282,7 @@ func testCheckAzureRMEventGridEventSubscriptionExists(resourceName string) resou
 	}
 }
 
-func testAccAzureRMEventGridEventSubscription_basic(data acceptance.TestData) string {
+func testAccEventGridEventSubscription_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -350,8 +350,8 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMEventGridEventSubscription_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMEventGridEventSubscription_basic(data)
+func testAccEventGridEventSubscription_requiresImport(data acceptance.TestData) string {
+	template := testAccEventGridEventSubscription_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -362,7 +362,7 @@ resource "azurerm_eventgrid_event_subscription" "import" {
 `, template)
 }
 
-func testAccAzureRMEventGridEventSubscription_update(data acceptance.TestData) string {
+func testAccEventGridEventSubscription_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -436,7 +436,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMEventGridEventSubscription_eventHubID(data acceptance.TestData) string {
+func testAccEventGridEventSubscription_eventHubID(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -472,7 +472,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMEventGridEventSubscription_serviceBusQueueID(data acceptance.TestData) string {
+func testAccEventGridEventSubscription_serviceBusQueueID(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -503,7 +503,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMEventGridEventSubscription_serviceBusTopicID(data acceptance.TestData) string {
+func testAccEventGridEventSubscription_serviceBusTopicID(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -533,7 +533,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMEventGridEventSubscription_filter(data acceptance.TestData) string {
+func testAccEventGridEventSubscription_filter(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -580,7 +580,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMEventGridEventSubscription_advancedFilter(data acceptance.TestData) string {
+func testAccEventGridEventSubscription_advancedFilter(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

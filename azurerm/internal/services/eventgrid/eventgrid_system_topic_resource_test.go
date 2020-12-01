@@ -12,18 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMEventGridSystemTopic_basic(t *testing.T) {
+func TestAccEventGridSystemTopic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridSystemTopicDestroy,
+		CheckDestroy: testCheckEventGridSystemTopicDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridSystemTopic_basic(data),
+				Config: testAccEventGridSystemTopic_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridSystemTopicExists(data.ResourceName),
+					testCheckEventGridSystemTopicExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "source_arm_resource_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "topic_type"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "metric_arm_resource_id"),
@@ -34,40 +34,40 @@ func TestAccAzureRMEventGridSystemTopic_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMEventGridSystemTopic_requiresImport(t *testing.T) {
+func TestAccEventGridSystemTopic_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridSystemTopicDestroy,
+		CheckDestroy: testCheckEventGridSystemTopicDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridSystemTopic_basic(data),
+				Config: testAccEventGridSystemTopic_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridSystemTopicExists(data.ResourceName),
+					testCheckEventGridSystemTopicExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMEventGridSystemTopic_requiresImport(data),
+				Config:      testAccEventGridSystemTopic_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_eventgrid_system_topic"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMEventGridSystemTopic_complete(t *testing.T) {
+func TestAccEventGridSystemTopic_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridSystemTopicDestroy,
+		CheckDestroy: testCheckEventGridSystemTopicDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridSystemTopic_complete(data),
+				Config: testAccEventGridSystemTopic_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridSystemTopicExists(data.ResourceName),
+					testCheckEventGridSystemTopicExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.Foo", "Bar"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "source_arm_resource_id"),
@@ -80,7 +80,7 @@ func TestAccAzureRMEventGridSystemTopic_complete(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMEventGridSystemTopicDestroy(s *terraform.State) error {
+func testCheckEventGridSystemTopicDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).EventGrid.SystemTopicsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -109,7 +109,7 @@ func testCheckAzureRMEventGridSystemTopicDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMEventGridSystemTopicExists(resourceName string) resource.TestCheckFunc {
+func testCheckEventGridSystemTopicExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).EventGrid.SystemTopicsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -139,7 +139,7 @@ func testCheckAzureRMEventGridSystemTopicExists(resourceName string) resource.Te
 	}
 }
 
-func testAccAzureRMEventGridSystemTopic_basic(data acceptance.TestData) string {
+func testAccEventGridSystemTopic_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -168,8 +168,8 @@ resource "azurerm_eventgrid_system_topic" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(12), data.RandomIntOfLength(10))
 }
 
-func testAccAzureRMEventGridSystemTopic_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMEventGridSystemTopic_basic(data)
+func testAccEventGridSystemTopic_requiresImport(data acceptance.TestData) string {
+	template := testAccEventGridSystemTopic_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -183,7 +183,7 @@ resource "azurerm_eventgrid_system_topic" "import" {
 `, template)
 }
 
-func testAccAzureRMEventGridSystemTopic_complete(data acceptance.TestData) string {
+func testAccEventGridSystemTopic_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
