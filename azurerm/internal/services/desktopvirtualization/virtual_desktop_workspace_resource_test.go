@@ -102,7 +102,7 @@ func (t AzureRMDesktopVirtualizationWorkspaceResource) Exists(ctx context.Contex
 
 	resp, err := clients.DesktopVirtualization.WorkspacesClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Virtual Desktop Workspace %q (Resource Group: %q) does not exist", id.Name, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving Virtual Desktop Workspace %q (Resource Group: %q): %v", id.Name, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.WorkspaceProperties != nil), nil
