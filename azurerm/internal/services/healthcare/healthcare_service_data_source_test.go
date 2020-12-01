@@ -6,32 +6,31 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
+
+type HealthCareServiceDataSource struct {
+}
 
 func TestAccHealthCareServiceDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_healthcare_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHealthCareServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDataSourceHealthcareService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "kind"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "cosmosdb_throughput"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
+	r := HealthCareServiceDataSource{}
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("location").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("kind").Exists(),
+				check.That(data.ResourceName).Key("cosmosdb_throughput").Exists(),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
 		},
 	})
 }
 
-func testAccAzureRMDataSourceHealthcareService_basic(data acceptance.TestData) string {
-	resource := testAccHealthCareService_basic(data)
+func (HealthCareServiceDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -40,5 +39,5 @@ data "azurerm_healthcare_service" "test" {
   resource_group_name = azurerm_healthcare_service.test.resource_group_name
   location            = azurerm_resource_group.test.location
 }
-`, resource)
+`, HealthCareServiceResource{}.basic(data))
 }

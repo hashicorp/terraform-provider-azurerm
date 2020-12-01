@@ -1,130 +1,82 @@
 package healthcare_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+type HealthCareServiceResource struct {
+}
 
 func TestAccHealthCareService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_service", "test")
+	r := HealthCareServiceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHealthCareServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccHealthCareService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHealthCareServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccHealthCareService_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_service", "test")
+	r := HealthCareServiceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHealthCareServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccHealthCareService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHealthCareServiceExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccHealthCareService_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
 func TestAccHealthCareService_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_service", "test")
+	r := HealthCareServiceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHealthCareServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccHealthCareService_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHealthCareServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMHealthCareServiceExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).HealthCare.HealthcareServiceClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		id, err := parse.ServiceID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
-				return fmt.Errorf("Bad: Healthcare service %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on healthcareServiceClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMHealthCareServiceDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).HealthCare.HealthcareServiceClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_healthcare_service" {
-			continue
-		}
-
-		id, err := parse.ServiceID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("HealthCare Service still exists:\n%#v", resp.Status)
-		}
+func (HealthCareServiceResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ServiceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.HealthCare.HealthcareServiceClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Healthcare service %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	return utils.Bool(resp.Properties != nil), nil
 }
 
-func testAccHealthCareService_basic(data acceptance.TestData) string {
+func (HealthCareServiceResource) basic(data acceptance.TestData) string {
 	// currently only supported in "ukwest", "northcentralus", "westus2".
 	location := "westus2"
 
@@ -153,8 +105,7 @@ resource "azurerm_healthcare_service" "test" {
 `, data.RandomInteger, location, data.RandomIntOfLength(17)) // name can only be 24 chars long
 }
 
-func testAccHealthCareService_requiresImport(data acceptance.TestData) string {
-	template := testAccHealthCareService_basic(data)
+func (r HealthCareServiceResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -167,10 +118,10 @@ resource "azurerm_healthcare_service" "import" {
     "${data.azurerm_client_config.current.object_id}",
   ]
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccHealthCareService_complete(data acceptance.TestData) string {
+func (HealthCareServiceResource) complete(data acceptance.TestData) string {
 	// currently only supported in "ukwest", "northcentralus", "westus2".
 	location := "westus2"
 
