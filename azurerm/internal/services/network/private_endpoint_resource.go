@@ -324,24 +324,32 @@ func resourceArmPrivateEndpointUpdate(d *schema.ResourceData, meta interface{}) 
 
 	// 1 Private Endpoint can have 1 Private DNS Zone Group - so to update we need to Delete & Recreate
 	if d.HasChange("private_dns_zone_group") {
-		// TODO: shouldn't this be pulling the list from Azure?!
-		oldRaw, newRaw := d.GetChange("private_dns_zone_group")
-		oldPrivateDnsZoneGroup := make(map[string]interface{})
-		if oldRaw != nil {
-			for _, v := range oldRaw.([]interface{}) {
-				oldPrivateDnsZoneGroup = v.(map[string]interface{})
+		existingDnsZoneGroups, err := retrievePrivateDnsZoneGroupsForPrivateEndpoint(ctx, dnsClient, *id)
+		if err != nil {
+			return err
+		}
+
+		newDnsZoneGroups := d.Get("private_dns_zone_group").([]interface{})
+		newDnsZoneName := ""
+		if len(newDnsZoneGroups) > 0 {
+			groupRaw := newDnsZoneGroups[0].(map[string]interface{})
+			newDnsZoneName = groupRaw["name"].(string)
+		}
+
+		needToRemove := false
+		nameHasChanged := false
+		if existingDnsZoneGroups != nil && newDnsZoneName != "" {
+			needToRemove = len(*existingDnsZoneGroups) > 0 && len(newDnsZoneGroups) == 0
+
+			// there should only be a single one, but there's no harm checking all returned
+			for _, existing := range *existingDnsZoneGroups {
+				if existing.Name != newDnsZoneName {
+					nameHasChanged = true
+					break
+				}
 			}
 		}
 
-		newPrivateDnsZoneGroup := make(map[string]interface{})
-		if newRaw != nil {
-			for _, v := range newRaw.([]interface{}) {
-				newPrivateDnsZoneGroup = v.(map[string]interface{})
-			}
-		}
-
-		needToRemove := len(newPrivateDnsZoneGroup) == 0 && len(oldPrivateDnsZoneGroup) != 0
-		nameHasChanged := (len(newPrivateDnsZoneGroup) != 0 && len(oldPrivateDnsZoneGroup) != 0) && oldPrivateDnsZoneGroup["name"].(string) != newPrivateDnsZoneGroup["name"].(string)
 		if needToRemove || nameHasChanged {
 			log.Printf("[DEBUG] Deleting the Existing Private DNS Zone Group associated with Private Endpoint %q / Resource Group %q..", id.Name, id.ResourceGroup)
 			if err := deletePrivateDnsZoneGroupForPrivateEndpoint(ctx, dnsClient, *id); err != nil {
