@@ -12,7 +12,7 @@ var _ resourceid.Formatter = VirtualNetworkSwiftConnectionId{}
 
 func TestVirtualNetworkSwiftConnectionIDFormatter(t *testing.T) {
 	actual := NewVirtualNetworkSwiftConnectionID("12345678-1234-9876-4563-123456789012", "resGroup1", "site1", "virtualNetwork").ID("")
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/networkconfig/virtualNetwork"
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/networkConfig/virtualNetwork"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -68,25 +68,25 @@ func TestVirtualNetworkSwiftConnectionID(t *testing.T) {
 		},
 
 		{
-			// missing NetworkconfigName
+			// missing NetworkConfigName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/",
 			Error: true,
 		},
 
 		{
-			// missing value for NetworkconfigName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/networkconfig/",
+			// missing value for NetworkConfigName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/networkConfig/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/networkconfig/virtualNetwork",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/networkConfig/virtualNetwork",
 			Expected: &VirtualNetworkSwiftConnectionId{
 				SubscriptionId:    "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:     "resGroup1",
 				SiteName:          "site1",
-				NetworkconfigName: "virtualNetwork",
+				NetworkConfigName: "virtualNetwork",
 			},
 		},
 
@@ -121,8 +121,8 @@ func TestVirtualNetworkSwiftConnectionID(t *testing.T) {
 		if actual.SiteName != v.Expected.SiteName {
 			t.Fatalf("Expected %q but got %q for SiteName", v.Expected.SiteName, actual.SiteName)
 		}
-		if actual.NetworkconfigName != v.Expected.NetworkconfigName {
-			t.Fatalf("Expected %q but got %q for NetworkconfigName", v.Expected.NetworkconfigName, actual.NetworkconfigName)
+		if actual.NetworkConfigName != v.Expected.NetworkConfigName {
+			t.Fatalf("Expected %q but got %q for NetworkConfigName", v.Expected.NetworkConfigName, actual.NetworkConfigName)
 		}
 	}
 }

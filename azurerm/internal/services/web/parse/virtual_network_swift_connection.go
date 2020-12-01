@@ -12,21 +12,21 @@ type VirtualNetworkSwiftConnectionId struct {
 	SubscriptionId    string
 	ResourceGroup     string
 	SiteName          string
-	NetworkconfigName string
+	NetworkConfigName string
 }
 
-func NewVirtualNetworkSwiftConnectionID(subscriptionId, resourceGroup, siteName, networkconfigName string) VirtualNetworkSwiftConnectionId {
+func NewVirtualNetworkSwiftConnectionID(subscriptionId, resourceGroup, siteName, networkConfigName string) VirtualNetworkSwiftConnectionId {
 	return VirtualNetworkSwiftConnectionId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroup:     resourceGroup,
 		SiteName:          siteName,
-		NetworkconfigName: networkconfigName,
+		NetworkConfigName: networkConfigName,
 	}
 }
 
 func (id VirtualNetworkSwiftConnectionId) ID(_ string) string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s/networkconfig/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SiteName, id.NetworkconfigName)
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s/networkConfig/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SiteName, id.NetworkConfigName)
 }
 
 // VirtualNetworkSwiftConnectionID parses a VirtualNetworkSwiftConnection ID into an VirtualNetworkSwiftConnectionId struct
@@ -52,7 +52,7 @@ func VirtualNetworkSwiftConnectionID(input string) (*VirtualNetworkSwiftConnecti
 	if resourceId.SiteName, err = id.PopSegment("sites"); err != nil {
 		return nil, err
 	}
-	if resourceId.NetworkconfigName, err = id.PopSegment("networkconfig"); err != nil {
+	if resourceId.NetworkConfigName, err = id.PopSegment("networkConfig"); err != nil {
 		return nil, err
 	}
 
