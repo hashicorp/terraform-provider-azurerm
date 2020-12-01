@@ -740,7 +740,7 @@ func retrieveAndFlattenPrivateDnsZone(ctx context.Context, client *network.Priva
 				"id":                  parse.NewPrivateDnsZoneConfigID(id.SubscriptionId, id.ResourceGroup, id.PrivateEndpointName, id.Name, name).ID(""),
 				"name":                name,
 				"private_dns_zone_id": privateDnsZoneId,
-				"rexcord_sets":        recordSets,
+				"record_sets":         recordSets,
 			})
 		}
 	}
