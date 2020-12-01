@@ -1,4 +1,4 @@
-package tests
+package web_test
 
 import (
 	"fmt"
@@ -6,32 +6,30 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
+
+type AppServiceEnvironmentDataSource struct{}
 
 func TestAccDataSourceAzureRMAppServiceEnvironment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service_environment", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceEnvironmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAppServiceEnvironment_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "front_end_scale_factor"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "pricing_tier"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "internal_ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "service_ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "outbound_ip_addresses"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: AppServiceEnvironmentDataSource{}.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("front_end_scale_factor").Exists(),
+				check.That(data.ResourceName).Key("pricing_tier").Exists(),
+				check.That(data.ResourceName).Key("internal_ip_address").Exists(),
+				check.That(data.ResourceName).Key("service_ip_address").Exists(),
+				check.That(data.ResourceName).Key("outbound_ip_addresses").Exists(),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAppServiceEnvironment_basic(data acceptance.TestData) string {
-	config := testAccAzureRMAppServiceEnvironment_basic(data)
+func (d AppServiceEnvironmentDataSource) basic(data acceptance.TestData) string {
+	config := AppServiceEnvironmentResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 

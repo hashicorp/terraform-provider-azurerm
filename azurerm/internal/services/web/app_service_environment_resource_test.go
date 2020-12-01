@@ -1,252 +1,178 @@
-package tests
+package web_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type AppServiceEnvironmentResource struct{}
+
 func TestAccAzureRMAppServiceEnvironment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
+	r := AppServiceEnvironmentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceEnvironmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppServiceEnvironment_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceEnvironmentExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "pricing_tier", "I1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "front_end_scale_factor", "15"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("pricing_tier").HasValue("I1"),
+				check.That(data.ResourceName).Key("front_end_scale_factor").HasValue("15"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppServiceEnvironment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceEnvironmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppServiceEnvironment_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceEnvironmentExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMAppServiceEnvironment_requiresImport),
+	r := AppServiceEnvironmentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
 func TestAccAzureRMAppServiceEnvironment_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
+	r := AppServiceEnvironmentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceEnvironmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppServiceEnvironment_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceEnvironmentExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "pricing_tier", "I1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "front_end_scale_factor", "15"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMAppServiceEnvironment_tierAndScaleFactor(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "pricing_tier", "I2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "front_end_scale_factor", "10"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("pricing_tier").HasValue("I1"),
+				check.That(data.ResourceName).Key("front_end_scale_factor").HasValue("15"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.tierAndScaleFactor(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("pricing_tier").HasValue("I2"),
+				check.That(data.ResourceName).Key("front_end_scale_factor").HasValue("10"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppServiceEnvironment_tierAndScaleFactor(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
+	r := AppServiceEnvironmentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceEnvironmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppServiceEnvironment_tierAndScaleFactor(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceEnvironmentExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "pricing_tier", "I2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "front_end_scale_factor", "10"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.tierAndScaleFactor(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("pricing_tier").HasValue("I2"),
+				check.That(data.ResourceName).Key("front_end_scale_factor").HasValue("10"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppServiceEnvironment_withAppServicePlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	aspData := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppServiceEnvironment_withAppServicePlan(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceEnvironmentExists(data.ResourceName),
-					resource.TestCheckResourceAttrPair(data.ResourceName, "id", aspData.ResourceName, "app_service_environment_id"),
+	r := AppServiceEnvironmentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withAppServicePlan(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("id").MatchesOtherKey(
+					check.That(aspData.ResourceName).Key("app_service_environment_id"),
 				),
-			},
-			data.ImportStep(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppServiceEnvironment_dedicatedResourceGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
+	r := AppServiceEnvironmentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceEnvironmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppServiceEnvironment_dedicatedResourceGroup(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceEnvironmentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.dedicatedResourceGroup(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppServiceEnvironment_withCertificatePfx(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	certData := acceptance.BuildTestData(t, "azurerm_app_service_certificate", "test")
+	r := AppServiceEnvironmentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceEnvironmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppServiceEnvironment_withCertificatePfx(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCertHostingEnvProfileIdMatchesAseId(data.ResourceName, certData.ResourceName),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withCertificatePfx(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("id").MatchesOtherKey(
+					check.That(certData.ResourceName).Key("hosting_environment_profile_id"),
 				),
-			},
-			data.ImportStep(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppServiceEnvironment_internalLoadBalancer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
+	r := AppServiceEnvironmentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceEnvironmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppServiceEnvironment_internalLoadBalancerAndWhitelistedIpRanges(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceEnvironmentExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "internal_load_balancing_mode", "Web, Publishing"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.internalLoadBalancerAndWhitelistedIpRanges(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("internal_load_balancing_mode").HasValue("Web, Publishing"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMAppServiceEnvironmentExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServiceEnvironmentsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		appServiceEnvironmentName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for App Service Environment: %s", appServiceEnvironmentName)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, appServiceEnvironmentName)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: App Service Environment %q (resource group %q) does not exist", appServiceEnvironmentName, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on appServiceEnvironmentClient: %+v", err)
-		}
-
-		return nil
+func (r AppServiceEnvironmentResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.AppServiceEnvironmentID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-}
 
-func testCheckAzureRMCertHostingEnvProfileIdMatchesAseId(aseResourceName, certResourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		certsConn := acceptance.AzureProvider.Meta().(*clients.Client).Web.CertificatesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		aseRs, ok := s.RootModule().Resources[aseResourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", aseResourceName)
+	resp, err := client.Web.AppServiceEnvironmentsClient.Get(ctx, id.ResourceGroup, id.HostingEnvironmentName)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
 		}
-		certRs, ok := s.RootModule().Resources[certResourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", certResourceName)
-		}
-
-		aseId := aseRs.Primary.Attributes["id"]
-
-		certName := certRs.Primary.Attributes["name"]
-		certResourceGroup, hasResourceGroup := certRs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Certificate: %s", certName)
-		}
-
-		certResp, err := certsConn.Get(ctx, certResourceGroup, certName)
-		if err != nil {
-			if utils.ResponseWasNotFound(certResp.Response) {
-				return fmt.Errorf("Bad: Certificatet %q (resource group: %q) does not exist", certName, certResourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on certificatesClient: %+v", err)
-		}
-
-		if certResp.HostingEnvironmentProfile == nil || certResp.HostingEnvironmentProfile.ID == nil {
-			return fmt.Errorf("bad: Certificate hostingEnvironmentProfile or ID was nil")
-		} else if *certResp.HostingEnvironmentProfile.ID != aseId {
-			return fmt.Errorf("Bad: Certificate hostingEnvironmentProfile.ID (%s) not equal to ASE ID (%s)", *certResp.HostingEnvironmentProfile.ID, aseId)
-		}
-
-		return nil
+		return nil, fmt.Errorf("retrieving App Service Environment %q (Resource Group %q): %+v", id.HostingEnvironmentName, id.ResourceGroup, err)
 	}
+	return utils.Bool(true), nil
 }
 
 func testCheckAzureRMAppServiceEnvironmentDestroy(s *terraform.State) error {
@@ -275,8 +201,8 @@ func testCheckAzureRMAppServiceEnvironmentDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMAppServiceEnvironment_basic(data acceptance.TestData) string {
-	template := testAccAzureRMAppServiceEnvironment_template(data)
+func (r AppServiceEnvironmentResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -287,8 +213,8 @@ resource "azurerm_app_service_environment" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceEnvironment_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMAppServiceEnvironment_basic(data)
+func (r AppServiceEnvironmentResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -299,8 +225,8 @@ resource "azurerm_app_service_environment" "import" {
 `, template)
 }
 
-func testAccAzureRMAppServiceEnvironment_tierAndScaleFactor(data acceptance.TestData) string {
-	template := testAccAzureRMAppServiceEnvironment_template(data)
+func (r AppServiceEnvironmentResource) tierAndScaleFactor(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -313,8 +239,8 @@ resource "azurerm_app_service_environment" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceEnvironment_withAppServicePlan(data acceptance.TestData) string {
-	template := testAccAzureRMAppServiceEnvironment_basic(data)
+func (r AppServiceEnvironmentResource) withAppServicePlan(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -333,8 +259,8 @@ resource "azurerm_app_service_plan" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceEnvironment_dedicatedResourceGroup(data acceptance.TestData) string {
-	template := testAccAzureRMAppServiceEnvironment_template(data)
+func (r AppServiceEnvironmentResource) dedicatedResourceGroup(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -351,8 +277,8 @@ resource "azurerm_app_service_environment" "test" {
 `, template, data.RandomInteger, data.Locations.Secondary)
 }
 
-func testAccAzureRMAppServiceEnvironment_withCertificatePfx(data acceptance.TestData) string {
-	template := testAccAzureRMAppServiceEnvironment_basic(data)
+func (r AppServiceEnvironmentResource) withCertificatePfx(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -367,7 +293,7 @@ resource "azurerm_app_service_certificate" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceEnvironment_template(data acceptance.TestData) string {
+func (r AppServiceEnvironmentResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -401,8 +327,8 @@ resource "azurerm_subnet" "gateway" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceEnvironment_internalLoadBalancerAndWhitelistedIpRanges(data acceptance.TestData) string {
-	template := testAccAzureRMAppServiceEnvironment_template(data)
+func (r AppServiceEnvironmentResource) internalLoadBalancerAndWhitelistedIpRanges(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
