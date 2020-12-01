@@ -51,14 +51,14 @@ func resourceVirtualDesktopWorkspaceApplicationGroupAssociation() *schema.Resour
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.VirtualDesktopWorkspaceID,
+				ValidateFunc: validate.WorkspaceID,
 			},
 
 			"application_group_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.VirtualDesktopApplicationGroupID,
+				ValidateFunc: validate.ApplicationGroupID,
 			},
 		},
 	}

@@ -43,14 +43,14 @@ func resourceArmDataShare() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DatashareName(),
+				ValidateFunc: validate.ShareName(),
 			},
 
 			"account_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DatashareAccountID,
+				ValidateFunc: validate.AccountID,
 			},
 
 			"kind": {
@@ -77,7 +77,7 @@ func resourceArmDataShare() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.DataShareSyncName(),
+							ValidateFunc: validate.SnapshotScheduleName(),
 						},
 
 						"recurrence": {

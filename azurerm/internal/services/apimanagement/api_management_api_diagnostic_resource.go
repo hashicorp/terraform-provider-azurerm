@@ -58,7 +58,7 @@ func resourceArmApiManagementApiDiagnostic() *schema.Resource {
 			"api_management_logger_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ApiManagementLoggerID,
+				ValidateFunc: validate.LoggerID,
 			},
 
 			"always_log_errors": {

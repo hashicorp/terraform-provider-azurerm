@@ -127,7 +127,7 @@ func resourceArmFrontDoor() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.FrontDoorBackendPoolRoutingRuleName,
+							ValidateFunc: validate.BackendPoolRoutingRuleName,
 						},
 						"enabled": {
 							Type:     schema.TypeBool,
@@ -215,7 +215,7 @@ func resourceArmFrontDoor() *schema.Resource {
 									"backend_pool_name": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.FrontDoorBackendPoolRoutingRuleName,
+										ValidateFunc: validate.BackendPoolRoutingRuleName,
 									},
 									"cache_enabled": {
 										Type:     schema.TypeBool,
@@ -270,7 +270,7 @@ func resourceArmFrontDoor() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.FrontDoorBackendPoolRoutingRuleName,
+							ValidateFunc: validate.BackendPoolRoutingRuleName,
 						},
 						"sample_size": {
 							Type:     schema.TypeInt,
@@ -304,7 +304,7 @@ func resourceArmFrontDoor() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.FrontDoorBackendPoolRoutingRuleName,
+							ValidateFunc: validate.BackendPoolRoutingRuleName,
 						},
 						"enabled": {
 							Type:     schema.TypeBool,
@@ -400,7 +400,7 @@ func resourceArmFrontDoor() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.FrontDoorBackendPoolRoutingRuleName,
+							ValidateFunc: validate.BackendPoolRoutingRuleName,
 						},
 						"health_probe_name": {
 							Type:     schema.TypeString,
@@ -427,7 +427,7 @@ func resourceArmFrontDoor() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.FrontDoorBackendPoolRoutingRuleName,
+							ValidateFunc: validate.BackendPoolRoutingRuleName,
 						},
 						"host_name": {
 							Type:     schema.TypeString,
