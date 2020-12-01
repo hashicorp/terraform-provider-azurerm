@@ -6,7 +6,7 @@ func TestApiManagementCustomDomainID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *ApiManagementCustomDomainId
+		Expected *CustomDomainId
 	}{
 		{
 			Name:     "Empty",
@@ -46,7 +46,7 @@ func TestApiManagementCustomDomainID(t *testing.T) {
 		{
 			Name:  "Custom Domain ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/service1/customDomains/default",
-			Expected: &ApiManagementCustomDomainId{
+			Expected: &CustomDomainId{
 				Name:          "default",
 				ServiceName:   "service1",
 				ResourceGroup: "resGroup1",
@@ -62,7 +62,7 @@ func TestApiManagementCustomDomainID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ApiManagementCustomDomainID(v.Input)
+		actual, err := CustomDomainID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

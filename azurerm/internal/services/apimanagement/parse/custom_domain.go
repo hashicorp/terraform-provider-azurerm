@@ -4,19 +4,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type ApiManagementCustomDomainId struct {
+type CustomDomainId struct {
 	ResourceGroup string
 	ServiceName   string
 	Name          string
 }
 
-func ApiManagementCustomDomainID(input string) (*ApiManagementCustomDomainId, error) {
+func CustomDomainID(input string) (*CustomDomainId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	logger := ApiManagementCustomDomainId{
+	logger := CustomDomainId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
