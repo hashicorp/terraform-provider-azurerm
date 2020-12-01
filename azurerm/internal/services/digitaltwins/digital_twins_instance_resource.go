@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDigitalTwinsInstance() *schema.Resource {
+func resourceDigitalTwinsInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDigitalTwinsInstanceCreate,
-		Read:   resourceArmDigitalTwinsInstanceRead,
-		Update: resourceArmDigitalTwinsInstanceUpdate,
-		Delete: resourceArmDigitalTwinsInstanceDelete,
+		Create: resourceDigitalTwinsInstanceCreate,
+		Read:   resourceDigitalTwinsInstanceRead,
+		Update: resourceDigitalTwinsInstanceUpdate,
+		Delete: resourceDigitalTwinsInstanceDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -59,7 +59,7 @@ func resourceArmDigitalTwinsInstance() *schema.Resource {
 		},
 	}
 }
-func resourceArmDigitalTwinsInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DigitalTwins.InstanceClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -101,10 +101,10 @@ func resourceArmDigitalTwinsInstanceCreate(d *schema.ResourceData, meta interfac
 
 	d.SetId(id)
 
-	return resourceArmDigitalTwinsInstanceRead(d, meta)
+	return resourceDigitalTwinsInstanceRead(d, meta)
 }
 
-func resourceArmDigitalTwinsInstanceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DigitalTwins.InstanceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -134,7 +134,7 @@ func resourceArmDigitalTwinsInstanceRead(d *schema.ResourceData, meta interface{
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmDigitalTwinsInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DigitalTwins.InstanceClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -154,10 +154,10 @@ func resourceArmDigitalTwinsInstanceUpdate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("updating Digital Twins Instance %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return resourceArmDigitalTwinsInstanceRead(d, meta)
+	return resourceDigitalTwinsInstanceRead(d, meta)
 }
 
-func resourceArmDigitalTwinsInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DigitalTwins.InstanceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
