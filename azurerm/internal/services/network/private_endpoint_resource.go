@@ -1,6 +1,7 @@
 package network
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -23,6 +24,7 @@ import (
 
 func resourceArmPrivateEndpoint() *schema.Resource {
 	return &schema.Resource{
+		// TODO: add a state migration to ensure the ID's stable
 		Create: resourceArmPrivateEndpointCreateUpdate,
 		Read:   resourceArmPrivateEndpointRead,
 		Update: resourceArmPrivateEndpointCreateUpdate,
@@ -207,28 +209,30 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 }
 
 func resourceArmPrivateEndpointCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	// TODO: split this into a Create and an Update
+
 	client := meta.(*clients.Client).Network.PrivateEndpointClient
 	dnsClient := meta.(*clients.Client).Network.PrivateDnsZoneGroupClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewPrivateEndpointID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if err := ValidatePrivateEndpointSettings(d); err != nil {
-		return fmt.Errorf("validating the configuration for the Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("validating the configuration for the Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_private_endpoint", *existing.ID)
+		if existing.PrivateEndpointProperties != nil {
+			return tf.ImportAsExistsError("azurerm_private_endpoint", id.ID(""))
 		}
 	}
 
@@ -249,30 +253,24 @@ func resourceArmPrivateEndpointCreateUpdate(d *schema.ResourceData, meta interfa
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
 	if err != nil {
 		if strings.EqualFold(err.Error(), "is missing required parameter 'group Id'") {
-			return fmt.Errorf("creating Private Endpoint %q (Resource Group %q) due to missing 'group Id', ensure that the 'subresource_names' type is populated: %+v", name, resourceGroup, err)
+			return fmt.Errorf("creating Private Endpoint %q (Resource Group %q) due to missing 'group Id', ensure that the 'subresource_names' type is populated: %+v", id.Name, id.ResourceGroup, err)
 		} else {
-			return fmt.Errorf("creating Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("creating Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name, "")
-	if err != nil {
-		return fmt.Errorf("retrieving Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("API returns a nil/empty id on Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID(""))
 
 	// now create the dns zone group
 	// first I have to see if the dns zone group exists, if it does I need to delete it an re-create it because you can only have one per private endpoint
 	if d.HasChange("private_dns_zone_group") || d.IsNewResource() {
+		// TODO: shouldn't this be pulling the list from Azure?!
 		oldRaw, newRaw := d.GetChange("private_dns_zone_group")
 		oldPrivateDnsZoneGroup := make(map[string]interface{})
 		if oldRaw != nil {
@@ -288,53 +286,23 @@ func resourceArmPrivateEndpointCreateUpdate(d *schema.ResourceData, meta interfa
 			}
 		}
 
-		if len(newPrivateDnsZoneGroup) == 0 && len(oldPrivateDnsZoneGroup) != 0 {
-			if err := resourceArmPrivateDnsZoneGroupDelete(d, meta, oldPrivateDnsZoneGroup["id"].(string)); err != nil {
+		needToRemove := len(newPrivateDnsZoneGroup) == 0 && len(oldPrivateDnsZoneGroup) != 0
+		nameHasChanged := (len(newPrivateDnsZoneGroup) != 0 && len(oldPrivateDnsZoneGroup) != 0) && oldPrivateDnsZoneGroup["name"].(string) != newPrivateDnsZoneGroup["name"].(string)
+		if needToRemove || nameHasChanged {
+			log.Printf("[DEBUG] Deleting the Existing Private DNS Zone Group associated with Private Endpoint %q / Resource Group %q..", id.Name, id.ResourceGroup)
+			if err := deletePrivateDnsZoneGroupForPrivateEndpoint(ctx, dnsClient, id); err != nil {
 				return err
 			}
-		} else if len(newPrivateDnsZoneGroup) != 0 && len(oldPrivateDnsZoneGroup) != 0 {
-			if oldPrivateDnsZoneGroup["name"].(string) != newPrivateDnsZoneGroup["name"].(string) {
-				if err := resourceArmPrivateDnsZoneGroupDelete(d, meta, oldPrivateDnsZoneGroup["id"].(string)); err != nil {
-					return err
-				}
-			}
+			log.Printf("[DEBUG] Deleted the Existing Private DNS Zone Group associated with Private Endpoint %q / Resource Group %q.", id.Name, id.ResourceGroup)
 		}
 	}
 
-	for _, v := range privateDnsZoneGroup {
-		item := v.(map[string]interface{})
-		dnsGroupName := item["name"].(string)
-		privateDnsZoneIdsRaw := item["private_dns_zone_ids"].([]interface{})
-		privateDnsZoneConfigs := make([]network.PrivateDNSZoneConfig, 0)
-		for _, item := range privateDnsZoneIdsRaw {
-			v := item.(string)
-
-			privateDnsZone, err := privateDnsParse.PrivateDnsZoneID(v)
-			if err != nil {
-				return err
-			}
-
-			privateDnsZoneConfigs = append(privateDnsZoneConfigs, network.PrivateDNSZoneConfig{
-				Name: utils.String(privateDnsZone.Name),
-				PrivateDNSZonePropertiesFormat: &network.PrivateDNSZonePropertiesFormat{
-					PrivateDNSZoneID: utils.String(privateDnsZone.ID("")),
-				},
-			})
+	if len(privateDnsZoneGroup) > 0 {
+		log.Printf("[DEBUG] Creating Private DNS Zone Group associated with Private Endpoint %q / Resource Group %q..", id.Name, id.ResourceGroup)
+		if err := createPrivateDnsZoneGroupForPrivateEndpoint(ctx, dnsClient, id, privateDnsZoneGroup); err != nil {
+			return err
 		}
-
-		parameters := network.PrivateDNSZoneGroup{}
-		parameters.Name = utils.String(name)
-		parameters.PrivateDNSZoneGroupPropertiesFormat = &network.PrivateDNSZoneGroupPropertiesFormat{
-			PrivateDNSZoneConfigs: &privateDnsZoneConfigs,
-		}
-
-		future, err := dnsClient.CreateOrUpdate(ctx, resourceGroup, name, dnsGroupName, parameters)
-		if err != nil {
-			return fmt.Errorf("creating Private DNS Zone Group %q Private Endpoint %q (Resource Group %q): %+v", dnsGroupName, name, resourceGroup, err)
-		}
-		if err = future.WaitForCompletionRef(ctx, dnsClient.Client); err != nil {
-			return fmt.Errorf("waiting for creation of Private DNS Zone Group %q Private Endpoint %q (Resource Group %q): %+v", dnsGroupName, name, resourceGroup, err)
-		}
+		log.Printf("[DEBUG] Created the Existing Private DNS Zone Group associated with Private Endpoint %q / Resource Group %q.", id.Name, id.ResourceGroup)
 	}
 
 	return resourceArmPrivateEndpointRead(d, meta)
@@ -428,78 +396,118 @@ func resourceArmPrivateEndpointRead(d *schema.ResourceData, meta interface{}) er
 
 func resourceArmPrivateEndpointDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PrivateEndpointClient
+	dnsZoneGroupsClient := meta.(*clients.Client).Network.PrivateDnsZoneGroupClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	// delete private dns zone first if it exists
-	dnsRaw := d.Get("private_dns_zone_group")
-	privateDnsZoneGroup := make(map[string]interface{})
-	if dnsRaw != nil {
-		for _, v := range dnsRaw.([]interface{}) {
-			if v != nil {
-				privateDnsZoneGroup = v.(map[string]interface{})
-			}
-		}
-	}
-
-	if len(privateDnsZoneGroup) != 0 {
-		if err := resourceArmPrivateDnsZoneGroupDelete(d, meta, privateDnsZoneGroup["id"].(string)); err != nil {
-			return err
-		}
-	}
-
-	privateEndpoint, err := parse.PrivateEndpointID(d.Id())
+	id, err := parse.PrivateEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, privateEndpoint.ResourceGroup, privateEndpoint.Name)
+	log.Printf("[DEBUG] Deleting the Private DNS Zone Group associated with Private Endpoint %q / Resource Group %q..", id.Name, id.ResourceGroup)
+	if err := deletePrivateDnsZoneGroupForPrivateEndpoint(ctx, dnsZoneGroupsClient, *id); err != nil {
+		return err
+	}
+	log.Printf("[DEBUG] Deleted the Private DNS Zone Group associated with Private Endpoint %q / Resource Group %q.", id.Name, id.ResourceGroup)
+
+	log.Printf("[DEBUG] Deleting the Private Endpoint %q / Resource Group %q..", id.Name, id.ResourceGroup)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("deleting Private Endpoint %q (Resource Group %q): %+v", privateEndpoint.Name, privateEndpoint.ResourceGroup, err)
+		return fmt.Errorf("deleting Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deletion of Private Endpoint %q (Resource Group %q): %+v", privateEndpoint.Name, privateEndpoint.ResourceGroup, err)
+			return fmt.Errorf("waiting for deletion of Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
+	}
+	log.Printf("[DEBUG] Deleted the Private Endpoint %q / Resource Group %q.", id.Name, id.ResourceGroup)
+
+	return nil
+}
+
+func createPrivateDnsZoneGroupForPrivateEndpoint(ctx context.Context, client *network.PrivateDNSZoneGroupsClient, id parse.PrivateEndpointId, inputRaw []interface{}) error {
+	if len(inputRaw) != 1 {
+		return fmt.Errorf("expected a single Private DNS Zone Groups but got %d", len(inputRaw))
+	}
+	item := inputRaw[0].(map[string]interface{})
+
+	dnsGroupName := item["name"].(string)
+	privateDnsZoneIdsRaw := item["private_dns_zone_ids"].([]interface{})
+	privateDnsZoneConfigs := make([]network.PrivateDNSZoneConfig, 0)
+	for _, item := range privateDnsZoneIdsRaw {
+		v := item.(string)
+
+		privateDnsZone, err := privateDnsParse.PrivateDnsZoneID(v)
+		if err != nil {
+			return err
+		}
+
+		privateDnsZoneConfigs = append(privateDnsZoneConfigs, network.PrivateDNSZoneConfig{
+			Name: utils.String(privateDnsZone.Name),
+			PrivateDNSZonePropertiesFormat: &network.PrivateDNSZonePropertiesFormat{
+				PrivateDNSZoneID: utils.String(privateDnsZone.ID("")),
+			},
+		})
+	}
+
+	parameters := network.PrivateDNSZoneGroup{
+		Name: utils.String(id.Name),
+		PrivateDNSZoneGroupPropertiesFormat: &network.PrivateDNSZoneGroupPropertiesFormat{
+			PrivateDNSZoneConfigs: &privateDnsZoneConfigs,
+		},
+	}
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, dnsGroupName, parameters)
+	if err != nil {
+		return fmt.Errorf("creating Private DNS Zone Group %q for Private Endpoint %q (Resource Group %q): %+v", dnsGroupName, id.Name, id.ResourceGroup, err)
+	}
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation of Private DNS Zone Group %q for Private Endpoint %q (Resource Group %q): %+v", dnsGroupName, id.Name, id.ResourceGroup, err)
 	}
 
 	return nil
 }
 
-func resourceArmPrivateDnsZoneGroupDelete(d *schema.ResourceData, meta interface{}, oldId string) error {
-	client := meta.(*clients.Client).Network.PrivateDnsZoneGroupClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	if oldId == "" {
-		return nil
-	}
-
-	privateEndpoint, err := parse.PrivateEndpointID(d.Id())
+func deletePrivateDnsZoneGroupForPrivateEndpoint(ctx context.Context, client *network.PrivateDNSZoneGroupsClient, id parse.PrivateEndpointId) error {
+	// lookup and delete the (should be, Single) Private DNS Zone Group associated with this Private Endpoint
+	dnsZones, err := client.ListComplete(ctx, id.Name, id.ResourceGroup) // looks odd.. matches the SDK method
 	if err != nil {
-		return err
-	}
-
-	privateDnsZoneGroupId, err := privateDnsParse.PrivateDnsZoneGroupID(oldId)
-	if err != nil {
-		return err
-	}
-
-	future, err := client.Delete(ctx, privateEndpoint.ResourceGroup, privateEndpoint.Name, privateDnsZoneGroupId.Name)
-	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
+		if !utils.ResponseWasNotFound(dnsZones.Response().Response) {
+			return fmt.Errorf("retrieving Private DNS Zone Groups for Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
-		return fmt.Errorf("deleting Private DNS Zone Group %q (Resource Group %q): %+v", privateDnsZoneGroupId.Name, privateEndpoint.ResourceGroup, err)
 	}
+	for dnsZones.NotDone() {
+		privateDnsZoneGroup := dnsZones.Value()
+		if privateDnsZoneGroup.ID != nil {
+			groupId, err := parse.PrivateDnsZoneGroupID(*privateDnsZoneGroup.ID)
+			if err != nil {
+				return err
+			}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deletion of Private DNS Zone Group %q (Resource Group %q): %+v", privateDnsZoneGroupId.Name, privateEndpoint.ResourceGroup, err)
+			log.Printf("[DEBUG] Deleting Private DNS Zone Group %q (Private Endpoint %q / Resource Group %q)..", groupId.Name, groupId.PrivateEndpointName, groupId.ResourceGroup)
+			future, err := client.Delete(ctx, groupId.ResourceGroup, groupId.PrivateEndpointName, groupId.Name)
+			if err != nil {
+				if response.WasNotFound(future.Response()) {
+					return nil
+				}
+				return fmt.Errorf("deleting Private DNS Zone Group %q (Private Endpoint %q / Resource Group %q): %+v", groupId.Name, groupId.PrivateEndpointName, groupId.ResourceGroup, err)
+			}
+
+			log.Printf("[DEBUG] Waiting for deletion of Private DNS Zone Group %q (Private Endpoint %q / Resource Group %q)..", groupId.Name, groupId.PrivateEndpointName, groupId.ResourceGroup)
+			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				if !response.WasNotFound(future.Response()) {
+					return fmt.Errorf("waiting for deletion of Private DNS Zone Group %q (Private Endpoint %q / Resource Group %q): %+v", groupId.Name, groupId.PrivateEndpointName, groupId.ResourceGroup, err)
+				}
+			}
+			log.Printf("[DEBUG] Deleted Private DNS Zone Group %q (Private Endpoint %q / Resource Group %q).", groupId.Name, groupId.PrivateEndpointName, groupId.ResourceGroup)
+		}
+
+		if err := dnsZones.NextWithContext(ctx); err != nil {
+			return err
 		}
 	}
 
