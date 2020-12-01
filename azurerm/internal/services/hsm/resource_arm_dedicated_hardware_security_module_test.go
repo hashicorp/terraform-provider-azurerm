@@ -1,102 +1,90 @@
-package tests
+package hsm
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hsm/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMDedicatedHardwareSecurityModule_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_dedicated_hardware_security_module", "test")
+type DedicatedHardwareSecurityModuleResource struct {
+}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDedicatedHardwareSecurityModuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDedicatedHardwareSecurityModule_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDedicatedHardwareSecurityModuleExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccDedicatedHardwareSecurityModule_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dedicated_hardware_security_module", "test")
+	r := DedicatedHardwareSecurityModuleResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMDedicatedHardwareSecurityModule_requiresImport(t *testing.T) {
+func TestAccDedicatedHardwareSecurityModule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_hardware_security_module", "test")
+	r := DedicatedHardwareSecurityModuleResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDedicatedHardwareSecurityModuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDedicatedHardwareSecurityModule_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDedicatedHardwareSecurityModuleExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMDedicatedHardwareSecurityModule_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMDedicatedHardwareSecurityModule_complete(t *testing.T) {
+func TestAccDedicatedHardwareSecurityModule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_hardware_security_module", "test")
+	r := DedicatedHardwareSecurityModuleResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDedicatedHardwareSecurityModuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDedicatedHardwareSecurityModule_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDedicatedHardwareSecurityModuleExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMDedicatedHardwareSecurityModule_update(t *testing.T) {
+func TestAccDedicatedHardwareSecurityModule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_hardware_security_module", "test")
+	r := DedicatedHardwareSecurityModuleResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDedicatedHardwareSecurityModuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDedicatedHardwareSecurityModule_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDedicatedHardwareSecurityModuleExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMDedicatedHardwareSecurityModule_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDedicatedHardwareSecurityModuleExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testAccAzureRMDedicatedHardwareSecurityModule_requiresImport(data acceptance.TestData) string {
-	config := testAccAzureRMDedicatedHardwareSecurityModule_basic(data)
+func (r DedicatedHardwareSecurityModuleResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -112,54 +100,24 @@ resource "azurerm_dedicated_hardware_security_module" "import" {
     subnet_id                              = azurerm_dedicated_hardware_security_module.test.network_profile[0].subnet_id
   }
 }
-`, config)
+`, r.basic(data))
 }
 
-func testCheckAzureRMDedicatedHardwareSecurityModuleExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).HSM.DedicatedHsmClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("dedicated hardware security module not found: %s", resourceName)
-		}
-		id, err := parse.DedicatedHardwareSecurityModuleID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.DedicatedHSMName); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Dedicated HardwareSecurityModule %q does not exist", id.DedicatedHSMName)
-			}
-			return fmt.Errorf("bad: Get on HardwareSecurityModules.DedicatedHsmClient: %+v", err)
-		}
-		return nil
+func (DedicatedHardwareSecurityModuleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.DedicatedHardwareSecurityModuleID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-}
 
-func testCheckAzureRMDedicatedHardwareSecurityModuleDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).HSM.DedicatedHsmClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_dedicated_hardware_security_module" {
-			continue
-		}
-		id, err := parse.DedicatedHardwareSecurityModuleID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.DedicatedHSMName); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Get on HardwareSecurityModules.DedicatedHsmClient: %+v", err)
-			}
-		}
-		return nil
+	resp, err := clients.HSM.DedicatedHsmClient.Get(ctx, id.ResourceGroup, id.DedicatedHSMName)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Dedicated HardwareSecurityModule %q (resource group: %q): %+v", id.DedicatedHSMName, id.ResourceGroup, err)
 	}
-	return nil
+
+	return utils.Bool(resp.DedicatedHsmProperties != nil), nil
 }
 
-func testAccAzureRMDedicatedHardwareSecurityModule_template(data acceptance.TestData) string {
+func (DedicatedHardwareSecurityModuleResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -236,8 +194,8 @@ resource "azurerm_virtual_network_gateway" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDedicatedHardwareSecurityModule_basic(data acceptance.TestData) string {
-	template := testAccAzureRMDedicatedHardwareSecurityModule_template(data)
+func (DedicatedHardwareSecurityModuleResource) basic(data acceptance.TestData) string {
+	template := DedicatedHardwareSecurityModuleResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -259,8 +217,8 @@ resource "azurerm_dedicated_hardware_security_module" "test" {
 `, template, data.RandomString)
 }
 
-func testAccAzureRMDedicatedHardwareSecurityModule_complete(data acceptance.TestData) string {
-	template := testAccAzureRMDedicatedHardwareSecurityModule_template(data)
+func (DedicatedHardwareSecurityModuleResource) complete(data acceptance.TestData) string {
+	template := DedicatedHardwareSecurityModuleResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 

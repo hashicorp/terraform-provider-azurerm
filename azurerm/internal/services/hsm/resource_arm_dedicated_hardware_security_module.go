@@ -22,12 +22,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDedicatedHardwareSecurityModule() *schema.Resource {
+func resourceDedicatedHardwareSecurityModule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDedicatedHardwareSecurityModuleCreate,
-		Read:   resourceArmDedicatedHardwareSecurityModuleRead,
-		Update: resourceArmDedicatedHardwareSecurityModuleUpdate,
-		Delete: resourceArmDedicatedHardwareSecurityModuleDelete,
+		Create: resourceDedicatedHardwareSecurityModuleCreate,
+		Read:   resourceDedicatedHardwareSecurityModuleRead,
+		Update: resourceDedicatedHardwareSecurityModuleUpdate,
+		Delete: resourceDedicatedHardwareSecurityModuleDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -105,7 +105,7 @@ func resourceArmDedicatedHardwareSecurityModule() *schema.Resource {
 	}
 }
 
-func resourceArmDedicatedHardwareSecurityModuleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDedicatedHardwareSecurityModuleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HSM.DedicatedHsmClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -126,7 +126,7 @@ func resourceArmDedicatedHardwareSecurityModuleCreate(d *schema.ResourceData, me
 	parameters := hardwaresecuritymodules.DedicatedHsm{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		DedicatedHsmProperties: &hardwaresecuritymodules.DedicatedHsmProperties{
-			NetworkProfile: expandArmDedicatedHsmNetworkProfile(d.Get("network_profile").([]interface{})),
+			NetworkProfile: expandDedicatedHsmNetworkProfile(d.Get("network_profile").([]interface{})),
 		},
 		Sku: &hardwaresecuritymodules.Sku{
 			Name: hardwaresecuritymodules.Name(d.Get("sku_name").(string)),
@@ -161,10 +161,10 @@ func resourceArmDedicatedHardwareSecurityModuleCreate(d *schema.ResourceData, me
 	}
 
 	d.SetId(*resp.ID)
-	return resourceArmDedicatedHardwareSecurityModuleRead(d, meta)
+	return resourceDedicatedHardwareSecurityModuleRead(d, meta)
 }
 
-func resourceArmDedicatedHardwareSecurityModuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDedicatedHardwareSecurityModuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HSM.DedicatedHsmClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -190,7 +190,7 @@ func resourceArmDedicatedHardwareSecurityModuleRead(d *schema.ResourceData, meta
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.DedicatedHsmProperties; props != nil {
-		if err := d.Set("network_profile", flattenArmDedicatedHsmNetworkProfile(props.NetworkProfile)); err != nil {
+		if err := d.Set("network_profile", flattenDedicatedHsmNetworkProfile(props.NetworkProfile)); err != nil {
 			return fmt.Errorf("setting network_profile: %+v", err)
 		}
 		d.Set("stamp_id", props.StampID)
@@ -207,7 +207,7 @@ func resourceArmDedicatedHardwareSecurityModuleRead(d *schema.ResourceData, meta
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmDedicatedHardwareSecurityModuleUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDedicatedHardwareSecurityModuleUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HSM.DedicatedHsmClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -231,10 +231,10 @@ func resourceArmDedicatedHardwareSecurityModuleUpdate(d *schema.ResourceData, me
 		return fmt.Errorf("waiting on updating future for Dedicate Hardware Security Module %q (Resource Group %q): %+v", id.DedicatedHSMName, id.ResourceGroup, err)
 	}
 
-	return resourceArmDedicatedHardwareSecurityModuleRead(d, meta)
+	return resourceDedicatedHardwareSecurityModuleRead(d, meta)
 }
 
-func resourceArmDedicatedHardwareSecurityModuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDedicatedHardwareSecurityModuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HSM.DedicatedHsmClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -256,7 +256,7 @@ func resourceArmDedicatedHardwareSecurityModuleDelete(d *schema.ResourceData, me
 	return nil
 }
 
-func expandArmDedicatedHsmNetworkProfile(input []interface{}) *hardwaresecuritymodules.NetworkProfile {
+func expandDedicatedHsmNetworkProfile(input []interface{}) *hardwaresecuritymodules.NetworkProfile {
 	if len(input) == 0 {
 		return nil
 	}
@@ -267,13 +267,13 @@ func expandArmDedicatedHsmNetworkProfile(input []interface{}) *hardwaresecuritym
 		Subnet: &hardwaresecuritymodules.APIEntityReference{
 			ID: utils.String(v["subnet_id"].(string)),
 		},
-		NetworkInterfaces: expandArmDedicatedHsmNetworkInterfacePrivateIPAddresses(v["network_interface_private_ip_addresses"].(*schema.Set).List()),
+		NetworkInterfaces: expandDedicatedHsmNetworkInterfacePrivateIPAddresses(v["network_interface_private_ip_addresses"].(*schema.Set).List()),
 	}
 
 	return &result
 }
 
-func expandArmDedicatedHsmNetworkInterfacePrivateIPAddresses(input []interface{}) *[]hardwaresecuritymodules.NetworkInterface {
+func expandDedicatedHsmNetworkInterfacePrivateIPAddresses(input []interface{}) *[]hardwaresecuritymodules.NetworkInterface {
 	results := make([]hardwaresecuritymodules.NetworkInterface, 0)
 
 	for _, item := range input {
@@ -289,7 +289,7 @@ func expandArmDedicatedHsmNetworkInterfacePrivateIPAddresses(input []interface{}
 	return &results
 }
 
-func flattenArmDedicatedHsmNetworkProfile(input *hardwaresecuritymodules.NetworkProfile) []interface{} {
+func flattenDedicatedHsmNetworkProfile(input *hardwaresecuritymodules.NetworkProfile) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -301,13 +301,13 @@ func flattenArmDedicatedHsmNetworkProfile(input *hardwaresecuritymodules.Network
 
 	return []interface{}{
 		map[string]interface{}{
-			"network_interface_private_ip_addresses": flattenArmDedicatedHsmNetworkInterfacePrivateIPAddresses(input.NetworkInterfaces),
+			"network_interface_private_ip_addresses": flattenDedicatedHsmNetworkInterfacePrivateIPAddresses(input.NetworkInterfaces),
 			"subnet_id":                              subnetId,
 		},
 	}
 }
 
-func flattenArmDedicatedHsmNetworkInterfacePrivateIPAddresses(input *[]hardwaresecuritymodules.NetworkInterface) []interface{} {
+func flattenDedicatedHsmNetworkInterfacePrivateIPAddresses(input *[]hardwaresecuritymodules.NetworkInterface) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
