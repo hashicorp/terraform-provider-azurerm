@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	privateDnsParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/parse"
 	privateDnsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/validate"
@@ -315,39 +316,38 @@ func resourceArmPrivateEndpointRead(d *schema.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.PrivateEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["privateEndpoints"]
 
-	resp, err := client.Get(ctx, resourceGroup, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Private Endpoint %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("reading Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.PrivateEndpointProperties; props != nil {
-		privateIpAddress := ""
+		if err := d.Set("custom_dns_configs", flattenArmCustomDnsConfigs(props.CustomDNSConfigs)); err != nil {
+			return fmt.Errorf("setting `custom_dns_configs`: %+v", err)
+		}
 
+		privateIpAddress := ""
 		if nics := props.NetworkInterfaces; nics != nil && len(*nics) > 0 {
 			nic := (*nics)[0]
 			if nic.ID != nil && *nic.ID != "" {
 				privateIpAddress = getPrivateIpAddress(ctx, nicsClient, *nic.ID)
 			}
 		}
-
+		// TODO: why not pass in the Private IP Address here?!
 		flattenedConnection := flattenArmPrivateLinkEndpointServiceConnection(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections)
 		for _, item := range flattenedConnection {
 			v := item.(map[string]interface{})
@@ -362,18 +362,18 @@ func resourceArmPrivateEndpointRead(d *schema.ResourceData, meta interface{}) er
 			subnetId = *subnet.ID
 		}
 		d.Set("subnet_id", subnetId)
-		d.Set("custom_dns_configs", flattenArmCustomDnsConfigs(props.CustomDNSConfigs))
 	}
 
 	// DNS Zone Read Here...
 	privateDnsZoneGroup := d.Get("private_dns_zone_group").([]interface{})
+	// TODO: switch this to looking them up..
 	if len(privateDnsZoneGroup) > 0 {
 		for _, v := range privateDnsZoneGroup {
 			dnsZoneGroup := v.(map[string]interface{})
 
-			dnsResp, err := dnsClient.Get(ctx, resourceGroup, name, dnsZoneGroup["name"].(string))
+			dnsResp, err := dnsClient.Get(ctx, id.ResourceGroup, id.Name, dnsZoneGroup["name"].(string))
 			if err != nil {
-				return fmt.Errorf("reading Private DNS Zone Group %q (Resource Group %q): %+v", dnsZoneGroup["name"].(string), resourceGroup, err)
+				return fmt.Errorf("reading Private DNS Zone Group %q (Resource Group %q): %+v", dnsZoneGroup["name"].(string), id.ResourceGroup, err)
 			}
 
 			if err := d.Set("private_dns_zone_group", flattenArmPrivateDnsZoneGroup(dnsResp)); err != nil {
@@ -391,6 +391,7 @@ func resourceArmPrivateEndpointRead(d *schema.ResourceData, meta interface{}) er
 		// remove associated configs, if any
 		d.Set("private_dns_zone_configs", make([]interface{}, 0))
 	}
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
@@ -491,19 +492,20 @@ func deletePrivateDnsZoneGroupForPrivateEndpoint(ctx context.Context, client *ne
 			log.Printf("[DEBUG] Deleting Private DNS Zone Group %q (Private Endpoint %q / Resource Group %q)..", groupId.Name, groupId.PrivateEndpointName, groupId.ResourceGroup)
 			future, err := client.Delete(ctx, groupId.ResourceGroup, groupId.PrivateEndpointName, groupId.Name)
 			if err != nil {
-				if response.WasNotFound(future.Response()) {
-					return nil
+				if !response.WasNotFound(future.Response()) {
+					return fmt.Errorf("deleting Private DNS Zone Group %q (Private Endpoint %q / Resource Group %q): %+v", groupId.Name, groupId.PrivateEndpointName, groupId.ResourceGroup, err)
 				}
-				return fmt.Errorf("deleting Private DNS Zone Group %q (Private Endpoint %q / Resource Group %q): %+v", groupId.Name, groupId.PrivateEndpointName, groupId.ResourceGroup, err)
 			}
 
-			log.Printf("[DEBUG] Waiting for deletion of Private DNS Zone Group %q (Private Endpoint %q / Resource Group %q)..", groupId.Name, groupId.PrivateEndpointName, groupId.ResourceGroup)
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				if !response.WasNotFound(future.Response()) {
-					return fmt.Errorf("waiting for deletion of Private DNS Zone Group %q (Private Endpoint %q / Resource Group %q): %+v", groupId.Name, groupId.PrivateEndpointName, groupId.ResourceGroup, err)
+			if !response.WasNotFound(future.Response()) {
+				log.Printf("[DEBUG] Waiting for deletion of Private DNS Zone Group %q (Private Endpoint %q / Resource Group %q)..", groupId.Name, groupId.PrivateEndpointName, groupId.ResourceGroup)
+				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+					if !response.WasNotFound(future.Response()) {
+						return fmt.Errorf("waiting for deletion of Private DNS Zone Group %q (Private Endpoint %q / Resource Group %q): %+v", groupId.Name, groupId.PrivateEndpointName, groupId.ResourceGroup, err)
+					}
 				}
+				log.Printf("[DEBUG] Deleted Private DNS Zone Group %q (Private Endpoint %q / Resource Group %q).", groupId.Name, groupId.PrivateEndpointName, groupId.ResourceGroup)
 			}
-			log.Printf("[DEBUG] Deleted Private DNS Zone Group %q (Private Endpoint %q / Resource Group %q).", groupId.Name, groupId.PrivateEndpointName, groupId.ResourceGroup)
 		}
 
 		if err := dnsZones.NextWithContext(ctx); err != nil {
