@@ -12,25 +12,25 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMFrontDoorCustomHttpsConfiguration_CustomHttps(t *testing.T) {
+func TestAccFrontDoorCustomHttpsConfiguration_CustomHttps(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor_custom_https_configuration", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
+		CheckDestroy: testCheckFrontDoorDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFrontDoorCustomHttpsConfiguration_CustomHttpsEnabled(data),
+				Config: testAccFrontDoorCustomHttpsConfiguration_CustomHttpsEnabled(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFrontDoorCustomHttpsConfigurationExists(data.ResourceName),
+					testCheckFrontDoorCustomHttpsConfigurationExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "custom_https_provisioning_enabled", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "custom_https_configuration.0.certificate_source", "FrontDoor"),
 				),
 			},
 			{
-				Config: testAccAzureRMFrontDoorCustomHttpsConfiguration_CustomHttpsDisabled(data),
+				Config: testAccFrontDoorCustomHttpsConfiguration_CustomHttpsDisabled(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFrontDoorCustomHttpsConfigurationExists(data.ResourceName),
+					testCheckFrontDoorCustomHttpsConfigurationExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "custom_https_provisioning_enabled", "false"),
 				),
 			},
@@ -38,7 +38,7 @@ func TestAccAzureRMFrontDoorCustomHttpsConfiguration_CustomHttps(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMFrontDoorCustomHttpsConfigurationExists(resourceName string) resource.TestCheckFunc {
+func testCheckFrontDoorCustomHttpsConfigurationExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Frontdoor.FrontDoorsFrontendClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -66,8 +66,8 @@ func testCheckAzureRMFrontDoorCustomHttpsConfigurationExists(resourceName string
 	}
 }
 
-func testAccAzureRMFrontDoorCustomHttpsConfiguration_CustomHttpsEnabled(data acceptance.TestData) string {
-	template := testAccAzureRMFrontDoorCustomHttpsConfiguration_template(data)
+func testAccFrontDoorCustomHttpsConfiguration_CustomHttpsEnabled(data acceptance.TestData) string {
+	template := testAccFrontDoorCustomHttpsConfiguration_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -83,8 +83,8 @@ resource "azurerm_frontdoor_custom_https_configuration" "test" {
 `, template)
 }
 
-func testAccAzureRMFrontDoorCustomHttpsConfiguration_CustomHttpsDisabled(data acceptance.TestData) string {
-	template := testAccAzureRMFrontDoorCustomHttpsConfiguration_template(data)
+func testAccFrontDoorCustomHttpsConfiguration_CustomHttpsDisabled(data acceptance.TestData) string {
+	template := testAccFrontDoorCustomHttpsConfiguration_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -96,7 +96,7 @@ resource "azurerm_frontdoor_custom_https_configuration" "test" {
 `, template)
 }
 
-func testAccAzureRMFrontDoorCustomHttpsConfiguration_template(data acceptance.TestData) string {
+func testAccFrontDoorCustomHttpsConfiguration_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

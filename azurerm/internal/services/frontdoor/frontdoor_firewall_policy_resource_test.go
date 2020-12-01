@@ -11,17 +11,17 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMFrontDoorFirewallPolicy_basic(t *testing.T) {
+func TestAccFrontDoorFirewallPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor_firewall_policy", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFrontDoorFirewallPolicyDestroy,
+		CheckDestroy: testCheckFrontDoorFirewallPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFrontDoorFirewallPolicy_basic(data),
+				Config: testAccFrontDoorFirewallPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFrontDoorFirewallPolicyExists(data.ResourceName),
+					testCheckFrontDoorFirewallPolicyExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("testAccFrontDoorWAF%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "mode", "Prevention"),
 				),
@@ -31,44 +31,44 @@ func TestAccAzureRMFrontDoorFirewallPolicy_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFrontDoorFirewallPolicy_requiresImport(t *testing.T) {
+func TestAccFrontDoorFirewallPolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor_firewall_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFrontDoorFirewallPolicyDestroy,
+		CheckDestroy: testCheckFrontDoorFirewallPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFrontDoorFirewallPolicy_basic(data),
+				Config: testAccFrontDoorFirewallPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFrontDoorFirewallPolicyExists(data.ResourceName),
+					testCheckFrontDoorFirewallPolicyExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMFrontDoorFirewallPolicy_requiresImport),
+			data.RequiresImportErrorStep(testAccFrontDoorFirewallPolicy_requiresImport),
 		},
 	})
 }
 
-func TestAccAzureRMFrontDoorFirewallPolicy_update(t *testing.T) {
+func TestAccFrontDoorFirewallPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor_firewall_policy", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFrontDoorFirewallPolicyDestroy,
+		CheckDestroy: testCheckFrontDoorFirewallPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFrontDoorFirewallPolicy_update(data, false),
+				Config: testAccFrontDoorFirewallPolicy_update(data, false),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFrontDoorFirewallPolicyExists(data.ResourceName),
+					testCheckFrontDoorFirewallPolicyExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("testAccFrontDoorWAF%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "mode", "Prevention"),
 				),
 			},
 			{
-				Config: testAccAzureRMFrontDoorFirewallPolicy_update(data, true),
+				Config: testAccFrontDoorFirewallPolicy_update(data, true),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFrontDoorFirewallPolicyExists(data.ResourceName),
+					testCheckFrontDoorFirewallPolicyExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("testAccFrontDoorWAF%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "mode", "Prevention"),
 					resource.TestCheckResourceAttr(data.ResourceName, "custom_rule.1.name", "Rule2"),
@@ -76,10 +76,10 @@ func TestAccAzureRMFrontDoorFirewallPolicy_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMFrontDoorFirewallPolicy_update(data, false),
+				Config: testAccFrontDoorFirewallPolicy_update(data, false),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFrontDoorFirewallPolicyExists(data.ResourceName),
-					testCheckAzureRMFrontDoorFirewallPolicyAttrNotExists(data.ResourceName, "custom_rule.1.name"),
+					testCheckFrontDoorFirewallPolicyExists(data.ResourceName),
+					testCheckFrontDoorFirewallPolicyAttrNotExists(data.ResourceName, "custom_rule.1.name"),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("testAccFrontDoorWAF%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "mode", "Prevention"),
 				),
@@ -89,17 +89,17 @@ func TestAccAzureRMFrontDoorFirewallPolicy_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFrontDoorFirewallPolicy_complete(t *testing.T) {
+func TestAccFrontDoorFirewallPolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor_firewall_policy", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFrontDoorFirewallPolicyDestroy,
+		CheckDestroy: testCheckFrontDoorFirewallPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFrontDoorFirewallPolicy_update(data, true),
+				Config: testAccFrontDoorFirewallPolicy_update(data, true),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFrontDoorFirewallPolicyExists(data.ResourceName),
+					testCheckFrontDoorFirewallPolicyExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("testAccFrontDoorWAF%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "mode", "Prevention"),
 					resource.TestCheckResourceAttr(data.ResourceName, "redirect_url", "https://www.contoso.com"),
@@ -118,7 +118,7 @@ func TestAccAzureRMFrontDoorFirewallPolicy_complete(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMFrontDoorFirewallPolicyExists(resourceName string) resource.TestCheckFunc {
+func testCheckFrontDoorFirewallPolicyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Frontdoor.FrontDoorsPolicyClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -142,7 +142,7 @@ func testCheckAzureRMFrontDoorFirewallPolicyExists(resourceName string) resource
 	}
 }
 
-func testCheckAzureRMFrontDoorFirewallPolicyDestroy(s *terraform.State) error {
+func testCheckFrontDoorFirewallPolicyDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Frontdoor.FrontDoorsPolicyClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -166,7 +166,7 @@ func testCheckAzureRMFrontDoorFirewallPolicyDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMFrontDoorFirewallPolicyAttrNotExists(name string, attribute string) resource.TestCheckFunc {
+func testCheckFrontDoorFirewallPolicyAttrNotExists(name string, attribute string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -181,7 +181,7 @@ func testCheckAzureRMFrontDoorFirewallPolicyAttrNotExists(name string, attribute
 	}
 }
 
-func testAccAzureRMFrontDoorFirewallPolicy_basic(data acceptance.TestData) string {
+func testAccFrontDoorFirewallPolicy_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -199,8 +199,8 @@ resource "azurerm_frontdoor_firewall_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMFrontDoorFirewallPolicy_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMFrontDoorFirewallPolicy_basic(data)
+func testAccFrontDoorFirewallPolicy_requiresImport(data acceptance.TestData) string {
+	template := testAccFrontDoorFirewallPolicy_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -211,9 +211,9 @@ resource "azurerm_frontdoor_firewall_policy" "import" {
 `, template)
 }
 
-func testAccAzureRMFrontDoorFirewallPolicy_update(data acceptance.TestData, update bool) string {
+func testAccFrontDoorFirewallPolicy_update(data acceptance.TestData, update bool) string {
 	if update {
-		return testAccAzureRMFrontDoorFirewallPolicy_updated(data)
+		return testAccFrontDoorFirewallPolicy_updated(data)
 	}
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -274,7 +274,7 @@ resource "azurerm_frontdoor_firewall_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMFrontDoorFirewallPolicy_updated(data acceptance.TestData) string {
+func testAccFrontDoorFirewallPolicy_updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
