@@ -216,7 +216,7 @@ func (FrontDoorResource) Exists(ctx context.Context, clients *clients.Client, st
 
 	resp, err := clients.Frontdoor.FrontDoorsClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Front Door %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving Front Door %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.Properties != nil), nil

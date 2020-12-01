@@ -25,7 +25,7 @@ func TestAccFrontDoorFirewallPolicy_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("testAccFrontDoorWAF%d")),
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("testAccFrontDoorWAF%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("mode").HasValue("Prevention"),
 			),
 		},
@@ -116,7 +116,7 @@ func (FrontDoorFirewallPolicyResource) Exists(ctx context.Context, clients *clie
 
 	resp, err := clients.Frontdoor.FrontDoorsPolicyClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Front Door Firewall Policy %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving Front Door Firewall Policy %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.WebApplicationFirewallPolicyProperties != nil), nil

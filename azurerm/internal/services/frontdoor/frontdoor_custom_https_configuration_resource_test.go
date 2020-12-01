@@ -47,7 +47,7 @@ func (FrontDoorCustomHttpsConfigurationResource) Exists(ctx context.Context, cli
 
 	resp, err := clients.Frontdoor.FrontDoorsFrontendClient.Get(ctx, id.ResourceGroup, id.FrontDoorName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Frontend Endpoint %q (Front Door %q / Resource Group %q) does not exist", id.Name, id.FrontDoorName, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving Frontend Endpoint %q (Front Door %q / Resource Group %q): %v", id.Name, id.FrontDoorName, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.FrontendEndpointProperties != nil), nil
