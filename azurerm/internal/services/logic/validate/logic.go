@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/parse"
-	networkParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 )
 
 func IntegrationAccountName() schema.SchemaValidateFunc {
@@ -47,20 +46,6 @@ func IntegrationServiceEnvironmentID(i interface{}, k string) (warnings []string
 
 	if _, err := parse.IntegrationServiceEnvironmentID(v); err != nil {
 		errors = append(errors, fmt.Errorf("cannot parse %q as an Integration Service Environment ID: %+v", k, err))
-	}
-
-	return warnings, errors
-}
-
-func ValidateSubnetID(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return warnings, errors
-	}
-
-	if _, err := networkParse.SubnetID(v); err != nil {
-		errors = append(errors, fmt.Errorf("can not parse %q as a subnet id: %v", k, err))
 	}
 
 	return warnings, errors
