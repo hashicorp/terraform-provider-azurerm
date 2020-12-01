@@ -1,4 +1,4 @@
-package tests
+package web_test
 
 import (
 	"fmt"
@@ -6,26 +6,24 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
+
+type AppServiceDataSource struct{}
 
 func TestAccDataSourceAzureRMAppService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAppService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "app_service_plan_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "outbound_ip_addresses"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "possible_outbound_ip_addresses"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "custom_domain_verification_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: AppServiceDataSource{}.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("app_service_plan_id").Exists(),
+				check.That(data.ResourceName).Key("outbound_ip_addresses").Exists(),
+				check.That(data.ResourceName).Key("possible_outbound_ip_addresses").Exists(),
+				check.That(data.ResourceName).Key("custom_domain_verification_id").Exists(),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
 		},
 	})
 }
@@ -33,18 +31,13 @@ func TestAccDataSourceAzureRMAppService_basic(t *testing.T) {
 func TestAccDataSourceAzureRMAppService_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAppService_tags(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.Hello", "World"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: AppServiceDataSource{}.tags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.Hello").HasValue("World"),
+			),
 		},
 	})
 }
@@ -52,17 +45,12 @@ func TestAccDataSourceAzureRMAppService_tags(t *testing.T) {
 func TestAccDataSourceAzureRMAppService_clientAppAffinityDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAppService_clientAffinityDisabled(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "client_affinity_enabled", "false"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: AppServiceDataSource{}.clientAffinityDisabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("client_affinity_enabled").HasValue("false"),
+			),
 		},
 	})
 }
@@ -70,17 +58,12 @@ func TestAccDataSourceAzureRMAppService_clientAppAffinityDisabled(t *testing.T) 
 func TestAccDataSourceAzureRMAppService_32Bit(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAppService_32Bit(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.use_32_bit_worker_process", "true"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: AppServiceDataSource{}.service32Bit(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("site_config.0.use_32_bit_worker_process").HasValue("true"),
+			),
 		},
 	})
 }
@@ -88,17 +71,12 @@ func TestAccDataSourceAzureRMAppService_32Bit(t *testing.T) {
 func TestAccDataSourceAzureRMAppService_appSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAppService_appSettings(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "app_settings.foo", "bar"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: AppServiceDataSource{}.appSettings(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
+			),
 		},
 	})
 }
@@ -106,22 +84,17 @@ func TestAccDataSourceAzureRMAppService_appSettings(t *testing.T) {
 func TestAccDataSourceAzureRMAppService_connectionString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAppService_connectionStrings(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.0.name", "First"),
-					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.0.value", "first-connection-string"),
-					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.0.type", "Custom"),
-					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.1.name", "Second"),
-					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.1.value", "some-postgresql-connection-string"),
-					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.1.type", "PostgreSQL"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: AppServiceDataSource{}.connectionStrings(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("connection_string.0.name").HasValue("First"),
+				check.That(data.ResourceName).Key("connection_string.0.value").HasValue("first-connection-string"),
+				check.That(data.ResourceName).Key("connection_string.0.type").HasValue("Custom"),
+				check.That(data.ResourceName).Key("connection_string.1.name").HasValue("Second"),
+				check.That(data.ResourceName).Key("connection_string.1.value").HasValue("some-postgresql-connection-string"),
+				check.That(data.ResourceName).Key("connection_string.1.type").HasValue("PostgreSQL"),
+			),
 		},
 	})
 }
@@ -129,20 +102,15 @@ func TestAccDataSourceAzureRMAppService_connectionString(t *testing.T) {
 func TestAccDataSourceAzureRMAppService_ipRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAppService_ipRestriction(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10/32"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.name", "test-restriction"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.priority", "123"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.action", "Allow"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: AppServiceDataSource{}.ipRestriction(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.ip_address").HasValue("10.10.10.10/32"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.name").HasValue("test-restriction"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.priority").HasValue("123"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.action").HasValue("Allow"),
+			),
 		},
 	})
 }
@@ -150,17 +118,12 @@ func TestAccDataSourceAzureRMAppService_ipRestriction(t *testing.T) {
 func TestAccDataSourceAzureRMAppService_oneVNetSubnetIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAppService_oneVNetSubnetIpRestriction(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.#", "1"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: AppServiceDataSource{}.oneVNetSubnetIpRestriction(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("1"),
+			),
 		},
 	})
 }
@@ -168,17 +131,12 @@ func TestAccDataSourceAzureRMAppService_oneVNetSubnetIpRestriction(t *testing.T)
 func TestAccDataSourceAzureRMAppService_scmUseMainIPRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAppService_scmUseMainIPRestriction(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_use_main_ip_restriction", "true"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: AppServiceDataSource{}.scmUseMainIPRestriction(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("site_config.0.scm_use_main_ip_restriction").HasValue("true"),
+			),
 		},
 	})
 }
@@ -186,20 +144,15 @@ func TestAccDataSourceAzureRMAppService_scmUseMainIPRestriction(t *testing.T) {
 func TestAccDataSourceAzureRMAppService_scmIPRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAppService_scmIPRestriction(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_ip_restriction.0.ip_address", "10.10.10.10/32"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_ip_restriction.0.name", "test-restriction"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_ip_restriction.0.priority", "123"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_ip_restriction.0.action", "Allow"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: AppServiceDataSource{}.scmIPRestriction(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("site_config.0.scm_ip_restriction.0.ip_address").HasValue("10.10.10.10/32"),
+				check.That(data.ResourceName).Key("site_config.0.scm_ip_restriction.0.name").HasValue("test-restriction"),
+				check.That(data.ResourceName).Key("site_config.0.scm_ip_restriction.0.priority").HasValue("123"),
+				check.That(data.ResourceName).Key("site_config.0.scm_ip_restriction.0.action").HasValue("Allow"),
+			),
 		},
 	})
 }
@@ -207,17 +160,12 @@ func TestAccDataSourceAzureRMAppService_scmIPRestriction(t *testing.T) {
 func TestAccDataSourceAzureRMAppService_withSourceControl(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAppService_withSourceControl(data, "main"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "source_control.0.branch", "main"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: AppServiceDataSource{}.withSourceControl(data, "main"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("source_control.0.branch").HasValue("main"),
+			),
 		},
 	})
 }
@@ -225,17 +173,12 @@ func TestAccDataSourceAzureRMAppService_withSourceControl(t *testing.T) {
 func TestAccDataSourceAzureRMAppService_http2Enabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAppService_http2Enabled(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.http2_enabled", "true"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: AppServiceDataSource{}.http2Enabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("site_config.0.http2_enabled").HasValue("true"),
+			),
 		},
 	})
 }
@@ -243,17 +186,12 @@ func TestAccDataSourceAzureRMAppService_http2Enabled(t *testing.T) {
 func TestAccDataSourceAzureRMAppService_minTls(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAppService_minTls(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.min_tls_version", "1.1"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: AppServiceDataSource{}.minTls(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("site_config.0.min_tls_version").HasValue("1.1"),
+			),
 		},
 	})
 }
@@ -261,24 +199,19 @@ func TestAccDataSourceAzureRMAppService_minTls(t *testing.T) {
 func TestAccDataSourceAzureRMAppService_basicWindowsContainer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAppService_basicWindowsContainer(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.windows_fx_version", "DOCKER|mcr.microsoft.com/azure-app-service/samples/aspnethelloworld:latest"),
-					resource.TestCheckResourceAttr(data.ResourceName, "app_settings.DOCKER_REGISTRY_SERVER_URL", "https://mcr.microsoft.com"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: AppServiceDataSource{}.basicWindowsContainer(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|mcr.microsoft.com/azure-app-service/samples/aspnethelloworld:latest"),
+				check.That(data.ResourceName).Key("app_settings.DOCKER_REGISTRY_SERVER_URL").HasValue("https://mcr.microsoft.com"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAppService_basic(data acceptance.TestData) string {
-	config := testAccAzureRMAppService_basic(data)
+func (d AppServiceDataSource) basic(data acceptance.TestData) string {
+	config := AppServiceResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -289,8 +222,8 @@ data "azurerm_app_service" "test" {
 `, config)
 }
 
-func testAccDataSourceAppService_tags(data acceptance.TestData) string {
-	config := testAccAzureRMAppService_tags(data)
+func (d AppServiceDataSource) tags(data acceptance.TestData) string {
+	config := AppServiceResource{}.tags(data)
 	return fmt.Sprintf(`
 %s
 
@@ -301,8 +234,8 @@ data "azurerm_app_service" "test" {
 `, config)
 }
 
-func testAccDataSourceAppService_clientAffinityDisabled(data acceptance.TestData) string {
-	config := testAccAzureRMAppService_clientAffinityDisabled(data)
+func (d AppServiceDataSource) clientAffinityDisabled(data acceptance.TestData) string {
+	config := AppServiceResource{}.clientAffinityDisabled(data)
 	return fmt.Sprintf(`
 %s
 
@@ -313,8 +246,8 @@ data "azurerm_app_service" "test" {
 `, config)
 }
 
-func testAccDataSourceAppService_32Bit(data acceptance.TestData) string {
-	config := testAccAzureRMAppService_32Bit(data)
+func (d AppServiceDataSource) service32Bit(data acceptance.TestData) string {
+	config := AppServiceResource{}.service32Bit(data)
 	return fmt.Sprintf(`
 %s
 
@@ -325,8 +258,8 @@ data "azurerm_app_service" "test" {
 `, config)
 }
 
-func testAccDataSourceAppService_appSettings(data acceptance.TestData) string {
-	config := testAccAzureRMAppService_appSettings(data)
+func (d AppServiceDataSource) appSettings(data acceptance.TestData) string {
+	config := AppServiceResource{}.appSettings(data)
 	return fmt.Sprintf(`
 %s
 
@@ -337,8 +270,8 @@ data "azurerm_app_service" "test" {
 `, config)
 }
 
-func testAccDataSourceAppService_connectionStrings(data acceptance.TestData) string {
-	config := testAccAzureRMAppService_connectionStrings(data)
+func (d AppServiceDataSource) connectionStrings(data acceptance.TestData) string {
+	config := AppServiceResource{}.connectionStrings(data)
 	return fmt.Sprintf(`
 %s
 
@@ -349,8 +282,8 @@ data "azurerm_app_service" "test" {
 `, config)
 }
 
-func testAccDataSourceAppService_ipRestriction(data acceptance.TestData) string {
-	config := testAccAzureRMAppService_completeIpRestriction(data)
+func (d AppServiceDataSource) ipRestriction(data acceptance.TestData) string {
+	config := AppServiceResource{}.completeIpRestriction(data)
 	return fmt.Sprintf(`
 %s
 
@@ -361,8 +294,8 @@ data "azurerm_app_service" "test" {
 `, config)
 }
 
-func testAccDataSourceAppService_oneVNetSubnetIpRestriction(data acceptance.TestData) string {
-	config := testAccAzureRMAppService_oneVNetSubnetIpRestriction(data)
+func (d AppServiceDataSource) oneVNetSubnetIpRestriction(data acceptance.TestData) string {
+	config := AppServiceResource{}.oneVNetSubnetIpRestriction(data)
 	return fmt.Sprintf(`
 %s
 
@@ -373,8 +306,8 @@ data "azurerm_app_service" "test" {
 `, config)
 }
 
-func testAccDataSourceAppService_scmUseMainIPRestriction(data acceptance.TestData) string {
-	config := testAccAzureRMAppService_scmUseMainIPRestriction(data)
+func (d AppServiceDataSource) scmUseMainIPRestriction(data acceptance.TestData) string {
+	config := AppServiceResource{}.scmUseMainIPRestriction(data)
 	return fmt.Sprintf(`
 %s
 
@@ -385,8 +318,8 @@ data "azurerm_app_service" "test" {
 `, config)
 }
 
-func testAccDataSourceAppService_scmIPRestriction(data acceptance.TestData) string {
-	config := testAccAzureRMAppService_completeScmIpRestriction(data)
+func (d AppServiceDataSource) scmIPRestriction(data acceptance.TestData) string {
+	config := AppServiceResource{}.completeScmIpRestriction(data)
 	return fmt.Sprintf(`
 %s
 
@@ -397,8 +330,8 @@ data "azurerm_app_service" "test" {
 `, config)
 }
 
-func testAccDataSourceAppService_withSourceControl(data acceptance.TestData, branch string) string {
-	config := testAccAzureRMAppService_withSourceControl(data, branch)
+func (d AppServiceDataSource) withSourceControl(data acceptance.TestData, branch string) string {
+	config := AppServiceResource{}.withSourceControl(data, branch)
 	return fmt.Sprintf(`
 %s
 
@@ -409,8 +342,8 @@ data "azurerm_app_service" "test" {
 `, config)
 }
 
-func testAccDataSourceAppService_http2Enabled(data acceptance.TestData) string {
-	config := testAccAzureRMAppService_http2Enabled(data)
+func (d AppServiceDataSource) http2Enabled(data acceptance.TestData) string {
+	config := AppServiceResource{}.http2Enabled(data)
 	return fmt.Sprintf(`
 %s
 
@@ -421,8 +354,8 @@ data "azurerm_app_service" "test" {
 `, config)
 }
 
-func testAccDataSourceAppService_minTls(data acceptance.TestData) string {
-	config := testAccAzureRMAppService_minTls(data, "1.1")
+func (d AppServiceDataSource) minTls(data acceptance.TestData) string {
+	config := AppServiceResource{}.minTls(data, "1.1")
 	return fmt.Sprintf(`
 %s
 
@@ -433,8 +366,8 @@ data "azurerm_app_service" "test" {
 `, config)
 }
 
-func testAccDataSourceAppService_basicWindowsContainer(data acceptance.TestData) string {
-	config := testAccAzureRMAppService_basicWindowsContainer(data)
+func (d AppServiceDataSource) basicWindowsContainer(data acceptance.TestData) string {
+	config := AppServiceResource{}.basicWindowsContainer(data)
 	return fmt.Sprintf(`
 %s
 
