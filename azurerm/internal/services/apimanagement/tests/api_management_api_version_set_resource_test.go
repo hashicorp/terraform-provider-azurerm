@@ -126,7 +126,7 @@ func testCheckAzureRMApiManagementApiVersionSetDestroy(s *terraform.State) error
 			continue
 		}
 
-		id, err := parse.APIVersionSetID(rs.Primary.ID)
+		id, err := parse.ApiVersionSetID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -153,7 +153,7 @@ func testCheckAzureRMApiManagementApiVersionSetExists(resourceName string) resou
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.APIVersionSetID(rs.Primary.ID)
+		id, err := parse.ApiVersionSetID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
