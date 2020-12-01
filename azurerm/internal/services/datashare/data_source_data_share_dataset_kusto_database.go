@@ -24,13 +24,13 @@ func dataSourceDataShareDatasetKustoDatabase() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.DatashareDataSetName(),
+				ValidateFunc: validate.DataSetName(),
 			},
 
 			"share_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.DataShareID,
+				ValidateFunc: validate.ShareID,
 			},
 
 			"kusto_database_id": {

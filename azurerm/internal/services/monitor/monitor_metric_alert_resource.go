@@ -271,12 +271,12 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 						"web_test_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.ApplicationInsightsWebTestID,
+							ValidateFunc: validate.WebTestID,
 						},
 						"component_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.ApplicationInsightsID,
+							ValidateFunc: validate.ComponentID,
 						},
 						"failed_location_count": {
 							Type:         schema.TypeInt,

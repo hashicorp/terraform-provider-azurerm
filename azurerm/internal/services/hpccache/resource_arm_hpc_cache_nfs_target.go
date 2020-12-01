@@ -42,7 +42,7 @@ func resourceArmHPCCacheNFSTarget() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.HPCCacheTargetName,
+				ValidateFunc: validate.StorageTargetName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -65,18 +65,18 @@ func resourceArmHPCCacheNFSTarget() *schema.Resource {
 						"namespace_path": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.HPCCacheNamespacePath,
+							ValidateFunc: validate.CacheNamespacePath,
 						},
 						"nfs_export": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.HPCCacheNFSExport,
+							ValidateFunc: validate.CacheNFSExport,
 						},
 						"target_path": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Default:      "",
-							ValidateFunc: validate.HPCCacheNFSTargetPath,
+							ValidateFunc: validate.CacheNFSTargetPath,
 						},
 					},
 				},

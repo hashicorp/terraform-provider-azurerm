@@ -1,6 +1,7 @@
 package authorization_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -8,14 +9,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+type RoleAssignmentResource struct{}
 
 func TestAccRoleAssignment(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
 	// Azure only being happy about provisioning a couple at a time
-	testCases := map[string]map[string]func(t *testing.T){
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"basic": {
 			"emptyName":      testAccRoleAssignment_emptyName,
 			"roleName":       testAccRoleAssignment_roleName,
@@ -32,45 +37,22 @@ func TestAccRoleAssignment(t *testing.T) {
 		"management": {
 			"assign": testAccRoleAssignment_managementGroup,
 		},
-	}
-
-	for group, m := range testCases {
-		m := m
-		t.Run(group, func(t *testing.T) {
-			for name, tc := range m {
-				tc := tc
-				t.Run(name, func(t *testing.T) {
-					tc(t)
-				})
-			}
-		})
-	}
+	})
 }
 
 func testAccRoleAssignment_emptyName(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
+	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
+	r := RoleAssignmentResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckRoleAssignmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccRoleAssignment_emptyNameConfig(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckRoleAssignmentExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-				),
-			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"skip_service_principal_aad_check",
-				},
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.emptyNameConfig(),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
+			),
 		},
+		data.ImportStep("skip_service_principal_aad_check"),
 	})
 }
 
@@ -78,28 +60,18 @@ func testAccRoleAssignment_roleName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
 	id := uuid.New().String()
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckRoleAssignmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccRoleAssignment_roleNameConfig(id),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckRoleAssignmentExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "role_definition_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "role_definition_name", "Log Analytics Reader"),
-				),
-			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"skip_service_principal_aad_check",
-				},
-			},
+	r := RoleAssignmentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.roleNameConfig(id),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				resource.TestCheckResourceAttrSet(data.ResourceName, "role_definition_id"),
+				resource.TestCheckResourceAttr(data.ResourceName, "role_definition_name", "Log Analytics Reader"),
+			),
 		},
+		data.ImportStep("skip_service_principal_aad_check"),
 	})
 }
 
@@ -107,45 +79,39 @@ func testAccRoleAssignment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
 	id := uuid.New().String()
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckRoleAssignmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccRoleAssignment_roleNameConfig(id),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckRoleAssignmentExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "role_definition_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "role_definition_name", "Log Analytics Reader"),
-				),
-			},
-			{
-				Config:      testAccRoleAssignment_requiresImportConfig(id),
-				ExpectError: acceptance.RequiresImportError("azurerm_role_assignment"),
-			},
+	r := RoleAssignmentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.roleNameConfig(id),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				resource.TestCheckResourceAttrSet(data.ResourceName, "role_definition_id"),
+				resource.TestCheckResourceAttr(data.ResourceName, "role_definition_name", "Log Analytics Reader"),
+			),
+		},
+		{
+			Config:      r.requiresImportConfig(id),
+			ExpectError: acceptance.RequiresImportError("azurerm_role_assignment"),
 		},
 	})
 }
 
 func testAccRoleAssignment_dataActions(t *testing.T) {
-	id := uuid.New().String()
 	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
+	id := uuid.New().String()
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckRoleAssignmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccRoleAssignment_dataActionsConfig(id),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckRoleAssignmentExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "role_definition_id"),
-				),
-			},
-			data.ImportStep("skip_service_principal_aad_check"),
+	r := RoleAssignmentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.dataActionsConfig(id),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				resource.TestCheckResourceAttrSet(data.ResourceName, "role_definition_id"),
+			),
 		},
+		data.ImportStep("skip_service_principal_aad_check"),
 	})
 }
 
@@ -153,19 +119,16 @@ func testAccRoleAssignment_builtin(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
 	id := uuid.New().String()
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckRoleAssignmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccRoleAssignment_builtinConfig(id),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckRoleAssignmentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("skip_service_principal_aad_check"),
+	r := RoleAssignmentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.builtinConfig(id),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("skip_service_principal_aad_check"),
 	})
 }
 
@@ -175,26 +138,16 @@ func testAccRoleAssignment_custom(t *testing.T) {
 	roleAssignmentId := uuid.New().String()
 	rInt := acceptance.RandTimeInt()
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckRoleAssignmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccRoleAssignment_customConfig(roleDefinitionId, roleAssignmentId, rInt),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckRoleAssignmentExists(data.ResourceName),
-				),
-			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"skip_service_principal_aad_check",
-				},
-			},
+	r := RoleAssignmentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.customConfig(roleDefinitionId, roleAssignmentId, rInt),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("skip_service_principal_aad_check"),
 	})
 }
 
@@ -203,132 +156,87 @@ func testAccActiveDirectoryServicePrincipal_servicePrincipal(t *testing.T) {
 	ri := acceptance.RandTimeInt()
 	id := uuid.New().String()
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckRoleAssignmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccRoleAssignment_servicePrincipal(ri, id),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckRoleAssignmentExists("azurerm_role_assignment.test"),
-					resource.TestCheckResourceAttr(data.ResourceName, "principal_type", "ServicePrincipal"),
-				),
-			},
+	r := RoleAssignmentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.servicePrincipal(ri, id),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				resource.TestCheckResourceAttr(data.ResourceName, "principal_type", "ServicePrincipal"),
+			),
 		},
 	})
 }
 
 func testAccActiveDirectoryServicePrincipal_servicePrincipalWithType(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
 	ri := acceptance.RandTimeInt()
 	id := uuid.New().String()
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckRoleAssignmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccRoleAssignment_servicePrincipalWithType(ri, id),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckRoleAssignmentExists("azurerm_role_assignment.test"),
-				),
-			},
+	r := RoleAssignmentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.servicePrincipalWithType(ri, id),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
 func testAccActiveDirectoryServicePrincipal_group(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
 	ri := acceptance.RandTimeInt()
 	id := uuid.New().String()
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckRoleAssignmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccRoleAssignment_group(ri, id),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckRoleAssignmentExists("azurerm_role_assignment.test"),
-				),
-			},
+	r := RoleAssignmentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.group(ri, id),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
-}
-
-func testCheckRoleAssignmentExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Authorization.RoleAssignmentsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %q", resourceName)
-		}
-
-		scope := rs.Primary.Attributes["scope"]
-		roleAssignmentName := rs.Primary.Attributes["name"]
-
-		resp, err := client.Get(ctx, scope, roleAssignmentName)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Role Assignment %q (Scope: %q) does not exist", roleAssignmentName, scope)
-			}
-			return fmt.Errorf("Bad: Get on roleDefinitionsClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckRoleAssignmentDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Authorization.RoleAssignmentsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_role_assignment" {
-			continue
-		}
-
-		scope := rs.Primary.Attributes["scope"]
-		roleAssignmentName := rs.Primary.Attributes["name"]
-
-		resp, err := client.Get(ctx, scope, roleAssignmentName)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("Role Definition still exists:\n%#v", resp)
-	}
-
-	return nil
 }
 
 // TODO - "real" management group with appropriate required for testing
 func testAccRoleAssignment_managementGroup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
 	groupId := uuid.New().String()
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckRoleAssignmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccRoleAssignment_managementGroupConfig(groupId),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckRoleAssignmentExists("azurerm_role_assignment.test"),
-				),
-			},
+	r := RoleAssignmentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.managementGroupConfig(groupId),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func testAccRoleAssignment_emptyNameConfig() string {
+func (r RoleAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.RoleDefinitionId(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := client.Authorization.RoleAssignmentsClient.Get(ctx, id.Scope, id.RoleID)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
+		}
+		return nil, fmt.Errorf("retrieving Role Assignment for role %q (Scope %q): %+v", id.RoleID, id.Scope, err)
+	}
+	return utils.Bool(true), nil
+}
+
+func (RoleAssignmentResource) emptyNameConfig() string {
 	return `
 data "azurerm_subscription" "primary" {}
 
@@ -346,7 +254,7 @@ resource "azurerm_role_assignment" "test" {
 `
 }
 
-func testAccRoleAssignment_roleNameConfig(id string) string {
+func (RoleAssignmentResource) roleNameConfig(id string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -367,7 +275,7 @@ resource "azurerm_role_assignment" "test" {
 `, id)
 }
 
-func testAccRoleAssignment_requiresImportConfig(id string) string {
+func (RoleAssignmentResource) requiresImportConfig(id string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -377,10 +285,10 @@ resource "azurerm_role_assignment" "import" {
   role_definition_name = azurerm_role_assignment.test.role_definition_name
   principal_id         = azurerm_role_assignment.test.principal_id
 }
-`, testAccRoleAssignment_roleNameConfig(id))
+`, RoleAssignmentResource{}.roleNameConfig(id))
 }
 
-func testAccRoleAssignment_dataActionsConfig(id string) string {
+func (RoleAssignmentResource) dataActionsConfig(id string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -401,7 +309,7 @@ resource "azurerm_role_assignment" "test" {
 `, id)
 }
 
-func testAccRoleAssignment_builtinConfig(id string) string {
+func (RoleAssignmentResource) builtinConfig(id string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -426,7 +334,7 @@ resource "azurerm_role_assignment" "test" {
 `, id)
 }
 
-func testAccRoleAssignment_customConfig(roleDefinitionId string, roleAssignmentId string, rInt int) string {
+func (RoleAssignmentResource) customConfig(roleDefinitionId string, roleAssignmentId string, rInt int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -463,7 +371,7 @@ resource "azurerm_role_assignment" "test" {
 `, roleDefinitionId, rInt, roleAssignmentId)
 }
 
-func testAccRoleAssignment_servicePrincipal(rInt int, roleAssignmentID string) string {
+func (RoleAssignmentResource) servicePrincipal(rInt int, roleAssignmentID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -489,7 +397,7 @@ resource "azurerm_role_assignment" "test" {
 `, rInt, roleAssignmentID)
 }
 
-func testAccRoleAssignment_servicePrincipalWithType(rInt int, roleAssignmentID string) string {
+func (RoleAssignmentResource) servicePrincipalWithType(rInt int, roleAssignmentID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -516,7 +424,7 @@ resource "azurerm_role_assignment" "test" {
 `, rInt, roleAssignmentID)
 }
 
-func testAccRoleAssignment_group(rInt int, roleAssignmentID string) string {
+func (RoleAssignmentResource) group(rInt int, roleAssignmentID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -538,7 +446,7 @@ resource "azurerm_role_assignment" "test" {
 `, rInt, roleAssignmentID)
 }
 
-func testAccRoleAssignment_managementGroupConfig(groupId string) string {
+func (RoleAssignmentResource) managementGroupConfig(groupId string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

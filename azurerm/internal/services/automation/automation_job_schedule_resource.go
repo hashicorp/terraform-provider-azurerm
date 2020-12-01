@@ -43,21 +43,21 @@ func resourceAutomationJobSchedule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.AutomationAccountName(),
+				ValidateFunc: validate.AutomationAccount(),
 			},
 
 			"runbook_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.AutomationRunbookName(),
+				ValidateFunc: validate.RunbookName(),
 			},
 
 			"schedule_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.AutomationScheduleName(),
+				ValidateFunc: validate.ScheduleName(),
 			},
 
 			"parameters": {
