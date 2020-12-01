@@ -1,4 +1,4 @@
-package iotcentral
+package iotcentral_test
 
 import (
 	"fmt"
