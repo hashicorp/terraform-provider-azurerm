@@ -34,8 +34,7 @@ resource "azurerm_storage_share" "example" {
 
 resource "azurerm_storage_share_file" "example" {
   name                   = "my-awesome-content.zip"
-  share_name             = azurerm_storage_share.example.name
-  storage_account_name   = azurerm_storage_account.example.name
+  storage_share_id       = azurerm_storage_share.example.id
   source                 = "some-local-file.zip"
 }
 ```
@@ -46,9 +45,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name (or path) of the File that should be created within this File Share. Changing this forces a new resource to be created.
 
-* `share_name` - (Required) The name of the File Share where this File should be created. Changing this forces a new resource to be created.
-
-* `storage_account_name` - (Required) The name of the Storage Account within which the File Share is located. Changing this forces a new resource to be created.
+* `storage_share_id` - (Required) The Storage Share ID in which this file will be placed into. Changing this forces a new resource to be created.
 
 * `directory_name` - (Optional) The storage share directory that you would like the file placed into. Changing this forces a new resource to be created.
 

@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -141,16 +143,18 @@ func testCheckAzureRMStorageShareFileExists(resourceName string) resource.TestCh
 		}
 
 		name := rs.Primary.Attributes["name"]
-		shareName := rs.Primary.Attributes["share_name"]
-		accountName := rs.Primary.Attributes["storage_account_name"]
-		directoryName := rs.Primary.Attributes["directory_name"]
-
-		account, err := storageClient.FindAccount(ctx, accountName)
+		storageShareID, err := parse.StorageShareDataPlaneID(rs.Primary.Attributes["storage_share_id"])
 		if err != nil {
-			return fmt.Errorf("Error retrieving Account %q for File %q (Share %q): %s", accountName, name, shareName, err)
+			return err
+		}
+		path := rs.Primary.Attributes["path"]
+
+		account, err := storageClient.FindAccount(ctx, storageShareID.AccountName)
+		if err != nil {
+			return fmt.Errorf("Error retrieving Account %q for File %q (Share %q): %s", storageShareID.AccountName, name, storageShareID.Name, err)
 		}
 		if account == nil {
-			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
+			return fmt.Errorf("Unable to locate Storage Account %q!", storageShareID.AccountName)
 		}
 
 		client, err := storageClient.FileShareFilesClient(ctx, *account)
@@ -158,13 +162,13 @@ func testCheckAzureRMStorageShareFileExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Error building FileShare File Client: %s", err)
 		}
 
-		resp, err := client.GetProperties(ctx, accountName, shareName, directoryName, name)
+		resp, err := client.GetProperties(ctx, storageShareID.AccountName, storageShareID.Name, path, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on FileShareFilesClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: File %q (File Share %q / Account %q / Resource Group %q) does not exist", name, shareName, accountName, account.ResourceGroup)
+			return fmt.Errorf("Bad: File %q (File Share %q / Account %q / Resource Group %q) does not exist", name, storageShareID.Name, storageShareID.AccountName, account.ResourceGroup)
 		}
 
 		return nil
@@ -181,13 +185,15 @@ func testCheckAzureRMStorageShareFileDestroy(s *terraform.State) error {
 		}
 
 		name := rs.Primary.Attributes["name"]
-		shareName := rs.Primary.Attributes["share_name"]
-		accountName := rs.Primary.Attributes["storage_account_name"]
-		directoryName := rs.Primary.Attributes["directory_name"]
-
-		account, err := storageClient.FindAccount(ctx, accountName)
+		storageShareID, err := parse.StorageShareDataPlaneID(rs.Primary.Attributes["storage_share_id"])
 		if err != nil {
-			return fmt.Errorf("Error retrieving Account %q for File %q (Share %q): %s", accountName, name, shareName, err)
+			return err
+		}
+		path := rs.Primary.Attributes["path"]
+
+		account, err := storageClient.FindAccount(ctx, storageShareID.AccountName)
+		if err != nil {
+			return fmt.Errorf("Error retrieving Account %q for File %q (Share %q): %s", storageShareID.AccountName, name, storageShareID.Name, err)
 		}
 
 		// not found, the account's gone
@@ -196,7 +202,7 @@ func testCheckAzureRMStorageShareFileDestroy(s *terraform.State) error {
 		}
 
 		if err != nil {
-			return fmt.Errorf("Error locating Resource Group for Storage Share File %q (Share %s, Account %s): %s", name, shareName, accountName, err)
+			return fmt.Errorf("Error locating Resource Group for Storage Share File %q (Share %s, Account %s): %s", name, storageShareID.Name, storageShareID.AccountName, err)
 		}
 
 		client, err := storageClient.FileShareFilesClient(ctx, *account)
@@ -204,7 +210,7 @@ func testCheckAzureRMStorageShareFileDestroy(s *terraform.State) error {
 			return fmt.Errorf("Error building FileShare File Client: %s", err)
 		}
 
-		resp, err := client.GetProperties(ctx, accountName, shareName, directoryName, name)
+		resp, err := client.GetProperties(ctx, storageShareID.AccountName, storageShareID.Name, path, name)
 		if err != nil {
 			return nil
 		}
@@ -213,36 +219,6 @@ func testCheckAzureRMStorageShareFileDestroy(s *terraform.State) error {
 	}
 
 	return nil
-}
-
-func testAccAzureRMStorageShareFile_basic(data acceptance.TestData) string {
-	template := testAccAzureRMStorageShareFile_template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_storage_share_file" "test" {
-  name                 = "dir"
-  share_name           = azurerm_storage_share.test.name
-  storage_account_name = azurerm_storage_account.test.name
-
-  metadata = {
-    hello = "world"
-  }
-}
-`, template)
-}
-
-func testAccAzureRMStorageShareFile_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMStorageShareFile_basic(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_storage_share_file" "import" {
-  name                 = azurerm_storage_share_file.test.name
-  share_name           = azurerm_storage_share_file.test.share_name
-  storage_account_name = azurerm_storage_share_file.test.storage_account_name
-}
-`, template)
 }
 
 func testAccAzureRMStorageShareFile_template(data acceptance.TestData) string {
@@ -272,6 +248,34 @@ resource "azurerm_storage_share" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
+func testAccAzureRMStorageShareFile_basic(data acceptance.TestData) string {
+	template := testAccAzureRMStorageShareFile_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_share_file" "test" {
+  name                 = "dir"
+  storage_share_id     = azurerm_storage_share.test.id
+
+  metadata = {
+    hello = "world"
+  }
+}
+`, template)
+}
+
+func testAccAzureRMStorageShareFile_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMStorageShareFile_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_share_file" "import" {
+  name                 = azurerm_storage_share_file.test.name
+  storage_share_id     = azurerm_storage_share.test.id
+}
+`, template)
+}
+
 func testAccAzureRMStorageShareFile_complete(data acceptance.TestData) string {
 	template := testAccAzureRMStorageShareFile_template(data)
 	return fmt.Sprintf(`
@@ -279,8 +283,8 @@ func testAccAzureRMStorageShareFile_complete(data acceptance.TestData) string {
 
 resource "azurerm_storage_share_file" "test" {
   name                 = "dir"
-  share_name           = azurerm_storage_share.test.name
-  storage_account_name = azurerm_storage_account.test.name
+  storage_share_id     = azurerm_storage_share.test.id
+
   
   content_type        = "test_content_type"
   content_encoding    = "test_encoding"
@@ -300,9 +304,7 @@ func testAccAzureRMStorageShareFile_withFile(data acceptance.TestData, fileName 
 
 resource "azurerm_storage_share_file" "test" {
   name                 = "dir"
-  share_name           = azurerm_storage_share.test.name
-  storage_account_name = azurerm_storage_account.test.name
-
+  storage_share_id     = azurerm_storage_share.test.id
 
   source = "%s"
 
