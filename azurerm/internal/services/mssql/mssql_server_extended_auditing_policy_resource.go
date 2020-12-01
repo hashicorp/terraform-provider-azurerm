@@ -41,7 +41,7 @@ func resourceArmMsSqlServerExtendedAuditingPolicy() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.MsSqlServerID,
+				ValidateFunc: validate.ServerID,
 			},
 
 			"storage_endpoint": {

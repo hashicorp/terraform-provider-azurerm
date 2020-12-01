@@ -17,7 +17,7 @@ func TestDatabaseAutoPauseDelay(t *testing.T) {
 	}
 
 	for _, test := range testCases {
-		_, es := MsSqlDatabaseAutoPauseDelay(test.input, "name")
+		_, es := DatabaseAutoPauseDelay(test.input, "name")
 
 		if test.shouldError && len(es) == 0 {
 			t.Fatalf("Expected validating name %q to fail", test.input)
