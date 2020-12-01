@@ -10,7 +10,7 @@ description: |-
 
 Manages a API Management service Policy.
 
-~> **NOTE:** This resource will, upon creation, **overwrite any existing policy in the API Management service**, as there is no feasible way to test whether the policy has been modified from the deault. Similarly, when this resource is destroyed, the API Management service will revert to its default policy.
+~> **NOTE:** This resource will, upon creation, **overwrite any existing policy in the API Management service**, as there is no feasible way to test whether the policy has been modified from the default. Similarly, when this resource is destroyed, the API Management service will revert to its default policy.
 
 ## Example Usage
 
