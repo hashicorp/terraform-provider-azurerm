@@ -1,7 +1,7 @@
 package dns_test
 
 import (
-	`context`
+	"context"
 	"fmt"
 	"testing"
 
@@ -12,7 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
-	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils`
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 type DnsSrvRecordResource struct {
@@ -110,7 +110,6 @@ func (DnsSrvRecordResource) Exists(ctx context.Context, clients *clients.Client,
 
 	return utils.Bool(resp.RecordSetProperties != nil), nil
 }
-
 
 func (DnsSrvRecordResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
