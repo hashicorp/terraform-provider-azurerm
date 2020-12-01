@@ -1,177 +1,122 @@
 package dns_test
 
 import (
+	`context`
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils`
 )
+
+type DnsZoneResource struct {
+}
 
 func TestAccDnsZone_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_zone", "test")
+	r := DnsZoneResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDnsZone_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsZoneExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccDnsZone_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_zone", "test")
+	r := DnsZoneResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDnsZone_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsZoneExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccDnsZone_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_dns_zone"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_dns_zone"),
 		},
 	})
 }
 
 func TestAccDnsZone_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_zone", "test")
+	r := DnsZoneResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDnsZone_withTags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsZoneExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
-				),
-			},
-			{
-				Config: testAccDnsZone_withTagsUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsZoneExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withTags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+			),
 		},
+		{
+			Config: r.withTagsUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccDnsZone_withSOARecord(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_zone", "test")
+	r := DnsZoneResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDnsZone_withBasicSOARecord(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsZoneExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMDnsZone_withCompletedSOARecord(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsZoneExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMDnsZone_withBasicSOARecord(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsZoneExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withBasicSOARecord(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.withCompletedSOARecord(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withBasicSOARecord(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMDnsZoneExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Dns.ZonesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		id, err := parse.DnsZoneID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get DNS zone: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: DNS zone %s (resource group: %s) does not exist", id.Name, id.ResourceGroup)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMDnsZoneDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.ZonesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_dns_zone" {
-			continue
-		}
-
-		id, err := parse.DnsZoneID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("DNS Zone still exists:\n%#v", resp)
+func (DnsZoneResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.DnsZoneID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Dns.ZonesClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving DNS zone %s (resource group: %s) does not exist", id.Name, id.ResourceGroup)
+	}
+
+	return utils.Bool(resp.ZoneProperties != nil), nil
 }
 
-func testAccAzureRMDnsZone_basic(data acceptance.TestData) string {
+func (DnsZoneResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -189,8 +134,8 @@ resource "azurerm_dns_zone" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMDnsZone_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMDnsZone_basic(data)
+func (DnsZoneResource) requiresImport(data acceptance.TestData) string {
+	template := DnsZoneResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -201,7 +146,7 @@ resource "azurerm_dns_zone" "import" {
 `, template)
 }
 
-func testAccAzureRMDnsZone_withTags(data acceptance.TestData) string {
+func (DnsZoneResource) withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -224,7 +169,7 @@ resource "azurerm_dns_zone" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMDnsZone_withTagsUpdate(data acceptance.TestData) string {
+func (DnsZoneResource) withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -246,7 +191,7 @@ resource "azurerm_dns_zone" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMDnsZone_withBasicSOARecord(data acceptance.TestData) string {
+func (DnsZoneResource) withBasicSOARecord(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -269,7 +214,7 @@ resource "azurerm_dns_zone" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMDnsZone_withCompletedSOARecord(data acceptance.TestData) string {
+func (DnsZoneResource) withCompletedSOARecord(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
