@@ -1,75 +1,84 @@
-package tests
+package web_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type AppServiceCertificateResource struct{}
+
 func TestAccAzureRMAppServiceCertificate_Pfx(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate", "test")
+	r := AppServiceCertificateResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceCertificateDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppServiceCertificatePfx(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "password", "terraform"),
-					resource.TestCheckResourceAttr(data.ResourceName, "thumbprint", "7B985BF42467791F23E52B364A3E8DEBAB9C606E"),
-				),
-			},
-			data.ImportStep("pfx_blob", "password"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.pfx(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("password").HasValue("terraform"),
+				check.That(data.ResourceName).Key("thumbprint").HasValue("7B985BF42467791F23E52B364A3E8DEBAB9C606E"),
+			),
 		},
+		data.ImportStep("pfx_blob", "password"),
 	})
 }
 
 func TestAccAzureRMAppServiceCertificate_PfxNoPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate", "test")
+	r := AppServiceCertificateResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceCertificateDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppServiceCertificatePfxNoPassword(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "thumbprint", "7B985BF42467791F23E52B364A3E8DEBAB9C606E"),
-				),
-			},
-			data.ImportStep("pfx_blob"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.pfxNoPassword(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("thumbprint").HasValue("7B985BF42467791F23E52B364A3E8DEBAB9C606E"),
+			),
 		},
+		data.ImportStep("pfx_blob"),
 	})
 }
 
 func TestAccAzureRMAppServiceCertificate_KeyVault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate", "test")
+	r := AppServiceCertificateResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceCertificateDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppServiceCertificateKeyVault(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "thumbprint", "7B985BF42467791F23E52B364A3E8DEBAB9C606E"),
-				),
-			},
-			data.ImportStep("key_vault_secret_id"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.keyVault(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("thumbprint").HasValue("7B985BF42467791F23E52B364A3E8DEBAB9C606E"),
+			),
 		},
+		data.ImportStep("key_vault_secret_id"),
 	})
 }
 
-func testAccAzureRMAppServiceCertificatePfx(data acceptance.TestData) string {
+func (r AppServiceCertificateResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.CertificateID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := client.Web.CertificatesClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
+		}
+		return nil, fmt.Errorf("retrieving App Service Certificate %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+	return utils.Bool(true), nil
+}
+
+func (r AppServiceCertificateResource) pfx(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -90,7 +99,7 @@ resource "azurerm_app_service_certificate" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceCertificatePfxNoPassword(data acceptance.TestData) string {
+func (r AppServiceCertificateResource) pfxNoPassword(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -110,7 +119,7 @@ resource "azurerm_app_service_certificate" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceCertificateKeyVault(data acceptance.TestData) string {
+func (r AppServiceCertificateResource) keyVault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -185,29 +194,4 @@ resource "azurerm_app_service_certificate" "test" {
   key_vault_secret_id = azurerm_key_vault_certificate.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func testCheckAzureRMAppServiceCertificateDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).Web.CertificatesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_app_service_certificate" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return err
-			}
-		}
-
-		return nil
-	}
-
-	return nil
 }

@@ -1,4 +1,4 @@
-package tests
+package web_test
 
 import (
 	"fmt"
@@ -6,32 +6,30 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
+
+type AppServiceCertificateDataSource struct{}
 
 func TestAccDataSourceAzureRMAppServiceCertificate_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service_certificate", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceCertificateDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMAppServiceCertificate_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "subject_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "issue_date"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "expiration_date"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "thumbprint"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: AppServiceCertificateDataSource{}.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("id").Exists(),
+				check.That(data.ResourceName).Key("subject_name").Exists(),
+				check.That(data.ResourceName).Key("issue_date").Exists(),
+				check.That(data.ResourceName).Key("expiration_date").Exists(),
+				check.That(data.ResourceName).Key("thumbprint").Exists(),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMAppServiceCertificate_basic(data acceptance.TestData) string {
-	template := testAccAzureRMAppServiceCertificatePfxNoPassword(data)
+func (d AppServiceCertificateDataSource) basic(data acceptance.TestData) string {
+	template := AppServiceCertificateResource{}.pfxNoPassword(data)
 	return fmt.Sprintf(`
 %s
 
