@@ -31,7 +31,7 @@ resource "azurerm_media_services" "example" {
 }
 
 resource "azurerm_media_asset" "example" {
-  name                        = "asset1"
+  name                        = "Asset1"
   description                 = "Asset description"
   resource_group_name         = azurerm_resource_group.example.name
   media_services_account_name = azurerm_media_services_account.example.name
