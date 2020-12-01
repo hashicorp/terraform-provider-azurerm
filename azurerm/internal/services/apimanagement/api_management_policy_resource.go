@@ -59,7 +59,6 @@ func resourceArmApiManagementPolicy() *schema.Resource {
 	}
 }
 
-
 func resourceArmApiManagementPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.PolicyClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
