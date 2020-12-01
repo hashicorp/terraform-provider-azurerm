@@ -9,22 +9,24 @@ import (
 )
 
 type PrivateDnsZoneGroupId struct {
-	SubscriptionId string
-	ResourceGroup  string
-	Name           string
+	SubscriptionId      string
+	ResourceGroup       string
+	PrivateEndpointName string
+	Name                string
 }
 
-func NewPrivateDnsZoneGroupID(subscriptionId, resourceGroup, name string) PrivateDnsZoneGroupId {
+func NewPrivateDnsZoneGroupID(subscriptionId, resourceGroup, privateEndpointName, name string) PrivateDnsZoneGroupId {
 	return PrivateDnsZoneGroupId{
-		SubscriptionId: subscriptionId,
-		ResourceGroup:  resourceGroup,
-		Name:           name,
+		SubscriptionId:      subscriptionId,
+		ResourceGroup:       resourceGroup,
+		PrivateEndpointName: privateEndpointName,
+		Name:                name,
 	}
 }
 
 func (id PrivateDnsZoneGroupId) ID(_ string) string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/privateDnsZoneGroups/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/privateEndpoints/%s/privateDnsZoneGroups/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.PrivateEndpointName, id.Name)
 }
 
 // PrivateDnsZoneGroupID parses a PrivateDnsZoneGroup ID into an PrivateDnsZoneGroupId struct
@@ -47,6 +49,9 @@ func PrivateDnsZoneGroupID(input string) (*PrivateDnsZoneGroupId, error) {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
+	if resourceId.PrivateEndpointName, err = id.PopSegment("privateEndpoints"); err != nil {
+		return nil, err
+	}
 	if resourceId.Name, err = id.PopSegment("privateDnsZoneGroups"); err != nil {
 		return nil, err
 	}
