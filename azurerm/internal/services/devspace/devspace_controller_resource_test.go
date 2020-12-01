@@ -1,4 +1,4 @@
-package tests
+package devspace_test
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace/parse"
 )
 
-func TestAccAzureRMDevSpaceController_basic(t *testing.T) {
+func TestAccDevSpaceController_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_devspace_controller", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
@@ -22,12 +22,12 @@ func TestAccAzureRMDevSpaceController_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDevSpaceControllerDestroy,
+		CheckDestroy: testCheckDevSpaceControllerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevSpaceController_basic(data, clientId, clientSecret),
+				Config: testAccDevSpaceController_basic(data, clientId, clientSecret),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevSpaceControllerExists(data.ResourceName),
+					testCheckDevSpaceControllerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
@@ -35,7 +35,7 @@ func TestAccAzureRMDevSpaceController_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDevSpaceController_requiresImport(t *testing.T) {
+func TestAccDevSpaceController_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_devspace_controller", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
@@ -43,23 +43,23 @@ func TestAccAzureRMDevSpaceController_requiresImport(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDevSpaceControllerDestroy,
+		CheckDestroy: testCheckDevSpaceControllerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevSpaceController_basic(data, clientId, clientSecret),
+				Config: testAccDevSpaceController_basic(data, clientId, clientSecret),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevSpaceControllerExists(data.ResourceName),
+					testCheckDevSpaceControllerExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMDevSpaceController_requiresImport(data, clientId, clientSecret),
+				Config:      testAccDevSpaceController_requiresImport(data, clientId, clientSecret),
 				ExpectError: acceptance.RequiresImportError("azurerm_devspace_controller"),
 			},
 		},
 	})
 }
 
-func testCheckAzureRMDevSpaceControllerExists(resourceName string) resource.TestCheckFunc {
+func testCheckDevSpaceControllerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).DevSpace.ControllersClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -89,7 +89,7 @@ func testCheckAzureRMDevSpaceControllerExists(resourceName string) resource.Test
 	}
 }
 
-func testCheckAzureRMDevSpaceControllerDestroy(s *terraform.State) error {
+func testCheckDevSpaceControllerDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).DevSpace.ControllersClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -119,7 +119,7 @@ func testCheckAzureRMDevSpaceControllerDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMDevSpaceController_basic(data acceptance.TestData, clientId string, clientSecret string) string {
+func testAccDevSpaceController_basic(data acceptance.TestData, clientId string, clientSecret string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -167,8 +167,8 @@ resource "azurerm_devspace_controller" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, clientId, clientSecret, data.RandomInteger)
 }
 
-func testAccAzureRMDevSpaceController_requiresImport(data acceptance.TestData, clientId string, clientSecret string) string {
-	template := testAccAzureRMDevSpaceController_basic(data, clientId, clientSecret)
+func testAccDevSpaceController_requiresImport(data acceptance.TestData, clientId string, clientSecret string) string {
+	template := testAccDevSpaceController_basic(data, clientId, clientSecret)
 	return fmt.Sprintf(`
 %s
 
