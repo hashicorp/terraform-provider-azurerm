@@ -13,22 +13,22 @@ type SlotVirtualNetworkSwiftConnectionId struct {
 	ResourceGroup     string
 	SiteName          string
 	SlotName          string
-	NetworkconfigName string
+	NetworkConfigName string
 }
 
-func NewSlotVirtualNetworkSwiftConnectionID(subscriptionId, resourceGroup, siteName, slotName, networkconfigName string) SlotVirtualNetworkSwiftConnectionId {
+func NewSlotVirtualNetworkSwiftConnectionID(subscriptionId, resourceGroup, siteName, slotName, networkConfigName string) SlotVirtualNetworkSwiftConnectionId {
 	return SlotVirtualNetworkSwiftConnectionId{
 		SubscriptionId:    subscriptionId,
 		ResourceGroup:     resourceGroup,
 		SiteName:          siteName,
 		SlotName:          slotName,
-		NetworkconfigName: networkconfigName,
+		NetworkConfigName: networkConfigName,
 	}
 }
 
 func (id SlotVirtualNetworkSwiftConnectionId) ID(_ string) string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s/slots/%s/networkconfig/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SiteName, id.SlotName, id.NetworkconfigName)
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s/slots/%s/networkConfig/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SiteName, id.SlotName, id.NetworkConfigName)
 }
 
 // SlotVirtualNetworkSwiftConnectionID parses a SlotVirtualNetworkSwiftConnection ID into an SlotVirtualNetworkSwiftConnectionId struct
@@ -57,7 +57,7 @@ func SlotVirtualNetworkSwiftConnectionID(input string) (*SlotVirtualNetworkSwift
 	if resourceId.SlotName, err = id.PopSegment("slots"); err != nil {
 		return nil, err
 	}
-	if resourceId.NetworkconfigName, err = id.PopSegment("networkconfig"); err != nil {
+	if resourceId.NetworkConfigName, err = id.PopSegment("networkConfig"); err != nil {
 		return nil, err
 	}
 
