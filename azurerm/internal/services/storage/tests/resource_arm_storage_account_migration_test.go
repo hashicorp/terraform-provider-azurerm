@@ -53,7 +53,6 @@ func TestAzureRMStorageAccountMigrateState(t *testing.T) {
 			Attributes: tc.InputAttributes,
 		}
 		is, err := storage.ResourceStorageAccountMigrateState(tc.StateVersion, is, tc.Meta)
-
 		if err != nil {
 			t.Fatalf("bad: %s, err: %#v", tn, err)
 		}

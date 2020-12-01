@@ -33,7 +33,7 @@ func SqlPoolID(i interface{}, k string) (warnings []string, errors []error) {
 		return
 	}
 
-	if _, err := parse.SynapseSqlPoolID(v); err != nil {
+	if _, err := parse.SqlPoolID(v); err != nil {
 		errors = append(errors, fmt.Errorf("can not parse %q as a Synapse Sql Pool resource id: %v", k, err))
 		return
 	}

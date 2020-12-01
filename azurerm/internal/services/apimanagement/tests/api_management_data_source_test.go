@@ -102,6 +102,7 @@ data "azurerm_api_management" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
+
 func testAccDataSourceApiManagement_identitySystemAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

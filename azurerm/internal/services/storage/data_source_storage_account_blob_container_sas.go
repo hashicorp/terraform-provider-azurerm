@@ -157,7 +157,7 @@ func dataSourceArmStorageContainerSasRead(d *schema.ResourceData, _ interface{})
 	// Create the string to sign with the key...
 	accountName := kvp[connStringAccountNameKey]
 	accountKey := kvp[connStringAccountKeyKey]
-	var signedProtocol = "https,http"
+	signedProtocol := "https,http"
 	if httpsOnly {
 		signedProtocol = "https"
 	}

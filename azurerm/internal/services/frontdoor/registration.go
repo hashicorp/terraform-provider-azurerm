@@ -30,5 +30,6 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_frontdoor":                            resourceArmFrontDoor(),
 		"azurerm_frontdoor_firewall_policy":            resourceArmFrontDoorFirewallPolicy(),
-		"azurerm_frontdoor_custom_https_configuration": resourceArmFrontDoorCustomHttpsConfiguration()}
+		"azurerm_frontdoor_custom_https_configuration": resourceArmFrontDoorCustomHttpsConfiguration(),
+	}
 }

@@ -29,12 +29,12 @@ func resourceArmLoadBalancerNatRule() *schema.Resource {
 		Delete: resourceArmLoadBalancerNatRuleDelete,
 
 		Importer: loadBalancerSubResourceImporter(func(input string) (*parse.LoadBalancerId, error) {
-			id, err := parse.LoadBalancerInboundNATRuleID(input)
+			id, err := parse.LoadBalancerInboundNatRuleID(input)
 			if err != nil {
 				return nil, err
 			}
 
-			lbId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName)
+			lbId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
 			return &lbId, nil
 		}),
 
@@ -148,7 +148,7 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *schema.ResourceData, meta int
 		return nil
 	}
 
-	newNatRule, err := expandAzureRmLoadBalancerNatRule(d, loadBalancer, *loadBalancerId, subscriptionId)
+	newNatRule, err := expandAzureRmLoadBalancerNatRule(d, loadBalancer, *loadBalancerId)
 	if err != nil {
 		return fmt.Errorf("Error Expanding NAT Rule: %+v", err)
 	}
@@ -205,16 +205,15 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *schema.ResourceData, meta int
 
 func resourceArmLoadBalancerNatRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.LoadBalancersClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LoadBalancerInboundNATRuleID(d.Id())
+	id, err := parse.LoadBalancerInboundNatRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	loadBalancerId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName)
+	loadBalancerId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
 	loadBalancer, exists, err := retrieveLoadBalancerById(ctx, client, loadBalancerId)
 	if err != nil {
 		return fmt.Errorf("Error Getting Load Balancer By ID: %+v", err)
@@ -225,10 +224,10 @@ func resourceArmLoadBalancerNatRuleRead(d *schema.ResourceData, meta interface{}
 		return nil
 	}
 
-	config, _, exists := FindLoadBalancerNatRuleByName(loadBalancer, id.Name)
+	config, _, exists := FindLoadBalancerNatRuleByName(loadBalancer, id.InboundNatRuleName)
 	if !exists {
 		d.SetId("")
-		log.Printf("[INFO] Load Balancer Nat Rule %q not found. Removing from state", id.Name)
+		log.Printf("[INFO] Load Balancer Nat Rule %q not found. Removing from state", id.InboundNatRuleName)
 		return nil
 	}
 
@@ -253,13 +252,13 @@ func resourceArmLoadBalancerNatRuleRead(d *schema.ResourceData, meta interface{}
 		frontendIPConfigName := ""
 		frontendIPConfigID := ""
 		if props.FrontendIPConfiguration != nil && props.FrontendIPConfiguration.ID != nil {
-			feid, err := parse.LoadBalancerFrontendIPConfigurationID(*props.FrontendIPConfiguration.ID)
+			feid, err := parse.LoadBalancerFrontendIpConfigurationID(*props.FrontendIPConfiguration.ID)
 			if err != nil {
 				return err
 			}
 
-			frontendIPConfigName = feid.Name
-			frontendIPConfigID = feid.ID(subscriptionId)
+			frontendIPConfigName = feid.FrontendIPConfigurationName
+			frontendIPConfigID = feid.ID("")
 		}
 		d.Set("frontend_ip_configuration_name", frontendIPConfigName)
 		d.Set("frontend_ip_configuration_id", frontendIPConfigID)
@@ -283,17 +282,16 @@ func resourceArmLoadBalancerNatRuleRead(d *schema.ResourceData, meta interface{}
 
 func resourceArmLoadBalancerNatRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.LoadBalancersClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LoadBalancerInboundNATRuleID(d.Id())
+	id, err := parse.LoadBalancerInboundNatRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	loadBalancerId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName)
-	loadBalancerID := loadBalancerId.ID(subscriptionId)
+	loadBalancerId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
+	loadBalancerID := loadBalancerId.ID("")
 	locks.ByID(loadBalancerID)
 	defer locks.UnlockByID(loadBalancerID)
 
@@ -306,7 +304,7 @@ func resourceArmLoadBalancerNatRuleDelete(d *schema.ResourceData, meta interface
 		return nil
 	}
 
-	_, index, exists := FindLoadBalancerNatRuleByName(loadBalancer, id.Name)
+	_, index, exists := FindLoadBalancerNatRuleByName(loadBalancer, id.InboundNatRuleName)
 	if !exists {
 		return nil
 	}
@@ -335,7 +333,7 @@ func resourceArmLoadBalancerNatRuleDelete(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func expandAzureRmLoadBalancerNatRule(d *schema.ResourceData, lb *network.LoadBalancer, loadBalancerId parse.LoadBalancerId, subscriptionId string) (*network.InboundNatRule, error) {
+func expandAzureRmLoadBalancerNatRule(d *schema.ResourceData, lb *network.LoadBalancer, loadBalancerId parse.LoadBalancerId) (*network.InboundNatRule, error) {
 	properties := network.InboundNatRulePropertiesFormat{
 		Protocol:       network.TransportProtocol(d.Get("protocol").(string)),
 		FrontendPort:   utils.Int32(int32(d.Get("frontend_port").(int))),
@@ -356,7 +354,7 @@ func expandAzureRmLoadBalancerNatRule(d *schema.ResourceData, lb *network.LoadBa
 			return nil, fmt.Errorf("[ERROR] Cannot find FrontEnd IP Configuration with the name %s", v)
 		}
 
-		id := parse.NewLoadBalancerFrontendIPConfigurationId(loadBalancerId, v).ID(subscriptionId)
+		id := parse.NewLoadBalancerFrontendIpConfigurationID(loadBalancerId.SubscriptionId, loadBalancerId.ResourceGroup, loadBalancerId.Name, v).ID("")
 		properties.FrontendIPConfiguration = &network.SubResource{
 			ID: utils.String(id),
 		}

@@ -70,7 +70,6 @@ func testCheckAzureRMAPIManagementNamedValueDestroy(s *terraform.State) error {
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
-
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err

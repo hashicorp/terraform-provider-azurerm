@@ -19,7 +19,7 @@ func parseFieldsFromNetworkInterface(input network.InterfacePropertiesFormat) ne
 		networkSecurityGroupId = *input.NetworkSecurityGroup.ID
 	}
 
-	var mapToSlice = func(input map[string]struct{}) []string {
+	mapToSlice := func(input map[string]struct{}) []string {
 		output := make([]string, 0)
 
 		for id := range input {

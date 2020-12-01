@@ -106,7 +106,6 @@ func testCheckAzureRMLogAnalyticsSavedSearchDestroy(s *terraform.State) error {
 		}
 
 		resp, err := conn.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
-
 		if err != nil {
 			return nil
 		}

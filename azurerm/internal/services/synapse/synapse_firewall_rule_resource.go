@@ -25,7 +25,7 @@ func resourceArmSynapseFirewallRule() *schema.Resource {
 		Delete: resourceArmSynapseFirewallRuleDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.SynapseFirewallRuleID(id)
+			_, err := parse.FirewallRuleID(id)
 			return err
 		}),
 
@@ -72,7 +72,10 @@ func resourceArmSynapseFirewallRuleCreateUpdate(d *schema.ResourceData, meta int
 	defer cancel()
 
 	name := d.Get("name").(string)
-	workspaceId, _ := parse.SynapseWorkspaceID(d.Get("synapse_workspace_id").(string))
+	workspaceId, err := parse.WorkspaceID(d.Get("synapse_workspace_id").(string))
+	if err != nil {
+		return err
+	}
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name, name)
@@ -117,12 +120,12 @@ func resourceArmSynapseFirewallRuleRead(d *schema.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SynapseFirewallRuleID(d.Id())
+	id, err := parse.FirewallRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading Synapse Firewall Rule %q - removing from state", d.Id())
@@ -130,14 +133,16 @@ func resourceArmSynapseFirewallRuleRead(d *schema.ResourceData, meta interface{}
 			return nil
 		}
 
-		return fmt.Errorf("reading Synapse Firewall Rule %q (Resource Group %q / Workspace %q): %+v", id.Name, id.Workspace.ResourceGroup, id.Workspace.Name, err)
+		return fmt.Errorf("reading Synapse Firewall Rule %q (Workspace %q / Resource Group %q): %+v", id.Name, id.WorkspaceName, id.ResourceGroup, err)
 	}
 
+	workspaceId := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID("")
 	d.Set("name", id.Name)
-	d.Set("synapse_workspace_id", id.Workspace.String())
-	if resp.IPFirewallRuleProperties != nil {
-		d.Set("start_ip_address", resp.IPFirewallRuleProperties.StartIPAddress)
-		d.Set("end_ip_address", resp.IPFirewallRuleProperties.EndIPAddress)
+	d.Set("synapse_workspace_id", workspaceId)
+
+	if props := resp.IPFirewallRuleProperties; props != nil {
+		d.Set("start_ip_address", props.StartIPAddress)
+		d.Set("end_ip_address", props.EndIPAddress)
 	}
 
 	return nil
@@ -148,18 +153,18 @@ func resourceArmSynapseFirewallRuleDelete(d *schema.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SynapseFirewallRuleID(d.Id())
+	id, err := parse.FirewallRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Synapse Firewall Rule %q (Resource Group %q / Workspace %q): %+v", id.Name, id.Workspace.ResourceGroup, id.Workspace.Name, err)
+		return fmt.Errorf("deleting Synapse Firewall Rule %q (Workspace %q / Resource Group %q): %+v", id.Name, id.WorkspaceName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deleting Synapse Firewall Rule %q (Resource Group %q / Workspace %q): %+v", id.Name, id.Workspace.ResourceGroup, id.Workspace.Name, err)
+		return fmt.Errorf("waiting for deletion of Synapse Firewall Rule %q (Workspace %q / Resource Group %q): %+v", id.Name, id.WorkspaceName, id.ResourceGroup, err)
 	}
 
 	return nil

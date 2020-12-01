@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAutomationAccount() *schema.Resource {
+func resourceAutomationAccount() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAutomationAccountCreateUpdate,
-		Read:   resourceArmAutomationAccountRead,
-		Update: resourceArmAutomationAccountCreateUpdate,
-		Delete: resourceArmAutomationAccountDelete,
+		Create: resourceAutomationAccountCreateUpdate,
+		Read:   resourceAutomationAccountRead,
+		Update: resourceAutomationAccountCreateUpdate,
+		Delete: resourceAutomationAccountDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -73,7 +73,7 @@ func resourceArmAutomationAccount() *schema.Resource {
 	}
 }
 
-func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.AccountClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -126,10 +126,10 @@ func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta inter
 
 	d.SetId(*read.ID)
 
-	return resourceArmAutomationAccountRead(d, meta)
+	return resourceAutomationAccountRead(d, meta)
 }
 
-func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.AccountClient
 	registrationClient := meta.(*clients.Client).Automation.AgentRegistrationInfoClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -191,7 +191,7 @@ func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceArmAutomationAccountDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.AccountClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -204,7 +204,6 @@ func resourceArmAutomationAccountDelete(d *schema.ResourceData, meta interface{}
 	name := id.Path["automationAccounts"]
 
 	resp, err := client.Delete(ctx, resourceGroup, name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil

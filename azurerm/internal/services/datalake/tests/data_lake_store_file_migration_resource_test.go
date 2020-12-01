@@ -63,7 +63,6 @@ func TestAccAzureRMDataLakeStoreFileMigrateState(t *testing.T) {
 			Attributes: tc.InputAttributes,
 		}
 		is, err := datalake.ResourceDataLakeStoreFileMigrateState(tc.StateVersion, is, client)
-
 		if err != nil {
 			t.Fatalf("bad: %s, err: %#v", tn, err)
 		}

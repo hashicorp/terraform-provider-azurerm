@@ -130,12 +130,12 @@ func dataSourceArmLoadBalancerRuleRead(d *schema.ResourceData, meta interface{})
 	d.SetId(*resp.ID)
 
 	if props := resp.LoadBalancingRulePropertiesFormat; props != nil {
-		frontendIPConfigurationName, err := parse.LoadBalancerFrontendIPConfigurationID(*props.FrontendIPConfiguration.ID)
+		frontendIPConfigurationName, err := parse.LoadBalancerFrontendIpConfigurationID(*props.FrontendIPConfiguration.ID)
 		if err != nil {
 			return err
 		}
 
-		d.Set("frontend_ip_configuration_name", frontendIPConfigurationName.Name)
+		d.Set("frontend_ip_configuration_name", frontendIPConfigurationName.FrontendIPConfigurationName)
 		d.Set("protocol", props.Protocol)
 		d.Set("frontend_port", props.FrontendPort)
 		d.Set("backend_port", props.BackendPort)

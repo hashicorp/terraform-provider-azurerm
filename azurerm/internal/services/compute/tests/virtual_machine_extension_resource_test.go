@@ -119,9 +119,9 @@ func testCheckAzureRMVirtualMachineExtensionExists(resourceName string) resource
 			return err
 		}
 
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachine, id.Name, ""); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachineName, id.ExtensionName, ""); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: VirtualMachine Extension %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
+				return fmt.Errorf("Bad: VirtualMachine Extension %q (resource group: %q) does not exist", id.ExtensionName, id.ResourceGroup)
 			}
 			return fmt.Errorf("Bad: Get on vmExtensionClient: %s", err)
 		}
@@ -144,7 +144,7 @@ func testCheckAzureRMVirtualMachineExtensionDestroy(s *terraform.State) error {
 			return err
 		}
 
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachine, id.Name, ""); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachineName, id.ExtensionName, ""); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Get on Compute.VMExtensionClient: %+v", err)
 			}

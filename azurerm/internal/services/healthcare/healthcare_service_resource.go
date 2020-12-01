@@ -33,7 +33,7 @@ func resourceArmHealthcareService() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.HealthcareServiceID(id)
+			_, err := parse.ServiceID(id)
 			return err
 		}),
 
@@ -137,7 +137,8 @@ func resourceArmHealthcareService() *schema.Resource {
 									"MERGE",
 									"POST",
 									"OPTIONS",
-									"PUT"}, false),
+									"PUT",
+								}, false),
 							},
 						},
 						"max_age_in_seconds": {
@@ -228,7 +229,7 @@ func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.HealthcareServiceID(d.Id())
+	id, err := parse.ServiceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -281,7 +282,7 @@ func resourceArmHealthcareServiceDelete(d *schema.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.HealthcareServiceID(d.Id())
+	id, err := parse.ServiceID(d.Id())
 	if err != nil {
 		return fmt.Errorf("Error Parsing Azure Resource ID: %+v", err)
 	}

@@ -188,25 +188,24 @@ func resourceArmKustoEventHubDataConnectionRead(d *schema.ResourceData, meta int
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KustoEventHubDataConnectionID(d.Id())
+	id, err := parse.DataConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	connectionModel, err := client.Get(ctx, id.ResourceGroup, id.Cluster, id.Database, id.Name)
-
+	connectionModel, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(connectionModel.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %+v", id.Name, id.ResourceGroup, id.Cluster, id.Database, err)
+		return fmt.Errorf("Error retrieving Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("cluster_name", id.Cluster)
-	d.Set("database_name", id.Database)
+	d.Set("cluster_name", id.ClusterName)
+	d.Set("database_name", id.DatabaseName)
 
 	if dataConnection, ok := connectionModel.Value.(kusto.EventHubDataConnection); ok {
 		if location := dataConnection.Location; location != nil {
@@ -230,18 +229,18 @@ func resourceArmKustoEventHubDataConnectionDelete(d *schema.ResourceData, meta i
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KustoEventHubDataConnectionID(d.Id())
+	id, err := parse.DataConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Cluster, id.Database, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %+v", id.Name, id.ResourceGroup, id.Cluster, id.Database, err)
+		return fmt.Errorf("Error deleting Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %+v", id.Name, id.ResourceGroup, id.Cluster, id.Database, err)
+		return fmt.Errorf("Error waiting for deletion of Kusto Event Hub Data Connection %q (Resource Group %q, Cluster %q, Database %q): %+v", id.Name, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
 	}
 
 	return nil

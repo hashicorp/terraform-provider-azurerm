@@ -27,7 +27,7 @@ func resourceArmServiceFabricMeshSecret() *schema.Resource {
 		Update: resourceArmServiceFabricMeshSecretCreateUpdate,
 		Delete: resourceArmServiceFabricMeshSecretDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.ServiceFabricMeshSecretID(id)
+			_, err := parse.SecretID(id)
 			return err
 		}),
 
@@ -125,7 +125,7 @@ func resourceArmServiceFabricMeshSecretRead(d *schema.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServiceFabricMeshSecretID(d.Id())
+	id, err := parse.SecretID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -160,7 +160,7 @@ func resourceArmServiceFabricMeshSecretDelete(d *schema.ResourceData, meta inter
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServiceFabricMeshSecretID(d.Id())
+	id, err := parse.SecretID(d.Id())
 	if err != nil {
 		return err
 	}

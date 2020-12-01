@@ -197,6 +197,32 @@ func TestAccAzureRMTrafficManagerProfile_fastEndpointFailoverSettingsError(t *te
 	})
 }
 
+func TestAccAzureRMTrafficManagerProfile_updateTTL(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMTrafficManagerProfile_withTTL(data, "Geographic", 0),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMTrafficManagerProfileExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMTrafficManagerProfile_withTTL(data, "Geographic", 2147483647),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMTrafficManagerProfileExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMTrafficManagerProfileExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := acceptance.AzureProvider.Meta().(*clients.Client).TrafficManager.ProfilesClient
@@ -525,4 +551,28 @@ resource "azurerm_traffic_manager_profile" "test" {
   }
 }
 `, template, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMTrafficManagerProfile_withTTL(data acceptance.TestData, method string, ttl int) string {
+	template := testAccAzureRMTrafficManagerProfile_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_traffic_manager_profile" "test" {
+  name                   = "acctest-TMP-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  traffic_routing_method = "%s"
+
+  dns_config {
+    relative_name = "acctest-tmp-%d"
+    ttl           = %d
+  }
+
+  monitor_config {
+    protocol = "https"
+    port     = 443
+    path     = "/"
+  }
+}
+`, template, data.RandomInteger, method, data.RandomInteger, ttl)
 }

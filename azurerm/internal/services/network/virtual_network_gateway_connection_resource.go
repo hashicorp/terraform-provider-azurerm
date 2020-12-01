@@ -73,6 +73,12 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"dpd_timeout_seconds": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"express_route_circuit_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -85,6 +91,12 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceIDOrEmpty,
+			},
+
+			"local_azure_ip_address_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
 			},
 
 			"local_network_gateway_id": {
@@ -375,12 +387,20 @@ func resourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta
 		d.Set("authorization_key", conn.AuthorizationKey)
 	}
 
+	if conn.DpdTimeoutSeconds != nil {
+		d.Set("dpd_timeout_seconds", conn.DpdTimeoutSeconds)
+	}
+
 	if conn.Peer != nil {
 		d.Set("express_route_circuit_id", conn.Peer.ID)
 	}
 
 	if conn.VirtualNetworkGateway2 != nil {
 		d.Set("peer_virtual_network_gateway_id", conn.VirtualNetworkGateway2.ID)
+	}
+
+	if conn.UseLocalAzureIPAddress != nil {
+		d.Set("local_azure_ip_address_enabled", conn.UseLocalAzureIPAddress)
 	}
 
 	if conn.LocalNetworkGateway2 != nil {
@@ -479,6 +499,10 @@ func getArmVirtualNetworkGatewayConnectionProperties(d *schema.ResourceData) (*n
 		props.AuthorizationKey = &authorizationKey
 	}
 
+	if v, ok := d.GetOk("dpd_timeout_seconds"); ok {
+		props.DpdTimeoutSeconds = utils.Int32(int32(v.(int)))
+	}
+
 	if v, ok := d.GetOk("express_route_circuit_id"); ok {
 		expressRouteCircuitId := v.(string)
 		props.Peer = &network.SubResource{
@@ -500,6 +524,10 @@ func getArmVirtualNetworkGatewayConnectionProperties(d *schema.ResourceData) (*n
 				IPConfigurations: &[]network.VirtualNetworkGatewayIPConfiguration{},
 			},
 		}
+	}
+
+	if v, ok := d.GetOk("local_azure_ip_address_enabled"); ok {
+		props.UseLocalAzureIPAddress = utils.Bool(v.(bool))
 	}
 
 	if v, ok := d.GetOk("local_network_gateway_id"); ok {

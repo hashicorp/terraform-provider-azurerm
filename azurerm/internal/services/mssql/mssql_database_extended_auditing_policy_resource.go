@@ -25,7 +25,7 @@ func resourceArmMsSqlDatabaseExtendedAuditingPolicy() *schema.Resource {
 		Delete: resourceArmMsSqlDatabaseExtendedAuditingPolicyDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.MssqlDatabaseExtendedAuditingPolicyID(id)
+			_, err := parse.DatabaseExtendedAuditingPolicyID(id)
 			return err
 		}),
 
@@ -80,16 +80,16 @@ func resourceArmMsSqlDatabaseExtendedAuditingPolicyCreateUpdate(d *schema.Resour
 
 	log.Printf("[INFO] preparing arguments for MsSql Database Extended Auditing Policy creation.")
 
-	dbId, err := parse.MsSqlDatabaseID(d.Get("database_id").(string))
+	dbId, err := parse.DatabaseID(d.Get("database_id").(string))
 	if err != nil {
 		return err
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, dbId.ResourceGroup, dbId.MsSqlServer, dbId.Name)
+		existing, err := client.Get(ctx, dbId.ResourceGroup, dbId.ServerName, dbId.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Failed to check for presence of existing Database %q Sql Auditing (MsSql Server %q / Resource Group %q): %s", dbId.Name, dbId.MsSqlServer, dbId.ResourceGroup, err)
+				return fmt.Errorf("Failed to check for presence of existing Database %q Sql Auditing (MsSql Server %q / Resource Group %q): %s", dbId.Name, dbId.ServerName, dbId.ResourceGroup, err)
 			}
 		}
 
@@ -116,17 +116,17 @@ func resourceArmMsSqlDatabaseExtendedAuditingPolicyCreateUpdate(d *schema.Resour
 		params.ExtendedDatabaseBlobAuditingPolicyProperties.StorageAccountAccessKey = utils.String(v.(string))
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, dbId.ResourceGroup, dbId.MsSqlServer, dbId.Name, params); err != nil {
-		return fmt.Errorf("creating MsSql Database %q Extended Auditing Policy (Sql Server %q / Resource Group %q): %+v", dbId.Name, dbId.MsSqlServer, dbId.ResourceGroup, err)
+	if _, err = client.CreateOrUpdate(ctx, dbId.ResourceGroup, dbId.ServerName, dbId.Name, params); err != nil {
+		return fmt.Errorf("creating MsSql Database %q Extended Auditing Policy (Sql Server %q / Resource Group %q): %+v", dbId.Name, dbId.ServerName, dbId.ResourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, dbId.ResourceGroup, dbId.MsSqlServer, dbId.Name)
+	read, err := client.Get(ctx, dbId.ResourceGroup, dbId.ServerName, dbId.Name)
 	if err != nil {
-		return fmt.Errorf("retrieving MsSql Database %q Extended Auditing Policy (MsSql Server Name %q / Resource Group %q): %+v", dbId.Name, dbId.MsSqlServer, dbId.ResourceGroup, err)
+		return fmt.Errorf("retrieving MsSql Database %q Extended Auditing Policy (MsSql Server Name %q / Resource Group %q): %+v", dbId.Name, dbId.ServerName, dbId.ResourceGroup, err)
 	}
 
 	if read.ID == nil || *read.ID == "" {
-		return fmt.Errorf("reading MsSql Database %q Extended Auditing Policy (MsSql Server Name %q / Resource Group %q) ID is empty or nil", dbId.Name, dbId.MsSqlServer, dbId.ResourceGroup)
+		return fmt.Errorf("reading MsSql Database %q Extended Auditing Policy (MsSql Server Name %q / Resource Group %q) ID is empty or nil", dbId.Name, dbId.ServerName, dbId.ResourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -140,23 +140,23 @@ func resourceArmMsSqlDatabaseExtendedAuditingPolicyRead(d *schema.ResourceData, 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MssqlDatabaseExtendedAuditingPolicyID(d.Id())
+	id, err := parse.DatabaseExtendedAuditingPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.MsSqlServer, id.MsDBName)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.DatabaseName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading MsSql Database %s Extended Auditing Policy (MsSql Server Name %q / Resource Group %q): %s", id.MsDBName, id.MsSqlServer, id.ResourceGroup, err)
+		return fmt.Errorf("reading MsSql Database %s Extended Auditing Policy (MsSql Server Name %q / Resource Group %q): %s", id.DatabaseName, id.ServerName, id.ResourceGroup, err)
 	}
 
-	dbResp, err := dbClient.Get(ctx, id.ResourceGroup, id.MsSqlServer, id.MsDBName)
+	dbResp, err := dbClient.Get(ctx, id.ResourceGroup, id.ServerName, id.DatabaseName)
 	if err != nil || *dbResp.ID == "" {
-		return fmt.Errorf("reading MsSql Database %q ID is empty or nil(Resource Group %q): %s", id.MsSqlServer, id.ResourceGroup, err)
+		return fmt.Errorf("reading MsSql Database %q ID is empty or nil(Resource Group %q): %s", id.ServerName, id.ResourceGroup, err)
 	}
 
 	d.Set("database_id", dbResp.ID)
@@ -175,7 +175,7 @@ func resourceArmMsSqlDatabaseExtendedAuditingPolicyDelete(d *schema.ResourceData
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MssqlDatabaseExtendedAuditingPolicyID(d.Id())
+	id, err := parse.DatabaseExtendedAuditingPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -190,8 +190,8 @@ func resourceArmMsSqlDatabaseExtendedAuditingPolicyDelete(d *schema.ResourceData
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.MsSqlServer, id.MsDBName, params); err != nil {
-		return fmt.Errorf("deleting MsSql Database %q Extended Auditing Policy( MsSql Server %q / Resource Group %q): %+v", id.MsDBName, id.MsSqlServer, id.ResourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.DatabaseName, params); err != nil {
+		return fmt.Errorf("deleting MsSql Database %q Extended Auditing Policy( MsSql Server %q / Resource Group %q): %+v", id.DatabaseName, id.ServerName, id.ResourceGroup, err)
 	}
 
 	return nil
