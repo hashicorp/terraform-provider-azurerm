@@ -105,7 +105,7 @@ func (DnsCaaRecordResource) Exists(ctx context.Context, clients *clients.Client,
 
 	resp, err := clients.Dns.RecordSetsClient.Get(ctx, id.ResourceGroup, id.DnszoneName, id.CAAName, dns.CAA)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving DNS CAA record %s (resource group: %s) does not exist", id.CAAName, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving DNS CAA record %s (resource group: %s): %v", id.CAAName, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.RecordSetProperties != nil), nil

@@ -105,7 +105,7 @@ func (DnsTxtRecordResource) Exists(ctx context.Context, clients *clients.Client,
 
 	resp, err := clients.Dns.RecordSetsClient.Get(ctx, id.ResourceGroup, id.DnszoneName, id.TXTName, dns.TXT)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving DNS TXT record %s (resource group: %s) does not exist", id.TXTName, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving DNS TXT record %s (resource group: %s): %v", id.TXTName, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.RecordSetProperties != nil), nil

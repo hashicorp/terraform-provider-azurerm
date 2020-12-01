@@ -105,7 +105,7 @@ func (DnsSrvRecordResource) Exists(ctx context.Context, clients *clients.Client,
 
 	resp, err := clients.Dns.RecordSetsClient.Get(ctx, id.ResourceGroup, id.DnszoneName, id.SRVName, dns.SRV)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving DNS SRV record %s (resource group: %s) does not exist", id.SRVName, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving DNS SRV record %s (resource group: %s): %v", id.SRVName, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.RecordSetProperties != nil), nil

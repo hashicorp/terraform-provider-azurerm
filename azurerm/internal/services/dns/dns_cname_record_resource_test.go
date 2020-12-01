@@ -192,7 +192,7 @@ func (DnsCNameRecordResource) Exists(ctx context.Context, clients *clients.Clien
 
 	resp, err := clients.Dns.RecordSetsClient.Get(ctx, id.ResourceGroup, id.DnszoneName, id.CNAMEName, dns.CNAME)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving DNS CNAME record %s (resource group: %s) does not exist", id.CNAMEName, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving DNS CNAME record %s (resource group: %s): %v", id.CNAMEName, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.RecordSetProperties != nil), nil

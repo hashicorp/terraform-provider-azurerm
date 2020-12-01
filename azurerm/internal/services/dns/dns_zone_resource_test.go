@@ -110,7 +110,7 @@ func (DnsZoneResource) Exists(ctx context.Context, clients *clients.Client, stat
 
 	resp, err := clients.Dns.ZonesClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving DNS zone %s (resource group: %s) does not exist", id.Name, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving DNS zone %s (resource group: %s): %v", id.Name, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.ZoneProperties != nil), nil

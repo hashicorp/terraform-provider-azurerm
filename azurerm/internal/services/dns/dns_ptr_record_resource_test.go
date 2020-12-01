@@ -3,7 +3,6 @@ package dns_test
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
@@ -108,7 +107,7 @@ func (DnsPtrRecordResource) Exists(ctx context.Context, clients *clients.Client,
 
 	resp, err := clients.Dns.RecordSetsClient.Get(ctx, id.ResourceGroup, id.DnszoneName, id.PTRName, dns.PTR)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving DNS PTR record %s (resource group: %s) does not exist", id.PTRName, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving DNS PTR record %s (resource group: %s): %v", id.PTRName, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.RecordSetProperties != nil), nil

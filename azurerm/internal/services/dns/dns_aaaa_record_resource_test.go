@@ -3,7 +3,6 @@ package dns_test
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
@@ -204,7 +203,7 @@ func (DnsAAAARecordResource) Exists(ctx context.Context, clients *clients.Client
 
 	resp, err := clients.Dns.RecordSetsClient.Get(ctx, id.ResourceGroup, id.DnszoneName, id.AAAAName, dns.AAAA)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving DNS AAAA record %s (resource group: %s) does not exist", id.AAAAName, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving DNS AAAA record %s (resource group: %s): %v", id.AAAAName, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.RecordSetProperties != nil), nil
