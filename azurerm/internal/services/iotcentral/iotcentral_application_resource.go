@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmIotCentralApplication() *schema.Resource {
+func resourceIotCentralApplication() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIotCentralAppCreate,
-		Read:   resourceArmIotCentralAppRead,
-		Update: resourceArmIotCentralAppUpdate,
-		Delete: resourceArmIotCentralAppDelete,
+		Create: resourceIotCentralAppCreate,
+		Read:   resourceIotCentralAppRead,
+		Update: resourceIotCentralAppUpdate,
+		Delete: resourceIotCentralAppDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -84,7 +84,7 @@ func resourceArmIotCentralApplication() *schema.Resource {
 	}
 }
 
-func resourceArmIotCentralAppCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceIotCentralAppCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTCentral.AppsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -153,10 +153,10 @@ func resourceArmIotCentralAppCreate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	d.SetId(*response.ID)
-	return resourceArmIotCentralAppRead(d, meta)
+	return resourceIotCentralAppRead(d, meta)
 }
 
-func resourceArmIotCentralAppUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIotCentralAppUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTCentral.AppsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -200,10 +200,10 @@ func resourceArmIotCentralAppUpdate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	d.SetId(*resp.ID)
-	return resourceArmIotCentralAppRead(d, meta)
+	return resourceIotCentralAppRead(d, meta)
 }
 
-func resourceArmIotCentralAppRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIotCentralAppRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTCentral.AppsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -241,7 +241,7 @@ func resourceArmIotCentralAppRead(d *schema.ResourceData, meta interface{}) erro
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmIotCentralAppDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIotCentralAppDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTCentral.AppsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
