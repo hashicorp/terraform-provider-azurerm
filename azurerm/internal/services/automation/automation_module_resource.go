@@ -47,7 +47,7 @@ func resourceAutomationModule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.AutomationAccountName(),
+				ValidateFunc: validate.AutomationAccount(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),

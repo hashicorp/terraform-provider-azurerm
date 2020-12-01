@@ -25,13 +25,13 @@ func dataSourceDataShare() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.DatashareName(),
+				ValidateFunc: validate.ShareName(),
 			},
 
 			"account_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.DatashareAccountID,
+				ValidateFunc: validate.AccountID,
 			},
 
 			"kind": {

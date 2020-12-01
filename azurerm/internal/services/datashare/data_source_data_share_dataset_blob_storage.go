@@ -25,13 +25,13 @@ func dataSourceDataShareDatasetBlobStorage() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.DatashareDataSetName(),
+				ValidateFunc: validate.DataSetName(),
 			},
 
 			"data_share_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.DataShareID,
+				ValidateFunc: validate.ShareID,
 			},
 
 			"container_name": {

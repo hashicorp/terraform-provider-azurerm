@@ -1,5 +1,9 @@
 ## 2.39.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_api_management_policy` [GH-9215]
+
 IMPROVEMENTS: 
 
 * `azurerm_dashboard` - adding validation at import time to ensure the ID is for a Dashboard [GH-9530]

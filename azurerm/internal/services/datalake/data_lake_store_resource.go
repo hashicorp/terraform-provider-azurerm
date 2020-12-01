@@ -42,7 +42,7 @@ func resourceArmDataLakeStore() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DataLakeAccountName(),
+				ValidateFunc: validate.AccountName(),
 			},
 
 			"location": azure.SchemaLocation(),

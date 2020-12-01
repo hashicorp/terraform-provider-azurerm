@@ -90,7 +90,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 			"custom_block_response_body": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.FrontdoorCustomBlockResponseBody,
+				ValidateFunc: validate.CustomBlockResponseBody,
 			},
 
 			"custom_rule": {
