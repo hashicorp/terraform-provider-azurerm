@@ -1,30 +1,58 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
+	"fmt"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 type LoggerId struct {
-	ResourceGroup string
-	ServiceName   string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	ServiceName    string
+	Name           string
 }
 
+func NewLoggerID(subscriptionId, resourceGroup, serviceName, name string) LoggerId {
+	return LoggerId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		ServiceName:    serviceName,
+		Name:           name,
+	}
+}
+
+func (id LoggerId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ApiManagement/service/%s/loggers/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServiceName, id.Name)
+}
+
+// LoggerID parses a Logger ID into an LoggerId struct
 func LoggerID(input string) (*LoggerId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	logger := LoggerId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := LoggerId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if logger.ServiceName, err = id.PopSegment("service"); err != nil {
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.ServiceName, err = id.PopSegment("service"); err != nil {
 		return nil, err
 	}
-
-	if logger.Name, err = id.PopSegment("loggers"); err != nil {
+	if resourceId.Name, err = id.PopSegment("loggers"); err != nil {
 		return nil, err
 	}
 
@@ -32,5 +60,5 @@ func LoggerID(input string) (*LoggerId, error) {
 		return nil, err
 	}
 
-	return &logger, nil
+	return &resourceId, nil
 }
