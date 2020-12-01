@@ -118,7 +118,6 @@ resource "azurerm_devspace_controller" "test" {
 }
 
 func (r DevSpaceControllerResource) requiresImport(data acceptance.TestData, clientId string, clientSecret string) string {
-
 	return fmt.Sprintf(`
 %s
 
