@@ -12,11 +12,11 @@ type TypedServiceRegistration interface {
 	// PackagePath is the relative path to this package
 	PackagePath() string
 
-	// SupportedResources returns a list of Data Sources supported by this Service
-	SupportedDataSources() []DataSource
+	// DataSources returns a list of Data Sources supported by this Service
+	DataSources() []DataSource
 
-	// SupportedResources returns a list of Resources supported by this Service
-	SupportedResources() []Resource
+	// Resources returns a list of Resources supported by this Service
+	Resources() []Resource
 
 	// WebsiteCategories returns a list of categories which can be used for the sidebar
 	WebsiteCategories() []string

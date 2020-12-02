@@ -44,7 +44,7 @@ func azureProvider(supportLegacyTestSuite bool) terraform.ResourceProvider {
 	// first handle the typed services
 	for _, service := range SupportedTypedServices() {
 		debugLog("[DEBUG] Registering Data Sources for %q..", service.Name())
-		for _, ds := range service.SupportedDataSources() {
+		for _, ds := range service.DataSources() {
 			key := ds.ResourceType()
 			if existing := dataSources[key]; existing != nil {
 				panic(fmt.Sprintf("An existing Data Source exists for %q", key))
@@ -60,7 +60,7 @@ func azureProvider(supportLegacyTestSuite bool) terraform.ResourceProvider {
 		}
 
 		debugLog("[DEBUG] Registering Resources for %q..", service.Name())
-		for _, r := range service.SupportedResources() {
+		for _, r := range service.Resources() {
 			key := r.ResourceType()
 			if existing := resources[key]; existing != nil {
 				panic(fmt.Sprintf("An existing Resource exists for %q", key))
