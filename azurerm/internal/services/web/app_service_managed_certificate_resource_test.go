@@ -99,6 +99,7 @@ func (t AppServiceManagedCertificateResource) basicLinux(data acceptance.TestDat
 
 resource "azurerm_app_service_managed_certificate" "test" {
   custom_hostname_binding_id = azurerm_app_service_custom_hostname_binding.test.id
+  ssl_state                  = "SniEnabled"
 }
 
 `, template)
