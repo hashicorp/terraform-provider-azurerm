@@ -1,4 +1,4 @@
-package hsm
+package hsm_test
 
 import (
 	"context"
