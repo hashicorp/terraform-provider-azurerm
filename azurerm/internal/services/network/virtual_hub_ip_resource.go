@@ -78,7 +78,7 @@ func resourceArmVirtualHubIP() *schema.Resource {
 			"public_ip_address_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: networkValidate.PublicIPAddressID,
+				ValidateFunc: networkValidate.PublicIpAddressID,
 			},
 		},
 	}

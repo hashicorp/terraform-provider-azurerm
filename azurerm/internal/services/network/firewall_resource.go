@@ -100,7 +100,7 @@ func resourceArmFirewall() *schema.Resource {
 						"public_ip_address_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.PublicIPAddressID,
+							ValidateFunc: validate.PublicIpAddressID,
 						},
 						"private_ip_address": {
 							Type:     schema.TypeString,
@@ -131,7 +131,7 @@ func resourceArmFirewall() *schema.Resource {
 						"public_ip_address_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.PublicIPAddressID,
+							ValidateFunc: validate.PublicIpAddressID,
 						},
 						"private_ip_address": {
 							Type:     schema.TypeString,
