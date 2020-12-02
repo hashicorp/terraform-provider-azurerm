@@ -158,7 +158,7 @@ func resourceArmFirewallPolicy() *schema.Resource {
 				},
 			},
 
-			"tags": tags.SchemaEnforceLowerCaseKeys(),
+			"tags": tags.Schema(),
 		},
 	}
 }
