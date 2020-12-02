@@ -70,6 +70,7 @@ func resourceTransform() *schema.Resource {
 			"output": {
 				Type:     schema.TypeSet,
 				Optional: true,
+				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"on_error_type": {
