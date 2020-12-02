@@ -419,9 +419,6 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 					ProvisionVMAgent:       utils.Bool(provisionVMAgent),
 					EnableAutomaticUpdates: utils.Bool(enableAutomaticUpdates),
 					WinRM:                  winRmListeners,
-					PatchSettings: &compute.PatchSettings{
-						PatchMode: compute.InGuestPatchMode(d.Get("patch_mode").(string)),
-					},
 				},
 				Secrets: secrets,
 			},
@@ -452,6 +449,13 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 
 	if len(additionalUnattendContentRaw) > 0 {
 		params.OsProfile.WindowsConfiguration.AdditionalUnattendContent = additionalUnattendContent
+	}
+
+	patchMode := d.Get("patch_mode").(string)
+	if patchMode != string(compute.AutomaticByOS) {
+		params.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{
+			PatchMode: compute.InGuestPatchMode(patchMode),
+		}
 	}
 
 	if v, ok := d.GetOk("availability_set_id"); ok {

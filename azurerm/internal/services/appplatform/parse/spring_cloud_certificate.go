@@ -29,6 +29,7 @@ func (id SpringCloudCertificateId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SpringName, id.CertificateName)
 }
 
+// SpringCloudCertificateID parses a SpringCloudCertificate ID into an SpringCloudCertificateId struct
 func SpringCloudCertificateID(input string) (*SpringCloudCertificateId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -38,6 +39,14 @@ func SpringCloudCertificateID(input string) (*SpringCloudCertificateId, error) {
 	resourceId := SpringCloudCertificateId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.SpringName, err = id.PopSegment("Spring"); err != nil {

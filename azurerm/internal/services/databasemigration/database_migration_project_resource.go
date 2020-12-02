@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDatabaseMigrationProject() *schema.Resource {
+func resourceDatabaseMigrationProject() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDatabaseMigrationProjectCreateUpdate,
-		Read:   resourceArmDatabaseMigrationProjectRead,
-		Update: resourceArmDatabaseMigrationProjectCreateUpdate,
-		Delete: resourceArmDatabaseMigrationProjectDelete,
+		Create: resourceDatabaseMigrationProjectCreateUpdate,
+		Read:   resourceDatabaseMigrationProjectRead,
+		Update: resourceDatabaseMigrationProjectCreateUpdate,
+		Delete: resourceDatabaseMigrationProjectDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.ProjectID(id)
@@ -81,7 +81,7 @@ func resourceArmDatabaseMigrationProject() *schema.Resource {
 	}
 }
 
-func resourceArmDatabaseMigrationProjectCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDatabaseMigrationProjectCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DatabaseMigration.ProjectsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -129,10 +129,10 @@ func resourceArmDatabaseMigrationProjectCreateUpdate(d *schema.ResourceData, met
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmDatabaseMigrationProjectRead(d, meta)
+	return resourceDatabaseMigrationProjectRead(d, meta)
 }
 
-func resourceArmDatabaseMigrationProjectRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDatabaseMigrationProjectRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DatabaseMigration.ProjectsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -170,7 +170,7 @@ func resourceArmDatabaseMigrationProjectRead(d *schema.ResourceData, meta interf
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmDatabaseMigrationProjectDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDatabaseMigrationProjectDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DatabaseMigration.ProjectsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

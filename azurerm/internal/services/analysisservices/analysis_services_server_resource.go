@@ -23,12 +23,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAnalysisServicesServer() *schema.Resource {
+func resourceAnalysisServicesServer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAnalysisServicesServerCreate,
-		Read:   resourceArmAnalysisServicesServerRead,
-		Update: resourceArmAnalysisServicesServerUpdate,
-		Delete: resourceArmAnalysisServicesServerDelete,
+		Create: resourceAnalysisServicesServerCreate,
+		Read:   resourceAnalysisServicesServerRead,
+		Update: resourceAnalysisServicesServerUpdate,
+		Delete: resourceAnalysisServicesServerDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -131,7 +131,7 @@ func resourceArmAnalysisServicesServer() *schema.Resource {
 	}
 }
 
-func resourceArmAnalysisServicesServerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAnalysisServicesServerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AnalysisServices.ServerClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -189,10 +189,10 @@ func resourceArmAnalysisServicesServerCreate(d *schema.ResourceData, meta interf
 
 	d.SetId(*resp.ID)
 
-	return resourceArmAnalysisServicesServerRead(d, meta)
+	return resourceAnalysisServicesServerRead(d, meta)
 }
 
-func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAnalysisServicesServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AnalysisServices.ServerClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -246,7 +246,7 @@ func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interfac
 	return tags.FlattenAndSet(d, server.Tags)
 }
 
-func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAnalysisServicesServerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AnalysisServices.ServerClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -310,10 +310,10 @@ func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interf
 		}
 	}
 
-	return resourceArmAnalysisServicesServerRead(d, meta)
+	return resourceAnalysisServicesServerRead(d, meta)
 }
 
-func resourceArmAnalysisServicesServerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAnalysisServicesServerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AnalysisServices.ServerClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -26,7 +26,7 @@ func dataSourceAppConfiguration() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.AppConfigurationName,
+				ValidateFunc: validate.ConfigurationStoreName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),

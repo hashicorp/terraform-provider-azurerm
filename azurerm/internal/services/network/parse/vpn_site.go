@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,33 +9,45 @@ import (
 )
 
 type VpnSiteId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func (id VpnSiteId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/vpnSites/%s",
-		subscriptionId, id.ResourceGroup, id.Name)
-}
-
-func NewVpnSiteID(resourceGroup, name string) VpnSiteId {
+func NewVpnSiteID(subscriptionId, resourceGroup, name string) VpnSiteId {
 	return VpnSiteId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
 }
 
+func (id VpnSiteId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/vpnSites/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+}
+
+// VpnSiteID parses a VpnSite ID into an VpnSiteId struct
 func VpnSiteID(input string) (*VpnSiteId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing Vpn Site ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	vpnSiteId := VpnSiteId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := VpnSiteId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if vpnSiteId.Name, err = id.PopSegment("vpnSites"); err != nil {
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.Name, err = id.PopSegment("vpnSites"); err != nil {
 		return nil, err
 	}
 
@@ -41,49 +55,5 @@ func VpnSiteID(input string) (*VpnSiteId, error) {
 		return nil, err
 	}
 
-	return &vpnSiteId, nil
-}
-
-type VpnSiteLinkId struct {
-	ResourceGroup string
-	Site          string
-	Name          string
-}
-
-func (id VpnSiteLinkId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/vpnSites/%s/vpnSiteLinks/%s",
-		subscriptionId, id.ResourceGroup, id.Site, id.Name)
-}
-
-func NewVpnSiteLinkID(vpnSiteId VpnSiteId, name string) VpnSiteLinkId {
-	return VpnSiteLinkId{
-		ResourceGroup: vpnSiteId.ResourceGroup,
-		Site:          vpnSiteId.Name,
-		Name:          name,
-	}
-}
-
-func VpnSiteLinkID(input string) (*VpnSiteLinkId, error) {
-	id, err := azure.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, fmt.Errorf("parsing Vpn Site Link ID %q: %+v", input, err)
-	}
-
-	vpnSiteLinkId := VpnSiteLinkId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if vpnSiteLinkId.Site, err = id.PopSegment("vpnSites"); err != nil {
-		return nil, err
-	}
-
-	if vpnSiteLinkId.Name, err = id.PopSegment("vpnSiteLinks"); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &vpnSiteLinkId, nil
+	return &resourceId, nil
 }

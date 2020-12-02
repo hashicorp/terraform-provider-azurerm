@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -25,7 +26,7 @@ func resourceArmIpGroup() *schema.Resource {
 		Delete: resourceArmIpGroupDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := ParseIpGroupID(id)
+			_, err := parse.IpGroupID(id)
 			return err
 		}),
 
@@ -123,7 +124,7 @@ func resourceArmIpGroupRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseIpGroupID(d.Id())
+	id, err := parse.IpGroupID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -160,7 +161,7 @@ func resourceArmIpGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseIpGroupID(d.Id())
+	id, err := parse.IpGroupID(d.Id())
 	if err != nil {
 		return err
 	}

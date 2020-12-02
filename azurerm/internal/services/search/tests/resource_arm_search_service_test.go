@@ -322,7 +322,7 @@ resource "azurerm_search_service" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "standard"
 
-  allowed_ips = ["168.1.5.65"]
+  allowed_ips = ["168.1.5.65", "1.2.3.0/24"]
 
   tags = {
     environment = "staging"

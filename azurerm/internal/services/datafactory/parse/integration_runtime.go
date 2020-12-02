@@ -29,6 +29,7 @@ func (id IntegrationRuntimeId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.FactoryName, id.Name)
 }
 
+// IntegrationRuntimeID parses a IntegrationRuntime ID into an IntegrationRuntimeId struct
 func IntegrationRuntimeID(input string) (*IntegrationRuntimeId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -38,6 +39,14 @@ func IntegrationRuntimeID(input string) (*IntegrationRuntimeId, error) {
 	resourceId := IntegrationRuntimeId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.FactoryName, err = id.PopSegment("factories"); err != nil {

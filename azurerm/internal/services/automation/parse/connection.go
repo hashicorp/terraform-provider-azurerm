@@ -29,6 +29,7 @@ func (id ConnectionId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.AutomationAccountName, id.Name)
 }
 
+// ConnectionID parses a Connection ID into an ConnectionId struct
 func ConnectionID(input string) (*ConnectionId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -38,6 +39,14 @@ func ConnectionID(input string) (*ConnectionId, error) {
 	resourceId := ConnectionId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.AutomationAccountName, err = id.PopSegment("automationAccounts"); err != nil {

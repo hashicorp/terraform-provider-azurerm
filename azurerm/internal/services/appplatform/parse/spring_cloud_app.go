@@ -29,6 +29,7 @@ func (id SpringCloudAppId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SpringName, id.AppName)
 }
 
+// SpringCloudAppID parses a SpringCloudApp ID into an SpringCloudAppId struct
 func SpringCloudAppID(input string) (*SpringCloudAppId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -38,6 +39,14 @@ func SpringCloudAppID(input string) (*SpringCloudAppId, error) {
 	resourceId := SpringCloudAppId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.SpringName, err = id.PopSegment("Spring"); err != nil {

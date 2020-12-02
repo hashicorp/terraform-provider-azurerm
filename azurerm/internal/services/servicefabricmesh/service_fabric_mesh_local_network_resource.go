@@ -27,7 +27,7 @@ func resourceArmServiceFabricMeshLocalNetwork() *schema.Resource {
 		Update: resourceArmServiceFabricMeshLocalNetworkCreateUpdate,
 		Delete: resourceArmServiceFabricMeshLocalNetworkDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.ServiceFabricMeshNetworkID(id)
+			_, err := parse.NetworkID(id)
 			return err
 		}),
 
@@ -124,7 +124,7 @@ func resourceArmServiceFabricMeshLocalNetworkRead(d *schema.ResourceData, meta i
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServiceFabricMeshNetworkID(d.Id())
+	id, err := parse.NetworkID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -159,7 +159,7 @@ func resourceArmServiceFabricMeshLocalNetworkDelete(d *schema.ResourceData, meta
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServiceFabricMeshNetworkID(d.Id())
+	id, err := parse.NetworkID(d.Id())
 	if err != nil {
 		return err
 	}

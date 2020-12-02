@@ -27,10 +27,11 @@ func NewGremlinGraphID(subscriptionId, resourceGroup, databaseAccountName, greml
 }
 
 func (id GremlinGraphId) ID(_ string) string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/DatabaseAccounts/%s/gremlinDatabases/%s/graphs/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/databaseAccounts/%s/gremlinDatabases/%s/graphs/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DatabaseAccountName, id.GremlinDatabaseName, id.GraphName)
 }
 
+// GremlinGraphID parses a GremlinGraph ID into an GremlinGraphId struct
 func GremlinGraphID(input string) (*GremlinGraphId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -42,7 +43,15 @@ func GremlinGraphID(input string) (*GremlinGraphId, error) {
 		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if resourceId.DatabaseAccountName, err = id.PopSegment("DatabaseAccounts"); err != nil {
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.DatabaseAccountName, err = id.PopSegment("databaseAccounts"); err != nil {
 		return nil, err
 	}
 	if resourceId.GremlinDatabaseName, err = id.PopSegment("gremlinDatabases"); err != nil {

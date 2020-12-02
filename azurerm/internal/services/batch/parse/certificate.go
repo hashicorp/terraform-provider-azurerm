@@ -29,6 +29,7 @@ func (id CertificateId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.BatchAccountName, id.Name)
 }
 
+// CertificateID parses a Certificate ID into an CertificateId struct
 func CertificateID(input string) (*CertificateId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -38,6 +39,14 @@ func CertificateID(input string) (*CertificateId, error) {
 	resourceId := CertificateId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.BatchAccountName, err = id.PopSegment("batchAccounts"); err != nil {

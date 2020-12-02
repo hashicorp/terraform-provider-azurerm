@@ -64,9 +64,9 @@ func testCheckAzureRMStorageSyncGroupExists(resourceName string) resource.TestCh
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.SyncGroupsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.StorageSyncName, id.Name); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.StorageSyncServiceName, id.SyncGroupName); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Storage Sync Group (Storage Sync Group Name %q / Resource Group %q) does not exist", id.Name, id.ResourceGroup)
+				return fmt.Errorf("bad: Storage Sync Group (Storage Sync Group Name %q / Resource Group %q) does not exist", id.SyncGroupName, id.ResourceGroup)
 			}
 			return fmt.Errorf("bad: Get on StorageSyncGroupsClient: %+v", err)
 		}
@@ -89,7 +89,7 @@ func testCheckAzureRMStorageSyncGroupDestroy(s *terraform.State) error {
 			return err
 		}
 
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.StorageSyncName, id.Name); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.StorageSyncServiceName, id.SyncGroupName); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("bad: Get on StorageSyncGroupsClient: %+v", err)
 			}

@@ -29,6 +29,7 @@ func (id SrvRecordId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DnszoneName, id.SRVName)
 }
 
+// SrvRecordID parses a SrvRecord ID into an SrvRecordId struct
 func SrvRecordID(input string) (*SrvRecordId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -38,6 +39,14 @@ func SrvRecordID(input string) (*SrvRecordId, error) {
 	resourceId := SrvRecordId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.DnszoneName, err = id.PopSegment("dnszones"); err != nil {

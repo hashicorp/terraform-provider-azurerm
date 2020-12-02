@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/helper"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -212,27 +213,34 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ServerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Path["servers"]
-
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading SQL Server %q - removing from state", d.Id())
+			log.Printf("[INFO] SQL Server %q (Resource Group %q) was not found - removing from state", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error reading SQL Server %s: %v", name, err)
+		return fmt.Errorf("retrieving SQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resGroup)
+	connection, err := connectionClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf("retrieving Blob Connection Policy for SQL Server %q (Resource Group %q): %v ", id.Name, id.ResourceGroup, err)
+	}
+
+	auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf("retrieving Blob Auditing Policies for SQL Server %q (Resource Group %q): %v ", id.Name, id.ResourceGroup, err)
+	}
+
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -247,22 +255,12 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("fully_qualified_domain_name", serverProperties.FullyQualifiedDomainName)
 	}
 
-	connection, err := connectionClient.Get(ctx, resGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error reading SQL Server %s Blob Connection Policy: %v ", name, err)
-	}
-
 	if props := connection.ServerConnectionPolicyProperties; props != nil {
 		d.Set("connection_policy", string(props.ConnectionType))
 	}
 
-	auditingResp, err := auditingClient.Get(ctx, resGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error reading SQL Server %s Blob Auditing Policies: %v ", name, err)
-	}
-
 	if err := d.Set("extended_auditing_policy", helper.FlattenAzureRmSqlServerBlobAuditingPolicies(&auditingResp, d)); err != nil {
-		return fmt.Errorf("Error setting `extended_auditing_policy`: %+v", err)
+		return fmt.Errorf("setting `extended_auditing_policy`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -273,20 +271,21 @@ func resourceArmSqlServerDelete(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ServerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Path["servers"]
-
-	future, err := client.Delete(ctx, resGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting SQL Server %s: %+v", name, err)
+		return fmt.Errorf("deleting SQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return future.WaitForCompletionRef(ctx, client.Client)
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of SQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	return nil
 }
 
 func expandAzureRmSqlServerIdentity(d *schema.ResourceData) *sql.ResourceIdentity {

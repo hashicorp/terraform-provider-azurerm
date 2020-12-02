@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestDigitaltwinsInstanceName(t *testing.T) {
+func TestDigitalTwinsInstanceName(t *testing.T) {
 	tests := []struct {
 		Name  string
 		Input string

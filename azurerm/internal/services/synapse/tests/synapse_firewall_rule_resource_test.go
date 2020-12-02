@@ -81,13 +81,16 @@ func testCheckAzureRMSynapseFirewallRuleExists(resourceName string) resource.Tes
 		if !ok {
 			return fmt.Errorf("synapse Firewall Rule not found: %s", resourceName)
 		}
-		id, err := parse.SynapseFirewallRuleID(rs.Primary.ID)
+
+		name := rs.Primary.Attributes["name"]
+		workspaceId, err := parse.WorkspaceID(rs.Primary.Attributes["synapse_workspace_id"])
 		if err != nil {
 			return err
 		}
-		if resp, err := client.Get(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name); err != nil {
+
+		if resp, err := client.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name, name); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Synapse Firewall Rule %q does not exist", id.Name)
+				return fmt.Errorf("bad: Synapse Firewall Rule %q does not exist", name)
 			}
 			return fmt.Errorf("bad: Get on Synapse.FirewallRulesClient: %+v", err)
 		}
@@ -103,11 +106,14 @@ func testCheckAzureRMSynapseFirewallRuleDestroy(s *terraform.State) error {
 		if rs.Type != "azurerm_synapse_firewall_rule" {
 			continue
 		}
-		id, err := parse.SynapseFirewallRuleID(rs.Primary.ID)
+
+		name := rs.Primary.Attributes["name"]
+		workspaceId, err := parse.WorkspaceID(rs.Primary.Attributes["synapse_workspace_id"])
 		if err != nil {
 			return err
 		}
-		resp, err := client.Get(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name)
+
+		resp, err := client.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("bad: Get on Synapse.FirewallRulesClient: %+v", err)

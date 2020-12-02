@@ -2,13 +2,15 @@ package web
 
 import (
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 )
 
 func TestParseAppServiceCustomHostnameBinding(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *AppServiceCustomHostnameBindingResourceID
+		Expected *parse.AppServiceCustomHostnameBindingId
 	}{
 		{
 			Name:     "Empty",
@@ -48,7 +50,7 @@ func TestParseAppServiceCustomHostnameBinding(t *testing.T) {
 		{
 			Name:  "Valid Resource ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/site1/hostNameBindings/binding1",
-			Expected: &AppServiceCustomHostnameBindingResourceID{
+			Expected: &parse.AppServiceCustomHostnameBindingId{
 				Name:           "binding1",
 				AppServiceName: "site1",
 				ResourceGroup:  "mygroup1",
@@ -64,7 +66,7 @@ func TestParseAppServiceCustomHostnameBinding(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ParseAppServiceCustomHostnameBindingID(v.Input)
+		actual, err := parse.AppServiceCustomHostnameBindingID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -78,7 +80,7 @@ func TestParseAppServiceCustomHostnameBinding(t *testing.T) {
 		}
 
 		if actual.AppServiceName != v.Expected.AppServiceName {
-			t.Fatalf("Expected %q but got %q for AppServiceName", v.Expected.AppServiceName, actual.AppServiceName)
+			t.Fatalf("Expected %q but got %q for SiteName", v.Expected.AppServiceName, actual.AppServiceName)
 		}
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {

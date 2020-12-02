@@ -14,9 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmCdnProfile() *schema.Resource {
+func dataSourceCdnProfile() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmCdnProfileRead,
+		Read: dataSourceCdnProfileRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -42,7 +42,7 @@ func dataSourceArmCdnProfile() *schema.Resource {
 	}
 }
 
-func dataSourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Cdn.ProfilesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

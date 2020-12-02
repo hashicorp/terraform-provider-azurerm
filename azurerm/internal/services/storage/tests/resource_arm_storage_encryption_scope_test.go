@@ -141,9 +141,9 @@ func (t StorageEncryptionScopeResourceTests) Exists(ctx context.Context, clients
 		return nil, err
 	}
 
-	resp, err := clients.Storage.EncryptionScopesClient.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
+	resp, err := clients.Storage.EncryptionScopesClient.Get(ctx, id.ResourceGroup, id.StorageAccountName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Encryption Scope %q (Account %q / Resource Group: %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Encryption Scope %q (Account %q / Resource Group: %q): %+v", id.Name, id.StorageAccountName, id.ResourceGroup, err)
 	}
 
 	enabled := false

@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,39 +9,50 @@ import (
 )
 
 type LoadBalancerBackendAddressPoolId struct {
-	ResourceGroup    string
-	LoadBalancerName string
-	Name             string
+	SubscriptionId         string
+	ResourceGroup          string
+	LoadBalancerName       string
+	BackendAddressPoolName string
 }
 
-func (id LoadBalancerBackendAddressPoolId) ID(subscriptionId string) string {
-	baseId := NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName).ID(subscriptionId)
-	return fmt.Sprintf("%s/backendAddressPools/%s", baseId, id.Name)
-}
-
-func NewLoadBalancerBackendAddressPoolId(loadBalancerId LoadBalancerId, name string) LoadBalancerBackendAddressPoolId {
+func NewLoadBalancerBackendAddressPoolID(subscriptionId, resourceGroup, loadBalancerName, backendAddressPoolName string) LoadBalancerBackendAddressPoolId {
 	return LoadBalancerBackendAddressPoolId{
-		ResourceGroup:    loadBalancerId.ResourceGroup,
-		LoadBalancerName: loadBalancerId.Name,
-		Name:             name,
+		SubscriptionId:         subscriptionId,
+		ResourceGroup:          resourceGroup,
+		LoadBalancerName:       loadBalancerName,
+		BackendAddressPoolName: backendAddressPoolName,
 	}
 }
 
+func (id LoadBalancerBackendAddressPoolId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/loadBalancers/%s/backendAddressPools/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName, id.BackendAddressPoolName)
+}
+
+// LoadBalancerBackendAddressPoolID parses a LoadBalancerBackendAddressPool ID into an LoadBalancerBackendAddressPoolId struct
 func LoadBalancerBackendAddressPoolID(input string) (*LoadBalancerBackendAddressPoolId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing Load Balancer Backend Address Pool ID %q: %+v", input, err)
-	}
-
-	backendAddressPoolId := LoadBalancerBackendAddressPoolId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if backendAddressPoolId.LoadBalancerName, err = id.PopSegment("loadBalancers"); err != nil {
 		return nil, err
 	}
 
-	if backendAddressPoolId.Name, err = id.PopSegment("backendAddressPools"); err != nil {
+	resourceId := LoadBalancerBackendAddressPoolId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.LoadBalancerName, err = id.PopSegment("loadBalancers"); err != nil {
+		return nil, err
+	}
+	if resourceId.BackendAddressPoolName, err = id.PopSegment("backendAddressPools"); err != nil {
 		return nil, err
 	}
 
@@ -47,5 +60,5 @@ func LoadBalancerBackendAddressPoolID(input string) (*LoadBalancerBackendAddress
 		return nil, err
 	}
 
-	return &backendAddressPoolId, nil
+	return &resourceId, nil
 }

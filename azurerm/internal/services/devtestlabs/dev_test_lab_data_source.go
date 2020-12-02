@@ -13,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmDevTestLab() *schema.Resource {
+func dataSourceDevTestLab() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmDevTestLabRead,
+		Read: dataSourceDevTestLabRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -72,7 +72,7 @@ func dataSourceArmDevTestLab() *schema.Resource {
 	}
 }
 
-func dataSourceArmDevTestLabRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDevTestLabRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevTestLabs.LabsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

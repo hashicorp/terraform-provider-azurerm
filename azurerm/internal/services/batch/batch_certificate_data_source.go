@@ -12,9 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmBatchCertificate() *schema.Resource {
+func dataSourceBatchCertificate() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmBatchCertificateRead,
+		Read: dataSourceBatchCertificateRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -55,7 +55,7 @@ func dataSourceArmBatchCertificate() *schema.Resource {
 	}
 }
 
-func dataSourceArmBatchCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceBatchCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.CertificateClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

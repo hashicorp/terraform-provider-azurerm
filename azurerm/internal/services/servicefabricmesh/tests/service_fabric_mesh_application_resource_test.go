@@ -73,7 +73,7 @@ func testCheckAzureRMServiceFabricMeshApplicationDestroy(s *terraform.State) err
 			continue
 		}
 
-		id, err := parse.ServiceFabricMeshApplicationID(rs.Primary.ID)
+		id, err := parse.ApplicationID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -102,7 +102,7 @@ func testCheckAzureRMServiceFabricMeshApplicationExists(resourceName string) res
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.ServiceFabricMeshApplicationID(rs.Primary.ID)
+		id, err := parse.ApplicationID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

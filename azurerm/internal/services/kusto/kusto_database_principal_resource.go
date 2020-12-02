@@ -215,24 +215,24 @@ func resourceArmKustoDatabasePrincipalRead(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KustoDatabasePrincipalID(d.Id())
+	id, err := parse.DatabasePrincipalID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Cluster, id.Database)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Kusto Database %q (Resource Group %q, Cluster %q): %+v", id.Database, id.ResourceGroup, id.Cluster, err)
+		return fmt.Errorf("Error retrieving Kusto Database %q (Resource Group %q, Cluster %q): %+v", id.DatabaseName, id.ResourceGroup, id.ClusterName, err)
 	}
 
-	databasePrincipals, err := client.ListPrincipals(ctx, id.ResourceGroup, id.Cluster, id.Database)
+	databasePrincipals, err := client.ListPrincipals(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(databasePrincipals.Response) {
-			return fmt.Errorf("Error checking for presence of existing Kusto Database Principals %q (Resource Group %q, Cluster %q): %s", id, id.ResourceGroup, id.Cluster, err)
+			return fmt.Errorf("Error checking for presence of existing Kusto Database Principals %q (Resource Group %q, Cluster %q): %s", id, id.ResourceGroup, id.ClusterName, err)
 		}
 	}
 
@@ -241,7 +241,7 @@ func resourceArmKustoDatabasePrincipalRead(d *schema.ResourceData, meta interfac
 	if principals := databasePrincipals.Value; principals != nil {
 		for _, currPrincipal := range *principals {
 			// kusto database principals are unique when looked at with fqn and role
-			if string(currPrincipal.Role) == id.Role && currPrincipal.Fqn != nil && *currPrincipal.Fqn == id.Name {
+			if string(currPrincipal.Role) == id.RoleName && currPrincipal.Fqn != nil && *currPrincipal.Fqn == id.FQNName {
 				principal = currPrincipal
 				found = true
 				break
@@ -256,8 +256,8 @@ func resourceArmKustoDatabasePrincipalRead(d *schema.ResourceData, meta interfac
 	}
 
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("cluster_name", id.Cluster)
-	d.Set("database_name", id.Database)
+	d.Set("cluster_name", id.ClusterName)
+	d.Set("database_name", id.DatabaseName)
 
 	d.Set("role", string(principal.Role))
 	d.Set("type", string(principal.Type))
@@ -274,13 +274,13 @@ func resourceArmKustoDatabasePrincipalRead(d *schema.ResourceData, meta interfac
 		d.Set("name", principal.Name)
 	}
 
-	splitFQN := strings.Split(id.Name, "=")
+	splitFQN := strings.Split(id.FQNName, "=")
 	if len(splitFQN) != 2 {
-		return fmt.Errorf("Expected `fqn` to be in the format aadtype=objectid:clientid but got: %q", id.Name)
+		return fmt.Errorf("Expected `fqn` to be in the format aadtype=objectid:clientid but got: %q", id.FQNName)
 	}
 	splitIDs := strings.Split(splitFQN[1], ";")
 	if len(splitIDs) != 2 {
-		return fmt.Errorf("Expected `fqn` to be in the format aadtype=objectid:clientid but got: %q", id.Name)
+		return fmt.Errorf("Expected `fqn` to be in the format aadtype=objectid:clientid but got: %q", id.FQNName)
 	}
 	d.Set("object_id", splitIDs[0])
 	d.Set("client_id", splitIDs[1])
@@ -293,14 +293,14 @@ func resourceArmKustoDatabasePrincipalDelete(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KustoDatabasePrincipalID(d.Id())
+	id, err := parse.DatabasePrincipalID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	kustoPrincipal := kusto.DatabasePrincipal{
-		Role: kusto.DatabasePrincipalRole(id.Role),
-		Fqn:  utils.String(id.Name),
+		Role: kusto.DatabasePrincipalRole(id.RoleName),
+		Fqn:  utils.String(id.FQNName),
 		Type: kusto.DatabasePrincipalType(d.Get("type").(string)),
 		// These three must be specified or the api returns `The request is invalid.`
 		// For more info: https://github.com/Azure/azure-sdk-for-go/issues/6547
@@ -314,8 +314,8 @@ func resourceArmKustoDatabasePrincipalDelete(d *schema.ResourceData, meta interf
 		Value: &principals,
 	}
 
-	if _, err = client.RemovePrincipals(ctx, id.ResourceGroup, id.Cluster, id.Database, request); err != nil {
-		return fmt.Errorf("Error deleting Kusto Database Principal %q (Resource Group %q, Cluster %q, Database %q): %+v", id, id.ResourceGroup, id.Cluster, id.Database, err)
+	if _, err = client.RemovePrincipals(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, request); err != nil {
+		return fmt.Errorf("Error deleting Kusto Database Principal %q (Resource Group %q, Cluster %q, Database %q): %+v", id, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
 	}
 
 	return nil

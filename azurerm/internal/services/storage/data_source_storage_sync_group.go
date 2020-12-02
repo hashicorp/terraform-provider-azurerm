@@ -43,7 +43,7 @@ func dataSourceArmStorageSyncGroupRead(d *schema.ResourceData, meta interface{})
 	defer cancel()
 
 	name := d.Get("name").(string)
-	storageSyncId, err := parse.ParseStorageSyncID(d.Get("storage_sync_id").(string))
+	storageSyncId, err := parse.StorageSyncServiceID(d.Get("storage_sync_id").(string))
 	if err != nil {
 		return err
 	}
