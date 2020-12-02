@@ -26,7 +26,7 @@ func resourceArmIoTTimeSeriesInsightsGen2Environment() *schema.Resource {
 		Update: resourceArmIoTTimeSeriesInsightsGen2EnvironmentCreateUpdate,
 		Delete: resourceArmIoTTimeSeriesInsightsGen2EnvironmentDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.TimeSeriesInsightsEnvironmentID(id)
+			_, err := parse.EnvironmentID(id)
 			return err
 		}),
 
@@ -184,7 +184,7 @@ func resourceArmIoTTimeSeriesInsightsGen2EnvironmentRead(d *schema.ResourceData,
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.TimeSeriesInsightsEnvironmentID(d.Id())
+	id, err := parse.EnvironmentID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -228,7 +228,7 @@ func resourceArmIoTTimeSeriesInsightsGen2EnvironmentDelete(d *schema.ResourceDat
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.TimeSeriesInsightsEnvironmentID(d.Id())
+	id, err := parse.EnvironmentID(d.Id())
 	if err != nil {
 		return err
 	}
