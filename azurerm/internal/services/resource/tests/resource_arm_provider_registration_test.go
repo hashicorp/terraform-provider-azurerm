@@ -20,10 +20,9 @@ func TestAccAzureRMResourceProviderRegistration_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMResourceProviderDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMResourceProviderRegistration_basic(),
+				Config: testAccAzureRMResourceProviderRegistration_basic("Microsoft.BlockchainTokens"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMResourceProviderRegistrationExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
 				),
 			},
 			data.ImportStep(),
@@ -40,13 +39,13 @@ func TestAccAzureRMResourceProviderRegistration_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMResourceProviderDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMResourceProviderRegistration_basic(),
+				Config: testAccAzureRMResourceProviderRegistration_basic("Wandisco.Fusion"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMResourceProviderRegistrationExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMResourceProviderRegistration_requiresImport(),
+				Config:      testAccAzureRMResourceProviderRegistration_requiresImport("Wandisco.Fusion"),
 				ExpectError: acceptance.RequiresImportError("azurerm_resource_provider_registration"),
 			},
 		},
@@ -109,23 +108,24 @@ func testCheckAzureRMResourceProviderDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMResourceProviderRegistration_basic() string {
-	return (`
+func testAccAzureRMResourceProviderRegistration_basic(name string) string {
+	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
   skip_provider_registration = true
 }
 
 resource "azurerm_resource_provider_registration" "test" {
-  name = "Microsoft.PolicyInsights"
+  name = %q
 }
-`)
+`, name)
 }
 
-func testAccAzureRMResourceProviderRegistration_requiresImport() string {
-	template := testAccAzureRMResourceProviderRegistration_basic()
+func testAccAzureRMResourceProviderRegistration_requiresImport(name string) string {
+	template := testAccAzureRMResourceProviderRegistration_basic(name)
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_resource_provider_registration" "import" {
   name = azurerm_resource_provider_registration.test.name
 }
