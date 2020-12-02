@@ -482,6 +482,7 @@ func SchemaAzureConsumptionBudgetCommonResource() map[string]*schema.Schema {
 					"end_date": {
 						Type:             schema.TypeString,
 						Optional:         true,
+						Computed:         true,
 						ValidateFunc:     validation.IsRFC3339Time,
 						DiffSuppressFunc: DiffSuppressFuncAzureConsumptionBudgetTimePeriodEndDate,
 					},
