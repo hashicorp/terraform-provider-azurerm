@@ -2,50 +2,10 @@ package validate
 
 import (
 	"fmt"
-	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 )
-
-func NetworkConnectionMonitorID(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
-	}
-
-	if _, err := parse.ConnectionMonitorID(v); err != nil {
-		errors = append(errors, fmt.Errorf("Can not parse %q as a resource id: %v", k, err))
-		return
-	}
-
-	return warnings, errors
-}
-
-func NetworkConnectionMonitorHttpPath(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if len(value) == 0 {
-		errors = append(errors, fmt.Errorf("%q cannot be an empty string: %q", k, value))
-		return warnings, errors
-	}
-
-	path, err := url.ParseRequestURI(value)
-	if err != nil {
-		errors = append(errors, fmt.Errorf("parsing %q: %q", k, value))
-		return warnings, errors
-	}
-
-	if path.IsAbs() {
-		errors = append(errors, fmt.Errorf("%q only accepts the absolute path: %q", k, value))
-		return warnings, errors
-	}
-
-	return warnings, errors
-}
 
 func NetworkConnectionMonitorValidStatusCodeRanges(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
@@ -93,28 +53,6 @@ func NetworkConnectionMonitorValidStatusCodeRanges(v interface{}, k string) (war
 			errors = append(errors, fmt.Errorf("%q can contain number with x or pure number: %q", k, value))
 			return warnings, errors
 		}
-	}
-
-	return warnings, errors
-}
-
-func NetworkConnectionMonitorEndpointAddress(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if len(value) == 0 {
-		errors = append(errors, fmt.Errorf("%q cannot be an empty string: %q", k, value))
-		return warnings, errors
-	}
-
-	url, err := url.Parse(value)
-	if err != nil {
-		errors = append(errors, fmt.Errorf("parsing %q: %q", k, value))
-		return warnings, errors
-	}
-
-	if url.Scheme != "" || url.RawQuery != "" {
-		errors = append(errors, fmt.Errorf("%q cannot contain scheme and query parameter: %q", k, value))
-		return warnings, errors
 	}
 
 	return warnings, errors
