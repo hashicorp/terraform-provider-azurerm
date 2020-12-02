@@ -1,1580 +1,1376 @@
-package tests
+package web_test
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type AppServiceResource struct{}
+
 func TestAccAzureRMAppService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	r := AppServiceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "outbound_ip_addresses"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "possible_outbound_ip_addresses"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "custom_domain_verification_id"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("outbound_ip_addresses").Exists(),
+				check.That(data.ResourceName).Key("possible_outbound_ip_addresses").Exists(),
+				check.That(data.ResourceName).Key("custom_domain_verification_id").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMAppService_requiresImport),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
 func TestAccAzureRMAppService_movingAppService(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMAppService_moved(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-				),
-			},
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.moved(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
 func TestAccAzureRMAppService_freeTier(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_freeTier(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.freeTier(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_sharedTier(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_sharedTier(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.sharedTier(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_32Bit(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_32Bit(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.use_32_bit_worker_process", "true"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.service32Bit(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.use_32_bit_worker_process").HasValue("true"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_backup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_backup(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMAppService_backupUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				// Enabled
-				Config: testAccAzureRMAppService_backup(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-				),
-			},
-			{
-				// Disabled
-				Config: testAccAzureRMAppService_backupDisabled(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-				),
-			},
-			{
-				// remove it
-				Config: testAccAzureRMAppService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.backup(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.backupUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Enabled
+			Config: r.backup(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			// Disabled
+			Config: r.backupDisabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			// remove it
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_http2Enabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_http2Enabled(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.http2_enabled", "true"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.http2Enabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.http2_enabled").HasValue("true"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_alwaysOn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_alwaysOn(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.always_on", "true"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.alwaysOn(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.always_on").HasValue("true"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_appCommandLine(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_appCommandLine(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.app_command_line", "/sbin/myserver -b 0.0.0.0"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.appCommandLine(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.app_command_line").HasValue("/sbin/myserver -b 0.0.0.0"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_httpsOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_httpsOnly(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "https_only", "true"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.httpsOnly(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_only").HasValue("true"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_clientCertEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_clientCertEnabled(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_cert_enabled", "true"),
-				),
-			},
-			{
-				Config: testAccAzureRMAppService_clientCertEnabledNotSet(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_cert_enabled", "false"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.clientCertEnabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("client_cert_enabled").HasValue("true"),
+			),
 		},
+		{
+			Config: r.clientCertEnabledNotSet(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("client_cert_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_appSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_appSettings(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "app_settings.foo", "bar"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.appSettings(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_clientAffinityEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_clientAffinityEnabled(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_affinity_enabled", "true"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.clientAffinityEnabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("client_affinity_enabled").HasValue("true"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_clientAffinityDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_clientAffinityDisabled(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_affinity_enabled", "false"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.clientAffinityDisabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("client_affinity_enabled").HasValue("false"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_enableManageServiceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_mangedServiceIdentity(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
-					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.tenant_id", validate.UUIDRegExp),
-				),
-			},
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.mangedServiceIdentity(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").MatchesRegex(validate.UUIDRegExp),
+			),
 		},
 	})
 }
 
 func TestAccAzureRMAppService_updateResourceByEnablingManageServiceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.#", "0"),
-				),
-			},
-			{
-				Config: testAccAzureRMAppService_mangedServiceIdentity(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
-					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.tenant_id", validate.UUIDRegExp),
-				),
-			},
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.#").HasValue("0"),
+			),
+		},
+		{
+			Config: r.mangedServiceIdentity(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").MatchesRegex(validate.UUIDRegExp),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").MatchesRegex(validate.UUIDRegExp),
+			),
 		},
 	})
 }
 
 func TestAccAzureRMAppService_userAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_userAssignedIdentity(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "UserAssigned"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.identity_ids.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.principal_id", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.tenant_id", ""),
-				),
-			},
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.userAssignedIdentity(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsEmpty(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsEmpty(),
+			),
 		},
 	})
 }
 
 func TestAccAzureRMAppService_clientAffinityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_clientAffinity(data, true),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_affinity_enabled", "true"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMAppService_clientAffinity(data, false),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_affinity_enabled", "false"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.clientAffinity(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("client_affinity_enabled").HasValue("true"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.clientAffinity(data, false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("client_affinity_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_connectionStrings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_connectionStrings(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.3173438943.name", "First"),
-					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.3173438943.value", "first-connection-string"),
-					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.3173438943.type", "Custom"),
-					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.2442860602.name", "Second"),
-					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.2442860602.value", "some-postgresql-connection-string"),
-					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.2442860602.type", "PostgreSQL"),
-				),
-			},
-			{
-				Config: testAccAzureRMAppService_connectionStringsUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.3173438943.name", "First"),
-					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.3173438943.value", "first-connection-string"),
-					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.3173438943.type", "Custom"),
-					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.2442860602.name", "Second"),
-					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.2442860602.value", "some-postgresql-connection-string"),
-					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.2442860602.type", "PostgreSQL"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.connectionStrings(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("connection_string.3173438943.name").HasValue("First"),
+				check.That(data.ResourceName).Key("connection_string.3173438943.value").HasValue("first-connection-string"),
+				check.That(data.ResourceName).Key("connection_string.3173438943.type").HasValue("Custom"),
+				check.That(data.ResourceName).Key("connection_string.2442860602.name").HasValue("Second"),
+				check.That(data.ResourceName).Key("connection_string.2442860602.value").HasValue("some-postgresql-connection-string"),
+				check.That(data.ResourceName).Key("connection_string.2442860602.type").HasValue("PostgreSQL"),
+			),
 		},
+		{
+			Config: r.connectionStringsUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("connection_string.3173438943.name").HasValue("First"),
+				check.That(data.ResourceName).Key("connection_string.3173438943.value").HasValue("first-connection-string"),
+				check.That(data.ResourceName).Key("connection_string.3173438943.type").HasValue("Custom"),
+				check.That(data.ResourceName).Key("connection_string.2442860602.name").HasValue("Second"),
+				check.That(data.ResourceName).Key("connection_string.2442860602.value").HasValue("some-postgresql-connection-string"),
+				check.That(data.ResourceName).Key("connection_string.2442860602.type").HasValue("PostgreSQL"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_storageAccounts(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_storageAccounts(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "storage_account.#", "1"),
-				),
-			},
-			{
-				Config: testAccAzureRMAppService_storageAccountsUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "storage_account.#", "2"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.storageAccounts(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_account.#").HasValue("1"),
+			),
 		},
+		{
+			Config: r.storageAccountsUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_account.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_oneIpv4Restriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_oneIpv4Restriction(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10/32"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.action", "Allow"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.oneIpv4Restriction(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.ip_address").HasValue("10.10.10.10/32"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.action").HasValue("Allow"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_oneIpv6Restriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_oneIpv6Restriction(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.ip_address", "2400:cb00::/32"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.action", "Allow"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.oneIpv6Restriction(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.ip_address").HasValue("2400:cb00::/32"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.action").HasValue("Allow"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_completeIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_completeIpRestriction(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10/32"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.name", "test-restriction"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.priority", "123"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.action", "Allow"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMAppService_manyCompleteIpRestrictions(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.#", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10/32"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.name", "test-restriction"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.priority", "123"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.action", "Allow"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.1.ip_address", "20.20.20.0/24"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.1.name", "test-restriction-2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.1.priority", "1234"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.1.action", "Deny"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.2.ip_address", "2400:cb00::/32"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.2.name", "test-restriction-3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.2.priority", "65000"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.2.action", "Deny"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMAppService_completeIpRestriction(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10/32"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.name", "test-restriction"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.priority", "123"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.action", "Allow"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.completeIpRestriction(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("1"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.ip_address").HasValue("10.10.10.10/32"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.name").HasValue("test-restriction"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.priority").HasValue("123"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.action").HasValue("Allow"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.manyCompleteIpRestrictions(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("3"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.ip_address").HasValue("10.10.10.10/32"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.name").HasValue("test-restriction"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.priority").HasValue("123"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.action").HasValue("Allow"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.1.ip_address").HasValue("20.20.20.0/24"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.1.name").HasValue("test-restriction-2"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.1.priority").HasValue("1234"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.1.action").HasValue("Deny"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.2.ip_address").HasValue("2400:cb00::/32"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.2.name").HasValue("test-restriction-3"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.2.priority").HasValue("65000"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.2.action").HasValue("Deny"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completeIpRestriction(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("1"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.ip_address").HasValue("10.10.10.10/32"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.name").HasValue("test-restriction"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.priority").HasValue("123"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.action").HasValue("Allow"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_oneVNetSubnetIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_oneVNetSubnetIpRestriction(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.oneVNetSubnetIpRestriction(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_zeroedIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
-		Steps: []resource.TestStep{
-			{
-				// This configuration includes a single explicit ip_restriction
-				Config: testAccAzureRMAppService_oneIpv4Restriction(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.#", "1"),
-				),
-			},
-			{
-				// This configuration has no site_config blocks at all.
-				Config: testAccAzureRMAppService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.#", "1"),
-				),
-			},
-			{
-				// This configuration explicitly sets ip_restriction to [] using attribute syntax.
-				Config: testAccAzureRMAppService_zeroedIpRestriction(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.#", "0"),
-				),
-			},
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// This configuration includes a single explicit ip_restriction
+			Config: r.oneIpv4Restriction(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("1"),
+			),
+		},
+		{
+			// This configuration has no site_config blocks at all.
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("1"),
+			),
+		},
+		{
+			// This configuration explicitly sets ip_restriction to [] using attribute syntax.
+			Config: r.zeroedIpRestriction(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("0"),
+			),
 		},
 	})
 }
 
 func TestAccAzureRMAppService_manyIpRestrictions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_manyIpRestrictions(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10/32"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.1.ip_address", "20.20.20.0/24"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.2.ip_address", "30.30.0.0/16"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.3.ip_address", "192.168.1.2/24"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.manyIpRestrictions(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.ip_address").HasValue("10.10.10.10/32"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.1.ip_address").HasValue("20.20.20.0/24"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.2.ip_address").HasValue("30.30.0.0/16"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.3.ip_address").HasValue("192.168.1.2/24"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_scmUseMainIPRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_scmUseMainIPRestriction(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.scmUseMainIPRestriction(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_scmOneIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_scmOneIpRestriction(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.scmOneIpRestriction(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_completeScmIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_completeScmIpRestriction(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMAppService_manyCompleteScmIpRestrictions(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMAppService_completeScmIpRestriction(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.completeScmIpRestriction(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.manyCompleteScmIpRestrictions(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completeScmIpRestriction(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_oneVNetSubnetScmIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_oneVNetSubnetScmIpRestriction(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.oneVNetSubnetScmIpRestriction(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_zeroedScmIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
-		Steps: []resource.TestStep{
-			{
-				// This configuration includes a single explicit scm_ip_restriction
-				Config: testAccAzureRMAppService_scmOneIpRestriction(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_ip_restriction.#", "1"),
-				),
-			},
-			{
-				// This configuration has no site_config blocks at all.
-				Config: testAccAzureRMAppService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_ip_restriction.#", "1"),
-				),
-			},
-			{
-				// This configuration explicitly sets scm_ip_restriction to [] using attribute syntax.
-				Config: testAccAzureRMAppService_zeroedScmIpRestriction(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_ip_restriction.#", "0"),
-				),
-			},
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// This configuration includes a single explicit scm_ip_restriction
+			Config: r.scmOneIpRestriction(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.scm_ip_restriction.#").HasValue("1"),
+			),
+		},
+		{
+			// This configuration has no site_config blocks at all.
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.scm_ip_restriction.#").HasValue("1"),
+			),
+		},
+		{
+			// This configuration explicitly sets scm_ip_restriction to [] using attribute syntax.
+			Config: r.zeroedScmIpRestriction(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.scm_ip_restriction.#").HasValue("0"),
+			),
 		},
 	})
 }
 
 func TestAccAzureRMAppService_manyScmIpRestrictions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_manyScmIpRestrictions(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.manyScmIpRestrictions(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_defaultDocuments(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_defaultDocuments(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.default_documents.0", "first.html"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.default_documents.1", "second.jsp"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.default_documents.2", "third.aspx"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.defaultDocuments(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.default_documents.0").HasValue("first.html"),
+				check.That(data.ResourceName).Key("site_config.0.default_documents.1").HasValue("second.jsp"),
+				check.That(data.ResourceName).Key("site_config.0.default_documents.2").HasValue("third.aspx"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_enabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_enabled(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "false"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.enabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled").HasValue("false"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_localMySql(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_localMySql(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.local_mysql_enabled", "true"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.localMySql(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.local_mysql_enabled").HasValue("true"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_applicationBlobStorageLogs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_applicationBlobStorageLogs(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.application_logs.0.file_system_level", "Warning"),
-					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.application_logs.0.azure_blob_storage.0.level", "Information"),
-					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.application_logs.0.azure_blob_storage.0.sas_url", "http://x.com/"),
-					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.application_logs.0.azure_blob_storage.0.retention_in_days", "3"),
-				),
-			},
-			{
-				Config: testAccAzureRMAppService_applicationBlobStorageLogsWithAppSettings(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.application_logs.0.file_system_level", "Warning"),
-					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.application_logs.0.azure_blob_storage.0.level", "Information"),
-					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.application_logs.0.azure_blob_storage.0.sas_url", "http://x.com/"),
-					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.application_logs.0.azure_blob_storage.0.retention_in_days", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "app_settings.foo", "bar"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.applicationBlobStorageLogs(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("logs.0.application_logs.0.file_system_level").HasValue("Warning"),
+				check.That(data.ResourceName).Key("logs.0.application_logs.0.azure_blob_storage.0.level").HasValue("Information"),
+				check.That(data.ResourceName).Key("logs.0.application_logs.0.azure_blob_storage.0.sas_url").HasValue("http://x.com/"),
+				check.That(data.ResourceName).Key("logs.0.application_logs.0.azure_blob_storage.0.retention_in_days").HasValue("3"),
+			),
 		},
+		{
+			Config: r.applicationBlobStorageLogsWithAppSettings(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("logs.0.application_logs.0.file_system_level").HasValue("Warning"),
+				check.That(data.ResourceName).Key("logs.0.application_logs.0.azure_blob_storage.0.level").HasValue("Information"),
+				check.That(data.ResourceName).Key("logs.0.application_logs.0.azure_blob_storage.0.sas_url").HasValue("http://x.com/"),
+				check.That(data.ResourceName).Key("logs.0.application_logs.0.azure_blob_storage.0.retention_in_days").HasValue("3"),
+				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_httpFileSystemLogs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_httpFileSystemLogs(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMAppService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.httpFileSystemLogs(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_httpBlobStorageLogs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_httpBlobStorageLogs(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMAppService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.httpBlobStorageLogs(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_httpFileSystemAndStorageBlobLogs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_httpFileSystemAndStorageBlobLogs(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.httpFileSystemAndStorageBlobLogs(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_managedPipelineMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_managedPipelineMode(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.managed_pipeline_mode", "Classic"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.managedPipelineMode(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.managed_pipeline_mode").HasValue("Classic"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_tagsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_tags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.Hello", "World"),
-				),
-			},
-			{
-				Config: testAccAzureRMAppService_tagsUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.Hello", "World"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.Terraform", "AcceptanceTests"),
-				),
-			},
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.tags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.Hello").HasValue("World"),
+			),
+		},
+		{
+			Config: r.tagsUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+				check.That(data.ResourceName).Key("tags.Hello").HasValue("World"),
+				check.That(data.ResourceName).Key("tags.Terraform").HasValue("AcceptanceTests"),
+			),
 		},
 	})
 }
 
 func TestAccAzureRMAppService_remoteDebugging(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_remoteDebugging(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.remote_debugging_enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.remote_debugging_version", "VS2019"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.remoteDebugging(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.remote_debugging_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("site_config.0.remote_debugging_version").HasValue("VS2019"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_windowsDotNet2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_windowsDotNet(data, "v2.0"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.dotnet_framework_version", "v2.0"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.windowsDotNet(data, "v2.0"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.dotnet_framework_version").HasValue("v2.0"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_windowsDotNet4(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_windowsDotNet(data, "v4.0"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.dotnet_framework_version", "v4.0"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.windowsDotNet(data, "v4.0"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.dotnet_framework_version").HasValue("v4.0"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_windowsDotNet5(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_windowsDotNet(data, "v5.0"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.dotnet_framework_version", "v5.0"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.windowsDotNet(data, "v5.0"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.dotnet_framework_version").HasValue("v5.0"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_windowsDotNetUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_windowsDotNet(data, "v2.0"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.dotnet_framework_version", "v2.0"),
-				),
-			},
-			{
-				Config: testAccAzureRMAppService_windowsDotNet(data, "v4.0"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.dotnet_framework_version", "v4.0"),
-				),
-			},
-			{
-				Config: testAccAzureRMAppService_windowsDotNet(data, "v5.0"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.dotnet_framework_version", "v5.0"),
-				),
-			},
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.windowsDotNet(data, "v2.0"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.dotnet_framework_version").HasValue("v2.0"),
+			),
+		},
+		{
+			Config: r.windowsDotNet(data, "v4.0"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.dotnet_framework_version").HasValue("v4.0"),
+			),
+		},
+		{
+			Config: r.windowsDotNet(data, "v5.0"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.dotnet_framework_version").HasValue("v5.0"),
+			),
 		},
 	})
 }
 
 func TestAccAzureRMAppService_windowsJava7Java(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_windowsJava(data, "1.7", "JAVA", "9.3"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_version", "1.7"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container", "JAVA"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container_version", "9.3"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.windowsJava(data, "1.7", "JAVA", "9.3"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.java_version").HasValue("1.7"),
+				check.That(data.ResourceName).Key("site_config.0.java_container").HasValue("JAVA"),
+				check.That(data.ResourceName).Key("site_config.0.java_container_version").HasValue("9.3"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_windowsJava8Java(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_windowsJava(data, "1.8", "JAVA", "9.3"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_version", "1.8"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container", "JAVA"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container_version", "9.3"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.windowsJava(data, "1.8", "JAVA", "9.3"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.java_version").HasValue("1.8"),
+				check.That(data.ResourceName).Key("site_config.0.java_container").HasValue("JAVA"),
+				check.That(data.ResourceName).Key("site_config.0.java_container_version").HasValue("9.3"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_windowsJava11Java(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_windowsJava(data, "11", "JAVA", "9.3"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_version", "11"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container", "JAVA"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container_version", "9.3"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.windowsJava(data, "11", "JAVA", "9.3"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.java_version").HasValue("11"),
+				check.That(data.ResourceName).Key("site_config.0.java_container").HasValue("JAVA"),
+				check.That(data.ResourceName).Key("site_config.0.java_container_version").HasValue("9.3"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_windowsJava7Jetty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_windowsJava(data, "1.7", "JETTY", "9.3"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_version", "1.7"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container", "JETTY"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container_version", "9.3"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.windowsJava(data, "1.7", "JETTY", "9.3"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.java_version").HasValue("1.7"),
+				check.That(data.ResourceName).Key("site_config.0.java_container").HasValue("JETTY"),
+				check.That(data.ResourceName).Key("site_config.0.java_container_version").HasValue("9.3"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_windowsJava8Jetty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_windowsJava(data, "1.8", "JETTY", "9.3"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_version", "1.8"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container", "JETTY"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container_version", "9.3"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.windowsJava(data, "1.8", "JETTY", "9.3"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.java_version").HasValue("1.8"),
+				check.That(data.ResourceName).Key("site_config.0.java_container").HasValue("JETTY"),
+				check.That(data.ResourceName).Key("site_config.0.java_container_version").HasValue("9.3"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_windowsJava11Jetty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_windowsJava(data, "11", "JETTY", "9.3"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_version", "11"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container", "JETTY"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container_version", "9.3"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.windowsJava(data, "11", "JETTY", "9.3"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.java_version").HasValue("11"),
+				check.That(data.ResourceName).Key("site_config.0.java_container").HasValue("JETTY"),
+				check.That(data.ResourceName).Key("site_config.0.java_container_version").HasValue("9.3"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_windowsJava7Tomcat(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_windowsJava(data, "1.7", "TOMCAT", "9.0"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_version", "1.7"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container", "TOMCAT"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container_version", "9.0"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.windowsJava(data, "1.7", "TOMCAT", "9.0"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.java_version").HasValue("1.7"),
+				check.That(data.ResourceName).Key("site_config.0.java_container").HasValue("TOMCAT"),
+				check.That(data.ResourceName).Key("site_config.0.java_container_version").HasValue("9.0"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_windowsJava8Tomcat(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_windowsJava(data, "1.8", "TOMCAT", "9.0"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_version", "1.8"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container", "TOMCAT"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container_version", "9.0"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.windowsJava(data, "1.8", "TOMCAT", "9.0"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.java_version").HasValue("1.8"),
+				check.That(data.ResourceName).Key("site_config.0.java_container").HasValue("TOMCAT"),
+				check.That(data.ResourceName).Key("site_config.0.java_container_version").HasValue("9.0"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_windowsJava11Tomcat(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_windowsJava(data, "11", "TOMCAT", "9.0"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_version", "11"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container", "TOMCAT"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container_version", "9.0"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.windowsJava(data, "11", "TOMCAT", "9.0"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.java_version").HasValue("11"),
+				check.That(data.ResourceName).Key("site_config.0.java_container").HasValue("TOMCAT"),
+				check.That(data.ResourceName).Key("site_config.0.java_container_version").HasValue("9.0"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_windowsJava7Minor(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_windowsJava(data, "1.7.0_80", "TOMCAT", "9.0"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_version", "1.7.0_80"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container", "TOMCAT"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container_version", "9.0"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.windowsJava(data, "1.7.0_80", "TOMCAT", "9.0"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.java_version").HasValue("1.7.0_80"),
+				check.That(data.ResourceName).Key("site_config.0.java_container").HasValue("TOMCAT"),
+				check.That(data.ResourceName).Key("site_config.0.java_container_version").HasValue("9.0"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_windowsJava8Minor(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_windowsJava(data, "1.8.0_181", "TOMCAT", "9.0"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_version", "1.8.0_181"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container", "TOMCAT"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container_version", "9.0"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.windowsJava(data, "1.8.0_181", "TOMCAT", "9.0"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.java_version").HasValue("1.8.0_181"),
+				check.That(data.ResourceName).Key("site_config.0.java_container").HasValue("TOMCAT"),
+				check.That(data.ResourceName).Key("site_config.0.java_container_version").HasValue("9.0"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_windowsPHP7(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_windowsPHP(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.php_version", "7.3"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.windowsPHP(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.php_version").HasValue("7.3"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_windowsPython(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_windowsPython(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.python_version", "3.4"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.windowsPython(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.python_version").HasValue("3.4"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_webSockets(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_webSockets(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.websockets_enabled", "true"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.webSockets(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.websockets_enabled").HasValue("true"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_scmType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_scmType(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_type", "LocalGit"),
-					resource.TestCheckResourceAttr(data.ResourceName, "source_control.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_credential.#", "1"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.scmType(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.scm_type").HasValue("LocalGit"),
+				check.That(data.ResourceName).Key("source_control.#").HasValue("1"),
+				check.That(data.ResourceName).Key("site_credential.#").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_withSourceControl(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_withSourceControl(data, "main"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withSourceControl(data, "main"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_withSourceControlUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_withSourceControl(data, "main"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMAppService_withSourceControl(data, "development"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withSourceControl(data, "main"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.withSourceControl(data, "development"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_ftpsState(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_ftpsState(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ftps_state", "AllAllowed"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.ftpsState(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.ftps_state").HasValue("AllAllowed"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_healthCheckPath(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_healthCheckPath(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.health_check_path", "/health"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.healthCheckPath(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.health_check_path").HasValue("/health"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 // Note: to specify `linux_fx_version` the App Service Plan must be of `kind = "Linux"`, and `reserved = true`
 func TestAccAzureRMAppService_linuxFxVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_linuxFxVersion(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.linuxFxVersion(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_minTls(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_minTls(data, "1.0"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.min_tls_version", "1.0"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMAppService_minTls(data, "1.1"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.min_tls_version", "1.1"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.minTls(data, "1.0"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.min_tls_version").HasValue("1.0"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.minTls(data, "1.1"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.min_tls_version").HasValue("1.1"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_corsSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_corsSettings(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.cors.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.cors.0.support_credentials", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.cors.0.allowed_origins.#", "3"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.corsSettings(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.cors.#").HasValue("1"),
+				check.That(data.ResourceName).Key("site_config.0.cors.0.support_credentials").HasValue("true"),
+				check.That(data.ResourceName).Key("site_config.0.cors.0.allowed_origins.#").HasValue("3"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -1582,25 +1378,22 @@ func TestAccAzureRMAppService_authSettingsAdditionalLoginParams(t *testing.T) {
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_authSettingsAdditionalLoginParams(data, tenantID),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.additional_login_params.test_key", "test_value"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.authSettingsAdditionalLoginParams(data, tenantID),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auth_settings.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("auth_settings.0.additional_login_params.test_key").HasValue("test_value"),
+				check.That(data.ResourceName).Key("auth_settings.0.issuer").HasValue(fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
+				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.client_id").HasValue("aadclientid"),
+				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.client_secret").HasValue("aadsecret"),
+				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.allowed_audiences.#").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -1608,26 +1401,23 @@ func TestAccAzureRMAppService_authSettingsAdditionalAllowedExternalRedirectUrls(
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_authSettingsAdditionalAllowedExternalRedirectUrls(data, tenantID),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.allowed_external_redirect_urls.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.allowed_external_redirect_urls.0", "https://terra.form"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.authSettingsAdditionalAllowedExternalRedirectUrls(data, tenantID),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auth_settings.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("auth_settings.0.allowed_external_redirect_urls.#").HasValue("1"),
+				check.That(data.ResourceName).Key("auth_settings.0.allowed_external_redirect_urls.0").HasValue("https://terra.form"),
+				resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
+				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.client_id").HasValue("aadclientid"),
+				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.client_secret").HasValue("aadsecret"),
+				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.allowed_audiences.#").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -1635,25 +1425,22 @@ func TestAccAzureRMAppService_authSettingsRuntimeVersion(t *testing.T) {
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_authSettingsRuntimeVersion(data, tenantID),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.runtime_version", "1.0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.authSettingsRuntimeVersion(data, tenantID),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auth_settings.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("auth_settings.0.runtime_version").HasValue("1.0"),
+				resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
+				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.client_id").HasValue("aadclientid"),
+				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.client_secret").HasValue("aadsecret"),
+				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.allowed_audiences.#").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -1661,25 +1448,22 @@ func TestAccAzureRMAppService_authSettingsTokenRefreshExtensionHours(t *testing.
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_authSettingsTokenRefreshExtensionHours(data, tenantID),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.token_refresh_extension_hours", "75"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.authSettingsTokenRefreshExtensionHours(data, tenantID),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auth_settings.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("auth_settings.0.token_refresh_extension_hours").HasValue("75"),
+				resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
+				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.client_id").HasValue("aadclientid"),
+				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.client_secret").HasValue("aadsecret"),
+				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.allowed_audiences.#").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -1687,25 +1471,22 @@ func TestAccAzureRMAppService_authSettingsUnauthenticatedClientAction(t *testing
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_authSettingsUnauthenticatedClientAction(data, tenantID),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.unauthenticated_client_action", "RedirectToLoginPage"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.authSettingsUnauthenticatedClientAction(data, tenantID),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auth_settings.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("auth_settings.0.unauthenticated_client_action").HasValue("RedirectToLoginPage"),
+				check.That(data.ResourceName).Key("auth_settings.0.issuer").HasValue(fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
+				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.client_id").HasValue("aadclientid"),
+				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.client_secret").HasValue("aadsecret"),
+				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.allowed_audiences.#").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -1713,25 +1494,22 @@ func TestAccAzureRMAppService_authSettingsTokenStoreEnabled(t *testing.T) {
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_authSettingsTokenStoreEnabled(data, tenantID),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.token_store_enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.authSettingsTokenStoreEnabled(data, tenantID),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auth_settings.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("auth_settings.0.token_store_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("auth_settings.0.issuer").HasValue(fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
+				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.client_id").HasValue("aadclientid"),
+				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.client_secret").HasValue("aadsecret"),
+				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.allowed_audiences.#").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -1739,111 +1517,96 @@ func TestAccAzureRMAppService_aadAuthSettings(t *testing.T) {
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_aadAuthSettings(data, tenantID),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.aadAuthSettings(data, tenantID),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auth_settings.0.enabled").HasValue("true"),
+				resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
+				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.client_id").HasValue("aadclientid"),
+				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.client_secret").HasValue("aadsecret"),
+				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.allowed_audiences.#").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_facebookAuthSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_facebookAuthSettings(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.facebook.0.app_id", "facebookappid"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.facebook.0.app_secret", "facebookappsecret"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.facebook.0.oauth_scopes.#", "1"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.facebookAuthSettings(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auth_settings.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("auth_settings.0.facebook.0.app_id").HasValue("facebookappid"),
+				check.That(data.ResourceName).Key("auth_settings.0.facebook.0.app_secret").HasValue("facebookappsecret"),
+				check.That(data.ResourceName).Key("auth_settings.0.facebook.0.oauth_scopes.#").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_googleAuthSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_googleAuthSettings(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.google.0.client_id", "googleclientid"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.google.0.client_secret", "googleclientsecret"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.google.0.oauth_scopes.#", "1"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.googleAuthSettings(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auth_settings.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("auth_settings.0.google.0.client_id").HasValue("googleclientid"),
+				check.That(data.ResourceName).Key("auth_settings.0.google.0.client_secret").HasValue("googleclientsecret"),
+				check.That(data.ResourceName).Key("auth_settings.0.google.0.oauth_scopes.#").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_microsoftAuthSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_microsoftAuthSettings(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.microsoft.0.client_id", "microsoftclientid"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.microsoft.0.client_secret", "microsoftclientsecret"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.microsoft.0.oauth_scopes.#", "1"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.microsoftAuthSettings(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auth_settings.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("auth_settings.0.microsoft.0.client_id").HasValue("microsoftclientid"),
+				check.That(data.ResourceName).Key("auth_settings.0.microsoft.0.client_secret").HasValue("microsoftclientsecret"),
+				check.That(data.ResourceName).Key("auth_settings.0.microsoft.0.oauth_scopes.#").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_twitterAuthSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_twitterAuthSettings(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.twitter.0.consumer_key", "twitterconsumerkey"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.twitter.0.consumer_secret", "twitterconsumersecret"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.twitterAuthSettings(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auth_settings.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("auth_settings.0.twitter.0.consumer_key").HasValue("twitterconsumerkey"),
+				check.That(data.ResourceName).Key("auth_settings.0.twitter.0.consumer_secret").HasValue("twitterconsumersecret"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -1851,138 +1614,89 @@ func TestAccAzureRMAppService_multiAuthSettings(t *testing.T) {
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_aadAuthSettings(data, tenantID),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMAppService_aadMicrosoftAuthSettings(data, tenantID),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.microsoft.0.client_id", "microsoftclientid"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.microsoft.0.client_secret", "microsoftclientsecret"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.microsoft.0.oauth_scopes.#", "1"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.aadAuthSettings(data, tenantID),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auth_settings.0.enabled").HasValue("true"),
+				resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
+				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.client_id").HasValue("aadclientid"),
+				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.client_secret").HasValue("aadsecret"),
+				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.allowed_audiences.#").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.aadMicrosoftAuthSettings(data, tenantID),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auth_settings.0.enabled").HasValue("true"),
+				resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
+				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.client_id").HasValue("aadclientid"),
+				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.client_secret").HasValue("aadsecret"),
+				check.That(data.ResourceName).Key("auth_settings.0.active_directory.0.allowed_audiences.#").HasValue("1"),
+				check.That(data.ResourceName).Key("auth_settings.0.microsoft.0.client_id").HasValue("microsoftclientid"),
+				check.That(data.ResourceName).Key("auth_settings.0.microsoft.0.client_secret").HasValue("microsoftclientsecret"),
+				check.That(data.ResourceName).Key("auth_settings.0.microsoft.0.oauth_scopes.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_basicWindowsContainer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_basicWindowsContainer(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.windows_fx_version", "DOCKER|mcr.microsoft.com/azure-app-service/samples/aspnethelloworld:latest"),
-					resource.TestCheckResourceAttr(data.ResourceName, "app_settings.DOCKER_REGISTRY_SERVER_URL", "https://mcr.microsoft.com"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicWindowsContainer(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.windows_fx_version").HasValue("DOCKER|mcr.microsoft.com/azure-app-service/samples/aspnethelloworld:latest"),
+				check.That(data.ResourceName).Key("app_settings.DOCKER_REGISTRY_SERVER_URL").HasValue("https://mcr.microsoft.com"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 // (@jackofallops) - renamed to allow filtering out long running test from AppService
 func TestAccAzureRMAppServiceEnvironment_scopeNameCheck(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_inAppServiceEnvironment(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.inAppServiceEnvironment(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMAppServiceDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServicesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_app_service" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-			return err
-		}
-
-		return nil
+func (r AppServiceResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.AppServiceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
-
-func testCheckAzureRMAppServiceExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServicesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
+	resp, err := client.Web.AppServicesClient.Get(ctx, id.ResourceGroup, id.SiteName)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
 		}
-
-		appServiceName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for App Service: %s", appServiceName)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, appServiceName)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: App Service %q (resource group: %q) does not exist", appServiceName, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on appServicesClient: %+v", err)
-		}
-
-		return nil
+		return nil, fmt.Errorf("retrieving App Service %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
 	}
+	return utils.Bool(true), nil
 }
 
-func testAccAzureRMAppService_basic(data acceptance.TestData) string {
+func (r AppServiceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2013,8 +1727,8 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMAppService_basic(data)
+func (r AppServiceResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -2027,7 +1741,7 @@ resource "azurerm_app_service" "import" {
 `, template)
 }
 
-func testAccAzureRMAppService_freeTier(data acceptance.TestData) string {
+func (r AppServiceResource) freeTier(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2062,7 +1776,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_moved(data acceptance.TestData) string {
+func (r AppServiceResource) moved(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2104,7 +1818,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_sharedTier(data acceptance.TestData) string {
+func (r AppServiceResource) sharedTier(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2139,7 +1853,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_alwaysOn(data acceptance.TestData) string {
+func (r AppServiceResource) alwaysOn(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2174,7 +1888,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_appCommandLine(data acceptance.TestData) string {
+func (r AppServiceResource) appCommandLine(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2209,7 +1923,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_httpsOnly(data acceptance.TestData) string {
+func (r AppServiceResource) httpsOnly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2241,7 +1955,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_clientCertEnabled(data acceptance.TestData) string {
+func (r AppServiceResource) clientCertEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2273,7 +1987,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_clientCertEnabledNotSet(data acceptance.TestData) string {
+func (r AppServiceResource) clientCertEnabledNotSet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2304,7 +2018,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_32Bit(data acceptance.TestData) string {
+func (r AppServiceResource) service32Bit(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2339,8 +2053,8 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_backup(data acceptance.TestData) string {
-	template := testAccAzureRMAppService_backupTemplate(data)
+func (r AppServiceResource) backup(data acceptance.TestData) string {
+	template := r.backupTemplate(data)
 	return fmt.Sprintf(`
 %s
 
@@ -2362,8 +2076,8 @@ resource "azurerm_app_service" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_backupDisabled(data acceptance.TestData) string {
-	template := testAccAzureRMAppService_backupTemplate(data)
+func (r AppServiceResource) backupDisabled(data acceptance.TestData) string {
+	template := r.backupTemplate(data)
 	return fmt.Sprintf(`
 %s
 
@@ -2386,8 +2100,8 @@ resource "azurerm_app_service" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_backupUpdated(data acceptance.TestData) string {
-	template := testAccAzureRMAppService_backupTemplate(data)
+func (r AppServiceResource) backupUpdated(data acceptance.TestData) string {
+	template := r.backupTemplate(data)
 	return fmt.Sprintf(`
 %s
 
@@ -2409,7 +2123,7 @@ resource "azurerm_app_service" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_backupTemplate(data acceptance.TestData) string {
+func (r AppServiceResource) backupTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2479,7 +2193,7 @@ resource "azurerm_app_service_plan" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_http2Enabled(data acceptance.TestData) string {
+func (r AppServiceResource) http2Enabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2514,7 +2228,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_appSettings(data acceptance.TestData) string {
+func (r AppServiceResource) appSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2549,15 +2263,15 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_clientAffinityEnabled(data acceptance.TestData) string {
-	return testAccAzureRMAppService_clientAffinity(data, true)
+func (r AppServiceResource) clientAffinityEnabled(data acceptance.TestData) string {
+	return r.clientAffinity(data, true)
 }
 
-func testAccAzureRMAppService_clientAffinityDisabled(data acceptance.TestData) string {
-	return testAccAzureRMAppService_clientAffinity(data, false)
+func (r AppServiceResource) clientAffinityDisabled(data acceptance.TestData) string {
+	return r.clientAffinity(data, false)
 }
 
-func testAccAzureRMAppService_clientAffinity(data acceptance.TestData, clientAffinity bool) string {
+func (r AppServiceResource) clientAffinity(data acceptance.TestData, clientAffinity bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2589,7 +2303,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, clientAffinity)
 }
 
-func testAccAzureRMAppService_mangedServiceIdentity(data acceptance.TestData) string {
+func (r AppServiceResource) mangedServiceIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2624,7 +2338,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_userAssignedIdentity(data acceptance.TestData) string {
+func (r AppServiceResource) userAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2666,7 +2380,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_connectionStrings(data acceptance.TestData) string {
+func (r AppServiceResource) connectionStrings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2709,7 +2423,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_connectionStringsUpdated(data acceptance.TestData) string {
+func (r AppServiceResource) connectionStringsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2752,7 +2466,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_storageAccounts(data acceptance.TestData) string {
+func (r AppServiceResource) storageAccounts(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2807,7 +2521,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_storageAccountsUpdated(data acceptance.TestData) string {
+func (r AppServiceResource) storageAccountsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2876,7 +2590,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_oneIpv4Restriction(data acceptance.TestData) string {
+func (r AppServiceResource) oneIpv4Restriction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2914,7 +2628,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_oneIpv6Restriction(data acceptance.TestData) string {
+func (r AppServiceResource) oneIpv6Restriction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2952,7 +2666,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_completeIpRestriction(data acceptance.TestData) string {
+func (r AppServiceResource) completeIpRestriction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2992,7 +2706,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_manyCompleteIpRestrictions(data acceptance.TestData) string {
+func (r AppServiceResource) manyCompleteIpRestrictions(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3045,7 +2759,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_oneVNetSubnetIpRestriction(data acceptance.TestData) string {
+func (r AppServiceResource) oneVNetSubnetIpRestriction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3096,7 +2810,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_manyIpRestrictions(data acceptance.TestData) string {
+func (r AppServiceResource) manyIpRestrictions(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3145,7 +2859,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_zeroedIpRestriction(data acceptance.TestData) string {
+func (r AppServiceResource) zeroedIpRestriction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3180,7 +2894,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_scmUseMainIPRestriction(data acceptance.TestData) string {
+func (r AppServiceResource) scmUseMainIPRestriction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3215,7 +2929,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_scmOneIpRestriction(data acceptance.TestData) string {
+func (r AppServiceResource) scmOneIpRestriction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3253,7 +2967,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_completeScmIpRestriction(data acceptance.TestData) string {
+func (r AppServiceResource) completeScmIpRestriction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3293,7 +3007,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_manyCompleteScmIpRestrictions(data acceptance.TestData) string {
+func (r AppServiceResource) manyCompleteScmIpRestrictions(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3340,7 +3054,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_oneVNetSubnetScmIpRestriction(data acceptance.TestData) string {
+func (r AppServiceResource) oneVNetSubnetScmIpRestriction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3391,7 +3105,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_zeroedScmIpRestriction(data acceptance.TestData) string {
+func (r AppServiceResource) zeroedScmIpRestriction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3426,7 +3140,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_manyScmIpRestrictions(data acceptance.TestData) string {
+func (r AppServiceResource) manyScmIpRestrictions(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3475,7 +3189,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_defaultDocuments(data acceptance.TestData) string {
+func (r AppServiceResource) defaultDocuments(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3514,7 +3228,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_enabled(data acceptance.TestData) string {
+func (r AppServiceResource) enabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3546,7 +3260,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_localMySql(data acceptance.TestData) string {
+func (r AppServiceResource) localMySql(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3581,7 +3295,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_applicationBlobStorageLogs(data acceptance.TestData) string {
+func (r AppServiceResource) applicationBlobStorageLogs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3623,7 +3337,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_applicationBlobStorageLogsWithAppSettings(data acceptance.TestData) string {
+func (r AppServiceResource) applicationBlobStorageLogsWithAppSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3667,7 +3381,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_httpFileSystemLogs(data acceptance.TestData) string {
+func (r AppServiceResource) httpFileSystemLogs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3707,8 +3421,8 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_httpBlobStorageLogs(data acceptance.TestData) string {
-	template := testAccAzureRMAppService_backupTemplate(data)
+func (r AppServiceResource) httpBlobStorageLogs(data acceptance.TestData) string {
+	template := r.backupTemplate(data)
 	return fmt.Sprintf(`
 %s
 
@@ -3730,8 +3444,8 @@ resource "azurerm_app_service" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_httpFileSystemAndStorageBlobLogs(data acceptance.TestData) string {
-	template := testAccAzureRMAppService_backupTemplate(data)
+func (r AppServiceResource) httpFileSystemAndStorageBlobLogs(data acceptance.TestData) string {
+	template := r.backupTemplate(data)
 	return fmt.Sprintf(`
 %s
 
@@ -3760,7 +3474,7 @@ resource "azurerm_app_service" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_managedPipelineMode(data acceptance.TestData) string {
+func (r AppServiceResource) managedPipelineMode(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3795,7 +3509,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_remoteDebugging(data acceptance.TestData) string {
+func (r AppServiceResource) remoteDebugging(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3835,7 +3549,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_tags(data acceptance.TestData) string {
+func (r AppServiceResource) tags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3870,7 +3584,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_tagsUpdated(data acceptance.TestData) string {
+func (r AppServiceResource) tagsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3906,7 +3620,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_windowsDotNet(data acceptance.TestData, version string) string {
+func (r AppServiceResource) windowsDotNet(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3941,7 +3655,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, version)
 }
 
-func testAccAzureRMAppService_windowsJava(data acceptance.TestData, javaVersion, container, containerVersion string) string {
+func (r AppServiceResource) windowsJava(data acceptance.TestData, javaVersion, container, containerVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3978,7 +3692,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, javaVersion, container, containerVersion)
 }
 
-func testAccAzureRMAppService_windowsPHP(data acceptance.TestData) string {
+func (r AppServiceResource) windowsPHP(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4013,7 +3727,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_windowsPython(data acceptance.TestData) string {
+func (r AppServiceResource) windowsPython(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4048,7 +3762,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_webSockets(data acceptance.TestData) string {
+func (r AppServiceResource) webSockets(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4083,7 +3797,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_scmType(data acceptance.TestData) string {
+func (r AppServiceResource) scmType(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4118,7 +3832,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_withSourceControl(data acceptance.TestData, branch string) string {
+func (r AppServiceResource) withSourceControl(data acceptance.TestData, branch string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4156,7 +3870,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, branch)
 }
 
-func testAccAzureRMAppService_ftpsState(data acceptance.TestData) string {
+func (r AppServiceResource) ftpsState(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4191,7 +3905,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_healthCheckPath(data acceptance.TestData) string {
+func (r AppServiceResource) healthCheckPath(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4226,7 +3940,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_linuxFxVersion(data acceptance.TestData) string {
+func (r AppServiceResource) linuxFxVersion(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4268,7 +3982,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_minTls(data acceptance.TestData, tlsVersion string) string {
+func (r AppServiceResource) minTls(data acceptance.TestData, tlsVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4303,7 +4017,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, tlsVersion)
 }
 
-func testAccAzureRMAppService_corsSettings(data acceptance.TestData) string {
+func (r AppServiceResource) corsSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4346,7 +4060,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_authSettingsAdditionalLoginParams(data acceptance.TestData, tenantID string) string {
+func (r AppServiceResource) authSettingsAdditionalLoginParams(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4401,7 +4115,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, tenantID)
 }
 
-func testAccAzureRMAppService_authSettingsAdditionalAllowedExternalRedirectUrls(data acceptance.TestData, tenantID string) string {
+func (r AppServiceResource) authSettingsAdditionalAllowedExternalRedirectUrls(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4456,7 +4170,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, tenantID)
 }
 
-func testAccAzureRMAppService_authSettingsRuntimeVersion(data acceptance.TestData, tenantID string) string {
+func (r AppServiceResource) authSettingsRuntimeVersion(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4508,7 +4222,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, tenantID)
 }
 
-func testAccAzureRMAppService_authSettingsTokenRefreshExtensionHours(data acceptance.TestData, tenantID string) string {
+func (r AppServiceResource) authSettingsTokenRefreshExtensionHours(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4560,7 +4274,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, tenantID)
 }
 
-func testAccAzureRMAppService_authSettingsTokenStoreEnabled(data acceptance.TestData, tenantID string) string {
+func (r AppServiceResource) authSettingsTokenStoreEnabled(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4612,7 +4326,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, tenantID)
 }
 
-func testAccAzureRMAppService_authSettingsUnauthenticatedClientAction(data acceptance.TestData, tenantID string) string {
+func (r AppServiceResource) authSettingsUnauthenticatedClientAction(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4664,7 +4378,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, tenantID)
 }
 
-func testAccAzureRMAppService_aadAuthSettings(data acceptance.TestData, tenantID string) string {
+func (r AppServiceResource) aadAuthSettings(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4715,7 +4429,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, tenantID)
 }
 
-func testAccAzureRMAppService_facebookAuthSettings(data acceptance.TestData) string {
+func (r AppServiceResource) facebookAuthSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4765,7 +4479,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_googleAuthSettings(data acceptance.TestData) string {
+func (r AppServiceResource) googleAuthSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4815,7 +4529,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_microsoftAuthSettings(data acceptance.TestData) string {
+func (r AppServiceResource) microsoftAuthSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4865,7 +4579,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_twitterAuthSettings(data acceptance.TestData) string {
+func (r AppServiceResource) twitterAuthSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4911,7 +4625,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_aadMicrosoftAuthSettings(data acceptance.TestData, tenantID string) string {
+func (r AppServiceResource) aadMicrosoftAuthSettings(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4972,7 +4686,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, tenantID, web.BuiltInAuthenticationProviderAzureActiveDirectory)
 }
 
-func testAccAzureRMAppService_basicWindowsContainer(data acceptance.TestData) string {
+func (r AppServiceResource) basicWindowsContainer(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -5015,7 +4729,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_inAppServiceEnvironment(data acceptance.TestData) string {
+func (r AppServiceResource) inAppServiceEnvironment(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -1,32 +1,28 @@
-package tests
+package web_test
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
+
+type AppServicePlanDataSource struct{}
 
 func TestAccDataSourceAzureRMAppServicePlan_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service_plan", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAppServicePlan_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "kind", "Windows"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.tier", "Basic"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.size", "B1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: AppServicePlanDataSource{}.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				resource.TestCheckResourceAttr(data.ResourceName, "kind", "Windows"),
+				resource.TestCheckResourceAttr(data.ResourceName, "sku.#", "1"),
+				resource.TestCheckResourceAttr(data.ResourceName, "sku.0.tier", "Basic"),
+				resource.TestCheckResourceAttr(data.ResourceName, "sku.0.size", "B1"),
+				resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
+			),
 		},
 	})
 }
@@ -34,22 +30,17 @@ func TestAccDataSourceAzureRMAppServicePlan_basic(t *testing.T) {
 func TestAccDataSourceAzureRMAppServicePlan_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service_plan", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAppServicePlan_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "kind", "Windows"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.tier", "Standard"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.size", "S1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Test"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: AppServicePlanDataSource{}.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				resource.TestCheckResourceAttr(data.ResourceName, "kind", "Windows"),
+				resource.TestCheckResourceAttr(data.ResourceName, "sku.#", "1"),
+				resource.TestCheckResourceAttr(data.ResourceName, "sku.0.tier", "Standard"),
+				resource.TestCheckResourceAttr(data.ResourceName, "sku.0.size", "S1"),
+				resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+				resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Test"),
+			),
 		},
 	})
 }
@@ -57,21 +48,16 @@ func TestAccDataSourceAzureRMAppServicePlan_complete(t *testing.T) {
 func TestAccDataSourceAzureRMAppServicePlan_premiumSKU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service_plan", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAppServicePlan_premiumSKU(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "kind", "elastic"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.tier", "ElasticPremium"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.size", "EP1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "maximum_elastic_worker_count", "20"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: AppServicePlanDataSource{}.premiumSKU(data),
+			Check: resource.ComposeTestCheckFunc(
+				resource.TestCheckResourceAttr(data.ResourceName, "kind", "elastic"),
+				resource.TestCheckResourceAttr(data.ResourceName, "sku.#", "1"),
+				resource.TestCheckResourceAttr(data.ResourceName, "sku.0.tier", "ElasticPremium"),
+				resource.TestCheckResourceAttr(data.ResourceName, "sku.0.size", "EP1"),
+				resource.TestCheckResourceAttr(data.ResourceName, "maximum_elastic_worker_count", "20"),
+			),
 		},
 	})
 }
@@ -79,26 +65,21 @@ func TestAccDataSourceAzureRMAppServicePlan_premiumSKU(t *testing.T) {
 func TestAccDataSourceAzureRMAppServicePlan_basicWindowsContainer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service_plan", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAppServicePlan_basicWindowsContainer(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "kind", "xenon"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.tier", "PremiumContainer"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.size", "PC2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "is_xenon", "true"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: AppServicePlanDataSource{}.basicWindowsContainer(data),
+			Check: resource.ComposeTestCheckFunc(
+				resource.TestCheckResourceAttr(data.ResourceName, "kind", "xenon"),
+				resource.TestCheckResourceAttr(data.ResourceName, "sku.#", "1"),
+				resource.TestCheckResourceAttr(data.ResourceName, "sku.0.tier", "PremiumContainer"),
+				resource.TestCheckResourceAttr(data.ResourceName, "sku.0.size", "PC2"),
+				resource.TestCheckResourceAttr(data.ResourceName, "is_xenon", "true"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAppServicePlan_basic(data acceptance.TestData) string {
+func (d AppServicePlanDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -127,7 +108,7 @@ data "azurerm_app_service_plan" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccDataSourceAppServicePlan_complete(data acceptance.TestData) string {
+func (d AppServicePlanDataSource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -163,7 +144,7 @@ data "azurerm_app_service_plan" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccDataSourceAppServicePlan_premiumSKU(data acceptance.TestData) string {
+func (d AppServicePlanDataSource) premiumSKU(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -200,7 +181,7 @@ data "azurerm_app_service_plan" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccDataSourceAppServicePlan_basicWindowsContainer(data acceptance.TestData) string {
+func (d AppServicePlanDataSource) basicWindowsContainer(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

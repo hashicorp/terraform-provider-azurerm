@@ -1,153 +1,105 @@
-package tests
+package web_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type AppServiceHybridConnectionResource struct{}
+
 func TestAccAzureRMAppServiceHybridConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_hybrid_connection", "test")
+	r := AppServiceHybridConnectionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceHybridConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppServiceHybridConnection_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceHybridConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppServiceHybridConnection_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_hybrid_connection", "test")
+	r := AppServiceHybridConnectionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceHybridConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppServiceHybridConnection_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceHybridConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMAppServiceHybridConnection_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceHybridConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppServiceHybridConnection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_hybrid_connection", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceHybridConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppServiceHybridConnection_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceHybridConnectionExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMAppServiceHybridConnection_requiresImport),
+	r := AppServiceHybridConnectionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
 func TestAccAzureRMAppServiceHybridConnection_differentResourceGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_hybrid_connection", "test")
+	r := AppServiceHybridConnectionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceHybridConnectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppServiceHybridConnection_differentResourceGroup(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceHybridConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.differentResourceGroup(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMAppServiceHybridConnectionDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServicesClient
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_app_service_hybrid_connection" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resGroup := rs.Primary.Attributes["resource_group_name"]
-		namespaceName := rs.Primary.Attributes["namespace_name"]
-		relayName := rs.Primary.Attributes["relay_name"]
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		resp, err := client.GetHybridConnection(ctx, resGroup, name, namespaceName, relayName)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
-
-		return nil
+func (r AppServiceHybridConnectionResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.HybridConnectionID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-	return nil
+
+	resp, err := client.Web.AppServicesClient.GetHybridConnection(ctx, id.ResourceGroup, id.SiteName, id.HybridConnectionNamespaceName, id.RelayName)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
+		}
+		return nil, fmt.Errorf("retrieving Hybrid Connection for App Service %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+	}
+	return utils.Bool(true), nil
 }
 
-func testCheckAzureRMAppServiceHybridConnectionExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["app_service_name"]
-		resGroup := rs.Primary.Attributes["resource_group_name"]
-		namespaceName := rs.Primary.Attributes["namespace_name"]
-		relayName := rs.Primary.Attributes["relay_name"]
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServicesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		resp, err := conn.GetHybridConnection(ctx, resGroup, name, namespaceName, relayName)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: App Service Hybrid Connection %q (resource group: %q) does not exist", name, resGroup)
-			}
-
-			return fmt.Errorf("Bad: GetHybridConnection on appServicesClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testAccAzureRMAppServiceHybridConnection_template(data acceptance.TestData) string {
+func (r AppServiceHybridConnectionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -194,8 +146,8 @@ resource "azurerm_relay_hybrid_connection" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceHybridConnection_basic(data acceptance.TestData) string {
-	template := testAccAzureRMAppServiceHybridConnection_template(data)
+func (r AppServiceHybridConnectionResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_app_service_hybrid_connection" "test" {
@@ -209,8 +161,8 @@ resource "azurerm_app_service_hybrid_connection" "test" {
 `, template)
 }
 
-func testAccAzureRMAppServiceHybridConnection_update(data acceptance.TestData) string {
-	template := testAccAzureRMAppServiceHybridConnection_template(data)
+func (r AppServiceHybridConnectionResource) update(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_app_service_hybrid_connection" "test" {
@@ -224,8 +176,8 @@ resource "azurerm_app_service_hybrid_connection" "test" {
 `, template)
 }
 
-func testAccAzureRMAppServiceHybridConnection_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMAppServiceHybridConnection_basic(data)
+func (r AppServiceHybridConnectionResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -240,7 +192,7 @@ resource "azurerm_app_service_hybrid_connection" "import" {
 `, template)
 }
 
-func testAccAzureRMAppServiceHybridConnection_differentResourceGroup(data acceptance.TestData) string {
+func (r AppServiceHybridConnectionResource) differentResourceGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

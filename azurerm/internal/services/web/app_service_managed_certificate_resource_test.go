@@ -1,4 +1,4 @@
-package tests
+package web_test
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-type AppServiceManagedCertificate struct{}
+type AppServiceManagedCertificateResource struct{}
 
 func TestAccAzureRMAppServiceManagedCertificate_basicLinux(t *testing.T) {
 	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
@@ -24,8 +24,8 @@ func TestAccAzureRMAppServiceManagedCertificate_basicLinux(t *testing.T) {
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service_managed_certificate", "test")
+	r := AppServiceManagedCertificateResource{}
 
-	r := AppServiceManagedCertificate{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicLinux(data),
@@ -36,15 +36,15 @@ func TestAccAzureRMAppServiceManagedCertificate_basicLinux(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceManagedCertificate_basicImport(t *testing.T) {
+func TestAccAzureRMAppServiceManagedCertificate_requiresImport(t *testing.T) {
 	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
 		t.Skip("Skipping as ARM_TEST_DNS_ZONE and/or ARM_TEST_DATA_RESOURCE_GROUP are not specified")
 		return
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service_managed_certificate", "test")
+	r := AppServiceManagedCertificateResource{}
 
-	r := AppServiceManagedCertificate{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicLinux(data),
@@ -52,7 +52,7 @@ func TestAccAzureRMAppServiceManagedCertificate_basicImport(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.RequiresImportErrorStep(r.basicImport),
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
@@ -63,8 +63,8 @@ func TestAccAzureRMAppServiceManagedCertificate_basicWindows(t *testing.T) {
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service_managed_certificate", "test")
+	r := AppServiceManagedCertificateResource{}
 
-	r := AppServiceManagedCertificate{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basicWindows(data),
@@ -75,7 +75,7 @@ func TestAccAzureRMAppServiceManagedCertificate_basicWindows(t *testing.T) {
 	})
 }
 
-func (t AppServiceManagedCertificate) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t AppServiceManagedCertificateResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.ManagedCertificateID(state.ID)
 	if err != nil {
 		return nil, err
@@ -83,13 +83,16 @@ func (t AppServiceManagedCertificate) Exists(ctx context.Context, clients *clien
 
 	resp, err := clients.Web.CertificatesClient.Get(ctx, id.ResourceGroup, id.CertificateName)
 	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
+		}
 		return nil, fmt.Errorf("App Service Managed Certificate %q (resource group %q) does not exist", id.CertificateName, id.ResourceGroup)
 	}
 
 	return utils.Bool(resp.CertificateProperties != nil), nil
 }
 
-func (t AppServiceManagedCertificate) basicLinux(data acceptance.TestData) string {
+func (t AppServiceManagedCertificateResource) basicLinux(data acceptance.TestData) string {
 	template := t.linuxTemplate(data)
 	return fmt.Sprintf(`
 %s
@@ -101,7 +104,7 @@ resource "azurerm_app_service_managed_certificate" "test" {
 `, template)
 }
 
-func (t AppServiceManagedCertificate) basicImport(data acceptance.TestData) string {
+func (t AppServiceManagedCertificateResource) requiresImport(data acceptance.TestData) string {
 	template := t.basicLinux(data)
 	return fmt.Sprintf(`
 %s
@@ -113,7 +116,7 @@ resource "azurerm_app_service_managed_certificate" "import" {
 `, template)
 }
 
-func (AppServiceManagedCertificate) linuxTemplate(data acceptance.TestData) string {
+func (AppServiceManagedCertificateResource) linuxTemplate(data acceptance.TestData) string {
 	dnsZone := os.Getenv("ARM_TEST_DNS_ZONE")
 	dataResourceGroup := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
 	return fmt.Sprintf(`
@@ -180,7 +183,7 @@ resource "azurerm_app_service_custom_hostname_binding" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, dnsZone, dataResourceGroup, data.RandomString, data.RandomString)
 }
 
-func (t AppServiceManagedCertificate) basicWindows(data acceptance.TestData) string {
+func (t AppServiceManagedCertificateResource) basicWindows(data acceptance.TestData) string {
 	template := t.windowsTemplate(data)
 	return fmt.Sprintf(`
 %s
@@ -192,7 +195,7 @@ resource "azurerm_app_service_managed_certificate" "test" {
 `, template)
 }
 
-func (AppServiceManagedCertificate) windowsTemplate(data acceptance.TestData) string {
+func (AppServiceManagedCertificateResource) windowsTemplate(data acceptance.TestData) string {
 	dnsZone := os.Getenv("ARM_TEST_DNS_ZONE")
 	dataResourceGroup := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
 	return fmt.Sprintf(`
