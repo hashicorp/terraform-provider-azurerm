@@ -218,24 +218,24 @@ func resourceArmNetworkPacketCaptureRead(d *schema.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NetworkPacketCaptureID(d.Id())
+	id, err := parse.PacketCaptureID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WatcherName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] Packet Capture %q (Watcher %q / Resource Group %q) %qw not found - removing from state", id.Name, id.WatcherName, id.ResourceGroup, id)
+			log.Printf("[WARN] Packet Capture %q (Watcher %q / Resource Group %q) %qw not found - removing from state", id.Name, id.NetworkWatcherName, id.ResourceGroup, id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Packet Capture %q (Watcher %q / Resource Group %q) %+v", id.Name, id.WatcherName, id.ResourceGroup, err)
+		return fmt.Errorf("Error reading Packet Capture %q (Watcher %q / Resource Group %q) %+v", id.Name, id.NetworkWatcherName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
-	d.Set("network_watcher_name", id.WatcherName)
+	d.Set("network_watcher_name", id.NetworkWatcherName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.PacketCaptureResultProperties; props != nil {
@@ -263,18 +263,18 @@ func resourceArmNetworkPacketCaptureDelete(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NetworkPacketCaptureID(d.Id())
+	id, err := parse.PacketCaptureID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.WatcherName, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting Packet Capture %q (Watcher %q / Resource Group %q): %+v", id.Name, id.WatcherName, id.ResourceGroup, err)
+		return fmt.Errorf("Error deleting Packet Capture %q (Watcher %q / Resource Group %q): %+v", id.Name, id.NetworkWatcherName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
@@ -282,7 +282,7 @@ func resourceArmNetworkPacketCaptureDelete(d *schema.ResourceData, meta interfac
 			return nil
 		}
 
-		return fmt.Errorf("Error waiting for the deletion of Packet Capture %q (Watcher %q / Resource Group %q): %+v", id.Name, id.WatcherName, id.ResourceGroup, err)
+		return fmt.Errorf("Error waiting for the deletion of Packet Capture %q (Watcher %q / Resource Group %q): %+v", id.Name, id.NetworkWatcherName, id.ResourceGroup, err)
 	}
 
 	return nil

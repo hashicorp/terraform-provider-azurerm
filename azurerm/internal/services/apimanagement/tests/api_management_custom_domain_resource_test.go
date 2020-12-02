@@ -100,7 +100,7 @@ func testCheckAzureRMApiManagementCustomDomainDestroy(s *terraform.State) error 
 		}
 
 		customDomainId := rs.Primary.ID
-		id, err := parse.ApiManagementCustomDomainID(customDomainId)
+		id, err := parse.CustomDomainID(customDomainId)
 		if err != nil {
 			return fmt.Errorf("Error parsing ID %q for API Management Custom Domain: %+v", customDomainId, err)
 		}
@@ -136,7 +136,7 @@ func testCheckAzureRMApiManagementCustomDomainExists(name string) resource.TestC
 		}
 
 		customDomainId := rs.Primary.ID
-		id, err := parse.ApiManagementCustomDomainID(customDomainId)
+		id, err := parse.CustomDomainID(customDomainId)
 		if err != nil {
 			return fmt.Errorf("Error parsing ID %q for API Management Custom Domain: %+v", customDomainId, err)
 		}

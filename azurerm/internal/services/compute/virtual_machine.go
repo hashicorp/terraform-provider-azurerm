@@ -358,7 +358,7 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *compute.Disks
 				return nil, err
 			}
 
-			disk, err := disksClient.Get(ctx, id.ResourceGroup, id.Name)
+			disk, err := disksClient.Get(ctx, id.ResourceGroup, id.DiskName)
 			if err != nil {
 				// turns out ephemeral disks aren't returned/available here
 				if !utils.ResponseWasNotFound(disk.Response) {

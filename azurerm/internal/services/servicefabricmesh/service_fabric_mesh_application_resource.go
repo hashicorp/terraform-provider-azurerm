@@ -29,7 +29,7 @@ func resourceArmServiceFabricMeshApplication() *schema.Resource {
 		Update: resourceArmServiceFabricMeshApplicationCreateUpdate,
 		Delete: resourceArmServiceFabricMeshApplicationDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.ServiceFabricMeshApplicationID(id)
+			_, err := parse.ApplicationID(id)
 			return err
 		}),
 
@@ -210,7 +210,7 @@ func resourceArmServiceFabricMeshApplicationRead(d *schema.ResourceData, meta in
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServiceFabricMeshApplicationID(d.Id())
+	id, err := parse.ApplicationID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -252,7 +252,7 @@ func resourceArmServiceFabricMeshApplicationDelete(d *schema.ResourceData, meta 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServiceFabricMeshApplicationID(d.Id())
+	id, err := parse.ApplicationID(d.Id())
 	if err != nil {
 		return err
 	}

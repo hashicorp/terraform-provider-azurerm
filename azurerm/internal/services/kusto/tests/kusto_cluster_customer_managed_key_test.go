@@ -106,7 +106,7 @@ func testCheckAzureRMKustoClusterWithCustomerManagedKeyExists(resourceName strin
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.KustoClusterID(rs.Primary.ID)
+		id, err := parse.ClusterID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -141,7 +141,7 @@ func testCheckAzureRMKustoClusterExistsWithoutCustomerManagedKey(resourceName st
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.KustoClusterID(rs.Primary.ID)
+		id, err := parse.ClusterID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

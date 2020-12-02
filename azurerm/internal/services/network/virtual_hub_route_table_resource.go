@@ -34,7 +34,7 @@ func resourceArmVirtualHubRouteTable() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.VirtualHubRouteTableID(id)
+			_, err := parse.HubRouteTableID(id)
 			return err
 		}),
 
@@ -43,14 +43,14 @@ func resourceArmVirtualHubRouteTable() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.VirtualHubRouteTableName,
+				ValidateFunc: networkValidate.HubRouteTableName,
 			},
 
 			"virtual_hub_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.ValidateVirtualHubID,
+				ValidateFunc: networkValidate.VirtualHubID,
 			},
 
 			"labels": {
@@ -172,12 +172,11 @@ func resourceArmVirtualHubRouteTableCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmVirtualHubRouteTableRead(d *schema.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.HubRouteTableClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualHubRouteTableID(d.Id())
+	id, err := parse.HubRouteTableID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -194,7 +193,7 @@ func resourceArmVirtualHubRouteTableRead(d *schema.ResourceData, meta interface{
 	}
 
 	d.Set("name", id.Name)
-	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.ResourceGroup, id.VirtualHubName).ID(subscriptionId))
+	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName).ID(""))
 
 	if props := resp.HubRouteTableProperties; props != nil {
 		d.Set("labels", utils.FlattenStringSlice(props.Labels))
@@ -211,7 +210,7 @@ func resourceArmVirtualHubRouteTableDelete(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualHubRouteTableID(d.Id())
+	id, err := parse.HubRouteTableID(d.Id())
 	if err != nil {
 		return err
 	}

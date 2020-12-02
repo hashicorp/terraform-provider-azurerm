@@ -103,7 +103,7 @@ func dataSourceArmAppServiceEnvironmentRead(d *schema.ResourceData, meta interfa
 
 		pricingTier := ""
 		if props.MultiSize != nil {
-			pricingTier = convertFromIsolatedSKU(*props.MultiSize)
+			pricingTier = convertToIsolatedSKU(*props.MultiSize)
 		}
 		d.Set("pricing_tier", pricingTier)
 	}

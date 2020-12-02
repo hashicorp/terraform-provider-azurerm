@@ -177,7 +177,7 @@ func resourceArmApiManagementApiVersionSetRead(d *schema.ResourceData, meta inte
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.APIVersionSetID(d.Id())
+	id, err := parse.ApiVersionSetID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -213,7 +213,7 @@ func resourceArmApiManagementApiVersionSetDelete(d *schema.ResourceData, meta in
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.APIVersionSetID(d.Id())
+	id, err := parse.ApiVersionSetID(d.Id())
 	if err != nil {
 		return err
 	}

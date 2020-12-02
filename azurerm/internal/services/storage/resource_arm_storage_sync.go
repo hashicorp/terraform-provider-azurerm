@@ -28,7 +28,7 @@ func resourceArmStorageSync() *schema.Resource {
 		Delete: resourceArmStorageSyncDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.ParseStorageSyncID(id)
+			_, err := parse.StorageSyncServiceID(id)
 			return err
 		}),
 
@@ -118,7 +118,7 @@ func resourceArmStorageSyncRead(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ParseStorageSyncID(d.Id())
+	id, err := parse.StorageSyncServiceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -146,7 +146,7 @@ func resourceArmStorageSyncUpdate(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ParseStorageSyncID(d.Id())
+	id, err := parse.StorageSyncServiceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -180,7 +180,7 @@ func resourceArmStorageSyncDelete(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ParseStorageSyncID(d.Id())
+	id, err := parse.StorageSyncServiceID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -84,7 +84,7 @@ func testCheckAzureRMMySQLServerKeyDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.MySQLServerKeyID(rs.Primary.ID)
+		id, err := parse.KeyID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -113,7 +113,7 @@ func testCheckAzureRMMySQLServerKeyExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.MySQLServerKeyID(rs.Primary.ID)
+		id, err := parse.KeyID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
