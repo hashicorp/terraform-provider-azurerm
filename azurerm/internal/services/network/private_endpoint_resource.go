@@ -214,7 +214,7 @@ func resourceArmPrivateEndpointCreate(d *schema.ResourceData, meta interface{}) 
 	client := meta.(*clients.Client).Network.PrivateEndpointClient
 	dnsClient := meta.(*clients.Client).Network.PrivateDnsZoneGroupClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := parse.NewPrivateEndpointID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
