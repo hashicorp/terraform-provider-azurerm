@@ -31,7 +31,7 @@ func resourceArmFunctionApp() *schema.Resource {
 		Update: resourceArmFunctionAppUpdate,
 		Delete: resourceArmFunctionAppDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.FunctionAppSlotID(id)
+			_, err := parse.FunctionAppID(id)
 			return err
 		}),
 
