@@ -175,32 +175,6 @@ func (r AppServiceEnvironmentResource) Exists(ctx context.Context, client *clien
 	return utils.Bool(true), nil
 }
 
-func testCheckAzureRMAppServiceEnvironmentDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServiceEnvironmentsClient
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_app_service_environment" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
-
-		return nil
-	}
-
-	return nil
-}
-
 func (r AppServiceEnvironmentResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`

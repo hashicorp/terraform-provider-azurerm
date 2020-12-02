@@ -836,40 +836,10 @@ func (r FunctionAppResource) Exists(ctx context.Context, client *clients.Client,
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Function App %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving Function App %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(true), nil
-}
-
-func testCheckAzureRMFunctionAppExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServicesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		functionAppName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Function App: %s", functionAppName)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, functionAppName)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Function App %q (resource group: %q) does not exist", functionAppName, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on appServicesClient: %+v", err)
-		}
-
-		return nil
-	}
 }
 
 func testCheckAzureRMFunctionAppHasContentShare(resourceName string) resource.TestCheckFunc {

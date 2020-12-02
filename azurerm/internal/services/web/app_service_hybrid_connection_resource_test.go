@@ -94,7 +94,7 @@ func (r AppServiceHybridConnectionResource) Exists(ctx context.Context, client *
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Hybrid Connection for App Service %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving Hybrid Connection for App Service %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
 	}
 	return utils.Bool(true), nil
 }
