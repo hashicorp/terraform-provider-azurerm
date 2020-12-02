@@ -193,9 +193,7 @@ func resourceArmMediaServicesAccountRead(d *schema.ResourceData, meta interface{
 		if e := d.Set("storage_account", accounts); e != nil {
 			return fmt.Errorf("flattening `storage_account`: %s", e)
 		}
-		if storageAuthentication := props.StorageAuthentication; storageAuthentication != "" {
-			d.Set("storage_authentication", storageAuthentication)
-		}
+		d.Set("storage_authentication", string(props.StorageAuthentication))
 	}
 
 	if err := d.Set("identity", flattenAzureRmMediaServicedentity(resp.Identity)); err != nil {
