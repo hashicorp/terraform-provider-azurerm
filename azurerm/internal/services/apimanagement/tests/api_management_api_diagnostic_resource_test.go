@@ -104,11 +104,11 @@ func testCheckAzureRMApiManagementApiDiagnosticDestroy(s *terraform.State) error
 			continue
 		}
 
-		diagnosticId, err := parse.ApiManagementApiDiagnosticID(rs.Primary.ID)
+		diagnosticId, err := parse.ApiDiagnosticID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
-		resp, err := client.Get(ctx, diagnosticId.ResourceGroup, diagnosticId.ServiceName, diagnosticId.ApiName, diagnosticId.Name)
+		resp, err := client.Get(ctx, diagnosticId.ResourceGroup, diagnosticId.ServiceName, diagnosticId.ApiName, diagnosticId.DiagnosticName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err
@@ -130,15 +130,15 @@ func testCheckAzureRMApiManagementApiDiagnosticExists(resourceName string) resou
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		diagnosticId, err := parse.ApiManagementApiDiagnosticID(rs.Primary.ID)
+		diagnosticId, err := parse.ApiDiagnosticID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := client.Get(ctx, diagnosticId.ResourceGroup, diagnosticId.ServiceName, diagnosticId.ApiName, diagnosticId.Name)
+		resp, err := client.Get(ctx, diagnosticId.ResourceGroup, diagnosticId.ServiceName, diagnosticId.ApiName, diagnosticId.DiagnosticName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: API Management Diagnostic %q (Resource Group %q / API Management Service %q / API %q) does not exist", diagnosticId.Name, diagnosticId.ResourceGroup, diagnosticId.ServiceName, diagnosticId.ApiName)
+				return fmt.Errorf("bad: API Management Diagnostic %q (Resource Group %q / API Management Service %q / API %q) does not exist", diagnosticId.DiagnosticName, diagnosticId.ResourceGroup, diagnosticId.ServiceName, diagnosticId.ApiName)
 			}
 			return fmt.Errorf("bad: Get on apiManagementApiDiagnosticClient: %+v", err)
 		}

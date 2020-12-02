@@ -128,7 +128,7 @@ func resourceArmApiManagementPolicyRead(d *schema.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ApiManagementPolicyID(d.Id())
+	id, err := parse.PolicyID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -178,7 +178,7 @@ func resourceArmApiManagementPolicyDelete(d *schema.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ApiManagementPolicyID(d.Id())
+	id, err := parse.PolicyID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -13,7 +13,7 @@ func LoggerID(i interface{}, k string) (warnings []string, errors []error) {
 		return warnings, errors
 	}
 
-	if _, err := parse.ApiManagementLoggerID(v); err != nil {
+	if _, err := parse.LoggerID(v); err != nil {
 		errors = append(errors, fmt.Errorf("can not parse %q as a Api Management Logger id: %v", k, err))
 	}
 
