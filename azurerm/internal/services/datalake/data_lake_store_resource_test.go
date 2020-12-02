@@ -164,7 +164,6 @@ func (t DataLakeStoreResource) Exists(ctx context.Context, clients *clients.Clie
 	}
 
 	return utils.Bool(resp.DataLakeStoreAccountProperties != nil), nil
-
 }
 
 func (DataLakeStoreResource) basic(data acceptance.TestData) string {
