@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	keyVaultValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -64,7 +65,7 @@ func resourceArmStorageEncryptionScope() *schema.Resource {
 			"key_vault_key_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: storageValidate.KeyVaultChildId,
+				ValidateFunc: keyVaultValidate.KeyVaultChildID,
 			},
 		},
 	}
