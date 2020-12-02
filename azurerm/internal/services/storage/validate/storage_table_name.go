@@ -5,7 +5,7 @@ import (
 	"regexp"
 )
 
-func TableName(v interface{}, k string) (warnings []string, errors []error) {
+func StorageTableName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if value == "table" {
 		errors = append(errors, fmt.Errorf(
