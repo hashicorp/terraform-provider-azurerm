@@ -82,14 +82,14 @@ func resourceArmVPNGatewayConnection() *schema.Resource {
 						"associated_route_table": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.VirtualHubRouteTableID,
+							ValidateFunc: validate.HubRouteTableID,
 						},
 						"propagated_route_tables": {
 							Type:     schema.TypeList,
 							Required: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: validate.VirtualHubRouteTableID,
+								ValidateFunc: validate.HubRouteTableID,
 							},
 						},
 					},

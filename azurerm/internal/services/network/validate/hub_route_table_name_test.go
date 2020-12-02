@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestVirtualHubRouteTableName(t *testing.T) {
+func TestHubRouteTableName(t *testing.T) {
 	cases := []struct {
 		Input       string
 		ExpectError bool
@@ -28,7 +28,7 @@ func TestVirtualHubRouteTableName(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := VirtualHubRouteTableName(tc.Input, "name")
+		_, errors := HubRouteTableName(tc.Input, "name")
 
 		hasError := len(errors) > 0
 		if tc.ExpectError && !hasError {

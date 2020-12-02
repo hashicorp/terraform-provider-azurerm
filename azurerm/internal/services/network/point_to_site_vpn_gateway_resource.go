@@ -104,7 +104,7 @@ func resourceArmPointToSiteVPNGateway() *schema.Resource {
 									"associated_route_table_id": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate2.VirtualHubRouteTableID,
+										ValidateFunc: validate2.HubRouteTableID,
 									},
 
 									"propagated_route_table": {
@@ -118,7 +118,7 @@ func resourceArmPointToSiteVPNGateway() *schema.Resource {
 													Required: true,
 													Elem: &schema.Schema{
 														Type:         schema.TypeString,
-														ValidateFunc: validate2.VirtualHubRouteTableID,
+														ValidateFunc: validate2.HubRouteTableID,
 													},
 												},
 

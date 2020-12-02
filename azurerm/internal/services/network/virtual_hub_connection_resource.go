@@ -89,7 +89,7 @@ func resourceArmVirtualHubConnection() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validate.VirtualHubRouteTableID,
+							ValidateFunc: validate.HubRouteTableID,
 						},
 
 						"propagated_route_table": {
@@ -115,7 +115,7 @@ func resourceArmVirtualHubConnection() *schema.Resource {
 										Computed: true,
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
-											ValidateFunc: validate.VirtualHubRouteTableID,
+											ValidateFunc: validate.HubRouteTableID,
 										},
 									},
 								},

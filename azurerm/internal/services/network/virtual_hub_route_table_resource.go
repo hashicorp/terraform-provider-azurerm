@@ -43,7 +43,7 @@ func resourceArmVirtualHubRouteTable() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.VirtualHubRouteTableName,
+				ValidateFunc: networkValidate.HubRouteTableName,
 			},
 
 			"virtual_hub_id": {
