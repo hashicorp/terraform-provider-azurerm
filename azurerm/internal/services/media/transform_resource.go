@@ -44,8 +44,8 @@ func resourceTransform() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile("^[_-a-zA-Z0-9]{1,128}$"),
-					"Media Services Account name must be 1 - 128 characters long, can contain letters, numbers, underscores, and hyphens (but the first and last character must be a letter or number).",
+					regexp.MustCompile("^[-a-zA-Z0-9(_)]{1,128}$"),
+					"Transform name must be 1 - 128 characters long, can contain letters, numbers, underscores, and hyphens (but the first and last character must be a letter or number).",
 				),
 			},
 
@@ -90,6 +90,7 @@ func resourceTransform() *schema.Resource {
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											"BuiltInStandardEncoderPreset", "AudioAnalyzerPreset",
+											"VideoAnalyzerPreset", "FaceDetectorPreset",
 										}, true),
 									},
 
@@ -102,6 +103,27 @@ func resourceTransform() *schema.Resource {
 											"CopyAllBitrateNonInterleaved", "H264MultipleBitrate1080p",
 											"H264MultipleBitrate720p", "H264MultipleBitrateSD",
 											"H264SingleBitrate1080p", "H264SingleBitrate720p", "H264SingleBitrateSD",
+										}, true),
+									},
+
+									"audio_language": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+
+									"audio_analysis_mode": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"Basic", "Standard",
+										}, true),
+									},
+									"insights_type": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"AllInsights", "AudioInsightsOnly", "VideoInsightsOnly",
 										}, true),
 									},
 								},
@@ -256,18 +278,44 @@ func flattenTransformOutputs(input *[]media.TransformOutput) []interface{} {
 	return results
 }
 
-func expandPreset(presets []interface{}) *media.Preset {
+func expandPreset(presets []interface{}) media.BasicPreset {
 	preset := presets[0].(map[string]interface{})
 	presetType := preset["type"].(string)
 	switch presetType {
 	case "BuiltInStandardEncoderPreset":
-		presetName := preset["name"].(string)
-		builtInPreset := media.BuiltInStandardEncoderPreset{
+		presetName := preset["preset_name"].(string)
+		builtInPreset := &media.BuiltInStandardEncoderPreset{
 			PresetName: media.EncoderNamedPreset(presetName),
 			OdataType:  media.OdataTypeMicrosoftMediaBuiltInStandardEncoderPreset,
 		}
-		preset, _ := builtInPreset.AsPreset()
-		return preset
+		return builtInPreset
+	case "AudioAnalyzerPreset":
+		audioLanguage := preset["audio_language"].(string)
+		mode := preset["audio_analysis_mode"].(string)
+		audioAnalyzerPreset := &media.AudioAnalyzerPreset{
+			AudioLanguage: utils.String(audioLanguage),
+			Mode:          media.AudioAnalysisMode(mode),
+			OdataType:     media.OdataTypeMicrosoftMediaAudioAnalyzerPreset,
+		}
+		return audioAnalyzerPreset
+	case "FaceDetectorPreset":
+		analysisResolution := preset["analysis_resolution"].(string)
+		faceDetectorPreset := &media.FaceDetectorPreset{
+			Resolution: media.AnalysisResolution(analysisResolution),
+			OdataType:  media.OdataTypeMicrosoftMediaFaceDetectorPreset,
+		}
+		return faceDetectorPreset
+	case "VideoAnalyzerPreset":
+		audioLanguage := preset["audio_language"].(string)
+		mode := preset["audio_analysis_mode"].(string)
+		insightsToExtract := preset["insights_type"].(string)
+		videoAnalyzerPreset := &media.VideoAnalyzerPreset{
+			AudioLanguage:     utils.String(audioLanguage),
+			Mode:              media.AudioAnalysisMode(mode),
+			InsightsToExtract: media.InsightsType(insightsToExtract),
+			OdataType:         media.OdataTypeMicrosoftMediaVideoAnalyzerPreset,
+		}
+		return videoAnalyzerPreset
 	}
 
 	return nil
