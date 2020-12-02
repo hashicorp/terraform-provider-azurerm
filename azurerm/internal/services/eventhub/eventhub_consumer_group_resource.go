@@ -65,6 +65,14 @@ func resourceArmEventHubConsumerGroup() *schema.Resource {
 	}
 }
 
+type ConsumerGroup struct {
+	Name              string `tfschema:"name"`
+	NamespaceName     string `tfschema:"namespace_name"`
+	EventHubName      string `tfschema:"eventhub_name"`
+	ResourceGroupName string `tfschema:"resource_group_name"`
+	UserMetadata      string `tfschema:"user_metadata"`
+}
+
 func resourceArmEventHubConsumerGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.ConsumerGroupClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
