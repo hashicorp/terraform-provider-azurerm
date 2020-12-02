@@ -74,7 +74,7 @@ func TestAccFrontDoorFirewallPolicy_update(t *testing.T) {
 			Config: r.update(data, false),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckFrontDoorFirewallPolicyAttrNotExists(data.ResourceName, "custom_rule.1.name"),
+				check.That(data.ResourceName).Key("custom_rule.1.name").DoesNotExist(),
 				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("testAccFrontDoorWAF%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("mode").HasValue("Prevention"),
 			),
@@ -120,21 +120,6 @@ func (FrontDoorFirewallPolicyResource) Exists(ctx context.Context, clients *clie
 	}
 
 	return utils.Bool(resp.WebApplicationFirewallPolicyProperties != nil), nil
-}
-
-func testCheckFrontDoorFirewallPolicyAttrNotExists(name string, attribute string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
-		if !ok {
-			return fmt.Errorf("Not found: %s", name)
-		}
-
-		if testAttr := rs.Primary.Attributes[attribute]; testAttr != "" {
-			return fmt.Errorf("Attribute still exists: %s", attribute)
-		}
-
-		return nil
-	}
 }
 
 func (FrontDoorFirewallPolicyResource) basic(data acceptance.TestData) string {
