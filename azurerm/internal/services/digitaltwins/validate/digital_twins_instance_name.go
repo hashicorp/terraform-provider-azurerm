@@ -7,7 +7,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/digitaltwins/parse"
 )
 
-func DigitaltwinsInstanceName(i interface{}, k string) (warnings []string, errors []error) {
+func DigitalTwinsInstanceName(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
@@ -31,7 +31,7 @@ func DigitaltwinsInstanceName(i interface{}, k string) (warnings []string, error
 	return
 }
 
-func DigitaltwinsInstanceID(i interface{}, k string) (warnings []string, errors []error) {
+func DigitalTwinsInstanceID(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))

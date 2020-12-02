@@ -16,7 +16,7 @@ import (
 
 type DigitalTwinsEndpointEventGridResource struct{}
 
-func TestAccAzureRMDigitalTwinsEndpointEventGrid_basic(t *testing.T) {
+func TestAccDigitalTwinsEndpointEventGrid_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_digital_twins_endpoint_eventgrid", "test")
 	r := DigitalTwinsEndpointEventGridResource{}
 
@@ -31,7 +31,7 @@ func TestAccAzureRMDigitalTwinsEndpointEventGrid_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDigitalTwinsEndpointEventGrid_requiresImport(t *testing.T) {
+func TestAccDigitalTwinsEndpointEventGrid_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_digital_twins_endpoint_eventgrid", "test")
 	r := DigitalTwinsEndpointEventGridResource{}
 
@@ -46,7 +46,7 @@ func TestAccAzureRMDigitalTwinsEndpointEventGrid_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDigitalTwinsEndpointEventGrid_updateEventGrid(t *testing.T) {
+func TestAccDigitalTwinsEndpointEventGrid_updateEventGrid(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_digital_twins_endpoint_eventgrid", "test")
 	r := DigitalTwinsEndpointEventGridResource{}
 
@@ -75,7 +75,7 @@ func TestAccAzureRMDigitalTwinsEndpointEventGrid_updateEventGrid(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDigitalTwinsEndpointEventGrid_updateDeadLetter(t *testing.T) {
+func TestAccDigitalTwinsEndpointEventGrid_updateDeadLetter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_digital_twins_endpoint_eventgrid", "test")
 	r := DigitalTwinsEndpointEventGridResource{}
 

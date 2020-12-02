@@ -29,6 +29,6 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_digital_twins_instance":           resourceDigitalTwinsInstance(),
-		"azurerm_digital_twins_endpoint_eventgrid": resourceArmDigitalTwinsEndpointEventGrid(),
+		"azurerm_digital_twins_endpoint_eventgrid": resourceDigitalTwinsEndpointEventGrid(),
 	}
 }

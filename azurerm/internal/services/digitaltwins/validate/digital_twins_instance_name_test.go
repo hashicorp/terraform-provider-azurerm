@@ -59,7 +59,7 @@ func TestDigitaltwinsInstanceName(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
-			_, err := DigitaltwinsInstanceName(tt.Input, "Name")
+			_, err := DigitalTwinsInstanceName(tt.Input, "Name")
 			valid := err == nil
 			if valid != tt.Valid {
 				t.Errorf("Expected valid status %t but got %t for input %s", tt.Valid, valid, tt.Input)
