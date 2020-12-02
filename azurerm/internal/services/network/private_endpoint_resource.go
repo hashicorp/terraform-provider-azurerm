@@ -337,7 +337,7 @@ func resourceArmPrivateEndpointUpdate(d *schema.ResourceData, meta interface{}) 
 			newDnsZoneName = groupRaw["name"].(string)
 		}
 
-		needToRemove := false
+		needToRemove := newDnsZoneName == ""
 		nameHasChanged := false
 		if existingDnsZoneGroups != nil && newDnsZoneName != "" {
 			needToRemove = len(*existingDnsZoneGroups) > 0 && len(newDnsZoneGroups) == 0
