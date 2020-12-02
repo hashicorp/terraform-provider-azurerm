@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataShare() *schema.Resource {
+func resourceDataShare() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataShareCreateUpdate,
-		Read:   resourceArmDataShareRead,
-		Update: resourceArmDataShareCreateUpdate,
-		Delete: resourceArmDataShareDelete,
+		Create: resourceDataShareCreateUpdate,
+		Read:   resourceDataShareRead,
+		Update: resourceDataShareCreateUpdate,
+		Delete: resourceDataShareDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -107,7 +107,7 @@ func resourceArmDataShare() *schema.Resource {
 	}
 }
 
-func resourceArmDataShareCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataShareCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.SharesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	syncClient := meta.(*clients.Client).DataShare.SynchronizationClient
@@ -170,10 +170,10 @@ func resourceArmDataShareCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	return resourceArmDataShareRead(d, meta)
+	return resourceDataShareRead(d, meta)
 }
 
-func resourceArmDataShareRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataShareRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.SharesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	syncClient := meta.(*clients.Client).DataShare.SynchronizationClient
@@ -228,7 +228,7 @@ func resourceArmDataShareRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceArmDataShareDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataShareDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.SharesClient
 	syncClient := meta.(*clients.Client).DataShare.SynchronizationClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)

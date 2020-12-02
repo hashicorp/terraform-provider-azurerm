@@ -12,9 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-func dataSourceDataShareDatasetKustoCluster() *schema.Resource {
+func dataSourceDataShareDatasetKustoDatabase() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmDataShareDatasetKustoClusterRead,
+		Read: dataSourceDataShareDatasetKustoDatabaseRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -33,7 +33,7 @@ func dataSourceDataShareDatasetKustoCluster() *schema.Resource {
 				ValidateFunc: validate.ShareID,
 			},
 
-			"kusto_cluster_id": {
+			"kusto_database_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -51,7 +51,7 @@ func dataSourceDataShareDatasetKustoCluster() *schema.Resource {
 	}
 }
 
-func dataSourceArmDataShareDatasetKustoClusterRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDataShareDatasetKustoDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -65,24 +65,24 @@ func dataSourceArmDataShareDatasetKustoClusterRead(d *schema.ResourceData, meta 
 
 	respModel, err := client.Get(ctx, shareId.ResourceGroup, shareId.AccountName, shareId.Name, name)
 	if err != nil {
-		return fmt.Errorf("retrieving DataShare Kusto Cluster DataSet %q (Resource Group %q / accountName %q / shareName %q): %+v", name, shareId.ResourceGroup, shareId.AccountName, shareId.Name, err)
+		return fmt.Errorf("retrieving DataShare Kusto Database DataSet %q (Resource Group %q / accountName %q / shareName %q): %+v", name, shareId.ResourceGroup, shareId.AccountName, shareId.Name, err)
 	}
 
 	respId := helper.GetAzurermDataShareDataSetId(respModel.Value)
 	if respId == nil || *respId == "" {
-		return fmt.Errorf("empty or nil ID returned for DataShare Kusto Cluster DataSet %q (Resource Group %q / accountName %q / shareName %q)", name, shareId.ResourceGroup, shareId.AccountName, shareId.Name)
+		return fmt.Errorf("empty or nil ID returned for DataShare Kusto Database DataSet %q (Resource Group %q / accountName %q / shareName %q)", name, shareId.ResourceGroup, shareId.AccountName, shareId.Name)
 	}
 
 	d.SetId(*respId)
 	d.Set("name", name)
 	d.Set("share_id", shareID)
 
-	resp, ok := respModel.Value.AsKustoClusterDataSet()
+	resp, ok := respModel.Value.AsKustoDatabaseDataSet()
 	if !ok {
-		return fmt.Errorf("dataShare %q (Resource Group %q / accountName %q / shareName %q) is not kusto cluster dataset", name, shareId.ResourceGroup, shareId.AccountName, shareId.Name)
+		return fmt.Errorf("dataShare %q (Resource Group %q / accountName %q / shareName %q) is not kusto database dataset", name, shareId.ResourceGroup, shareId.AccountName, shareId.Name)
 	}
-	if props := resp.KustoClusterDataSetProperties; props != nil {
-		d.Set("kusto_cluster_id", props.KustoClusterResourceID)
+	if props := resp.KustoDatabaseDataSetProperties; props != nil {
+		d.Set("kusto_database_id", props.KustoDatabaseResourceID)
 		d.Set("display_name", props.DataSetID)
 		d.Set("kusto_cluster_location", props.Location)
 	}
