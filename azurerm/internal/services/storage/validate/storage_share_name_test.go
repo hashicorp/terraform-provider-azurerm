@@ -11,7 +11,7 @@ func TestValidateShareName(t *testing.T) {
 		"valid02-name",
 	}
 	for _, v := range validNames {
-		_, errors := ShareName(v, "name")
+		_, errors := StorageShareName(v, "name")
 		if len(errors) != 0 {
 			t.Fatalf("%q should be a valid Share Name: %q", v, errors)
 		}
@@ -27,7 +27,7 @@ func TestValidateShareName(t *testing.T) {
 		strings.Repeat("w", 65),
 	}
 	for _, v := range invalidNames {
-		if _, errors := ShareName(v, "name"); len(errors) == 0 {
+		if _, errors := StorageShareName(v, "name"); len(errors) == 0 {
 			t.Fatalf("%q should be an invalid Share Name", v)
 		}
 	}

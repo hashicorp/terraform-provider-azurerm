@@ -15,7 +15,7 @@ func TestValidateTableName(t *testing.T) {
 		strings.Repeat("w", 63),
 	}
 	for _, v := range validNames {
-		_, errors := TableName(v, "name")
+		_, errors := StorageTableName(v, "name")
 		if len(errors) != 0 {
 			t.Fatalf("%q should be a valid Storage Table Name: %q", v, errors)
 		}
@@ -30,7 +30,7 @@ func TestValidateTableName(t *testing.T) {
 		strings.Repeat("w", 64),
 	}
 	for _, v := range invalidNames {
-		_, errors := TableName(v, "name")
+		_, errors := StorageTableName(v, "name")
 		if len(errors) == 0 {
 			t.Fatalf("%q should be an invalid Storage Table Name", v)
 		}

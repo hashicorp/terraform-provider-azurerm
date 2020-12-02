@@ -2,7 +2,7 @@ package validate
 
 import "testing"
 
-func TestStorageAccountIPRule(t *testing.T) {
+func TestStorageAccountIpRule(t *testing.T) {
 	cases := []struct {
 		IPRule string
 		Errors int
@@ -39,7 +39,7 @@ func TestStorageAccountIPRule(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.IPRule, func(t *testing.T) {
-			_, errors := StorageAccountIPRule(tc.IPRule, "ip_rules")
+			_, errors := StorageAccountIpRule(tc.IPRule, "ip_rules")
 
 			if len(errors) != tc.Errors {
 				t.Fatalf("Expected StorageAccountIPRule to return %d error(s) not %d", tc.Errors, len(errors))

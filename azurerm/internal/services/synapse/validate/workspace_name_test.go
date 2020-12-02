@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestSynapseBigDataPoolName(t *testing.T) {
+func TestWorkspaceName(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
@@ -16,8 +16,13 @@ func TestSynapseBigDataPoolName(t *testing.T) {
 		},
 		{
 			// basic example
-			input:    "aBc123",
+			input:    "abc123",
 			expected: true,
+		},
+		{
+			// can't contain upper case
+			input:    "aBc123",
+			expected: false,
 		},
 		{
 			// can't contain underscore
@@ -30,18 +35,18 @@ func TestSynapseBigDataPoolName(t *testing.T) {
 			expected: false,
 		},
 		{
-			// can't start with a number
-			input:    "123abc",
+			// can't end with `ondemand`
+			input:    "abcondemand",
 			expected: false,
 		},
 		{
-			// 15 chars
-			input:    "abcdefghijklmno",
+			// 45 chars
+			input:    "abcdefghijklmnopqrstuvwxyzabcdefabcdefghijklm",
 			expected: true,
 		},
 		{
-			// 16 chars
-			input:    "abcdefghijklmnop",
+			// 46 chars
+			input:    "abcdefghijklmnopqrstuvwxyzabcdefabcdefghijklmn",
 			expected: false,
 		},
 	}
@@ -49,7 +54,7 @@ func TestSynapseBigDataPoolName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := SynapseBigDataPoolName(v.input, "name")
+		_, errors := WorkspaceName(v.input, "name")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)

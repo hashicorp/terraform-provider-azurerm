@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestSynapseWorkspaceName(t *testing.T) {
+func TestValidateServerName(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
@@ -16,12 +16,17 @@ func TestSynapseWorkspaceName(t *testing.T) {
 		},
 		{
 			// basic example
-			input:    "abc123",
+			input:    "ab-c",
 			expected: true,
 		},
 		{
-			// can't contain upper case
-			input:    "aBc123",
+			// can't contain upper case letter
+			input:    "AbcD",
+			expected: false,
+		},
+		{
+			// can't start with a hyphen
+			input:    "-abc",
 			expected: false,
 		},
 		{
@@ -30,23 +35,23 @@ func TestSynapseWorkspaceName(t *testing.T) {
 			expected: false,
 		},
 		{
-			// can't contain hyphen
-			input:    "ab-c",
+			// can't end with hyphen
+			input:    "abc-",
 			expected: false,
 		},
 		{
-			// can't end with `ondemand`
-			input:    "abcondemand",
+			// can not short than 3 characters
+			input:    "ab",
 			expected: false,
 		},
 		{
-			// 45 chars
-			input:    "abcdefghijklmnopqrstuvwxyzabcdefabcdefghijklm",
+			// 63 chars
+			input:    "abcdefghijklmnopqrstuvwxyzabcdefabcdefghijklmnopqrstuvwxyzabcde",
 			expected: true,
 		},
 		{
-			// 46 chars
-			input:    "abcdefghijklmnopqrstuvwxyzabcdefabcdefghijklmn",
+			// 64 chars
+			input:    "abcdefghijklmnopqrstuvwxyzabcdefabcdefghijklmnopqrstuvwxyzabcdef",
 			expected: false,
 		},
 	}
@@ -54,7 +59,7 @@ func TestSynapseWorkspaceName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := SynapseWorkspaceName(v.input, "name")
+		_, errors := ServerName(v.input, "name")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)

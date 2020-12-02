@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestValidatePostgresServerServerName(t *testing.T) {
+func TestSparkPoolName(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
@@ -16,18 +16,8 @@ func TestValidatePostgresServerServerName(t *testing.T) {
 		},
 		{
 			// basic example
-			input:    "ab-c",
+			input:    "aBc123",
 			expected: true,
-		},
-		{
-			// can't contain upper case letter
-			input:    "AbcD",
-			expected: false,
-		},
-		{
-			// can't start with a hyphen
-			input:    "-abc",
-			expected: false,
 		},
 		{
 			// can't contain underscore
@@ -35,23 +25,23 @@ func TestValidatePostgresServerServerName(t *testing.T) {
 			expected: false,
 		},
 		{
-			// can't end with hyphen
-			input:    "abc-",
+			// can't contain hyphen
+			input:    "ab-c",
 			expected: false,
 		},
 		{
-			// can not short than 3 characters
-			input:    "ab",
+			// can't start with a number
+			input:    "123abc",
 			expected: false,
 		},
 		{
-			// 63 chars
-			input:    "abcdefghijklmnopqrstuvwxyzabcdefabcdefghijklmnopqrstuvwxyzabcde",
+			// 15 chars
+			input:    "abcdefghijklmno",
 			expected: true,
 		},
 		{
-			// 64 chars
-			input:    "abcdefghijklmnopqrstuvwxyzabcdefabcdefghijklmnopqrstuvwxyzabcdef",
+			// 16 chars
+			input:    "abcdefghijklmnop",
 			expected: false,
 		},
 	}
@@ -59,7 +49,7 @@ func TestValidatePostgresServerServerName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := PostgreSQLServerName(v.input, "name")
+		_, errors := SparkPoolName(v.input, "name")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)

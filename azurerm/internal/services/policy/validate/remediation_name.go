@@ -3,8 +3,6 @@ package validate
 import (
 	"fmt"
 	"strings"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/parse"
 )
 
 func RemediationName(i interface{}, k string) (warnings []string, errors []error) {
@@ -29,21 +27,6 @@ func RemediationName(i interface{}, k string) (warnings []string, errors []error
 	// all upper case characters will be converted to lower cases. Therefore we forbid user to use upper case letters here
 	if v != strings.ToLower(v) {
 		errors = append(errors, fmt.Errorf("%s cannot contain upper case letters", k))
-	}
-
-	return warnings, errors
-}
-
-func RemediationID(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
-	}
-
-	if _, err := parse.PolicyRemediationID(v); err != nil {
-		errors = append(errors, fmt.Errorf("cannot parse %q as a Policy Remediation ID: %+v", k, err))
-		return
 	}
 
 	return warnings, errors

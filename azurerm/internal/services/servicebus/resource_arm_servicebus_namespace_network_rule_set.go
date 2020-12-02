@@ -47,7 +47,7 @@ func resourceServiceBusNamespaceNetworkRuleSet() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ServiceBusNamespaceName,
+				ValidateFunc: validate.NamespaceName,
 			},
 
 			"default_action": {

@@ -44,7 +44,7 @@ func resourceArmPowerBIEmbedded() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.PowerBIEmbeddedName,
+				ValidateFunc: validate.EmbeddedName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -69,7 +69,7 @@ func resourceArmPowerBIEmbedded() *schema.Resource {
 				Required: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validate.PowerBIEmbeddedAdministratorName,
+					ValidateFunc: validate.EmbeddedAdministratorName,
 				},
 			},
 

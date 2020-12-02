@@ -5,7 +5,7 @@ import (
 	"regexp"
 )
 
-func ShareName(v interface{}, k string) (warnings []string, errors []error) {
+func StorageShareName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`^[0-9a-z-]+$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
