@@ -33,9 +33,9 @@ resource "azurerm_storage_share" "example" {
 }
 
 resource "azurerm_storage_share_file" "example" {
-  name                   = "my-awesome-content.zip"
-  storage_share_id       = azurerm_storage_share.example.id
-  source                 = "some-local-file.zip"
+  name             = "my-awesome-content.zip"
+  storage_share_id = azurerm_storage_share.example.id
+  source           = "some-local-file.zip"
 }
 ```
 

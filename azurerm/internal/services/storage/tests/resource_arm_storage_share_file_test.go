@@ -254,8 +254,8 @@ func testAccAzureRMStorageShareFile_basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_storage_share_file" "test" {
-  name                 = "dir"
-  storage_share_id     = azurerm_storage_share.test.id
+  name             = "dir"
+  storage_share_id = azurerm_storage_share.test.id
 
   metadata = {
     hello = "world"
@@ -270,8 +270,8 @@ func testAccAzureRMStorageShareFile_requiresImport(data acceptance.TestData) str
 %s
 
 resource "azurerm_storage_share_file" "import" {
-  name                 = azurerm_storage_share_file.test.name
-  storage_share_id     = azurerm_storage_share.test.id
+  name             = azurerm_storage_share_file.test.name
+  storage_share_id = azurerm_storage_share.test.id
 }
 `, template)
 }
@@ -282,10 +282,10 @@ func testAccAzureRMStorageShareFile_complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_storage_share_file" "test" {
-  name                 = "dir"
-  storage_share_id     = azurerm_storage_share.test.id
+  name             = "dir"
+  storage_share_id = azurerm_storage_share.test.id
 
-  
+
   content_type        = "test_content_type"
   content_encoding    = "test_encoding"
   content_disposition = "test_content_disposition"
@@ -303,8 +303,8 @@ func testAccAzureRMStorageShareFile_withFile(data acceptance.TestData, fileName 
 %s
 
 resource "azurerm_storage_share_file" "test" {
-  name                 = "dir"
-  storage_share_id     = azurerm_storage_share.test.id
+  name             = "dir"
+  storage_share_id = azurerm_storage_share.test.id
 
   source = "%s"
 
