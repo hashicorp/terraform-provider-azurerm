@@ -1,292 +1,228 @@
-package tests
+package frontdoor_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMFrontDoor_basic(t *testing.T) {
+type FrontDoorResource struct {
+}
+
+func TestAccFrontDoor_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFrontDoor_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFrontDoorExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "backend_pool_health_probe.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "backend_pool_health_probe.0.probe_method", "GET"),
-				),
-			},
-			{
-				Config: testAccAzureRMFrontDoor_basicDisabled(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFrontDoorExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "backend_pool_health_probe.0.enabled", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "backend_pool_health_probe.0.probe_method", "HEAD"),
-				),
-			},
-			data.ImportStep(),
+	r := FrontDoorResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backend_pool_health_probe.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("backend_pool_health_probe.0.probe_method").HasValue("GET"),
+			),
 		},
+		{
+			Config: r.basicDisabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backend_pool_health_probe.0.enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("backend_pool_health_probe.0.probe_method").HasValue("HEAD"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 // remove in 3.0
-func TestAccAzureRMFrontDoor_global(t *testing.T) {
+func TestAccFrontDoor_global(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFrontDoor_global(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFrontDoorExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "location", "global"),
-				),
-				ExpectNonEmptyPlan: true,
-			},
-			data.ImportStep(),
+	r := FrontDoorResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.global(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("location").HasValue("global"),
+			),
+			ExpectNonEmptyPlan: true,
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMFrontDoor_requiresImport(t *testing.T) {
+func TestAccFrontDoor_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
+	r := FrontDoorResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFrontDoor_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFrontDoorExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMFrontDoor_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMFrontDoor_update(t *testing.T) {
+func TestAccFrontDoor_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFrontDoor_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFrontDoorExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMFrontDoor_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFrontDoorExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMFrontDoor_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFrontDoorExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := FrontDoorResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMFrontDoor_multiplePools(t *testing.T) {
+func TestAccFrontDoor_multiplePools(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFrontDoor_multiplePools(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFrontDoorExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "backend_pool.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "backend_pool_health_probe.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "backend_pool_load_balancing.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.#", "2"),
-				),
-			},
-			data.ImportStep(),
+	r := FrontDoorResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.multiplePools(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backend_pool.#").HasValue("2"),
+				check.That(data.ResourceName).Key("backend_pool_health_probe.#").HasValue("2"),
+				check.That(data.ResourceName).Key("backend_pool_load_balancing.#").HasValue("2"),
+				check.That(data.ResourceName).Key("routing_rule.#").HasValue("2"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMFrontDoor_complete(t *testing.T) {
+func TestAccFrontDoor_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFrontDoor_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFrontDoorExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := FrontDoorResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMFrontDoor_waf(t *testing.T) {
+func TestAccFrontDoor_waf(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFrontDoor_waf(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFrontDoorExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := FrontDoorResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.waf(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMFrontDoor_EnableDisableCache(t *testing.T) {
+func TestAccFrontDoor_EnableDisableCache(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFrontDoor_EnableCache(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFrontDoorExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_use_dynamic_compression", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive", "StripAll"),
-				),
-			},
-			{
-				Config: testAccAzureRMFrontDoor_DisableCache(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFrontDoorExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_enabled", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_use_dynamic_compression", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive", "StripAll"),
-				),
-			},
-			{
-				Config: testAccAzureRMFrontDoor_EnableCache(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFrontDoorExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_use_dynamic_compression", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive", "StripAll"),
-				),
-			},
-			data.ImportStep(),
+	r := FrontDoorResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.EnableCache(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_use_dynamic_compression").HasValue("false"),
+				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive").HasValue("StripAll"),
+			),
 		},
+		{
+			Config: r.DisableCache(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_use_dynamic_compression").HasValue("false"),
+				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive").HasValue("StripAll"),
+			),
+		},
+		{
+			Config: r.EnableCache(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_use_dynamic_compression").HasValue("false"),
+				check.That(data.ResourceName).Key("routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive").HasValue("StripAll"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMFrontDoor_CustomHttps(t *testing.T) {
+func TestAccFrontDoor_CustomHttps(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFrontDoor_CustomHttpsEnabled(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFrontDoorExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "frontend_endpoint.0.custom_https_provisioning_enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "frontend_endpoint.0.custom_https_configuration.0.certificate_source", "FrontDoor"),
-					resource.TestCheckResourceAttr(data.ResourceName, "frontend_endpoint.0.custom_https_configuration.0.minimum_tls_version", "1.2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "frontend_endpoint.0.custom_https_configuration.0.provisioning_state", "Enabled"),
-					resource.TestCheckResourceAttr(data.ResourceName, "frontend_endpoint.0.custom_https_configuration.0.provisioning_substate", "CertificateDeployed"),
-				),
-			},
-			{
-				Config: testAccAzureRMFrontDoor_CustomHttpsDisabled(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFrontDoorExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "frontend_endpoint.0.custom_https_provisioning_enabled", "false"),
-				),
-			},
-			data.ImportStep(),
+	r := FrontDoorResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.CustomHttpsEnabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("frontend_endpoint.0.custom_https_provisioning_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("frontend_endpoint.0.custom_https_configuration.0.certificate_source").HasValue("FrontDoor"),
+				check.That(data.ResourceName).Key("frontend_endpoint.0.custom_https_configuration.0.minimum_tls_version").HasValue("1.2"),
+				check.That(data.ResourceName).Key("frontend_endpoint.0.custom_https_configuration.0.provisioning_state").HasValue("Enabled"),
+				check.That(data.ResourceName).Key("frontend_endpoint.0.custom_https_configuration.0.provisioning_substate").HasValue("CertificateDeployed"),
+			),
 		},
+		{
+			Config: r.CustomHttpsDisabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("frontend_endpoint.0.custom_https_provisioning_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMFrontDoorExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Frontdoor.FrontDoorsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Front Door not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Front Door %q (Resource Group %q) does not exist", name, resourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on FrontDoorsClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMFrontDoorDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Frontdoor.FrontDoorsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_frontdoor" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on FrontDoorsClient: %+v", err)
-			}
-		}
-
-		return nil
+func (FrontDoorResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.FrontDoorID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Frontdoor.FrontDoorsClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Front Door %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+	}
+
+	return utils.Bool(resp.Properties != nil), nil
 }
 
-func testAccAzureRMFrontDoor_basic(data acceptance.TestData) string {
+func (FrontDoorResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -350,7 +286,7 @@ resource "azurerm_frontdoor" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMFrontDoor_basicDisabled(data acceptance.TestData) string {
+func (FrontDoorResource) basicDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -417,7 +353,7 @@ resource "azurerm_frontdoor" "test" {
 }
 
 // remove in 3.0
-func testAccAzureRMFrontDoor_global(data acceptance.TestData) string {
+func (FrontDoorResource) global(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -482,8 +418,7 @@ resource "azurerm_frontdoor" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMFrontDoor_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMFrontDoor_basic(data)
+func (r FrontDoorResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -530,10 +465,10 @@ resource "azurerm_frontdoor" "import" {
     custom_https_provisioning_enabled = false
   }
 }
-`, template, data.RandomInteger)
+`, r.basic(data), data.RandomInteger)
 }
 
-func testAccAzureRMFrontDoor_complete(data acceptance.TestData) string {
+func (FrontDoorResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -598,7 +533,7 @@ resource "azurerm_frontdoor" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMFrontDoor_waf(data acceptance.TestData) string {
+func (FrontDoorResource) waf(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -669,7 +604,7 @@ resource "azurerm_frontdoor" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMFrontDoor_DisableCache(data acceptance.TestData) string {
+func (FrontDoorResource) DisableCache(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -733,7 +668,7 @@ resource "azurerm_frontdoor" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMFrontDoor_EnableCache(data acceptance.TestData) string {
+func (FrontDoorResource) EnableCache(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -799,7 +734,7 @@ resource "azurerm_frontdoor" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMFrontDoor_CustomHttpsEnabled(data acceptance.TestData) string {
+func (FrontDoorResource) CustomHttpsEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -867,7 +802,7 @@ resource "azurerm_frontdoor" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMFrontDoor_CustomHttpsDisabled(data acceptance.TestData) string {
+func (FrontDoorResource) CustomHttpsDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -932,7 +867,7 @@ resource "azurerm_frontdoor" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMFrontDoor_multiplePools(data acceptance.TestData) string {
+func (FrontDoorResource) multiplePools(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
