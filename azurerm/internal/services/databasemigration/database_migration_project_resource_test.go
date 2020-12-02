@@ -110,8 +110,6 @@ func (t DatabaseMigrationProjectResource) Exists(ctx context.Context, clients *c
 }
 
 func (DatabaseMigrationProjectResource) basic(data acceptance.TestData) string {
-	template := DatabaseMigrationServiceResource{}.basic(data)
-
 	return fmt.Sprintf(`
 %s
 
@@ -123,12 +121,10 @@ resource "azurerm_database_migration_project" "test" {
   source_platform     = "SQL"
   target_platform     = "SQLDB"
 }
-`, template, data.RandomInteger)
+`, DatabaseMigrationServiceResource{}.basic(data), data.RandomInteger)
 }
 
 func (DatabaseMigrationProjectResource) complete(data acceptance.TestData) string {
-	template := DatabaseMigrationProjectResource{}.basic(data)
-
 	return fmt.Sprintf(`
 %s
 
@@ -143,7 +139,7 @@ resource "azurerm_database_migration_project" "test" {
     name = "Test"
   }
 }
-`, template, data.RandomInteger)
+`, DatabaseMigrationServiceResource{}.basic(data), data.RandomInteger)
 }
 
 func (DatabaseMigrationProjectResource) requiresImport(data acceptance.TestData) string {
