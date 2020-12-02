@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestValidatePostgresServerServerName(t *testing.T) {
+func TestValidateServerName(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
