@@ -1,114 +1,70 @@
 package tests
 
 import (
+	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMResourceProviderRegistration_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_resource_provider_registration", "test")
+// NOTE: this can be moved up a level when all the others are
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMResourceProviderDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMResourceProviderRegistration_basic("Microsoft.BlockchainTokens"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMResourceProviderRegistrationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+type ResourceProviderRegistrationResource struct {
+}
+
+func TestAccResourceProviderRegistration_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_provider_registration", "test")
+	r := ResourceProviderRegistrationResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic("Microsoft.BlockchainTokens"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMResourceProviderRegistration_requiresImport(t *testing.T) {
+func TestAccResourceProviderRegistration_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_provider_registration", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMResourceProviderDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMResourceProviderRegistration_basic("Wandisco.Fusion"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMResourceProviderRegistrationExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMResourceProviderRegistration_requiresImport("Wandisco.Fusion"),
-				ExpectError: acceptance.RequiresImportError("azurerm_resource_provider_registration"),
-			},
+	r := ResourceProviderRegistrationResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic("Wandisco.Fusion"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(func(data acceptance.TestData) string {
+			return r.requiresImport("Wandisco.Fusion")
+		}),
 	})
 }
 
-func testCheckAzureRMResourceProviderRegistrationExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.ProvidersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (ResourceProviderRegistrationResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	name := state.Attributes["name"]
 
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %q", resourceName)
+	resp, err := client.Resource.ProvidersClient.Get(ctx, name, "")
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
 		}
 
-		resourceProviderNamespace := rs.Primary.Attributes["name"]
-
-		resp, err := client.Get(ctx, resourceProviderNamespace, "")
-
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Resource Provider Namespace %q is not found", resourceProviderNamespace)
-			}
-			return fmt.Errorf("Bad: Get on ProvidersClient: %+v", err)
-		}
-
-		if resp.RegistrationState != nil && *resp.RegistrationState != "Registered" {
-			return fmt.Errorf("Bad: Resource Provider Namespace %q is not registered", resourceProviderNamespace)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMResourceProviderDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.ProvidersClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_resource_provider_registration" {
-			continue
-		}
-
-		resourceProviderNamespace := rs.Primary.Attributes["name"]
-
-		resp, err := client.Get(ctx, resourceProviderNamespace, "")
-
-		if err != nil {
-			return err
-		}
-
-		if resp.RegistrationState != nil && *resp.RegistrationState != "Unregistered" {
-			return fmt.Errorf("Bad: Resource Provider Namespace %q is not unregistered", resourceProviderNamespace)
-		}
-
-		return nil
+		return nil, fmt.Errorf("Bad: Get on ProvidersClient: %+v", err)
 	}
 
-	return nil
+	return utils.Bool(resp.RegistrationState != nil && strings.EqualFold(*resp.RegistrationState, "Registered")), nil
 }
 
-func testAccAzureRMResourceProviderRegistration_basic(name string) string {
+func (ResourceProviderRegistrationResource) basic(name string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -121,8 +77,8 @@ resource "azurerm_resource_provider_registration" "test" {
 `, name)
 }
 
-func testAccAzureRMResourceProviderRegistration_requiresImport(name string) string {
-	template := testAccAzureRMResourceProviderRegistration_basic(name)
+func (r ResourceProviderRegistrationResource) requiresImport(name string) string {
+	template := r.basic(name)
 	return fmt.Sprintf(`
 %s
 
