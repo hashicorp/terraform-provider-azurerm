@@ -18,7 +18,7 @@ import (
 type DataShareDataSetDataLakeGen1Resource struct {
 }
 
-func TestAccDataShareDataSetDataLakeGen1F_basicFile(t *testing.T) {
+func TestAccDataShareDataSetDataLakeGen1_basicFile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_data_lake_gen1", "test")
 	r := DataShareDataSetDataLakeGen1Resource{}
 
