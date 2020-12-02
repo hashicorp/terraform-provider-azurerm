@@ -211,7 +211,7 @@ func resourceArmIoTTimeSeriesInsightsGen2EnvironmentRead(d *schema.ResourceData,
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	if err := d.Set("id_properties", flattenIdProperties(environment.TimeSeriesIDProperties)); err != nil {
-		return fmt.Errorf("setting `id_properites`: %+v", err)
+		return fmt.Errorf("setting `id_properties`: %+v", err)
 	}
 	if props := environment.WarmStoreConfiguration; props != nil {
 		d.Set("warm_store_data_retention_time", props.DataRetention)
@@ -252,7 +252,7 @@ func convertEnvironmentSkuName(skuName string) (*timeseriesinsights.Sku, error) 
 		return nil, fmt.Errorf("sku_name %s has unknown sku tier %s", skuName, skuName)
 	}
 
-	//Gen2 cannot set capacity manually but SDK requires capacity
+	// Gen2 cannot set capacity manually but SDK requires capacity
 	capacity := utils.Int32(1)
 
 	return &timeseriesinsights.Sku{
