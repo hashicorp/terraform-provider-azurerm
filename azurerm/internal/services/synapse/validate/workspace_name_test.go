@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestSynapseWorkspaceName(t *testing.T) {
+func TestWorkspaceName(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
@@ -54,7 +54,7 @@ func TestSynapseWorkspaceName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := SynapseWorkspaceName(v.input, "name")
+		_, errors := WorkspaceName(v.input, "name")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)

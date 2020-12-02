@@ -49,7 +49,7 @@ func resourceArmSynapseSparkPool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.SynapseWorkspaceID,
+				ValidateFunc: validate.WorkspaceID,
 			},
 
 			"node_size_family": {

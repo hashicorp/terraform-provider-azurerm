@@ -48,7 +48,7 @@ func resourceArmSynapseFirewallRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.SynapseWorkspaceID,
+				ValidateFunc: validate.WorkspaceID,
 			},
 
 			"start_ip_address": {

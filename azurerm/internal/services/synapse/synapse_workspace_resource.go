@@ -47,7 +47,7 @@ func resourceArmSynapseWorkspace() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.SynapseWorkspaceName,
+				ValidateFunc: validate.WorkspaceName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
