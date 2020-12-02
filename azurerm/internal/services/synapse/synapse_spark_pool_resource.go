@@ -42,7 +42,7 @@ func resourceArmSynapseSparkPool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.SynapseBigDataPoolName,
+				ValidateFunc: validate.SparkPoolName,
 			},
 
 			"synapse_workspace_id": {

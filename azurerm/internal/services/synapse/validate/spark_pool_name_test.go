@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestSynapseBigDataPoolName(t *testing.T) {
+func TestSparkPoolName(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
@@ -49,7 +49,7 @@ func TestSynapseBigDataPoolName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := SynapseBigDataPoolName(v.input, "name")
+		_, errors := SparkPoolName(v.input, "name")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)
