@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestSynapseFirewallRuleName(t *testing.T) {
+func TestFirewallRuleName(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
@@ -49,7 +49,7 @@ func TestSynapseFirewallRuleName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := SynapseFirewallRuleName(v.input, "name")
+		_, errors := FirewallRuleName(v.input, "name")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)
