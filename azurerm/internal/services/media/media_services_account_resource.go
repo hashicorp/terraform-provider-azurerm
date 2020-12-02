@@ -189,19 +189,19 @@ func resourceArmMediaServicesAccountRead(d *schema.ResourceData, meta interface{
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if props := resp.ServiceProperties; props != nil {
+	props := resp.ServiceProperties
+	if props != nil {
 		accounts := flattenMediaServicesAccountStorageAccounts(props.StorageAccounts)
 		if e := d.Set("storage_account", accounts); e != nil {
 			return fmt.Errorf("Error flattening `storage_account`: %s", e)
+		}
+		if storageAuthentication := props.StorageAuthentication; storageAuthentication != "" {
+			d.Set("storage_authentication", storageAuthentication)
 		}
 	}
 
 	if err := d.Set("identity", flattenAzureRmMediaServicedentity(resp.Identity)); err != nil {
 		return fmt.Errorf("Error flattening `identity`: %s", err)
-	}
-
-	if storageAuthentication := resp.StorageAuthentication; storageAuthentication != "" {
-		d.Set("storage_authentication", storageAuthentication)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
