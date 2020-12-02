@@ -1,4 +1,4 @@
-package tests
+package datalake_test
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 
 // NOTE: this is intentionally an acceptance test (and we're not explicitly setting the env)
 // as we want to run this depending on the cloud we're in.
-func TestAccAzureRMDataLakeStoreFileMigrateState(t *testing.T) {
+func TestAccDataLakeStoreFileMigrateState(t *testing.T) {
 	config := acceptance.GetAuthConfig(t)
 	if config == nil {
 		t.SkipNow()
