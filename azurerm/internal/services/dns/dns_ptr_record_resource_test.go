@@ -139,7 +139,7 @@ resource "azurerm_dns_ptr_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (DnsPtrRecordResource) requiresImport(data acceptance.TestData) string {
+func (r DnsPtrRecordResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
