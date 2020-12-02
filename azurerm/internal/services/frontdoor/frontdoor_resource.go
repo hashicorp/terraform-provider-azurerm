@@ -23,12 +23,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmFrontDoor() *schema.Resource {
+func resourceFrontDoor() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmFrontDoorCreateUpdate,
-		Read:   resourceArmFrontDoorRead,
-		Update: resourceArmFrontDoorCreateUpdate,
-		Delete: resourceArmFrontDoorDelete,
+		Create: resourceFrontDoorCreateUpdate,
+		Read:   resourceFrontDoorRead,
+		Update: resourceFrontDoorCreateUpdate,
+		Delete: resourceFrontDoorDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.FrontDoorIDForImport(id)
@@ -475,7 +475,7 @@ func resourceArmFrontDoor() *schema.Resource {
 	}
 }
 
-func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Frontdoor.FrontDoorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -535,13 +535,13 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		Location: utils.String(location),
 		Properties: &frontdoor.Properties{
 			FriendlyName:          utils.String(friendlyName),
-			RoutingRules:          expandArmFrontDoorRoutingRule(routingRules, frontDoorId, subscriptionId),
-			BackendPools:          expandArmFrontDoorBackendPools(backendPools, frontDoorId, subscriptionId),
-			BackendPoolsSettings:  expandArmFrontDoorBackendPoolsSettings(backendPoolsSettings, backendPoolsSendReceiveTimeoutSeconds),
-			FrontendEndpoints:     expandArmFrontDoorFrontendEndpoint(frontendEndpoints, frontDoorId, subscriptionId),
-			HealthProbeSettings:   expandArmFrontDoorHealthProbeSettingsModel(healthProbeSettings, frontDoorId, subscriptionId),
-			LoadBalancingSettings: expandArmFrontDoorLoadBalancingSettingsModel(loadBalancingSettings, frontDoorId, subscriptionId),
-			EnabledState:          expandArmFrontDoorEnabledState(enabledState),
+			RoutingRules:          expandFrontDoorRoutingRule(routingRules, frontDoorId, subscriptionId),
+			BackendPools:          expandFrontDoorBackendPools(backendPools, frontDoorId, subscriptionId),
+			BackendPoolsSettings:  expandFrontDoorBackendPoolsSettings(backendPoolsSettings, backendPoolsSendReceiveTimeoutSeconds),
+			FrontendEndpoints:     expandFrontDoorFrontendEndpoint(frontendEndpoints, frontDoorId, subscriptionId),
+			HealthProbeSettings:   expandFrontDoorHealthProbeSettingsModel(healthProbeSettings, frontDoorId, subscriptionId),
+			LoadBalancingSettings: expandFrontDoorLoadBalancingSettingsModel(loadBalancingSettings, frontDoorId, subscriptionId),
+			EnabledState:          expandFrontDoorEnabledState(enabledState),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -589,10 +589,10 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	return resourceArmFrontDoorRead(d, meta)
+	return resourceFrontDoorRead(d, meta)
 }
 
-func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
+func resourceFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Frontdoor.FrontDoorsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -618,7 +618,7 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("location", azure.NormalizeLocation(*resp.Location))
 
 	if props := resp.Properties; props != nil {
-		flattenedBackendPools, err := flattenArmFrontDoorBackendPools(props.BackendPools, *id, subscriptionId)
+		flattenedBackendPools, err := flattenFrontDoorBackendPools(props.BackendPools, *id, subscriptionId)
 		if err != nil {
 			return fmt.Errorf("flattening `backend_pool`: %+v", err)
 		}
@@ -626,7 +626,7 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("setting `backend_pool`: %+v", err)
 		}
 
-		backendPoolSettings := flattenArmFrontDoorBackendPoolsSettings(props.BackendPoolsSettings)
+		backendPoolSettings := flattenFrontDoorBackendPoolsSettings(props.BackendPoolsSettings)
 		d.Set("enforce_backend_pools_certificate_name_check", backendPoolSettings.enforceBackendPoolsCertificateNameCheck)
 		d.Set("backend_pools_send_receive_timeout_seconds", backendPoolSettings.backendPoolsSendReceiveTimeoutSeconds)
 
@@ -650,15 +650,15 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("setting `frontend_endpoint`: %+v", err)
 		}
 
-		if err := d.Set("backend_pool_health_probe", flattenArmFrontDoorHealthProbeSettingsModel(props.HealthProbeSettings, *id, subscriptionId)); err != nil {
+		if err := d.Set("backend_pool_health_probe", flattenFrontDoorHealthProbeSettingsModel(props.HealthProbeSettings, *id, subscriptionId)); err != nil {
 			return fmt.Errorf("setting `backend_pool_health_probe`: %+v", err)
 		}
 
-		if err := d.Set("backend_pool_load_balancing", flattenArmFrontDoorLoadBalancingSettingsModel(props.LoadBalancingSettings, *id, subscriptionId)); err != nil {
+		if err := d.Set("backend_pool_load_balancing", flattenFrontDoorLoadBalancingSettingsModel(props.LoadBalancingSettings, *id, subscriptionId)); err != nil {
 			return fmt.Errorf("setting `backend_pool_load_balancing`: %+v", err)
 		}
 
-		flattenedRoutingRules, err := flattenArmFrontDoorRoutingRule(props.RoutingRules, d.Get("routing_rule"), *id, subscriptionId)
+		flattenedRoutingRules, err := flattenFrontDoorRoutingRule(props.RoutingRules, d.Get("routing_rule"), *id, subscriptionId)
 		if err != nil {
 			return fmt.Errorf("flattening `routing_rules`: %+v", err)
 		}
@@ -670,7 +670,7 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmFrontDoorDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceFrontDoorDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Frontdoor.FrontDoorsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -697,7 +697,7 @@ func resourceArmFrontDoorDelete(d *schema.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func expandArmFrontDoorBackendPools(input []interface{}, frontDoorId parse.FrontDoorId, subscriptionId string) *[]frontdoor.BackendPool {
+func expandFrontDoorBackendPools(input []interface{}, frontDoorId parse.FrontDoorId, subscriptionId string) *[]frontdoor.BackendPool {
 	if len(input) == 0 {
 		return &[]frontdoor.BackendPool{}
 	}
@@ -721,7 +721,7 @@ func expandArmFrontDoorBackendPools(input []interface{}, frontDoorId parse.Front
 			ID:   utils.String(backendPoolId),
 			Name: utils.String(backendPoolName),
 			BackendPoolProperties: &frontdoor.BackendPoolProperties{
-				Backends: expandArmFrontDoorBackend(backends),
+				Backends: expandFrontDoorBackend(backends),
 				HealthProbeSettings: &frontdoor.SubResource{
 					ID: utils.String(healthProbeId),
 				},
@@ -737,7 +737,7 @@ func expandArmFrontDoorBackendPools(input []interface{}, frontDoorId parse.Front
 	return &output
 }
 
-func expandArmFrontDoorBackend(input []interface{}) *[]frontdoor.Backend {
+func expandFrontDoorBackend(input []interface{}) *[]frontdoor.Backend {
 	if len(input) == 0 {
 		return &[]frontdoor.Backend{}
 	}
@@ -758,7 +758,7 @@ func expandArmFrontDoorBackend(input []interface{}) *[]frontdoor.Backend {
 		result := frontdoor.Backend{
 			Address:           utils.String(address),
 			BackendHostHeader: utils.String(hostHeader),
-			EnabledState:      expandArmFrontDoorBackendEnabledState(enabled),
+			EnabledState:      expandFrontDoorBackendEnabledState(enabled),
 			HTTPPort:          utils.Int32(httpPort),
 			HTTPSPort:         utils.Int32(httpsPort),
 			Priority:          utils.Int32(priority),
@@ -771,7 +771,7 @@ func expandArmFrontDoorBackend(input []interface{}) *[]frontdoor.Backend {
 	return &output
 }
 
-func expandArmFrontDoorBackendEnabledState(isEnabled bool) frontdoor.BackendEnabledState {
+func expandFrontDoorBackendEnabledState(isEnabled bool) frontdoor.BackendEnabledState {
 	if isEnabled {
 		return frontdoor.Enabled
 	}
@@ -779,7 +779,7 @@ func expandArmFrontDoorBackendEnabledState(isEnabled bool) frontdoor.BackendEnab
 	return frontdoor.Disabled
 }
 
-func expandArmFrontDoorBackendPoolsSettings(enforceCertificateNameCheck bool, backendPoolsSendReceiveTimeoutSeconds int32) *frontdoor.BackendPoolsSettings {
+func expandFrontDoorBackendPoolsSettings(enforceCertificateNameCheck bool, backendPoolsSendReceiveTimeoutSeconds int32) *frontdoor.BackendPoolsSettings {
 	enforceCheck := frontdoor.EnforceCertificateNameCheckEnabledStateDisabled
 
 	if enforceCertificateNameCheck {
@@ -794,7 +794,7 @@ func expandArmFrontDoorBackendPoolsSettings(enforceCertificateNameCheck bool, ba
 	return &result
 }
 
-func expandArmFrontDoorFrontendEndpoint(input []interface{}, frontDoorId parse.FrontDoorId, subscriptionId string) *[]frontdoor.FrontendEndpoint {
+func expandFrontDoorFrontendEndpoint(input []interface{}, frontDoorId parse.FrontDoorId, subscriptionId string) *[]frontdoor.FrontendEndpoint {
 	if len(input) == 0 {
 		return &[]frontdoor.FrontendEndpoint{}
 	}
@@ -838,7 +838,7 @@ func expandArmFrontDoorFrontendEndpoint(input []interface{}, frontDoorId parse.F
 	return &output
 }
 
-func expandArmFrontDoorHealthProbeSettingsModel(input []interface{}, frontDoorId parse.FrontDoorId, subscriptionId string) *[]frontdoor.HealthProbeSettingsModel {
+func expandFrontDoorHealthProbeSettingsModel(input []interface{}, frontDoorId parse.FrontDoorId, subscriptionId string) *[]frontdoor.HealthProbeSettingsModel {
 	if len(input) == 0 {
 		return &[]frontdoor.HealthProbeSettingsModel{}
 	}
@@ -879,7 +879,7 @@ func expandArmFrontDoorHealthProbeSettingsModel(input []interface{}, frontDoorId
 	return &output
 }
 
-func expandArmFrontDoorLoadBalancingSettingsModel(input []interface{}, frontDoorId parse.FrontDoorId, subscriptionId string) *[]frontdoor.LoadBalancingSettingsModel {
+func expandFrontDoorLoadBalancingSettingsModel(input []interface{}, frontDoorId parse.FrontDoorId, subscriptionId string) *[]frontdoor.LoadBalancingSettingsModel {
 	if len(input) == 0 {
 		return &[]frontdoor.LoadBalancingSettingsModel{}
 	}
@@ -911,7 +911,7 @@ func expandArmFrontDoorLoadBalancingSettingsModel(input []interface{}, frontDoor
 	return &output
 }
 
-func expandArmFrontDoorRoutingRule(input []interface{}, frontDoorId parse.FrontDoorId, subscriptionId string) *[]frontdoor.RoutingRule {
+func expandFrontDoorRoutingRule(input []interface{}, frontDoorId parse.FrontDoorId, subscriptionId string) *[]frontdoor.RoutingRule {
 	if len(input) == 0 {
 		return nil
 	}
@@ -937,19 +937,19 @@ func expandArmFrontDoorRoutingRule(input []interface{}, frontDoorId parse.FrontD
 		var routingConfiguration frontdoor.BasicRouteConfiguration
 
 		if rc := routingRule["redirect_configuration"].([]interface{}); len(rc) != 0 {
-			routingConfiguration = expandArmFrontDoorRedirectConfiguration(rc)
+			routingConfiguration = expandFrontDoorRedirectConfiguration(rc)
 		} else if fc := routingRule["forwarding_configuration"].([]interface{}); len(fc) != 0 {
-			routingConfiguration = expandArmFrontDoorForwardingConfiguration(fc, frontDoorId, subscriptionId)
+			routingConfiguration = expandFrontDoorForwardingConfiguration(fc, frontDoorId, subscriptionId)
 		}
 
 		currentRoutingRule := frontdoor.RoutingRule{
 			ID:   utils.String(id),
 			Name: utils.String(name),
 			RoutingRuleProperties: &frontdoor.RoutingRuleProperties{
-				FrontendEndpoints:  expandArmFrontDoorFrontEndEndpoints(frontendEndpoints, frontDoorId, subscriptionId),
-				AcceptedProtocols:  expandArmFrontDoorAcceptedProtocols(acceptedProtocols),
+				FrontendEndpoints:  expandFrontDoorFrontEndEndpoints(frontendEndpoints, frontDoorId, subscriptionId),
+				AcceptedProtocols:  expandFrontDoorAcceptedProtocols(acceptedProtocols),
 				PatternsToMatch:    &patternsToMatch,
-				EnabledState:       frontdoor.RoutingRuleEnabledState(expandArmFrontDoorEnabledState(enabled)),
+				EnabledState:       frontdoor.RoutingRuleEnabledState(expandFrontDoorEnabledState(enabled)),
 				RouteConfiguration: routingConfiguration,
 			},
 		}
@@ -959,7 +959,7 @@ func expandArmFrontDoorRoutingRule(input []interface{}, frontDoorId parse.FrontD
 	return &output
 }
 
-func expandArmFrontDoorAcceptedProtocols(input []interface{}) *[]frontdoor.Protocol {
+func expandFrontDoorAcceptedProtocols(input []interface{}) *[]frontdoor.Protocol {
 	if len(input) == 0 {
 		return &[]frontdoor.Protocol{}
 	}
@@ -979,7 +979,7 @@ func expandArmFrontDoorAcceptedProtocols(input []interface{}) *[]frontdoor.Proto
 	return &output
 }
 
-func expandArmFrontDoorFrontEndEndpoints(input []interface{}, frontDoorId parse.FrontDoorId, subscriptionId string) *[]frontdoor.SubResource {
+func expandFrontDoorFrontEndEndpoints(input []interface{}, frontDoorId parse.FrontDoorId, subscriptionId string) *[]frontdoor.SubResource {
 	if len(input) == 0 {
 		return &[]frontdoor.SubResource{}
 	}
@@ -996,7 +996,7 @@ func expandArmFrontDoorFrontEndEndpoints(input []interface{}, frontDoorId parse.
 	return &output
 }
 
-func expandArmFrontDoorEnabledState(enabled bool) frontdoor.EnabledState {
+func expandFrontDoorEnabledState(enabled bool) frontdoor.EnabledState {
 	if enabled {
 		return frontdoor.EnabledStateEnabled
 	}
@@ -1004,7 +1004,7 @@ func expandArmFrontDoorEnabledState(enabled bool) frontdoor.EnabledState {
 	return frontdoor.EnabledStateDisabled
 }
 
-func expandArmFrontDoorRedirectConfiguration(input []interface{}) frontdoor.RedirectConfiguration {
+func expandFrontDoorRedirectConfiguration(input []interface{}) frontdoor.RedirectConfiguration {
 	if len(input) == 0 {
 		return frontdoor.RedirectConfiguration{}
 	}
@@ -1042,7 +1042,7 @@ func expandArmFrontDoorRedirectConfiguration(input []interface{}) frontdoor.Redi
 	return redirectConfiguration
 }
 
-func expandArmFrontDoorForwardingConfiguration(input []interface{}, frontDoorId parse.FrontDoorId, subscriptionId string) frontdoor.ForwardingConfiguration {
+func expandFrontDoorForwardingConfiguration(input []interface{}, frontDoorId parse.FrontDoorId, subscriptionId string) frontdoor.ForwardingConfiguration {
 	if len(input) == 0 {
 		return frontdoor.ForwardingConfiguration{}
 	}
@@ -1093,7 +1093,7 @@ func expandArmFrontDoorForwardingConfiguration(input []interface{}, frontDoorId 
 	return forwardingConfiguration
 }
 
-func flattenArmFrontDoorBackendPools(input *[]frontdoor.BackendPool, frontDoorId parse.FrontDoorId, subscriptionId string) (*[]interface{}, error) {
+func flattenFrontDoorBackendPools(input *[]frontdoor.BackendPool, frontDoorId parse.FrontDoorId, subscriptionId string) (*[]interface{}, error) {
 	if input == nil {
 		return &[]interface{}{}, nil
 	}
@@ -1113,7 +1113,7 @@ func flattenArmFrontDoorBackendPools(input *[]frontdoor.BackendPool, frontDoorId
 		loadBalancingName := ""
 
 		if props := v.BackendPoolProperties; props != nil {
-			backend = flattenArmFrontDoorBackend(props.Backends)
+			backend = flattenFrontDoorBackend(props.Backends)
 
 			if props.HealthProbeSettings != nil && props.HealthProbeSettings.ID != nil {
 				name, err := parse.HealthProbeID(*props.HealthProbeSettings.ID)
@@ -1150,7 +1150,7 @@ type flattenedBackendPoolSettings struct {
 	backendPoolsSendReceiveTimeoutSeconds   int
 }
 
-func flattenArmFrontDoorBackendPoolsSettings(input *frontdoor.BackendPoolsSettings) flattenedBackendPoolSettings {
+func flattenFrontDoorBackendPoolsSettings(input *frontdoor.BackendPoolsSettings) flattenedBackendPoolSettings {
 	if input == nil {
 		return flattenedBackendPoolSettings{
 			enforceBackendPoolsCertificateNameCheck: true,
@@ -1174,7 +1174,7 @@ func flattenArmFrontDoorBackendPoolsSettings(input *frontdoor.BackendPoolsSettin
 	}
 }
 
-func flattenArmFrontDoorBackend(input *[]frontdoor.Backend) []interface{} {
+func flattenFrontDoorBackend(input *[]frontdoor.Backend) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -1302,7 +1302,7 @@ func flattenFrontEndEndpoints(input *[]frontdoor.FrontendEndpoint, frontDoorId p
 	return &results, nil
 }
 
-func flattenArmFrontDoorHealthProbeSettingsModel(input *[]frontdoor.HealthProbeSettingsModel, frontDoorId parse.FrontDoorId, subscriptionId string) []interface{} {
+func flattenFrontDoorHealthProbeSettingsModel(input *[]frontdoor.HealthProbeSettingsModel, frontDoorId parse.FrontDoorId, subscriptionId string) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -1354,7 +1354,7 @@ func flattenArmFrontDoorHealthProbeSettingsModel(input *[]frontdoor.HealthProbeS
 	return results
 }
 
-func flattenArmFrontDoorLoadBalancingSettingsModel(input *[]frontdoor.LoadBalancingSettingsModel, frontDoorId parse.FrontDoorId, subscriptionId string) []interface{} {
+func flattenFrontDoorLoadBalancingSettingsModel(input *[]frontdoor.LoadBalancingSettingsModel, frontDoorId parse.FrontDoorId, subscriptionId string) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -1396,7 +1396,7 @@ func flattenArmFrontDoorLoadBalancingSettingsModel(input *[]frontdoor.LoadBalanc
 	return results
 }
 
-func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule, oldBlocks interface{}, frontDoorId parse.FrontDoorId, subscriptionId string) (*[]interface{}, error) {
+func flattenFrontDoorRoutingRule(input *[]frontdoor.RoutingRule, oldBlocks interface{}, frontDoorId parse.FrontDoorId, subscriptionId string) (*[]interface{}, error) {
 	if input == nil {
 		return &[]interface{}{}, nil
 	}
@@ -1418,7 +1418,7 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule, oldBlocks in
 		patternsToMatch := make([]string, 0)
 		redirectConfiguration := make([]interface{}, 0)
 		if props := v.RoutingRuleProperties; props != nil {
-			acceptedProtocols = flattenArmFrontDoorAcceptedProtocol(props.AcceptedProtocols)
+			acceptedProtocols = flattenFrontDoorAcceptedProtocol(props.AcceptedProtocols)
 			enabled = props.EnabledState == frontdoor.RoutingRuleEnabledStateEnabled
 
 			forwardConfiguration, err := flattenRoutingRuleForwardingConfiguration(props.RouteConfiguration, oldBlocks)
@@ -1427,7 +1427,7 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule, oldBlocks in
 			}
 			forwardingConfiguration = *forwardConfiguration
 
-			frontendEndpoints, err := flattenArmFrontDoorFrontendEndpointsSubResources(props.FrontendEndpoints)
+			frontendEndpoints, err := flattenFrontDoorFrontendEndpointsSubResources(props.FrontendEndpoints)
 			if err != nil {
 				return nil, fmt.Errorf("flattening `frontend_endpoints`: %+v", err)
 			}
@@ -1559,7 +1559,7 @@ func flattenRoutingRuleRedirectConfiguration(config frontdoor.BasicRouteConfigur
 	}
 }
 
-func flattenArmFrontDoorAcceptedProtocol(input *[]frontdoor.Protocol) []string {
+func flattenFrontDoorAcceptedProtocol(input *[]frontdoor.Protocol) []string {
 	if input == nil {
 		return make([]string, 0)
 	}
@@ -1572,7 +1572,7 @@ func flattenArmFrontDoorAcceptedProtocol(input *[]frontdoor.Protocol) []string {
 	return output
 }
 
-func flattenArmFrontDoorFrontendEndpointsSubResources(input *[]frontdoor.SubResource) (*[]string, error) {
+func flattenFrontDoorFrontendEndpointsSubResources(input *[]frontdoor.SubResource) (*[]string, error) {
 	output := make([]string, 0)
 
 	if input == nil {

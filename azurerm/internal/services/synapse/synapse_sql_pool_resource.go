@@ -69,7 +69,7 @@ func resourceArmSynapseSqlPool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.SynapseWorkspaceID,
+				ValidateFunc: validate.WorkspaceID,
 			},
 
 			"sku_name": {
@@ -112,7 +112,7 @@ func resourceArmSynapseSqlPool() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
-				ValidateFunc: mssqlValidate.MsSqlDBCollation(),
+				ValidateFunc: mssqlValidate.DatabaseCollation(),
 			},
 
 			"recovery_database_id": {
@@ -122,7 +122,7 @@ func resourceArmSynapseSqlPool() *schema.Resource {
 				ConflictsWith: []string{"restore"},
 				ValidateFunc: validation.Any(
 					validate.SqlPoolID,
-					mssqlValidate.MsSqlDatabaseID,
+					mssqlValidate.DatabaseID,
 				),
 			},
 
@@ -147,7 +147,7 @@ func resourceArmSynapseSqlPool() *schema.Resource {
 							ForceNew: true,
 							ValidateFunc: validation.Any(
 								validate.SqlPoolID,
-								mssqlValidate.MsSqlDatabaseID,
+								mssqlValidate.DatabaseID,
 							),
 						},
 					},

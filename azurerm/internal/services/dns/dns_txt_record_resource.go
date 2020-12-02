@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDnsTxtRecord() *schema.Resource {
+func resourceDnsTxtRecord() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDnsTxtRecordCreateUpdate,
-		Read:   resourceArmDnsTxtRecordRead,
-		Update: resourceArmDnsTxtRecordCreateUpdate,
-		Delete: resourceArmDnsTxtRecordDelete,
+		Create: resourceDnsTxtRecordCreateUpdate,
+		Read:   resourceDnsTxtRecordRead,
+		Update: resourceDnsTxtRecordCreateUpdate,
+		Delete: resourceDnsTxtRecordDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -79,7 +79,7 @@ func resourceArmDnsTxtRecord() *schema.Resource {
 	}
 }
 
-func resourceArmDnsTxtRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsTxtRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -130,10 +130,10 @@ func resourceArmDnsTxtRecordCreateUpdate(d *schema.ResourceData, meta interface{
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDnsTxtRecordRead(d, meta)
+	return resourceDnsTxtRecordRead(d, meta)
 }
 
-func resourceArmDnsTxtRecordRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsTxtRecordRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -164,7 +164,7 @@ func resourceArmDnsTxtRecordRead(d *schema.ResourceData, meta interface{}) error
 	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
-func resourceArmDnsTxtRecordDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsTxtRecordDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

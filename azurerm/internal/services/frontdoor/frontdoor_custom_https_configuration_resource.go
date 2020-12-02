@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmFrontDoorCustomHttpsConfiguration() *schema.Resource {
+func resourceFrontDoorCustomHttpsConfiguration() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmFrontDoorCustomHttpsConfigurationCreateUpdate,
-		Read:   resourceArmFrontDoorCustomHttpsConfigurationRead,
-		Update: resourceArmFrontDoorCustomHttpsConfigurationCreateUpdate,
-		Delete: resourceArmFrontDoorCustomHttpsConfigurationDelete,
+		Create: resourceFrontDoorCustomHttpsConfigurationCreateUpdate,
+		Read:   resourceFrontDoorCustomHttpsConfigurationRead,
+		Update: resourceFrontDoorCustomHttpsConfigurationCreateUpdate,
+		Delete: resourceFrontDoorCustomHttpsConfigurationDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.FrontendEndpointIDForImport(id)
@@ -77,7 +77,7 @@ func resourceArmFrontDoorCustomHttpsConfiguration() *schema.Resource {
 	}
 }
 
-func resourceArmFrontDoorCustomHttpsConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceFrontDoorCustomHttpsConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -116,10 +116,10 @@ func resourceArmFrontDoorCustomHttpsConfigurationCreateUpdate(d *schema.Resource
 		d.SetId(id.ID(subscriptionId))
 	}
 
-	return resourceArmFrontDoorCustomHttpsConfigurationRead(d, meta)
+	return resourceFrontDoorCustomHttpsConfigurationRead(d, meta)
 }
 
-func resourceArmFrontDoorCustomHttpsConfigurationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceFrontDoorCustomHttpsConfigurationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -155,7 +155,7 @@ func resourceArmFrontDoorCustomHttpsConfigurationRead(d *schema.ResourceData, me
 	return nil
 }
 
-func resourceArmFrontDoorCustomHttpsConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceFrontDoorCustomHttpsConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -232,13 +232,13 @@ func updateCustomHttpsConfiguration(ctx context.Context, client *frontdoor.Front
 		customHTTPSConfigurationUpdate := makeCustomHttpsConfiguration(customHTTPSConfiguration, minTLSVersion)
 		if input.provisioningState == frontdoor.CustomHTTPSProvisioningStateDisabled || customHTTPSConfigurationUpdate != *input.customHttpsConfigurationCurrent {
 			// Enable Custom Domain HTTPS for the Frontend Endpoint
-			if err := resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(ctx, client, input.frontendEndpointId, true, customHTTPSConfigurationUpdate); err != nil {
+			if err := resourceFrontDoorFrontendEndpointEnableHttpsProvisioning(ctx, client, input.frontendEndpointId, true, customHTTPSConfigurationUpdate); err != nil {
 				return fmt.Errorf("unable to enable/update Custom Domain HTTPS for Frontend Endpoint %q (Resource Group %q): %+v", input.frontendEndpointId.Name, input.frontendEndpointId.ResourceGroup, err)
 			}
 		}
 	} else if !input.customHttpsProvisioningEnabled && input.provisioningState == frontdoor.CustomHTTPSProvisioningStateEnabled {
 		// Disable Custom Domain HTTPS for the Frontend Endpoint
-		if err := resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(ctx, client, input.frontendEndpointId, false, frontdoor.CustomHTTPSConfiguration{}); err != nil {
+		if err := resourceFrontDoorFrontendEndpointEnableHttpsProvisioning(ctx, client, input.frontendEndpointId, false, frontdoor.CustomHTTPSConfiguration{}); err != nil {
 			return fmt.Errorf("unable to disable Custom Domain HTTPS for Frontend Endpoint %q (Resource Group %q): %+v", input.frontendEndpointId.Name, input.frontendEndpointId.ResourceGroup, err)
 		}
 	}
@@ -246,7 +246,7 @@ func updateCustomHttpsConfiguration(ctx context.Context, client *frontdoor.Front
 	return nil
 }
 
-func resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(ctx context.Context, client *frontdoor.FrontendEndpointsClient, id parse.FrontendEndpointId, enableCustomHttpsProvisioning bool, customHTTPSConfiguration frontdoor.CustomHTTPSConfiguration) error {
+func resourceFrontDoorFrontendEndpointEnableHttpsProvisioning(ctx context.Context, client *frontdoor.FrontendEndpointsClient, id parse.FrontendEndpointId, enableCustomHttpsProvisioning bool, customHTTPSConfiguration frontdoor.CustomHTTPSConfiguration) error {
 	if enableCustomHttpsProvisioning {
 		future, err := client.EnableHTTPS(ctx, id.ResourceGroup, id.FrontDoorName, id.Name, customHTTPSConfiguration)
 		if err != nil {

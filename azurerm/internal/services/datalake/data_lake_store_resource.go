@@ -19,7 +19,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataLakeStore() *schema.Resource {
+func resourceDataLakeStore() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmDateLakeStoreCreate,
 		Read:   resourceArmDateLakeStoreRead,

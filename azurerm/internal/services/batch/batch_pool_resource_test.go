@@ -382,7 +382,7 @@ func TestAccBatchPool_fixedScaleUpdate(t *testing.T) {
 }
 
 func (t BatchPoolResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.CertificateID(state.ID)
+	id, err := parse.PoolID(state.ID)
 	if err != nil {
 		return nil, err
 	}
