@@ -58,7 +58,7 @@ func resourceArmBackupProtectedFileShare() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ShareName,
+				ValidateFunc: validate.StorageShareName,
 			},
 
 			"backup_policy_id": {
