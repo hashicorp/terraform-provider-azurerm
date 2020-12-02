@@ -7,6 +7,7 @@ import (
 )
 
 func PublicIPAddressID(i interface{}, k string) (warnings []string, errors []error) {
+	// TODO: this needs to become PublicIpAddressID in a separate commit
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
