@@ -36,7 +36,7 @@ func TestAccAzureRMAppServiceManagedCertificate_basicLinux(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceManagedCertificate_basicImport(t *testing.T) {
+func TestAccAzureRMAppServiceManagedCertificate_requiresImport(t *testing.T) {
 	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
 		t.Skip("Skipping as ARM_TEST_DNS_ZONE and/or ARM_TEST_DATA_RESOURCE_GROUP are not specified")
 		return
