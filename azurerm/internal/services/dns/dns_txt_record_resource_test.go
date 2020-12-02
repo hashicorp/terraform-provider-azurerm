@@ -1,172 +1,117 @@
-package tests
+package dns_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMDnsTxtRecord_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_dns_txt_record", "test")
+type DnsTxtRecordResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsTxtRecordDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDnsTxtRecord_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsTxtRecordExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
-				),
-			},
-			data.ImportStep(),
+func TestAccDnsTxtRecord_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dns_txt_record", "test")
+	r := DnsTxtRecordResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("fqdn").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDnsTxtRecord_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dns_txt_record", "test")
+	r := DnsTxtRecordResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_dns_txt_record"),
 		},
 	})
 }
 
-func TestAccAzureRMDnsTxtRecord_requiresImport(t *testing.T) {
+func TestAccDnsTxtRecord_updateRecords(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_txt_record", "test")
+	r := DnsTxtRecordResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsTxtRecordDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDnsTxtRecord_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsTxtRecordExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMDnsTxtRecord_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_dns_txt_record"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("record.#").HasValue("2"),
+			),
+		},
+		{
+			Config: r.updateRecords(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("record.#").HasValue("3"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMDnsTxtRecord_updateRecords(t *testing.T) {
+func TestAccDnsTxtRecord_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_txt_record", "test")
+	r := DnsTxtRecordResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsTxtRecordDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDnsTxtRecord_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsTxtRecordExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "record.#", "2"),
-				),
-			},
-			{
-				Config: testAccAzureRMDnsTxtRecord_updateRecords(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsTxtRecordExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "record.#", "3"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withTags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+			),
 		},
+		{
+			Config: r.withTagsUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMDnsTxtRecord_withTags(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_dns_txt_record", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsTxtRecordDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDnsTxtRecord_withTags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsTxtRecordExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
-				),
-			},
-			{
-				Config: testAccAzureRMDnsTxtRecord_withTagsUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsTxtRecordExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testCheckAzureRMDnsTxtRecordExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.RecordSetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		id, err := parse.TxtRecordID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.DnszoneName, id.TXTName, dns.TXT)
-		if err != nil {
-			return fmt.Errorf("Bad: Get TXT RecordSet: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: DNS TXT record %s (resource group: %s) does not exist", id.TXTName, id.ResourceGroup)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMDnsTxtRecordDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.RecordSetsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_dns_txt_record" {
-			continue
-		}
-
-		id, err := parse.TxtRecordID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.DnszoneName, id.TXTName, dns.TXT)
-		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("DNS TXT record still exists:\n%#v", resp.RecordSetProperties)
+func (DnsTxtRecordResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.TxtRecordID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Dns.RecordSetsClient.Get(ctx, id.ResourceGroup, id.DnszoneName, id.TXTName, dns.TXT)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving DNS TXT record %s (resource group: %s): %v", id.TXTName, id.ResourceGroup, err)
+	}
+
+	return utils.Bool(resp.RecordSetProperties != nil), nil
 }
 
-func testAccAzureRMDnsTxtRecord_basic(data acceptance.TestData) string {
+func (DnsTxtRecordResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -199,8 +144,7 @@ resource "azurerm_dns_txt_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDnsTxtRecord_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMDnsTxtRecord_basic(data)
+func (r DnsTxtRecordResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -218,10 +162,10 @@ resource "azurerm_dns_txt_record" "import" {
     value = "A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......"
   }
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMDnsTxtRecord_updateRecords(data acceptance.TestData) string {
+func (DnsTxtRecordResource) updateRecords(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -258,7 +202,7 @@ resource "azurerm_dns_txt_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDnsTxtRecord_withTags(data acceptance.TestData) string {
+func (DnsTxtRecordResource) withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -296,7 +240,7 @@ resource "azurerm_dns_txt_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDnsTxtRecord_withTagsUpdate(data acceptance.TestData) string {
+func (DnsTxtRecordResource) withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

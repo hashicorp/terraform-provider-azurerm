@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDnsCNameRecord() *schema.Resource {
+func resourceDnsCNameRecord() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDnsCNameRecordCreateUpdate,
-		Read:   resourceArmDnsCNameRecordRead,
-		Update: resourceArmDnsCNameRecordCreateUpdate,
-		Delete: resourceArmDnsCNameRecordDelete,
+		Create: resourceDnsCNameRecordCreateUpdate,
+		Read:   resourceDnsCNameRecordRead,
+		Update: resourceDnsCNameRecordCreateUpdate,
+		Delete: resourceDnsCNameRecordDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -78,7 +78,7 @@ func resourceArmDnsCNameRecord() *schema.Resource {
 	}
 }
 
-func resourceArmDnsCNameRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsCNameRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -145,10 +145,10 @@ func resourceArmDnsCNameRecordCreateUpdate(d *schema.ResourceData, meta interfac
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDnsCNameRecordRead(d, meta)
+	return resourceDnsCNameRecordRead(d, meta)
 }
 
-func resourceArmDnsCNameRecordRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsCNameRecordRead(d *schema.ResourceData, meta interface{}) error {
 	dnsClient := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -191,7 +191,7 @@ func resourceArmDnsCNameRecordRead(d *schema.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
-func resourceArmDnsCNameRecordDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsCNameRecordDelete(d *schema.ResourceData, meta interface{}) error {
 	dnsClient := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -1,171 +1,117 @@
-package tests
+package dns_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMDnsCaaRecord_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_dns_caa_record", "test")
+type DnsCaaRecordResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsCaaRecordDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDnsCaaRecord_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsCaaRecordExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
-				),
-			},
-			data.ImportStep(),
+func TestAccDnsCaaRecord_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dns_caa_record", "test")
+	r := DnsCaaRecordResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("fqdn").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDnsCaaRecord_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dns_caa_record", "test")
+	r := DnsCaaRecordResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_dns_caa_record"),
 		},
 	})
 }
 
-func TestAccAzureRMDnsCaaRecord_requiresImport(t *testing.T) {
+func TestAccDnsCaaRecord_updateRecords(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_caa_record", "test")
+	r := DnsCaaRecordResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsCaaRecordDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDnsCaaRecord_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsCaaRecordExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMDnsCaaRecord_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_dns_caa_record"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("record.#").HasValue("4"),
+			),
+		},
+		{
+			Config: r.updateRecords(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("record.#").HasValue("5"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMDnsCaaRecord_updateRecords(t *testing.T) {
+func TestAccDnsCaaRecord_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_caa_record", "test")
+	r := DnsCaaRecordResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsCaaRecordDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDnsCaaRecord_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsCaaRecordExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "record.#", "4"),
-				),
-			},
-			{
-				Config: testAccAzureRMDnsCaaRecord_updateRecords(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsCaaRecordExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "record.#", "5"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withTags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+			),
 		},
+		{
+			Config: r.withTagsUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMDnsCaaRecord_withTags(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_dns_caa_record", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsCaaRecordDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDnsCaaRecord_withTags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsCaaRecordExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
-				),
-			},
-			{
-				Config: testAccAzureRMDnsCaaRecord_withTagsUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsCaaRecordExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testCheckAzureRMDnsCaaRecordExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.RecordSetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		id, err := parse.CaaRecordID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.DnszoneName, id.CAAName, dns.CAA)
-		if err != nil {
-			return fmt.Errorf("Bad: Get CAA RecordSet: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: DNS CAA record %s (resource group: %s) does not exist", id.CAAName, id.ResourceGroup)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMDnsCaaRecordDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.RecordSetsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_dns_caa_record" {
-			continue
-		}
-
-		id, err := parse.CaaRecordID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.DnszoneName, id.CAAName, dns.CAA)
-		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("DNS CAA record still exists:\n%#v", resp.RecordSetProperties)
+func (DnsCaaRecordResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.CaaRecordID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Dns.RecordSetsClient.Get(ctx, id.ResourceGroup, id.DnszoneName, id.CAAName, dns.CAA)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving DNS CAA record %s (resource group: %s): %v", id.CAAName, id.ResourceGroup, err)
+	}
+
+	return utils.Bool(resp.RecordSetProperties != nil), nil
 }
 
-func testAccAzureRMDnsCaaRecord_basic(data acceptance.TestData) string {
+func (DnsCaaRecordResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -214,8 +160,8 @@ resource "azurerm_dns_caa_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDnsCaaRecord_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMDnsCaaRecord_basic(data)
+func (DnsCaaRecordResource) requiresImport(data acceptance.TestData) string {
+	template := DnsCaaRecordResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -252,7 +198,7 @@ resource "azurerm_dns_caa_record" "import" {
 `, template)
 }
 
-func testAccAzureRMDnsCaaRecord_updateRecords(data acceptance.TestData) string {
+func (DnsCaaRecordResource) updateRecords(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -307,7 +253,7 @@ resource "azurerm_dns_caa_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDnsCaaRecord_withTags(data acceptance.TestData) string {
+func (DnsCaaRecordResource) withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -349,7 +295,7 @@ resource "azurerm_dns_caa_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDnsCaaRecord_withTagsUpdate(data acceptance.TestData) string {
+func (DnsCaaRecordResource) withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

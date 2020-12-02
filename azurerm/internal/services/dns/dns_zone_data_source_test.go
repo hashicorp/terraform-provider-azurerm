@@ -1,4 +1,4 @@
-package tests
+package dns_test
 
 import (
 	"fmt"
@@ -6,66 +6,58 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMDNSZone_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_dns_zone", "test")
+type AzureRMDNSZoneDataSource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceDNSZone_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
+func TestAccAzureRMDNSZoneDataSource_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_dns_zone", "test")
+	r := AzureRMDNSZoneDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMDNSZone_tags(t *testing.T) {
+func TestAccAzureRMDNSZoneDataSource_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_dns_zone", "test")
+	r := AzureRMDNSZoneDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceDNSZone_tags(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.hello", "world"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.tags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.hello").HasValue("world"),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMDNSZone_withoutResourceGroupName(t *testing.T) {
+func TestAccAzureRMDNSZoneDataSource_withoutResourceGroupName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_dns_zone", "test")
+	r := AzureRMDNSZoneDataSource{}
 	// resource group of DNS zone is always small case
 	resourceGroupName := fmt.Sprintf("acctestrg-%d", data.RandomInteger)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceDNSZone_onlyName(data, resourceGroupName),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", resourceGroupName),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.onlyName(data, resourceGroupName),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("resource_group_name").HasValue(resourceGroupName),
+			),
 		},
 	})
 }
 
-func testAccDataSourceDNSZone_basic(data acceptance.TestData) string {
+func (AzureRMDNSZoneDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -88,7 +80,7 @@ data "azurerm_dns_zone" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccDataSourceDNSZone_tags(data acceptance.TestData) string {
+func (AzureRMDNSZoneDataSource) tags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -115,7 +107,7 @@ data "azurerm_dns_zone" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccDataSourceDNSZone_onlyName(data acceptance.TestData, resourceGroupName string) string {
+func (AzureRMDNSZoneDataSource) onlyName(data acceptance.TestData, resourceGroupName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
