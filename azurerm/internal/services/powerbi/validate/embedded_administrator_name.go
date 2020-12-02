@@ -1,6 +1,13 @@
 package validate
 
-func PowerBIEmbeddedAdministratorName(v interface{}, k string) (warnings []string, errors []error) {
+import (
+	"fmt"
+	"regexp"
+
+	"github.com/hashicorp/go-uuid"
+)
+
+func EmbeddedAdministratorName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if !regexp.MustCompile(`^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$`).MatchString(value) {

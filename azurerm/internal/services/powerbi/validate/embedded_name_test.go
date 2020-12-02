@@ -62,7 +62,7 @@ func TestValidatePowerBIEmbeddedName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := PowerBIEmbeddedName(v.input, "name")
+		_, errors := EmbeddedName(v.input, "name")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)

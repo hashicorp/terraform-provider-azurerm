@@ -5,7 +5,7 @@ import (
 	"regexp"
 )
 
-func PowerBIEmbeddedName(v interface{}, k string) (warnings []string, errors []error) {
+func EmbeddedName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if !regexp.MustCompile(`^[a-z][a-z0-9]{3,63}$`).MatchString(value) {
