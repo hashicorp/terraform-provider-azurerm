@@ -2,7 +2,7 @@ package validate
 
 import "testing"
 
-func TestStorageAccountIPRule(t *testing.T) {
+func TestStorageAccountIpRule(t *testing.T) {
 	cases := []struct {
 		IPRule string
 		Errors int
