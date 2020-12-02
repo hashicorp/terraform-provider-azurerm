@@ -174,7 +174,7 @@ func resourceArmFirewall() *schema.Resource {
 						"virtual_hub_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.ValidateVirtualHubID,
+							ValidateFunc: validate.VirtualHubID,
 						},
 						"public_ip_count": {
 							Type:         schema.TypeInt,

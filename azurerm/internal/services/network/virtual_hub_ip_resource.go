@@ -49,7 +49,7 @@ func resourceArmVirtualHubIP() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.ValidateVirtualHubID,
+				ValidateFunc: networkValidate.VirtualHubID,
 			},
 
 			"subnet_id": {

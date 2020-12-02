@@ -52,7 +52,7 @@ func resourceArmPointToSiteVPNGateway() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate2.ValidateVirtualHubID,
+				ValidateFunc: validate2.VirtualHubID,
 			},
 
 			"vpn_server_configuration_id": {

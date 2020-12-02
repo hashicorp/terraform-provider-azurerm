@@ -65,7 +65,7 @@ func resourceArmVirtualHubSecurityPartnerProvider() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.ValidateVirtualHubID,
+				ValidateFunc: networkValidate.VirtualHubID,
 			},
 
 			"tags": tags.Schema(),

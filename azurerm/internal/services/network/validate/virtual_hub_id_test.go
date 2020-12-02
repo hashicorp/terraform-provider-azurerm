@@ -2,7 +2,7 @@ package validate
 
 import "testing"
 
-func TestValidateVirtualHub(t *testing.T) {
+func TestVirtualHubID(t *testing.T) {
 	testData := []struct {
 		Name  string
 		Input string
@@ -33,7 +33,7 @@ func TestValidateVirtualHub(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		_, errors := ValidateVirtualHubID(v.Input, "virtual_hub_id")
+		_, errors := VirtualHubID(v.Input, "virtual_hub_id")
 		isValid := len(errors) == 0
 		if v.Valid != isValid {
 			t.Fatalf("Expected %t but got %t", v.Valid, isValid)

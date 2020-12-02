@@ -47,7 +47,7 @@ func resourceArmVirtualHubConnection() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ValidateVirtualHubID,
+				ValidateFunc: validate.VirtualHubID,
 			},
 
 			"remote_virtual_network_id": {
