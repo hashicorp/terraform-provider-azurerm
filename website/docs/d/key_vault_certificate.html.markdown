@@ -35,17 +35,30 @@ output "certificate_thumbprint" {
 
 The following arguments are supported:
 
-* `name` - Specifies the name of the Key Vault Secret.
+* `name` - Specifies the name of the Key Vault Certificate.
 
 * `key_vault_id` - Specifies the ID of the Key Vault instance where the Secret resides, available on the `azurerm_key_vault` Data Source / Resource.
 
-* `version` - (Optional) Specifies the version of the certificate to look up.  (Defaults to latest) 
+* `version` - (Optional) Specifies the version of the certificate to look up.  (Defaults to latest)
 
 **NOTE:** The vault must be in the same subscription as the provider. If the vault is in another subscription, you must create an aliased provider for that subscription.
 
 ## Attributes Reference
 
 The following attributes are exported:
+
+
+* `id` - The Key Vault Certificate ID.
+*
+* `name` - Specifies the name of the Key Vault Certificate.
+*
+* `secret_id` - The ID of the associated Key Vault Secret.
+*
+* `version` - The current version of the Key Vault Certificate.
+*
+* `certificate_data` - The raw Key Vault Certificate data represented as a hexadecimal string.
+*
+* `thumbprint` - The X509 Thumbprint of the Key Vault Certificate represented as a hexadecimal string.
 
 * `certificate_policy` - A `certificate_policy` block as defined below.
 
@@ -96,7 +109,7 @@ The following attributes are exported:
 * `days_before_expiry` - The number of days before the Certificate expires that the action associated with this Trigger should run.
 * `lifetime_percentage` - The percentage at which during the Certificates Lifetime the action associated with this Trigger should run.
 
---- 
+---
 
 `secret_properties` exports the following:
 
