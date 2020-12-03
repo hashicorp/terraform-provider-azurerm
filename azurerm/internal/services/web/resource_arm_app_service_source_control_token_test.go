@@ -1,4 +1,4 @@
-package tests
+package web_test
 
 import (
 	"fmt"

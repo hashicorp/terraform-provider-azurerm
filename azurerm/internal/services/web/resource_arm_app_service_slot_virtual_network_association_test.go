@@ -1,4 +1,4 @@
-package tests
+package web_test
 
 import (
 	"fmt"
@@ -12,18 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMAppServiceVirtualNetworkSwiftConnection_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_app_service_virtual_network_swift_connection", "test")
+func TestAccAzureRMAppServiceSlotVirtualNetworkSwiftConnection_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionDestroy,
+		CheckDestroy: testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAppServiceVirtualNetworkSwiftConnection_basic(data),
+				Config: testAccAzureRMAppServiceSlotVirtualNetworkSwiftConnection_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionExists(data.ResourceName),
+					testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "subnet_id"),
 				),
 			},
@@ -32,44 +32,44 @@ func TestAccAzureRMAppServiceVirtualNetworkSwiftConnection_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceVirtualNetworkSwiftConnection_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_app_service_virtual_network_swift_connection", "test")
+func TestAccAzureRMAppServiceSlotVirtualNetworkSwiftConnection_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionDestroy,
+		CheckDestroy: testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAppServiceVirtualNetworkSwiftConnection_basic(data),
+				Config: testAccAzureRMAppServiceSlotVirtualNetworkSwiftConnection_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMAppServiceVirtualNetworkSwiftConnection_requiresImport),
+			data.RequiresImportErrorStep(testAccAzureRMAppServiceSlotVirtualNetworkSwiftConnection_requiresImport),
 		},
 	})
 }
 
-func TestAccAzureRMAppServiceVirtualNetworkSwiftConnection_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_app_service_virtual_network_swift_connection", "test")
+func TestAccAzureRMAppServiceSlotVirtualNetworkSwiftConnection_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionDestroy,
+		CheckDestroy: testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAppServiceVirtualNetworkSwiftConnection_basic(data),
+				Config: testAccAzureRMAppServiceSlotVirtualNetworkSwiftConnection_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionExists(data.ResourceName),
+					testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "subnet_id"),
 				),
 			},
 			{
-				Config: testAccAzureRMAppServiceVirtualNetworkSwiftConnection_update(data),
+				Config: testAccAzureRMAppServiceSlotVirtualNetworkSwiftConnection_update(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionExists(data.ResourceName),
+					testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "subnet_id"),
 				),
 			},
@@ -77,20 +77,20 @@ func TestAccAzureRMAppServiceVirtualNetworkSwiftConnection_update(t *testing.T) 
 	})
 }
 
-func TestAccAzureRMAppServiceVirtualNetworkSwiftConnection_disappears(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_app_service_virtual_network_swift_connection", "test")
+func TestAccAzureRMAppServiceSlotVirtualNetworkSwiftConnection_disappears(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionDestroy,
+		CheckDestroy: testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAppServiceVirtualNetworkSwiftConnection_basic(data),
+				Config: testAccAzureRMAppServiceSlotVirtualNetworkSwiftConnection_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionExists(data.ResourceName),
+					testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "subnet_id"),
-					testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionDisappears(data.ResourceName),
+					testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionDisappears(data.ResourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -98,7 +98,7 @@ func TestAccAzureRMAppServiceVirtualNetworkSwiftConnection_disappears(t *testing
 	})
 }
 
-func testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServicesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -109,15 +109,15 @@ func testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionExists(resourceName 
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.VirtualNetworkSwiftConnectionID(rs.Primary.Attributes["id"])
+		id, err := parse.SlotVirtualNetworkSwiftConnectionID(rs.Primary.ID)
 		if err != nil {
-			return fmt.Errorf("Error parsing Azure Resource ID %q", id)
+			return err
 		}
 
-		resp, err := client.GetSwiftVirtualNetworkConnection(ctx, id.ResourceGroup, id.SiteName)
+		resp, err := client.GetSwiftVirtualNetworkConnectionSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: App Service Virtual Network Association %q (Resource Group: %q) does not exist", id.SiteName, id.ResourceGroup)
+				return fmt.Errorf("Bad: App Service Slot Virtual Network Association %q (Site: %q, Resource Group: %q) does not exist", id.SlotName, id.SiteName, id.ResourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on appServicesClient: %+v", err)
@@ -127,7 +127,7 @@ func testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionExists(resourceName 
 	}
 }
 
-func testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionDisappears(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServicesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -138,12 +138,12 @@ func testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionDisappears(resourceN
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.VirtualNetworkSwiftConnectionID(rs.Primary.Attributes["id"])
+		id, err := parse.SlotVirtualNetworkSwiftConnectionID(rs.Primary.ID)
 		if err != nil {
-			return fmt.Errorf("Error parsing Azure Resource ID %q", id)
+			return err
 		}
 
-		resp, err := client.DeleteSwiftVirtualNetwork(ctx, id.ResourceGroup, id.SiteName)
+		resp, err := client.DeleteSwiftVirtualNetworkSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp) {
 				return fmt.Errorf("Bad: Delete on appServicesClient: %+v", err)
@@ -154,21 +154,21 @@ func testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionDisappears(resourceN
 	}
 }
 
-func testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionDestroy(s *terraform.State) error {
+func testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServicesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_app_service_virtual_network_swift_connection" {
+		if rs.Type != "azurerm_app_service_slot_virtual_network_swift_connection" {
 			continue
 		}
 
-		id, err := parse.VirtualNetworkSwiftConnectionID(rs.Primary.Attributes["id"])
+		id, err := parse.SlotVirtualNetworkSwiftConnectionID(rs.Primary.ID)
 		if err != nil {
-			return fmt.Errorf("Error parsing Azure Resource ID %q", id)
+			return err
 		}
 
-		resp, err := client.GetSwiftVirtualNetworkConnection(ctx, id.ResourceGroup, id.SiteName)
+		resp, err := client.GetSwiftVirtualNetworkConnectionSlot(ctx, id.ResourceGroup, id.SiteName, id.SiteName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
@@ -182,12 +182,8 @@ func testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionDestroy(s *terraform
 	return nil
 }
 
-func testAccAzureRMAppServiceVirtualNetworkSwiftConnection_base(data acceptance.TestData) string {
+func testAccAzureRMAppServiceSlotVirtualNetworkSwiftConnection_base(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-appservice-%d"
   location = "%s"
@@ -199,7 +195,7 @@ resource "azurerm_virtual_network" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   lifecycle {
-    ignore_changes = [ddos_protection_plan]
+    ignore_changes = ["ddos_protection_plan"]
   }
 }
 
@@ -252,41 +248,52 @@ resource "azurerm_app_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
   app_service_plan_id = azurerm_app_service_plan.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+
+resource "azurerm_app_service_slot" "test-staging" {
+  name                = "acctest-AS-%d-staging"
+  app_service_name    = azurerm_app_service.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceVirtualNetworkSwiftConnection_basic(data acceptance.TestData) string {
-	template := testAccAzureRMAppServiceVirtualNetworkSwiftConnection_base(data)
+func testAccAzureRMAppServiceSlotVirtualNetworkSwiftConnection_basic(data acceptance.TestData) string {
+	template := testAccAzureRMAppServiceSlotVirtualNetworkSwiftConnection_base(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_app_service_virtual_network_swift_connection" "test" {
+resource "azurerm_app_service_slot_virtual_network_swift_connection" "test" {
+  slot_name      = azurerm_app_service_slot.test-staging.name
   app_service_id = azurerm_app_service.test.id
   subnet_id      = azurerm_subnet.test1.id
 }
 `, template)
 }
 
-func testAccAzureRMAppServiceVirtualNetworkSwiftConnection_update(data acceptance.TestData) string {
-	template := testAccAzureRMAppServiceVirtualNetworkSwiftConnection_base(data)
+func testAccAzureRMAppServiceSlotVirtualNetworkSwiftConnection_update(data acceptance.TestData) string {
+	template := testAccAzureRMAppServiceSlotVirtualNetworkSwiftConnection_base(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_app_service_virtual_network_swift_connection" "test" {
+resource "azurerm_app_service_slot_virtual_network_swift_connection" "test" {
+  slot_name      = azurerm_app_service_slot.test-staging.name
   app_service_id = azurerm_app_service.test.id
   subnet_id      = azurerm_subnet.test2.id
 }
 `, template)
 }
 
-func testAccAzureRMAppServiceVirtualNetworkSwiftConnection_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMAppServiceVirtualNetworkSwiftConnection_basic(data)
+func testAccAzureRMAppServiceSlotVirtualNetworkSwiftConnection_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMAppServiceSlotVirtualNetworkSwiftConnection_basic(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_app_service_virtual_network_swift_connection" "import" {
-  app_service_id = azurerm_app_service_virtual_network_swift_connection.test.app_service_id
-  subnet_id      = azurerm_app_service_virtual_network_swift_connection.test.subnet_id
+resource "azurerm_app_service_slot_virtual_network_swift_connection" "import" {
+  slot_name      = azurerm_app_service_slot_virtual_network_swift_connection.test.slot_name
+  app_service_id = azurerm_app_service_slot_virtual_network_swift_connection.test.app_service_id
+  subnet_id      = azurerm_app_service_slot_virtual_network_swift_connection.test.subnet_id
 }
 `, template)
 }
