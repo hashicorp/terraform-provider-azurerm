@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `partition_key_path` - (Optional) Define a partition key. Changing this forces a new resource to be created.
 
-* `partition_key_version` - (Optional) Define a partition key verion. Changing this forces a new resource to be created. Possible values are `1 `and `2`. This should be set to `2` in order to use large partition keys.
+* `partition_key_version` - (Optional) Define a partition key version. Changing this forces a new resource to be created. Possible values are `1 `and `2`. This should be set to `2` in order to use large partition keys.
 
 * `unique_key` - (Optional) One or more `unique_key` blocks as defined below. Changing this forces a new resource to be created.
 

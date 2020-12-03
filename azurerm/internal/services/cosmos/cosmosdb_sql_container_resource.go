@@ -134,7 +134,6 @@ func resourceArmCosmosDbSQLContainerCreate(d *schema.ResourceData, meta interfac
 	database := d.Get("database_name").(string)
 	account := d.Get("account_name").(string)
 	partitionkeypaths := d.Get("partition_key_path").(string)
-	partitionKeyVersion, hasPartitionKeyVersion := d.GetOk("partition_key_version")
 
 	existing, err := client.GetSQLContainer(ctx, resourceGroup, account, database, name)
 	if err != nil {
@@ -166,17 +165,13 @@ func resourceArmCosmosDbSQLContainerCreate(d *schema.ResourceData, meta interfac
 	}
 
 	if partitionkeypaths != "" {
-		if hasPartitionKeyVersion {
-			db.SQLContainerCreateUpdateProperties.Resource.PartitionKey = &documentdb.ContainerPartitionKey{
-				Paths:   &[]string{partitionkeypaths},
-				Kind:    documentdb.PartitionKindHash,
-				Version: utils.Int32(int32(partitionKeyVersion.(int))),
-			}
-		} else {
-			db.SQLContainerCreateUpdateProperties.Resource.PartitionKey = &documentdb.ContainerPartitionKey{
-				Paths: &[]string{partitionkeypaths},
-				Kind:  documentdb.PartitionKindHash,
-			}
+		db.SQLContainerCreateUpdateProperties.Resource.PartitionKey = &documentdb.ContainerPartitionKey{
+			Paths: &[]string{partitionkeypaths},
+			Kind:  documentdb.PartitionKindHash,
+		}
+
+		if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {
+			db.SQLContainerCreateUpdateProperties.Resource.PartitionKey.Version = utils.Int32(int32(partitionKeyVersion.(int)))
 		}
 	}
 
@@ -239,7 +234,6 @@ func resourceArmCosmosDbSQLContainerUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	partitionkeypaths := d.Get("partition_key_path").(string)
-	partitionKeyVersion, hasPartitionKeyVersion := d.GetOk("partition_key_version")
 
 	indexingPolicy := common.ExpandAzureRmCosmosDbIndexingPolicy(d)
 	err = common.ValidateAzureRmCosmosDbIndexingPolicy(indexingPolicy)
@@ -258,17 +252,13 @@ func resourceArmCosmosDbSQLContainerUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	if partitionkeypaths != "" {
-		if hasPartitionKeyVersion {
-			db.SQLContainerCreateUpdateProperties.Resource.PartitionKey = &documentdb.ContainerPartitionKey{
-				Paths:   &[]string{partitionkeypaths},
-				Kind:    documentdb.PartitionKindHash,
-				Version: utils.Int32(int32(partitionKeyVersion.(int))),
-			}
-		} else {
-			db.SQLContainerCreateUpdateProperties.Resource.PartitionKey = &documentdb.ContainerPartitionKey{
-				Paths: &[]string{partitionkeypaths},
-				Kind:  documentdb.PartitionKindHash,
-			}
+		db.SQLContainerCreateUpdateProperties.Resource.PartitionKey = &documentdb.ContainerPartitionKey{
+			Paths: &[]string{partitionkeypaths},
+			Kind:  documentdb.PartitionKindHash,
+		}
+
+		if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {
+			db.SQLContainerCreateUpdateProperties.Resource.PartitionKey.Version = utils.Int32(int32(partitionKeyVersion.(int)))
 		}
 	}
 
