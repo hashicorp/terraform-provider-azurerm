@@ -12,18 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMMaintenanceAssignmentDedicatedHost_basic(t *testing.T) {
+func TestAccMaintenanceAssignmentDedicatedHost_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_assignment_dedicated_host", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMaintenanceAssignmentDedicatedHostDestroy,
+		CheckDestroy: testCheckMaintenanceAssignmentDedicatedHostDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMaintenanceAssignmentDedicatedHost_basic(data),
+				Config: testAccMaintenanceAssignmentDedicatedHost_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMaintenanceAssignmentDedicatedHostExists(data.ResourceName),
+					testCheckMaintenanceAssignmentDedicatedHostExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("location"),
@@ -31,26 +31,26 @@ func TestAccAzureRMMaintenanceAssignmentDedicatedHost_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMaintenanceAssignmentDedicatedHost_requiresImport(t *testing.T) {
+func TestAccMaintenanceAssignmentDedicatedHost_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_assignment_dedicated_host", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMaintenanceAssignmentDedicatedHostDestroy,
+		CheckDestroy: testCheckMaintenanceAssignmentDedicatedHostDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMaintenanceAssignmentDedicatedHost_basic(data),
+				Config: testAccMaintenanceAssignmentDedicatedHost_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMaintenanceAssignmentDedicatedHostExists(data.ResourceName),
+					testCheckMaintenanceAssignmentDedicatedHostExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMMaintenanceAssignmentDedicatedHost_requiresImport),
+			data.RequiresImportErrorStep(testAccMaintenanceAssignmentDedicatedHost_requiresImport),
 		},
 	})
 }
 
-func testCheckAzureRMMaintenanceAssignmentDedicatedHostDestroy(s *terraform.State) error {
+func testCheckMaintenanceAssignmentDedicatedHostDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).Maintenance.ConfigurationAssignmentsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -81,7 +81,7 @@ func testCheckAzureRMMaintenanceAssignmentDedicatedHostDestroy(s *terraform.Stat
 	return nil
 }
 
-func testCheckAzureRMMaintenanceAssignmentDedicatedHostExists(resourceName string) resource.TestCheckFunc {
+func testCheckMaintenanceAssignmentDedicatedHostExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := acceptance.AzureProvider.Meta().(*clients.Client).Maintenance.ConfigurationAssignmentsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -109,8 +109,8 @@ func testCheckAzureRMMaintenanceAssignmentDedicatedHostExists(resourceName strin
 	}
 }
 
-func testAccAzureRMMaintenanceAssignmentDedicatedHost_basic(data acceptance.TestData) string {
-	template := testAccAzureRMMaintenanceAssignmentDedicatedHost_template(data)
+func testAccMaintenanceAssignmentDedicatedHost_basic(data acceptance.TestData) string {
+	template := testAccMaintenanceAssignmentDedicatedHost_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -122,8 +122,8 @@ resource "azurerm_maintenance_assignment_dedicated_host" "test" {
 `, template)
 }
 
-func testAccAzureRMMaintenanceAssignmentDedicatedHost_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMMaintenanceAssignmentDedicatedHost_basic(data)
+func testAccMaintenanceAssignmentDedicatedHost_requiresImport(data acceptance.TestData) string {
+	template := testAccMaintenanceAssignmentDedicatedHost_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -135,7 +135,7 @@ resource "azurerm_maintenance_assignment_dedicated_host" "import" {
 `, template)
 }
 
-func testAccAzureRMMaintenanceAssignmentDedicatedHost_template(data acceptance.TestData) string {
+func testAccMaintenanceAssignmentDedicatedHost_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

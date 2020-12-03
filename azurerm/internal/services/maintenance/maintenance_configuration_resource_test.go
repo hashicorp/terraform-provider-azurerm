@@ -13,18 +13,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMMaintenanceConfiguration_basic(t *testing.T) {
+func TestAccMaintenanceConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMaintenanceConfigurationDestroy,
+		CheckDestroy: testCheckMaintenanceConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMaintenanceConfiguration_basic(data),
+				Config: testAccMaintenanceConfiguration_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMaintenanceConfigurationExists(data.ResourceName),
+					testCheckMaintenanceConfigurationExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "scope", "All"),
 				),
 			},
@@ -33,37 +33,37 @@ func TestAccAzureRMMaintenanceConfiguration_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMaintenanceConfiguration_requiresImport(t *testing.T) {
+func TestAccMaintenanceConfiguration_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMaintenanceConfigurationDestroy,
+		CheckDestroy: testCheckMaintenanceConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMaintenanceConfiguration_basic(data),
+				Config: testAccMaintenanceConfiguration_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMaintenanceConfigurationExists(data.ResourceName),
+					testCheckMaintenanceConfigurationExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMMaintenanceConfiguration_requiresImport),
+			data.RequiresImportErrorStep(testAccMaintenanceConfiguration_requiresImport),
 		},
 	})
 }
 
-func TestAccAzureRMMaintenanceConfiguration_complete(t *testing.T) {
+func TestAccMaintenanceConfiguration_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMaintenanceConfigurationDestroy,
+		CheckDestroy: testCheckMaintenanceConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMaintenanceConfiguration_complete(data),
+				Config: testAccMaintenanceConfiguration_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMaintenanceConfigurationExists(data.ResourceName),
+					testCheckMaintenanceConfigurationExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "scope", "Host"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.env", "TesT"),
@@ -74,27 +74,27 @@ func TestAccAzureRMMaintenanceConfiguration_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMaintenanceConfiguration_update(t *testing.T) {
+func TestAccMaintenanceConfiguration_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMaintenanceConfigurationDestroy,
+		CheckDestroy: testCheckMaintenanceConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMaintenanceConfiguration_basic(data),
+				Config: testAccMaintenanceConfiguration_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMaintenanceConfigurationExists(data.ResourceName),
+					testCheckMaintenanceConfigurationExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "scope", "All"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMMaintenanceConfiguration_complete(data),
+				Config: testAccMaintenanceConfiguration_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMaintenanceConfigurationExists(data.ResourceName),
+					testCheckMaintenanceConfigurationExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "scope", "Host"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.env", "TesT"),
@@ -102,9 +102,9 @@ func TestAccAzureRMMaintenanceConfiguration_update(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMMaintenanceConfiguration_basic(data),
+				Config: testAccMaintenanceConfiguration_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMaintenanceConfigurationExists(data.ResourceName),
+					testCheckMaintenanceConfigurationExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "scope", "All"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
@@ -114,7 +114,7 @@ func TestAccAzureRMMaintenanceConfiguration_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMMaintenanceConfigurationDestroy(s *terraform.State) error {
+func testCheckMaintenanceConfigurationDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).Maintenance.ConfigurationsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -141,7 +141,7 @@ func testCheckAzureRMMaintenanceConfigurationDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMMaintenanceConfigurationExists(resourceName string) resource.TestCheckFunc {
+func testCheckMaintenanceConfigurationExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := acceptance.AzureProvider.Meta().(*clients.Client).Maintenance.ConfigurationsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -170,7 +170,7 @@ func testCheckAzureRMMaintenanceConfigurationExists(resourceName string) resourc
 	}
 }
 
-func testAccAzureRMMaintenanceConfiguration_basic(data acceptance.TestData) string {
+func testAccMaintenanceConfiguration_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -190,8 +190,8 @@ resource "azurerm_maintenance_configuration" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMMaintenanceConfiguration_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMMaintenanceConfiguration_basic(data)
+func testAccMaintenanceConfiguration_requiresImport(data acceptance.TestData) string {
+	template := testAccMaintenanceConfiguration_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -204,7 +204,7 @@ resource "azurerm_maintenance_configuration" "import" {
 `, template)
 }
 
-func testAccAzureRMMaintenanceConfiguration_complete(data acceptance.TestData) string {
+func testAccMaintenanceConfiguration_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

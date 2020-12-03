@@ -8,13 +8,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMMaintenanceConfiguration_complete(t *testing.T) {
+func TestAccDataSourceMaintenanceConfiguration_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_maintenance_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMaintenanceConfigurationDestroy,
+		CheckDestroy: testCheckMaintenanceConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceMaintenanceConfiguration_complete(data),
@@ -29,7 +29,7 @@ func TestAccDataSourceAzureRMMaintenanceConfiguration_complete(t *testing.T) {
 }
 
 func testAccDataSourceMaintenanceConfiguration_complete(data acceptance.TestData) string {
-	template := testAccAzureRMMaintenanceConfiguration_complete(data)
+	template := testAccMaintenanceConfiguration_complete(data)
 	return fmt.Sprintf(`
 %s
 
