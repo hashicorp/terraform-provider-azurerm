@@ -48,6 +48,7 @@ func run(servicePackagePath, name, id string, shouldRewrite bool) error {
 	}
 
 	fileName := convertToSnakeCase(name)
+	validatorFileName := fmt.Sprintf("%s_id", fileName)
 	if strings.HasSuffix(fileName, "_test") {
 		// e.g. "webtest" in applicationInsights
 		fileName += "_id"
@@ -72,12 +73,12 @@ func run(servicePackagePath, name, id string, shouldRewrite bool) error {
 		return fmt.Errorf("generating Parser Tests at %q: %+v", parserTestsFilePath, err)
 	}
 
-	validatorFilePath := fmt.Sprintf("%s/%s_id.go", validatorPath, fileName)
+	validatorFilePath := fmt.Sprintf("%s/%s.go", validatorPath, validatorFileName)
 	if err := goFmtAndWriteToFile(validatorFilePath, generator.ValidatorCode()); err != nil {
 		return fmt.Errorf("generating Validator at %q: %+v", validatorFilePath, err)
 	}
 
-	validatorTestsFilePath := fmt.Sprintf("%s/%s_id_test.go", validatorPath, fileName)
+	validatorTestsFilePath := fmt.Sprintf("%s/%s_test.go", validatorPath, validatorFileName)
 	if err := goFmtAndWriteToFile(validatorTestsFilePath, generator.ValidatorTestCode()); err != nil {
 		return fmt.Errorf("generating Validator Tests at %q: %+v", validatorTestsFilePath, err)
 	}
