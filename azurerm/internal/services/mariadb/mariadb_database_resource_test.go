@@ -1,116 +1,75 @@
 package mariadb_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type MariaDbDatabaseResource struct {
+}
+
 func TestAccMariaDbDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_database", "test")
+	r := MariaDbDatabaseResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckMariaDbDatabaseDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMariaDbDatabase_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMariaDbDatabaseExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "charset", "utf8"),
-					resource.TestCheckResourceAttr(data.ResourceName, "collation", "utf8_general_ci"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("charset").HasValue("utf8"),
+				check.That(data.ResourceName).Key("collation").HasValue("utf8_general_ci"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccMariaDbDatabase_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_database", "test")
+	r := MariaDbDatabaseResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckMariaDbDatabaseDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMariaDbDatabase_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMariaDbDatabaseExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccMariaDbDatabase_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_mariadb_database"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_mariadb_database"),
 		},
 	})
 }
 
-func testCheckMariaDbDatabaseExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MariaDB.DatabasesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("not found: %q", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		serverName := rs.Primary.Attributes["server_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("bad: no resource group found in state for MariaDB database: %q", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, serverName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: MariaDB database %q (Server %q Resource Group: %q) does not exist", name, serverName, resourceGroup)
-			}
-			return fmt.Errorf("bad: get on mariadbDatabasesClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckMariaDbDatabaseDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).MariaDB.DatabasesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_mariadb_database" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		serverName := rs.Primary.Attributes["server_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, serverName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-			return fmt.Errorf("error MariaDB database %q (Resource Group %q) still exists:\n%+v", name, resourceGroup, err)
-		}
-		return fmt.Errorf("MariaDB database %q (Resource Group %q) still exists:\n%#+v", name, resourceGroup, resp)
+func (MariaDbDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	serverName := id.Path["servers"]
+	name := id.Path["databases"]
+
+	resp, err := clients.MariaDB.DatabasesClient.Get(ctx, id.ResourceGroup, serverName, name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving MariaDB Database %q (Server %q / Resource Group %q): %v", name, serverName, id.ResourceGroup, err)
+	}
+
+	return utils.Bool(resp.DatabaseProperties != nil), nil
 }
 
-func testAccMariaDbDatabase_basic(data acceptance.TestData) string {
+func (MariaDbDatabaseResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -150,8 +109,7 @@ resource "azurerm_mariadb_database" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccMariaDbDatabase_requiresImport(data acceptance.TestData) string {
-	template := testAccMariaDbDatabase_basic(data)
+func (r MariaDbDatabaseResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -162,5 +120,5 @@ resource "azurerm_mariadb_database" "import" {
   charset             = azurerm_mariadb_database.test.charset
   collation           = azurerm_mariadb_database.test.collation
 }
-`, template)
+`, r.basic(data))
 }

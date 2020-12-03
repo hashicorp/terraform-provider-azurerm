@@ -1,196 +1,178 @@
 package mariadb_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type MariaDbConfigurationResource struct {
+}
+
 func TestAccMariaDbConfiguration_characterSetServer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_configuration", "test")
+	r := MariaDbConfigurationResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckMariaDbConfigurationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMariaDbConfiguration_characterSetServer(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMariaDbConfigurationValue(data.ResourceName, "hebrew"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccMariaDbConfiguration_empty(data),
-				Check: resource.ComposeTestCheckFunc(
-					// "delete" resets back to the default value
-					testCheckMariaDbConfigurationValueReset(data.RandomInteger, "character_set_server"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.characterSetServer(data),
+			Check: resource.ComposeTestCheckFunc(
+				data.CheckWithClient(checkValueIs("hebrew")),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.empty(data),
+			Check: resource.ComposeTestCheckFunc(
+				// "delete" resets back to the default value
+				data.CheckWithClient(checkValueIsReset),
+			),
 		},
 	})
 }
 
 func TestAccMariaDbConfiguration_interactiveTimeout(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_configuration", "test")
+	r := MariaDbConfigurationResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckMariaDbConfigurationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMariaDbConfiguration_interactiveTimeout(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMariaDbConfigurationValue(data.ResourceName, "30"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccMariaDbConfiguration_empty(data),
-				Check: resource.ComposeTestCheckFunc(
-					// "delete" resets back to the default value
-					testCheckMariaDbConfigurationValueReset(data.RandomInteger, "interactive_timeout"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.interactiveTimeout(data),
+			Check: resource.ComposeTestCheckFunc(
+				data.CheckWithClient(checkValueIs("30")),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.empty(data),
+			Check: resource.ComposeTestCheckFunc(
+				// "delete" resets back to the default value
+				data.CheckWithClient(checkValueIsReset),
+			),
 		},
 	})
 }
 
 func TestAccMariaDbConfiguration_logSlowAdminStatements(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_configuration", "test")
+	r := MariaDbConfigurationResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckMariaDbConfigurationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMariaDbConfiguration_logSlowAdminStatements(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMariaDbConfigurationValue(data.ResourceName, "on"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccMariaDbConfiguration_empty(data),
-				Check: resource.ComposeTestCheckFunc(
-					// "delete" resets back to the default value
-					testCheckMariaDbConfigurationValueReset(data.RandomInteger, "log_slow_admin_statements"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.logSlowAdminStatements(data),
+			Check: resource.ComposeTestCheckFunc(
+				data.CheckWithClient(checkValueIs("On")),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.empty(data),
+			Check: resource.ComposeTestCheckFunc(
+				// "delete" resets back to the default value
+				data.CheckWithClient(checkValueIsReset),
+			),
 		},
 	})
 }
 
-func testCheckMariaDbConfigurationValue(resourceName string, value string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MariaDB.ConfigurationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		serverName := rs.Primary.Attributes["server_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for MariaDb Configuration: %s", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, serverName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: MariaDb Configuration %q (server %q resource group: %q) does not exist", name, serverName, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on mariadbConfigurationsClient: %+v", err)
-		}
-
-		if *resp.Value != value {
-			return fmt.Errorf("MariaDb Configuration wasn't set. Expected '%s' - got '%s': \n%+v", value, *resp.Value, resp)
-		}
-
-		return nil
+func (MariaDbConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	serverName := id.Path["servers"]
+	name := id.Path["configurations"]
+
+	resp, err := clients.MariaDB.ConfigurationsClient.Get(ctx, id.ResourceGroup, serverName, name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving MariaDB Configuration %q (Server %q / Resource Group %q): %v", name, serverName, id.ResourceGroup, err)
+	}
+
+	return utils.Bool(resp.ConfigurationProperties != nil), nil
 }
 
-func testCheckMariaDbConfigurationValueReset(rInt int, configurationName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MariaDB.ConfigurationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		resourceGroup := fmt.Sprintf("acctestRG-%d", rInt)
-		serverName := fmt.Sprintf("acctestmariadbsvr-%d", rInt)
-
-		resp, err := client.Get(ctx, resourceGroup, serverName, configurationName)
+func checkValueIs(value string) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+		id, err := azure.ParseAzureResourceID(state.ID)
 		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: MariaDb Configuration %q (server %q resource group: %q) does not exist", configurationName, serverName, resourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on mariadbConfigurationsClient: %+v", err)
+			return err
+		}
+
+		serverName := id.Path["servers"]
+		name := id.Path["configurations"]
+
+		resp, err := clients.MariaDB.ConfigurationsClient.Get(ctx, id.ResourceGroup, serverName, name)
+		if err != nil {
+			return fmt.Errorf("retrieving MariaDB Configuration %q (Server %q / Resource Group %q): %v", name, serverName, id.ResourceGroup, err)
+		}
+
+		if resp.Value == nil {
+			return fmt.Errorf("MariaDB Configuration %q (Server %q / Resource Group %q) Value is nil", name, serverName, id.ResourceGroup)
 		}
 
 		actualValue := *resp.Value
-		defaultValue := *resp.DefaultValue
 
-		if defaultValue != actualValue {
-			return fmt.Errorf("MariaDb Configuration wasn't set to the default value. Expected '%s' - got '%s': \n%+v", defaultValue, actualValue, resp)
+		if value != actualValue {
+			return fmt.Errorf("MariaDB Configuration %q (Server %q / Resource Group %q) Value (%s) != expected (%s)", name, serverName, id.ResourceGroup, actualValue, value)
 		}
 
 		return nil
 	}
 }
 
-func testCheckMariaDbConfigurationDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).MariaDB.ConfigurationsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func checkValueIsReset(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return err
+	}
 
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_mariadb_configuration" {
-			continue
-		}
+	serverName := id.Path["servers"]
+	name := id.Path["configurations"]
 
-		name := rs.Primary.Attributes["name"]
-		serverName := rs.Primary.Attributes["server_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+	resp, err := clients.MariaDB.ConfigurationsClient.Get(ctx, id.ResourceGroup, serverName, name)
+	if err != nil {
+		return fmt.Errorf("retrieving MariaDB Configuration %q (Server %q / Resource Group %q): %v", name, serverName, id.ResourceGroup, err)
+	}
 
-		resp, err := client.Get(ctx, resourceGroup, serverName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
+	if resp.Value == nil {
+		return fmt.Errorf("MariaDB Configuration %q (Server %q / Resource Group %q) Value is nil", name, serverName, id.ResourceGroup)
+	}
 
-			return err
-		}
+	if resp.DefaultValue == nil {
+		return fmt.Errorf("MariaDB Configuration %q (Server %q / Resource Group %q) Default Value is nil", name, serverName, id.ResourceGroup)
+	}
+	actualValue := *resp.Value
+	defaultValue := *resp.DefaultValue
+
+	if defaultValue != actualValue {
+		return fmt.Errorf("MariaDB Configuration %q (Server %q / Resource Group %q) Value (%s) != Default (%s)", name, serverName, id.ResourceGroup, actualValue, defaultValue)
 	}
 
 	return nil
 }
 
-func testAccMariaDbConfiguration_characterSetServer(data acceptance.TestData) string {
-	return testAccMariaDbConfiguration_template(data, "character_set_server", "hebrew")
+func (r MariaDbConfigurationResource) characterSetServer(data acceptance.TestData) string {
+	return r.template(data, "character_set_server", "hebrew")
 }
 
-func testAccMariaDbConfiguration_interactiveTimeout(data acceptance.TestData) string {
-	return testAccMariaDbConfiguration_template(data, "interactive_timeout", "30")
+func (r MariaDbConfigurationResource) interactiveTimeout(data acceptance.TestData) string {
+	return r.template(data, "interactive_timeout", "30")
 }
 
-func testAccMariaDbConfiguration_logSlowAdminStatements(data acceptance.TestData) string {
-	return testAccMariaDbConfiguration_template(data, "log_slow_admin_statements", "on")
+func (r MariaDbConfigurationResource) logSlowAdminStatements(data acceptance.TestData) string {
+	return r.template(data, "log_slow_admin_statements", "on")
 }
 
-func testAccMariaDbConfiguration_template(data acceptance.TestData, name string, value string) string {
-	server := testAccMariaDbConfiguration_empty(data)
+func (r MariaDbConfigurationResource) template(data acceptance.TestData, name string, value string) string {
+	server := r.empty(data)
 	config := fmt.Sprintf(`
 resource "azurerm_mariadb_configuration" "test" {
   name                = "%s"
@@ -202,7 +184,7 @@ resource "azurerm_mariadb_configuration" "test" {
 	return server + config
 }
 
-func testAccMariaDbConfiguration_empty(data acceptance.TestData) string {
+func (MariaDbConfigurationResource) empty(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

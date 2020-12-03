@@ -1,6 +1,7 @@
 package mariadb_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -8,368 +9,282 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type MariaDbServerResource struct {
+}
+
 func TestAccMariaDbServer_basicTenTwo(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
+	r := MariaDbServerResource{}
 	version := "10.2"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckMariaDbServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMariaDbServer_basic(data, version),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMariaDbServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "version", version),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, version),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("version").HasValue(version),
+			),
 		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
 	})
 }
 
 func TestAccMariaDbServer_basicTenTwoDeprecated(t *testing.T) { // remove in v3.0
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
+	r := MariaDbServerResource{}
 	version := "10.2"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckMariaDbServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMariaDbServer_basicDeprecated(data, version),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMariaDbServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "version", version),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicDeprecated(data, version),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("version").HasValue(version),
+			),
 		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
 	})
 }
 
 func TestAccMariaDbServer_basicTenThree(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
+	r := MariaDbServerResource{}
 	version := "10.3"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckMariaDbServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMariaDbServer_basic(data, version),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMariaDbServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "version", version),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, version),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("version").HasValue(version),
+			),
 		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
 	})
 }
 
 func TestAccMariaDbServer_autogrowOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
+	r := MariaDbServerResource{}
 	version := "10.3"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckMariaDbServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMariaDbServer_autogrow(data, version),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMariaDbServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.autogrow(data, version),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
 	})
 }
 
 func TestAccMariaDbServer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
+	r := MariaDbServerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckMariaDbServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMariaDbServer_basic(data, "10.3"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMariaDbServerExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccMariaDbServer_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "10.3"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
 func TestAccMariaDbServer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
+	r := MariaDbServerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckMariaDbServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMariaDbServer_complete(data, "10.3"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMariaDbServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data, "10.3"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
 	})
 }
 
 func TestAccMariaDbServer_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
+	r := MariaDbServerResource{}
 	version := "10.3"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckMariaDbServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMariaDbServer_basic(data, version),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMariaDbServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
-			{
-				Config: testAccMariaDbServer_complete(data, version),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMariaDbServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
-			{
-				Config: testAccMariaDbServer_basic(data, version),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMariaDbServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, version),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
+		{
+			Config: r.complete(data, version),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
+		{
+			Config: r.basic(data, version),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
 	})
 }
 
 func TestAccMariaDbServer_completeDeprecatedMigrate(t *testing.T) { // remove in v3.0
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
+	r := MariaDbServerResource{}
 	version := "10.3"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckMariaDbServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMariaDbServer_completeDeprecated(data, version),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMariaDbServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
-			{
-				Config: testAccMariaDbServer_complete(data, version),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMariaDbServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.completeDeprecated(data, version),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
+		{
+			Config: r.complete(data, version),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
 	})
 }
 
 func TestAccMariaDbServer_updateDeprecated(t *testing.T) { // remove in v3.0
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
+	r := MariaDbServerResource{}
 	version := "10.2"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckMariaDbServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMariaDbServer_basicDeprecated(data, version),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMariaDbServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
-			{
-				Config: testAccMariaDbServer_completeDeprecated(data, version),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMariaDbServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
-			{
-				Config: testAccMariaDbServer_basicDeprecated(data, version),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMariaDbServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicDeprecated(data, version),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
+		{
+			Config: r.completeDeprecated(data, version),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
+		{
+			Config: r.basicDeprecated(data, version),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
 	})
 }
 
 func TestAccMariaDbServer_updateSKU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
+	r := MariaDbServerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckMariaDbServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMariaDbServer_sku(data, "GP_Gen5_32"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMariaDbServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
-			{
-				Config: testAccMariaDbServer_sku(data, "MO_Gen5_16"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMariaDbServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.sku(data, "GP_Gen5_32"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
+		{
+			Config: r.sku(data, "MO_Gen5_16"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
 	})
 }
 
 func TestAccMariaDbServer_createReplica(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
+	r := MariaDbServerResource{}
 	version := "10.3"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckMariaDbServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMariaDbServer_basic(data, version),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMariaDbServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
-			{
-				Config: testAccMariaDbServer_createReplica(data, version),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMariaDbServerExists(data.ResourceName),
-					testCheckMariaDbServerExists("azurerm_mariadb_server.replica"),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, version),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
+		{
+			Config: r.createReplica(data, version),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That("azurerm_mariadb_server").ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
 	})
 }
 
 func TestAccMariaDbServer_createPointInTimeRestore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
+	r := MariaDbServerResource{}
 	restoreTime := time.Now().Add(11 * time.Minute)
 	version := "10.3"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckMariaDbServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMariaDbServer_basic(data, version),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMariaDbServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
-			{
-				PreConfig: func() { time.Sleep(restoreTime.Sub(time.Now().Add(-7 * time.Minute))) },
-				Config:    testAccMariaDbServer_createPointInTimeRestore(data, version, restoreTime.Format(time.RFC3339)),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMariaDbServerExists(data.ResourceName),
-					testCheckMariaDbServerExists("azurerm_mariadb_server.restore"),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, version),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
+		{
+			PreConfig: func() { time.Sleep(restoreTime.Sub(time.Now().Add(-7 * time.Minute))) },
+			Config:    r.createPointInTimeRestore(data, version, restoreTime.Format(time.RFC3339)),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That("azurerm_mariadb_server.restore").ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
 	})
 }
 
-func testCheckMariaDbServerExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MariaDB.ServersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for MariaDB Server: %s", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: MariaDB Server %q (resource group: %q) does not exist", name, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on mariadbServersClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckMariaDbServerDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).MariaDB.ServersClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_mariadb_server" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("MariaDB Server still exists:\n%#v", resp)
+func (MariaDbServerResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ServerID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.MariaDB.ServersClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving MariaDB Server %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+	}
+
+	return utils.Bool(resp.ServerProperties != nil), nil
 }
 
-func testAccMariaDbServer_basic(data acceptance.TestData, version string) string {
+func (MariaDbServerResource) basic(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -395,7 +310,7 @@ resource "azurerm_mariadb_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
 
-func testAccMariaDbServer_basicDeprecated(data acceptance.TestData, version string) string { // remove in v3.0
+func (MariaDbServerResource) basicDeprecated(data acceptance.TestData, version string) string { // remove in v3.0
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -424,7 +339,7 @@ resource "azurerm_mariadb_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
 
-func testAccMariaDbServer_complete(data acceptance.TestData, version string) string {
+func (MariaDbServerResource) complete(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -454,7 +369,7 @@ resource "azurerm_mariadb_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
 
-func testAccMariaDbServer_completeDeprecated(data acceptance.TestData, version string) string { // remove in v3.0
+func (MariaDbServerResource) completeDeprecated(data acceptance.TestData, version string) string { // remove in v3.0
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -487,7 +402,7 @@ resource "azurerm_mariadb_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
 
-func testAccMariaDbServer_autogrow(data acceptance.TestData, version string) string {
+func (MariaDbServerResource) autogrow(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -516,8 +431,7 @@ resource "azurerm_mariadb_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
 
-func testAccMariaDbServer_requiresImport(data acceptance.TestData) string {
-	template := testAccMariaDbServer_basic(data, "10.3")
+func (r MariaDbServerResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -535,10 +449,10 @@ resource "azurerm_mariadb_server" "import" {
   ssl_enforcement_enabled      = true
   storage_mb                   = 51200
 }
-`, template)
+`, r.basic(data, "10.3"))
 }
 
-func testAccMariaDbServer_sku(data acceptance.TestData, sku string) string {
+func (MariaDbServerResource) sku(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -566,7 +480,7 @@ resource "azurerm_mariadb_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku)
 }
 
-func testAccMariaDbServer_createReplica(data acceptance.TestData, version string) string {
+func (r MariaDbServerResource) createReplica(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -581,10 +495,10 @@ resource "azurerm_mariadb_server" "replica" {
   ssl_enforcement_enabled   = true
   storage_mb                = 51200
 }
-`, testAccMariaDbServer_basic(data, version), data.RandomInteger, version)
+`, r.basic(data, version), data.RandomInteger, version)
 }
 
-func testAccMariaDbServer_createPointInTimeRestore(data acceptance.TestData, version, restoreTime string) string {
+func (r MariaDbServerResource) createPointInTimeRestore(data acceptance.TestData, version, restoreTime string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -600,5 +514,5 @@ resource "azurerm_mariadb_server" "restore" {
   ssl_enforcement_enabled   = true
   storage_mb                = 51200
 }
-`, testAccMariaDbServer_basic(data, version), data.RandomInteger, version, restoreTime)
+`, r.basic(data, version), data.RandomInteger, version, restoreTime)
 }
