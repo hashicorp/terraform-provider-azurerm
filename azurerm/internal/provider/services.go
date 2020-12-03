@@ -89,7 +89,9 @@ import (
 //go:generate go run ../tools/generator-services/main.go -path=../../../
 
 func SupportedTypedServices() []sdk.TypedServiceRegistration {
-	return []sdk.TypedServiceRegistration{}
+	return []sdk.TypedServiceRegistration{
+		eventhub.Registration{},
+	}
 }
 
 func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
