@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,25 +9,50 @@ import (
 )
 
 type HybridConnectionId struct {
-	ResourceGroup string
-	Name          string
-	NamespaceName string
+	SubscriptionId string
+	ResourceGroup  string
+	NamespaceName  string
+	Name           string
 }
 
+func NewHybridConnectionID(subscriptionId, resourceGroup, namespaceName, name string) HybridConnectionId {
+	return HybridConnectionId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		NamespaceName:  namespaceName,
+		Name:           name,
+	}
+}
+
+func (id HybridConnectionId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Relay/namespaces/%s/hybridConnections/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.Name)
+}
+
+// HybridConnectionID parses a HybridConnection ID into an HybridConnectionId struct
 func HybridConnectionID(input string) (*HybridConnectionId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Hybrid Connection ID %q: %+v", input, err)
-	}
-	hybridConnection := HybridConnectionId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if hybridConnection.NamespaceName, err = id.PopSegment("namespaces"); err != nil {
 		return nil, err
 	}
 
-	if hybridConnection.Name, err = id.PopSegment("hybridConnections"); err != nil {
+	resourceId := HybridConnectionId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.NamespaceName, err = id.PopSegment("namespaces"); err != nil {
+		return nil, err
+	}
+	if resourceId.Name, err = id.PopSegment("hybridConnections"); err != nil {
 		return nil, err
 	}
 
@@ -33,5 +60,5 @@ func HybridConnectionID(input string) (*HybridConnectionId, error) {
 		return nil, err
 	}
 
-	return &hybridConnection, nil
+	return &resourceId, nil
 }

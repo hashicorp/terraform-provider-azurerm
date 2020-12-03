@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,20 +9,45 @@ import (
 )
 
 type NamespaceId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
+func NewNamespaceID(subscriptionId, resourceGroup, name string) NamespaceId {
+	return NamespaceId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id NamespaceId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Relay/namespaces/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+}
+
+// NamespaceID parses a Namespace ID into an NamespaceId struct
 func NamespaceID(input string) (*NamespaceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Relay Namespace ID %q: %+v", input, err)
-	}
-	nameSpace := NamespaceId{
-		ResourceGroup: id.ResourceGroup,
+		return nil, err
 	}
 
-	if nameSpace.Name, err = id.PopSegment("namespaces"); err != nil {
+	resourceId := NamespaceId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.Name, err = id.PopSegment("namespaces"); err != nil {
 		return nil, err
 	}
 
@@ -28,5 +55,5 @@ func NamespaceID(input string) (*NamespaceId, error) {
 		return nil, err
 	}
 
-	return &nameSpace, nil
+	return &resourceId, nil
 }
