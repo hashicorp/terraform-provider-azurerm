@@ -28,7 +28,7 @@ func TestAccMachineLearningWorkspaceDataSource_basic(t *testing.T) {
 	})
 }
 
-func ( WorkspaceDataSource) basic(data acceptance.TestData) string {
+func (WorkspaceDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
