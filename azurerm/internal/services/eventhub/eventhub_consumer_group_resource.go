@@ -1,10 +1,17 @@
 package eventhub
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/sdk"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+
+	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventhub/mgmt/2018-01-01-preview/eventhub"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -14,6 +21,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+type ConsumerGroupResource struct {
+}
 
 func resourceArmEventHubConsumerGroup() *schema.Resource {
 	return &schema.Resource{
@@ -65,12 +75,90 @@ func resourceArmEventHubConsumerGroup() *schema.Resource {
 	}
 }
 
-type ConsumerGroup struct {
+func (r ConsumerGroupResource) ResourceType() string {
+	return "azurerm_eventhub_consumer_group"
+}
+
+func (r ConsumerGroupResource) Arguments() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"name": {
+			Type:         schema.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: azure.ValidateEventHubConsumerName(),
+		},
+
+		"namespace_name": {
+			Type:         schema.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: azure.ValidateEventHubNamespaceName(),
+		},
+
+		"eventhub_name": {
+			Type:         schema.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: azure.ValidateEventHubName(),
+		},
+
+		"resource_group_name": azure.SchemaResourceGroupName(),
+
+		"user_metadata": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringLenBetween(1, 1024),
+		},
+	}
+}
+
+func (r ConsumerGroupResource) Attributes() map[string]*schema.Schema {
+	return map[string]*schema.Schema{}
+}
+
+type ConsumerGroupObject struct {
 	Name              string `tfschema:"name"`
 	NamespaceName     string `tfschema:"namespace_name"`
 	EventHubName      string `tfschema:"eventhub_name"`
 	ResourceGroupName string `tfschema:"resource_group_name"`
 	UserMetadata      string `tfschema:"user_metadata"`
+}
+
+func (r ConsumerGroupResource) Create() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			metadata.Logger.Info("Decoding state..")
+			var state ConsumerGroupObject
+			if err := metadata.Decode(&state); err != nil {
+				return err
+			}
+
+			metadata.Logger.Infof("creating Resource Group %q..", state.Name)
+			client := metadata.Client.Resource.GroupsClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
+
+			id := parse.NewResourceGroupID(subscriptionId, state.Name)
+			existing, err := client.Get(ctx, state.Name)
+			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for the presence of an existing Resource Group %q: %+v", state.Name, err)
+			}
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			}
+
+			input := resources.Group{
+				Location: utils.String(state.Location),
+				Tags:     tags.FromTypedObject(state.Tags),
+			}
+			if _, err := client.CreateOrUpdate(ctx, state.Name, input); err != nil {
+				return fmt.Errorf("creating Resource Group %q: %+v", state.Name, err)
+			}
+
+			metadata.SetID(id)
+			return nil
+		},
+		Timeout: 30 * time.Minute,
+	}
 }
 
 func resourceArmEventHubConsumerGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
