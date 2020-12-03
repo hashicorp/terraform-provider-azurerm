@@ -12,17 +12,17 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMHCICluster_basic(t *testing.T) {
+func TestAccHCICluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hci_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHCIClusterDestroy,
+		CheckDestroy: testCheckHCIClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHCICluster_basic(data),
+				Config: testAccHCICluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHCIClusterExists(data.ResourceName),
+					testCheckHCIClusterExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -30,35 +30,35 @@ func TestAccAzureRMHCICluster_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHCICluster_requiresImport(t *testing.T) {
+func TestAccHCICluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hci_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHCIClusterDestroy,
+		CheckDestroy: testCheckHCIClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHCICluster_basic(data),
+				Config: testAccHCICluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHCIClusterExists(data.ResourceName),
+					testCheckHCIClusterExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMHCICluster_requiresImport),
+			data.RequiresImportErrorStep(testAccHCICluster_requiresImport),
 		},
 	})
 }
 
-func TestAccAzureRMHCICluster_complete(t *testing.T) {
+func TestAccHCICluster_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hci_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHCIClusterDestroy,
+		CheckDestroy: testCheckHCIClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHCICluster_complete(data),
+				Config: testAccHCICluster_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHCIClusterExists(data.ResourceName),
+					testCheckHCIClusterExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -66,24 +66,24 @@ func TestAccAzureRMHCICluster_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHCICluster_update(t *testing.T) {
+func TestAccHCICluster_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hci_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHCIClusterDestroy,
+		CheckDestroy: testCheckHCIClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHCICluster_complete(data),
+				Config: testAccHCICluster_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHCIClusterExists(data.ResourceName),
+					testCheckHCIClusterExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMHCICluster_update(data),
+				Config: testAccHCICluster_update(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHCIClusterExists(data.ResourceName),
+					testCheckHCIClusterExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -91,7 +91,7 @@ func TestAccAzureRMHCICluster_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMHCIClusterExists(resourceName string) resource.TestCheckFunc {
+func testCheckHCIClusterExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).AzureStackHCI.ClusterClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -118,7 +118,7 @@ func testCheckAzureRMHCIClusterExists(resourceName string) resource.TestCheckFun
 	}
 }
 
-func testCheckAzureRMHCIClusterDestroy(s *terraform.State) error {
+func testCheckHCIClusterDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).AzureStackHCI.ClusterClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -144,7 +144,7 @@ func testCheckAzureRMHCIClusterDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMHCICluster_template(data acceptance.TestData) string {
+func testAccHCICluster_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -153,14 +153,14 @@ provider "azurerm" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-AzureStackHCI-%d"
+  name     = "acctestRG-hci-%d"
   location = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMHCICluster_basic(data acceptance.TestData) string {
-	template := testAccAzureRMHCICluster_template(data)
+func testAccHCICluster_basic(data acceptance.TestData) string {
+	template := testAccHCICluster_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -174,8 +174,8 @@ resource "azurerm_hci_cluster" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMHCICluster_requiresImport(data acceptance.TestData) string {
-	config := testAccAzureRMHCICluster_basic(data)
+func testAccHCICluster_requiresImport(data acceptance.TestData) string {
+	config := testAccHCICluster_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -189,8 +189,8 @@ resource "azurerm_hci_cluster" "import" {
 `, config)
 }
 
-func testAccAzureRMHCICluster_complete(data acceptance.TestData) string {
-	template := testAccAzureRMHCICluster_template(data)
+func testAccHCICluster_complete(data acceptance.TestData) string {
+	template := testAccHCICluster_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -208,8 +208,8 @@ resource "azurerm_hci_cluster" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMHCICluster_update(data acceptance.TestData) string {
-	template := testAccAzureRMHCICluster_template(data)
+func testAccHCICluster_update(data acceptance.TestData) string {
+	template := testAccHCICluster_template(data)
 	return fmt.Sprintf(`
 %s
 
