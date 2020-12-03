@@ -11,7 +11,7 @@ import (
 
 type WorkspaceDataSource struct{}
 
-func TestAccDataSourceAzureRMMachineLearningWorkspace_basic(t *testing.T) {
+func TestAccMachineLearningWorkspaceDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_machine_learning_workspace", "test")
 	d := WorkspaceDataSource{}
 
