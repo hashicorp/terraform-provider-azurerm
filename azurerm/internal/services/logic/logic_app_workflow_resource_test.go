@@ -11,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
-func TestAccAzureRMLogicAppWorkflow_empty(t *testing.T) {
+func TestAccLogicAppWorkflow_empty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_workflow", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -36,7 +36,7 @@ func TestAccAzureRMLogicAppWorkflow_empty(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogicAppWorkflow_requiresImport(t *testing.T) {
+func TestAccLogicAppWorkflow_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_workflow", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -58,7 +58,7 @@ func TestAccAzureRMLogicAppWorkflow_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogicAppWorkflow_tags(t *testing.T) {
+func TestAccLogicAppWorkflow_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_workflow", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -89,7 +89,7 @@ func TestAccAzureRMLogicAppWorkflow_tags(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogicAppWorkflow_integrationAccount(t *testing.T) {
+func TestAccLogicAppWorkflow_integrationAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_workflow", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -129,7 +129,7 @@ func TestAccAzureRMLogicAppWorkflow_integrationAccount(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogicAppWorkflow_integrationServiceEnvironment(t *testing.T) {
+func TestAccLogicAppWorkflow_integrationServiceEnvironment(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_workflow", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccAzureRMLogicAppActionHttp_basic(t *testing.T) {
+func TestAccLogicAppActionHttp_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_http", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -27,7 +27,7 @@ func TestAccAzureRMLogicAppActionHttp_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogicAppActionHttp_requiresImport(t *testing.T) {
+func TestAccLogicAppActionHttp_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_http", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -49,7 +49,7 @@ func TestAccAzureRMLogicAppActionHttp_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogicAppActionHttp_headers(t *testing.T) {
+func TestAccLogicAppActionHttp_headers(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_http", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -68,7 +68,7 @@ func TestAccAzureRMLogicAppActionHttp_headers(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogicAppActionHttp_disappears(t *testing.T) {
+func TestAccLogicAppActionHttp_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_http", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -98,7 +98,7 @@ func TestAccAzureRMLogicAppActionHttp_disappears(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogicAppActionHttp_runAfter(t *testing.T) {
+func TestAccLogicAppActionHttp_runAfter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_http", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

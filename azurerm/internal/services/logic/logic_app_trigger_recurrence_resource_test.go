@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccAzureRMLogicAppTriggerRecurrence_month(t *testing.T) {
+func TestAccLogicAppTriggerRecurrence_month(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -29,7 +29,7 @@ func TestAccAzureRMLogicAppTriggerRecurrence_month(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogicAppTriggerRecurrence_requiresImport(t *testing.T) {
+func TestAccLogicAppTriggerRecurrence_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -53,7 +53,7 @@ func TestAccAzureRMLogicAppTriggerRecurrence_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogicAppTriggerRecurrence_week(t *testing.T) {
+func TestAccLogicAppTriggerRecurrence_week(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -74,7 +74,7 @@ func TestAccAzureRMLogicAppTriggerRecurrence_week(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogicAppTriggerRecurrence_day(t *testing.T) {
+func TestAccLogicAppTriggerRecurrence_day(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -95,7 +95,7 @@ func TestAccAzureRMLogicAppTriggerRecurrence_day(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogicAppTriggerRecurrence_minute(t *testing.T) {
+func TestAccLogicAppTriggerRecurrence_minute(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -116,7 +116,7 @@ func TestAccAzureRMLogicAppTriggerRecurrence_minute(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogicAppTriggerRecurrence_second(t *testing.T) {
+func TestAccLogicAppTriggerRecurrence_second(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -137,7 +137,7 @@ func TestAccAzureRMLogicAppTriggerRecurrence_second(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogicAppTriggerRecurrence_hour(t *testing.T) {
+func TestAccLogicAppTriggerRecurrence_hour(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -158,7 +158,7 @@ func TestAccAzureRMLogicAppTriggerRecurrence_hour(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogicAppTriggerRecurrence_update(t *testing.T) {
+func TestAccLogicAppTriggerRecurrence_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -186,7 +186,7 @@ func TestAccAzureRMLogicAppTriggerRecurrence_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogicAppTriggerRecurrence_startTime(t *testing.T) {
+func TestAccLogicAppTriggerRecurrence_startTime(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -206,7 +206,7 @@ func TestAccAzureRMLogicAppTriggerRecurrence_startTime(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogicAppTriggerRecurrence_startTimeWithTimeZone(t *testing.T) {
+func TestAccLogicAppTriggerRecurrence_startTimeWithTimeZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

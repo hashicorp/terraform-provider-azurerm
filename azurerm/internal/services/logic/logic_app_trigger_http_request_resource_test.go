@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccAzureRMLogicAppTriggerHttpRequest_basic(t *testing.T) {
+func TestAccLogicAppTriggerHttpRequest_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_http_request", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -28,7 +28,7 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogicAppTriggerHttpRequest_requiresImport(t *testing.T) {
+func TestAccLogicAppTriggerHttpRequest_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_http_request", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -50,7 +50,7 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogicAppTriggerHttpRequest_fullSchema(t *testing.T) {
+func TestAccLogicAppTriggerHttpRequest_fullSchema(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_http_request", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -70,7 +70,7 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_fullSchema(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogicAppTriggerHttpRequest_method(t *testing.T) {
+func TestAccLogicAppTriggerHttpRequest_method(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_http_request", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -90,7 +90,7 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_method(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogicAppTriggerHttpRequest_relativePath(t *testing.T) {
+func TestAccLogicAppTriggerHttpRequest_relativePath(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_http_request", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -111,7 +111,7 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_relativePath(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogicAppTriggerHttpRequest_disappears(t *testing.T) {
+func TestAccLogicAppTriggerHttpRequest_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_http_request", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

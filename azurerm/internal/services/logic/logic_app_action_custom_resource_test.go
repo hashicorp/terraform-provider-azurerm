@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccAzureRMLogicAppActionCustom_basic(t *testing.T) {
+func TestAccLogicAppActionCustom_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_custom", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -27,7 +27,7 @@ func TestAccAzureRMLogicAppActionCustom_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogicAppActionCustom_requiresImport(t *testing.T) {
+func TestAccLogicAppActionCustom_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_custom", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

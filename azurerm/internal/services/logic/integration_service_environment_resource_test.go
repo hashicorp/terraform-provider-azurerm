@@ -12,7 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMIntegrationServiceEnvironment_basic(t *testing.T) {
+func TestAccIntegrationServiceEnvironment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -42,7 +42,7 @@ func TestAccAzureRMIntegrationServiceEnvironment_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMIntegrationServiceEnvironment_complete(t *testing.T) {
+func TestAccIntegrationServiceEnvironment_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -73,7 +73,7 @@ func TestAccAzureRMIntegrationServiceEnvironment_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMIntegrationServiceEnvironment_developer(t *testing.T) {
+func TestAccIntegrationServiceEnvironment_developer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -104,7 +104,7 @@ func TestAccAzureRMIntegrationServiceEnvironment_developer(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMIntegrationServiceEnvironment_update(t *testing.T) {
+func TestAccIntegrationServiceEnvironment_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -170,7 +170,7 @@ func TestAccAzureRMIntegrationServiceEnvironment_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMIntegrationServiceEnvironment_requiresImport(t *testing.T) {
+func TestAccIntegrationServiceEnvironment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },

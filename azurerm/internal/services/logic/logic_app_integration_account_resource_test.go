@@ -12,7 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMLogicAppIntegrationAccount_basic(t *testing.T) {
+func TestAccLogicAppIntegrationAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_integration_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -31,7 +31,7 @@ func TestAccAzureRMLogicAppIntegrationAccount_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogicAppIntegrationAccount_requiresImport(t *testing.T) {
+func TestAccLogicAppIntegrationAccount_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_integration_account", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -49,7 +49,7 @@ func TestAccAzureRMLogicAppIntegrationAccount_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogicAppIntegrationAccount_complete(t *testing.T) {
+func TestAccLogicAppIntegrationAccount_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_integration_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -68,7 +68,7 @@ func TestAccAzureRMLogicAppIntegrationAccount_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogicAppIntegrationAccount_update(t *testing.T) {
+func TestAccLogicAppIntegrationAccount_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_integration_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

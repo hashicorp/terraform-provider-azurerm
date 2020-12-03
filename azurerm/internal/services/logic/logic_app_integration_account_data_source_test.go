@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMLogicAppIntegrationAccount_basic(t *testing.T) {
+func TestAccLogicAppIntegrationAccountDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_logic_app_integration_account", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
