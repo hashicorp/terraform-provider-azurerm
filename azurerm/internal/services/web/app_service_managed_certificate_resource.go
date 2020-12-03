@@ -42,7 +42,7 @@ func resourceArmAppServiceManagedCertificate() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.CustomHostnameBindingID,
+				ValidateFunc: validate.AppServiceCustomHostnameBindingID,
 			},
 
 			"canonical_name": {
