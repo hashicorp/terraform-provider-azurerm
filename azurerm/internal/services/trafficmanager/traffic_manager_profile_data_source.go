@@ -150,7 +150,8 @@ func dataSourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interfa
 	d.SetId(*resp.ID)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+		loc := *location
+		d.Set("location", azure.NormalizeLocation(loc))
 	}
 
 	if profile := resp.ProfileProperties; profile != nil {
