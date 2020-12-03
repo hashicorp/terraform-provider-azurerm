@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2018-07-01/media"
+	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2020-05-01/media"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMediaAssets() *schema.Resource {
+func resourceAsset() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMediaAssetsCreateUpdate,
-		Read:   resourceArmMediaAssetsRead,
-		Update: resourceArmMediaAssetsCreateUpdate,
-		Delete: resourceArmMediaAssetsDelete,
+		Create: resourceAssetCreateUpdate,
+		Read:   resourceAssetRead,
+		Update: resourceAssetCreateUpdate,
+		Delete: resourceAssetDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -34,7 +34,7 @@ func resourceArmMediaAssets() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.MediaAssetsID(id)
+			_, err := parse.AssetID(id)
 			return err
 		}),
 
@@ -95,7 +95,7 @@ func resourceArmMediaAssets() *schema.Resource {
 	}
 }
 
-func resourceArmMediaAssetsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAssetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.AssetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -134,33 +134,33 @@ func resourceArmMediaAssetsCreateUpdate(d *schema.ResourceData, meta interface{}
 	log.Printf(*asset.ID)
 	d.SetId(*asset.ID)
 
-	return resourceArmMediaAssetsRead(d, meta)
+	return resourceAssetRead(d, meta)
 }
 
-func resourceArmMediaAssetsRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAssetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.AssetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MediaAssetsID(d.Id())
+	id, err := parse.AssetID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Asset %q was not found in Media Services Account %q and Resource Group %q - removing from state", id.Name, id.AccountName, id.ResourceGroup)
+			log.Printf("[INFO] Asset %q was not found in Media Services Account %q and Resource Group %q - removing from state", id.Name, id.MediaserviceName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Asset %q from Media Services Account %q (Resource Group %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
+		return fmt.Errorf("Error retrieving Asset %q from Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("media_services_account_name", id.AccountName)
+	d.Set("media_services_account_name", id.MediaserviceName)
 	if resp.AssetProperties != nil {
 		d.Set("description", resp.AssetProperties.Description)
 		d.Set("alternate_id", resp.AssetProperties.AlternateID)
@@ -171,17 +171,17 @@ func resourceArmMediaAssetsRead(d *schema.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func resourceArmMediaAssetsDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAssetDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.AssetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MediaAssetsID(d.Id())
+	id, err := parse.AssetID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.AccountName, id.Name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
 	if err != nil {
 		if response.WasNotFound(resp.Response) {
 			return nil

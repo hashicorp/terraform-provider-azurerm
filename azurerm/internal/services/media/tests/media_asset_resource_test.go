@@ -1,124 +1,105 @@
-package tests
+package media_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMMediaAsset_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_media_asset", "test")
+type AssetResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMediaAssetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMediaAsset_basic(data),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "name", "Asset-Content1"),
-				),
-			},
-			data.ImportStep(),
+func TestAccAsset_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_media_asset", "test")
+	r := AssetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).Key("name").HasValue("Asset-Content1"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMMediaAsset_complete(t *testing.T) {
+func TestAccAsset_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_asset", "test")
+	r := AssetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMediaAssetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMediaAsset_complete(data),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "alternate_id", "Asset-alternateid"),
-					resource.TestCheckResourceAttr(data.ResourceName, "storage_account_name", fmt.Sprintf("acctestsa1%s", data.RandomString)),
-					resource.TestCheckResourceAttr(data.ResourceName, "container", "asset-container"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "Asset description"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).Key("alternate_id").HasValue("Asset-alternateid"),
+				check.That(data.ResourceName).Key("storage_account_name").HasValue(fmt.Sprintf("acctestsa1%s", data.RandomString)),
+				check.That(data.ResourceName).Key("container").HasValue("asset-container"),
+				check.That(data.ResourceName).Key("description").HasValue("Asset description"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMMediaAsset_update(t *testing.T) {
+func TestAccAsset_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_asset", "test")
+	r := AssetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMediaAssetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMediaAsset_basic(data),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "name", "Asset-Content1"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMMediaAsset_complete(data),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "alternate_id", "Asset-alternateid"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container", "asset-container"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "Asset description"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMMediaAsset_basic(data),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "alternate_id", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "name", "Asset-Content1"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).Key("name").HasValue("Asset-Content1"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).Key("alternate_id").HasValue("Asset-alternateid"),
+				check.That(data.ResourceName).Key("storage_account_name").HasValue(fmt.Sprintf("acctestsa1%s", data.RandomString)),
+				check.That(data.ResourceName).Key("container").HasValue("asset-container"),
+				check.That(data.ResourceName).Key("description").HasValue("Asset description"),
+			),
+		},
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).Key("name").HasValue("Asset-Content1"),
+				check.That(data.ResourceName).Key("description").HasValue(""),
+				check.That(data.ResourceName).Key("alternate_id").HasValue(""),
+			),
+		},
+		data.ImportStep(),
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMMediaAssetDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).Media.AssetsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_media_asset" {
-			continue
-		}
-
-		id, err := parse.MediaAssetsID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
-
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Media Asset still exists:\n%#v", resp)
-		}
+func (AssetResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.AssetID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Media.AssetsClient.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Asset %s (Media Services Account %s) (resource group: %s): %v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+	}
+
+	return utils.Bool(resp.AssetProperties != nil), nil
 }
 
-func testAccAzureRMMediaAsset_basic(data acceptance.TestData) string {
-	template := testAccAzureRMMediaAsset_template(data)
+func (AssetResource) basic(data acceptance.TestData) string {
+	template := AssetResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -131,8 +112,8 @@ resource "azurerm_media_asset" "test" {
 `, template)
 }
 
-func testAccAzureRMMediaAsset_complete(data acceptance.TestData) string {
-	template := testAccAzureRMMediaAsset_template(data)
+func (AssetResource) complete(data acceptance.TestData) string {
+	template := AssetResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -149,7 +130,7 @@ resource "azurerm_media_asset" "test" {
 `, template)
 }
 
-func testAccAzureRMMediaAsset_template(data acceptance.TestData) string {
+func (AssetResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
