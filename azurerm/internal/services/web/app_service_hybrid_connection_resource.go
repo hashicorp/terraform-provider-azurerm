@@ -16,6 +16,7 @@ import (
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay"
+	parse2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -115,7 +116,7 @@ func resourceArmAppServiceHybridConnectionCreateUpdate(d *schema.ResourceData, m
 	name := d.Get("app_service_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	relayArmURI := d.Get("relay_id").(string)
-	relayId, err := relay.ParseHybridConnectionID(relayArmURI)
+	relayId, err := parse2.ParseHybridConnectionID(relayArmURI)
 	if err != nil {
 		return fmt.Errorf("Error parsing relay ID %q: %s", relayArmURI, err)
 	}
@@ -262,7 +263,7 @@ func findRelayNamespace(client *relayMngt.NamespacesClient, ctx context.Context,
 		return "", fmt.Errorf("could not find Relay Namespace with name: %q", name)
 	}
 
-	id, err := relay.ParseNamespaceID(*found.ID)
+	id, err := parse2.NamespaceID(*found.ID)
 	if err != nil {
 		return "", fmt.Errorf("relay Namespace id not valid: %+v", err)
 	}

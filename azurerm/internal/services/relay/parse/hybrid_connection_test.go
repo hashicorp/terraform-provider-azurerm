@@ -1,4 +1,4 @@
-package relay
+package parse
 
 import (
 	"testing"
@@ -8,7 +8,7 @@ func TestParseHybridConnectionID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *HybridConnectionResourceID
+		Expected *HybridConnectionId
 	}{
 		{
 			Name:     "Empty",
@@ -38,7 +38,7 @@ func TestParseHybridConnectionID(t *testing.T) {
 		{
 			Name:  "App Service Hybrid Connection Resource ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Relay/namespaces/relay1/hybridConnections/hconn1",
-			Expected: &HybridConnectionResourceID{
+			Expected: &HybridConnectionId{
 				ResourceGroup: "mygroup1",
 				Name:          "hconn1",
 				NamespaceName: "relay1",
@@ -48,7 +48,7 @@ func TestParseHybridConnectionID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ParseHybridConnectionID(v.Input)
+		actual, err := HybridConnectionID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -63,48 +63,6 @@ func TestParseHybridConnectionID(t *testing.T) {
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for Resource Group", v.Expected.ResourceGroup, actual.ResourceGroup)
-		}
-	}
-}
-
-func TestValidateHybridConnectionID(t *testing.T) {
-	cases := []struct {
-		ID    string
-		Valid bool
-	}{
-		{
-			ID:    "",
-			Valid: false,
-		},
-		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000",
-			Valid: false,
-		},
-		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/",
-			Valid: false,
-		},
-		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/",
-			Valid: false,
-		},
-		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/providers/Microsoft.Relay/namespaces/",
-			Valid: false,
-		},
-		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Relay/namespaces/relay1/hybridConnections/hconn1",
-			Valid: true,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Logf("[DEBUG] Testing Value %q", tc.ID)
-		_, errors := ValidateHybridConnectionID(tc.ID, "test")
-		valid := len(errors) == 0
-
-		if tc.Valid != valid {
-			t.Fatalf("Expected %t but got %t", tc.Valid, valid)
 		}
 	}
 }

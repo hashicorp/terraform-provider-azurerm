@@ -1,14 +1,14 @@
-package relay
+package parse
 
 import (
 	"testing"
 )
 
-func TestParseRelayNamespaceID(t *testing.T) {
+func TestParseNamespaceID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *NamespaceResourceID
+		Expected *NamespaceId
 	}{
 		{
 			Name:     "Empty",
@@ -43,7 +43,7 @@ func TestParseRelayNamespaceID(t *testing.T) {
 		{
 			Name:  "Relay Namespace Resource ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Relay/namespaces/mynamespace",
-			Expected: &NamespaceResourceID{
+			Expected: &NamespaceId{
 				ResourceGroup: "mygroup1",
 				Name:          "mynamespace",
 			},
@@ -52,7 +52,7 @@ func TestParseRelayNamespaceID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ParseNamespaceID(v.Input)
+		actual, err := NamespaceID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -67,56 +67,6 @@ func TestParseRelayNamespaceID(t *testing.T) {
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for Resource Group", v.Expected.ResourceGroup, actual.ResourceGroup)
-		}
-	}
-}
-
-func TestValidateNamespaceID(t *testing.T) {
-	cases := []struct {
-		ID    string
-		Valid bool
-	}{
-		{
-			ID:    "",
-			Valid: false,
-		},
-		{
-			ID:    "nonsense",
-			Valid: false,
-		},
-		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000",
-			Valid: false,
-		},
-		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups",
-			Valid: false,
-		},
-		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo",
-			Valid: false,
-		},
-		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/providers/Microsoft.Relay/namespaces",
-			Valid: false,
-		},
-		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/providers/Microsoft.Relay/Namespaces/relay1",
-			Valid: false,
-		},
-		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/providers/Microsoft.Relay/namespaces/relay1",
-			Valid: true,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Logf("[DEBUG] Testing value %s", tc.ID)
-		_, errors := ValidateNamespaceID(tc.ID, "test")
-		valid := len(errors) == 0
-
-		if tc.Valid != valid {
-			t.Fatalf("Expected %t but got %t", tc.Valid, valid)
 		}
 	}
 }
