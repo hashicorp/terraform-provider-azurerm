@@ -85,6 +85,7 @@ func resourceGroupTemplateDeploymentResource() *schema.Resource {
 						"deployment_name": {
 							Type:         schema.TypeString,
 							Optional:     true,
+							Computed:     true,
 							ValidateFunc: validate.TemplateDeploymentName,
 						},
 					},
@@ -136,28 +137,17 @@ func resourceGroupTemplateDeploymentResource() *schema.Resource {
 				ConflictsWith: []string{"template_content"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"uri": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+						},
+
 						"content_version": {
 							Type:         schema.TypeString,
 							Optional:     true,
+							Computed:     true,
 							ValidateFunc: validate.TemplateDeploymentContentVersion,
-						},
-
-						"id": {
-							Type:          schema.TypeString,
-							Optional:      true,
-							ConflictsWith: []string{"template_link.0.uri"},
-						},
-
-						"relative_path": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-
-						"uri": {
-							Type:          schema.TypeString,
-							Optional:      true,
-							ValidateFunc:  validation.IsURLWithHTTPorHTTPS,
-							ConflictsWith: []string{"template_link.0.id"},
 						},
 					},
 				},
@@ -303,15 +293,15 @@ func resourceGroupTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta 
 		deployment.Properties.Mode = resources.DeploymentMode(d.Get("deployment_mode").(string))
 	}
 
-	if template.Properties.ParametersLink == nil {
-		if d.HasChange("parameters_content") {
-			parameters, err := expandTemplateDeploymentBody(d.Get("parameters_content").(string))
-			if err != nil {
-				return fmt.Errorf("expanding `parameters_content`: %+v", err)
-			}
+	if d.HasChange("parameters_content") {
+		parameters, err := expandTemplateDeploymentBody(d.Get("parameters_content").(string))
+		if err != nil {
+			return fmt.Errorf("expanding `parameters_content`: %+v", err)
+		}
 
-			deployment.Properties.Parameters = parameters
-		} else {
+		deployment.Properties.Parameters = parameters
+	} else {
+		if _, ok := d.GetOk("parameters_link"); !ok {
 			filteredParams := filterOutTemplateDeploymentParameters(template.Properties.Parameters)
 			deployment.Properties.Parameters = filteredParams
 		}
@@ -323,15 +313,15 @@ func resourceGroupTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta 
 		deployment.Properties.ParametersLink = template.Properties.ParametersLink
 	}
 
-	if template.Properties.TemplateLink == nil {
-		if d.HasChange("template_content") {
-			templateContents, err := expandTemplateDeploymentBody(d.Get("template_content").(string))
-			if err != nil {
-				return fmt.Errorf("expanding `template_content`: %+v", err)
-			}
+	if d.HasChange("template_content") {
+		templateContents, err := expandTemplateDeploymentBody(d.Get("template_content").(string))
+		if err != nil {
+			return fmt.Errorf("expanding `template_content`: %+v", err)
+		}
 
-			deployment.Properties.Template = templateContents
-		} else {
+		deployment.Properties.Template = templateContents
+	} else {
+		if _, ok := d.GetOk("template_link"); !ok {
 			// retrieve the existing content and reuse that
 			exportedTemplate, err := client.ExportTemplate(ctx, id.ResourceGroup, id.DeploymentName)
 			if err != nil {
@@ -540,22 +530,12 @@ func expandArmTemplateDeploymentResourceGroupTemplateLink(input []interface{}) *
 
 	v := input[0].(map[string]interface{})
 
-	result := resources.TemplateLink{}
+	result := resources.TemplateLink{
+		URI: utils.String(v["uri"].(string)),
+	}
 
 	if contentVersion := v["content_version"].(string); contentVersion != "" {
 		result.ContentVersion = utils.String(contentVersion)
-	}
-
-	if id := v["id"].(string); id != "" {
-		result.ID = utils.String(id)
-	}
-
-	if relativePath := v["relative_path"].(string); relativePath != "" {
-		result.RelativePath = utils.String(relativePath)
-	}
-
-	if uri := v["uri"].(string); uri != "" {
-		result.URI = utils.String(uri)
 	}
 
 	return &result
@@ -612,16 +592,6 @@ func flattenArmTemplateDeploymentResourceGroupTemplateLink(input *resources.Temp
 		contentVersion = *input.ContentVersion
 	}
 
-	var id string
-	if input.ID != nil {
-		id = *input.ID
-	}
-
-	var relativePath string
-	if input.RelativePath != nil {
-		relativePath = *input.RelativePath
-	}
-
 	var uri string
 	if input.URI != nil {
 		uri = *input.URI
@@ -630,8 +600,6 @@ func flattenArmTemplateDeploymentResourceGroupTemplateLink(input *resources.Temp
 	return []interface{}{
 		map[string]interface{}{
 			"content_version": contentVersion,
-			"id":              id,
-			"relative_path":   relativePath,
 			"uri":             uri,
 		},
 	}

@@ -58,17 +58,47 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Resource Group Template Deployment should exist. Changing this forces a new Resource Group Template Deployment to be created.
 
-* `template_content` - (Required) The contents of the ARM Template which should be deployed into this Resource Group.
-
-~> **Note:** If `deployment_mode` is set to `Complete` then resources within this Resource Group which are not defined in the ARM Template will be deleted.
-
 ---
 
 * `debug_level` - (Optional) The Debug Level which should be used for this Resource Group Template Deployment. Possible values are `none`, `requestContent`, `responseContent` and `requestContent, responseContent`.
 
+* `on_error_deployment` - (Optional) An `on_error_deployment` block as defined below.
+
 * `parameters_content` - (Optional) The contents of the ARM Template parameters file - containing a JSON list of parameters.
 
+* `parameters_link` - (Optional)  A `parameters_link` block as defined below.
+
+* `template_content` - (Optional) The contents of the ARM Template which should be deployed into this Resource Group.
+
+~> **Note:** If `deployment_mode` is set to `Complete` then resources within this Resource Group which are not defined in the ARM Template will be deleted.
+
+* `template_link` - (Optional)  A `template_link` block as defined below.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Resource Group Template Deployment.
+
+---
+
+An `on_error_deployment` block exports the following:
+
+* `type` - (Required) The type of the previous ARM Template Deployment to be used when provisioning the current ARM Template Deployment is failed. Possible values are `LastSuccessful` and `SpecificDeployment`.
+
+* `deployment_name` - (Optional) The name of the previous ARM Template Deployment to be used when provisioning the current ARM Template Deployment is failed.
+
+---
+
+An `parameters_link` block exports the following:
+
+* `uri` - (Required) The URI of the ARM Template parameters file.
+
+* `content_version` - (Optional) The content version of the ARM Template parameters file.
+
+---
+
+An `template_link` block exports the following:
+
+* `uri` - (Required) The URI of the ARM Template file.
+
+* `content_version` - (Optional) The content version of the ARM Template file.
 
 ## Attributes Reference
 

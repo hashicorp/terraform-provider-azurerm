@@ -215,6 +215,91 @@ func TestAccResourceGroupTemplateDeployment_childItems(t *testing.T) {
 	})
 }
 
+func TestAccResourceGroupTemplateDeployment_updateOnErrorDeployment(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckResourceGroupTemplateDeploymentDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: resourceGroupTemplateDeployment_withLastSuccessfulDeploymentConfig(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: resourceGroupTemplateDeployment_withSpecificDeploymentConfig(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccResourceGroupTemplateDeployment_switchTemplateDeploymentBetweenLinkAndContent(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckResourceGroupTemplateDeploymentDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: resourceGroupTemplateDeployment_withTemplateLinkAndParametersLinkConfig(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: resourceGroupTemplateDeployment_withDeploymentContents(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: resourceGroupTemplateDeployment_withTemplateLinkAndParametersLinkConfig(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccResourceGroupTemplateDeployment_updateTemplateLinkAndParametersLink(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckResourceGroupTemplateDeploymentDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: resourceGroupTemplateDeployment_withTemplateLinkAndParametersLinkConfig(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: resourceGroupTemplateDeployment_updateTemplateLinkAndParametersLinkConfig(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckResourceGroupTemplateDeploymentExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.DeploymentsClient
@@ -617,6 +702,176 @@ resource "azurerm_resource_group_template_deployment" "test" {
       }
     }
   ]
+}
+TEMPLATE
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func resourceGroupTemplateDeployment_withTemplateLinkAndParametersLinkConfig(data acceptance.TestData) string {
+	template := resourceGroupTemplateDeployment_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_resource_group_template_deployment" "test" {
+  name                = "acctest-UpdatedDeployment-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  deployment_mode     = "Complete"
+
+  template_link {
+    uri             = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-storage-account-create/azuredeploy.json"
+    content_version = "1.0.0.0"
+  }
+
+  parameters_link {
+    uri             = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-storage-account-create/azuredeploy.parameters.json"
+    content_version = "1.0.0.0"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func resourceGroupTemplateDeployment_updateTemplateLinkAndParametersLinkConfig(data acceptance.TestData) string {
+	template := resourceGroupTemplateDeployment_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_resource_group_template_deployment" "test" {
+  name                = "acctest-UpdatedDeployment-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  deployment_mode     = "Complete"
+
+  template_link {
+    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-vnet-two-subnets/azuredeploy.json"
+  }
+
+  parameters_link {
+    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-vnet-two-subnets/azuredeploy.parameters.json"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func resourceGroupTemplateDeployment_withDeploymentContents(data acceptance.TestData) string {
+	template := resourceGroupTemplateDeployment_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_resource_group_template_deployment" "test" {
+  name                = "acctest-UpdatedDeployment-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  deployment_mode     = "Complete"
+
+  template_content = <<TEMPLATE
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "someParam": {
+      "type": "String",
+      "allowedValues": [
+        "first",
+        "second",
+        "third"
+      ]
+    }
+  },
+  "variables": {},
+  "resources": []
+}
+TEMPLATE
+
+  parameters_content = <<PARAM
+{
+  "someParam": {
+   "value": "first"
+  }
+}
+PARAM
+}
+`, template, data.RandomInteger)
+}
+
+func resourceGroupTemplateDeployment_withLastSuccessfulDeploymentConfig(data acceptance.TestData) string {
+	template := resourceGroupTemplateDeployment_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_resource_group_template_deployment" "test" {
+  name                = "acctest-UpdatedDeployment-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  deployment_mode     = "Complete"
+
+  on_error_deployment {
+    type = "LastSuccessful"
+  }
+
+  template_content = <<TEMPLATE
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {},
+  "variables": {},
+  "resources": []
+}
+TEMPLATE
+
+  depends_on = [azurerm_resource_group_template_deployment.test2]
+}
+`, template, data.RandomInteger)
+}
+
+func resourceGroupTemplateDeployment_withSpecificDeploymentConfig(data acceptance.TestData) string {
+	template := resourceGroupTemplateDeployment_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_resource_group_template_deployment" "test" {
+  name                = "acctest-UpdatedDeployment-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  deployment_mode     = "Complete"
+
+  on_error_deployment {
+    deployment_name = azurerm_resource_group_template_deployment.test2.name
+    type            = "SpecificDeployment"
+  }
+
+  template_content = <<TEMPLATE
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {},
+  "variables": {},
+  "resources": []
+}
+TEMPLATE
+}
+`, template, data.RandomInteger)
+}
+
+func resourceGroupTemplateDeployment_template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-deployment-%d"
+  location = "%s"
+}
+
+resource "azurerm_resource_group_template_deployment" "test2" {
+  name                = "acctest-Deployment-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  deployment_mode     = "Complete"
+
+  template_content = <<TEMPLATE
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {},
+  "variables": {},
+  "resources": []
 }
 TEMPLATE
 }
