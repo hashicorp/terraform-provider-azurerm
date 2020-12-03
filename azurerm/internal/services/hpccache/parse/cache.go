@@ -27,6 +27,7 @@ func (id CacheId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
+// CacheID parses a Cache ID into an CacheId struct
 func CacheID(input string) (*CacheId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -36,6 +37,14 @@ func CacheID(input string) (*CacheId, error) {
 	resourceId := CacheId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.Name, err = id.PopSegment("caches"); err != nil {

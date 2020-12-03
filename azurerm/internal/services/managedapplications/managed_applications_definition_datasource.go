@@ -25,7 +25,7 @@ func dataSourceManagedApplicationDefinition() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ManagedApplicationDefinitionName,
+				ValidateFunc: validate.ApplicationDefinitionName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),

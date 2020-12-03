@@ -90,7 +90,7 @@ func getContent(resourceName, brandName string, resourceId *string, isResource b
 
 	if !isResource {
 		for _, service := range provider.SupportedTypedServices() {
-			for _, ds := range service.SupportedDataSources() {
+			for _, ds := range service.DataSources() {
 				if ds.ResourceType() == resourceName {
 					wrapper := sdk.NewDataSourceWrapper(ds)
 					dsWrapper, err := wrapper.DataSource()
@@ -119,7 +119,7 @@ func getContent(resourceName, brandName string, resourceId *string, isResource b
 		}
 	} else {
 		for _, service := range provider.SupportedTypedServices() {
-			for _, rs := range service.SupportedResources() {
+			for _, rs := range service.Resources() {
 				if rs.ResourceType() == resourceName {
 					wrapper := sdk.NewResourceWrapper(rs)
 					rsWrapper, err := wrapper.Resource()

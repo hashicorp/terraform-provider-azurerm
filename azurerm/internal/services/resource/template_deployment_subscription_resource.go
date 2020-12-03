@@ -91,16 +91,16 @@ func subscriptionTemplateDeploymentResourceCreate(d *schema.ResourceData, meta i
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewSubscriptionTemplateDeploymentID(d.Get("name").(string))
+	id := parse.NewSubscriptionTemplateDeploymentID(subscriptionId, d.Get("name").(string))
 
-	existing, err := client.GetAtSubscriptionScope(ctx, id.Name)
+	existing, err := client.GetAtSubscriptionScope(ctx, id.DeploymentName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Subscription Template Deployment %q: %+v", id.Name, err)
+			return fmt.Errorf("checking for presence of existing Subscription Template Deployment %q: %+v", id.DeploymentName, err)
 		}
 	}
 	if existing.Properties != nil {
-		return tf.ImportAsExistsError("azurerm_subscription_template_deployment", id.ID(subscriptionId))
+		return tf.ImportAsExistsError("azurerm_subscription_template_deployment", id.ID(""))
 	}
 	template, err := expandTemplateDeploymentBody(d.Get("template_content").(string))
 	if err != nil {
@@ -124,24 +124,24 @@ func subscriptionTemplateDeploymentResourceCreate(d *schema.ResourceData, meta i
 		deployment.Properties.Parameters = parameters
 	}
 
-	log.Printf("[DEBUG] Running validation of Subscription Template Deployment %q..", id.Name)
+	log.Printf("[DEBUG] Running validation of Subscription Template Deployment %q..", id.DeploymentName)
 	if err := validateSubscriptionTemplateDeployment(ctx, id, deployment, client); err != nil {
-		return fmt.Errorf("validating Subscription Template Deployment %q: %+v", id.Name, err)
+		return fmt.Errorf("validating Subscription Template Deployment %q: %+v", id.DeploymentName, err)
 	}
-	log.Printf("[DEBUG] Validated Subscription Template Deployment %q..", id.Name)
+	log.Printf("[DEBUG] Validated Subscription Template Deployment %q..", id.DeploymentName)
 
-	log.Printf("[DEBUG] Provisioning Subscription Template Deployment %q..", id.Name)
-	future, err := client.CreateOrUpdateAtSubscriptionScope(ctx, id.Name, deployment)
+	log.Printf("[DEBUG] Provisioning Subscription Template Deployment %q..", id.DeploymentName)
+	future, err := client.CreateOrUpdateAtSubscriptionScope(ctx, id.DeploymentName, deployment)
 	if err != nil {
-		return fmt.Errorf("creating Subscription Template Deployment %q: %+v", id.Name, err)
+		return fmt.Errorf("creating Subscription Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for deployment of Subscription Template Deployment %q..", id.Name)
+	log.Printf("[DEBUG] Waiting for deployment of Subscription Template Deployment %q..", id.DeploymentName)
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Subscription Template Deployment %q: %+v", id.Name, err)
+		return fmt.Errorf("waiting for creation of Subscription Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
-	d.SetId(id.ID(subscriptionId))
+	d.SetId(id.ID(""))
 	return subscriptionTemplateDeploymentResourceRead(d, meta)
 }
 
@@ -155,13 +155,13 @@ func subscriptionTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta i
 		return err
 	}
 
-	log.Printf("[DEBUG] Retrieving Subscription Template Deployment %q..", id.Name)
-	template, err := client.GetAtSubscriptionScope(ctx, id.Name)
+	log.Printf("[DEBUG] Retrieving Subscription Template Deployment %q..", id.DeploymentName)
+	template, err := client.GetAtSubscriptionScope(ctx, id.DeploymentName)
 	if err != nil {
-		return fmt.Errorf("retrieving Subscription Template Deployment %q: %+v", id.Name, err)
+		return fmt.Errorf("retrieving Subscription Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 	if template.Properties == nil {
-		return fmt.Errorf("retrieving Subscription Template Deployment %q: `properties` was nil", id.Name)
+		return fmt.Errorf("retrieving Subscription Template Deployment %q: `properties` was nil", id.DeploymentName)
 	}
 
 	// the API doesn't have a Patch operation, so we'll need to build one
@@ -195,9 +195,9 @@ func subscriptionTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta i
 		deployment.Properties.Template = templateContents
 	} else {
 		// retrieve the existing content and reuse that
-		exportedTemplate, err := client.ExportTemplateAtSubscriptionScope(ctx, id.Name)
+		exportedTemplate, err := client.ExportTemplateAtSubscriptionScope(ctx, id.DeploymentName)
 		if err != nil {
-			return fmt.Errorf("retrieving Contents for Subscription Template Deployment %q: %+v", id.Name, err)
+			return fmt.Errorf("retrieving Contents for Subscription Template Deployment %q: %+v", id.DeploymentName, err)
 		}
 
 		deployment.Properties.Template = exportedTemplate.Template
@@ -207,21 +207,21 @@ func subscriptionTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta i
 		deployment.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	log.Printf("[DEBUG] Running validation of Subscription Template Deployment %q..", id.Name)
+	log.Printf("[DEBUG] Running validation of Subscription Template Deployment %q..", id.DeploymentName)
 	if err := validateSubscriptionTemplateDeployment(ctx, *id, deployment, client); err != nil {
-		return fmt.Errorf("validating Subscription Template Deployment %q: %+v", id.Name, err)
+		return fmt.Errorf("validating Subscription Template Deployment %q: %+v", id.DeploymentName, err)
 	}
-	log.Printf("[DEBUG] Validated Subscription Template Deployment %q..", id.Name)
+	log.Printf("[DEBUG] Validated Subscription Template Deployment %q..", id.DeploymentName)
 
-	log.Printf("[DEBUG] Provisioning Subscription Template Deployment %q)..", id.Name)
-	future, err := client.CreateOrUpdateAtSubscriptionScope(ctx, id.Name, deployment)
+	log.Printf("[DEBUG] Provisioning Subscription Template Deployment %q)..", id.DeploymentName)
+	future, err := client.CreateOrUpdateAtSubscriptionScope(ctx, id.DeploymentName, deployment)
 	if err != nil {
-		return fmt.Errorf("creating Subscription Template Deployment %q: %+v", id.Name, err)
+		return fmt.Errorf("creating Subscription Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for deployment of Subscription Template Deployment %q..", id.Name)
+	log.Printf("[DEBUG] Waiting for deployment of Subscription Template Deployment %q..", id.DeploymentName)
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Subscription Template Deployment %q: %+v", id.Name, err)
+		return fmt.Errorf("waiting for creation of Subscription Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
 	return subscriptionTemplateDeploymentResourceRead(d, meta)
@@ -237,23 +237,23 @@ func subscriptionTemplateDeploymentResourceRead(d *schema.ResourceData, meta int
 		return err
 	}
 
-	resp, err := client.GetAtSubscriptionScope(ctx, id.Name)
+	resp, err := client.GetAtSubscriptionScope(ctx, id.DeploymentName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Subscription Template Deployment %q was not found - removing from state", id.Name)
+			log.Printf("[DEBUG] Subscription Template Deployment %q was not found - removing from state", id.DeploymentName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Subscription Template Deployment %q: %+v", id.Name, err)
+		return fmt.Errorf("retrieving Subscription Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
-	templateContents, err := client.ExportTemplateAtSubscriptionScope(ctx, id.Name)
+	templateContents, err := client.ExportTemplateAtSubscriptionScope(ctx, id.DeploymentName)
 	if err != nil {
-		return fmt.Errorf("retrieving Template Content for Subscription Template Deployment %q: %+v", id.Name, err)
+		return fmt.Errorf("retrieving Template Content for Subscription Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.DeploymentName)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.Properties; props != nil {
@@ -295,23 +295,23 @@ func subscriptionTemplateDeploymentResourceDelete(d *schema.ResourceData, meta i
 	// at this time unfortunately the Resources RP doesn't expose a means of deleting top-level objects
 	// so we're unable to delete these during deletion - this'll need to be detailed in the docs
 
-	log.Printf("[DEBUG] Deleting Subscription Template Deployment %q..", id.Name)
-	future, err := client.DeleteAtSubscriptionScope(ctx, id.Name)
+	log.Printf("[DEBUG] Deleting Subscription Template Deployment %q..", id.DeploymentName)
+	future, err := client.DeleteAtSubscriptionScope(ctx, id.DeploymentName)
 	if err != nil {
-		return fmt.Errorf("deleting Subscription Template Deployment %q: %+v", id.Name, err)
+		return fmt.Errorf("deleting Subscription Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for deletion of Subscription Template Deployment %q..", id.Name)
+	log.Printf("[DEBUG] Waiting for deletion of Subscription Template Deployment %q..", id.DeploymentName)
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Subscription Template Deployment %q: %+v", id.Name, err)
+		return fmt.Errorf("waiting for deletion of Subscription Template Deployment %q: %+v", id.DeploymentName, err)
 	}
-	log.Printf("[DEBUG] Deleted Subscription Template Deployment %q.", id.Name)
+	log.Printf("[DEBUG] Deleted Subscription Template Deployment %q.", id.DeploymentName)
 
 	return nil
 }
 
 func validateSubscriptionTemplateDeployment(ctx context.Context, id parse.SubscriptionTemplateDeploymentId, deployment resources.Deployment, client *resources.DeploymentsClient) error {
-	validationFuture, err := client.ValidateAtSubscriptionScope(ctx, id.Name, deployment)
+	validationFuture, err := client.ValidateAtSubscriptionScope(ctx, id.DeploymentName, deployment)
 	if err != nil {
 		return fmt.Errorf("requesting validating: %+v", err)
 	}

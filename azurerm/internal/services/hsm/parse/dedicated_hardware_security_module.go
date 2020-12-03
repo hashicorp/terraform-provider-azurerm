@@ -27,6 +27,7 @@ func (id DedicatedHardwareSecurityModuleId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DedicatedHSMName)
 }
 
+// DedicatedHardwareSecurityModuleID parses a DedicatedHardwareSecurityModule ID into an DedicatedHardwareSecurityModuleId struct
 func DedicatedHardwareSecurityModuleID(input string) (*DedicatedHardwareSecurityModuleId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -36,6 +37,14 @@ func DedicatedHardwareSecurityModuleID(input string) (*DedicatedHardwareSecurity
 	resourceId := DedicatedHardwareSecurityModuleId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.DedicatedHSMName, err = id.PopSegment("dedicatedHSMs"); err != nil {

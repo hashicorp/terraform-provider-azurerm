@@ -16,7 +16,7 @@ import (
 
 type CdnProfileResource struct{}
 
-func TestAccAzureRMCdnProfile_basic(t *testing.T) {
+func TestAccCdnProfile_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
 	r := CdnProfileResource{}
 
@@ -31,7 +31,7 @@ func TestAccAzureRMCdnProfile_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCdnProfile_requiresImport(t *testing.T) {
+func TestAccCdnProfile_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
 	r := CdnProfileResource{}
 
@@ -46,7 +46,7 @@ func TestAccAzureRMCdnProfile_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCdnProfile_withTags(t *testing.T) {
+func TestAccCdnProfile_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
 	r := CdnProfileResource{}
 
@@ -68,7 +68,7 @@ func TestAccAzureRMCdnProfile_withTags(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCdnProfile_NonStandardCasing(t *testing.T) {
+func TestAccCdnProfile_NonStandardCasing(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
 	r := CdnProfileResource{}
 
@@ -87,7 +87,7 @@ func TestAccAzureRMCdnProfile_NonStandardCasing(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCdnProfile_basicToStandardAkamai(t *testing.T) {
+func TestAccCdnProfile_basicToStandardAkamai(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
 	r := CdnProfileResource{}
 
@@ -109,7 +109,7 @@ func TestAccAzureRMCdnProfile_basicToStandardAkamai(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCdnProfile_standardAkamai(t *testing.T) {
+func TestAccCdnProfile_standardAkamai(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
 	r := CdnProfileResource{}
 
@@ -125,7 +125,7 @@ func TestAccAzureRMCdnProfile_standardAkamai(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCdnProfile_standardMicrosoft(t *testing.T) {
+func TestAccCdnProfile_standardMicrosoft(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
 	r := CdnProfileResource{}
 

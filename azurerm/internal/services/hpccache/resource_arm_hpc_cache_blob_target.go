@@ -43,7 +43,7 @@ func resourceArmHPCCacheBlobTarget() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.HPCCacheTargetName,
+				ValidateFunc: validate.StorageTargetName,
 			},
 
 			"cache_name": {
@@ -58,7 +58,7 @@ func resourceArmHPCCacheBlobTarget() *schema.Resource {
 			"namespace_path": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.HPCCacheNamespacePath,
+				ValidateFunc: validate.CacheNamespacePath,
 			},
 
 			"storage_container_id": {

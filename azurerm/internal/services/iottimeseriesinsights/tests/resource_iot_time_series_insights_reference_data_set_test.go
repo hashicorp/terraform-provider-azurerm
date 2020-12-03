@@ -76,7 +76,7 @@ func testCheckAzureRMIoTTimeSeriesInsightsReferenceDataSetExists(name string) re
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		id, err := parse.TimeSeriesInsightsReferenceDataSetID(rs.Primary.ID)
+		id, err := parse.ReferenceDataSetID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -103,7 +103,7 @@ func testCheckAzureRMIoTTimeSeriesInsightsReferenceDataSetDestroy(s *terraform.S
 			continue
 		}
 
-		id, err := parse.TimeSeriesInsightsReferenceDataSetID(rs.Primary.ID)
+		id, err := parse.ReferenceDataSetID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

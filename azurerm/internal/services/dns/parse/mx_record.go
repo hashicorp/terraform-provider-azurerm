@@ -29,6 +29,7 @@ func (id MxRecordId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DnszoneName, id.MXName)
 }
 
+// MxRecordID parses a MxRecord ID into an MxRecordId struct
 func MxRecordID(input string) (*MxRecordId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -38,6 +39,14 @@ func MxRecordID(input string) (*MxRecordId, error) {
 	resourceId := MxRecordId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.DnszoneName, err = id.PopSegment("dnszones"); err != nil {

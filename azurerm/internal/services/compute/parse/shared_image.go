@@ -29,6 +29,7 @@ func (id SharedImageId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.GalleryName, id.ImageName)
 }
 
+// SharedImageID parses a SharedImage ID into an SharedImageId struct
 func SharedImageID(input string) (*SharedImageId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -38,6 +39,14 @@ func SharedImageID(input string) (*SharedImageId, error) {
 	resourceId := SharedImageId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.GalleryName, err = id.PopSegment("galleries"); err != nil {

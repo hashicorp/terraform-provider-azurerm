@@ -1,28 +1,59 @@
-## 2.38.0 (Unreleased)
+## 2.39.0 (Unreleased)
 
 FEATURES:
 
-* **New Data Source:** `azurerm_digital_twins_instance` [GH-9430]
-* **New Data Source:** `azurerm_virtual_wan` [GH-9382]
-* **New Resource:** `azurerm_digital_twins_instance` [GH-9430]
+* **New Resource:** `azurerm_api_management_policy` [GH-9215]
+* **New Resource:** `azurerm_digital_twins_endpoint_eventgrid` [GH-9489]
 
 IMPROVEMENTS: 
 
-* dependencies: updating App Service to API version `2020-06-01` [GH-9409]
-* Data Source: `azurerm_spring_cloud_service` - exporting `outbound_public_ip_addresses` [GH-9261]
-* `azurerm_application_insights` - validating the ID is correct at import time [GH-9446]
-* `azurerm_application_insights_web_test` - validating the ID is correct at import time [GH-9446]
-* `azurerm_express_route_circuit_peering` - support for the `ipv6` block  [GH-9235]
-* `azurerm_spring_cloud_service` - exporting `outbound_public_ip_addresses` [GH-9261]
-* `azurerm_virtual_network_gateway` - support for the `dpd_timeout_seconds` and `local_azure_ip_address_enabled` properties [GH-9330]
-* `azurerm_virtual_network_gateway_connection` - support for the `private_ip_address_enabled` propeties and the `custom_route` block [GH-9330]
+* `azurerm_dashboard` - adding validation at import time to ensure the ID is for a Dashboard [GH-9530]
+* `azurerm_keyvault_certificate` - add `3072` to allowed values for `key_size` [GH-9524]
+* `azurerm_media_services_account` - support for the `identity`, `tags`, and `storage_authentication` properties [GH-9457]
+* `azurerm_notification_hub_authorization_rule` - adding validation at import time to ensure the ID is for a Notification Hub Authorization Rule [GH-9529]
+* `azurerm_notification_hub_namespace` - adding validation at import time to ensure the ID is for a Notification Hub Namespace [GH-9529]
+* `azurerm_postgresql_active_directory_administrator` - validating during import that the ID is for a PostgreSQL Active Directory Administrator [GH-9532]
+* `azurerm_postgresql_configuration` - validating during import that the ID is for a PostgreSQL Configuration [GH-9532]
+* `azurerm_postgresql_database` - validating during import that the ID is for a PostgreSQL Database [GH-9532]
+* `azurerm_postgresql_firewall_rule` - validating during import that the ID is for a PostgreSQL Firewall Rule [GH-9532]
+* `azurerm_postgresql_virtual_network_rule` - validating during import that the ID is for a PostgreSQL Virtual Network Rule [GH-9532]
+* `azurerm_traffic_manager_profile` - allow up to `2147483647` for the `ttl` property [GH-9522]
+
+## 2.38.0 (November 27, 2020)
+
+FEATURES:
+
+* **New Resource** `azurerm_app_service_managed_certificate` ([#9378](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9378))
+* **New Data Source:** `azurerm_digital_twins_instance` ([#9430](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9430))
+* **New Data Source:** `azurerm_virtual_wan` ([#9382](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9382))
+* **New Resource:** `azurerm_digital_twins_instance` ([#9430](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9430))
+
+IMPROVEMENTS: 
+
+* dependencies: updating App Service to API version `2020-06-01` ([#9409](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9409))
+* Data Source `azurerm_app_service` now exports the `custom_domain_verification_id` attribute ([#9378](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9378))
+* Data Source`azurerm_function_app` now exports the `custom_domain_verification_id` attribute ([#9378](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9378))
+* Data Source: `azurerm_spring_cloud_service` - now exports the `outbound_public_ip_addresses` attribute ([#9261](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9261))
+* `azurerm_app_service` now exports `custom_domain_verification_id` ([#9378](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9378))
+* `azurerm_application_insights` - validating the resource ID is correct during import ([#9446](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9446))
+* `azurerm_application_insights_web_test` - validating the resource ID is correct during import ([#9446](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9446))
+* `azurerm_express_route_circuit_peering` - support for the `ipv6` block  ([#9235](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9235))
+* `azurerm_function_app` now exports the `custom_domain_verification_id` attribute ([#9378](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9378))
+* `azurerm_vpn_server_configuration` - deprecate the `radius_server` block in favour of the `radius` block which supports multiple servers ([#9308](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9308))
+* `azurerm_spring_cloud_service` - now exports the `outbound_public_ip_addresses` attribute ([#9261](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9261))
+* `azurerm_virtual_network_gateway` - support for the `dpd_timeout_seconds` and `local_azure_ip_address_enabled` properties ([#9330](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9330))
+* `azurerm_virtual_network_gateway_connection` - support for the `private_ip_address_enabled` propeties and the `custom_route` block ([#9330](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9330))
 
 BUG FIXES:
 
-* `azurerm_api_management` - fixing an issue where developer portal certificates are updated on every apply [GH-7299]
-* `azurerm_cosmosdb_account` - Fix Cosmos zone redundant update [GH-9485]
-* `azurerm_search_service` - `allowed_ips` now supports specifying a CIDR Block in addition to an IPv4 address [GH-9493]
-* `azurerm_windows_virtual_machine` - no longer sets `patch_mode` on creation if it is the default value [GH-[9432]
+* `azurerm_api_management` - fixing an issue where developer portal certificates are updated on every apply ([#7299](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7299))
+* `azurerm_cosmosdb_account` - corrently updates the `zone_redundant` property during updates ([#9485](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9485))
+* `azurerm_search_service` - `allowed_ips` now supports specifying a CIDR Block in addition to an IPv4 address ([#9493](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9493))
+* `azurerm_virtual_desktop_application_group` - adding a state migration to avoid a breaking change when upgrading from `v2.35.0` or later ([#9495](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9495))
+* `azurerm_virtual_desktop_host_pool` - adding a state migration to avoid a breaking change when upgrading from `v2.35.0` or later ([#9495](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9495))
+* `azurerm_virtual_desktop_workspace` - adding a state migration to avoid a breaking change when upgrading from `v2.35.0` or later ([#9495](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9495))
+* `azurerm_virtual_desktop_workspace_application_group_association` - adding a state migration to avoid a breaking change when upgrading from `v2.35.0` or later ([#9495](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9495))
+* `azurerm_windows_virtual_machine` - no longer sets `patch_mode` on creation if it is the default value ([#9495](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9432))
 
 ## 2.37.0 (November 20, 2020)
 

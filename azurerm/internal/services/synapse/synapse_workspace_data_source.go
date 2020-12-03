@@ -26,7 +26,7 @@ func dataSourceSynapseWorkspace() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.SynapseWorkspaceName,
+				ValidateFunc: validate.WorkspaceName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),

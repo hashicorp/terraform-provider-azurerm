@@ -33,7 +33,7 @@ func resourceArmVPNGatewayConnection() *schema.Resource {
 		Delete: resourceArmVpnGatewayConnectionResourceDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.VPNGatewayConnectionID(id)
+			_, err := parse.VpnConnectionID(id)
 			return err
 		}),
 
@@ -56,7 +56,7 @@ func resourceArmVPNGatewayConnection() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.VPNGatewayID,
+				ValidateFunc: validate.VpnGatewayID,
 			},
 
 			"remote_vpn_site_id": {
@@ -82,14 +82,14 @@ func resourceArmVPNGatewayConnection() *schema.Resource {
 						"associated_route_table": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.VirtualHubRouteTableID,
+							ValidateFunc: validate.HubRouteTableID,
 						},
 						"propagated_route_tables": {
 							Type:     schema.TypeList,
 							Required: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: validate.VirtualHubRouteTableID,
+								ValidateFunc: validate.HubRouteTableID,
 							},
 						},
 					},
@@ -289,7 +289,7 @@ func resourceArmVpnGatewayConnectionResourceCreateUpdate(d *schema.ResourceData,
 	defer cancel()
 
 	name := d.Get("name").(string)
-	gatewayId, err := parse.VPNGatewayID(d.Get("vpn_gateway_id").(string))
+	gatewayId, err := parse.VpnGatewayID(d.Get("vpn_gateway_id").(string))
 	if err != nil {
 		return err
 	}
@@ -314,9 +314,11 @@ func resourceArmVpnGatewayConnectionResourceCreateUpdate(d *schema.ResourceData,
 		Name: &name,
 		VpnConnectionProperties: &network.VpnConnectionProperties{
 			EnableInternetSecurity: utils.Bool(d.Get("internet_security_enabled").(bool)),
-			RemoteVpnSite:          &network.SubResource{ID: utils.String(d.Get("remote_vpn_site_id").(string))},
-			VpnLinkConnections:     expandArmVpnGatewayConnectionVpnSiteLinkConnections(d.Get("vpn_link").([]interface{})),
-			RoutingConfiguration:   expandArmVpnGatewayConnectionRoutingConfiguration(d.Get("routing").([]interface{})),
+			RemoteVpnSite: &network.SubResource{
+				ID: utils.String(d.Get("remote_vpn_site_id").(string)),
+			},
+			VpnLinkConnections:   expandArmVpnGatewayConnectionVpnSiteLinkConnections(d.Get("vpn_link").([]interface{})),
+			RoutingConfiguration: expandArmVpnGatewayConnectionRoutingConfiguration(d.Get("routing").([]interface{})),
 		},
 	}
 
@@ -337,7 +339,7 @@ func resourceArmVpnGatewayConnectionResourceCreateUpdate(d *schema.ResourceData,
 		return fmt.Errorf("empty or nil ID returned for Vpn Gateway Connection Resource %q (Resource Group %q / VPN Gateway: %q) ID", name, gatewayId.ResourceGroup, gatewayId.Name)
 	}
 
-	id, err := parse.VPNGatewayConnectionID(*resp.ID)
+	id, err := parse.VpnConnectionID(*resp.ID)
 	if err != nil {
 		return err
 	}
@@ -347,31 +349,30 @@ func resourceArmVpnGatewayConnectionResourceCreateUpdate(d *schema.ResourceData,
 }
 
 func resourceArmVpnGatewayConnectionResourceRead(d *schema.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.VpnConnectionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VPNGatewayConnectionID(d.Id())
+	id, err := parse.VpnConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Gateway, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.VpnGatewayName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Vpn Gateway Connection Resource %q was not found in VPN Gateway %q in Resource Group %q - removing from state!", id.Name, id.Gateway, id.ResourceGroup)
+			log.Printf("[DEBUG] Vpn Gateway Connection Resource %q was not found in VPN Gateway %q in Resource Group %q - removing from state!", id.Name, id.VpnGatewayName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Vpn Gateway Connection Resource %q (Resource Group %q / VPN Gateway %q): %+v", id.Name, id.ResourceGroup, id.Gateway, err)
+		return fmt.Errorf("retrieving Vpn Gateway Connection Resource %q (Resource Group %q / VPN Gateway %q): %+v", id.Name, id.ResourceGroup, id.VpnGatewayName, err)
 	}
 
 	d.Set("name", id.Name)
 
-	gatewayId := parse.NewVPNGatewayID(id.ResourceGroup, id.Gateway)
-	d.Set("vpn_gateway_id", gatewayId.ID(subscriptionId))
+	gatewayId := parse.NewVpnGatewayID(id.SubscriptionId, id.ResourceGroup, id.VpnGatewayName)
+	d.Set("vpn_gateway_id", gatewayId.ID(""))
 
 	if prop := resp.VpnConnectionProperties; prop != nil {
 		vpnSiteId := ""
@@ -381,7 +382,7 @@ func resourceArmVpnGatewayConnectionResourceRead(d *schema.ResourceData, meta in
 				if err != nil {
 					return err
 				}
-				vpnSiteId = theVpnSiteId.ID(subscriptionId)
+				vpnSiteId = theVpnSiteId.ID("")
 			}
 		}
 		d.Set("remote_vpn_site_id", vpnSiteId)
@@ -409,24 +410,24 @@ func resourceArmVpnGatewayConnectionResourceDelete(d *schema.ResourceData, meta 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VPNGatewayConnectionID(d.Id())
+	id, err := parse.VpnConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(id.Gateway, VPNGatewayResourceName)
-	defer locks.UnlockByName(id.Gateway, VPNGatewayResourceName)
+	locks.ByName(id.VpnGatewayName, VPNGatewayResourceName)
+	defer locks.UnlockByName(id.VpnGatewayName, VPNGatewayResourceName)
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Gateway, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.VpnGatewayName, id.Name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("deleting Vpn Gateway Connection Resource %q (Resource Group %q / VPN Gateway %q): %+v", id.Name, id.ResourceGroup, id.Gateway, err)
+		return fmt.Errorf("deleting Vpn Gateway Connection Resource %q (Resource Group %q / VPN Gateway %q): %+v", id.Name, id.ResourceGroup, id.VpnGatewayName, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for the deletion of VPN Gateway Connection %q (Resource Group %q / VPN Gateway %q): %+v", id.Name, id.ResourceGroup, id.Gateway, err)
+			return fmt.Errorf("Error waiting for the deletion of VPN Gateway Connection %q (Resource Group %q / VPN Gateway %q): %+v", id.Name, id.ResourceGroup, id.VpnGatewayName, err)
 		}
 	}
 

@@ -27,10 +27,11 @@ func NewMongodbCollectionID(subscriptionId, resourceGroup, databaseAccountName, 
 }
 
 func (id MongodbCollectionId) ID(_ string) string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/DatabaseAccounts/%s/mongodbDatabases/%s/collections/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/databaseAccounts/%s/mongodbDatabases/%s/collections/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DatabaseAccountName, id.MongodbDatabaseName, id.CollectionName)
 }
 
+// MongodbCollectionID parses a MongodbCollection ID into an MongodbCollectionId struct
 func MongodbCollectionID(input string) (*MongodbCollectionId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -42,7 +43,15 @@ func MongodbCollectionID(input string) (*MongodbCollectionId, error) {
 		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if resourceId.DatabaseAccountName, err = id.PopSegment("DatabaseAccounts"); err != nil {
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.DatabaseAccountName, err = id.PopSegment("databaseAccounts"); err != nil {
 		return nil, err
 	}
 	if resourceId.MongodbDatabaseName, err = id.PopSegment("mongodbDatabases"); err != nil {

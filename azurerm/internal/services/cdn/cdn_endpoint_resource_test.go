@@ -16,7 +16,7 @@ import (
 
 type CdnEndpointResource struct{}
 
-func TestAccAzureRMCdnEndpoint_basic(t *testing.T) {
+func TestAccCdnEndpoint_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -31,7 +31,7 @@ func TestAccAzureRMCdnEndpoint_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCdnEndpoint_requiresImport(t *testing.T) {
+func TestAccCdnEndpoint_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -46,7 +46,7 @@ func TestAccAzureRMCdnEndpoint_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCdnEndpoint_disappears(t *testing.T) {
+func TestAccCdnEndpoint_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -58,7 +58,7 @@ func TestAccAzureRMCdnEndpoint_disappears(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCdnEndpoint_updateHostHeader(t *testing.T) {
+func TestAccCdnEndpoint_updateHostHeader(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -87,7 +87,7 @@ func TestAccAzureRMCdnEndpoint_updateHostHeader(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
+func TestAccCdnEndpoint_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -109,7 +109,7 @@ func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCdnEndpoint_withoutCompression(t *testing.T) {
+func TestAccCdnEndpoint_withoutCompression(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -124,7 +124,7 @@ func TestAccAzureRMCdnEndpoint_withoutCompression(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCdnEndpoint_optimized(t *testing.T) {
+func TestAccCdnEndpoint_optimized(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -139,7 +139,7 @@ func TestAccAzureRMCdnEndpoint_optimized(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCdnEndpoint_withGeoFilters(t *testing.T) {
+func TestAccCdnEndpoint_withGeoFilters(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -154,7 +154,7 @@ func TestAccAzureRMCdnEndpoint_withGeoFilters(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCdnEndpoint_fullFields(t *testing.T) {
+func TestAccCdnEndpoint_fullFields(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -181,7 +181,7 @@ func TestAccAzureRMCdnEndpoint_fullFields(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCdnEndpoint_isHttpAndHttpsAllowedUpdate(t *testing.T) {
+func TestAccCdnEndpoint_isHttpAndHttpsAllowedUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -203,7 +203,7 @@ func TestAccAzureRMCdnEndpoint_isHttpAndHttpsAllowedUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCdnEndpoint_globalDeliveryRule(t *testing.T) {
+func TestAccCdnEndpoint_globalDeliveryRule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -232,7 +232,7 @@ func TestAccAzureRMCdnEndpoint_globalDeliveryRule(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCdnEndpoint_deliveryRule(t *testing.T) {
+func TestAccCdnEndpoint_deliveryRule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -268,7 +268,7 @@ func TestAccAzureRMCdnEndpoint_deliveryRule(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCdnEndpoint_dnsAlias(t *testing.T) {
+func TestAccCdnEndpoint_dnsAlias(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 

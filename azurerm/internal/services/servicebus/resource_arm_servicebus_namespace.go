@@ -34,7 +34,7 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 		Delete: resourceArmServiceBusNamespaceDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.ServiceBusNamespaceID(id)
+			_, err := parse.NamespaceID(id)
 			return err
 		}),
 
@@ -53,7 +53,7 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ServiceBusNamespaceName,
+				ValidateFunc: validate.NamespaceName,
 			},
 
 			"location": azure.SchemaLocation(),

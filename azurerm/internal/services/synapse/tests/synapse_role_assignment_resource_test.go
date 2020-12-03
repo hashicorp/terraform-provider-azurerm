@@ -57,7 +57,7 @@ func testCheckAzureRMSynapseRoleAssignmentExists(resourceName string) resource.T
 		if !ok {
 			return fmt.Errorf("synapse role assignment not found: %s", resourceName)
 		}
-		id, err := parse.SynapseRoleAssignmentID(rs.Primary.ID)
+		id, err := parse.RoleAssignmentID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -65,9 +65,9 @@ func testCheckAzureRMSynapseRoleAssignmentExists(resourceName string) resource.T
 		if err != nil {
 			return err
 		}
-		if resp, err := client.GetRoleAssignmentByID(ctx, id.Id); err != nil {
+		if resp, err := client.GetRoleAssignmentByID(ctx, id.DataPlaneAssignmentId); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Synapse role assignment %q does not exist", id.Id)
+				return fmt.Errorf("bad: Synapse role assignment %q does not exist", id.DataPlaneAssignmentId)
 			}
 			return fmt.Errorf("bad: Get on Synapse.AccessControlClient: %+v", err)
 		}
@@ -85,13 +85,13 @@ func testCheckAzureRMSynapseRoleAssignmentDestroy(s *terraform.State) error {
 		if rs.Type != "azurerm_synapse_role_assignment" {
 			continue
 		}
-		id, err := parse.SynapseRoleAssignmentID(rs.Primary.ID)
+		id, err := parse.RoleAssignmentID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 		if resp, err := workspaceClient.Get(ctx, id.Workspace.ResourceGroup, id.Workspace.Name); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Get on Synapse.WorkspaceClient %q, %+v", id.Workspace.String(), err)
+				return fmt.Errorf("bad: Get on Synapse.WorkspaceClient %q, %+v", id.Workspace.ID(""), err)
 			}
 			return nil
 		}
@@ -100,7 +100,7 @@ func testCheckAzureRMSynapseRoleAssignmentDestroy(s *terraform.State) error {
 		if err != nil {
 			return err
 		}
-		resp, err := client.GetRoleAssignmentByID(ctx, id.Id)
+		resp, err := client.GetRoleAssignmentByID(ctx, id.DataPlaneAssignmentId)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("bad: Get on Synapse.AccessControlClient: %+v", err)

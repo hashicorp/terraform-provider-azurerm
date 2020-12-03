@@ -99,7 +99,7 @@ func testCheckAzureRMMapsAccountExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.MapsAccountID(rs.Primary.ID)
+		id, err := parse.AccountID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -126,7 +126,7 @@ func testCheckAzureRMMapsAccountDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.MapsAccountID(rs.Primary.ID)
+		id, err := parse.AccountID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

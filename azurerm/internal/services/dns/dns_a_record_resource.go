@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDnsARecord() *schema.Resource {
+func resourceDnsARecord() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDnsARecordCreateUpdate,
-		Read:   resourceArmDnsARecordRead,
-		Update: resourceArmDnsARecordCreateUpdate,
-		Delete: resourceArmDnsARecordDelete,
+		Create: resourceDnsARecordCreateUpdate,
+		Read:   resourceDnsARecordRead,
+		Update: resourceDnsARecordCreateUpdate,
+		Delete: resourceDnsARecordDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -81,7 +81,7 @@ func resourceArmDnsARecord() *schema.Resource {
 	}
 }
 
-func resourceArmDnsARecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsARecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -144,10 +144,10 @@ func resourceArmDnsARecordCreateUpdate(d *schema.ResourceData, meta interface{})
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDnsARecordRead(d, meta)
+	return resourceDnsARecordRead(d, meta)
 }
 
-func resourceArmDnsARecordRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsARecordRead(d *schema.ResourceData, meta interface{}) error {
 	dnsClient := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -186,7 +186,7 @@ func resourceArmDnsARecordRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
-func resourceArmDnsARecordDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsARecordDelete(d *schema.ResourceData, meta interface{}) error {
 	dnsClient := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -46,7 +46,7 @@ func resourceArmServiceBusNamespaceAuthorizationRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ServiceBusNamespaceName,
+				ValidateFunc: validate.NamespaceName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),

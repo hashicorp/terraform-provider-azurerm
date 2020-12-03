@@ -181,7 +181,7 @@ func testCheckAzureRMMsSqlVirtualMachineExists(resourceName string) resource.Tes
 			return fmt.Errorf("Sql Virtual Machine not found: %s", resourceName)
 		}
 
-		id, err := parse.MssqlVmID(rs.Primary.ID)
+		id, err := parse.SqlVirtualMachineID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -209,7 +209,7 @@ func testCheckAzureRMMsSqlVirtualMachineDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.MssqlVmID(rs.Primary.ID)
+		id, err := parse.SqlVirtualMachineID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
