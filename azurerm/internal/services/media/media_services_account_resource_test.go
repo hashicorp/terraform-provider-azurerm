@@ -1,4 +1,4 @@
-package tests
+package media_test
 
 import (
 	"fmt"
@@ -13,16 +13,16 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/parse"
 )
 
-func TestAccAzureRMMediaServicesAccount_basic(t *testing.T) {
+func TestAccMediaServicesAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_services_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMediaServicesAccountDestroy,
+		CheckDestroy: testCheckMediaServicesAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMediaServicesAccount_basic(data),
+				Config: testAccMediaServicesAccount_basic(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_account.#", "1"),
 				),
@@ -32,23 +32,23 @@ func TestAccAzureRMMediaServicesAccount_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMediaServicesAccount_multipleAccounts(t *testing.T) {
+func TestAccMediaServicesAccount_multipleAccounts(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_services_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMediaServicesAccountDestroy,
+		CheckDestroy: testCheckMediaServicesAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMediaServicesAccount_multipleAccounts(data),
+				Config: testAccMediaServicesAccount_multipleAccounts(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMMediaServicesAccountExists(data.ResourceName),
+					testCheckMediaServicesAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_account.#", "2"),
 				),
 			},
 			{
-				Config:   testAccAzureRMMediaServicesAccount_multipleAccountsUpdated(data),
+				Config:   testAccMediaServicesAccount_multipleAccountsUpdated(data),
 				PlanOnly: true,
 			},
 			data.ImportStep(),
@@ -56,32 +56,32 @@ func TestAccAzureRMMediaServicesAccount_multipleAccounts(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMediaServicesAccount_multiplePrimaries(t *testing.T) {
+func TestAccMediaServicesAccount_multiplePrimaries(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_services_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMediaServicesAccountDestroy,
+		CheckDestroy: testCheckMediaServicesAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAzureRMMediaServicesAccount_multiplePrimaries(data),
+				Config:      testAccMediaServicesAccount_multiplePrimaries(data),
 				ExpectError: regexp.MustCompile("Only one Storage Account can be set as Primary"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMMediaServicesAccount_identitySystemAssigned(t *testing.T) {
+func TestAccMediaServicesAccount_identitySystemAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_services_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMediaServicesAccountDestroy,
+		CheckDestroy: testCheckMediaServicesAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMediaServicesAccount_identitySystemAssigned(data),
+				Config: testAccMediaServicesAccount_identitySystemAssigned(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
 				),
@@ -91,7 +91,7 @@ func TestAccAzureRMMediaServicesAccount_identitySystemAssigned(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMMediaServicesAccountExists(resourceName string) resource.TestCheckFunc {
+func testCheckMediaServicesAccountExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := acceptance.AzureProvider.Meta().(*clients.Client).Media.ServicesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -119,7 +119,7 @@ func testCheckAzureRMMediaServicesAccountExists(resourceName string) resource.Te
 	}
 }
 
-func testCheckAzureRMMediaServicesAccountDestroy(s *terraform.State) error {
+func testCheckMediaServicesAccountDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).Media.ServicesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -145,8 +145,8 @@ func testCheckAzureRMMediaServicesAccountDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMMediaServicesAccount_basic(data acceptance.TestData) string {
-	template := testAccAzureRMMediaServicesAccount_template(data)
+func testAccMediaServicesAccount_basic(data acceptance.TestData) string {
+	template := testAccMediaServicesAccount_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -167,8 +167,8 @@ resource "azurerm_media_services_account" "test" {
 `, template, data.RandomString)
 }
 
-func testAccAzureRMMediaServicesAccount_multipleAccounts(data acceptance.TestData) string {
-	template := testAccAzureRMMediaServicesAccount_template(data)
+func testAccMediaServicesAccount_multipleAccounts(data acceptance.TestData) string {
+	template := testAccMediaServicesAccount_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -198,8 +198,8 @@ resource "azurerm_media_services_account" "test" {
 `, template, data.RandomString, data.RandomString)
 }
 
-func testAccAzureRMMediaServicesAccount_multipleAccountsUpdated(data acceptance.TestData) string {
-	template := testAccAzureRMMediaServicesAccount_template(data)
+func testAccMediaServicesAccount_multipleAccountsUpdated(data acceptance.TestData) string {
+	template := testAccMediaServicesAccount_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -229,8 +229,8 @@ resource "azurerm_media_services_account" "test" {
 `, template, data.RandomString, data.RandomString)
 }
 
-func testAccAzureRMMediaServicesAccount_multiplePrimaries(data acceptance.TestData) string {
-	template := testAccAzureRMMediaServicesAccount_template(data)
+func testAccMediaServicesAccount_multiplePrimaries(data acceptance.TestData) string {
+	template := testAccMediaServicesAccount_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -260,8 +260,8 @@ resource "azurerm_media_services_account" "test" {
 `, template, data.RandomString, data.RandomString)
 }
 
-func testAccAzureRMMediaServicesAccount_identitySystemAssigned(data acceptance.TestData) string {
-	template := testAccAzureRMMediaServicesAccount_template(data)
+func testAccMediaServicesAccount_identitySystemAssigned(data acceptance.TestData) string {
+	template := testAccMediaServicesAccount_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -282,7 +282,7 @@ resource "azurerm_media_services_account" "test" {
 `, template, data.RandomString)
 }
 
-func testAccAzureRMMediaServicesAccount_template(data acceptance.TestData) string {
+func testAccMediaServicesAccount_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
