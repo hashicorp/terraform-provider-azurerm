@@ -175,6 +175,7 @@ func (t AppServiceManagedCertificateResource) basicFunctionApp(data acceptance.T
 
 resource "azurerm_app_service_managed_certificate" "test" {
   custom_hostname_binding_id = azurerm_app_service_custom_hostname_binding.test.id
+  ssl_state                  = "SniEnabled"
 }
 
 `, template)
@@ -187,6 +188,7 @@ func (t AppServiceManagedCertificateResource) requiresImport(data acceptance.Tes
 
 resource "azurerm_app_service_managed_certificate" "import" {
   custom_hostname_binding_id = azurerm_app_service_managed_certificate.test.custom_hostname_binding_id
+  ssl_state                  = azurerm_app_service_managed_certificate.test.ssl_state
 }
 
 `, template)
@@ -266,6 +268,7 @@ func (t AppServiceManagedCertificateResource) basicWindows(data acceptance.TestD
 
 resource "azurerm_app_service_managed_certificate" "test" {
   custom_hostname_binding_id = azurerm_app_service_custom_hostname_binding.test.id
+  ssl_state                  = "SniEnabled"
 }
 
 `, template)
