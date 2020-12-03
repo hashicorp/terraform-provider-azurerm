@@ -2,6 +2,7 @@ package trafficmanager
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -149,9 +150,8 @@ func dataSourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interfa
 
 	d.SetId(*resp.ID)
 
-	if location := resp.Location; location != nil {
-		loc := *location
-		d.Set("location", azure.NormalizeLocation(loc))
+	if loc := resp.Location; loc != nil {
+		d.Set("location", location.NormalizeNilable(loc))
 	}
 
 	if profile := resp.ProfileProperties; profile != nil {
