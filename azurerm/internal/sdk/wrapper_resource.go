@@ -76,7 +76,7 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 			Read:   d(rw.resource.Read().Timeout),
 			Delete: d(rw.resource.Delete().Timeout),
 		},
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			fn := rw.resource.IDValidationFunc()
 			warnings, errors := fn(id, "id")
 			if len(warnings) > 0 {
@@ -93,6 +93,21 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 			}
 
 			return err
+		}, func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+			if v, ok := rw.resource.(ResourceWithCustomImporter); ok {
+				ctx, metaData := runArgs(d, meta, rw.logger)
+				wrappedCtx, cancel := timeouts.ForRead(ctx, d)
+				defer cancel()
+
+				err := v.CustomImporter()(wrappedCtx, metaData)
+				if err != nil {
+					return nil, err
+				}
+
+				return []*schema.ResourceData{d}, nil
+			}
+
+			return schema.ImportStatePassthrough(d, meta)
 		}),
 	}
 
