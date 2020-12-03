@@ -1,152 +1,103 @@
 package media_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+type MediaServicesAccountResource struct {
+}
 
 func TestAccMediaServicesAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_services_account", "test")
+	r := MediaServicesAccountResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckMediaServicesAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMediaServicesAccount_basic(data),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "storage_account.#", "1"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).Key("storage_account.#").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccMediaServicesAccount_multipleAccounts(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_services_account", "test")
+	r := MediaServicesAccountResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckMediaServicesAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMediaServicesAccount_multipleAccounts(data),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckMediaServicesAccountExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "storage_account.#", "2"),
-				),
-			},
-			{
-				Config:   testAccMediaServicesAccount_multipleAccountsUpdated(data),
-				PlanOnly: true,
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.multipleAccounts(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_account.#").HasValue("2"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config:   r.multipleAccountsUpdated(data),
+			PlanOnly: true,
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccMediaServicesAccount_multiplePrimaries(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_services_account", "test")
+	r := MediaServicesAccountResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckMediaServicesAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      testAccMediaServicesAccount_multiplePrimaries(data),
-				ExpectError: regexp.MustCompile("Only one Storage Account can be set as Primary"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config:      r.multiplePrimaries(data),
+			ExpectError: regexp.MustCompile("Only one Storage Account can be set as Primary"),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccMediaServicesAccount_identitySystemAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_services_account", "test")
+	r := MediaServicesAccountResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckMediaServicesAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMediaServicesAccount_identitySystemAssigned(data),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.identitySystemAssigned(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckMediaServicesAccountExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Media.ServicesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Media service not found: %s", resourceName)
-		}
-
-		id, err := parse.MediaServiceID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on mediaServicesClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Media Services Account %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
-		}
-
-		return nil
-	}
-}
-
-func testCheckMediaServicesAccountDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).Media.ServicesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_media_services_account" {
-			continue
-		}
-
-		id, err := parse.MediaServiceID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Media Services Account still exists:\n%#v", resp)
-		}
+func (MediaServicesAccountResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.MediaServiceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Media.ServicesClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Media Services Account %s (resource group: %s): %v", id.Name, id.ResourceGroup, err)
+	}
+
+	return utils.Bool(resp.ServiceProperties != nil), nil
 }
 
-func testAccMediaServicesAccount_basic(data acceptance.TestData) string {
-	template := testAccMediaServicesAccount_template(data)
+func (MediaServicesAccountResource) basic(data acceptance.TestData) string {
+	template := MediaServicesAccountResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -167,8 +118,8 @@ resource "azurerm_media_services_account" "test" {
 `, template, data.RandomString)
 }
 
-func testAccMediaServicesAccount_multipleAccounts(data acceptance.TestData) string {
-	template := testAccMediaServicesAccount_template(data)
+func (MediaServicesAccountResource) multipleAccounts(data acceptance.TestData) string {
+	template := MediaServicesAccountResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -198,8 +149,8 @@ resource "azurerm_media_services_account" "test" {
 `, template, data.RandomString, data.RandomString)
 }
 
-func testAccMediaServicesAccount_multipleAccountsUpdated(data acceptance.TestData) string {
-	template := testAccMediaServicesAccount_template(data)
+func (MediaServicesAccountResource) multipleAccountsUpdated(data acceptance.TestData) string {
+	template := MediaServicesAccountResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -229,8 +180,8 @@ resource "azurerm_media_services_account" "test" {
 `, template, data.RandomString, data.RandomString)
 }
 
-func testAccMediaServicesAccount_multiplePrimaries(data acceptance.TestData) string {
-	template := testAccMediaServicesAccount_template(data)
+func (MediaServicesAccountResource) multiplePrimaries(data acceptance.TestData) string {
+	template := MediaServicesAccountResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -260,8 +211,8 @@ resource "azurerm_media_services_account" "test" {
 `, template, data.RandomString, data.RandomString)
 }
 
-func testAccMediaServicesAccount_identitySystemAssigned(data acceptance.TestData) string {
-	template := testAccMediaServicesAccount_template(data)
+func (MediaServicesAccountResource) identitySystemAssigned(data acceptance.TestData) string {
+	template := MediaServicesAccountResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -282,7 +233,7 @@ resource "azurerm_media_services_account" "test" {
 `, template, data.RandomString)
 }
 
-func testAccMediaServicesAccount_template(data acceptance.TestData) string {
+func (MediaServicesAccountResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
