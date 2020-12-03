@@ -14,7 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -22,9 +21,9 @@ import (
 
 func resourceArmAppServiceManagedCertificate() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAppServiceManagedCertificateCreateUpdate,
+		Create: resourceArmAppServiceManagedCertificateCreate,
 		Read:   resourceArmAppServiceManagedCertificateRead,
-		Update: resourceArmAppServiceManagedCertificateCreateUpdate,
+		Update: resourceArmAppServiceManagedCertificateUpdate,
 		Delete: resourceArmAppServiceManagedCertificateDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.ManagedCertificateID(id)
@@ -48,9 +47,7 @@ func resourceArmAppServiceManagedCertificate() *schema.Resource {
 
 			"ssl_state": {
 				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(web.SslStateIPBasedEnabled),
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(web.SslStateIPBasedEnabled),
 					string(web.SslStateSniEnabled),
@@ -100,16 +97,24 @@ func resourceArmAppServiceManagedCertificate() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.Schema(),
+			// TODO Remove in 3.0
+			"tags": {
+				Type:       schema.TypeMap,
+				Optional:   true,
+				Deprecated: "Tags are not stored by the service and will be ignored, this property will be removed in a future version of the provider",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
 
-func resourceArmAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAppServiceManagedCertificateCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
 	appServiceClient := meta.(*clients.Client).Web.AppServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	customHostnameBindingId, err := parse.HostnameBindingID(d.Get("custom_hostname_binding_id").(string))
@@ -139,8 +144,6 @@ func resourceArmAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData,
 		appServiceLocation = location.Normalize(*appService.Location)
 	}
 
-	t := d.Get("tags").(map[string]interface{})
-
 	id := parse.NewManagedCertificateID(subscriptionId, customHostnameBindingId.ResourceGroup, name)
 
 	if d.IsNewResource() {
@@ -163,7 +166,6 @@ func resourceArmAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData,
 			Password:      new(string),
 		},
 		Location: utils.String(appServiceLocation),
-		Tags:     tags.Expand(t),
 	}
 
 	resp, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.CertificateName, certificate)
@@ -231,8 +233,43 @@ func resourceArmAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData,
 	return resourceArmAppServiceManagedCertificateRead(d, meta)
 }
 
+func resourceArmAppServiceManagedCertificateUpdate(d *schema.ResourceData, meta interface{}) error {
+	appServiceClient := meta.(*clients.Client).Web.AppServicesClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	if d.HasChange("ssl_state") {
+		sslState := web.SslState(d.Get("ssl_state").(string))
+		hostnameBindingId, err := parse.HostnameBindingID(d.Get("custom_hostname_binding_id").(string))
+		if err != nil {
+			return err
+		}
+		// Get the current binding
+		binding, err := appServiceClient.GetHostNameBinding(ctx, hostnameBindingId.ResourceGroup, hostnameBindingId.SiteName, hostnameBindingId.Name)
+		if err != nil {
+			return fmt.Errorf("could not retrieve Hostname Binding %q (resource group %q) for update: %+v", hostnameBindingId.Name, hostnameBindingId.ResourceGroup, err)
+		}
+		if binding.HostNameBindingProperties != nil {
+			binding.HostNameBindingProperties.SslState = sslState
+		}
+
+		// Remove binding
+		if _, err := appServiceClient.DeleteHostNameBinding(ctx, hostnameBindingId.ResourceGroup, hostnameBindingId.SiteName, hostnameBindingId.Name); err != nil {
+			return fmt.Errorf("could not remove Hostname Binding from %q (resource group %q) to change `ssl_state`: %+v", hostnameBindingId.Name, hostnameBindingId.ResourceGroup, err)
+		}
+
+		// re-add binding with new SSL State
+		if _, err = appServiceClient.CreateOrUpdateHostNameBinding(ctx, hostnameBindingId.ResourceGroup, hostnameBindingId.SiteName, hostnameBindingId.Name, binding); err != nil {
+			return fmt.Errorf("failed to update Hostname Binding %q (resource group %q) for new SSL State: %+v", hostnameBindingId.ResourceGroup, hostnameBindingId.Name, err)
+		}
+	}
+
+	return resourceArmAppServiceManagedCertificateRead(d, meta)
+}
+
 func resourceArmAppServiceManagedCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
+	appServicesClient := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -266,7 +303,24 @@ func resourceArmAppServiceManagedCertificateRead(d *schema.ResourceData, meta in
 		d.Set("thumbprint", props.Thumbprint)
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	// @jackofallops - Best effort here, won't set a value on import as the setting is actually on the binding itself and the certificate ID doesn't provide enough information to get it
+	sslState := ""
+	if hostnameBindingIdRaw, ok := d.GetOk("custom_hostname_binding_id"); ok {
+		hostnameBindingId, err := parse.HostnameBindingID(hostnameBindingIdRaw.(string))
+		if err != nil {
+			return fmt.Errorf("could not parse ID for Hostname Binding: %+v", err)
+		}
+		binding, err := appServicesClient.GetHostNameBinding(ctx, hostnameBindingId.ResourceGroup, hostnameBindingId.SiteName, hostnameBindingId.Name)
+		if err != nil {
+			return fmt.Errorf("could not get details of Hostname Binding: %+v", err)
+		}
+		if props := binding.HostNameBindingProperties; props != nil {
+			sslState = string(props.SslState)
+		}
+	}
+	d.Set("ssl_state", sslState)
+
+	return nil
 }
 
 func resourceArmAppServiceManagedCertificateDelete(d *schema.ResourceData, meta interface{}) error {

@@ -33,6 +33,36 @@ func TestAccAzureRMAppServiceManagedCertificate_basicLinux(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep("tags", "ssl_state", "custom_hostname_binding_id"),
+	})
+}
+
+func TestAccAzureRMAppServiceManagedCertificate_updateSSLState(t *testing.T) {
+	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
+		t.Skip("Skipping as ARM_TEST_DNS_ZONE and/or ARM_TEST_DATA_RESOURCE_GROUP are not specified")
+		return
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_app_service_managed_certificate", "test")
+	r := AppServiceManagedCertificateResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicLinux(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ssl_state").HasValue("SniEnabled"),
+			),
+		},
+		data.ImportStep("tags", "ssl_state", "custom_hostname_binding_id"),
+		{
+			Config: r.updateSSLState(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ssl_state").HasValue("IpBasedEnabled"),
+			),
+		},
+		data.ImportStep("tags", "ssl_state", "custom_hostname_binding_id"),
 	})
 }
 
@@ -72,6 +102,7 @@ func TestAccAzureRMAppServiceManagedCertificate_basicWindows(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep("tags", "ssl_state", "custom_hostname_binding_id"),
 	})
 }
 
@@ -111,7 +142,6 @@ func TestAccAzureRMAppServiceManagedCertificate_basicFunctionApp(t *testing.T) {
 	})
 }
 
-
 func (t AppServiceManagedCertificateResource) basicLinux(data acceptance.TestData) string {
 	template := t.linuxTemplate(data)
 	return fmt.Sprintf(`
@@ -120,6 +150,19 @@ func (t AppServiceManagedCertificateResource) basicLinux(data acceptance.TestDat
 resource "azurerm_app_service_managed_certificate" "test" {
   custom_hostname_binding_id = azurerm_app_service_custom_hostname_binding.test.id
   ssl_state                  = "SniEnabled"
+}
+
+`, template)
+}
+
+func (t AppServiceManagedCertificateResource) updateSSLState(data acceptance.TestData) string {
+	template := t.linuxTemplate(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_managed_certificate" "test" {
+  custom_hostname_binding_id = azurerm_app_service_custom_hostname_binding.test.id
+  ssl_state                  = "IpBasedEnabled"
 }
 
 `, template)
@@ -306,7 +349,6 @@ resource "azurerm_app_service_custom_hostname_binding" "test" {
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomString, dnsZone, dataResourceGroup, data.RandomString, data.RandomString)
 }
-
 
 func (AppServiceManagedCertificateResource) windowsTemplate(data acceptance.TestData) string {
 	dnsZone := os.Getenv("ARM_TEST_DNS_ZONE")

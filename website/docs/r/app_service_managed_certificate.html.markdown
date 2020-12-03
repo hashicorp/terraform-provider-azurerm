@@ -59,6 +59,7 @@ resource "azurerm_app_service_custom_hostname_binding" "example" {
 
 resource "azurerm_app_service_managed_certificate" "example" {
   custom_hostname_binding_id = azurerm_app_service_custom_hostname_binding.example.id
+  ssl_state                  = "SniEnabled"
 }
 ```
 
@@ -68,10 +69,7 @@ The following arguments are supported:
 
 * `custom_hostname_binding_id` - (Required) The ID of the App Service Custom Hostname Binding for the Certificate. Changing this forces a new App Service Managed Certificate to be created.
 
-* `ssl_state` - (Optional) The SSL Type. Possible values are `IpBasedEnabled` and `SniEnabled`. Defaults to `IpBasedEnabled`. Changing this forces a new App Service Managed Certificate to be created.
----
-
-* `tags` - (Optional) A mapping of tags which should be assigned to the App Service Managed Certificate.
+* `ssl_state` - (Required) The SSL Type. Possible values are `IpBasedEnabled` and `SniEnabled`.
 
 ## Attributes Reference
 
