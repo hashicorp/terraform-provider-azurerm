@@ -1,4 +1,4 @@
-package tests
+package digitaltwins_test
 
 import (
 	"context"
@@ -121,7 +121,8 @@ func (r DigitalTwinsEndpointEventGridResource) Exists(ctx context.Context, clien
 }
 
 func (r DigitalTwinsEndpointEventGridResource) template(data acceptance.TestData) string {
-	digitalTwinsInstance := testAccAzureRMDigitalTwinsInstance_basic(data)
+	iR := DigitalTwinsInstanceResource{}
+	digitalTwinsInstance := iR.basic(data)
 	return fmt.Sprintf(`
 %[1]s
 
