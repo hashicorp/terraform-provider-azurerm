@@ -6,30 +6,29 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceMaintenanceConfiguration_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_maintenance_configuration", "test")
+type MaintenanceConfigurationDataSource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckMaintenanceConfigurationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceMaintenanceConfiguration_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "scope", "Host"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.env", "TesT"),
-				),
-			},
+func TestAccMaintenanceConfigurationDataSource_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_maintenance_configuration", "test")
+	r := MaintenanceConfigurationDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("scope").HasValue("Host"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.env").HasValue("TesT"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceMaintenanceConfiguration_complete(data acceptance.TestData) string {
-	template := testAccMaintenanceConfiguration_complete(data)
+func (MaintenanceConfigurationDataSource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -37,5 +36,5 @@ data "azurerm_maintenance_configuration" "test" {
   name                = azurerm_maintenance_configuration.test.name
   resource_group_name = azurerm_maintenance_configuration.test.resource_group_name
 }
-`, template)
+`, MaintenanceConfigurationResource{}.complete(data))
 }

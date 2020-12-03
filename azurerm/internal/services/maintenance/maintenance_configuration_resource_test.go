@@ -1,176 +1,122 @@
 package maintenance_test
 
 import (
+	`context`
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type MaintenanceConfigurationResource struct {
+}
+
 func TestAccMaintenanceConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_configuration", "test")
+	r := MaintenanceConfigurationResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckMaintenanceConfigurationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMaintenanceConfiguration_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMaintenanceConfigurationExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "scope", "All"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("scope").HasValue("All"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccMaintenanceConfiguration_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_configuration", "test")
+	r := MaintenanceConfigurationResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckMaintenanceConfigurationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMaintenanceConfiguration_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMaintenanceConfigurationExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccMaintenanceConfiguration_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
 func TestAccMaintenanceConfiguration_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_configuration", "test")
+	r := MaintenanceConfigurationResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckMaintenanceConfigurationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMaintenanceConfiguration_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMaintenanceConfigurationExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "scope", "Host"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.env", "TesT"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("scope").HasValue("Host"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.env").HasValue("TesT"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccMaintenanceConfiguration_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_configuration", "test")
+	r := MaintenanceConfigurationResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckMaintenanceConfigurationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMaintenanceConfiguration_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMaintenanceConfigurationExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "scope", "All"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccMaintenanceConfiguration_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMaintenanceConfigurationExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "scope", "Host"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.env", "TesT"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccMaintenanceConfiguration_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMaintenanceConfigurationExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "scope", "All"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("scope").HasValue("All"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("scope").HasValue("Host"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.env").HasValue("TesT"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("scope").HasValue("All"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckMaintenanceConfigurationDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).Maintenance.ConfigurationsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_maintenance_configuration" {
-			continue
-		}
-
-		id, err := parse.MaintenanceConfigurationID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return err
-			}
-		}
-
-		return nil
+func (MaintenanceConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.MaintenanceConfigurationID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
-
-func testCheckMaintenanceConfigurationExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Maintenance.ConfigurationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		id, err := parse.MaintenanceConfigurationID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on maintenanceConfigurationsClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Maintenance Configuration %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
-		}
-
-		return nil
+	resp, err := clients.Maintenance.ConfigurationsClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Maintenance Configuration %s (resource group: %s): %v", id.Name, id.ResourceGroup, err)
 	}
+
+	return utils.Bool(resp.ConfigurationProperties != nil), nil
 }
 
-func testAccMaintenanceConfiguration_basic(data acceptance.TestData) string {
+func (MaintenanceConfigurationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -190,8 +136,7 @@ resource "azurerm_maintenance_configuration" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccMaintenanceConfiguration_requiresImport(data acceptance.TestData) string {
-	template := testAccMaintenanceConfiguration_basic(data)
+func (r MaintenanceConfigurationResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -201,10 +146,10 @@ resource "azurerm_maintenance_configuration" "import" {
   location            = azurerm_maintenance_configuration.test.location
   scope               = azurerm_maintenance_configuration.test.scope
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccMaintenanceConfiguration_complete(data acceptance.TestData) string {
+func (MaintenanceConfigurationResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

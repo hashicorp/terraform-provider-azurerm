@@ -1,117 +1,68 @@
 package maintenance_test
 
 import (
+	`context`
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type MaintenanceAssignmentVirtualMachineResource struct {
+}
+
 func TestAccMaintenanceAssignmentVirtualMachine_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_assignment_virtual_machine", "test")
+	r := MaintenanceAssignmentVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckMaintenanceAssignmentVirtualMachineDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMaintenanceAssignmentVirtualMachine_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMaintenanceAssignmentVirtualMachineExists(data.ResourceName),
-				),
-			},
-			// location not returned by list rest api
-			data.ImportStep("location"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		// location not returned by list rest api
+		data.ImportStep("location"),
 	})
 }
 
 func TestAccMaintenanceAssignmentVirtualMachine_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_assignment_virtual_machine", "test")
+	r := MaintenanceAssignmentVirtualMachineResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckMaintenanceAssignmentVirtualMachineDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMaintenanceAssignmentVirtualMachine_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckMaintenanceAssignmentVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccMaintenanceAssignmentVirtualMachine_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckMaintenanceAssignmentVirtualMachineDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).Maintenance.ConfigurationAssignmentsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_maintenance_assignment_virtual_machine" {
-			continue
-		}
-
-		id, err := parse.MaintenanceAssignmentVirtualMachineID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		listResp, err := conn.List(ctx, id.VirtualMachineId.ResourceGroup, "Microsoft.Compute", "virtualMachines", id.VirtualMachineId.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(listResp.Response) {
-				return err
-			}
-			return nil
-		}
-		if listResp.Value != nil && len(*listResp.Value) > 0 {
-			return fmt.Errorf("maintenance assignment (Virtual Machine id: %q) still exists", id.VirtualMachineIdRaw)
-		}
-
-		return nil
+func (MaintenanceAssignmentVirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.MaintenanceAssignmentVirtualMachineID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
-
-func testCheckMaintenanceAssignmentVirtualMachineExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Maintenance.ConfigurationAssignmentsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("not found: %s", resourceName)
-		}
-
-		id, err := parse.MaintenanceAssignmentVirtualMachineID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		listResp, err := conn.List(ctx, id.VirtualMachineId.ResourceGroup, "Microsoft.Compute", "virtualMachines", id.VirtualMachineId.Name)
-		if err != nil {
-			return fmt.Errorf("bad: list on ConfigurationAssignmentsClient: %+v", err)
-		}
-		if listResp.Value == nil || len(*listResp.Value) == 0 {
-			return fmt.Errorf("could not find Maintenance Assignment (Virtual Machine id: %q)", id.VirtualMachineIdRaw)
-		}
-
-		return nil
+	resp, err := clients.Maintenance.ConfigurationAssignmentsClient.List(ctx, id.VirtualMachineId.ResourceGroup, "Microsoft.Compute", "virtualMachines", id.VirtualMachineId.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Maintenance Assignment Virtual Machine (target resource id: %q): %v", id.VirtualMachineIdRaw, err)
 	}
+
+	return utils.Bool(resp.Value == nil || len(*resp.Value) == 0), nil
 }
 
-func testAccMaintenanceAssignmentVirtualMachine_basic(data acceptance.TestData) string {
-	template := testAccMaintenanceAssignmentVirtualMachine_template(data)
+func (r MaintenanceAssignmentVirtualMachineResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -120,11 +71,10 @@ resource "azurerm_maintenance_assignment_virtual_machine" "test" {
   maintenance_configuration_id = azurerm_maintenance_configuration.test.id
   virtual_machine_id           = azurerm_linux_virtual_machine.test.id
 }
-`, template)
+`, r.template(data))
 }
 
-func testAccMaintenanceAssignmentVirtualMachine_requiresImport(data acceptance.TestData) string {
-	template := testAccMaintenanceAssignmentVirtualMachine_basic(data)
+func (r MaintenanceAssignmentVirtualMachineResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -133,10 +83,10 @@ resource "azurerm_maintenance_assignment_virtual_machine" "import" {
   maintenance_configuration_id = azurerm_maintenance_assignment_virtual_machine.test.maintenance_configuration_id
   virtual_machine_id           = azurerm_maintenance_assignment_virtual_machine.test.virtual_machine_id
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccMaintenanceAssignmentVirtualMachine_template(data acceptance.TestData) string {
+func (MaintenanceAssignmentVirtualMachineResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
