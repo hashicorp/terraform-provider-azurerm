@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay/parse"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 
 	"github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
@@ -27,7 +28,7 @@ func resourceArmHybridConnection() *schema.Resource {
 		Update: resourceArmHybridConnectionCreateUpdate,
 		Delete: resourceArmHybridConnectionDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := ParseHybridConnectionID(id)
+			_, err := parse.HybridConnectionID(id)
 			return err
 		}),
 
