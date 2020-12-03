@@ -38,7 +38,7 @@ func TestAccAzureRMFunctionAppSlotVirtualNetworkSwiftConnection_requiresImport(t
 			{
 				Config: testAccAzureRMFunctionAppSlotVirtualNetworkSwiftConnection_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionExists(data.ResourceName),
+					testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionExists(data.ResourceName),
 				),
 			},
 			data.RequiresImportErrorStep(testAccAzureRMFunctionAppSlotVirtualNetworkSwiftConnection_requiresImport),
