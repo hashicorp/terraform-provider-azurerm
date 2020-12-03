@@ -6,28 +6,27 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
+
+type ManagedApplicationDefinitionDataSource struct {
+}
 
 func TestAccManagedApplicationDefinitionDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_managed_application_definition", "test")
+	r := ManagedApplicationDefinitionDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckManagedApplicationDefinitionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceManagedApplicationDefinition_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").Exists(),
+			),
 		},
 	})
 }
 
-func testAccDataSourceManagedApplicationDefinition_basic(data acceptance.TestData) string {
-	config := testAccManagedApplicationDefinition_basic(data)
+func (ManagedApplicationDefinitionDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -35,5 +34,5 @@ data "azurerm_managed_application_definition" "test" {
   name                = azurerm_managed_application_definition.test.name
   resource_group_name = azurerm_managed_application_definition.test.resource_group_name
 }
-`, config)
+`, ManagedApplicationDefinitionResource{}.basic(data))
 }

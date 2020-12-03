@@ -1,178 +1,128 @@
 package managedapplications_test
 
 import (
+	`context`
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplications/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type ManagedApplicationDefinitionResource struct {
+}
+
 func TestAccManagedApplicationDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_application_definition", "test")
+	r := ManagedApplicationDefinitionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckManagedApplicationDefinitionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccManagedApplicationDefinition_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckManagedApplicationDefinitionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("package_file_uri"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("package_file_uri"),
 	})
 }
 
 func TestAccManagedApplicationDefinition_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_application_definition", "test")
+	r := ManagedApplicationDefinitionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckManagedApplicationDefinitionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccManagedApplicationDefinition_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckManagedApplicationDefinitionExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccManagedApplicationDefinition_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
 func TestAccManagedApplicationDefinition_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_application_definition", "test")
+	r := ManagedApplicationDefinitionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckManagedApplicationDefinitionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccManagedApplicationDefinition_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckManagedApplicationDefinitionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("create_ui_definition", "main_template"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("create_ui_definition", "main_template"),
 	})
 }
 
 func TestAccManagedApplicationDefinition_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_application_definition", "test")
+	r := ManagedApplicationDefinitionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckManagedApplicationDefinitionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccManagedApplicationDefinition_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckManagedApplicationDefinitionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "TestManagedApplicationDefinition"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "Test Managed Application Definition"),
-					resource.TestCheckResourceAttr(data.ResourceName, "package_enabled", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "package_file_uri"),
-				),
-			},
-			data.ImportStep("package_file_uri"),
-			{
-				Config: testAccManagedApplicationDefinition_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckManagedApplicationDefinitionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "UpdatedTestManagedApplicationDefinition"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "Updated Test Managed Application Definition"),
-					resource.TestCheckResourceAttr(data.ResourceName, "package_enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.ENV", "Test"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "create_ui_definition"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "main_template"),
-				),
-			},
-			data.ImportStep("create_ui_definition", "main_template", "package_file_uri"),
-			{
-				Config: testAccManagedApplicationDefinition_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckManagedApplicationDefinitionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "TestManagedApplicationDefinition"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "Test Managed Application Definition"),
-					resource.TestCheckResourceAttr(data.ResourceName, "package_enabled", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "package_file_uri"),
-				),
-			},
-			data.ImportStep("create_ui_definition", "main_template", "package_file_uri"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("display_name").HasValue("TestManagedApplicationDefinition"),
+				check.That(data.ResourceName).Key("description").HasValue("Test Managed Application Definition"),
+				check.That(data.ResourceName).Key("package_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("package_file_uri").Exists(),
+			),
 		},
+		data.ImportStep("package_file_uri"),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("display_name").HasValue("UpdatedTestManagedApplicationDefinition"),
+				check.That(data.ResourceName).Key("description").HasValue("Updated Test Managed Application Definition"),
+				check.That(data.ResourceName).Key("package_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.ENV").HasValue("Test"),
+				check.That(data.ResourceName).Key("create_ui_definition").Exists(),
+				check.That(data.ResourceName).Key("main_template").Exists(),
+			),
+		},
+		data.ImportStep("create_ui_definition", "main_template", "package_file_uri"),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("display_name").HasValue("TestManagedApplicationDefinition"),
+				check.That(data.ResourceName).Key("description").HasValue("Test Managed Application Definition"),
+				check.That(data.ResourceName).Key("package_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("package_file_uri").Exists(),
+			),
+		},
+		data.ImportStep("create_ui_definition", "main_template", "package_file_uri"),
 	})
 }
 
-func testCheckManagedApplicationDefinitionExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Managed Application Definition not found: %s", resourceName)
-		}
-
-		id, err := parse.ApplicationDefinitionID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ManagedApplication.ApplicationDefinitionClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Managed Application Definition %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on ManagedApplication.ApplicationDefinitionClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckManagedApplicationDefinitionDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).ManagedApplication.ApplicationDefinitionClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_managed_application_definition" {
-			continue
-		}
-
-		id, err := parse.ApplicationDefinitionID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on ManagedApplication.ApplicationDefinitionClient: %+v", err)
-			}
-		}
-
-		return nil
+func (ManagedApplicationDefinitionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ApplicationID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.ManagedApplication.ApplicationDefinitionClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Managed Definition %s (resource group: %s): %v", id.Name, id.ResourceGroup, err)
+	}
+
+	return utils.Bool(resp.ApplicationDefinitionProperties != nil), nil
 }
 
-func testAccManagedApplicationDefinition_basic(data acceptance.TestData) string {
-	template := testAccManagedApplicationDefinition_template(data)
+func (r ManagedApplicationDefinitionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -186,10 +136,10 @@ resource "azurerm_managed_application_definition" "test" {
   description         = "Test Managed Application Definition"
   package_enabled     = false
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccManagedApplicationDefinition_requiresImport(data acceptance.TestData) string {
+func (r ManagedApplicationDefinitionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -200,11 +150,10 @@ resource "azurerm_managed_application_definition" "import" {
   display_name        = azurerm_managed_application_definition.test.display_name
   lock_level          = azurerm_managed_application_definition.test.lock_level
 }
-`, testAccManagedApplicationDefinition_basic(data))
+`, r.basic(data))
 }
 
-func testAccManagedApplicationDefinition_complete(data acceptance.TestData) string {
-	template := testAccManagedApplicationDefinition_template(data)
+func (r ManagedApplicationDefinitionResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -316,10 +265,10 @@ resource "azurerm_managed_application_definition" "test" {
     ENV = "Test"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccManagedApplicationDefinition_template(data acceptance.TestData) string {
+func (ManagedApplicationDefinitionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
