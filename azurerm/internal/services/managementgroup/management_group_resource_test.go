@@ -69,7 +69,7 @@ func TestAccManagementGroup_nested(t *testing.T) {
 }
 
 func TestAccManagementGroup_multiLevel(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_management_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_management_group", "parent")
 	r := ManagementGroupResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
@@ -88,7 +88,7 @@ func TestAccManagementGroup_multiLevel(t *testing.T) {
 }
 
 func TestAccManagementGroup_multiLevelUpdated(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_management_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_management_group", "parent")
 	r := ManagementGroupResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
