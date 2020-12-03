@@ -1,4 +1,4 @@
-package tests
+package mixedreality
 
 import (
 	"fmt"
@@ -13,18 +13,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMSpatialAnchorsAccount_basic(t *testing.T) {
+func TestAccSpatialAnchorsAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spatial_anchors_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSpatialAnchorsAccountDestroy,
+		CheckDestroy: testCheckSpatialAnchorsAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSpatialAnchorsAccount_basic(data),
+				Config: testAccSpatialAnchorsAccount_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSpatialAnchorsAccountExists(data.ResourceName),
+					testCheckSpatialAnchorsAccountExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -32,18 +32,18 @@ func TestAccAzureRMSpatialAnchorsAccount_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSpatialAnchorsAccount_complete(t *testing.T) {
+func TestAccSpatialAnchorsAccount_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spatial_anchors_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSpatialAnchorsAccountDestroy,
+		CheckDestroy: testCheckSpatialAnchorsAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSpatialAnchorsAccount_complete(data),
+				Config: testAccSpatialAnchorsAccount_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSpatialAnchorsAccountExists(data.ResourceName),
+					testCheckSpatialAnchorsAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.Environment", "Production"),
 				),
@@ -53,7 +53,7 @@ func TestAccAzureRMSpatialAnchorsAccount_complete(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMSpatialAnchorsAccountExists(name string) resource.TestCheckFunc {
+func testCheckSpatialAnchorsAccountExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).MixedReality.SpatialAnchorsAccountClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -82,7 +82,7 @@ func testCheckAzureRMSpatialAnchorsAccountExists(name string) resource.TestCheck
 	}
 }
 
-func testCheckAzureRMSpatialAnchorsAccountDestroy(s *terraform.State) error {
+func testCheckSpatialAnchorsAccountDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).MixedReality.SpatialAnchorsAccountClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -108,7 +108,7 @@ func testCheckAzureRMSpatialAnchorsAccountDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMSpatialAnchorsAccount_basic(data acceptance.TestData) string {
+func testAccSpatialAnchorsAccount_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -127,7 +127,7 @@ resource "azurerm_spatial_anchors_account" "test" {
 `, data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
 }
 
-func testAccAzureRMSpatialAnchorsAccount_complete(data acceptance.TestData) string {
+func testAccSpatialAnchorsAccount_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
