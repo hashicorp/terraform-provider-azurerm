@@ -4,6 +4,7 @@ FEATURES:
 
 * **New Resource:** `azurerm_api_management_policy` [GH-9215]
 * **New Resource:** `azurerm_digital_twins_endpoint_eventgrid` [GH-9489]
+* **New Resource:** `azurerm_iot_time_series_insights_gen2_environment` [GH-9616]
 
 IMPROVEMENTS: 
 
