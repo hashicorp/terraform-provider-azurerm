@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestLogAnalyticsStorageInsightsWorkspaceName(t *testing.T) {
+func TestLogAnalyticsWorkspaceName(t *testing.T) {
 	testCases := []struct {
 		Name     string
 		Input    string
@@ -17,42 +17,42 @@ func TestLogAnalyticsStorageInsightsWorkspaceName(t *testing.T) {
 		},
 		{
 			Name:     "Invalid characters underscores",
-			Input:    "invalid_Exports_Name",
+			Input:    "invalid_Workspace_Name",
 			Expected: false,
 		},
 		{
 			Name:     "Invalid characters space",
-			Input:    "invalid Storage Insight Config Name Name",
+			Input:    "invalid Workspace Name",
 			Expected: false,
 		},
 		{
 			Name:     "Invalid name starts with hyphen",
-			Input:    "-invalidStorageInsightConfigName",
+			Input:    "-invalidWorkspacetName",
 			Expected: false,
 		},
 		{
 			Name:     "Invalid name ends with hyphen",
-			Input:    "invalidStorageInsightConfigName-",
+			Input:    "invalidWorkspaceName-",
 			Expected: false,
 		},
 		{
 			Name:     "Invalid name too long",
-			Input:    "thisIsToLoooooooooooooooooooooongestForAStorageInsightConfigName",
+			Input:    "thisIsToLoooooooooooooooooooooooooooooooooooongForAWorkspaceName",
 			Expected: false,
 		},
 		{
 			Name:     "Valid name",
-			Input:    "validStorageInsightConfigName",
+			Input:    "validWorkspaceName",
 			Expected: true,
 		},
 		{
 			Name:     "Valid name with hyphen",
-			Input:    "validStorageInsightConfigName-2",
+			Input:    "validWorkspaceName-2",
 			Expected: true,
 		},
 		{
 			Name:     "Valid name max length",
-			Input:    "thisIsTheLoooooooooooongestValidStorageInsightConfigNameThereIs",
+			Input:    "thisIsTheLooooooooooooooooooooooongestValidWorkspaceNameThereIs",
 			Expected: true,
 		},
 		{
@@ -64,10 +64,10 @@ func TestLogAnalyticsStorageInsightsWorkspaceName(t *testing.T) {
 	for _, v := range testCases {
 		t.Logf("[DEBUG] Testing %q..", v.Name)
 
-		_, errors := LogAnalyticsStorageInsightsWorkspaceName(v.Input, "workspace_name")
+		_, errors := LogAnalyticsWorkspaceName(v.Input, "workspace_name")
 		result := len(errors) == 0
 		if result != v.Expected {
-			t.Fatalf("Expected the result to be %v but got %v (and %d errors)", v.Expected, result, len(errors))
+			t.Fatalf("Expected the result to be %t but got %t (and %d errors)", v.Expected, result, len(errors))
 		}
 	}
 }
