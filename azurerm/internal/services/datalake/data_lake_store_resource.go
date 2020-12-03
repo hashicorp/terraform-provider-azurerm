@@ -19,7 +19,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataLakeStore() *schema.Resource {
+func resourceDataLakeStore() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmDateLakeStoreCreate,
 		Read:   resourceArmDateLakeStoreRead,
@@ -42,7 +42,7 @@ func resourceArmDataLakeStore() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DataLakeAccountName(),
+				ValidateFunc: validate.AccountName(),
 			},
 
 			"location": azure.SchemaLocation(),

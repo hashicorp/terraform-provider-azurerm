@@ -13,6 +13,10 @@ import (
 )
 
 func TestAccAzureRMVirtualHubBgpConnection_basic(t *testing.T) {
+	if true {
+		t.Skip("Skipping due to API issue preventing deletion")
+		return
+	}
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_bgp_connection", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -31,6 +35,10 @@ func TestAccAzureRMVirtualHubBgpConnection_basic(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualHubBgpConnection_requiresImport(t *testing.T) {
+	if true {
+		t.Skip("Skipping due to API issue preventing deletion")
+		return
+	}
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_bgp_connection", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -58,7 +66,7 @@ func testCheckAzureRMVirtualHubBgpConnectionExists(resourceName string) resource
 			return fmt.Errorf("virtualHubBgpConnection not found: %s", resourceName)
 		}
 
-		id, err := parse.VirtualHubBgpConnectionID(rs.Primary.ID)
+		id, err := parse.BgpConnectionID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -84,7 +92,7 @@ func testCheckAzureRMVirtualHubBgpConnectionDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.VirtualHubBgpConnectionID(rs.Primary.ID)
+		id, err := parse.BgpConnectionID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

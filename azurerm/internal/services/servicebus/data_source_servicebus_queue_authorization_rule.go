@@ -30,7 +30,7 @@ func dataSourceArmServiceBusQueueAuthorizationRule() *schema.Resource {
 			"namespace_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ServiceBusNamespaceName,
+				ValidateFunc: validate.NamespaceName,
 			},
 
 			"queue_name": {

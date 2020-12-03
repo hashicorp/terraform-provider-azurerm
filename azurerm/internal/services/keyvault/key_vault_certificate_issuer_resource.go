@@ -180,7 +180,7 @@ func resourceArmKeyVaultCertificateIssuerRead(d *schema.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KeyVaultCertificateIssuerId(d.Id())
+	id, err := parse.IssuerID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -242,7 +242,7 @@ func resourceArmKeyVaultCertificateIssuerDelete(d *schema.ResourceData, meta int
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KeyVaultCertificateIssuerId(d.Id())
+	id, err := parse.IssuerID(d.Id())
 	if err != nil {
 		return err
 	}

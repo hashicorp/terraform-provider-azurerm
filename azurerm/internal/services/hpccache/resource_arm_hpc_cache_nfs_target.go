@@ -11,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache/parsers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -26,7 +26,7 @@ func resourceArmHPCCacheNFSTarget() *schema.Resource {
 		Delete: resourceArmHPCCacheNFSTargetDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parsers.HPCCacheTargetID(id)
+			_, err := parse.StorageTargetID(id)
 			return err
 		}),
 
@@ -42,7 +42,7 @@ func resourceArmHPCCacheNFSTarget() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.HPCCacheTargetName,
+				ValidateFunc: validate.StorageTargetName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -65,18 +65,18 @@ func resourceArmHPCCacheNFSTarget() *schema.Resource {
 						"namespace_path": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.HPCCacheNamespacePath,
+							ValidateFunc: validate.CacheNamespacePath,
 						},
 						"nfs_export": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.HPCCacheNFSExport,
+							ValidateFunc: validate.CacheNFSExport,
 						},
 						"target_path": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Default:      "",
-							ValidateFunc: validate.HPCCacheNFSTargetPath,
+							ValidateFunc: validate.CacheNFSTargetPath,
 						},
 					},
 				},
@@ -165,36 +165,36 @@ func resourceArmHPCCacheNFSTargetRead(d *schema.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parsers.HPCCacheTargetID(d.Id())
+	id, err := parse.StorageTargetID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Cache, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.CacheName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] HPC Cache NFS Target %q was not found (Resource Group %q, Cahe %q) - removing from state!", id.Name, id.ResourceGroup, id.Cache)
+			log.Printf("[DEBUG] HPC Cache NFS Target %q was not found (Resource Group %q, Cache %q) - removing from state!", id.Name, id.ResourceGroup, id.CacheName)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving HPC Cache NFS Target %q (Resource Group %q, Cahe %q): %+v", id.Name, id.ResourceGroup, id.Cache, err)
+		return fmt.Errorf("Error retrieving HPC Cache NFS Target %q (Resource Group %q, Cache %q): %+v", id.Name, id.ResourceGroup, id.CacheName, err)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("cache_name", id.Cache)
+	d.Set("cache_name", id.CacheName)
 
 	if props := resp.BasicStorageTargetProperties; props != nil {
 		props, ok := props.AsNfs3TargetProperties()
 		if !ok {
-			return fmt.Errorf("The type of this HPC Cache Target %q (Resource Group %q, Cahe %q) is not a NFS Target", id.Name, id.ResourceGroup, id.Cache)
+			return fmt.Errorf("The type of this HPC Cache Target %q (Resource Group %q, Cahe %q) is not a NFS Target", id.Name, id.ResourceGroup, id.CacheName)
 		}
 		if nfs3 := props.Nfs3; nfs3 != nil {
 			d.Set("target_host_name", nfs3.Target)
 			d.Set("usage_model", nfs3.UsageModel)
 		}
 		if err := d.Set("namespace_junction", flattenNamespaceJunctions(props.Junctions)); err != nil {
-			return fmt.Errorf(`Error setting "namespace_junction" %q (Resource Group %q, Cahe %q): %+v`, id.Name, id.ResourceGroup, id.Cache, err)
+			return fmt.Errorf(`Error setting "namespace_junction" %q (Resource Group %q, Cahe %q): %+v`, id.Name, id.ResourceGroup, id.CacheName, err)
 		}
 	}
 
@@ -206,18 +206,18 @@ func resourceArmHPCCacheNFSTargetDelete(d *schema.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parsers.HPCCacheTargetID(d.Id())
+	id, err := parse.StorageTargetID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Cache, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.CacheName, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting HPC Cache NFS Target %q (Resource Group %q, Cahe %q): %+v", id.Name, id.ResourceGroup, id.Cache, err)
+		return fmt.Errorf("Error deleting HPC Cache NFS Target %q (Resource Group %q, Cahe %q): %+v", id.Name, id.ResourceGroup, id.CacheName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of HPC Cache NFS Target %q (Resource Group %q, Cahe %q): %+v", id.Name, id.ResourceGroup, id.Cache, err)
+		return fmt.Errorf("Error waiting for deletion of HPC Cache NFS Target %q (Resource Group %q, Cahe %q): %+v", id.Name, id.ResourceGroup, id.CacheName, err)
 	}
 
 	return nil

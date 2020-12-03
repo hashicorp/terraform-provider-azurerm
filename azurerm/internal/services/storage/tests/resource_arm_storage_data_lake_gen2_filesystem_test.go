@@ -115,7 +115,7 @@ func testCheckAzureRMStorageDataLakeGen2FileSystemExists(resourceName string) re
 		}
 
 		fileSystemName := rs.Primary.Attributes["name"]
-		storageID, err := parse.ParseAccountID(rs.Primary.Attributes["storage_account_id"])
+		storageID, err := parse.StorageAccountID(rs.Primary.Attributes["storage_account_id"])
 		if err != nil {
 			return err
 		}
@@ -143,7 +143,7 @@ func testAzureRMStorageDataLakeGen2StorageAccountDelete(resourceName string) res
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		storageID, err := parse.ParseAccountID(rs.Primary.Attributes["storage_account_id"])
+		storageID, err := parse.StorageAccountID(rs.Primary.Attributes["storage_account_id"])
 		if err != nil {
 			return err
 		}
@@ -166,7 +166,7 @@ func testCheckAzureRMStorageDataLakeGen2FileSystemDestroy(s *terraform.State) er
 		}
 
 		fileSystemName := rs.Primary.Attributes["name"]
-		storageID, err := parse.ParseAccountID(rs.Primary.Attributes["storage_account_id"])
+		storageID, err := parse.StorageAccountID(rs.Primary.Attributes["storage_account_id"])
 		if err != nil {
 			return err
 		}

@@ -132,15 +132,15 @@ func testCheckAzureRMMsSqlDatabaseExtendedAuditingPolicyExists(resourceName stri
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.MssqlDatabaseExtendedAuditingPolicyID(rs.Primary.ID)
+		id, err := parse.DatabaseExtendedAuditingPolicyID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := client.Get(ctx, id.ResourceGroup, id.MsSqlServer, id.MsDBName)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.DatabaseName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("MsSql Database ExtendedAuditingPolicy %q (resource group: %q) does not exist", id.MsDBName, id.ResourceGroup)
+				return fmt.Errorf("MsSql Database ExtendedAuditingPolicy %q (resource group: %q) does not exist", id.DatabaseName, id.ResourceGroup)
 			}
 
 			return fmt.Errorf("Get on MsSql Database ExtendedAuditingPolicy Client: %+v", err)
@@ -159,12 +159,12 @@ func testCheckAzureRMMsSqlDatabaseExtendedAuditingPolicyDestroy(s *terraform.Sta
 			continue
 		}
 
-		id, err := parse.MssqlDatabaseExtendedAuditingPolicyID(rs.Primary.ID)
+		id, err := parse.DatabaseExtendedAuditingPolicyID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.MsSqlServer, id.MsDBName); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.DatabaseName); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Get on MsSql Database ExtendedAuditingPolicy Client: %+v", err)
 			}

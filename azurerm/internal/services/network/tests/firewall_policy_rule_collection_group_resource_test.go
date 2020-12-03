@@ -117,9 +117,9 @@ func testCheckAzureRMFirewallPolicyRuleCollectionGroupExists(resourceName string
 			return err
 		}
 
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.PolicyName, id.Name); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.FirewallPolicyName, id.RuleCollectionGroupName); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Firewall Policy Rule Collection Group %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
+				return fmt.Errorf("Firewall Policy Rule Collection Group %q (Resource Group %q) does not exist", id.RuleCollectionGroupName, id.ResourceGroup)
 			}
 			return fmt.Errorf("Getting on Network.FirewallPolicyRuleGroups: %+v", err)
 		}
@@ -142,7 +142,7 @@ func testCheckAzureRMFirewallPolicyRuleCollectionGroupDestroy(s *terraform.State
 			return err
 		}
 
-		resp, err := client.Get(ctx, id.ResourceGroup, id.PolicyName, id.Name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.FirewallPolicyName, id.RuleCollectionGroupName)
 		if err == nil {
 			return fmt.Errorf("Network.FirewallPolicyRuleGroups still exists")
 		}

@@ -13,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmBatchAccount() *schema.Resource {
+func dataSourceBatchAccount() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmBatchAccountRead,
+		Read: dataSourceBatchAccountRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -72,7 +72,7 @@ func dataSourceArmBatchAccount() *schema.Resource {
 	}
 }
 
-func dataSourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceBatchAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.AccountClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

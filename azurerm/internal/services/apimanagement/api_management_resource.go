@@ -10,17 +10,16 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -48,10 +47,10 @@ func resourceArmApiManagementService() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
+			Create: schema.DefaultTimeout(3 * time.Hour),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+			Update: schema.DefaultTimeout(3 * time.Hour),
+			Delete: schema.DefaultTimeout(3 * time.Hour),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -127,7 +126,6 @@ func resourceArmApiManagementService() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  string(apimanagement.VirtualNetworkTypeNone),
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(apimanagement.VirtualNetworkTypeNone),
 					string(apimanagement.VirtualNetworkTypeExternal),
@@ -144,7 +142,6 @@ func resourceArmApiManagementService() *schema.Resource {
 						"subnet_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 					},
@@ -303,7 +300,6 @@ func resourceArmApiManagementService() *schema.Resource {
 			"hostname_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -359,7 +355,7 @@ func resourceArmApiManagementService() *schema.Resource {
 							Optional:         true,
 							Computed:         true,
 							ConflictsWith:    []string{"policy.0.xml_link"},
-							DiffSuppressFunc: suppress.XmlDiff,
+							DiffSuppressFunc: XmlWithDotNetInterpolationsDiffSuppress,
 						},
 
 						"xml_link": {
@@ -471,6 +467,21 @@ func resourceArmApiManagementService() *schema.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		// we can only change `virtual_network_type` from None to Internal Or External, Else the subnet can not be destroyed cause “InUseSubnetCannotBeDeleted” for 3 hours
+		// we can not change the subnet from subnet1 to subnet2 either, Else the subnet1 can not be destroyed cause “InUseSubnetCannotBeDeleted” for 3 hours
+		// Issue: https://github.com/Azure/azure-rest-api-specs/issues/10395
+		CustomizeDiff: customdiff.All(
+			customdiff.ForceNewIfChange("virtual_network_type", func(old, new, meta interface{}) bool {
+				return !(old.(string) == string(apimanagement.VirtualNetworkTypeNone) &&
+					(new.(string) == string(apimanagement.VirtualNetworkTypeInternal) ||
+						new.(string) == string(apimanagement.VirtualNetworkTypeExternal)))
+			}),
+
+			customdiff.ForceNewIfChange("virtual_network_configuration", func(old, new, meta interface{}) bool {
+				return !(len(old.([]interface{})) == 0 && len(new.([]interface{})) > 0)
+			}),
+		),
 	}
 }
 
@@ -620,6 +631,7 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 
 func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
+	environment := meta.(*clients.Client).Account.Environment
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -696,7 +708,8 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 			return fmt.Errorf("setting `protocols`: %+v", err)
 		}
 
-		hostnameConfigs := flattenApiManagementHostnameConfigurations(props.HostnameConfigurations, d)
+		apimHostNameSuffix := environment.APIManagementHostNameSuffix
+		hostnameConfigs := flattenApiManagementHostnameConfigurations(props.HostnameConfigurations, d, name, apimHostNameSuffix)
 		if err := d.Set("hostname_configuration", hostnameConfigs); err != nil {
 			return fmt.Errorf("setting `hostname_configuration`: %+v", err)
 		}
@@ -866,7 +879,7 @@ func expandApiManagementCommonHostnameConfiguration(input map[string]interface{}
 	return output
 }
 
-func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameConfiguration, d *schema.ResourceData) []interface{} {
+func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameConfiguration, d *schema.ResourceData, name, apimHostNameSuffix string) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -883,6 +896,11 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 
 		if config.HostName != nil {
 			output["host_name"] = *config.HostName
+		}
+
+		// There'll always be a default custom domain with hostName "apim_name.azure-api.net" and Type "Proxy", which should be ignored
+		if *config.HostName == strings.ToLower(name)+"."+apimHostNameSuffix && config.Type == apimanagement.HostnameTypeProxy {
+			continue
 		}
 
 		if config.NegotiateClientCertificate != nil {
@@ -929,6 +947,10 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 				azure.CopyCertificateAndPassword(vals, *config.HostName, output)
 			}
 		}
+	}
+
+	if len(managementResults) == 0 && len(portalResults) == 0 && len(developerPortalResults) == 0 && len(proxyResults) == 0 && len(scmResults) == 0 {
+		return []interface{}{}
 	}
 
 	return []interface{}{
@@ -1345,7 +1367,7 @@ func expandApiManagementPolicies(input []interface{}) (*apimanagement.PolicyCont
 	if xmlContent != "" {
 		return &apimanagement.PolicyContract{
 			PolicyContractProperties: &apimanagement.PolicyContractProperties{
-				Format: apimanagement.XML,
+				Format: apimanagement.Rawxml,
 				Value:  utils.String(xmlContent),
 			},
 		}, nil

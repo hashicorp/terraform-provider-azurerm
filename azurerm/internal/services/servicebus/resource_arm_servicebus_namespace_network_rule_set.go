@@ -29,7 +29,7 @@ func resourceServiceBusNamespaceNetworkRuleSet() *schema.Resource {
 		Delete: resourceServiceBusNamespaceNetworkRuleSetDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.ServiceBusNamespaceNetworkRuleSetID(id)
+			_, err := parse.NamespaceNetworkRuleSetID(id)
 			return err
 		}),
 
@@ -47,7 +47,7 @@ func resourceServiceBusNamespaceNetworkRuleSet() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ServiceBusNamespaceName,
+				ValidateFunc: validate.NamespaceName,
 			},
 
 			"default_action": {
@@ -145,7 +145,7 @@ func resourceServiceBusNamespaceNetworkRuleSetRead(d *schema.ResourceData, meta 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServiceBusNamespaceNetworkRuleSetID(d.Id())
+	id, err := parse.NamespaceNetworkRuleSetID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -157,7 +157,7 @@ func resourceServiceBusNamespaceNetworkRuleSetRead(d *schema.ResourceData, meta 
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("failed to read Service Bus Namespace Network Rule Set %q (Namespace %q / Resource Group %q): %+v", id.Name, id.NamespaceName, id.ResourceGroup, err)
+		return fmt.Errorf("failed to read Service Bus Namespace Network Rule Set %q (Namespace %q / Resource Group %q): %+v", id.NetworkrulesetName, id.NamespaceName, id.ResourceGroup, err)
 	}
 
 	d.Set("namespace_name", id.NamespaceName)
@@ -183,7 +183,7 @@ func resourceServiceBusNamespaceNetworkRuleSetDelete(d *schema.ResourceData, met
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServiceBusNamespaceNetworkRuleSetID(d.Id())
+	id, err := parse.NamespaceNetworkRuleSetID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -198,7 +198,7 @@ func resourceServiceBusNamespaceNetworkRuleSetDelete(d *schema.ResourceData, met
 	}
 
 	if _, err := client.CreateOrUpdateNetworkRuleSet(ctx, id.ResourceGroup, id.NamespaceName, parameters); err != nil {
-		return fmt.Errorf("failed to delete Service Bus Namespace Network Rule Set %q (Namespace %q / Resource Group %q): %+v", id.Name, id.NamespaceName, id.ResourceGroup, err)
+		return fmt.Errorf("failed to delete Service Bus Namespace Network Rule Set %q (Namespace %q / Resource Group %q): %+v", id.NetworkrulesetName, id.NamespaceName, id.ResourceGroup, err)
 	}
 
 	return nil

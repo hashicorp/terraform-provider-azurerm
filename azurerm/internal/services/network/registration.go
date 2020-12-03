@@ -50,6 +50,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_virtual_network_gateway_connection":        dataSourceArmVirtualNetworkGatewayConnection(),
 		"azurerm_virtual_network":                           dataSourceArmVirtualNetwork(),
 		"azurerm_web_application_firewall_policy":           dataArmWebApplicationFirewallPolicy(),
+		"azurerm_virtual_wan":                               dataSourceArmVirtualWan(),
 	}
 }
 
@@ -119,6 +120,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_virtual_network":                                                        resourceArmVirtualNetwork(),
 		"azurerm_virtual_wan":                                                            resourceArmVirtualWan(),
 		"azurerm_vpn_gateway":                                                            resourceArmVPNGateway(),
+		"azurerm_vpn_gateway_connection":                                                 resourceArmVPNGatewayConnection(),
 		"azurerm_vpn_server_configuration":                                               resourceArmVPNServerConfiguration(),
 		"azurerm_vpn_site":                                                               resourceArmVpnSite(),
 		"azurerm_web_application_firewall_policy":                                        resourceArmWebApplicationFirewallPolicy(),

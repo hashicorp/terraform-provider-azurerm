@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appplatform/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appplatform/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -101,6 +102,14 @@ func dataSourceArmSpringCloudService() *schema.Resource {
 				},
 			},
 
+			"outbound_public_ip_addresses": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -108,6 +117,7 @@ func dataSourceArmSpringCloudService() *schema.Resource {
 
 func dataSourceArmSpringCloudServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.ServicesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -122,11 +132,7 @@ func dataSourceArmSpringCloudServiceRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error reading Spring Cloud %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("Error retrieving Spring Cloud Service %q (Resource Group %q): ID was nil or empty", name, resourceGroup)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(parse.NewSpringCloudServiceID(subscriptionId, resourceGroup, name).ID(""))
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
@@ -134,11 +140,14 @@ func dataSourceArmSpringCloudServiceRead(d *schema.ResourceData, meta interface{
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if resp.Properties != nil && resp.Properties.ConfigServerProperties != nil && resp.Properties.ConfigServerProperties.ConfigServer != nil {
-		if props := resp.Properties.ConfigServerProperties.ConfigServer.GitProperty; props != nil {
-			if err := d.Set("config_server_git_setting", flattenArmSpringCloudConfigServerGitProperty(props, d)); err != nil {
-				return fmt.Errorf("failure setting AzureRM Spring Cloud Service Config Server error: %+v", err)
-			}
+	if props := resp.Properties; props != nil {
+		if err := d.Set("config_server_git_setting", flattenArmSpringCloudConfigServerGitProperty(props.ConfigServerProperties, d)); err != nil {
+			return fmt.Errorf("setting `config_server_git_setting`: %+v", err)
+		}
+
+		outboundPublicIPAddresses := flattenOutboundPublicIPAddresses(props.NetworkProfile)
+		if err := d.Set("outbound_public_ip_addresses", outboundPublicIPAddresses); err != nil {
+			return fmt.Errorf("setting `outbound_public_ip_addresses`: %+v", err)
 		}
 	}
 

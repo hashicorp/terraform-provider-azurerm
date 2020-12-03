@@ -115,8 +115,11 @@ func resourceArmSearchService() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: validate.IPv4Address,
+					Type: schema.TypeString,
+					ValidateFunc: validation.Any(
+						validate.IPv4Address,
+						validate.CIDR,
+					),
 				},
 			},
 

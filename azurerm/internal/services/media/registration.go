@@ -26,7 +26,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_media_services_account": resourceArmMediaServicesAccount(),
+		"azurerm_media_services_account": resourceMediaServicesAccount(),
 		"azurerm_media_asset":            resourceArmMediaAssets(),
 	}
 }

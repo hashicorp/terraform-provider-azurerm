@@ -21,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAttestationProvider() *schema.Resource {
+func resourceAttestationProvider() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAttestationProviderCreate,
-		Read:   resourceArmAttestationProviderRead,
-		Update: resourceArmAttestationProviderUpdate,
-		Delete: resourceArmAttestationProviderDelete,
+		Create: resourceAttestationProviderCreate,
+		Read:   resourceAttestationProviderRead,
+		Update: resourceAttestationProviderUpdate,
+		Delete: resourceAttestationProviderDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -36,7 +36,7 @@ func resourceArmAttestationProvider() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.AttestationId(id)
+			_, err := parse.ProviderID(id)
 			return err
 		}),
 
@@ -45,7 +45,7 @@ func resourceArmAttestationProvider() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.AttestationName,
+				ValidateFunc: validate.AttestationProviderName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -74,22 +74,24 @@ func resourceArmAttestationProvider() *schema.Resource {
 	}
 }
 
-func resourceArmAttestationProviderCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAttestationProviderCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Attestation.ProviderClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	resourceId := parse.NewProviderID(subscriptionId, resourceGroup, name).ID("")
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return fmt.Errorf("checking for presence of existing Attestation Provider %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_attestation_provider", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_attestation_provider", resourceId)
 	}
 
 	props := attestation.ServiceCreationParams{
@@ -119,40 +121,31 @@ func resourceArmAttestationProviderCreate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("creating Attestation Provider %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Attestation Provider %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Attestation Provider %q (Resource Group %q)", name, resourceGroup)
-	}
-
-	d.SetId(*resp.ID)
-	return resourceArmAttestationProviderRead(d, meta)
+	d.SetId(resourceId)
+	return resourceAttestationProviderRead(d, meta)
 }
 
-func resourceArmAttestationProviderRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAttestationProviderRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Attestation.ProviderClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AttestationId(d.Id())
+	id, err := parse.ProviderID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.AttestationProviderName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] attestation %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] Attestation Provider %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Attestation Provider %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Attestation Provider %q (Resource Group %q): %+v", id.AttestationProviderName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.AttestationProviderName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
@@ -164,12 +157,12 @@ func resourceArmAttestationProviderRead(d *schema.ResourceData, meta interface{}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmAttestationProviderUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAttestationProviderUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Attestation.ProviderClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AttestationId(d.Id())
+	id, err := parse.ProviderID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -179,24 +172,24 @@ func resourceArmAttestationProviderUpdate(d *schema.ResourceData, meta interface
 		updateParams.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, updateParams); err != nil {
-		return fmt.Errorf("updating Attestation Provider %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if _, err := client.Update(ctx, id.ResourceGroup, id.AttestationProviderName, updateParams); err != nil {
+		return fmt.Errorf("updating Attestation Provider %q (Resource Group %q): %+v", id.AttestationProviderName, id.ResourceGroup, err)
 	}
-	return resourceArmAttestationProviderRead(d, meta)
+	return resourceAttestationProviderRead(d, meta)
 }
 
-func resourceArmAttestationProviderDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAttestationProviderDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Attestation.ProviderClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AttestationId(d.Id())
+	id, err := parse.ProviderID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-		return fmt.Errorf("deleting Attestation Provider %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.AttestationProviderName); err != nil {
+		return fmt.Errorf("deleting Attestation Provider %q (Resource Group %q): %+v", id.AttestationProviderName, id.ResourceGroup, err)
 	}
 	return nil
 }
