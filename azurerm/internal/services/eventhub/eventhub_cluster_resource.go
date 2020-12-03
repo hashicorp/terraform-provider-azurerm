@@ -3,6 +3,7 @@ package eventhub
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
@@ -55,9 +56,10 @@ func resourceArmEventHubCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"Dedicated_1",
-				}, false),
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile(`^Dedicated_[1-9][0-9]*$`),
+					"SKU name must match /^Dedicated_[1-9][0-9]*$/.",
+					),
 			},
 
 			"tags": tags.Schema(),
