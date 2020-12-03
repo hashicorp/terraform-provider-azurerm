@@ -76,6 +76,23 @@ func (td TestData) ImportStep(ignore ...string) resource.TestStep {
 	return step
 }
 
+// ImportStepBasic returns a Test Step which Imports a given resource by name,
+// optionally ignoring any fields which may not be imported (for example, as they're
+// not returned from the API)
+func ImportStepFor(resourceName string, ignore ...string) resource.TestStep {
+	step := resource.TestStep{
+		ResourceName:      resourceName,
+		ImportState:       true,
+		ImportStateVerify: true,
+	}
+
+	if len(ignore) > 0 {
+		step.ImportStateVerifyIgnore = ignore
+	}
+
+	return step
+}
+
 // RequiresImportErrorStep returns a Test Step which expects a Requires Import
 // error to be returned when running this step
 func (td TestData) RequiresImportErrorStep(configBuilder func(data TestData) string) resource.TestStep {
