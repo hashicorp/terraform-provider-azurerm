@@ -76,6 +76,18 @@ type ResourceWithUpdate interface {
 	Update() ResourceFunc
 }
 
+// ResourceWithDeprecation is an optional interface
+//
+// Resources implementing this interface will be marked as Deprecated
+// and output the DeprecationMessage during Terraform operations.
+type ResourceWithDeprecation interface {
+	Resource
+
+	// DeprecationMessage returns the Deprecation message for this resource
+	// NOTE: this must return a non-empty string
+	DeprecationMessage() string
+}
+
 // ResourceRunFunc is the function which can be run
 // ctx provides a Context instance with the user-provided timeout
 // metadata is a reference to an object containing the Client, ResourceData and a Logger
