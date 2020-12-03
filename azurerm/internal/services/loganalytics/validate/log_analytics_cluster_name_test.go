@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestLogAnalyticsWorkspaceName(t *testing.T) {
+func TestLogAnalyticsClusterName(t *testing.T) {
 	testCases := []struct {
 		Name     string
 		Input    string
@@ -17,42 +17,42 @@ func TestLogAnalyticsWorkspaceName(t *testing.T) {
 		},
 		{
 			Name:     "Invalid characters underscores",
-			Input:    "invalid_Log_Analytics_Workspace_Name",
+			Input:    "invalid_Clusters_Name",
 			Expected: false,
 		},
 		{
 			Name:     "Invalid characters space",
-			Input:    "invalid Log Analytics Workspace Name",
+			Input:    "invalid Clusters Name",
 			Expected: false,
 		},
 		{
 			Name:     "Invalid name starts with hyphen",
-			Input:    "-invalidLogAnalyticsWorkspaceName",
+			Input:    "-invalidClustersName",
 			Expected: false,
 		},
 		{
 			Name:     "Invalid name ends with hyphen",
-			Input:    "invalidLogAnalyticsWorkspaceName-",
+			Input:    "invalidClustersName-",
 			Expected: false,
 		},
 		{
 			Name:     "Invalid name too long",
-			Input:    "thisIsToLooooooooooooooooooooongestForALogAnalyticsWorkspaceName",
+			Input:    "thisIsToLoooooooooooooooooooooooooooooooooooooongForAClusterName",
 			Expected: false,
 		},
 		{
 			Name:     "Valid name",
-			Input:    "validLogAnalyticsWorkspaceName",
+			Input:    "validClustersName",
 			Expected: true,
 		},
 		{
 			Name:     "Valid name with hyphen",
-			Input:    "validLogAnalyticsWorkspaceName-2",
+			Input:    "validClustersName-2",
 			Expected: true,
 		},
 		{
 			Name:     "Valid name max length",
-			Input:    "thisIsTheLooooooooooongestValidLogAnalyticsWorkspaceNameThereIs",
+			Input:    "thisIsTheLooooooooooooooooooooooooongestValidClusterNameThereIs",
 			Expected: true,
 		},
 		{
@@ -64,10 +64,10 @@ func TestLogAnalyticsWorkspaceName(t *testing.T) {
 	for _, v := range testCases {
 		t.Logf("[DEBUG] Testing %q..", v.Name)
 
-		_, errors := LogAnalyticsWorkspaceName(v.Input, "workspace_name")
+		_, errors := LogAnalyticsClusterName(v.Input, "name")
 		result := len(errors) == 0
 		if result != v.Expected {
-			t.Fatalf("Expected the result to be %v but got %v (and %d errors)", v.Expected, result, len(errors))
+			t.Fatalf("Expected the result to be %t but got %t (and %d errors)", v.Expected, result, len(errors))
 		}
 	}
 }
