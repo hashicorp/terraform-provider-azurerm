@@ -11,85 +11,85 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMMariaDbConfiguration_characterSetServer(t *testing.T) {
+func TestAccMariaDbConfiguration_characterSetServer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbConfigurationDestroy,
+		CheckDestroy: testCheckMariaDbConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMariaDbConfiguration_characterSetServer(data),
+				Config: testAccMariaDbConfiguration_characterSetServer(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMariaDbConfigurationValue(data.ResourceName, "hebrew"),
+					testCheckMariaDbConfigurationValue(data.ResourceName, "hebrew"),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMMariaDbConfiguration_empty(data),
+				Config: testAccMariaDbConfiguration_empty(data),
 				Check: resource.ComposeTestCheckFunc(
 					// "delete" resets back to the default value
-					testCheckAzureRMMariaDbConfigurationValueReset(data.RandomInteger, "character_set_server"),
+					testCheckMariaDbConfigurationValueReset(data.RandomInteger, "character_set_server"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMMariaDbConfiguration_interactiveTimeout(t *testing.T) {
+func TestAccMariaDbConfiguration_interactiveTimeout(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbConfigurationDestroy,
+		CheckDestroy: testCheckMariaDbConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMariaDbConfiguration_interactiveTimeout(data),
+				Config: testAccMariaDbConfiguration_interactiveTimeout(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMariaDbConfigurationValue(data.ResourceName, "30"),
+					testCheckMariaDbConfigurationValue(data.ResourceName, "30"),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMMariaDbConfiguration_empty(data),
+				Config: testAccMariaDbConfiguration_empty(data),
 				Check: resource.ComposeTestCheckFunc(
 					// "delete" resets back to the default value
-					testCheckAzureRMMariaDbConfigurationValueReset(data.RandomInteger, "interactive_timeout"),
+					testCheckMariaDbConfigurationValueReset(data.RandomInteger, "interactive_timeout"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMMariaDbConfiguration_logSlowAdminStatements(t *testing.T) {
+func TestAccMariaDbConfiguration_logSlowAdminStatements(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbConfigurationDestroy,
+		CheckDestroy: testCheckMariaDbConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMariaDbConfiguration_logSlowAdminStatements(data),
+				Config: testAccMariaDbConfiguration_logSlowAdminStatements(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMariaDbConfigurationValue(data.ResourceName, "on"),
+					testCheckMariaDbConfigurationValue(data.ResourceName, "on"),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMMariaDbConfiguration_empty(data),
+				Config: testAccMariaDbConfiguration_empty(data),
 				Check: resource.ComposeTestCheckFunc(
 					// "delete" resets back to the default value
-					testCheckAzureRMMariaDbConfigurationValueReset(data.RandomInteger, "log_slow_admin_statements"),
+					testCheckMariaDbConfigurationValueReset(data.RandomInteger, "log_slow_admin_statements"),
 				),
 			},
 		},
 	})
 }
 
-func testCheckAzureRMMariaDbConfigurationValue(resourceName string, value string) resource.TestCheckFunc {
+func testCheckMariaDbConfigurationValue(resourceName string, value string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).MariaDB.ConfigurationsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -124,7 +124,7 @@ func testCheckAzureRMMariaDbConfigurationValue(resourceName string, value string
 	}
 }
 
-func testCheckAzureRMMariaDbConfigurationValueReset(rInt int, configurationName string) resource.TestCheckFunc {
+func testCheckMariaDbConfigurationValueReset(rInt int, configurationName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).MariaDB.ConfigurationsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -151,7 +151,7 @@ func testCheckAzureRMMariaDbConfigurationValueReset(rInt int, configurationName 
 	}
 }
 
-func testCheckAzureRMMariaDbConfigurationDestroy(s *terraform.State) error {
+func testCheckMariaDbConfigurationDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).MariaDB.ConfigurationsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -177,20 +177,20 @@ func testCheckAzureRMMariaDbConfigurationDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMMariaDbConfiguration_characterSetServer(data acceptance.TestData) string {
-	return testAccAzureRMMariaDbConfiguration_template(data, "character_set_server", "hebrew")
+func testAccMariaDbConfiguration_characterSetServer(data acceptance.TestData) string {
+	return testAccMariaDbConfiguration_template(data, "character_set_server", "hebrew")
 }
 
-func testAccAzureRMMariaDbConfiguration_interactiveTimeout(data acceptance.TestData) string {
-	return testAccAzureRMMariaDbConfiguration_template(data, "interactive_timeout", "30")
+func testAccMariaDbConfiguration_interactiveTimeout(data acceptance.TestData) string {
+	return testAccMariaDbConfiguration_template(data, "interactive_timeout", "30")
 }
 
-func testAccAzureRMMariaDbConfiguration_logSlowAdminStatements(data acceptance.TestData) string {
-	return testAccAzureRMMariaDbConfiguration_template(data, "log_slow_admin_statements", "on")
+func testAccMariaDbConfiguration_logSlowAdminStatements(data acceptance.TestData) string {
+	return testAccMariaDbConfiguration_template(data, "log_slow_admin_statements", "on")
 }
 
-func testAccAzureRMMariaDbConfiguration_template(data acceptance.TestData, name string, value string) string {
-	server := testAccAzureRMMariaDbConfiguration_empty(data)
+func testAccMariaDbConfiguration_template(data acceptance.TestData, name string, value string) string {
+	server := testAccMariaDbConfiguration_empty(data)
 	config := fmt.Sprintf(`
 resource "azurerm_mariadb_configuration" "test" {
   name                = "%s"
@@ -202,7 +202,7 @@ resource "azurerm_mariadb_configuration" "test" {
 	return server + config
 }
 
-func testAccAzureRMMariaDbConfiguration_empty(data acceptance.TestData) string {
+func testAccMariaDbConfiguration_empty(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

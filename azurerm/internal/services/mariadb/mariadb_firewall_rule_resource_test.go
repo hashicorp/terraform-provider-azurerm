@@ -11,18 +11,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMMariaDbFirewallRule_basic(t *testing.T) {
+func TestAccMariaDbFirewallRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_firewall_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbFirewallRuleDestroy,
+		CheckDestroy: testCheckMariaDbFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMariaDbFirewallRule_basic(data),
+				Config: testAccMariaDbFirewallRule_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMariaDbFirewallRuleExists(data.ResourceName),
+					testCheckMariaDbFirewallRuleExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -30,29 +30,29 @@ func TestAccAzureRMMariaDbFirewallRule_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMariaDbFirewallRule_requiresImport(t *testing.T) {
+func TestAccMariaDbFirewallRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_firewall_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbFirewallRuleDestroy,
+		CheckDestroy: testCheckMariaDbFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMariaDbFirewallRule_basic(data),
+				Config: testAccMariaDbFirewallRule_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMariaDbFirewallRuleExists(data.ResourceName),
+					testCheckMariaDbFirewallRuleExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMMariaDbFirewallRule_requiresImport(data),
+				Config:      testAccMariaDbFirewallRule_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_mariadb_firewall_rule"),
 			},
 		},
 	})
 }
 
-func testCheckAzureRMMariaDbFirewallRuleExists(resourceName string) resource.TestCheckFunc {
+func testCheckMariaDbFirewallRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).MariaDB.FirewallRulesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -82,7 +82,7 @@ func testCheckAzureRMMariaDbFirewallRuleExists(resourceName string) resource.Tes
 	}
 }
 
-func testCheckAzureRMMariaDbFirewallRuleDestroy(s *terraform.State) error {
+func testCheckMariaDbFirewallRuleDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).MariaDB.DatabasesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -108,7 +108,7 @@ func testCheckAzureRMMariaDbFirewallRuleDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMMariaDbFirewallRule_basic(data acceptance.TestData) string {
+func testAccMariaDbFirewallRule_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -148,7 +148,7 @@ resource "azurerm_mariadb_firewall_rule" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMMariaDbFirewallRule_requiresImport(data acceptance.TestData) string {
+func testAccMariaDbFirewallRule_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -159,5 +159,5 @@ resource "azurerm_mariadb_firewall_rule" "import" {
   start_ip_address    = azurerm_mariadb_firewall_rule.test.start_ip_address
   end_ip_address      = azurerm_mariadb_firewall_rule.test.end_ip_address
 }
-`, testAccAzureRMMariaDbFirewallRule_basic(data))
+`, testAccMariaDbFirewallRule_basic(data))
 }

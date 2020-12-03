@@ -11,18 +11,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMMariaDbDatabase_basic(t *testing.T) {
+func TestAccMariaDbDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbDatabaseDestroy,
+		CheckDestroy: testCheckMariaDbDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMariaDbDatabase_basic(data),
+				Config: testAccMariaDbDatabase_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMariaDbDatabaseExists(data.ResourceName),
+					testCheckMariaDbDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "charset", "utf8"),
 					resource.TestCheckResourceAttr(data.ResourceName, "collation", "utf8_general_ci"),
 				),
@@ -32,29 +32,29 @@ func TestAccAzureRMMariaDbDatabase_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMariaDbDatabase_requiresImport(t *testing.T) {
+func TestAccMariaDbDatabase_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbDatabaseDestroy,
+		CheckDestroy: testCheckMariaDbDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMariaDbDatabase_basic(data),
+				Config: testAccMariaDbDatabase_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMariaDbDatabaseExists(data.ResourceName),
+					testCheckMariaDbDatabaseExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMMariaDbDatabase_requiresImport(data),
+				Config:      testAccMariaDbDatabase_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_mariadb_database"),
 			},
 		},
 	})
 }
 
-func testCheckAzureRMMariaDbDatabaseExists(resourceName string) resource.TestCheckFunc {
+func testCheckMariaDbDatabaseExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).MariaDB.DatabasesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -84,7 +84,7 @@ func testCheckAzureRMMariaDbDatabaseExists(resourceName string) resource.TestChe
 	}
 }
 
-func testCheckAzureRMMariaDbDatabaseDestroy(s *terraform.State) error {
+func testCheckMariaDbDatabaseDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).MariaDB.DatabasesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -110,7 +110,7 @@ func testCheckAzureRMMariaDbDatabaseDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMMariaDbDatabase_basic(data acceptance.TestData) string {
+func testAccMariaDbDatabase_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -150,8 +150,8 @@ resource "azurerm_mariadb_database" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMMariaDbDatabase_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMMariaDbDatabase_basic(data)
+func testAccMariaDbDatabase_requiresImport(data acceptance.TestData) string {
+	template := testAccMariaDbDatabase_basic(data)
 	return fmt.Sprintf(`
 %s
 

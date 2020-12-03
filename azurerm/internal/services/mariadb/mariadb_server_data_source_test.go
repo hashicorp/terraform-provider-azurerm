@@ -8,18 +8,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMMariaDbServer_basic(t *testing.T) {
+func TestAccMariaDbServerDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mariadb_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
+		CheckDestroy: testCheckMariaDbServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMMariaDbServer_basic(data),
+				Config: testAccDataSourceMariaDbServer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMariaDbServerExists(data.ResourceName),
+					testCheckMariaDbServerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "administrator_login", "acctestun"),
 					resource.TestCheckResourceAttr(data.ResourceName, "version", "10.2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "ssl_enforcement", "Enabled"),
@@ -29,7 +29,7 @@ func TestAccDataSourceAzureRMMariaDbServer_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceAzureRMMariaDbServer_basic(data acceptance.TestData) string {
+func testAccDataSourceMariaDbServer_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
