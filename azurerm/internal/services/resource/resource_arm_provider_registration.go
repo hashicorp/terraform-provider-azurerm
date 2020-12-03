@@ -208,7 +208,7 @@ func (r ResourceProviderRegistrationResource) CustomImporter() sdk.ResourceRunFu
 		}
 
 		if *provider.Namespace != id.ResourceProvider {
-			return fmt.Errorf("importing Resource Provider %q: expected %q", id.ResourceProvider, provider.Namespace)
+			return fmt.Errorf("importing Resource Provider %q: expected %q", id.ResourceProvider, *provider.Namespace)
 		}
 
 		if provider.RegistrationState == nil || !strings.EqualFold(*provider.RegistrationState, "Registered") {
