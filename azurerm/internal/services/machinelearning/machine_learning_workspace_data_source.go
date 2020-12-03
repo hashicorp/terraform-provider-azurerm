@@ -13,7 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmMachineLearningWorkspace() *schema.Resource {
+func dataSourceMachineLearningWorkspace() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmAMLWorkspaceRead,
 		Timeouts: &schema.ResourceTimeout{
@@ -82,7 +82,7 @@ func dataSourceArmAMLWorkspaceRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 
-	if err := d.Set("identity", flattenArmMachineLearningWorkspaceIdentity(resp.Identity)); err != nil {
+	if err := d.Set("identity", flattenMachineLearningWorkspaceIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 

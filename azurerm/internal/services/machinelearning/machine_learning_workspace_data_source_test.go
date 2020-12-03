@@ -11,7 +11,7 @@ import (
 
 type WorkspaceDataSource struct{}
 
-func TestAccDataSourceAzureRMMachineLearningWorkspace_basic(t *testing.T) {
+func TestAccMachineLearningWorkspaceDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_machine_learning_workspace", "test")
 	d := WorkspaceDataSource{}
 
@@ -28,8 +28,7 @@ func TestAccDataSourceAzureRMMachineLearningWorkspace_basic(t *testing.T) {
 	})
 }
 
-func (d WorkspaceDataSource) basic(data acceptance.TestData) string {
-	config := WorkspaceResource{}.complete(data)
+func (WorkspaceDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -37,5 +36,5 @@ data "azurerm_machine_learning_workspace" "test" {
   name                = azurerm_machine_learning_workspace.test.name
   resource_group_name = azurerm_machine_learning_workspace.test.resource_group_name
 }
-`, config)
+`, WorkspaceResource{}.complete(data))
 }
