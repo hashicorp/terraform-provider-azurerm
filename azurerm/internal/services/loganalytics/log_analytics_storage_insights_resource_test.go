@@ -116,7 +116,7 @@ func (LogAnalyticsStorageInsightsResource) Exists(ctx context.Context, clients *
 
 	resp, err := clients.LogAnalytics.StorageInsightsClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Log Analytics Storage Insights %q (resource group: %q): %v", id.Name, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving Log Analytics Storage Insights %q (resource group: %q): %v", id.Name, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.StorageInsightProperties != nil), nil

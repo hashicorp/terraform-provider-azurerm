@@ -74,7 +74,7 @@ func (LogAnalyticsSolutionResource) Exists(ctx context.Context, clients *clients
 
 	resp, err := clients.LogAnalytics.SolutionsClient.Get(ctx, id.ResourceGroup, name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Log Analytics Solutions %q (resource group: %q): %v", name, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving Log Analytics Solutions %q (resource group: %q): %v", name, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.Properties != nil), nil

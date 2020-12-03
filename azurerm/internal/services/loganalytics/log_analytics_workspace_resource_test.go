@@ -228,7 +228,7 @@ func (LogAnalyticsWorkspaceResource) Exists(ctx context.Context, clients *client
 
 	resp, err := clients.LogAnalytics.WorkspacesClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Log Analytics Workspace %q (resource group: %q): %v", id.Name, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving Log Analytics Workspace %q (resource group: %q): %v", id.Name, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.WorkspaceProperties != nil), nil
