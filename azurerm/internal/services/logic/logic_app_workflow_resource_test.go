@@ -1,208 +1,156 @@
 package logic_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+type LogicAppWorkflowResource struct {
+}
 
 func TestAccLogicAppWorkflow_empty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_workflow", "test")
+	r := LogicAppWorkflowResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogicAppWorkflow_empty(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppWorkflowExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "connector_endpoint_ip_addresses.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "connector_outbound_ip_addresses.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_endpoint_ip_addresses.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_outbound_ip_addresses.#"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.empty(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("parameters.%").HasValue("0"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("connector_endpoint_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("connector_outbound_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("workflow_endpoint_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("workflow_outbound_ip_addresses.#").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLogicAppWorkflow_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_workflow", "test")
+	r := LogicAppWorkflowResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogicAppWorkflow_empty(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppWorkflowExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMLogicAppWorkflow_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_logic_app_workflow"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.empty(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_logic_app_workflow"),
 		},
 	})
 }
 
 func TestAccLogicAppWorkflow_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_workflow", "test")
+	r := LogicAppWorkflowResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogicAppWorkflow_empty(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppWorkflowExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMLogicAppWorkflow_tags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppWorkflowExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.Source", "AcceptanceTests"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.empty(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("parameters.%").HasValue("0"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.tags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("parameters.%").HasValue("0"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.Source").HasValue("AcceptanceTests"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLogicAppWorkflow_integrationAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_workflow", "test")
+	r := LogicAppWorkflowResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogicAppWorkflow_empty(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppWorkflowExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMLogicAppWorkflow_integrationAccount(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppWorkflowExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("logic_app_integration_account_id"),
-			{
-				Config: testAccAzureRMLogicAppWorkflow_integrationAccountUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppWorkflowExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("logic_app_integration_account_id"),
-			{
-				Config: testAccAzureRMLogicAppWorkflow_empty(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppWorkflowExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("logic_app_integration_account_id"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.empty(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.integrationAccount(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("logic_app_integration_account_id"),
+		{
+			Config: r.integrationAccountUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("logic_app_integration_account_id"),
+		{
+			Config: r.empty(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("logic_app_integration_account_id"),
 	})
 }
 
 func TestAccLogicAppWorkflow_integrationServiceEnvironment(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_workflow", "test")
+	r := LogicAppWorkflowResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogicAppWorkflow_integrationServiceEnvironment(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppWorkflowExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.integrationServiceEnvironment(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMLogicAppWorkflowExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Logic.WorkflowClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		workflowName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Logic App Workflow: %s", workflowName)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, workflowName)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on logicWorkflowsClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Logic App Workflow %q (resource group %q) does not exist", workflowName, resourceGroup)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMLogicAppWorkflowDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Logic.WorkflowClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_logic_app_workflow" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Logic App Workflow still exists: \n%#v", resp)
-		}
+func (LogicAppWorkflowResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	name := id.Path["workflows"]
+
+	resp, err := clients.Logic.WorkflowClient.Get(ctx, id.ResourceGroup, name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Logic App Workflow %s (resource group: %s): %v", name, id.ResourceGroup, err)
+	}
+
+	return utils.Bool(resp.WorkflowProperties != nil), nil
 }
 
-func testAccAzureRMLogicAppWorkflow_empty(data acceptance.TestData) string {
+func (LogicAppWorkflowResource) empty(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -221,8 +169,7 @@ resource "azurerm_logic_app_workflow" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMLogicAppWorkflow_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMLogicAppWorkflow_empty(data)
+func (r LogicAppWorkflowResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -231,10 +178,10 @@ resource "azurerm_logic_app_workflow" "import" {
   location            = azurerm_logic_app_workflow.test.location
   resource_group_name = azurerm_logic_app_workflow.test.resource_group_name
 }
-`, template)
+`, r.empty(data))
 }
 
-func testAccAzureRMLogicAppWorkflow_tags(data acceptance.TestData) string {
+func (LogicAppWorkflowResource) tags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -257,7 +204,7 @@ resource "azurerm_logic_app_workflow" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMLogicAppWorkflow_integrationAccount(data acceptance.TestData) string {
+func (LogicAppWorkflowResource) integrationAccount(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -291,7 +238,7 @@ resource "azurerm_logic_app_workflow" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMLogicAppWorkflow_integrationAccountUpdated(data acceptance.TestData) string {
+func (LogicAppWorkflowResource) integrationAccountUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -325,8 +272,7 @@ resource "azurerm_logic_app_workflow" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMLogicAppWorkflow_integrationServiceEnvironment(data acceptance.TestData) string {
-	template := testAccAzureRMIntegrationServiceEnvironment_basic(data)
+func (r LogicAppWorkflowResource) integrationServiceEnvironment(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -336,5 +282,5 @@ resource "azurerm_logic_app_workflow" "test" {
   resource_group_name                = azurerm_resource_group.test.name
   integration_service_environment_id = azurerm_integration_service_environment.test.id
 }
-`, template, data.RandomInteger)
+`, IntegrationServiceEnvironmentResource{}.basic(data), data.RandomInteger)
 }

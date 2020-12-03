@@ -1,148 +1,135 @@
 package logic_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
+
+type LogicAppTriggerHttpRequestResource struct {
+}
 
 func TestAccLogicAppTriggerHttpRequest_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_http_request", "test")
+	r := LogicAppTriggerHttpRequestResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogicAppTriggerHttpRequest_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppTriggerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "schema", "{}"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("schema").HasValue("{}"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLogicAppTriggerHttpRequest_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_http_request", "test")
+	r := LogicAppTriggerHttpRequestResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogicAppTriggerHttpRequest_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppTriggerExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMLogicAppTriggerHttpRequest_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_logic_app_trigger_http_request"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_logic_app_trigger_http_request"),
 		},
 	})
 }
 
 func TestAccLogicAppTriggerHttpRequest_fullSchema(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_http_request", "test")
+	r := LogicAppTriggerHttpRequestResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogicAppTriggerHttpRequest_fullSchema(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppTriggerExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "schema"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.fullSchema(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("schema").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLogicAppTriggerHttpRequest_method(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_http_request", "test")
+	r := LogicAppTriggerHttpRequestResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogicAppTriggerHttpRequest_method(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppTriggerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "method", "PUT"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.method(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("method").HasValue("PUT"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLogicAppTriggerHttpRequest_relativePath(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_http_request", "test")
+	r := LogicAppTriggerHttpRequestResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogicAppTriggerHttpRequest_relativePath(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppTriggerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "method", "POST"),
-					resource.TestCheckResourceAttr(data.ResourceName, "relative_path", "customers/{id}"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.relativePath(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("method").HasValue("POST"),
+				check.That(data.ResourceName).Key("relative_path").HasValue("customers/{id}"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLogicAppTriggerHttpRequest_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_http_request", "test")
+	r := LogicAppTriggerHttpRequestResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogicAppTriggerHttpRequest_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppTriggerExists(data.ResourceName),
-				),
-			},
-			{
-				// delete it
-				Config: testAccAzureRMLogicAppTriggerHttpRequest_template(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppWorkflowExists("azurerm_logic_app_workflow.test"),
-				),
-			},
-			{
-				Config:             testAccAzureRMLogicAppTriggerHttpRequest_basic(data),
-				PlanOnly:           true,
-				ExpectNonEmptyPlan: true,
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			// delete it
+			Config: r.template(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(LogicAppWorkflowResource{}),
+			),
+		},
+		{
+			Config:             r.basic(data),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: true,
 		},
 	})
 }
 
-func testAccAzureRMLogicAppTriggerHttpRequest_basic(data acceptance.TestData) string {
-	template := testAccAzureRMLogicAppTriggerHttpRequest_template(data)
+func (LogicAppTriggerHttpRequestResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	return triggerExists(ctx, clients, state)
+}
+
+func (LogicAppTriggerHttpRequestResource) basic(data acceptance.TestData) string {
+	template := LogicAppTriggerHttpRequestResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -154,8 +141,8 @@ resource "azurerm_logic_app_trigger_http_request" "test" {
 `, template)
 }
 
-func testAccAzureRMLogicAppTriggerHttpRequest_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMLogicAppTriggerHttpRequest_basic(data)
+func (LogicAppTriggerHttpRequestResource) requiresImport(data acceptance.TestData) string {
+	template := LogicAppTriggerHttpRequestResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -167,8 +154,8 @@ resource "azurerm_logic_app_trigger_http_request" "import" {
 `, template)
 }
 
-func testAccAzureRMLogicAppTriggerHttpRequest_fullSchema(data acceptance.TestData) string {
-	template := testAccAzureRMLogicAppTriggerHttpRequest_template(data)
+func (LogicAppTriggerHttpRequestResource) fullSchema(data acceptance.TestData) string {
+	template := LogicAppTriggerHttpRequestResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -191,8 +178,8 @@ SCHEMA
 `, template)
 }
 
-func testAccAzureRMLogicAppTriggerHttpRequest_method(data acceptance.TestData) string {
-	template := testAccAzureRMLogicAppTriggerHttpRequest_template(data)
+func (LogicAppTriggerHttpRequestResource) method(data acceptance.TestData) string {
+	template := LogicAppTriggerHttpRequestResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -205,8 +192,8 @@ resource "azurerm_logic_app_trigger_http_request" "test" {
 `, template)
 }
 
-func testAccAzureRMLogicAppTriggerHttpRequest_relativePath(data acceptance.TestData) string {
-	template := testAccAzureRMLogicAppTriggerHttpRequest_template(data)
+func (LogicAppTriggerHttpRequestResource) relativePath(data acceptance.TestData) string {
+	template := LogicAppTriggerHttpRequestResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -220,7 +207,7 @@ resource "azurerm_logic_app_trigger_http_request" "test" {
 `, template)
 }
 
-func testAccAzureRMLogicAppTriggerHttpRequest_template(data acceptance.TestData) string {
+func (LogicAppTriggerHttpRequestResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

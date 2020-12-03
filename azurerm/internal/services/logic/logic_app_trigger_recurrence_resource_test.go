@@ -1,242 +1,213 @@
 package logic_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
+
+type LogicAppTriggerRecurrenceResource struct {
+}
 
 func TestAccLogicAppTriggerRecurrence_month(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
+	r := LogicAppTriggerRecurrenceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogicAppTriggerRecurrence_basic(data, "Month", 1),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppTriggerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "frequency", "Month"),
-					resource.TestCheckResourceAttr(data.ResourceName, "interval", "1"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "Month", 1),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("frequency").HasValue("Month"),
+				check.That(data.ResourceName).Key("interval").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLogicAppTriggerRecurrence_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
+	r := LogicAppTriggerRecurrenceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogicAppTriggerRecurrence_basic(data, "Month", 1),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppTriggerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "frequency", "Month"),
-					resource.TestCheckResourceAttr(data.ResourceName, "interval", "1"),
-				),
-			},
-			{
-				Config:      testAccAzureRMLogicAppTriggerRecurrence_requiresImport(data, "Month", 1),
-				ExpectError: acceptance.RequiresImportError("azurerm_logic_app_trigger_recurrence"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "Month", 1),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("frequency").HasValue("Month"),
+				check.That(data.ResourceName).Key("interval").HasValue("1"),
+			),
+		},
+		{
+			Config:      r.requiresImport(data, "Month", 1),
+			ExpectError: acceptance.RequiresImportError("azurerm_logic_app_trigger_recurrence"),
 		},
 	})
 }
 
 func TestAccLogicAppTriggerRecurrence_week(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
+	r := LogicAppTriggerRecurrenceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogicAppTriggerRecurrence_basic(data, "Week", 2),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppTriggerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "frequency", "Week"),
-					resource.TestCheckResourceAttr(data.ResourceName, "interval", "2"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "Week", 2),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("frequency").HasValue("Week"),
+				check.That(data.ResourceName).Key("interval").HasValue("2"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLogicAppTriggerRecurrence_day(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
+	r := LogicAppTriggerRecurrenceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogicAppTriggerRecurrence_basic(data, "Day", 3),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppTriggerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "frequency", "Day"),
-					resource.TestCheckResourceAttr(data.ResourceName, "interval", "3"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "Day", 3),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("frequency").HasValue("Day"),
+				check.That(data.ResourceName).Key("interval").HasValue("3"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLogicAppTriggerRecurrence_minute(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
+	r := LogicAppTriggerRecurrenceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogicAppTriggerRecurrence_basic(data, "Minute", 4),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppTriggerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "frequency", "Minute"),
-					resource.TestCheckResourceAttr(data.ResourceName, "interval", "4"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "Minute", 4),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("frequency").HasValue("Minute"),
+				check.That(data.ResourceName).Key("interval").HasValue("4"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLogicAppTriggerRecurrence_second(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
+	r := LogicAppTriggerRecurrenceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogicAppTriggerRecurrence_basic(data, "Second", 30),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppTriggerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "frequency", "Second"),
-					resource.TestCheckResourceAttr(data.ResourceName, "interval", "30"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "Second", 30),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("frequency").HasValue("Second"),
+				check.That(data.ResourceName).Key("interval").HasValue("30"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLogicAppTriggerRecurrence_hour(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
+	r := LogicAppTriggerRecurrenceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogicAppTriggerRecurrence_basic(data, "Hour", 4),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppTriggerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "frequency", "Hour"),
-					resource.TestCheckResourceAttr(data.ResourceName, "interval", "4"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "Hour", 4),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("frequency").HasValue("Hour"),
+				check.That(data.ResourceName).Key("interval").HasValue("4"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLogicAppTriggerRecurrence_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
+	r := LogicAppTriggerRecurrenceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogicAppTriggerRecurrence_basic(data, "Month", 1),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppTriggerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "frequency", "Month"),
-					resource.TestCheckResourceAttr(data.ResourceName, "interval", "1"),
-				),
-			},
-			{
-				Config: testAccAzureRMLogicAppTriggerRecurrence_basic(data, "Month", 3),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppTriggerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "frequency", "Month"),
-					resource.TestCheckResourceAttr(data.ResourceName, "interval", "3"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "Month", 1),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("frequency").HasValue("Month"),
+				check.That(data.ResourceName).Key("interval").HasValue("1"),
+			),
+		},
+		{
+			Config: r.basic(data, "Month", 3),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("frequency").HasValue("Month"),
+				check.That(data.ResourceName).Key("interval").HasValue("3"),
+			),
 		},
 	})
 }
 
 func TestAccLogicAppTriggerRecurrence_startTime(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
+	r := LogicAppTriggerRecurrenceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogicAppTriggerRecurrence_startTime(data, "2020-01-01T01:02:03Z"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppTriggerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "start_time", "2020-01-01T01:02:03Z"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.startTime(data, "2020-01-01T01:02:03Z"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("start_time").HasValue("2020-01-01T01:02:03Z"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLogicAppTriggerRecurrence_startTimeWithTimeZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
+	r := LogicAppTriggerRecurrenceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogicAppTriggerRecurrence_startTimeWithTimeZone(data, "2020-01-01T01:02:03Z", "US Eastern Standard Time"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppTriggerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "start_time", "2020-01-01T01:02:03Z"),
-					resource.TestCheckResourceAttr(data.ResourceName, "time_zone", "US Eastern Standard Time"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMLogicAppTriggerRecurrence_startTimeWithTimeZone(data, "2020-01-01T01:02:03Z", "Egypt Standard Time"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppTriggerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "start_time", "2020-01-01T01:02:03Z"),
-					resource.TestCheckResourceAttr(data.ResourceName, "time_zone", "Egypt Standard Time"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.startTimeWithTimeZone(data, "2020-01-01T01:02:03Z", "US Eastern Standard Time"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("start_time").HasValue("2020-01-01T01:02:03Z"),
+				check.That(data.ResourceName).Key("time_zone").HasValue("US Eastern Standard Time"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.startTimeWithTimeZone(data, "2020-01-01T01:02:03Z", "Egypt Standard Time"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("start_time").HasValue("2020-01-01T01:02:03Z"),
+				check.That(data.ResourceName).Key("time_zone").HasValue("Egypt Standard Time"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testAccAzureRMLogicAppTriggerRecurrence_basic(data acceptance.TestData, frequency string, interval int) string {
+func (LogicAppTriggerRecurrenceResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	return triggerExists(ctx, clients, state)
+}
+
+func (LogicAppTriggerRecurrenceResource) basic(data acceptance.TestData, frequency string, interval int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -262,7 +233,7 @@ resource "azurerm_logic_app_trigger_recurrence" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, frequency, interval)
 }
 
-func testAccAzureRMLogicAppTriggerRecurrence_startTime(data acceptance.TestData, startTime string) string {
+func (LogicAppTriggerRecurrenceResource) startTime(data acceptance.TestData, startTime string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -289,7 +260,7 @@ resource "azurerm_logic_app_trigger_recurrence" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, startTime)
 }
 
-func testAccAzureRMLogicAppTriggerRecurrence_startTimeWithTimeZone(data acceptance.TestData, startTime string, timeZone string) string {
+func (LogicAppTriggerRecurrenceResource) startTimeWithTimeZone(data acceptance.TestData, startTime string, timeZone string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -317,8 +288,7 @@ resource "azurerm_logic_app_trigger_recurrence" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, startTime, timeZone)
 }
 
-func testAccAzureRMLogicAppTriggerRecurrence_requiresImport(data acceptance.TestData, frequency string, interval int) string {
-	template := testAccAzureRMLogicAppTriggerRecurrence_basic(data, frequency, interval)
+func (r LogicAppTriggerRecurrenceResource) requiresImport(data acceptance.TestData, frequency string, interval int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -328,5 +298,5 @@ resource "azurerm_logic_app_trigger_recurrence" "import" {
   frequency    = azurerm_logic_app_trigger_recurrence.test.frequency
   interval     = azurerm_logic_app_trigger_recurrence.test.interval
 }
-`, template)
+`, r.basic(data, frequency, interval))
 }

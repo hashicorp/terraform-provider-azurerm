@@ -1,250 +1,205 @@
 package logic_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type IntegrationServiceEnvironmentResource struct {
+}
+
 func TestAccIntegrationServiceEnvironment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
+	r := IntegrationServiceEnvironmentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIntegrationServiceEnvironmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMIntegrationServiceEnvironment_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIntegrationServiceEnvironmentExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "location", data.Locations.Primary),
-					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Premium_0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "access_endpoint_type", "Internal"),
-					resource.TestCheckResourceAttr(data.ResourceName, "virtual_network_subnet_ids.#", "4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "connector_endpoint_ip_addresses.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "connector_outbound_ip_addresses.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_endpoint_ip_addresses.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_outbound_ip_addresses.#"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
+				check.That(data.ResourceName).Key("resource_group_name").HasValue(fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Premium_0"),
+				check.That(data.ResourceName).Key("access_endpoint_type").HasValue("Internal"),
+				check.That(data.ResourceName).Key("virtual_network_subnet_ids.#").HasValue("4"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("connector_endpoint_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("connector_outbound_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("workflow_endpoint_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("workflow_outbound_ip_addresses.#").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccIntegrationServiceEnvironment_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
+	r := IntegrationServiceEnvironmentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIntegrationServiceEnvironmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMIntegrationServiceEnvironment_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIntegrationServiceEnvironmentExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "location", data.Locations.Primary),
-					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Premium_0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "access_endpoint_type", "Internal"),
-					resource.TestCheckResourceAttr(data.ResourceName, "virtual_network_subnet_ids.#", "4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "development"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "connector_endpoint_ip_addresses.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "connector_outbound_ip_addresses.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_endpoint_ip_addresses.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_outbound_ip_addresses.#"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
+				check.That(data.ResourceName).Key("resource_group_name").HasValue(fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Premium_0"),
+				check.That(data.ResourceName).Key("access_endpoint_type").HasValue("Internal"),
+				check.That(data.ResourceName).Key("virtual_network_subnet_ids.#").HasValue("4"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("development"),
+				check.That(data.ResourceName).Key("connector_endpoint_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("connector_outbound_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("workflow_endpoint_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("workflow_outbound_ip_addresses.#").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccIntegrationServiceEnvironment_developer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
+	r := IntegrationServiceEnvironmentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIntegrationServiceEnvironmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMIntegrationServiceEnvironment_developer(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIntegrationServiceEnvironmentExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "location", data.Locations.Primary),
-					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Developer_0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "access_endpoint_type", "Internal"),
-					resource.TestCheckResourceAttr(data.ResourceName, "virtual_network_subnet_ids.#", "4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "development"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "connector_endpoint_ip_addresses.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "connector_outbound_ip_addresses.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_endpoint_ip_addresses.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_outbound_ip_addresses.#"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.developer(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
+				check.That(data.ResourceName).Key("resource_group_name").HasValue(fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Developer_0"),
+				check.That(data.ResourceName).Key("access_endpoint_type").HasValue("Internal"),
+				check.That(data.ResourceName).Key("virtual_network_subnet_ids.#").HasValue("4"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("development"),
+				check.That(data.ResourceName).Key("connector_endpoint_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("connector_outbound_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("workflow_endpoint_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("workflow_outbound_ip_addresses.#").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccIntegrationServiceEnvironment_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
+	r := IntegrationServiceEnvironmentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIntegrationServiceEnvironmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMIntegrationServiceEnvironment_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIntegrationServiceEnvironmentExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "location", data.Locations.Primary),
-					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Premium_0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "access_endpoint_type", "Internal"),
-					resource.TestCheckResourceAttr(data.ResourceName, "virtual_network_subnet_ids.#", "4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "connector_endpoint_ip_addresses.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "connector_outbound_ip_addresses.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_endpoint_ip_addresses.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_outbound_ip_addresses.#"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMIntegrationServiceEnvironment_skuName(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIntegrationServiceEnvironmentExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "location", data.Locations.Primary),
-					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Premium_1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "access_endpoint_type", "Internal"),
-					resource.TestCheckResourceAttr(data.ResourceName, "virtual_network_subnet_ids.#", "4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "connector_endpoint_ip_addresses.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "connector_outbound_ip_addresses.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_endpoint_ip_addresses.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_outbound_ip_addresses.#"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMIntegrationServiceEnvironment_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIntegrationServiceEnvironmentExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "location", data.Locations.Primary),
-					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Premium_0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "access_endpoint_type", "Internal"),
-					resource.TestCheckResourceAttr(data.ResourceName, "virtual_network_subnet_ids.#", "4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "connector_endpoint_ip_addresses.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "connector_outbound_ip_addresses.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_endpoint_ip_addresses.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_outbound_ip_addresses.#"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
+				check.That(data.ResourceName).Key("resource_group_name").HasValue(fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Premium_0"),
+				check.That(data.ResourceName).Key("access_endpoint_type").HasValue("Internal"),
+				check.That(data.ResourceName).Key("virtual_network_subnet_ids.#").HasValue("4"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("connector_endpoint_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("connector_outbound_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("workflow_endpoint_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("workflow_outbound_ip_addresses.#").Exists(),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.skuName(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
+				check.That(data.ResourceName).Key("resource_group_name").HasValue(fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Premium_1"),
+				check.That(data.ResourceName).Key("access_endpoint_type").HasValue("Internal"),
+				check.That(data.ResourceName).Key("virtual_network_subnet_ids.#").HasValue("4"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("connector_endpoint_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("connector_outbound_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("workflow_endpoint_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("workflow_outbound_ip_addresses.#").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
+				check.That(data.ResourceName).Key("resource_group_name").HasValue(fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Premium_0"),
+				check.That(data.ResourceName).Key("access_endpoint_type").HasValue("Internal"),
+				check.That(data.ResourceName).Key("virtual_network_subnet_ids.#").HasValue("4"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("connector_endpoint_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("connector_outbound_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("workflow_endpoint_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("workflow_outbound_ip_addresses.#").Exists(),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccIntegrationServiceEnvironment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIntegrationServiceEnvironmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMIntegrationServiceEnvironment_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIntegrationServiceEnvironmentExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "location", data.Locations.Primary),
-					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Premium_0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "access_endpoint_type", "Internal"),
-					resource.TestCheckResourceAttr(data.ResourceName, "virtual_network_subnet_ids.#", "4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "development"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "connector_endpoint_ip_addresses.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "connector_outbound_ip_addresses.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_endpoint_ip_addresses.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_outbound_ip_addresses.#"),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMIntegrationServiceEnvironment_requiresImport),
+	r := IntegrationServiceEnvironmentResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
+				check.That(data.ResourceName).Key("resource_group_name").HasValue(fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Premium_0"),
+				check.That(data.ResourceName).Key("access_endpoint_type").HasValue("Internal"),
+				check.That(data.ResourceName).Key("virtual_network_subnet_ids.#").HasValue("4"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("development"),
+				check.That(data.ResourceName).Key("connector_endpoint_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("connector_outbound_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("workflow_endpoint_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("workflow_outbound_ip_addresses.#").Exists(),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckAzureRMIntegrationServiceEnvironmentExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Logic.IntegrationServiceEnvironmentClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Integration Service Environment not found: %s", resourceName)
-		}
-		id, err := parse.IntegrationServiceEnvironmentID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Integration Service Environment %q (resource group %q) does not exist", id.Name, id.ResourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on IntegrationServiceEnvironmentClient: %+v", err)
-		}
-		return nil
+func (IntegrationServiceEnvironmentResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.IntegrationServiceEnvironmentID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	resp, err := clients.Logic.IntegrationServiceEnvironmentClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Integration Service Environment %s (resource group: %s): %v", id.Name, id.ResourceGroup, err)
+	}
+
+	return utils.Bool(resp.Properties != nil), nil
 }
 
-func testCheckAzureRMIntegrationServiceEnvironmentDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Logic.IntegrationServiceEnvironmentClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_integration_service_environment" {
-			continue
-		}
-		id, err := parse.IntegrationServiceEnvironmentID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on IntegrationServiceEnvironmentClient: %+v", err)
-			}
-		}
-		return nil
-	}
-	return nil
-}
-
-func testAccAzureRMIntegrationServiceEnvironment_template(data acceptance.TestData) string {
+func (IntegrationServiceEnvironmentResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -300,8 +255,7 @@ resource "azurerm_subnet" "isesubnet4" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMIntegrationServiceEnvironment_basic(data acceptance.TestData) string {
-	template := testAccAzureRMIntegrationServiceEnvironment_template(data)
+func (r IntegrationServiceEnvironmentResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -318,11 +272,10 @@ resource "azurerm_integration_service_environment" "test" {
     azurerm_subnet.isesubnet4.id
   ]
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMIntegrationServiceEnvironment_complete(data acceptance.TestData) string {
-	template := testAccAzureRMIntegrationServiceEnvironment_template(data)
+func (r IntegrationServiceEnvironmentResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -342,11 +295,10 @@ resource "azurerm_integration_service_environment" "test" {
     environment = "development"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMIntegrationServiceEnvironment_developer(data acceptance.TestData) string {
-	template := testAccAzureRMIntegrationServiceEnvironment_template(data)
+func (r IntegrationServiceEnvironmentResource) developer(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -366,11 +318,10 @@ resource "azurerm_integration_service_environment" "test" {
     environment = "development"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMIntegrationServiceEnvironment_skuName(data acceptance.TestData) string {
-	template := testAccAzureRMIntegrationServiceEnvironment_template(data)
+func (r IntegrationServiceEnvironmentResource) skuName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -387,11 +338,10 @@ resource "azurerm_integration_service_environment" "test" {
     azurerm_subnet.isesubnet4.id
   ]
 }
-  `, template, data.RandomInteger)
+  `, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMIntegrationServiceEnvironment_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMIntegrationServiceEnvironment_basic(data)
+func (r IntegrationServiceEnvironmentResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -404,5 +354,5 @@ resource "azurerm_integration_service_environment" "import" {
   virtual_network_subnet_ids = azurerm_integration_service_environment.test.virtual_network_subnet_ids
   tags                       = azurerm_integration_service_environment.test.tags
 }
-`, template)
+`, r.basic(data))
 }

@@ -1,56 +1,59 @@
 package logic_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
+
+type LogicAppTriggerCustomResource struct {
+}
 
 func TestAccLogicAppTriggerCustom_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_custom", "test")
+	r := LogicAppTriggerCustomResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogicAppTriggerCustom_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppTriggerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLogicAppTriggerCustom_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_custom", "test")
+	r := LogicAppTriggerCustomResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogicAppTriggerCustom_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppTriggerExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMLogicAppTriggerCustom_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_logic_app_trigger_custom"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_logic_app_trigger_custom"),
 		},
 	})
 }
 
-func testAccAzureRMLogicAppTriggerCustom_basic(data acceptance.TestData) string {
-	template := testAccAzureRMLogicAppTriggerCustom_template(data)
+func (LogicAppTriggerCustomResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	return triggerExists(ctx, clients, state)
+}
+
+func (LogicAppTriggerCustomResource) basic(data acceptance.TestData) string {
+	template := LogicAppTriggerCustomResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -72,8 +75,8 @@ BODY
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMLogicAppTriggerCustom_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMLogicAppTriggerCustom_basic(data)
+func (LogicAppTriggerCustomResource) requiresImport(data acceptance.TestData) string {
+	template := LogicAppTriggerCustomResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -85,7 +88,7 @@ resource "azurerm_logic_app_trigger_custom" "import" {
 `, template)
 }
 
-func testAccAzureRMLogicAppTriggerCustom_template(data acceptance.TestData) string {
+func (LogicAppTriggerCustomResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

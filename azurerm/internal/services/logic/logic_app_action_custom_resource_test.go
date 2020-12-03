@@ -1,56 +1,58 @@
 package logic_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
+
+type LogicAppActionCustomResource struct {
+}
 
 func TestAccLogicAppActionCustom_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_custom", "test")
+	r := LogicAppActionCustomResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogicAppActionCustom_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppActionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLogicAppActionCustom_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_custom", "test")
+	r := LogicAppActionCustomResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogicAppActionCustom_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppActionExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMLogicAppActionCustom_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_logic_app_action_custom"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_logic_app_action_custom"),
 		},
 	})
 }
 
-func testAccAzureRMLogicAppActionCustom_basic(data acceptance.TestData) string {
-	template := testAccAzureRMLogicAppActionCustom_template(data)
+func (LogicAppActionCustomResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	return actionExists(ctx, clients, state)
+}
+
+func (r LogicAppActionCustomResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -76,11 +78,10 @@ resource "azurerm_logic_app_action_custom" "test" {
 BODY
 
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMLogicAppActionCustom_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMLogicAppActionCustom_basic(data)
+func (r LogicAppActionCustomResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -89,10 +90,10 @@ resource "azurerm_logic_app_action_custom" "import" {
   logic_app_id = azurerm_logic_app_action_custom.test.logic_app_id
   body         = azurerm_logic_app_action_custom.test.body
 }
-`, template)
+`, r.template(data))
 }
 
-func testAccAzureRMLogicAppActionCustom_template(data acceptance.TestData) string {
+func (LogicAppActionCustomResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

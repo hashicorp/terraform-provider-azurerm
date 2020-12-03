@@ -6,55 +6,48 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
+
+type LogicAppWorkflowDataSource struct {
+}
 
 func TestAccLogicAppWorkflowDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_logic_app_workflow", "test")
+	r := LogicAppWorkflowDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMLogicAppWorkflow_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppWorkflowExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "0"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "connector_endpoint_ip_addresses.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "connector_outbound_ip_addresses.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_endpoint_ip_addresses.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_outbound_ip_addresses.#"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("parameters.%").HasValue("0"),
+				check.That(data.ResourceName).Key("connector_endpoint_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("connector_outbound_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("workflow_endpoint_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("workflow_outbound_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
 		},
 	})
 }
 
 func TestAccLogicAppWorkflowDataSource_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_logic_app_workflow", "test")
+	r := LogicAppWorkflowDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMLogicAppWorkflow_tags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppWorkflowExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.Source", "AcceptanceTests"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.tags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("parameters.%").HasValue("0"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.Source").HasValue("AcceptanceTests"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMLogicAppWorkflow_basic(data acceptance.TestData) string {
-	r := testAccAzureRMLogicAppWorkflow_empty(data)
+func (LogicAppWorkflowDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -62,11 +55,10 @@ data "azurerm_logic_app_workflow" "test" {
   name                = azurerm_logic_app_workflow.test.name
   resource_group_name = azurerm_logic_app_workflow.test.resource_group_name
 }
-`, r)
+`, LogicAppWorkflowResource{}.empty(data))
 }
 
-func testAccDataSourceAzureRMLogicAppWorkflow_tags(data acceptance.TestData) string {
-	r := testAccAzureRMLogicAppWorkflow_tags(data)
+func (LogicAppWorkflowDataSource) tags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -74,5 +66,5 @@ data "azurerm_logic_app_workflow" "test" {
   name                = azurerm_logic_app_workflow.test.name
   resource_group_name = azurerm_logic_app_workflow.test.resource_group_name
 }
-`, r)
+`, LogicAppWorkflowResource{}.tags(data))
 }
