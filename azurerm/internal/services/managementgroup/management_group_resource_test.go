@@ -1,4 +1,4 @@
-package tests
+package managementgroup
 
 import (
 	"fmt"
@@ -12,18 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
-func TestAccAzureRMManagementGroup_basic(t *testing.T) {
+func TestAccManagementGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
+		CheckDestroy: testCheckManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMManagementGroup_basic(),
+				Config: testManagementGroup_basic(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagementGroupExists(data.ResourceName),
+					testCheckManagementGroupExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -31,39 +31,39 @@ func TestAccAzureRMManagementGroup_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMManagementGroup_requiresImport(t *testing.T) {
+func TestAccManagementGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
+		CheckDestroy: testCheckManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMManagementGroup_basic(),
+				Config: testManagementGroup_basic(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagementGroupExists(data.ResourceName),
+					testCheckManagementGroupExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAzureRMManagementGroup_requiresImport(),
+				Config:      testManagementGroup_requiresImport(),
 				ExpectError: acceptance.RequiresImportError("azurerm_management_group"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMManagementGroup_nested(t *testing.T) {
+func TestAccManagementGroup_nested(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
+		CheckDestroy: testCheckManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMManagementGroup_nested(),
+				Config: testManagementGroup_nested(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagementGroupExists("azurerm_management_group.parent"),
-					testCheckAzureRMManagementGroupExists("azurerm_management_group.child"),
+					testCheckManagementGroupExists("azurerm_management_group.parent"),
+					testCheckManagementGroupExists("azurerm_management_group.child"),
 				),
 			},
 			{
@@ -75,18 +75,18 @@ func TestAccAzureRMManagementGroup_nested(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMManagementGroup_multiLevel(t *testing.T) {
+func TestAccManagementGroup_multiLevel(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
+		CheckDestroy: testCheckManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMManagementGroup_multiLevel(),
+				Config: testManagementGroup_multiLevel(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagementGroupExists("azurerm_management_group.grandparent"),
-					testCheckAzureRMManagementGroupExists("azurerm_management_group.parent"),
-					testCheckAzureRMManagementGroupExists("azurerm_management_group.child"),
+					testCheckManagementGroupExists("azurerm_management_group.grandparent"),
+					testCheckManagementGroupExists("azurerm_management_group.parent"),
+					testCheckManagementGroupExists("azurerm_management_group.child"),
 				),
 			},
 			{
@@ -98,43 +98,43 @@ func TestAccAzureRMManagementGroup_multiLevel(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMManagementGroup_multiLevelUpdated(t *testing.T) {
+func TestAccManagementGroup_multiLevelUpdated(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
+		CheckDestroy: testCheckManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMManagementGroup_nested(),
+				Config: testManagementGroup_nested(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagementGroupExists("azurerm_management_group.parent"),
-					testCheckAzureRMManagementGroupExists("azurerm_management_group.child"),
+					testCheckManagementGroupExists("azurerm_management_group.parent"),
+					testCheckManagementGroupExists("azurerm_management_group.child"),
 				),
 			},
 			{
-				Config: testAzureRMManagementGroup_multiLevel(),
+				Config: testManagementGroup_multiLevel(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagementGroupExists("azurerm_management_group.grandparent"),
-					testCheckAzureRMManagementGroupExists("azurerm_management_group.parent"),
-					testCheckAzureRMManagementGroupExists("azurerm_management_group.child"),
+					testCheckManagementGroupExists("azurerm_management_group.grandparent"),
+					testCheckManagementGroupExists("azurerm_management_group.parent"),
+					testCheckManagementGroupExists("azurerm_management_group.child"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMManagementGroup_withName(t *testing.T) {
+func TestAccManagementGroup_withName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
+		CheckDestroy: testCheckManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMManagementGroup_withName(data),
+				Config: testManagementGroup_withName(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagementGroupExists(data.ResourceName),
+					testCheckManagementGroupExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -142,24 +142,24 @@ func TestAccAzureRMManagementGroup_withName(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMManagementGroup_updateName(t *testing.T) {
+func TestAccManagementGroup_updateName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
+		CheckDestroy: testCheckManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMManagementGroup_basic(),
+				Config: testManagementGroup_basic(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagementGroupExists(data.ResourceName),
+					testCheckManagementGroupExists(data.ResourceName),
 				),
 			},
 			{
-				Config: testAzureRMManagementGroup_withName(data),
+				Config: testManagementGroup_withName(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagementGroupExists(data.ResourceName),
+					testCheckManagementGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestmg-%d", data.RandomInteger)),
 				),
 			},
@@ -168,33 +168,33 @@ func TestAccAzureRMManagementGroup_updateName(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMManagementGroup_withSubscriptions(t *testing.T) {
+func TestAccManagementGroup_withSubscriptions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group", "test")
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
+		CheckDestroy: testCheckManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMManagementGroup_basic(),
+				Config: testManagementGroup_basic(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagementGroupExists(data.ResourceName),
+					testCheckManagementGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "subscription_ids.#", "0"),
 				),
 			},
 			{
-				Config: testAzureRMManagementGroup_withSubscriptions(subscriptionID),
+				Config: testManagementGroup_withSubscriptions(subscriptionID),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagementGroupExists(data.ResourceName),
+					testCheckManagementGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "subscription_ids.#", "1"),
 				),
 			},
 			{
-				Config: testAzureRMManagementGroup_basic(),
+				Config: testManagementGroup_basic(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagementGroupExists(data.ResourceName),
+					testCheckManagementGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "subscription_ids.#", "0"),
 				),
 			},
@@ -202,7 +202,7 @@ func TestAccAzureRMManagementGroup_withSubscriptions(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMManagementGroupExists(resourceName string) resource.TestCheckFunc {
+func testCheckManagementGroupExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).ManagementGroups.GroupsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -228,7 +228,7 @@ func testCheckAzureRMManagementGroupExists(resourceName string) resource.TestChe
 	}
 }
 
-func testCheckAzureRMManagementGroupDestroy(s *terraform.State) error {
+func testCheckManagementGroupDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).ManagementGroups.GroupsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -252,7 +252,7 @@ func testCheckAzureRMManagementGroupDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAzureRMManagementGroup_basic() string {
+func testManagementGroup_basic() string {
 	return `
 provider "azurerm" {
   features {}
@@ -263,7 +263,7 @@ resource "azurerm_management_group" "test" {
 `
 }
 
-func testAzureRMManagementGroup_requiresImport() string {
+func testManagementGroup_requiresImport() string {
 	return `
 provider "azurerm" {
   features {}
@@ -278,7 +278,7 @@ resource "azurerm_management_group" "import" {
 `
 }
 
-func testAzureRMManagementGroup_nested() string {
+func testManagementGroup_nested() string {
 	return `
 provider "azurerm" {
   features {}
@@ -293,7 +293,7 @@ resource "azurerm_management_group" "child" {
 `
 }
 
-func testAzureRMManagementGroup_multiLevel() string {
+func testManagementGroup_multiLevel() string {
 	return `
 provider "azurerm" {
   features {}
@@ -312,7 +312,7 @@ resource "azurerm_management_group" "child" {
 `
 }
 
-func testAzureRMManagementGroup_withName(data acceptance.TestData) string {
+func testManagementGroup_withName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -326,7 +326,7 @@ resource "azurerm_management_group" "test" {
 }
 
 // TODO: switch this out for dynamically creating a subscription once that's supported in the future
-func testAzureRMManagementGroup_withSubscriptions(subscriptionID string) string {
+func testManagementGroup_withSubscriptions(subscriptionID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

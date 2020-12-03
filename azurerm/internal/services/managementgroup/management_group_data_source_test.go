@@ -1,4 +1,4 @@
-package tests
+package managementgroup
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceArmManagementGroup_basicByName(t *testing.T) {
+func TestAccManagementGroupDataSource_basicByName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_management_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -16,7 +16,7 @@ func TestAccDataSourceArmManagementGroup_basicByName(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceArmManagementGroup_basicByName(data),
+				Config: testAccDataSourceManagementGroup_basicByName(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("acctestmg-%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "subscription_ids.#", "0"),
@@ -26,7 +26,7 @@ func TestAccDataSourceArmManagementGroup_basicByName(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceArmManagementGroup_basicByDisplayName(t *testing.T) {
+func TestAccManagementGroupDataSource_basicByDisplayName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_management_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -34,7 +34,7 @@ func TestAccDataSourceArmManagementGroup_basicByDisplayName(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceArmManagementGroup_basicByDisplayName(data),
+				Config: testAccDataSourceManagementGroup_basicByDisplayName(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("acctest Management Group %d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "subscription_ids.#", "0"),
@@ -44,7 +44,7 @@ func TestAccDataSourceArmManagementGroup_basicByDisplayName(t *testing.T) {
 	})
 }
 
-func testAccDataSourceArmManagementGroup_basicByName(data acceptance.TestData) string {
+func testAccDataSourceManagementGroup_basicByName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -60,7 +60,7 @@ data "azurerm_management_group" "test" {
 `, data.RandomInteger)
 }
 
-func testAccDataSourceArmManagementGroup_basicByDisplayName(data acceptance.TestData) string {
+func testAccDataSourceManagementGroup_basicByDisplayName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
