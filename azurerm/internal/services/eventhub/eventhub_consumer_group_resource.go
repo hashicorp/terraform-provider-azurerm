@@ -24,6 +24,7 @@ type ConsumerGroupObject struct {
 }
 
 var _ sdk.Resource = ConsumerGroupResource{}
+var _ sdk.ResourceWithUpdate = ConsumerGroupResource{}
 
 type ConsumerGroupResource struct {
 }
