@@ -43,7 +43,7 @@ func TestValidateNamespaceID(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing value %s", tc.ID)
-		_, errors := parse.ValidateNamespaceID(tc.ID, "test")
+		_, errors := ValidateNamespaceID(tc.ID, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {
