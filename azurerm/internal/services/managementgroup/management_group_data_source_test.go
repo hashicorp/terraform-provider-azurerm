@@ -1,4 +1,4 @@
-package managementgroup
+package managementgroup_test
 
 import (
 	"fmt"
