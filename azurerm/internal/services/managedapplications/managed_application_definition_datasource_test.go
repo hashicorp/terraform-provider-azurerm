@@ -1,4 +1,4 @@
-package tests
+package managedapplications_test
 
 import (
 	"fmt"
