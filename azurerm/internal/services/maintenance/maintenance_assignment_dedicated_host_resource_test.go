@@ -1,7 +1,7 @@
 package maintenance_test
 
 import (
-	`context`
+	"context"
 	"fmt"
 	"testing"
 
@@ -60,7 +60,6 @@ func (MaintenanceAssignmentDedicatedHostResource) Exists(ctx context.Context, cl
 
 	return utils.Bool(resp.Value == nil || len(*resp.Value) == 0), nil
 }
-
 
 func (r MaintenanceAssignmentDedicatedHostResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
