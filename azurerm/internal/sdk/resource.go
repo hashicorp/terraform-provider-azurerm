@@ -67,6 +67,10 @@ type Resource interface {
 // TODO: a generic state migration for updating ID's
 
 // ResourceWithUpdate is an optional interface
+//
+// Notably the Arguments for Resources implementing this interface
+// cannot be entirely ForceNew - else this interface implementation
+// is superfluous.
 type ResourceWithUpdate interface {
 	Resource
 
