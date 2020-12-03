@@ -9,26 +9,26 @@ import (
 )
 
 type SlotVirtualNetworkSwiftConnectionId struct {
-	SubscriptionId    string
-	ResourceGroup     string
-	SiteName          string
-	SlotName          string
-	NetworkConfigName string
+	SubscriptionId string
+	ResourceGroup  string
+	SiteName       string
+	SlotName       string
+	ConfigName     string
 }
 
-func NewSlotVirtualNetworkSwiftConnectionID(subscriptionId, resourceGroup, siteName, slotName, networkConfigName string) SlotVirtualNetworkSwiftConnectionId {
+func NewSlotVirtualNetworkSwiftConnectionID(subscriptionId, resourceGroup, siteName, slotName, configName string) SlotVirtualNetworkSwiftConnectionId {
 	return SlotVirtualNetworkSwiftConnectionId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroup:     resourceGroup,
-		SiteName:          siteName,
-		SlotName:          slotName,
-		NetworkConfigName: networkConfigName,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		SiteName:       siteName,
+		SlotName:       slotName,
+		ConfigName:     configName,
 	}
 }
 
 func (id SlotVirtualNetworkSwiftConnectionId) ID(_ string) string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s/slots/%s/networkConfig/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SiteName, id.SlotName, id.NetworkConfigName)
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s/slots/%s/config/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SiteName, id.SlotName, id.ConfigName)
 }
 
 // SlotVirtualNetworkSwiftConnectionID parses a SlotVirtualNetworkSwiftConnection ID into an SlotVirtualNetworkSwiftConnectionId struct
@@ -57,7 +57,7 @@ func SlotVirtualNetworkSwiftConnectionID(input string) (*SlotVirtualNetworkSwift
 	if resourceId.SlotName, err = id.PopSegment("slots"); err != nil {
 		return nil, err
 	}
-	if resourceId.NetworkConfigName, err = id.PopSegment("networkConfig"); err != nil {
+	if resourceId.ConfigName, err = id.PopSegment("config"); err != nil {
 		return nil, err
 	}
 

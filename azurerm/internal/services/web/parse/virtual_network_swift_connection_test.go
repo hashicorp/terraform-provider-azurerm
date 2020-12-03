@@ -12,7 +12,7 @@ var _ resourceid.Formatter = VirtualNetworkSwiftConnectionId{}
 
 func TestVirtualNetworkSwiftConnectionIDFormatter(t *testing.T) {
 	actual := NewVirtualNetworkSwiftConnectionID("12345678-1234-9876-4563-123456789012", "resGroup1", "site1", "virtualNetwork").ID("")
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/networkConfig/virtualNetwork"
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/config/virtualNetwork"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -68,31 +68,31 @@ func TestVirtualNetworkSwiftConnectionID(t *testing.T) {
 		},
 
 		{
-			// missing NetworkConfigName
+			// missing ConfigName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/",
 			Error: true,
 		},
 
 		{
-			// missing value for NetworkConfigName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/networkConfig/",
+			// missing value for ConfigName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/config/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/networkConfig/virtualNetwork",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/config/virtualNetwork",
 			Expected: &VirtualNetworkSwiftConnectionId{
-				SubscriptionId:    "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:     "resGroup1",
-				SiteName:          "site1",
-				NetworkConfigName: "virtualNetwork",
+				SubscriptionId: "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:  "resGroup1",
+				SiteName:       "site1",
+				ConfigName:     "virtualNetwork",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.WEB/SITES/SITE1/NETWORKCONFIG/VIRTUALNETWORK",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.WEB/SITES/SITE1/CONFIG/VIRTUALNETWORK",
 			Error: true,
 		},
 	}
@@ -121,8 +121,8 @@ func TestVirtualNetworkSwiftConnectionID(t *testing.T) {
 		if actual.SiteName != v.Expected.SiteName {
 			t.Fatalf("Expected %q but got %q for SiteName", v.Expected.SiteName, actual.SiteName)
 		}
-		if actual.NetworkConfigName != v.Expected.NetworkConfigName {
-			t.Fatalf("Expected %q but got %q for NetworkConfigName", v.Expected.NetworkConfigName, actual.NetworkConfigName)
+		if actual.ConfigName != v.Expected.ConfigName {
+			t.Fatalf("Expected %q but got %q for ConfigName", v.Expected.ConfigName, actual.ConfigName)
 		}
 	}
 }
