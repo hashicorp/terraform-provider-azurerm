@@ -19,6 +19,10 @@ IMPROVEMENTS:
 * `azurerm_postgresql_virtual_network_rule` - validating during import that the ID is for a PostgreSQL Virtual Network Rule [GH-9532]
 * `azurerm_traffic_manager_profile` - allow up to `2147483647` for the `ttl` property [GH-9522]
 
+BUG FIXES:
+
+* `azurerm_security_center_workspace` - fixing the casing on the `workspace_id` [GH-9651]
+
 ## 2.38.0 (November 27, 2020)
 
 FEATURES:
