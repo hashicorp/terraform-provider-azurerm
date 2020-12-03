@@ -104,7 +104,7 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 					return nil, err
 				}
 
-				return []*schema.ResourceData{d}, nil
+				return []*schema.ResourceData{metaData.ResourceData}, nil
 			}
 
 			return schema.ImportStatePassthrough(d, meta)
