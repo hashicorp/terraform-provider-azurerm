@@ -1,172 +1,114 @@
 package desktopvirtualization_test
 
 import (
+	"context"
 	"fmt"
-	"log"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMVirtualDesktopHostPool_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "test")
+type VirtualDesktopHostPoolResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDesktopVirtualizationHostPoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualDesktopHostPool_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDesktopVirtualizationHostPoolExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
+func TestAccVirtualDesktopHostPool_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "test")
+	r := VirtualDesktopHostPoolResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualDesktopHostPool_complete(t *testing.T) {
+func TestAccVirtualDesktopHostPool_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "test")
+	r := VirtualDesktopHostPoolResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDesktopVirtualizationHostPoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualDesktopHostPool_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDesktopVirtualizationHostPoolExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualDesktopHostPool_update(t *testing.T) {
+func TestAccVirtualDesktopHostPool_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "test")
+	r := VirtualDesktopHostPoolResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDesktopVirtualizationHostPoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualDesktopHostPool_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDesktopVirtualizationHostPoolExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
-			{
-				Config: testAccAzureRMVirtualDesktopHostPool_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDesktopVirtualizationHostPoolExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-				),
-			},
-			{
-				Config: testAccAzureRMVirtualDesktopHostPool_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDesktopVirtualizationHostPoolExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
+		},
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+			),
+		},
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualDesktopHostPool_requiresImport(t *testing.T) {
+func TestAccVirtualDesktopHostPool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "test")
+	r := VirtualDesktopHostPoolResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDesktopVirtualizationHostPoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualDesktopHostPool_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDesktopVirtualizationHostPoolExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMVirtualDesktopHostPool_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_virtual_desktop_host_pool"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_virtual_desktop_host_pool"),
 		},
 	})
 }
 
-func testCheckAzureRMDesktopVirtualizationHostPoolExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).DesktopVirtualization.HostPoolsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		id, err := parse.HostPoolID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		result, err := client.Get(ctx, id.ResourceGroup, id.Name)
-
-		if err == nil {
-			return nil
-		}
-
-		if result.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Virtual Desktop Host Pool %q (Resource Group: %q) does not exist", id.Name, id.ResourceGroup)
-		}
-
-		return fmt.Errorf("Bad: Get virtualDesktopHostPoolClient: %+v", err)
-	}
-}
-
-func testCheckAzureRMDesktopVirtualizationHostPoolDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).DesktopVirtualization.HostPoolsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_virtual_desktop_host_pool" {
-			continue
-		}
-
-		log.Printf("[WARN] azurerm_virtual_desktop_host_pool still exists in state file.")
-
-		id, err := parse.HostPoolID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		result, err := client.Get(ctx, id.ResourceGroup, id.Name)
-
-		if err == nil {
-			return fmt.Errorf("Virtual Desktop Host Pool still exists:\n%#v", result)
-		}
-
-		if result.StatusCode != http.StatusNotFound {
-			return err
-		}
+func (VirtualDesktopHostPoolResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.HostPoolID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.DesktopVirtualization.HostPoolsClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Virtual Desktop Host Pool %q (Resource Group: %q) does not exist", id.Name, id.ResourceGroup)
+	}
+
+	return utils.Bool(resp.HostPoolProperties != nil), nil
 }
 
-func testAccAzureRMVirtualDesktopHostPool_basic(data acceptance.TestData) string {
+func (VirtualDesktopHostPoolResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -188,7 +130,7 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
 `, data.RandomInteger, data.Locations.Secondary, data.RandomString)
 }
 
-func testAccAzureRMVirtualDesktopHostPool_complete(data acceptance.TestData) string {
+func (VirtualDesktopHostPoolResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -229,8 +171,7 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
 `, data.RandomInteger, data.Locations.Secondary, data.RandomString)
 }
 
-func testAccAzureRMVirtualDesktopHostPool_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualDesktopHostPool_basic(data)
+func (r VirtualDesktopHostPoolResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -242,5 +183,5 @@ resource "azurerm_virtual_desktop_host_pool" "import" {
   type                 = azurerm_virtual_desktop_host_pool.test.type
   load_balancer_type   = azurerm_virtual_desktop_host_pool.test.load_balancer_type
 }
-`, template)
+`, r.basic(data))
 }

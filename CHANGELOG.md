@@ -1,9 +1,15 @@
 ## 2.39.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_api_management_policy` [GH-9215]
+* **New Resource:** `azurerm_digital_twins_endpoint_eventgrid` [GH-9489]
+
 IMPROVEMENTS: 
 
 * `azurerm_dashboard` - adding validation at import time to ensure the ID is for a Dashboard [GH-9530]
 * `azurerm_keyvault_certificate` - add `3072` to allowed values for `key_size` [GH-9524]
+* `azurerm_media_services_account` - support for the `identity`, `tags`, and `storage_authentication` properties [GH-9457]
 * `azurerm_notification_hub_authorization_rule` - adding validation at import time to ensure the ID is for a Notification Hub Authorization Rule [GH-9529]
 * `azurerm_notification_hub_namespace` - adding validation at import time to ensure the ID is for a Notification Hub Namespace [GH-9529]
 * `azurerm_postgresql_active_directory_administrator` - validating during import that the ID is for a PostgreSQL Active Directory Administrator [GH-9532]

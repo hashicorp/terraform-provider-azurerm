@@ -51,7 +51,7 @@ func resourceArmStorageShare() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ShareName,
+				ValidateFunc: validate.StorageShareName,
 			},
 
 			"storage_account_name": {

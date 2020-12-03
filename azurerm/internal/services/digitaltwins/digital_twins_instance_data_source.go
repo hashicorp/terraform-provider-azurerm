@@ -17,7 +17,7 @@ import (
 
 func dataSourceDigitalTwinsInstance() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmDigitalTwinsInstanceRead,
+		Read: dataSourceDigitalTwinsInstanceRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -27,7 +27,7 @@ func dataSourceDigitalTwinsInstance() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.DigitaltwinsInstanceName,
+				ValidateFunc: validate.DigitalTwinsInstanceName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
@@ -44,7 +44,7 @@ func dataSourceDigitalTwinsInstance() *schema.Resource {
 	}
 }
 
-func dataSourceArmDigitalTwinsInstanceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalTwinsInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DigitalTwins.InstanceClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

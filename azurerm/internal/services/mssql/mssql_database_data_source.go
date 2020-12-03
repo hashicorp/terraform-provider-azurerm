@@ -33,7 +33,7 @@ func dataSourceArmMsSqlDatabase() *schema.Resource {
 			"server_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.MsSqlServerID,
+				ValidateFunc: validate.ServerID,
 			},
 
 			"collation": {
