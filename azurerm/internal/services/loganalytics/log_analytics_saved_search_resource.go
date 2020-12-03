@@ -20,11 +20,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLogAnalyticsSavedSearch() *schema.Resource {
+func resourceLogAnalyticsSavedSearch() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogAnalyticsSavedSearchCreate,
-		Read:   resourceArmLogAnalyticsSavedSearchRead,
-		Delete: resourceArmLogAnalyticsSavedSearchDelete,
+		Create: resourceLogAnalyticsSavedSearchCreate,
+		Read:   resourceLogAnalyticsSavedSearchRead,
+		Delete: resourceLogAnalyticsSavedSearchDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -101,7 +101,7 @@ func resourceArmLogAnalyticsSavedSearch() *schema.Resource {
 	}
 }
 
-func resourceArmLogAnalyticsSavedSearchCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsSavedSearchCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.SavedSearchesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -163,10 +163,10 @@ func resourceArmLogAnalyticsSavedSearchCreate(d *schema.ResourceData, meta inter
 
 	d.SetId(*read.ID)
 
-	return resourceArmLogAnalyticsSavedSearchRead(d, meta)
+	return resourceLogAnalyticsSavedSearchRead(d, meta)
 }
 
-func resourceArmLogAnalyticsSavedSearchRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsSavedSearchRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.SavedSearchesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -208,7 +208,7 @@ func resourceArmLogAnalyticsSavedSearchRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceArmLogAnalyticsSavedSearchDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsSavedSearchDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.SavedSearchesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

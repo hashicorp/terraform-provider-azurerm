@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLogAnalyticsClusterCustomerManagedKey() *schema.Resource {
+func resourceLogAnalyticsClusterCustomerManagedKey() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogAnalyticsClusterCustomerManagedKeyCreate,
-		Read:   resourceArmLogAnalyticsClusterCustomerManagedKeyRead,
-		Update: resourceArmLogAnalyticsClusterCustomerManagedKeyUpdate,
-		Delete: resourceArmLogAnalyticsClusterCustomerManagedKeyDelete,
+		Create: resourceLogAnalyticsClusterCustomerManagedKeyCreate,
+		Read:   resourceLogAnalyticsClusterCustomerManagedKeyRead,
+		Update: resourceLogAnalyticsClusterCustomerManagedKeyUpdate,
+		Delete: resourceLogAnalyticsClusterCustomerManagedKeyDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(6 * time.Hour),
@@ -52,7 +52,7 @@ func resourceArmLogAnalyticsClusterCustomerManagedKey() *schema.Resource {
 	}
 }
 
-func resourceArmLogAnalyticsClusterCustomerManagedKeyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsClusterCustomerManagedKeyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.ClusterClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -78,10 +78,10 @@ func resourceArmLogAnalyticsClusterCustomerManagedKeyCreate(d *schema.ResourceDa
 	}
 
 	d.SetId(fmt.Sprintf("%s/CMK", clusterIdRaw))
-	return resourceArmLogAnalyticsClusterCustomerManagedKeyUpdate(d, meta)
+	return resourceLogAnalyticsClusterCustomerManagedKeyUpdate(d, meta)
 }
 
-func resourceArmLogAnalyticsClusterCustomerManagedKeyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsClusterCustomerManagedKeyUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.ClusterClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -116,10 +116,10 @@ func resourceArmLogAnalyticsClusterCustomerManagedKeyUpdate(d *schema.ResourceDa
 		return fmt.Errorf("waiting for Log Analytics Cluster to finish updating %q (Resource Group %q): %v", clusterId.Name, clusterId.ResourceGroup, err)
 	}
 
-	return resourceArmLogAnalyticsClusterCustomerManagedKeyRead(d, meta)
+	return resourceLogAnalyticsClusterCustomerManagedKeyRead(d, meta)
 }
 
-func resourceArmLogAnalyticsClusterCustomerManagedKeyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsClusterCustomerManagedKeyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.ClusterClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -170,7 +170,7 @@ func resourceArmLogAnalyticsClusterCustomerManagedKeyRead(d *schema.ResourceData
 	return nil
 }
 
-func resourceArmLogAnalyticsClusterCustomerManagedKeyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsClusterCustomerManagedKeyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.ClusterClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

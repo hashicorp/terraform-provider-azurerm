@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLogAnalyticsSolution() *schema.Resource {
+func resourceLogAnalyticsSolution() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogAnalyticsSolutionCreateUpdate,
-		Read:   resourceArmLogAnalyticsSolutionRead,
-		Update: resourceArmLogAnalyticsSolutionCreateUpdate,
-		Delete: resourceArmLogAnalyticsSolutionDelete,
+		Create: resourceLogAnalyticsSolutionCreateUpdate,
+		Read:   resourceLogAnalyticsSolutionRead,
+		Update: resourceLogAnalyticsSolutionCreateUpdate,
+		Delete: resourceLogAnalyticsSolutionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -97,7 +97,7 @@ func resourceArmLogAnalyticsSolution() *schema.Resource {
 	}
 }
 
-func resourceArmLogAnalyticsSolutionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsSolutionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.SolutionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -157,10 +157,10 @@ func resourceArmLogAnalyticsSolutionCreateUpdate(d *schema.ResourceData, meta in
 
 	d.SetId(*solution.ID)
 
-	return resourceArmLogAnalyticsSolutionRead(d, meta)
+	return resourceLogAnalyticsSolutionRead(d, meta)
 }
 
-func resourceArmLogAnalyticsSolutionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsSolutionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.SolutionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -215,7 +215,7 @@ func resourceArmLogAnalyticsSolutionRead(d *schema.ResourceData, meta interface{
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmLogAnalyticsSolutionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsSolutionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.SolutionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

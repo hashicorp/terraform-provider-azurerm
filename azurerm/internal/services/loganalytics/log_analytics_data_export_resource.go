@@ -18,7 +18,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLogAnalyticsDataExport() *schema.Resource {
+func resourceLogAnalyticsDataExport() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmOperationalinsightsDataExportCreateUpdate,
 		Read:   resourceArmOperationalinsightsDataExportRead,

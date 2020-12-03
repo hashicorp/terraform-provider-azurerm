@@ -12,17 +12,17 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMLogAnalyticsCluster_basic(t *testing.T) {
+func TestAccLogAnalyticsCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_cluster", "test")
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsClusterDestroy,
+		CheckDestroy: testCheckLogAnalyticsClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogAnalyticsCluster_basic(data),
+				Config: testAccLogAnalyticsCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsClusterExists(data.ResourceName),
+					testCheckLogAnalyticsClusterExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -30,24 +30,24 @@ func TestAccAzureRMLogAnalyticsCluster_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogAnalyticsCluster_resize(t *testing.T) {
+func TestAccLogAnalyticsCluster_resize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_cluster", "test")
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsClusterDestroy,
+		CheckDestroy: testCheckLogAnalyticsClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogAnalyticsCluster_basic(data),
+				Config: testAccLogAnalyticsCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsClusterExists(data.ResourceName),
+					testCheckLogAnalyticsClusterExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMLogAnalyticsCluster_resize(data),
+				Config: testAccLogAnalyticsCluster_resize(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsClusterExists(data.ResourceName),
+					testCheckLogAnalyticsClusterExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -55,25 +55,25 @@ func TestAccAzureRMLogAnalyticsCluster_resize(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogAnalyticsCluster_requiresImport(t *testing.T) {
+func TestAccLogAnalyticsCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_cluster", "test")
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsClusterDestroy,
+		CheckDestroy: testCheckLogAnalyticsClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogAnalyticsCluster_basic(data),
+				Config: testAccLogAnalyticsCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsClusterExists(data.ResourceName),
+					testCheckLogAnalyticsClusterExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMLogAnalyticsCluster_requiresImport),
+			data.RequiresImportErrorStep(testAccLogAnalyticsCluster_requiresImport),
 		},
 	})
 }
 
-func testCheckAzureRMLogAnalyticsClusterExists(resourceName string) resource.TestCheckFunc {
+func testCheckLogAnalyticsClusterExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).LogAnalytics.ClusterClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -95,7 +95,7 @@ func testCheckAzureRMLogAnalyticsClusterExists(resourceName string) resource.Tes
 	}
 }
 
-func testCheckAzureRMLogAnalyticsClusterDestroy(s *terraform.State) error {
+func testCheckLogAnalyticsClusterDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).LogAnalytics.ClusterClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -117,7 +117,7 @@ func testCheckAzureRMLogAnalyticsClusterDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMLogAnalyticsCluster_template(data acceptance.TestData) string {
+func testAccLogAnalyticsCluster_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -130,8 +130,8 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMLogAnalyticsCluster_basic(data acceptance.TestData) string {
-	template := testAccAzureRMLogAnalyticsCluster_template(data)
+func testAccLogAnalyticsCluster_basic(data acceptance.TestData) string {
+	template := testAccLogAnalyticsCluster_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -147,8 +147,8 @@ resource "azurerm_log_analytics_cluster" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMLogAnalyticsCluster_resize(data acceptance.TestData) string {
-	template := testAccAzureRMLogAnalyticsCluster_template(data)
+func testAccLogAnalyticsCluster_resize(data acceptance.TestData) string {
+	template := testAccLogAnalyticsCluster_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -165,8 +165,8 @@ resource "azurerm_log_analytics_cluster" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMLogAnalyticsCluster_requiresImport(data acceptance.TestData) string {
-	config := testAccAzureRMLogAnalyticsCluster_basic(data)
+func testAccLogAnalyticsCluster_requiresImport(data acceptance.TestData) string {
+	config := testAccLogAnalyticsCluster_basic(data)
 	return fmt.Sprintf(`
 %s
 

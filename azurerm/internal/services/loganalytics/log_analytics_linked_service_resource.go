@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLogAnalyticsLinkedService() *schema.Resource {
+func resourceLogAnalyticsLinkedService() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogAnalyticsLinkedServiceCreateUpdate,
-		Read:   resourceArmLogAnalyticsLinkedServiceRead,
-		Update: resourceArmLogAnalyticsLinkedServiceCreateUpdate,
-		Delete: resourceArmLogAnalyticsLinkedServiceDelete,
+		Create: resourceLogAnalyticsLinkedServiceCreateUpdate,
+		Read:   resourceLogAnalyticsLinkedServiceRead,
+		Update: resourceLogAnalyticsLinkedServiceCreateUpdate,
+		Delete: resourceLogAnalyticsLinkedServiceDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -75,7 +75,7 @@ func resourceArmLogAnalyticsLinkedService() *schema.Resource {
 	}
 }
 
-func resourceArmLogAnalyticsLinkedServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsLinkedServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.LinkedServicesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -123,10 +123,10 @@ func resourceArmLogAnalyticsLinkedServiceCreateUpdate(d *schema.ResourceData, me
 
 	d.SetId(*read.ID)
 
-	return resourceArmLogAnalyticsLinkedServiceRead(d, meta)
+	return resourceLogAnalyticsLinkedServiceRead(d, meta)
 }
 
-func resourceArmLogAnalyticsLinkedServiceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsLinkedServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.LinkedServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -161,7 +161,7 @@ func resourceArmLogAnalyticsLinkedServiceRead(d *schema.ResourceData, meta inter
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmLogAnalyticsLinkedServiceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsLinkedServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.LinkedServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMLogAnalyticsWorkspace_basic(t *testing.T) {
+func TestAccLogAnalyticsWorkspaceDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_log_analytics_workspace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -28,7 +28,7 @@ func TestAccDataSourceAzureRMLogAnalyticsWorkspace_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMLogAnalyticsWorkspace_volumeCapWithDataSource(t *testing.T) {
+func TestAccLogAnalyticsWorkspaceDataSource_volumeCapWithDataSource(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_log_analytics_workspace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

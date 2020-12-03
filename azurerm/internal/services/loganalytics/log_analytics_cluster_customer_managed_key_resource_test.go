@@ -13,18 +13,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMLogAnalyticsClusterCustomerManagedKey_basic(t *testing.T) {
+func TestAccLogAnalyticsClusterCustomerManagedKey_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_cluster_customer_managed_key", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsClusterCustomerManagedKeyDestroy,
+		CheckDestroy: testCheckLogAnalyticsClusterCustomerManagedKeyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogAnalyticsClusterCustomerManagedKey_complete(data),
+				Config: testAccLogAnalyticsClusterCustomerManagedKey_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsClusterCustomerManagedKeyExists(data.ResourceName),
+					testCheckLogAnalyticsClusterCustomerManagedKeyExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -32,7 +32,7 @@ func TestAccAzureRMLogAnalyticsClusterCustomerManagedKey_basic(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMLogAnalyticsClusterCustomerManagedKeyExists(resourceName string) resource.TestCheckFunc {
+func testCheckLogAnalyticsClusterCustomerManagedKeyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).LogAnalytics.ClusterClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -65,7 +65,7 @@ func testCheckAzureRMLogAnalyticsClusterCustomerManagedKeyExists(resourceName st
 	}
 }
 
-func testCheckAzureRMLogAnalyticsClusterCustomerManagedKeyDestroy(s *terraform.State) error {
+func testCheckLogAnalyticsClusterCustomerManagedKeyDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).LogAnalytics.ClusterClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -99,7 +99,7 @@ func testCheckAzureRMLogAnalyticsClusterCustomerManagedKeyDestroy(s *terraform.S
 	return nil
 }
 
-func testAccAzureRMLogAnalyticsClusterCustomerManagedKey_template(data acceptance.TestData) string {
+func testAccLogAnalyticsClusterCustomerManagedKey_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -193,8 +193,8 @@ resource "azurerm_key_vault_access_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMLogAnalyticsClusterCustomerManagedKey_complete(data acceptance.TestData) string {
-	template := testAccAzureRMLogAnalyticsClusterCustomerManagedKey_template(data)
+func testAccLogAnalyticsClusterCustomerManagedKey_complete(data acceptance.TestData) string {
+	template := testAccLogAnalyticsClusterCustomerManagedKey_template(data)
 	return fmt.Sprintf(`
 %s
 

@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLogAnalyticsStorageInsights() *schema.Resource {
+func resourceLogAnalyticsStorageInsights() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogAnalyticsStorageInsightsCreateUpdate,
-		Read:   resourceArmLogAnalyticsStorageInsightsRead,
-		Update: resourceArmLogAnalyticsStorageInsightsCreateUpdate,
-		Delete: resourceArmLogAnalyticsStorageInsightsDelete,
+		Create: resourceLogAnalyticsStorageInsightsCreateUpdate,
+		Read:   resourceLogAnalyticsStorageInsightsRead,
+		Update: resourceLogAnalyticsStorageInsightsCreateUpdate,
+		Delete: resourceLogAnalyticsStorageInsightsDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -94,7 +94,7 @@ func resourceArmLogAnalyticsStorageInsights() *schema.Resource {
 	}
 }
 
-func resourceArmLogAnalyticsStorageInsightsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsStorageInsightsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.StorageInsightsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -140,10 +140,10 @@ func resourceArmLogAnalyticsStorageInsightsCreateUpdate(d *schema.ResourceData, 
 	}
 
 	d.SetId(id.ID(subscriptionId))
-	return resourceArmLogAnalyticsStorageInsightsRead(d, meta)
+	return resourceLogAnalyticsStorageInsightsRead(d, meta)
 }
 
-func resourceArmLogAnalyticsStorageInsightsRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsStorageInsightsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.StorageInsightsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -180,7 +180,7 @@ func resourceArmLogAnalyticsStorageInsightsRead(d *schema.ResourceData, meta int
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmLogAnalyticsStorageInsightsDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsStorageInsightsDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.StorageInsightsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
