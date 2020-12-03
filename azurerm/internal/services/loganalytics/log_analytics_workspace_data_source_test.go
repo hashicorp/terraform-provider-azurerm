@@ -52,7 +52,7 @@ data "azurerm_log_analytics_workspace" "test" {
   name                = azurerm_log_analytics_workspace.test.name
   resource_group_name = azurerm_log_analytics_workspace.test.resource_group_name
 }
-`, LogAnalyticsWorkspace{}.complete(data))
+`, LogAnalyticsWorkspaceResource{}.complete(data))
 }
 
 func (LogAnalyticsWorkspaceDataSource) volumeCapWithDataSource(data acceptance.TestData, volumeCapGb float64) string {
@@ -63,5 +63,5 @@ data "azurerm_log_analytics_workspace" "test" {
   name                = azurerm_log_analytics_workspace.test.name
   resource_group_name = azurerm_log_analytics_workspace.test.resource_group_name
 }
-`, LogAnalyticsWorkspace{}.withVolumeCap(data, volumeCapGb))
+`, LogAnalyticsWorkspaceResource{}.withVolumeCap(data, volumeCapGb))
 }
