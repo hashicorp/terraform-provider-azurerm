@@ -30,7 +30,7 @@ func componentExists(ctx context.Context, clients *clients.Client, state *terraf
 
 	resp, err := clients.Logic.WorkflowClient.Get(ctx, id.ResourceGroup, workflowName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Logic App Workflow %s (resource group: %s): %v", workflowName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Logic App Workflow %s %s (resource group: %s): %v", kind, workflowName, id.ResourceGroup, err)
 	}
 
 	if resp.WorkflowProperties == nil {
@@ -38,7 +38,7 @@ func componentExists(ctx context.Context, clients *clients.Client, state *terraf
 	}
 
 	if resp.WorkflowProperties.Definition == nil {
-		return nil, fmt.Errorf("Logic App Workflow %s (resource group: %s) Definition is nil", workflowName, id.ResourceGroup)
+		return nil, fmt.Errorf("Logic App Workflow %s %s (resource group: %s) Definition is nil", kind, workflowName, id.ResourceGroup)
 	}
 
 	definition := resp.WorkflowProperties.Definition.(map[string]interface{})
