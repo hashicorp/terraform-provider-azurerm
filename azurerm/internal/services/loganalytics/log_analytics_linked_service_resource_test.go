@@ -1,147 +1,96 @@
 package loganalytics_test
 
 import (
+	`context`
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure`
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils`
 )
 
-func TestAccAzureRMLogAnalyticsLinkedService_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_service", "test")
+type LogAnalyticsLinkedServiceResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsLinkedServiceDestroy,
-		Steps: []resource.TestStep{
+func TestAccLogAnalyticsLinkedService_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_service", "test")
+	r := LogAnalyticsLinkedServiceResource {}
+
+	data.ResourceTest(t, r, []resource.TestStep{
 			{
-				Config: testAccAzureRMLogAnalyticsLinkedService_basic(data),
+				Config: r.basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsLinkedServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestlaw-%d/Automation", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "workspace_name", fmt.Sprintf("acctestlaw-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "linked_service_name", "automation"),
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key( "name").HasValue( fmt.Sprintf("acctestlaw-%d/Automation", data.RandomInteger)),
+					check.That(data.ResourceName).Key( "workspace_name").HasValue( fmt.Sprintf("acctestlaw-%d", data.RandomInteger)),
+					check.That(data.ResourceName).Key( "linked_service_name").HasValue( "automation"),
 				),
 			},
 			data.ImportStep(),
-		},
 	})
 }
 
-func TestAccAzureRMLogAnalyticsLinkedService_requiresImport(t *testing.T) {
+func TestAccLogAnalyticsLinkedService_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_service", "test")
+	r := LogAnalyticsLinkedServiceResource {}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsLinkedServiceDestroy,
-		Steps: []resource.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 			{
-				Config: testAccAzureRMLogAnalyticsLinkedService_basic(data),
+				Config: r.basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsLinkedServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestlaw-%d/Automation", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "workspace_name", fmt.Sprintf("acctestlaw-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "linked_service_name", "automation"),
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key( "name").HasValue( fmt.Sprintf("acctestlaw-%d/Automation", data.RandomInteger)),
+					check.That(data.ResourceName).Key( "workspace_name").HasValue( fmt.Sprintf("acctestlaw-%d", data.RandomInteger)),
+					check.That(data.ResourceName).Key( "linked_service_name").HasValue( "automation"),
 				),
 			},
 			{
-				Config:      testAccAzureRMLogAnalyticsLinkedService_requiresImport(data),
+				Config: r.requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_log_analytics_linked_service"),
 			},
-		},
 	})
 }
 
-func TestAccAzureRMLogAnalyticsLinkedService_complete(t *testing.T) {
+func TestAccLogAnalyticsLinkedService_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_service", "test")
+	r := LogAnalyticsLinkedServiceResource {}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsLinkedServiceDestroy,
-		Steps: []resource.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 			{
-				Config: testAccAzureRMLogAnalyticsLinkedService_complete(data),
+				Config: r.complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsLinkedServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "linked_service_name", "automation"),
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key( "linked_service_name").HasValue( "automation"),
 				),
 			},
 			data.ImportStep(),
-		},
 	})
 }
 
-func testCheckAzureRMLogAnalyticsLinkedServiceDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).LogAnalytics.LinkedServicesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_log_analytics_linked_service" {
-			continue
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		workspaceName := rs.Primary.Attributes["workspace_name"]
-		lsName := rs.Primary.Attributes["linked_service_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, workspaceName, lsName)
-		if err != nil {
-			return nil
-		}
-		if resp.ID == nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Log Analytics Linked Service still exists:\n%#v", resp)
-		}
+func (LogAnalyticsLinkedServiceResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
+	resGroup := id.ResourceGroup
+	workspaceName := id.Path["workspaces"]
+	lsName := id.Path["linkedservices"]
 
-func testCheckAzureRMLogAnalyticsLinkedServiceExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).LogAnalytics.LinkedServicesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		workspaceName := rs.Primary.Attributes["workspace_name"]
-		lsName := rs.Primary.Attributes["linked_service_name"]
-		name := rs.Primary.Attributes["name"]
-
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Log Analytics Linked Service: '%s'", name)
-		}
-
-		resp, err := conn.Get(ctx, resourceGroup, workspaceName, lsName)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on Log Analytics Linked Service Client: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Log Analytics Linked Service '%s' (resource group: '%s') does not exist", name, resourceGroup)
-		}
-
-		return nil
+	resp, err := clients.LogAnalytics.LinkedServicesClient.Get(ctx, resGroup, workspaceName, lsName)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Log Analytics Linked Service %s (resource group: %s): %v", lsName, id.ResourceGroup, err)
 	}
+
+	return utils.Bool(resp.LinkedServiceProperties != nil), nil
 }
 
-func testAccAzureRMLogAnalyticsLinkedService_basic(data acceptance.TestData) string {
-	template := testAccAzureRMLogAnalyticsLinkedService_template(data)
+func (r LogAnalyticsLinkedServiceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -150,11 +99,10 @@ resource "azurerm_log_analytics_linked_service" "test" {
   workspace_name      = azurerm_log_analytics_workspace.test.name
   resource_id         = azurerm_automation_account.test.id
 }
-`, template)
+`, r.template(data))
 }
 
-func testAccAzureRMLogAnalyticsLinkedService_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMLogAnalyticsLinkedService_basic(data)
+func (r LogAnalyticsLinkedServiceResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -163,11 +111,10 @@ resource "azurerm_log_analytics_linked_service" "import" {
   workspace_name      = azurerm_log_analytics_linked_service.test.workspace_name
   resource_id         = azurerm_log_analytics_linked_service.test.resource_id
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMLogAnalyticsLinkedService_complete(data acceptance.TestData) string {
-	template := testAccAzureRMLogAnalyticsLinkedService_template(data)
+func (r LogAnalyticsLinkedServiceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -177,10 +124,10 @@ resource "azurerm_log_analytics_linked_service" "test" {
   linked_service_name = "automation"
   resource_id         = azurerm_automation_account.test.id
 }
-`, template)
+`, r.template(data))
 }
 
-func testAccAzureRMLogAnalyticsLinkedService_template(data acceptance.TestData) string {
+func (LogAnalyticsLinkedServiceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
