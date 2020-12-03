@@ -149,10 +149,6 @@ func dataSourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interfa
 
 	d.SetId(*resp.ID)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-
 	if profile := resp.ProfileProperties; profile != nil {
 		d.Set("profile_status", profile.ProfileStatus)
 		d.Set("traffic_routing_method", profile.TrafficRoutingMethod)
