@@ -1,4 +1,4 @@
-package tests
+package mariadb_test
 
 import (
 	"fmt"
