@@ -72,6 +72,25 @@ func TestAccAzureRMMediaServicesAccount_multiplePrimaries(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMediaServicesAccount_identitySystemAssigned(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_media_services_account", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMediaServicesAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMediaServicesAccount_identitySystemAssigned(data),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMMediaServicesAccountExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := acceptance.AzureProvider.Meta().(*clients.Client).Media.ServicesClient
@@ -139,6 +158,10 @@ resource "azurerm_media_services_account" "test" {
   storage_account {
     id         = azurerm_storage_account.first.id
     is_primary = true
+  }
+
+  tags = {
+    environment = "staging"
   }
 }
 `, template, data.RandomString)
@@ -235,6 +258,28 @@ resource "azurerm_media_services_account" "test" {
   }
 }
 `, template, data.RandomString, data.RandomString)
+}
+
+func testAccAzureRMMediaServicesAccount_identitySystemAssigned(data acceptance.TestData) string {
+	template := testAccAzureRMMediaServicesAccount_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_media_services_account" "test" {
+  name                = "acctestmsa%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  storage_account {
+    id         = azurerm_storage_account.first.id
+    is_primary = true
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, data.RandomString)
 }
 
 func testAccAzureRMMediaServicesAccount_template(data acceptance.TestData) string {

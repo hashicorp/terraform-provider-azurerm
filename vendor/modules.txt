@@ -47,7 +47,7 @@ github.com/Azure/azure-sdk-for-go/services/managedservices/mgmt/2019-06-01/manag
 github.com/Azure/azure-sdk-for-go/services/maps/mgmt/2018-05-01/maps
 github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb
 github.com/Azure/azure-sdk-for-go/services/marketplaceordering/mgmt/2015-06-01/marketplaceordering
-github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2018-07-01/media
+github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2020-05-01/media
 github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql
 github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-10-01/netapp
 github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network

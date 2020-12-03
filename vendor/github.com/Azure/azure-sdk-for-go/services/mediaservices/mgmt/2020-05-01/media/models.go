@@ -30,7 +30,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2018-07-01/media"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2020-05-01/media"
 
 // AacAudio describes Advanced Audio Codec (AAC) audio encoding settings.
 type AacAudio struct {
@@ -44,7 +44,7 @@ type AacAudio struct {
 	Bitrate *int32 `json:"bitrate,omitempty"`
 	// Label - An optional label for the codec. The label can be used to control muxing behavior.
 	Label *string `json:"label,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeCodec', 'OdataTypeMicrosoftMediaAudio', 'OdataTypeMicrosoftMediaAacAudio', 'OdataTypeMicrosoftMediaCopyVideo', 'OdataTypeMicrosoftMediaVideo', 'OdataTypeMicrosoftMediaImage', 'OdataTypeMicrosoftMediaCopyAudio', 'OdataTypeMicrosoftMediaH264Video', 'OdataTypeMicrosoftMediaJpgImage', 'OdataTypeMicrosoftMediaPngImage'
+	// OdataType - Possible values include: 'OdataTypeCodec', 'OdataTypeMicrosoftMediaAudio', 'OdataTypeMicrosoftMediaAacAudio', 'OdataTypeMicrosoftMediaVideo', 'OdataTypeMicrosoftMediaCopyVideo', 'OdataTypeMicrosoftMediaImage', 'OdataTypeMicrosoftMediaCopyAudio', 'OdataTypeMicrosoftMediaH264Video', 'OdataTypeMicrosoftMediaJpgImage', 'OdataTypeMicrosoftMediaPngImage'
 	OdataType OdataTypeBasicCodec `json:"@odata.type,omitempty"`
 }
 
@@ -88,11 +88,6 @@ func (aa AacAudio) AsAacAudio() (*AacAudio, bool) {
 	return &aa, true
 }
 
-// AsCopyVideo is the BasicCodec implementation for AacAudio.
-func (aa AacAudio) AsCopyVideo() (*CopyVideo, bool) {
-	return nil, false
-}
-
 // AsVideo is the BasicCodec implementation for AacAudio.
 func (aa AacAudio) AsVideo() (*Video, bool) {
 	return nil, false
@@ -100,6 +95,11 @@ func (aa AacAudio) AsVideo() (*Video, bool) {
 
 // AsBasicVideo is the BasicCodec implementation for AacAudio.
 func (aa AacAudio) AsBasicVideo() (BasicVideo, bool) {
+	return nil, false
+}
+
+// AsCopyVideo is the BasicCodec implementation for AacAudio.
+func (aa AacAudio) AsCopyVideo() (*CopyVideo, bool) {
 	return nil, false
 }
 
@@ -149,7 +149,7 @@ func (aa AacAudio) AsBasicCodec() (BasicCodec, bool) {
 type AbsoluteClipTime struct {
 	// Time - The time position on the timeline of the input media. It is usually specified as an ISO8601 period. e.g PT30S for 30 seconds.
 	Time *string `json:"time,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeClipTime', 'OdataTypeMicrosoftMediaAbsoluteClipTime'
+	// OdataType - Possible values include: 'OdataTypeClipTime', 'OdataTypeMicrosoftMediaAbsoluteClipTime', 'OdataTypeMicrosoftMediaUtcClipTime'
 	OdataType OdataTypeBasicClipTime `json:"@odata.type,omitempty"`
 }
 
@@ -171,6 +171,11 @@ func (act AbsoluteClipTime) AsAbsoluteClipTime() (*AbsoluteClipTime, bool) {
 	return &act, true
 }
 
+// AsUtcClipTime is the BasicClipTime implementation for AbsoluteClipTime.
+func (act AbsoluteClipTime) AsUtcClipTime() (*UtcClipTime, bool) {
+	return nil, false
+}
+
 // AsClipTime is the BasicClipTime implementation for AbsoluteClipTime.
 func (act AbsoluteClipTime) AsClipTime() (*ClipTime, bool) {
 	return nil, false
@@ -181,15 +186,23 @@ func (act AbsoluteClipTime) AsBasicClipTime() (BasicClipTime, bool) {
 	return &act, true
 }
 
+// AccountEncryption ...
+type AccountEncryption struct {
+	// Type - The type of key used to encrypt the Account Key. Possible values include: 'SystemKey', 'CustomerKey'
+	Type AccountEncryptionKeyType `json:"type,omitempty"`
+	// KeyVaultProperties - The properties of the key used to encrypt the account.
+	KeyVaultProperties *KeyVaultProperties `json:"keyVaultProperties,omitempty"`
+}
+
 // AccountFilter an Account Filter.
 type AccountFilter struct {
 	autorest.Response `json:"-"`
 	*FilterProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource.
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -436,11 +449,11 @@ type Asset struct {
 	autorest.Response `json:"-"`
 	// AssetProperties - The resource properties.
 	*AssetProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource.
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -681,11 +694,11 @@ type AssetFileEncryptionMetadata struct {
 type AssetFilter struct {
 	autorest.Response `json:"-"`
 	*FilterProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource.
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -979,7 +992,7 @@ type Audio struct {
 	Bitrate *int32 `json:"bitrate,omitempty"`
 	// Label - An optional label for the codec. The label can be used to control muxing behavior.
 	Label *string `json:"label,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeCodec', 'OdataTypeMicrosoftMediaAudio', 'OdataTypeMicrosoftMediaAacAudio', 'OdataTypeMicrosoftMediaCopyVideo', 'OdataTypeMicrosoftMediaVideo', 'OdataTypeMicrosoftMediaImage', 'OdataTypeMicrosoftMediaCopyAudio', 'OdataTypeMicrosoftMediaH264Video', 'OdataTypeMicrosoftMediaJpgImage', 'OdataTypeMicrosoftMediaPngImage'
+	// OdataType - Possible values include: 'OdataTypeCodec', 'OdataTypeMicrosoftMediaAudio', 'OdataTypeMicrosoftMediaAacAudio', 'OdataTypeMicrosoftMediaVideo', 'OdataTypeMicrosoftMediaCopyVideo', 'OdataTypeMicrosoftMediaImage', 'OdataTypeMicrosoftMediaCopyAudio', 'OdataTypeMicrosoftMediaH264Video', 'OdataTypeMicrosoftMediaJpgImage', 'OdataTypeMicrosoftMediaPngImage'
 	OdataType OdataTypeBasicCodec `json:"@odata.type,omitempty"`
 }
 
@@ -1057,11 +1070,6 @@ func (a Audio) AsAacAudio() (*AacAudio, bool) {
 	return nil, false
 }
 
-// AsCopyVideo is the BasicCodec implementation for Audio.
-func (a Audio) AsCopyVideo() (*CopyVideo, bool) {
-	return nil, false
-}
-
 // AsVideo is the BasicCodec implementation for Audio.
 func (a Audio) AsVideo() (*Video, bool) {
 	return nil, false
@@ -1069,6 +1077,11 @@ func (a Audio) AsVideo() (*Video, bool) {
 
 // AsBasicVideo is the BasicCodec implementation for Audio.
 func (a Audio) AsBasicVideo() (BasicVideo, bool) {
+	return nil, false
+}
+
+// AsCopyVideo is the BasicCodec implementation for Audio.
+func (a Audio) AsCopyVideo() (*CopyVideo, bool) {
 	return nil, false
 }
 
@@ -1123,8 +1136,10 @@ type BasicAudioAnalyzerPreset interface {
 // including speech transcription. Currently, the preset supports processing of content with a single audio
 // track.
 type AudioAnalyzerPreset struct {
-	// AudioLanguage - The language for the audio payload in the input using the BCP-47 format of 'language tag-region' (e.g: 'en-US').  If you know the language of your content, it is recommended that you specify it. If the language isn't specified or set to null, automatic language detection will choose the first language detected and process with the selected language for the duration of the file. It does not currently support dynamically switching between languages after the first language is detected. The automatic detection works best with audio recordings with clearly discernable speech. If automatic detection fails to find the language, transcription would fallback to 'en-US'." The list of supported languages is available here: https://go.microsoft.com/fwlink/?linkid=2109463
+	// AudioLanguage - The language for the audio payload in the input using the BCP-47 format of 'language tag-region' (e.g: 'en-US').  If you know the language of your content, it is recommended that you specify it. The language must be specified explicitly for AudioAnalysisMode::Basic, since automatic language detection is not included in basic mode. If the language isn't specified or set to null, automatic language detection will choose the first language detected and process with the selected language for the duration of the file. It does not currently support dynamically switching between languages after the first language is detected. The automatic detection works best with audio recordings with clearly discernable speech. If automatic detection fails to find the language, transcription would fallback to 'en-US'." The list of supported languages is available here: https://go.microsoft.com/fwlink/?linkid=2109463
 	AudioLanguage *string `json:"audioLanguage,omitempty"`
+	// Mode - Determines the set of audio analysis operations to be performed. If unspecified, the Standard AudioAnalysisMode would be chosen. Possible values include: 'Standard', 'Basic'
+	Mode AudioAnalysisMode `json:"mode,omitempty"`
 	// ExperimentalOptions - Dictionary containing key value pairs for parameters not exposed in the preset itself
 	ExperimentalOptions map[string]*string `json:"experimentalOptions"`
 	// OdataType - Possible values include: 'OdataTypePreset', 'OdataTypeMicrosoftMediaFaceDetectorPreset', 'OdataTypeMicrosoftMediaAudioAnalyzerPreset', 'OdataTypeMicrosoftMediaBuiltInStandardEncoderPreset', 'OdataTypeMicrosoftMediaStandardEncoderPreset', 'OdataTypeMicrosoftMediaVideoAnalyzerPreset'
@@ -1174,6 +1189,9 @@ func (aap AudioAnalyzerPreset) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if aap.AudioLanguage != nil {
 		objectMap["audioLanguage"] = aap.AudioLanguage
+	}
+	if aap.Mode != "" {
+		objectMap["mode"] = aap.Mode
 	}
 	if aap.ExperimentalOptions != nil {
 		objectMap["experimentalOptions"] = aap.ExperimentalOptions
@@ -1228,9 +1246,9 @@ func (aap AudioAnalyzerPreset) AsBasicPreset() (BasicPreset, bool) {
 type AudioOverlay struct {
 	// InputLabel - The label of the job input which is to be used as an overlay. The Input must specify exactly one file. You can specify an image file in JPG or PNG formats, or an audio file (such as a WAV, MP3, WMA or M4A file), or a video file. See https://aka.ms/mesformats for the complete list of supported audio and video file formats.
 	InputLabel *string `json:"inputLabel,omitempty"`
-	// Start - The start position, with reference to the input video, at which the overlay starts. The value should be in ISO 8601 format. For example, PT05S to start the overlay at 5 seconds in to the input video. If not specified the overlay starts from the beginning of the input video.
+	// Start - The start position, with reference to the input video, at which the overlay starts. The value should be in ISO 8601 format. For example, PT05S to start the overlay at 5 seconds into the input video. If not specified the overlay starts from the beginning of the input video.
 	Start *string `json:"start,omitempty"`
-	// End - The position in the input video at which the overlay ends. The value should be in ISO 8601 duration format. For example, PT30S to end the overlay at 30 seconds in to the input video. If not specified the overlay will be applied until the end of the input video if inputLoop is true. Else, if inputLoop is false, then overlay will last as long as the duration of the overlay media.
+	// End - The end position, with reference to the input video, at which the overlay ends. The value should be in ISO 8601 format. For example, PT30S to end the overlay at 30 seconds into the input video. If not specified or the value is greater than the input video duration, the overlay will be applied until the end of the input video if the overlay media duration is greater than the input video duration, else the overlay will last as long as the overlay media duration.
 	End *string `json:"end,omitempty"`
 	// FadeInDuration - The duration over which the overlay fades in onto the input video. The value should be in ISO 8601 duration format. If not specified the default behavior is to have no fade in (same as PT0S).
 	FadeInDuration *string `json:"fadeInDuration,omitempty"`
@@ -1290,10 +1308,22 @@ func (ao AudioOverlay) AsBasicOverlay() (BasicOverlay, bool) {
 	return &ao, true
 }
 
+// AzureEntityResource the resource model definition for an Azure Resource Manager resource with an etag.
+type AzureEntityResource struct {
+	// Etag - READ-ONLY; Resource Etag.
+	Etag *string `json:"etag,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+}
+
 // BuiltInStandardEncoderPreset describes a built-in preset for encoding the input video with the Standard
 // Encoder.
 type BuiltInStandardEncoderPreset struct {
-	// PresetName - The built-in preset to be used for encoding videos. Possible values include: 'H264SingleBitrateSD', 'H264SingleBitrate720p', 'H264SingleBitrate1080p', 'AdaptiveStreaming', 'AACGoodQualityAudio', 'ContentAwareEncodingExperimental', 'ContentAwareEncoding', 'H264MultipleBitrate1080p', 'H264MultipleBitrate720p', 'H264MultipleBitrateSD'
+	// PresetName - The built-in preset to be used for encoding videos. Possible values include: 'H264SingleBitrateSD', 'H264SingleBitrate720p', 'H264SingleBitrate1080p', 'AdaptiveStreaming', 'AACGoodQualityAudio', 'ContentAwareEncodingExperimental', 'ContentAwareEncoding', 'CopyAllBitrateNonInterleaved', 'H264MultipleBitrate1080p', 'H264MultipleBitrate720p', 'H264MultipleBitrateSD'
 	PresetName EncoderNamedPreset `json:"presetName,omitempty"`
 	// OdataType - Possible values include: 'OdataTypePreset', 'OdataTypeMicrosoftMediaFaceDetectorPreset', 'OdataTypeMicrosoftMediaAudioAnalyzerPreset', 'OdataTypeMicrosoftMediaBuiltInStandardEncoderPreset', 'OdataTypeMicrosoftMediaStandardEncoderPreset', 'OdataTypeMicrosoftMediaVideoAnalyzerPreset'
 	OdataType OdataTypeBasicPreset `json:"@odata.type,omitempty"`
@@ -1382,13 +1412,14 @@ type CheckNameAvailabilityInput struct {
 // the media.
 type BasicClipTime interface {
 	AsAbsoluteClipTime() (*AbsoluteClipTime, bool)
+	AsUtcClipTime() (*UtcClipTime, bool)
 	AsClipTime() (*ClipTime, bool)
 }
 
 // ClipTime base class for specifying a clip time. Use sub classes of this class to specify the time position
 // in the media.
 type ClipTime struct {
-	// OdataType - Possible values include: 'OdataTypeClipTime', 'OdataTypeMicrosoftMediaAbsoluteClipTime'
+	// OdataType - Possible values include: 'OdataTypeClipTime', 'OdataTypeMicrosoftMediaAbsoluteClipTime', 'OdataTypeMicrosoftMediaUtcClipTime'
 	OdataType OdataTypeBasicClipTime `json:"@odata.type,omitempty"`
 }
 
@@ -1404,6 +1435,10 @@ func unmarshalBasicClipTime(body []byte) (BasicClipTime, error) {
 		var act AbsoluteClipTime
 		err := json.Unmarshal(body, &act)
 		return act, err
+	case string(OdataTypeMicrosoftMediaUtcClipTime):
+		var uct UtcClipTime
+		err := json.Unmarshal(body, &uct)
+		return uct, err
 	default:
 		var ct ClipTime
 		err := json.Unmarshal(body, &ct)
@@ -1444,6 +1479,11 @@ func (ct ClipTime) AsAbsoluteClipTime() (*AbsoluteClipTime, bool) {
 	return nil, false
 }
 
+// AsUtcClipTime is the BasicClipTime implementation for ClipTime.
+func (ct ClipTime) AsUtcClipTime() (*UtcClipTime, bool) {
+	return nil, false
+}
+
 // AsClipTime is the BasicClipTime implementation for ClipTime.
 func (ct ClipTime) AsClipTime() (*ClipTime, bool) {
 	return &ct, true
@@ -1459,9 +1499,9 @@ type BasicCodec interface {
 	AsAudio() (*Audio, bool)
 	AsBasicAudio() (BasicAudio, bool)
 	AsAacAudio() (*AacAudio, bool)
-	AsCopyVideo() (*CopyVideo, bool)
 	AsVideo() (*Video, bool)
 	AsBasicVideo() (BasicVideo, bool)
+	AsCopyVideo() (*CopyVideo, bool)
 	AsImage() (*Image, bool)
 	AsBasicImage() (BasicImage, bool)
 	AsCopyAudio() (*CopyAudio, bool)
@@ -1475,7 +1515,7 @@ type BasicCodec interface {
 type Codec struct {
 	// Label - An optional label for the codec. The label can be used to control muxing behavior.
 	Label *string `json:"label,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeCodec', 'OdataTypeMicrosoftMediaAudio', 'OdataTypeMicrosoftMediaAacAudio', 'OdataTypeMicrosoftMediaCopyVideo', 'OdataTypeMicrosoftMediaVideo', 'OdataTypeMicrosoftMediaImage', 'OdataTypeMicrosoftMediaCopyAudio', 'OdataTypeMicrosoftMediaH264Video', 'OdataTypeMicrosoftMediaJpgImage', 'OdataTypeMicrosoftMediaPngImage'
+	// OdataType - Possible values include: 'OdataTypeCodec', 'OdataTypeMicrosoftMediaAudio', 'OdataTypeMicrosoftMediaAacAudio', 'OdataTypeMicrosoftMediaVideo', 'OdataTypeMicrosoftMediaCopyVideo', 'OdataTypeMicrosoftMediaImage', 'OdataTypeMicrosoftMediaCopyAudio', 'OdataTypeMicrosoftMediaH264Video', 'OdataTypeMicrosoftMediaJpgImage', 'OdataTypeMicrosoftMediaPngImage'
 	OdataType OdataTypeBasicCodec `json:"@odata.type,omitempty"`
 }
 
@@ -1495,14 +1535,14 @@ func unmarshalBasicCodec(body []byte) (BasicCodec, error) {
 		var aa AacAudio
 		err := json.Unmarshal(body, &aa)
 		return aa, err
-	case string(OdataTypeMicrosoftMediaCopyVideo):
-		var cv CopyVideo
-		err := json.Unmarshal(body, &cv)
-		return cv, err
 	case string(OdataTypeMicrosoftMediaVideo):
 		var vVar Video
 		err := json.Unmarshal(body, &vVar)
 		return vVar, err
+	case string(OdataTypeMicrosoftMediaCopyVideo):
+		var cv CopyVideo
+		err := json.Unmarshal(body, &cv)
+		return cv, err
 	case string(OdataTypeMicrosoftMediaImage):
 		var i Image
 		err := json.Unmarshal(body, &i)
@@ -1576,11 +1616,6 @@ func (c Codec) AsAacAudio() (*AacAudio, bool) {
 	return nil, false
 }
 
-// AsCopyVideo is the BasicCodec implementation for Codec.
-func (c Codec) AsCopyVideo() (*CopyVideo, bool) {
-	return nil, false
-}
-
 // AsVideo is the BasicCodec implementation for Codec.
 func (c Codec) AsVideo() (*Video, bool) {
 	return nil, false
@@ -1588,6 +1623,11 @@ func (c Codec) AsVideo() (*Video, bool) {
 
 // AsBasicVideo is the BasicCodec implementation for Codec.
 func (c Codec) AsBasicVideo() (BasicVideo, bool) {
+	return nil, false
+}
+
+// AsCopyVideo is the BasicCodec implementation for Codec.
+func (c Codec) AsCopyVideo() (*CopyVideo, bool) {
 	return nil, false
 }
 
@@ -1659,11 +1699,11 @@ type CommonEncryptionCenc struct {
 type ContentKeyPolicy struct {
 	autorest.Response           `json:"-"`
 	*ContentKeyPolicyProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource.
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -3330,7 +3370,7 @@ func (ckpxctk ContentKeyPolicyX509CertificateTokenKey) AsBasicContentKeyPolicyRe
 type CopyAudio struct {
 	// Label - An optional label for the codec. The label can be used to control muxing behavior.
 	Label *string `json:"label,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeCodec', 'OdataTypeMicrosoftMediaAudio', 'OdataTypeMicrosoftMediaAacAudio', 'OdataTypeMicrosoftMediaCopyVideo', 'OdataTypeMicrosoftMediaVideo', 'OdataTypeMicrosoftMediaImage', 'OdataTypeMicrosoftMediaCopyAudio', 'OdataTypeMicrosoftMediaH264Video', 'OdataTypeMicrosoftMediaJpgImage', 'OdataTypeMicrosoftMediaPngImage'
+	// OdataType - Possible values include: 'OdataTypeCodec', 'OdataTypeMicrosoftMediaAudio', 'OdataTypeMicrosoftMediaAacAudio', 'OdataTypeMicrosoftMediaVideo', 'OdataTypeMicrosoftMediaCopyVideo', 'OdataTypeMicrosoftMediaImage', 'OdataTypeMicrosoftMediaCopyAudio', 'OdataTypeMicrosoftMediaH264Video', 'OdataTypeMicrosoftMediaJpgImage', 'OdataTypeMicrosoftMediaPngImage'
 	OdataType OdataTypeBasicCodec `json:"@odata.type,omitempty"`
 }
 
@@ -3362,11 +3402,6 @@ func (ca CopyAudio) AsAacAudio() (*AacAudio, bool) {
 	return nil, false
 }
 
-// AsCopyVideo is the BasicCodec implementation for CopyAudio.
-func (ca CopyAudio) AsCopyVideo() (*CopyVideo, bool) {
-	return nil, false
-}
-
 // AsVideo is the BasicCodec implementation for CopyAudio.
 func (ca CopyAudio) AsVideo() (*Video, bool) {
 	return nil, false
@@ -3374,6 +3409,11 @@ func (ca CopyAudio) AsVideo() (*Video, bool) {
 
 // AsBasicVideo is the BasicCodec implementation for CopyAudio.
 func (ca CopyAudio) AsBasicVideo() (BasicVideo, bool) {
+	return nil, false
+}
+
+// AsCopyVideo is the BasicCodec implementation for CopyAudio.
+func (ca CopyAudio) AsCopyVideo() (*CopyVideo, bool) {
 	return nil, false
 }
 
@@ -3421,7 +3461,7 @@ func (ca CopyAudio) AsBasicCodec() (BasicCodec, bool) {
 type CopyVideo struct {
 	// Label - An optional label for the codec. The label can be used to control muxing behavior.
 	Label *string `json:"label,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeCodec', 'OdataTypeMicrosoftMediaAudio', 'OdataTypeMicrosoftMediaAacAudio', 'OdataTypeMicrosoftMediaCopyVideo', 'OdataTypeMicrosoftMediaVideo', 'OdataTypeMicrosoftMediaImage', 'OdataTypeMicrosoftMediaCopyAudio', 'OdataTypeMicrosoftMediaH264Video', 'OdataTypeMicrosoftMediaJpgImage', 'OdataTypeMicrosoftMediaPngImage'
+	// OdataType - Possible values include: 'OdataTypeCodec', 'OdataTypeMicrosoftMediaAudio', 'OdataTypeMicrosoftMediaAacAudio', 'OdataTypeMicrosoftMediaVideo', 'OdataTypeMicrosoftMediaCopyVideo', 'OdataTypeMicrosoftMediaImage', 'OdataTypeMicrosoftMediaCopyAudio', 'OdataTypeMicrosoftMediaH264Video', 'OdataTypeMicrosoftMediaJpgImage', 'OdataTypeMicrosoftMediaPngImage'
 	OdataType OdataTypeBasicCodec `json:"@odata.type,omitempty"`
 }
 
@@ -3453,11 +3493,6 @@ func (cv CopyVideo) AsAacAudio() (*AacAudio, bool) {
 	return nil, false
 }
 
-// AsCopyVideo is the BasicCodec implementation for CopyVideo.
-func (cv CopyVideo) AsCopyVideo() (*CopyVideo, bool) {
-	return &cv, true
-}
-
 // AsVideo is the BasicCodec implementation for CopyVideo.
 func (cv CopyVideo) AsVideo() (*Video, bool) {
 	return nil, false
@@ -3466,6 +3501,11 @@ func (cv CopyVideo) AsVideo() (*Video, bool) {
 // AsBasicVideo is the BasicCodec implementation for CopyVideo.
 func (cv CopyVideo) AsBasicVideo() (BasicVideo, bool) {
 	return nil, false
+}
+
+// AsCopyVideo is the BasicCodec implementation for CopyVideo.
+func (cv CopyVideo) AsCopyVideo() (*CopyVideo, bool) {
+	return &cv, true
 }
 
 // AsImage is the BasicCodec implementation for CopyVideo.
@@ -3773,7 +3813,7 @@ type BasicFormat interface {
 
 // Format base class for output.
 type Format struct {
-	// FilenamePattern - The pattern of the file names for the generated output files. The following macros are supported in the file name: {Basename} - The base name of the input video {Extension} - The appropriate extension for this format. {Label} - The label assigned to the codec/layer. {Index} - A unique index for thumbnails. Only applicable to thumbnails. {Bitrate} - The audio/video bitrate. Not applicable to thumbnails. {Codec} - The type of the audio/video codec. Any unsubstituted macros will be collapsed and removed from the filename.
+	// FilenamePattern - The pattern of the file names for the generated output files. The following macros are supported in the file name: {Basename} - An expansion macro that will use the name of the input video file. If the base name(the file suffix is not included) of the input video file is less than 32 characters long, the base name of input video files will be used. If the length of base name of the input video file exceeds 32 characters, the base name is truncated to the first 32 characters in total length. {Extension} - The appropriate extension for this format. {Label} - The label assigned to the codec/layer. {Index} - A unique index for thumbnails. Only applicable to thumbnails. {Bitrate} - The audio/video bitrate. Not applicable to thumbnails. {Codec} - The type of the audio/video codec. Any unsubstituted macros will be collapsed and removed from the filename.
 	FilenamePattern *string `json:"filenamePattern,omitempty"`
 	// OdataType - Possible values include: 'OdataTypeFormat', 'OdataTypeMicrosoftMediaImageFormat', 'OdataTypeMicrosoftMediaJpgFormat', 'OdataTypeMicrosoftMediaPngFormat', 'OdataTypeMicrosoftMediaMultiBitrateFormat', 'OdataTypeMicrosoftMediaMp4Format', 'OdataTypeMicrosoftMediaTransportStreamFormat'
 	OdataType OdataTypeBasicFormat `json:"@odata.type,omitempty"`
@@ -4029,13 +4069,15 @@ type H264Video struct {
 	Complexity H264Complexity `json:"complexity,omitempty"`
 	// Layers - The collection of output H.264 layers to be produced by the encoder.
 	Layers *[]H264Layer `json:"layers,omitempty"`
-	// KeyFrameInterval - The distance between two key frames, thereby defining a group of pictures (GOP). The value should be a non-zero integer in the range [1, 30] seconds, specified in ISO 8601 format. The default is 2 seconds (PT2S).
+	// KeyFrameInterval - The distance between two key frames. The value should be non-zero in the range [0.5, 20] seconds, specified in ISO 8601 format. The default is 2 seconds(PT2S). Note that this setting is ignored if VideoSyncMode.Passthrough is set, where the KeyFrameInterval value will follow the input source setting.
 	KeyFrameInterval *string `json:"keyFrameInterval,omitempty"`
 	// StretchMode - The resizing mode - how the input video will be resized to fit the desired output resolution(s). Default is AutoSize. Possible values include: 'StretchModeNone', 'StretchModeAutoSize', 'StretchModeAutoFit'
 	StretchMode StretchMode `json:"stretchMode,omitempty"`
+	// SyncMode - The Video Sync Mode. Possible values include: 'VideoSyncModeAuto', 'VideoSyncModePassthrough', 'VideoSyncModeCfr', 'VideoSyncModeVfr'
+	SyncMode VideoSyncMode `json:"syncMode,omitempty"`
 	// Label - An optional label for the codec. The label can be used to control muxing behavior.
 	Label *string `json:"label,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeCodec', 'OdataTypeMicrosoftMediaAudio', 'OdataTypeMicrosoftMediaAacAudio', 'OdataTypeMicrosoftMediaCopyVideo', 'OdataTypeMicrosoftMediaVideo', 'OdataTypeMicrosoftMediaImage', 'OdataTypeMicrosoftMediaCopyAudio', 'OdataTypeMicrosoftMediaH264Video', 'OdataTypeMicrosoftMediaJpgImage', 'OdataTypeMicrosoftMediaPngImage'
+	// OdataType - Possible values include: 'OdataTypeCodec', 'OdataTypeMicrosoftMediaAudio', 'OdataTypeMicrosoftMediaAacAudio', 'OdataTypeMicrosoftMediaVideo', 'OdataTypeMicrosoftMediaCopyVideo', 'OdataTypeMicrosoftMediaImage', 'OdataTypeMicrosoftMediaCopyAudio', 'OdataTypeMicrosoftMediaH264Video', 'OdataTypeMicrosoftMediaJpgImage', 'OdataTypeMicrosoftMediaPngImage'
 	OdataType OdataTypeBasicCodec `json:"@odata.type,omitempty"`
 }
 
@@ -4057,6 +4099,9 @@ func (hv H264Video) MarshalJSON() ([]byte, error) {
 	}
 	if hv.StretchMode != "" {
 		objectMap["stretchMode"] = hv.StretchMode
+	}
+	if hv.SyncMode != "" {
+		objectMap["syncMode"] = hv.SyncMode
 	}
 	if hv.Label != nil {
 		objectMap["label"] = hv.Label
@@ -4082,11 +4127,6 @@ func (hv H264Video) AsAacAudio() (*AacAudio, bool) {
 	return nil, false
 }
 
-// AsCopyVideo is the BasicCodec implementation for H264Video.
-func (hv H264Video) AsCopyVideo() (*CopyVideo, bool) {
-	return nil, false
-}
-
 // AsVideo is the BasicCodec implementation for H264Video.
 func (hv H264Video) AsVideo() (*Video, bool) {
 	return nil, false
@@ -4095,6 +4135,11 @@ func (hv H264Video) AsVideo() (*Video, bool) {
 // AsBasicVideo is the BasicCodec implementation for H264Video.
 func (hv H264Video) AsBasicVideo() (BasicVideo, bool) {
 	return &hv, true
+}
+
+// AsCopyVideo is the BasicCodec implementation for H264Video.
+func (hv H264Video) AsCopyVideo() (*CopyVideo, bool) {
+	return nil, false
 }
 
 // AsImage is the BasicCodec implementation for H264Video.
@@ -4137,9 +4182,9 @@ func (hv H264Video) AsBasicCodec() (BasicCodec, bool) {
 	return &hv, true
 }
 
-// Hls the HLS configuration.
+// Hls HTTP Live Streaming (HLS) packing setting for the live output.
 type Hls struct {
-	// FragmentsPerTsSegment - The amount of fragments per HTTP Live Streaming (HLS) segment.
+	// FragmentsPerTsSegment - The number of fragments in an HTTP Live Streaming (HLS) TS segment in the output of the live event. This value does not affect the packing ratio for HLS CMAF output.
 	FragmentsPerTsSegment *int32 `json:"fragmentsPerTsSegment,omitempty"`
 }
 
@@ -4152,19 +4197,21 @@ type BasicImage interface {
 
 // Image describes the basic properties for generating thumbnails from the input video
 type Image struct {
-	// Start - The position in the input video from where to start generating thumbnails. The value can be in absolute timestamp (ISO 8601, e.g: PT05S), or a frame count (For example, 10 for the 10th frame), or a relative value (For example, 1%). Also supports a macro {Best}, which tells the encoder to select the best thumbnail from the first few seconds of the video.
+	// Start - The position in the input video from where to start generating thumbnails. The value can be in ISO 8601 format (For example, PT05S to start at 5 seconds), or a frame count (For example, 10 to start at the 10th frame), or a relative value to stream duration (For example, 10% to start at 10% of stream duration). Also supports a macro {Best}, which tells the encoder to select the best thumbnail from the first few seconds of the video and will only produce one thumbnail, no matter what other settings are for Step and Range. The default value is macro {Best}.
 	Start *string `json:"start,omitempty"`
-	// Step - The intervals at which thumbnails are generated. The value can be in absolute timestamp (ISO 8601, e.g: PT05S for one image every 5 seconds), or a frame count (For example, 30 for every 30 frames), or a relative value (For example, 1%).
+	// Step - The intervals at which thumbnails are generated. The value can be in ISO 8601 format (For example, PT05S for one image every 5 seconds), or a frame count (For example, 30 for one image every 30 frames), or a relative value to stream duration (For example, 10% for one image every 10% of stream duration). Note: Step value will affect the first generated thumbnail, which may not be exactly the one specified at transform preset start time. This is due to the encoder, which tries to select the best thumbnail between start time and Step position from start time as the first output. As the default value is 10%, it means if stream has long duration, the first generated thumbnail might be far away from the one specified at start time. Try to select reasonable value for Step if the first thumbnail is expected close to start time, or set Range value at 1 if only one thumbnail is needed at start time.
 	Step *string `json:"step,omitempty"`
-	// Range - The position in the input video at which to stop generating thumbnails. The value can be in absolute timestamp (ISO 8601, e.g: PT5M30S to stop at 5 minutes and 30 seconds), or a frame count (For example, 300 to stop at the 300th frame), or a relative value (For example, 100%).
+	// Range - The position relative to transform preset start time in the input video at which to stop generating thumbnails. The value can be in ISO 8601 format (For example, PT5M30S to stop at 5 minutes and 30 seconds from start time), or a frame count (For example, 300 to stop at the 300th frame from the frame at start time. If this value is 1, it means only producing one thumbnail at start time), or a relative value to the stream duration (For example, 50% to stop at half of stream duration from start time). The default value is 100%, which means to stop at the end of the stream.
 	Range *string `json:"range,omitempty"`
-	// KeyFrameInterval - The distance between two key frames, thereby defining a group of pictures (GOP). The value should be a non-zero integer in the range [1, 30] seconds, specified in ISO 8601 format. The default is 2 seconds (PT2S).
+	// KeyFrameInterval - The distance between two key frames. The value should be non-zero in the range [0.5, 20] seconds, specified in ISO 8601 format. The default is 2 seconds(PT2S). Note that this setting is ignored if VideoSyncMode.Passthrough is set, where the KeyFrameInterval value will follow the input source setting.
 	KeyFrameInterval *string `json:"keyFrameInterval,omitempty"`
 	// StretchMode - The resizing mode - how the input video will be resized to fit the desired output resolution(s). Default is AutoSize. Possible values include: 'StretchModeNone', 'StretchModeAutoSize', 'StretchModeAutoFit'
 	StretchMode StretchMode `json:"stretchMode,omitempty"`
+	// SyncMode - The Video Sync Mode. Possible values include: 'VideoSyncModeAuto', 'VideoSyncModePassthrough', 'VideoSyncModeCfr', 'VideoSyncModeVfr'
+	SyncMode VideoSyncMode `json:"syncMode,omitempty"`
 	// Label - An optional label for the codec. The label can be used to control muxing behavior.
 	Label *string `json:"label,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeCodec', 'OdataTypeMicrosoftMediaAudio', 'OdataTypeMicrosoftMediaAacAudio', 'OdataTypeMicrosoftMediaCopyVideo', 'OdataTypeMicrosoftMediaVideo', 'OdataTypeMicrosoftMediaImage', 'OdataTypeMicrosoftMediaCopyAudio', 'OdataTypeMicrosoftMediaH264Video', 'OdataTypeMicrosoftMediaJpgImage', 'OdataTypeMicrosoftMediaPngImage'
+	// OdataType - Possible values include: 'OdataTypeCodec', 'OdataTypeMicrosoftMediaAudio', 'OdataTypeMicrosoftMediaAacAudio', 'OdataTypeMicrosoftMediaVideo', 'OdataTypeMicrosoftMediaCopyVideo', 'OdataTypeMicrosoftMediaImage', 'OdataTypeMicrosoftMediaCopyAudio', 'OdataTypeMicrosoftMediaH264Video', 'OdataTypeMicrosoftMediaJpgImage', 'OdataTypeMicrosoftMediaPngImage'
 	OdataType OdataTypeBasicCodec `json:"@odata.type,omitempty"`
 }
 
@@ -4228,6 +4275,9 @@ func (i Image) MarshalJSON() ([]byte, error) {
 	if i.StretchMode != "" {
 		objectMap["stretchMode"] = i.StretchMode
 	}
+	if i.SyncMode != "" {
+		objectMap["syncMode"] = i.SyncMode
+	}
 	if i.Label != nil {
 		objectMap["label"] = i.Label
 	}
@@ -4252,11 +4302,6 @@ func (i Image) AsAacAudio() (*AacAudio, bool) {
 	return nil, false
 }
 
-// AsCopyVideo is the BasicCodec implementation for Image.
-func (i Image) AsCopyVideo() (*CopyVideo, bool) {
-	return nil, false
-}
-
 // AsVideo is the BasicCodec implementation for Image.
 func (i Image) AsVideo() (*Video, bool) {
 	return nil, false
@@ -4265,6 +4310,11 @@ func (i Image) AsVideo() (*Video, bool) {
 // AsBasicVideo is the BasicCodec implementation for Image.
 func (i Image) AsBasicVideo() (BasicVideo, bool) {
 	return &i, true
+}
+
+// AsCopyVideo is the BasicCodec implementation for Image.
+func (i Image) AsCopyVideo() (*CopyVideo, bool) {
+	return nil, false
 }
 
 // AsImage is the BasicCodec implementation for Image.
@@ -4316,7 +4366,7 @@ type BasicImageFormat interface {
 
 // ImageFormat describes the properties for an output image file.
 type ImageFormat struct {
-	// FilenamePattern - The pattern of the file names for the generated output files. The following macros are supported in the file name: {Basename} - The base name of the input video {Extension} - The appropriate extension for this format. {Label} - The label assigned to the codec/layer. {Index} - A unique index for thumbnails. Only applicable to thumbnails. {Bitrate} - The audio/video bitrate. Not applicable to thumbnails. {Codec} - The type of the audio/video codec. Any unsubstituted macros will be collapsed and removed from the filename.
+	// FilenamePattern - The pattern of the file names for the generated output files. The following macros are supported in the file name: {Basename} - An expansion macro that will use the name of the input video file. If the base name(the file suffix is not included) of the input video file is less than 32 characters long, the base name of input video files will be used. If the length of base name of the input video file exceeds 32 characters, the base name is truncated to the first 32 characters in total length. {Extension} - The appropriate extension for this format. {Label} - The label assigned to the codec/layer. {Index} - A unique index for thumbnails. Only applicable to thumbnails. {Bitrate} - The audio/video bitrate. Not applicable to thumbnails. {Codec} - The type of the audio/video codec. Any unsubstituted macros will be collapsed and removed from the filename.
 	FilenamePattern *string `json:"filenamePattern,omitempty"`
 	// OdataType - Possible values include: 'OdataTypeFormat', 'OdataTypeMicrosoftMediaImageFormat', 'OdataTypeMicrosoftMediaJpgFormat', 'OdataTypeMicrosoftMediaPngFormat', 'OdataTypeMicrosoftMediaMultiBitrateFormat', 'OdataTypeMicrosoftMediaMp4Format', 'OdataTypeMicrosoftMediaTransportStreamFormat'
 	OdataType OdataTypeBasicFormat `json:"@odata.type,omitempty"`
@@ -4448,11 +4498,11 @@ type Job struct {
 	autorest.Response `json:"-"`
 	// JobProperties - The resource properties.
 	*JobProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource.
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -5485,7 +5535,7 @@ func (joa JobOutputAsset) AsBasicJobOutput() (BasicJobOutput, bool) {
 
 // JobProperties properties of the Job.
 type JobProperties struct {
-	// Created - READ-ONLY; The UTC date and time when the Job was created, in 'YYYY-MM-DDThh:mm:ssZ' format.
+	// Created - READ-ONLY; The UTC date and time when the customer has created the Job, in 'YYYY-MM-DDThh:mm:ssZ' format.
 	Created *date.Time `json:"created,omitempty"`
 	// State - READ-ONLY; The current state of the job. Possible values include: 'Canceled', 'Canceling', 'Error', 'Finished', 'Processing', 'Queued', 'Scheduled'
 	State JobState `json:"state,omitempty"`
@@ -5493,7 +5543,7 @@ type JobProperties struct {
 	Description *string `json:"description,omitempty"`
 	// Input - The inputs for the Job.
 	Input BasicJobInput `json:"input,omitempty"`
-	// LastModified - READ-ONLY; The UTC date and time when the Job was last updated, in 'YYYY-MM-DDThh:mm:ssZ' format.
+	// LastModified - READ-ONLY; The UTC date and time when the customer has last updated the Job, in 'YYYY-MM-DDThh:mm:ssZ' format.
 	LastModified *date.Time `json:"lastModified,omitempty"`
 	// Outputs - The outputs for the Job.
 	Outputs *[]BasicJobOutput `json:"outputs,omitempty"`
@@ -5631,7 +5681,7 @@ func (jp *JobProperties) UnmarshalJSON(body []byte) error {
 
 // JpgFormat describes the settings for producing JPEG thumbnails.
 type JpgFormat struct {
-	// FilenamePattern - The pattern of the file names for the generated output files. The following macros are supported in the file name: {Basename} - The base name of the input video {Extension} - The appropriate extension for this format. {Label} - The label assigned to the codec/layer. {Index} - A unique index for thumbnails. Only applicable to thumbnails. {Bitrate} - The audio/video bitrate. Not applicable to thumbnails. {Codec} - The type of the audio/video codec. Any unsubstituted macros will be collapsed and removed from the filename.
+	// FilenamePattern - The pattern of the file names for the generated output files. The following macros are supported in the file name: {Basename} - An expansion macro that will use the name of the input video file. If the base name(the file suffix is not included) of the input video file is less than 32 characters long, the base name of input video files will be used. If the length of base name of the input video file exceeds 32 characters, the base name is truncated to the first 32 characters in total length. {Extension} - The appropriate extension for this format. {Label} - The label assigned to the codec/layer. {Index} - A unique index for thumbnails. Only applicable to thumbnails. {Bitrate} - The audio/video bitrate. Not applicable to thumbnails. {Codec} - The type of the audio/video codec. Any unsubstituted macros will be collapsed and removed from the filename.
 	FilenamePattern *string `json:"filenamePattern,omitempty"`
 	// OdataType - Possible values include: 'OdataTypeFormat', 'OdataTypeMicrosoftMediaImageFormat', 'OdataTypeMicrosoftMediaJpgFormat', 'OdataTypeMicrosoftMediaPngFormat', 'OdataTypeMicrosoftMediaMultiBitrateFormat', 'OdataTypeMicrosoftMediaMp4Format', 'OdataTypeMicrosoftMediaTransportStreamFormat'
 	OdataType OdataTypeBasicFormat `json:"@odata.type,omitempty"`
@@ -5704,19 +5754,23 @@ func (jf JpgFormat) AsBasicFormat() (BasicFormat, bool) {
 type JpgImage struct {
 	// Layers - A collection of output JPEG image layers to be produced by the encoder.
 	Layers *[]JpgLayer `json:"layers,omitempty"`
-	// Start - The position in the input video from where to start generating thumbnails. The value can be in absolute timestamp (ISO 8601, e.g: PT05S), or a frame count (For example, 10 for the 10th frame), or a relative value (For example, 1%). Also supports a macro {Best}, which tells the encoder to select the best thumbnail from the first few seconds of the video.
+	// SpriteColumn - Sets the number of columns used in thumbnail sprite image.  The number of rows are automatically calculated and a VTT file is generated with the coordinate mappings for each thumbnail in the sprite. Note: this value should be a positive integer and a proper value is recommended so that the output image resolution will not go beyond JPEG maximum pixel resolution limit 65535x65535.
+	SpriteColumn *int32 `json:"spriteColumn,omitempty"`
+	// Start - The position in the input video from where to start generating thumbnails. The value can be in ISO 8601 format (For example, PT05S to start at 5 seconds), or a frame count (For example, 10 to start at the 10th frame), or a relative value to stream duration (For example, 10% to start at 10% of stream duration). Also supports a macro {Best}, which tells the encoder to select the best thumbnail from the first few seconds of the video and will only produce one thumbnail, no matter what other settings are for Step and Range. The default value is macro {Best}.
 	Start *string `json:"start,omitempty"`
-	// Step - The intervals at which thumbnails are generated. The value can be in absolute timestamp (ISO 8601, e.g: PT05S for one image every 5 seconds), or a frame count (For example, 30 for every 30 frames), or a relative value (For example, 1%).
+	// Step - The intervals at which thumbnails are generated. The value can be in ISO 8601 format (For example, PT05S for one image every 5 seconds), or a frame count (For example, 30 for one image every 30 frames), or a relative value to stream duration (For example, 10% for one image every 10% of stream duration). Note: Step value will affect the first generated thumbnail, which may not be exactly the one specified at transform preset start time. This is due to the encoder, which tries to select the best thumbnail between start time and Step position from start time as the first output. As the default value is 10%, it means if stream has long duration, the first generated thumbnail might be far away from the one specified at start time. Try to select reasonable value for Step if the first thumbnail is expected close to start time, or set Range value at 1 if only one thumbnail is needed at start time.
 	Step *string `json:"step,omitempty"`
-	// Range - The position in the input video at which to stop generating thumbnails. The value can be in absolute timestamp (ISO 8601, e.g: PT5M30S to stop at 5 minutes and 30 seconds), or a frame count (For example, 300 to stop at the 300th frame), or a relative value (For example, 100%).
+	// Range - The position relative to transform preset start time in the input video at which to stop generating thumbnails. The value can be in ISO 8601 format (For example, PT5M30S to stop at 5 minutes and 30 seconds from start time), or a frame count (For example, 300 to stop at the 300th frame from the frame at start time. If this value is 1, it means only producing one thumbnail at start time), or a relative value to the stream duration (For example, 50% to stop at half of stream duration from start time). The default value is 100%, which means to stop at the end of the stream.
 	Range *string `json:"range,omitempty"`
-	// KeyFrameInterval - The distance between two key frames, thereby defining a group of pictures (GOP). The value should be a non-zero integer in the range [1, 30] seconds, specified in ISO 8601 format. The default is 2 seconds (PT2S).
+	// KeyFrameInterval - The distance between two key frames. The value should be non-zero in the range [0.5, 20] seconds, specified in ISO 8601 format. The default is 2 seconds(PT2S). Note that this setting is ignored if VideoSyncMode.Passthrough is set, where the KeyFrameInterval value will follow the input source setting.
 	KeyFrameInterval *string `json:"keyFrameInterval,omitempty"`
 	// StretchMode - The resizing mode - how the input video will be resized to fit the desired output resolution(s). Default is AutoSize. Possible values include: 'StretchModeNone', 'StretchModeAutoSize', 'StretchModeAutoFit'
 	StretchMode StretchMode `json:"stretchMode,omitempty"`
+	// SyncMode - The Video Sync Mode. Possible values include: 'VideoSyncModeAuto', 'VideoSyncModePassthrough', 'VideoSyncModeCfr', 'VideoSyncModeVfr'
+	SyncMode VideoSyncMode `json:"syncMode,omitempty"`
 	// Label - An optional label for the codec. The label can be used to control muxing behavior.
 	Label *string `json:"label,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeCodec', 'OdataTypeMicrosoftMediaAudio', 'OdataTypeMicrosoftMediaAacAudio', 'OdataTypeMicrosoftMediaCopyVideo', 'OdataTypeMicrosoftMediaVideo', 'OdataTypeMicrosoftMediaImage', 'OdataTypeMicrosoftMediaCopyAudio', 'OdataTypeMicrosoftMediaH264Video', 'OdataTypeMicrosoftMediaJpgImage', 'OdataTypeMicrosoftMediaPngImage'
+	// OdataType - Possible values include: 'OdataTypeCodec', 'OdataTypeMicrosoftMediaAudio', 'OdataTypeMicrosoftMediaAacAudio', 'OdataTypeMicrosoftMediaVideo', 'OdataTypeMicrosoftMediaCopyVideo', 'OdataTypeMicrosoftMediaImage', 'OdataTypeMicrosoftMediaCopyAudio', 'OdataTypeMicrosoftMediaH264Video', 'OdataTypeMicrosoftMediaJpgImage', 'OdataTypeMicrosoftMediaPngImage'
 	OdataType OdataTypeBasicCodec `json:"@odata.type,omitempty"`
 }
 
@@ -5726,6 +5780,9 @@ func (ji JpgImage) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if ji.Layers != nil {
 		objectMap["layers"] = ji.Layers
+	}
+	if ji.SpriteColumn != nil {
+		objectMap["spriteColumn"] = ji.SpriteColumn
 	}
 	if ji.Start != nil {
 		objectMap["start"] = ji.Start
@@ -5741,6 +5798,9 @@ func (ji JpgImage) MarshalJSON() ([]byte, error) {
 	}
 	if ji.StretchMode != "" {
 		objectMap["stretchMode"] = ji.StretchMode
+	}
+	if ji.SyncMode != "" {
+		objectMap["syncMode"] = ji.SyncMode
 	}
 	if ji.Label != nil {
 		objectMap["label"] = ji.Label
@@ -5766,11 +5826,6 @@ func (ji JpgImage) AsAacAudio() (*AacAudio, bool) {
 	return nil, false
 }
 
-// AsCopyVideo is the BasicCodec implementation for JpgImage.
-func (ji JpgImage) AsCopyVideo() (*CopyVideo, bool) {
-	return nil, false
-}
-
 // AsVideo is the BasicCodec implementation for JpgImage.
 func (ji JpgImage) AsVideo() (*Video, bool) {
 	return nil, false
@@ -5779,6 +5834,11 @@ func (ji JpgImage) AsVideo() (*Video, bool) {
 // AsBasicVideo is the BasicCodec implementation for JpgImage.
 func (ji JpgImage) AsBasicVideo() (BasicVideo, bool) {
 	return &ji, true
+}
+
+// AsCopyVideo is the BasicCodec implementation for JpgImage.
+func (ji JpgImage) AsCopyVideo() (*CopyVideo, bool) {
+	return nil, false
 }
 
 // AsImage is the BasicCodec implementation for JpgImage.
@@ -5890,6 +5950,23 @@ func (jl JpgLayer) AsLayer() (*Layer, bool) {
 // AsBasicLayer is the BasicLayer implementation for JpgLayer.
 func (jl JpgLayer) AsBasicLayer() (BasicLayer, bool) {
 	return &jl, true
+}
+
+// KeyVaultProperties ...
+type KeyVaultProperties struct {
+	// KeyIdentifier - The URL of the Key Vault key used to encrypt the account. The key may either be versioned (for example https://vault/keys/mykey/version1) or reference a key without a version (for example https://vault/keys/mykey).
+	KeyIdentifier *string `json:"keyIdentifier,omitempty"`
+	// CurrentKeyIdentifier - READ-ONLY; The current key used to encrypt the Media Services account, including the key version.
+	CurrentKeyIdentifier *string `json:"currentKeyIdentifier,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for KeyVaultProperties.
+func (kvp KeyVaultProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if kvp.KeyIdentifier != nil {
+		objectMap["keyIdentifier"] = kvp.KeyIdentifier
+	}
+	return json.Marshal(objectMap)
 }
 
 // BasicLayer the encoder can be configured to produce video and/or images (thumbnails) at different resolutions, by
@@ -6058,20 +6135,20 @@ type ListStreamingLocatorsResponse struct {
 	StreamingLocators *[]AssetStreamingLocator `json:"streamingLocators,omitempty"`
 }
 
-// LiveEvent the Live Event.
+// LiveEvent the live event.
 type LiveEvent struct {
 	autorest.Response `json:"-"`
-	// LiveEventProperties - The Live Event properties.
+	// LiveEventProperties - The live event properties.
 	*LiveEventProperties `json:"properties,omitempty"`
 	// Tags - Resource tags.
 	Tags map[string]*string `json:"tags"`
-	// Location - The Azure Region of the resource.
+	// Location - The geo-location where the resource lives
 	Location *string `json:"location,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource.
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -6161,19 +6238,23 @@ func (le *LiveEvent) UnmarshalJSON(body []byte) error {
 
 // LiveEventActionInput the LiveEvent action input parameter definition.
 type LiveEventActionInput struct {
-	// RemoveOutputsOnStop - The flag indicates if remove LiveOutputs on Stop.
+	// RemoveOutputsOnStop - The flag indicates whether live outputs are automatically deleted when live event is being stopped. Deleting live outputs do not delete the underlying assets.
 	RemoveOutputsOnStop *bool `json:"removeOutputsOnStop,omitempty"`
 }
 
-// LiveEventEncoding the Live Event encoding.
+// LiveEventEncoding specifies the live event type and optional encoding settings for encoding live events.
 type LiveEventEncoding struct {
-	// EncodingType - The encoding type for Live Event.  This value is specified at creation time and cannot be updated. Possible values include: 'LiveEventEncodingTypeNone', 'LiveEventEncodingTypeBasic', 'LiveEventEncodingTypeStandard', 'LiveEventEncodingTypePremium1080p'
+	// EncodingType - Live event type. When encodingType is set to None, the service simply passes through the incoming video and audio layer(s) to the output. When encodingType is set to Standard or Premium1080p, a live encoder transcodes the incoming stream into multiple bitrates or layers. See https://go.microsoft.com/fwlink/?linkid=2095101 for more information. This property cannot be modified after the live event is created. Possible values include: 'LiveEventEncodingTypeNone', 'LiveEventEncodingTypeStandard', 'LiveEventEncodingTypePremium1080p'
 	EncodingType LiveEventEncodingType `json:"encodingType,omitempty"`
-	// PresetName - The encoding preset name.  This value is specified at creation time and cannot be updated.
+	// PresetName - The optional encoding preset name, used when encodingType is not None. This value is specified at creation time and cannot be updated. If the encodingType is set to Standard, then the default preset name is ‘Default720p’. Else if the encodingType is set to Premium1080p, the default preset is ‘Default1080p’.
 	PresetName *string `json:"presetName,omitempty"`
+	// StretchMode - Specifies how the input video will be resized to fit the desired output resolution(s). Default is None. Possible values include: 'StretchModeNone', 'StretchModeAutoSize', 'StretchModeAutoFit'
+	StretchMode StretchMode `json:"stretchMode,omitempty"`
+	// KeyFrameInterval - Use an ISO 8601 time value between 0.5 to 20 seconds to specify the output fragment length for the video and audio tracks of an encoding live event. For example, use PT2S to indicate 2 seconds. For the video track it also defines the key frame interval, or the length of a GoP (group of pictures).   If this value is not set for an encoding live event, the fragment duration defaults to 2 seconds. The value cannot be set for pass-through live events.
+	KeyFrameInterval *string `json:"keyFrameInterval,omitempty"`
 }
 
-// LiveEventEndpoint the Live Event endpoint.
+// LiveEventEndpoint the live event endpoint.
 type LiveEventEndpoint struct {
 	// Protocol - The endpoint protocol.
 	Protocol *string `json:"protocol,omitempty"`
@@ -6181,24 +6262,35 @@ type LiveEventEndpoint struct {
 	URL *string `json:"url,omitempty"`
 }
 
-// LiveEventInput the Live Event input.
+// LiveEventInput the live event input.
 type LiveEventInput struct {
-	// StreamingProtocol - The streaming protocol for the Live Event.  This is specified at creation time and cannot be updated. Possible values include: 'FragmentedMP4', 'RTMP'
+	// StreamingProtocol - The input protocol for the live event. This is specified at creation time and cannot be updated. Possible values include: 'FragmentedMP4', 'RTMP'
 	StreamingProtocol LiveEventInputProtocol `json:"streamingProtocol,omitempty"`
-	// AccessControl - The access control for LiveEvent Input.
+	// AccessControl - Access control for live event input.
 	AccessControl *LiveEventInputAccessControl `json:"accessControl,omitempty"`
-	// KeyFrameIntervalDuration - ISO 8601 timespan duration of the key frame interval duration.
+	// KeyFrameIntervalDuration - ISO 8601 time duration of the key frame interval duration of the input. This value sets the EXT-X-TARGETDURATION property in the HLS output. For example, use PT2S to indicate 2 seconds. Leave the value empty for encoding live events.
 	KeyFrameIntervalDuration *string `json:"keyFrameIntervalDuration,omitempty"`
-	// AccessToken - A unique identifier for a stream.  This can be specified at creation time but cannot be updated.  If omitted, the service will generate a unique value.
+	// AccessToken - A UUID in string form to uniquely identify the stream. This can be specified at creation time but cannot be updated. If omitted, the service will generate a unique value.
 	AccessToken *string `json:"accessToken,omitempty"`
-	// Endpoints - The input endpoints for the Live Event.
+	// Endpoints - The input endpoints for the live event.
 	Endpoints *[]LiveEventEndpoint `json:"endpoints,omitempty"`
 }
 
-// LiveEventInputAccessControl the IP access control for Live Event Input.
+// LiveEventInputAccessControl the IP access control for live event input.
 type LiveEventInputAccessControl struct {
 	// IP - The IP access control properties.
 	IP *IPAccessControl `json:"ip,omitempty"`
+}
+
+// LiveEventInputTrackSelection a track selection condition. This property is reserved for future use, any
+// value set on this property will be ignored.
+type LiveEventInputTrackSelection struct {
+	// Property - Property name to select. This property is reserved for future use, any value set on this property will be ignored.
+	Property *string `json:"property,omitempty"`
+	// Operation - Comparing operation. This property is reserved for future use, any value set on this property will be ignored.
+	Operation *string `json:"operation,omitempty"`
+	// Value - Property value to select. This property is reserved for future use, any value set on this property will be ignored.
+	Value *string `json:"value,omitempty"`
 }
 
 // LiveEventListResult the LiveEvent list result.
@@ -6208,7 +6300,7 @@ type LiveEventListResult struct {
 	Value *[]LiveEvent `json:"value,omitempty"`
 	// OdataCount - The number of result.
 	OdataCount *int32 `json:"@odata.count,omitempty"`
-	// OdataNextLink - Th link to the next set of results. Not empty if value contains incomplete list of Live Outputs.
+	// OdataNextLink - The link to the next set of results. Not empty if value contains incomplete list of live outputs.
 	OdataNextLink *string `json:"@odata.nextLink,omitempty"`
 }
 
@@ -6359,49 +6451,61 @@ func NewLiveEventListResultPage(getNextPage func(context.Context, LiveEventListR
 	return LiveEventListResultPage{fn: getNextPage}
 }
 
-// LiveEventPreview the Live Event preview.
+// LiveEventOutputTranscriptionTrack describes a transcription track in the output of a live event, generated
+// using speech-to-text transcription. This property is reserved for future use, any value set on this property
+// will be ignored.
+type LiveEventOutputTranscriptionTrack struct {
+	// TrackName - The output track name. This property is reserved for future use, any value set on this property will be ignored.
+	TrackName *string `json:"trackName,omitempty"`
+}
+
+// LiveEventPreview live event preview settings.
 type LiveEventPreview struct {
-	// Endpoints - The endpoints for preview.
+	// Endpoints - The endpoints for preview. Do not share the preview URL with the live event audience.
 	Endpoints *[]LiveEventEndpoint `json:"endpoints,omitempty"`
-	// AccessControl - The access control for LiveEvent preview.
+	// AccessControl - The access control for live event preview.
 	AccessControl *LiveEventPreviewAccessControl `json:"accessControl,omitempty"`
-	// PreviewLocator - The identifier of the preview locator in Guid format.  Specifying this at creation time allows the caller to know the preview locator url before the event is created.  If omitted, the service will generate a random identifier.  This value cannot be updated once the live event is created.
+	// PreviewLocator - The identifier of the preview locator in Guid format. Specifying this at creation time allows the caller to know the preview locator url before the event is created. If omitted, the service will generate a random identifier. This value cannot be updated once the live event is created.
 	PreviewLocator *string `json:"previewLocator,omitempty"`
-	// StreamingPolicyName - The name of streaming policy used for the LiveEvent preview.  This value is specified at creation time and cannot be updated.
+	// StreamingPolicyName - The name of streaming policy used for the live event preview. This value is specified at creation time and cannot be updated.
 	StreamingPolicyName *string `json:"streamingPolicyName,omitempty"`
-	// AlternativeMediaID - An Alternative Media Identifier associated with the StreamingLocator created for the preview.  This value is specified at creation time and cannot be updated.  The identifier can be used in the CustomLicenseAcquisitionUrlTemplate or the CustomKeyAcquisitionUrlTemplate of the StreamingPolicy specified in the StreamingPolicyName field.
+	// AlternativeMediaID - An alternative media identifier associated with the streaming locator created for the preview. This value is specified at creation time and cannot be updated. The identifier can be used in the CustomLicenseAcquisitionUrlTemplate or the CustomKeyAcquisitionUrlTemplate of the StreamingPolicy specified in the StreamingPolicyName field.
 	AlternativeMediaID *string `json:"alternativeMediaId,omitempty"`
 }
 
-// LiveEventPreviewAccessControl the IP access control for Live Event preview.
+// LiveEventPreviewAccessControl the IP access control for the live event preview endpoint.
 type LiveEventPreviewAccessControl struct {
 	// IP - The IP access control properties.
 	IP *IPAccessControl `json:"ip,omitempty"`
 }
 
-// LiveEventProperties the Live Event properties.
+// LiveEventProperties the live event properties.
 type LiveEventProperties struct {
-	// Description - The Live Event description.
+	// Description - A description for the live event.
 	Description *string `json:"description,omitempty"`
-	// Input - The Live Event input.
+	// Input - Live event input settings. It defines how the live event receives input from a contribution encoder.
 	Input *LiveEventInput `json:"input,omitempty"`
-	// Preview - The Live Event preview.
+	// Preview - Live event preview settings. Preview allows live event producers to preview the live streaming content without creating any live output.
 	Preview *LiveEventPreview `json:"preview,omitempty"`
-	// Encoding - The Live Event encoding.
+	// Encoding - Encoding settings for the live event. It configures whether a live encoder is used for the live event and settings for the live encoder if it is used.
 	Encoding *LiveEventEncoding `json:"encoding,omitempty"`
-	// ProvisioningState - READ-ONLY; The provisioning state of the Live Event.
+	// Transcriptions - Live transcription settings for the live event. See https://go.microsoft.com/fwlink/?linkid=2133742 for more information about the live transcription feature.
+	Transcriptions *[]LiveEventTranscription `json:"transcriptions,omitempty"`
+	// ProvisioningState - READ-ONLY; The provisioning state of the live event.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
-	// ResourceState - READ-ONLY; The resource state of the Live Event. Possible values include: 'Stopped', 'Starting', 'Running', 'Stopping', 'Deleting'
+	// ResourceState - READ-ONLY; The resource state of the live event. See https://go.microsoft.com/fwlink/?linkid=2139012 for more information. Possible values include: 'Stopped', 'Allocating', 'StandBy', 'Starting', 'Running', 'Stopping', 'Deleting'
 	ResourceState LiveEventResourceState `json:"resourceState,omitempty"`
-	// CrossSiteAccessPolicies - The Live Event access policies.
+	// CrossSiteAccessPolicies - Live event cross site access policies.
 	CrossSiteAccessPolicies *CrossSiteAccessPolicies `json:"crossSiteAccessPolicies,omitempty"`
-	// VanityURL - Specifies whether to use a vanity url with the Live Event.  This value is specified at creation time and cannot be updated.
-	VanityURL *bool `json:"vanityUrl,omitempty"`
-	// StreamOptions - The options to use for the LiveEvent.  This value is specified at creation time and cannot be updated.
+	// UseStaticHostname - Specifies whether a static hostname would be assigned to the live event preview and ingest endpoints. This value can only be updated if the live event is in Standby state
+	UseStaticHostname *bool `json:"useStaticHostname,omitempty"`
+	// HostnamePrefix - When useStaticHostname is set to true, the hostnamePrefix specifies the first part of the hostname assigned to the live event preview and ingest endpoints. The final hostname would be a combination of this prefix, the media service account name and a short code for the Azure Media Services data center.
+	HostnamePrefix *string `json:"hostnamePrefix,omitempty"`
+	// StreamOptions - The options to use for the LiveEvent. This value is specified at creation time and cannot be updated. The valid values for the array entry values are 'Default' and 'LowLatency'.
 	StreamOptions *[]StreamOptionsFlag `json:"streamOptions,omitempty"`
-	// Created - READ-ONLY; The exact time the Live Event was created.
+	// Created - READ-ONLY; The creation time for the live event
 	Created *date.Time `json:"created,omitempty"`
-	// LastModified - READ-ONLY; The exact time the Live Event was last modified.
+	// LastModified - READ-ONLY; The last modified time of the live event.
 	LastModified *date.Time `json:"lastModified,omitempty"`
 }
 
@@ -6420,16 +6524,45 @@ func (lep LiveEventProperties) MarshalJSON() ([]byte, error) {
 	if lep.Encoding != nil {
 		objectMap["encoding"] = lep.Encoding
 	}
+	if lep.Transcriptions != nil {
+		objectMap["transcriptions"] = lep.Transcriptions
+	}
 	if lep.CrossSiteAccessPolicies != nil {
 		objectMap["crossSiteAccessPolicies"] = lep.CrossSiteAccessPolicies
 	}
-	if lep.VanityURL != nil {
-		objectMap["vanityUrl"] = lep.VanityURL
+	if lep.UseStaticHostname != nil {
+		objectMap["useStaticHostname"] = lep.UseStaticHostname
+	}
+	if lep.HostnamePrefix != nil {
+		objectMap["hostnamePrefix"] = lep.HostnamePrefix
 	}
 	if lep.StreamOptions != nil {
 		objectMap["streamOptions"] = lep.StreamOptions
 	}
 	return json.Marshal(objectMap)
+}
+
+// LiveEventsAllocateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type LiveEventsAllocateFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *LiveEventsAllocateFuture) Result(client LiveEventsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "media.LiveEventsAllocateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("media.LiveEventsAllocateFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
 }
 
 // LiveEventsCreateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
@@ -6576,16 +6709,28 @@ func (future *LiveEventsUpdateFuture) Result(client LiveEventsClient) (le LiveEv
 	return
 }
 
+// LiveEventTranscription describes the transcription tracks in the output of a live event, generated using
+// speech-to-text transcription. This property is reserved for future use, any value set on this property will
+// be ignored.
+type LiveEventTranscription struct {
+	// Language - Specifies the language (locale) to be used for speech-to-text transcription – it should match the spoken language in the audio track. The value should be in BCP-47 format (e.g: 'en-US'). See https://go.microsoft.com/fwlink/?linkid=2133742 for more information about the live transcription feature and the list of supported languages.
+	Language *string `json:"language,omitempty"`
+	// InputTrackSelection - Provides a mechanism to select the audio track in the input live feed, to which speech-to-text transcription is applied. This property is reserved for future use, any value set on this property will be ignored.
+	InputTrackSelection *[]LiveEventInputTrackSelection `json:"inputTrackSelection,omitempty"`
+	// OutputTranscriptionTrack - Describes a transcription track in the output of a live event, generated using speech-to-text transcription. This property is reserved for future use, any value set on this property will be ignored.
+	OutputTranscriptionTrack *LiveEventOutputTranscriptionTrack `json:"outputTranscriptionTrack,omitempty"`
+}
+
 // LiveOutput the Live Output.
 type LiveOutput struct {
 	autorest.Response `json:"-"`
-	// LiveOutputProperties - The Live Output properties.
+	// LiveOutputProperties - Live output properties.
 	*LiveOutputProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource.
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -6652,11 +6797,11 @@ func (lo *LiveOutput) UnmarshalJSON(body []byte) error {
 // LiveOutputListResult the LiveOutput list result.
 type LiveOutputListResult struct {
 	autorest.Response `json:"-"`
-	// Value - The result of the List Live Output operation.
+	// Value - The result of the List LiveOutput operation.
 	Value *[]LiveOutput `json:"value,omitempty"`
 	// OdataCount - The number of result.
 	OdataCount *int32 `json:"@odata.count,omitempty"`
-	// OdataNextLink - Th link to the next set of results. Not empty if value contains incomplete list of Live Outputs.
+	// OdataNextLink - The link to the next set of results. Not empty if value contains incomplete list of live outputs.
 	OdataNextLink *string `json:"@odata.nextLink,omitempty"`
 }
 
@@ -6807,27 +6952,27 @@ func NewLiveOutputListResultPage(getNextPage func(context.Context, LiveOutputLis
 	return LiveOutputListResultPage{fn: getNextPage}
 }
 
-// LiveOutputProperties the JSON object that contains the properties required to create a Live Output.
+// LiveOutputProperties the JSON object that contains the properties required to create a live output.
 type LiveOutputProperties struct {
-	// Description - The description of the Live Output.
+	// Description - The description of the live output.
 	Description *string `json:"description,omitempty"`
-	// AssetName - The asset name.
+	// AssetName - The asset that the live output will write to.
 	AssetName *string `json:"assetName,omitempty"`
-	// ArchiveWindowLength - ISO 8601 timespan duration of the archive window length. This is duration that customer want to retain the recorded content.
+	// ArchiveWindowLength - ISO 8601 time between 1 minute to 25 hours to indicate the maximum content length that can be archived in the asset for this live output. This also sets the maximum content length for the rewind window. For example, use PT1H30M to indicate 1 hour and 30 minutes of archive window.
 	ArchiveWindowLength *string `json:"archiveWindowLength,omitempty"`
-	// ManifestName - The manifest file name.  If not provided, the service will generate one automatically.
+	// ManifestName - The manifest file name. If not provided, the service will generate one automatically.
 	ManifestName *string `json:"manifestName,omitempty"`
-	// Hls - The HLS configuration.
+	// Hls - HTTP Live Streaming (HLS) packing setting for the live output.
 	Hls *Hls `json:"hls,omitempty"`
-	// OutputSnapTime - The output snapshot time.
+	// OutputSnapTime - The initial timestamp that the live output will start at, any content before this value will not be archived.
 	OutputSnapTime *int64 `json:"outputSnapTime,omitempty"`
-	// Created - READ-ONLY; The exact time the Live Output was created.
+	// Created - READ-ONLY; The creation time the live output.
 	Created *date.Time `json:"created,omitempty"`
-	// LastModified - READ-ONLY; The exact time the Live Output was last modified.
+	// LastModified - READ-ONLY; The time the live output was last modified.
 	LastModified *date.Time `json:"lastModified,omitempty"`
-	// ProvisioningState - READ-ONLY; The provisioning state of the Live Output.
+	// ProvisioningState - READ-ONLY; The provisioning state of the live output.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
-	// ResourceState - READ-ONLY; The resource state of the Live Output. Possible values include: 'LiveOutputResourceStateCreating', 'LiveOutputResourceStateRunning', 'LiveOutputResourceStateDeleting'
+	// ResourceState - READ-ONLY; The resource state of the live output. Possible values include: 'LiveOutputResourceStateCreating', 'LiveOutputResourceStateRunning', 'LiveOutputResourceStateDeleting'
 	ResourceState LiveOutputResourceState `json:"resourceState,omitempty"`
 }
 
@@ -6912,20 +7057,14 @@ type Location struct {
 	Name *string `json:"name,omitempty"`
 }
 
-// Metric a metric emitted by service.
-type Metric struct {
-	// Name - READ-ONLY; The metric name.
+// LogSpecification a diagnostic log emitted by service.
+type LogSpecification struct {
+	// Name - READ-ONLY; The diagnostic log category name.
 	Name *string `json:"name,omitempty"`
-	// DisplayName - READ-ONLY; The metric display name.
+	// DisplayName - READ-ONLY; The diagnostic log category display name.
 	DisplayName *string `json:"displayName,omitempty"`
-	// DisplayDescription - READ-ONLY; The metric display description.
-	DisplayDescription *string `json:"displayDescription,omitempty"`
-	// Unit - READ-ONLY; The metric unit. Possible values include: 'MetricUnitBytes', 'MetricUnitCount', 'MetricUnitMilliseconds'
-	Unit MetricUnit `json:"unit,omitempty"`
-	// AggregationType - READ-ONLY; The metric aggregation type. Possible values include: 'Average', 'Count', 'Total'
-	AggregationType MetricAggregationType `json:"aggregationType,omitempty"`
-	// Dimensions - READ-ONLY; The metric dimensions.
-	Dimensions *[]MetricDimension `json:"dimensions,omitempty"`
+	// BlobDuration - READ-ONLY; The time range for requests in each blob.
+	BlobDuration *string `json:"blobDuration,omitempty"`
 }
 
 // MetricDimension a metric dimension.
@@ -6938,17 +7077,38 @@ type MetricDimension struct {
 	ToBeExportedForShoebox *bool `json:"toBeExportedForShoebox,omitempty"`
 }
 
-// MetricProperties metric properties.
-type MetricProperties struct {
-	// ServiceSpecification - READ-ONLY; The service specifications.
-	ServiceSpecification *ServiceSpecification `json:"serviceSpecification,omitempty"`
+// MetricSpecification a metric emitted by service.
+type MetricSpecification struct {
+	// Name - READ-ONLY; The metric name.
+	Name *string `json:"name,omitempty"`
+	// DisplayName - READ-ONLY; The metric display name.
+	DisplayName *string `json:"displayName,omitempty"`
+	// DisplayDescription - READ-ONLY; The metric display description.
+	DisplayDescription *string `json:"displayDescription,omitempty"`
+	// Unit - READ-ONLY; The metric unit. Possible values include: 'MetricUnitBytes', 'MetricUnitCount', 'MetricUnitMilliseconds'
+	Unit MetricUnit `json:"unit,omitempty"`
+	// AggregationType - READ-ONLY; The metric aggregation type. Possible values include: 'Average', 'Count', 'Total'
+	AggregationType MetricAggregationType `json:"aggregationType,omitempty"`
+	// SupportedAggregationTypes - Supported aggregation types.
+	SupportedAggregationTypes *[]string `json:"supportedAggregationTypes,omitempty"`
+	// Dimensions - READ-ONLY; The metric dimensions.
+	Dimensions *[]MetricDimension `json:"dimensions,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MetricSpecification.
+func (ms MetricSpecification) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ms.SupportedAggregationTypes != nil {
+		objectMap["supportedAggregationTypes"] = ms.SupportedAggregationTypes
+	}
+	return json.Marshal(objectMap)
 }
 
 // Mp4Format describes the properties for an output ISO MP4 file.
 type Mp4Format struct {
 	// OutputFiles - The list of output files to produce.  Each entry in the list is a set of audio and video layer labels to be muxed together .
 	OutputFiles *[]OutputFile `json:"outputFiles,omitempty"`
-	// FilenamePattern - The pattern of the file names for the generated output files. The following macros are supported in the file name: {Basename} - The base name of the input video {Extension} - The appropriate extension for this format. {Label} - The label assigned to the codec/layer. {Index} - A unique index for thumbnails. Only applicable to thumbnails. {Bitrate} - The audio/video bitrate. Not applicable to thumbnails. {Codec} - The type of the audio/video codec. Any unsubstituted macros will be collapsed and removed from the filename.
+	// FilenamePattern - The pattern of the file names for the generated output files. The following macros are supported in the file name: {Basename} - An expansion macro that will use the name of the input video file. If the base name(the file suffix is not included) of the input video file is less than 32 characters long, the base name of input video files will be used. If the length of base name of the input video file exceeds 32 characters, the base name is truncated to the first 32 characters in total length. {Extension} - The appropriate extension for this format. {Label} - The label assigned to the codec/layer. {Index} - A unique index for thumbnails. Only applicable to thumbnails. {Bitrate} - The audio/video bitrate. Not applicable to thumbnails. {Codec} - The type of the audio/video codec. Any unsubstituted macros will be collapsed and removed from the filename.
 	FilenamePattern *string `json:"filenamePattern,omitempty"`
 	// OdataType - Possible values include: 'OdataTypeFormat', 'OdataTypeMicrosoftMediaImageFormat', 'OdataTypeMicrosoftMediaJpgFormat', 'OdataTypeMicrosoftMediaPngFormat', 'OdataTypeMicrosoftMediaMultiBitrateFormat', 'OdataTypeMicrosoftMediaMp4Format', 'OdataTypeMicrosoftMediaTransportStreamFormat'
 	OdataType OdataTypeBasicFormat `json:"@odata.type,omitempty"`
@@ -7035,7 +7195,7 @@ type BasicMultiBitrateFormat interface {
 type MultiBitrateFormat struct {
 	// OutputFiles - The list of output files to produce.  Each entry in the list is a set of audio and video layer labels to be muxed together .
 	OutputFiles *[]OutputFile `json:"outputFiles,omitempty"`
-	// FilenamePattern - The pattern of the file names for the generated output files. The following macros are supported in the file name: {Basename} - The base name of the input video {Extension} - The appropriate extension for this format. {Label} - The label assigned to the codec/layer. {Index} - A unique index for thumbnails. Only applicable to thumbnails. {Bitrate} - The audio/video bitrate. Not applicable to thumbnails. {Codec} - The type of the audio/video codec. Any unsubstituted macros will be collapsed and removed from the filename.
+	// FilenamePattern - The pattern of the file names for the generated output files. The following macros are supported in the file name: {Basename} - An expansion macro that will use the name of the input video file. If the base name(the file suffix is not included) of the input video file is less than 32 characters long, the base name of input video files will be used. If the length of base name of the input video file exceeds 32 characters, the base name is truncated to the first 32 characters in total length. {Extension} - The appropriate extension for this format. {Label} - The label assigned to the codec/layer. {Index} - A unique index for thumbnails. Only applicable to thumbnails. {Bitrate} - The audio/video bitrate. Not applicable to thumbnails. {Codec} - The type of the audio/video codec. Any unsubstituted macros will be collapsed and removed from the filename.
 	FilenamePattern *string `json:"filenamePattern,omitempty"`
 	// OdataType - Possible values include: 'OdataTypeFormat', 'OdataTypeMicrosoftMediaImageFormat', 'OdataTypeMicrosoftMediaJpgFormat', 'OdataTypeMicrosoftMediaPngFormat', 'OdataTypeMicrosoftMediaMultiBitrateFormat', 'OdataTypeMicrosoftMediaMp4Format', 'OdataTypeMicrosoftMediaTransportStreamFormat'
 	OdataType OdataTypeBasicFormat `json:"@odata.type,omitempty"`
@@ -7175,7 +7335,7 @@ type Operation struct {
 	// Origin - Origin of the operation.
 	Origin *string `json:"origin,omitempty"`
 	// Properties - Operation properties format.
-	Properties *MetricProperties `json:"properties,omitempty"`
+	Properties *Properties `json:"properties,omitempty"`
 }
 
 // OperationCollection a collection of Operation items.
@@ -7363,9 +7523,9 @@ type BasicOverlay interface {
 type Overlay struct {
 	// InputLabel - The label of the job input which is to be used as an overlay. The Input must specify exactly one file. You can specify an image file in JPG or PNG formats, or an audio file (such as a WAV, MP3, WMA or M4A file), or a video file. See https://aka.ms/mesformats for the complete list of supported audio and video file formats.
 	InputLabel *string `json:"inputLabel,omitempty"`
-	// Start - The start position, with reference to the input video, at which the overlay starts. The value should be in ISO 8601 format. For example, PT05S to start the overlay at 5 seconds in to the input video. If not specified the overlay starts from the beginning of the input video.
+	// Start - The start position, with reference to the input video, at which the overlay starts. The value should be in ISO 8601 format. For example, PT05S to start the overlay at 5 seconds into the input video. If not specified the overlay starts from the beginning of the input video.
 	Start *string `json:"start,omitempty"`
-	// End - The position in the input video at which the overlay ends. The value should be in ISO 8601 duration format. For example, PT30S to end the overlay at 30 seconds in to the input video. If not specified the overlay will be applied until the end of the input video if inputLoop is true. Else, if inputLoop is false, then overlay will last as long as the duration of the overlay media.
+	// End - The end position, with reference to the input video, at which the overlay ends. The value should be in ISO 8601 format. For example, PT30S to end the overlay at 30 seconds into the input video. If not specified or the value is greater than the input video duration, the overlay will be applied until the end of the input video if the overlay media duration is greater than the input video duration, else the overlay will last as long as the overlay media duration.
 	End *string `json:"end,omitempty"`
 	// FadeInDuration - The duration over which the overlay fades in onto the input video. The value should be in ISO 8601 duration format. If not specified the default behavior is to have no fade in (same as PT0S).
 	FadeInDuration *string `json:"fadeInDuration,omitempty"`
@@ -7468,7 +7628,7 @@ func (o Overlay) AsBasicOverlay() (BasicOverlay, bool) {
 
 // PngFormat describes the settings for producing PNG thumbnails.
 type PngFormat struct {
-	// FilenamePattern - The pattern of the file names for the generated output files. The following macros are supported in the file name: {Basename} - The base name of the input video {Extension} - The appropriate extension for this format. {Label} - The label assigned to the codec/layer. {Index} - A unique index for thumbnails. Only applicable to thumbnails. {Bitrate} - The audio/video bitrate. Not applicable to thumbnails. {Codec} - The type of the audio/video codec. Any unsubstituted macros will be collapsed and removed from the filename.
+	// FilenamePattern - The pattern of the file names for the generated output files. The following macros are supported in the file name: {Basename} - An expansion macro that will use the name of the input video file. If the base name(the file suffix is not included) of the input video file is less than 32 characters long, the base name of input video files will be used. If the length of base name of the input video file exceeds 32 characters, the base name is truncated to the first 32 characters in total length. {Extension} - The appropriate extension for this format. {Label} - The label assigned to the codec/layer. {Index} - A unique index for thumbnails. Only applicable to thumbnails. {Bitrate} - The audio/video bitrate. Not applicable to thumbnails. {Codec} - The type of the audio/video codec. Any unsubstituted macros will be collapsed and removed from the filename.
 	FilenamePattern *string `json:"filenamePattern,omitempty"`
 	// OdataType - Possible values include: 'OdataTypeFormat', 'OdataTypeMicrosoftMediaImageFormat', 'OdataTypeMicrosoftMediaJpgFormat', 'OdataTypeMicrosoftMediaPngFormat', 'OdataTypeMicrosoftMediaMultiBitrateFormat', 'OdataTypeMicrosoftMediaMp4Format', 'OdataTypeMicrosoftMediaTransportStreamFormat'
 	OdataType OdataTypeBasicFormat `json:"@odata.type,omitempty"`
@@ -7541,19 +7701,21 @@ func (pf PngFormat) AsBasicFormat() (BasicFormat, bool) {
 type PngImage struct {
 	// Layers - A collection of output PNG image layers to be produced by the encoder.
 	Layers *[]PngLayer `json:"layers,omitempty"`
-	// Start - The position in the input video from where to start generating thumbnails. The value can be in absolute timestamp (ISO 8601, e.g: PT05S), or a frame count (For example, 10 for the 10th frame), or a relative value (For example, 1%). Also supports a macro {Best}, which tells the encoder to select the best thumbnail from the first few seconds of the video.
+	// Start - The position in the input video from where to start generating thumbnails. The value can be in ISO 8601 format (For example, PT05S to start at 5 seconds), or a frame count (For example, 10 to start at the 10th frame), or a relative value to stream duration (For example, 10% to start at 10% of stream duration). Also supports a macro {Best}, which tells the encoder to select the best thumbnail from the first few seconds of the video and will only produce one thumbnail, no matter what other settings are for Step and Range. The default value is macro {Best}.
 	Start *string `json:"start,omitempty"`
-	// Step - The intervals at which thumbnails are generated. The value can be in absolute timestamp (ISO 8601, e.g: PT05S for one image every 5 seconds), or a frame count (For example, 30 for every 30 frames), or a relative value (For example, 1%).
+	// Step - The intervals at which thumbnails are generated. The value can be in ISO 8601 format (For example, PT05S for one image every 5 seconds), or a frame count (For example, 30 for one image every 30 frames), or a relative value to stream duration (For example, 10% for one image every 10% of stream duration). Note: Step value will affect the first generated thumbnail, which may not be exactly the one specified at transform preset start time. This is due to the encoder, which tries to select the best thumbnail between start time and Step position from start time as the first output. As the default value is 10%, it means if stream has long duration, the first generated thumbnail might be far away from the one specified at start time. Try to select reasonable value for Step if the first thumbnail is expected close to start time, or set Range value at 1 if only one thumbnail is needed at start time.
 	Step *string `json:"step,omitempty"`
-	// Range - The position in the input video at which to stop generating thumbnails. The value can be in absolute timestamp (ISO 8601, e.g: PT5M30S to stop at 5 minutes and 30 seconds), or a frame count (For example, 300 to stop at the 300th frame), or a relative value (For example, 100%).
+	// Range - The position relative to transform preset start time in the input video at which to stop generating thumbnails. The value can be in ISO 8601 format (For example, PT5M30S to stop at 5 minutes and 30 seconds from start time), or a frame count (For example, 300 to stop at the 300th frame from the frame at start time. If this value is 1, it means only producing one thumbnail at start time), or a relative value to the stream duration (For example, 50% to stop at half of stream duration from start time). The default value is 100%, which means to stop at the end of the stream.
 	Range *string `json:"range,omitempty"`
-	// KeyFrameInterval - The distance between two key frames, thereby defining a group of pictures (GOP). The value should be a non-zero integer in the range [1, 30] seconds, specified in ISO 8601 format. The default is 2 seconds (PT2S).
+	// KeyFrameInterval - The distance between two key frames. The value should be non-zero in the range [0.5, 20] seconds, specified in ISO 8601 format. The default is 2 seconds(PT2S). Note that this setting is ignored if VideoSyncMode.Passthrough is set, where the KeyFrameInterval value will follow the input source setting.
 	KeyFrameInterval *string `json:"keyFrameInterval,omitempty"`
 	// StretchMode - The resizing mode - how the input video will be resized to fit the desired output resolution(s). Default is AutoSize. Possible values include: 'StretchModeNone', 'StretchModeAutoSize', 'StretchModeAutoFit'
 	StretchMode StretchMode `json:"stretchMode,omitempty"`
+	// SyncMode - The Video Sync Mode. Possible values include: 'VideoSyncModeAuto', 'VideoSyncModePassthrough', 'VideoSyncModeCfr', 'VideoSyncModeVfr'
+	SyncMode VideoSyncMode `json:"syncMode,omitempty"`
 	// Label - An optional label for the codec. The label can be used to control muxing behavior.
 	Label *string `json:"label,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeCodec', 'OdataTypeMicrosoftMediaAudio', 'OdataTypeMicrosoftMediaAacAudio', 'OdataTypeMicrosoftMediaCopyVideo', 'OdataTypeMicrosoftMediaVideo', 'OdataTypeMicrosoftMediaImage', 'OdataTypeMicrosoftMediaCopyAudio', 'OdataTypeMicrosoftMediaH264Video', 'OdataTypeMicrosoftMediaJpgImage', 'OdataTypeMicrosoftMediaPngImage'
+	// OdataType - Possible values include: 'OdataTypeCodec', 'OdataTypeMicrosoftMediaAudio', 'OdataTypeMicrosoftMediaAacAudio', 'OdataTypeMicrosoftMediaVideo', 'OdataTypeMicrosoftMediaCopyVideo', 'OdataTypeMicrosoftMediaImage', 'OdataTypeMicrosoftMediaCopyAudio', 'OdataTypeMicrosoftMediaH264Video', 'OdataTypeMicrosoftMediaJpgImage', 'OdataTypeMicrosoftMediaPngImage'
 	OdataType OdataTypeBasicCodec `json:"@odata.type,omitempty"`
 }
 
@@ -7579,6 +7741,9 @@ func (pi PngImage) MarshalJSON() ([]byte, error) {
 	if pi.StretchMode != "" {
 		objectMap["stretchMode"] = pi.StretchMode
 	}
+	if pi.SyncMode != "" {
+		objectMap["syncMode"] = pi.SyncMode
+	}
 	if pi.Label != nil {
 		objectMap["label"] = pi.Label
 	}
@@ -7603,11 +7768,6 @@ func (pi PngImage) AsAacAudio() (*AacAudio, bool) {
 	return nil, false
 }
 
-// AsCopyVideo is the BasicCodec implementation for PngImage.
-func (pi PngImage) AsCopyVideo() (*CopyVideo, bool) {
-	return nil, false
-}
-
 // AsVideo is the BasicCodec implementation for PngImage.
 func (pi PngImage) AsVideo() (*Video, bool) {
 	return nil, false
@@ -7616,6 +7776,11 @@ func (pi PngImage) AsVideo() (*Video, bool) {
 // AsBasicVideo is the BasicCodec implementation for PngImage.
 func (pi PngImage) AsBasicVideo() (BasicVideo, bool) {
 	return &pi, true
+}
+
+// AsCopyVideo is the BasicCodec implementation for PngImage.
+func (pi PngImage) AsCopyVideo() (*CopyVideo, bool) {
+	return nil, false
 }
 
 // AsImage is the BasicCodec implementation for PngImage.
@@ -7863,19 +8028,233 @@ func (p Preset) AsBasicPreset() (BasicPreset, bool) {
 	return &p, true
 }
 
+// PrivateEndpoint the Private Endpoint resource.
+type PrivateEndpoint struct {
+	// ID - READ-ONLY; The ARM identifier for Private Endpoint
+	ID *string `json:"id,omitempty"`
+}
+
+// PrivateEndpointConnection the Private Endpoint Connection resource.
+type PrivateEndpointConnection struct {
+	autorest.Response `json:"-"`
+	// PrivateEndpointConnectionProperties - Resource properties.
+	*PrivateEndpointConnectionProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpointConnection.
+func (pec PrivateEndpointConnection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pec.PrivateEndpointConnectionProperties != nil {
+		objectMap["properties"] = pec.PrivateEndpointConnectionProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for PrivateEndpointConnection struct.
+func (pec *PrivateEndpointConnection) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var privateEndpointConnectionProperties PrivateEndpointConnectionProperties
+				err = json.Unmarshal(*v, &privateEndpointConnectionProperties)
+				if err != nil {
+					return err
+				}
+				pec.PrivateEndpointConnectionProperties = &privateEndpointConnectionProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				pec.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				pec.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				pec.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// PrivateEndpointConnectionListResult list of private endpoint connection associated with the specified
+// storage account
+type PrivateEndpointConnectionListResult struct {
+	autorest.Response `json:"-"`
+	// Value - Array of private endpoint connections
+	Value *[]PrivateEndpointConnection `json:"value,omitempty"`
+}
+
+// PrivateEndpointConnectionProperties properties of the PrivateEndpointConnectProperties.
+type PrivateEndpointConnectionProperties struct {
+	// PrivateEndpoint - The resource of private end point.
+	PrivateEndpoint *PrivateEndpoint `json:"privateEndpoint,omitempty"`
+	// PrivateLinkServiceConnectionState - A collection of information about the state of the connection between service consumer and provider.
+	PrivateLinkServiceConnectionState *PrivateLinkServiceConnectionState `json:"privateLinkServiceConnectionState,omitempty"`
+	// ProvisioningState - The provisioning state of the private endpoint connection resource. Possible values include: 'PrivateEndpointConnectionProvisioningStateSucceeded', 'PrivateEndpointConnectionProvisioningStateCreating', 'PrivateEndpointConnectionProvisioningStateDeleting', 'PrivateEndpointConnectionProvisioningStateFailed'
+	ProvisioningState PrivateEndpointConnectionProvisioningState `json:"provisioningState,omitempty"`
+}
+
+// PrivateLinkResource a private link resource
+type PrivateLinkResource struct {
+	autorest.Response `json:"-"`
+	// PrivateLinkResourceProperties - Resource properties.
+	*PrivateLinkResourceProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateLinkResource.
+func (plr PrivateLinkResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if plr.PrivateLinkResourceProperties != nil {
+		objectMap["properties"] = plr.PrivateLinkResourceProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for PrivateLinkResource struct.
+func (plr *PrivateLinkResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var privateLinkResourceProperties PrivateLinkResourceProperties
+				err = json.Unmarshal(*v, &privateLinkResourceProperties)
+				if err != nil {
+					return err
+				}
+				plr.PrivateLinkResourceProperties = &privateLinkResourceProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				plr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				plr.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				plr.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// PrivateLinkResourceListResult a list of private link resources
+type PrivateLinkResourceListResult struct {
+	autorest.Response `json:"-"`
+	// Value - Array of private link resources
+	Value *[]PrivateLinkResource `json:"value,omitempty"`
+}
+
+// PrivateLinkResourceProperties properties of a private link resource.
+type PrivateLinkResourceProperties struct {
+	// GroupID - READ-ONLY; The private link resource group id.
+	GroupID *string `json:"groupId,omitempty"`
+	// RequiredMembers - READ-ONLY; The private link resource required member names.
+	RequiredMembers *[]string `json:"requiredMembers,omitempty"`
+	// RequiredZoneNames - The private link resource Private link DNS zone name.
+	RequiredZoneNames *[]string `json:"requiredZoneNames,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateLinkResourceProperties.
+func (plrp PrivateLinkResourceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if plrp.RequiredZoneNames != nil {
+		objectMap["requiredZoneNames"] = plrp.RequiredZoneNames
+	}
+	return json.Marshal(objectMap)
+}
+
+// PrivateLinkServiceConnectionState a collection of information about the state of the connection between
+// service consumer and provider.
+type PrivateLinkServiceConnectionState struct {
+	// Status - Indicates whether the connection has been Approved/Rejected/Removed by the owner of the service. Possible values include: 'Pending', 'Approved', 'Rejected'
+	Status PrivateEndpointServiceConnectionStatus `json:"status,omitempty"`
+	// Description - The reason for approval/rejection of the connection.
+	Description *string `json:"description,omitempty"`
+	// ActionsRequired - A message indicating if changes on the service provider require any updates on the consumer.
+	ActionsRequired *string `json:"actionsRequired,omitempty"`
+}
+
+// Properties the service specification property.
+type Properties struct {
+	// ServiceSpecification - READ-ONLY; The service specifications.
+	ServiceSpecification *ServiceSpecification `json:"serviceSpecification,omitempty"`
+}
+
 // Provider a resource provider.
 type Provider struct {
 	// ProviderName - The provider name.
 	ProviderName *string `json:"providerName,omitempty"`
 }
 
-// ProxyResource the resource model definition for a ARM proxy resource.
+// ProxyResource the resource model definition for a Azure Resource Manager proxy resource. It will not have
+// tags and a location
 type ProxyResource struct {
-	// ID - READ-ONLY; Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource.
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -7891,13 +8270,13 @@ type Rectangle struct {
 	Height *string `json:"height,omitempty"`
 }
 
-// Resource the core properties of ARM resources.
+// Resource common fields that are returned in the response for all Azure Resource Manager resources
 type Resource struct {
-	// ID - READ-ONLY; Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource.
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -7906,15 +8285,17 @@ type Service struct {
 	autorest.Response `json:"-"`
 	// ServiceProperties - The resource properties.
 	*ServiceProperties `json:"properties,omitempty"`
+	// Identity - The Managed Identity for the Media Services account.
+	Identity *ServiceIdentity `json:"identity,omitempty"`
 	// Tags - Resource tags.
 	Tags map[string]*string `json:"tags"`
-	// Location - The Azure Region of the resource.
+	// Location - The geo-location where the resource lives
 	Location *string `json:"location,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource.
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -7923,6 +8304,9 @@ func (s Service) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if s.ServiceProperties != nil {
 		objectMap["properties"] = s.ServiceProperties
+	}
+	if s.Identity != nil {
+		objectMap["identity"] = s.Identity
 	}
 	if s.Tags != nil {
 		objectMap["tags"] = s.Tags
@@ -7950,6 +8334,15 @@ func (s *Service) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				s.ServiceProperties = &serviceProperties
+			}
+		case "identity":
+			if v != nil {
+				var identity ServiceIdentity
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				s.Identity = &identity
 			}
 		case "tags":
 			if v != nil {
@@ -8158,12 +8551,35 @@ func NewServiceCollectionPage(getNextPage func(context.Context, ServiceCollectio
 	return ServiceCollectionPage{fn: getNextPage}
 }
 
+// ServiceIdentity ...
+type ServiceIdentity struct {
+	// Type - The identity type. Possible values include: 'ManagedIdentityTypeSystemAssigned', 'ManagedIdentityTypeNone'
+	Type ManagedIdentityType `json:"type,omitempty"`
+	// PrincipalID - READ-ONLY; The Principal ID of the identity.
+	PrincipalID *string `json:"principalId,omitempty"`
+	// TenantID - READ-ONLY; The Tenant ID of the identity.
+	TenantID *string `json:"tenantId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServiceIdentity.
+func (si ServiceIdentity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if si.Type != "" {
+		objectMap["type"] = si.Type
+	}
+	return json.Marshal(objectMap)
+}
+
 // ServiceProperties properties of the Media Services account.
 type ServiceProperties struct {
 	// MediaServiceID - READ-ONLY; The Media Services account ID.
 	MediaServiceID *uuid.UUID `json:"mediaServiceId,omitempty"`
 	// StorageAccounts - The storage accounts for this resource.
 	StorageAccounts *[]StorageAccount `json:"storageAccounts,omitempty"`
+	// StorageAuthentication - Possible values include: 'System', 'ManagedIdentity'
+	StorageAuthentication StorageAuthentication `json:"storageAuthentication,omitempty"`
+	// Encryption - The account encryption properties.
+	Encryption *AccountEncryption `json:"encryption,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ServiceProperties.
@@ -8172,13 +8588,21 @@ func (sp ServiceProperties) MarshalJSON() ([]byte, error) {
 	if sp.StorageAccounts != nil {
 		objectMap["storageAccounts"] = sp.StorageAccounts
 	}
+	if sp.StorageAuthentication != "" {
+		objectMap["storageAuthentication"] = sp.StorageAuthentication
+	}
+	if sp.Encryption != nil {
+		objectMap["encryption"] = sp.Encryption
+	}
 	return json.Marshal(objectMap)
 }
 
 // ServiceSpecification the service metric specifications.
 type ServiceSpecification struct {
+	// LogSpecifications - READ-ONLY; List of log specifications.
+	LogSpecifications *[]LogSpecification `json:"logSpecifications,omitempty"`
 	// MetricSpecifications - READ-ONLY; List of metric specifications.
-	MetricSpecifications *[]Metric `json:"metricSpecifications,omitempty"`
+	MetricSpecifications *[]MetricSpecification `json:"metricSpecifications,omitempty"`
 }
 
 // StandardEncoderPreset describes all the settings to be used when encoding the input video with the Standard
@@ -8320,20 +8744,20 @@ type StorageEncryptedAssetDecryptionData struct {
 	AssetFileEncryptionMetadata *[]AssetFileEncryptionMetadata `json:"assetFileEncryptionMetadata,omitempty"`
 }
 
-// StreamingEndpoint the StreamingEndpoint.
+// StreamingEndpoint the streaming endpoint.
 type StreamingEndpoint struct {
 	autorest.Response `json:"-"`
-	// StreamingEndpointProperties - The StreamingEndpoint properties.
+	// StreamingEndpointProperties - The streaming endpoint properties.
 	*StreamingEndpointProperties `json:"properties,omitempty"`
 	// Tags - Resource tags.
 	Tags map[string]*string `json:"tags"`
-	// Location - The Azure Region of the resource.
+	// Location - The geo-location where the resource lives
 	Location *string `json:"location,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource.
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -8421,22 +8845,22 @@ func (se *StreamingEndpoint) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// StreamingEndpointAccessControl streamingEndpoint access control definition.
+// StreamingEndpointAccessControl streaming endpoint access control definition.
 type StreamingEndpointAccessControl struct {
 	// Akamai - The access control of Akamai
 	Akamai *AkamaiAccessControl `json:"akamai,omitempty"`
-	// IP - The IP access control of the StreamingEndpoint.
+	// IP - The IP access control of the streaming endpoint.
 	IP *IPAccessControl `json:"ip,omitempty"`
 }
 
-// StreamingEndpointListResult the StreamingEndpoint list result.
+// StreamingEndpointListResult the streaming endpoint list result.
 type StreamingEndpointListResult struct {
 	autorest.Response `json:"-"`
 	// Value - The result of the List StreamingEndpoint operation.
 	Value *[]StreamingEndpoint `json:"value,omitempty"`
 	// OdataCount - The number of result.
 	OdataCount *int32 `json:"@odata.count,omitempty"`
-	// OdataNextLink - Th link to the next set of results. Not empty if value contains incomplete list of StreamingEndpoints.
+	// OdataNextLink - The link to the next set of results. Not empty if value contains incomplete list of streaming endpoints.
 	OdataNextLink *string `json:"@odata.nextLink,omitempty"`
 }
 
@@ -8587,21 +9011,21 @@ func NewStreamingEndpointListResultPage(getNextPage func(context.Context, Stream
 	return StreamingEndpointListResultPage{fn: getNextPage}
 }
 
-// StreamingEndpointProperties the StreamingEndpoint properties.
+// StreamingEndpointProperties the streaming endpoint properties.
 type StreamingEndpointProperties struct {
-	// Description - The StreamingEndpoint description.
+	// Description - The streaming endpoint description.
 	Description *string `json:"description,omitempty"`
-	// ScaleUnits - The number of scale units.  Use the Scale operation to adjust this value.
+	// ScaleUnits - The number of scale units. Use the Scale operation to adjust this value.
 	ScaleUnits *int32 `json:"scaleUnits,omitempty"`
-	// AvailabilitySetName - The name of the AvailabilitySet used with this StreamingEndpoint for high availability streaming.  This value can only be set at creation time.
+	// AvailabilitySetName - This feature is deprecated, do not set a value for this property.
 	AvailabilitySetName *string `json:"availabilitySetName,omitempty"`
-	// AccessControl - The access control definition of the StreamingEndpoint.
+	// AccessControl - The access control definition of the streaming endpoint.
 	AccessControl *StreamingEndpointAccessControl `json:"accessControl,omitempty"`
 	// MaxCacheAge - Max cache age
 	MaxCacheAge *int64 `json:"maxCacheAge,omitempty"`
-	// CustomHostNames - The custom host names of the StreamingEndpoint
+	// CustomHostNames - The custom host names of the streaming endpoint
 	CustomHostNames *[]string `json:"customHostNames,omitempty"`
-	// HostName - READ-ONLY; The StreamingEndpoint host name.
+	// HostName - READ-ONLY; The streaming endpoint host name.
 	HostName *string `json:"hostName,omitempty"`
 	// CdnEnabled - The CDN enabled flag.
 	CdnEnabled *bool `json:"cdnEnabled,omitempty"`
@@ -8609,17 +9033,17 @@ type StreamingEndpointProperties struct {
 	CdnProvider *string `json:"cdnProvider,omitempty"`
 	// CdnProfile - The CDN profile name.
 	CdnProfile *string `json:"cdnProfile,omitempty"`
-	// ProvisioningState - READ-ONLY; The provisioning state of the StreamingEndpoint.
+	// ProvisioningState - READ-ONLY; The provisioning state of the streaming endpoint.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
-	// ResourceState - READ-ONLY; The resource state of the StreamingEndpoint. Possible values include: 'StreamingEndpointResourceStateStopped', 'StreamingEndpointResourceStateStarting', 'StreamingEndpointResourceStateRunning', 'StreamingEndpointResourceStateStopping', 'StreamingEndpointResourceStateDeleting', 'StreamingEndpointResourceStateScaling'
+	// ResourceState - READ-ONLY; The resource state of the streaming endpoint. Possible values include: 'StreamingEndpointResourceStateStopped', 'StreamingEndpointResourceStateStarting', 'StreamingEndpointResourceStateRunning', 'StreamingEndpointResourceStateStopping', 'StreamingEndpointResourceStateDeleting', 'StreamingEndpointResourceStateScaling'
 	ResourceState StreamingEndpointResourceState `json:"resourceState,omitempty"`
-	// CrossSiteAccessPolicies - The StreamingEndpoint access policies.
+	// CrossSiteAccessPolicies - The streaming endpoint access policies.
 	CrossSiteAccessPolicies *CrossSiteAccessPolicies `json:"crossSiteAccessPolicies,omitempty"`
 	// FreeTrialEndTime - READ-ONLY; The free trial expiration time.
 	FreeTrialEndTime *date.Time `json:"freeTrialEndTime,omitempty"`
-	// Created - READ-ONLY; The exact time the StreamingEndpoint was created.
+	// Created - READ-ONLY; The exact time the streaming endpoint was created.
 	Created *date.Time `json:"created,omitempty"`
-	// LastModified - READ-ONLY; The exact time the StreamingEndpoint was last modified.
+	// LastModified - READ-ONLY; The exact time the streaming endpoint was last modified.
 	LastModified *date.Time `json:"lastModified,omitempty"`
 }
 
@@ -8811,7 +9235,7 @@ func (future *StreamingEndpointsUpdateFuture) Result(client StreamingEndpointsCl
 
 // StreamingEntityScaleUnit scale units definition
 type StreamingEntityScaleUnit struct {
-	// ScaleUnit - The scale unit number of the StreamingEndpoint.
+	// ScaleUnit - The scale unit number of the streaming endpoint.
 	ScaleUnit *int32 `json:"scaleUnit,omitempty"`
 }
 
@@ -8819,11 +9243,11 @@ type StreamingEntityScaleUnit struct {
 type StreamingLocator struct {
 	autorest.Response           `json:"-"`
 	*StreamingLocatorProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource.
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -9145,11 +9569,11 @@ type StreamingPath struct {
 type StreamingPolicy struct {
 	autorest.Response          `json:"-"`
 	*StreamingPolicyProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource.
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -9446,281 +9870,24 @@ type StreamingPolicyWidevineConfiguration struct {
 	CustomLicenseAcquisitionURLTemplate *string `json:"customLicenseAcquisitionUrlTemplate,omitempty"`
 }
 
-// SubscriptionMediaService a Media Services account.
-type SubscriptionMediaService struct {
-	autorest.Response `json:"-"`
-	// ServiceProperties - The resource properties.
-	*ServiceProperties `json:"properties,omitempty"`
-	// Tags - Resource tags.
-	Tags map[string]*string `json:"tags"`
-	// Location - The Azure Region of the resource.
-	Location *string `json:"location,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource ID for the resource.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource.
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for SubscriptionMediaService.
-func (sms SubscriptionMediaService) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if sms.ServiceProperties != nil {
-		objectMap["properties"] = sms.ServiceProperties
-	}
-	if sms.Tags != nil {
-		objectMap["tags"] = sms.Tags
-	}
-	if sms.Location != nil {
-		objectMap["location"] = sms.Location
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for SubscriptionMediaService struct.
-func (sms *SubscriptionMediaService) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var serviceProperties ServiceProperties
-				err = json.Unmarshal(*v, &serviceProperties)
-				if err != nil {
-					return err
-				}
-				sms.ServiceProperties = &serviceProperties
-			}
-		case "tags":
-			if v != nil {
-				var tags map[string]*string
-				err = json.Unmarshal(*v, &tags)
-				if err != nil {
-					return err
-				}
-				sms.Tags = tags
-			}
-		case "location":
-			if v != nil {
-				var location string
-				err = json.Unmarshal(*v, &location)
-				if err != nil {
-					return err
-				}
-				sms.Location = &location
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				sms.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				sms.Name = &name
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				sms.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// SubscriptionMediaServiceCollection a collection of SubscriptionMediaService items.
-type SubscriptionMediaServiceCollection struct {
-	autorest.Response `json:"-"`
-	// Value - A collection of SubscriptionMediaService items.
-	Value *[]SubscriptionMediaService `json:"value,omitempty"`
-	// OdataNextLink - A link to the next page of the collection (when the collection contains too many results to return in one response).
-	OdataNextLink *string `json:"@odata.nextLink,omitempty"`
-}
-
-// SubscriptionMediaServiceCollectionIterator provides access to a complete listing of SubscriptionMediaService
-// values.
-type SubscriptionMediaServiceCollectionIterator struct {
-	i    int
-	page SubscriptionMediaServiceCollectionPage
-}
-
-// NextWithContext advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-func (iter *SubscriptionMediaServiceCollectionIterator) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/SubscriptionMediaServiceCollectionIterator.NextWithContext")
-		defer func() {
-			sc := -1
-			if iter.Response().Response.Response != nil {
-				sc = iter.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	iter.i++
-	if iter.i < len(iter.page.Values()) {
-		return nil
-	}
-	err = iter.page.NextWithContext(ctx)
-	if err != nil {
-		iter.i--
-		return err
-	}
-	iter.i = 0
-	return nil
-}
-
-// Next advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (iter *SubscriptionMediaServiceCollectionIterator) Next() error {
-	return iter.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the enumeration should be started or is not yet complete.
-func (iter SubscriptionMediaServiceCollectionIterator) NotDone() bool {
-	return iter.page.NotDone() && iter.i < len(iter.page.Values())
-}
-
-// Response returns the raw server response from the last page request.
-func (iter SubscriptionMediaServiceCollectionIterator) Response() SubscriptionMediaServiceCollection {
-	return iter.page.Response()
-}
-
-// Value returns the current value or a zero-initialized value if the
-// iterator has advanced beyond the end of the collection.
-func (iter SubscriptionMediaServiceCollectionIterator) Value() SubscriptionMediaService {
-	if !iter.page.NotDone() {
-		return SubscriptionMediaService{}
-	}
-	return iter.page.Values()[iter.i]
-}
-
-// Creates a new instance of the SubscriptionMediaServiceCollectionIterator type.
-func NewSubscriptionMediaServiceCollectionIterator(page SubscriptionMediaServiceCollectionPage) SubscriptionMediaServiceCollectionIterator {
-	return SubscriptionMediaServiceCollectionIterator{page: page}
-}
-
-// IsEmpty returns true if the ListResult contains no values.
-func (smsc SubscriptionMediaServiceCollection) IsEmpty() bool {
-	return smsc.Value == nil || len(*smsc.Value) == 0
-}
-
-// hasNextLink returns true if the NextLink is not empty.
-func (smsc SubscriptionMediaServiceCollection) hasNextLink() bool {
-	return smsc.OdataNextLink != nil && len(*smsc.OdataNextLink) != 0
-}
-
-// subscriptionMediaServiceCollectionPreparer prepares a request to retrieve the next set of results.
-// It returns nil if no more results exist.
-func (smsc SubscriptionMediaServiceCollection) subscriptionMediaServiceCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if !smsc.hasNextLink() {
-		return nil, nil
-	}
-	return autorest.Prepare((&http.Request{}).WithContext(ctx),
-		autorest.AsJSON(),
-		autorest.AsGet(),
-		autorest.WithBaseURL(to.String(smsc.OdataNextLink)))
-}
-
-// SubscriptionMediaServiceCollectionPage contains a page of SubscriptionMediaService values.
-type SubscriptionMediaServiceCollectionPage struct {
-	fn   func(context.Context, SubscriptionMediaServiceCollection) (SubscriptionMediaServiceCollection, error)
-	smsc SubscriptionMediaServiceCollection
-}
-
-// NextWithContext advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-func (page *SubscriptionMediaServiceCollectionPage) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/SubscriptionMediaServiceCollectionPage.NextWithContext")
-		defer func() {
-			sc := -1
-			if page.Response().Response.Response != nil {
-				sc = page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	for {
-		next, err := page.fn(ctx, page.smsc)
-		if err != nil {
-			return err
-		}
-		page.smsc = next
-		if !next.hasNextLink() || !next.IsEmpty() {
-			break
-		}
-	}
-	return nil
-}
-
-// Next advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (page *SubscriptionMediaServiceCollectionPage) Next() error {
-	return page.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the page enumeration should be started or is not yet complete.
-func (page SubscriptionMediaServiceCollectionPage) NotDone() bool {
-	return !page.smsc.IsEmpty()
-}
-
-// Response returns the raw server response from the last page request.
-func (page SubscriptionMediaServiceCollectionPage) Response() SubscriptionMediaServiceCollection {
-	return page.smsc
-}
-
-// Values returns the slice of values for the current page or nil if there are no values.
-func (page SubscriptionMediaServiceCollectionPage) Values() []SubscriptionMediaService {
-	if page.smsc.IsEmpty() {
-		return nil
-	}
-	return *page.smsc.Value
-}
-
-// Creates a new instance of the SubscriptionMediaServiceCollectionPage type.
-func NewSubscriptionMediaServiceCollectionPage(getNextPage func(context.Context, SubscriptionMediaServiceCollection) (SubscriptionMediaServiceCollection, error)) SubscriptionMediaServiceCollectionPage {
-	return SubscriptionMediaServiceCollectionPage{fn: getNextPage}
-}
-
 // SyncStorageKeysInput the input to the sync storage keys request.
 type SyncStorageKeysInput struct {
 	// ID - The ID of the storage account resource.
 	ID *string `json:"id,omitempty"`
 }
 
-// TrackedResource the resource model definition for a ARM tracked resource.
+// TrackedResource the resource model definition for an Azure Resource Manager tracked top level resource which
+// has 'tags' and a 'location'
 type TrackedResource struct {
 	// Tags - Resource tags.
 	Tags map[string]*string `json:"tags"`
-	// Location - The Azure Region of the resource.
+	// Location - The geo-location where the resource lives
 	Location *string `json:"location,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource.
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -9759,11 +9926,11 @@ type Transform struct {
 	autorest.Response `json:"-"`
 	// TransformProperties - The resource properties.
 	*TransformProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource ID for the resource.
+	// ID - READ-ONLY; Fully qualified resource ID for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource.
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource.
+	// Type - READ-ONLY; The type of the resource. E.g. "Microsoft.Compute/virtualMachines" or "Microsoft.Storage/storageAccounts"
 	Type *string `json:"type,omitempty"`
 }
 
@@ -10064,7 +10231,7 @@ func (tp TransformProperties) MarshalJSON() ([]byte, error) {
 type TransportStreamFormat struct {
 	// OutputFiles - The list of output files to produce.  Each entry in the list is a set of audio and video layer labels to be muxed together .
 	OutputFiles *[]OutputFile `json:"outputFiles,omitempty"`
-	// FilenamePattern - The pattern of the file names for the generated output files. The following macros are supported in the file name: {Basename} - The base name of the input video {Extension} - The appropriate extension for this format. {Label} - The label assigned to the codec/layer. {Index} - A unique index for thumbnails. Only applicable to thumbnails. {Bitrate} - The audio/video bitrate. Not applicable to thumbnails. {Codec} - The type of the audio/video codec. Any unsubstituted macros will be collapsed and removed from the filename.
+	// FilenamePattern - The pattern of the file names for the generated output files. The following macros are supported in the file name: {Basename} - An expansion macro that will use the name of the input video file. If the base name(the file suffix is not included) of the input video file is less than 32 characters long, the base name of input video files will be used. If the length of base name of the input video file exceeds 32 characters, the base name is truncated to the first 32 characters in total length. {Extension} - The appropriate extension for this format. {Label} - The label assigned to the codec/layer. {Index} - A unique index for thumbnails. Only applicable to thumbnails. {Bitrate} - The audio/video bitrate. Not applicable to thumbnails. {Codec} - The type of the audio/video codec. Any unsubstituted macros will be collapsed and removed from the filename.
 	FilenamePattern *string `json:"filenamePattern,omitempty"`
 	// OdataType - Possible values include: 'OdataTypeFormat', 'OdataTypeMicrosoftMediaImageFormat', 'OdataTypeMicrosoftMediaJpgFormat', 'OdataTypeMicrosoftMediaPngFormat', 'OdataTypeMicrosoftMediaMultiBitrateFormat', 'OdataTypeMicrosoftMediaMp4Format', 'OdataTypeMicrosoftMediaTransportStreamFormat'
 	OdataType OdataTypeBasicFormat `json:"@odata.type,omitempty"`
@@ -10136,6 +10303,48 @@ func (tsf TransportStreamFormat) AsBasicFormat() (BasicFormat, bool) {
 	return &tsf, true
 }
 
+// UtcClipTime specifies the clip time as a Utc time position in the media file.  The Utc time can point to a
+// different position depending on whether the media file starts from a timestamp of zero or not.
+type UtcClipTime struct {
+	// Time - The time position on the timeline of the input media based on Utc time.
+	Time *date.Time `json:"time,omitempty"`
+	// OdataType - Possible values include: 'OdataTypeClipTime', 'OdataTypeMicrosoftMediaAbsoluteClipTime', 'OdataTypeMicrosoftMediaUtcClipTime'
+	OdataType OdataTypeBasicClipTime `json:"@odata.type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for UtcClipTime.
+func (uct UtcClipTime) MarshalJSON() ([]byte, error) {
+	uct.OdataType = OdataTypeMicrosoftMediaUtcClipTime
+	objectMap := make(map[string]interface{})
+	if uct.Time != nil {
+		objectMap["time"] = uct.Time
+	}
+	if uct.OdataType != "" {
+		objectMap["@odata.type"] = uct.OdataType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAbsoluteClipTime is the BasicClipTime implementation for UtcClipTime.
+func (uct UtcClipTime) AsAbsoluteClipTime() (*AbsoluteClipTime, bool) {
+	return nil, false
+}
+
+// AsUtcClipTime is the BasicClipTime implementation for UtcClipTime.
+func (uct UtcClipTime) AsUtcClipTime() (*UtcClipTime, bool) {
+	return &uct, true
+}
+
+// AsClipTime is the BasicClipTime implementation for UtcClipTime.
+func (uct UtcClipTime) AsClipTime() (*ClipTime, bool) {
+	return nil, false
+}
+
+// AsBasicClipTime is the BasicClipTime implementation for UtcClipTime.
+func (uct UtcClipTime) AsBasicClipTime() (BasicClipTime, bool) {
+	return &uct, true
+}
+
 // BasicVideo describes the basic properties for encoding the input video.
 type BasicVideo interface {
 	AsImage() (*Image, bool)
@@ -10148,13 +10357,15 @@ type BasicVideo interface {
 
 // Video describes the basic properties for encoding the input video.
 type Video struct {
-	// KeyFrameInterval - The distance between two key frames, thereby defining a group of pictures (GOP). The value should be a non-zero integer in the range [1, 30] seconds, specified in ISO 8601 format. The default is 2 seconds (PT2S).
+	// KeyFrameInterval - The distance between two key frames. The value should be non-zero in the range [0.5, 20] seconds, specified in ISO 8601 format. The default is 2 seconds(PT2S). Note that this setting is ignored if VideoSyncMode.Passthrough is set, where the KeyFrameInterval value will follow the input source setting.
 	KeyFrameInterval *string `json:"keyFrameInterval,omitempty"`
 	// StretchMode - The resizing mode - how the input video will be resized to fit the desired output resolution(s). Default is AutoSize. Possible values include: 'StretchModeNone', 'StretchModeAutoSize', 'StretchModeAutoFit'
 	StretchMode StretchMode `json:"stretchMode,omitempty"`
+	// SyncMode - The Video Sync Mode. Possible values include: 'VideoSyncModeAuto', 'VideoSyncModePassthrough', 'VideoSyncModeCfr', 'VideoSyncModeVfr'
+	SyncMode VideoSyncMode `json:"syncMode,omitempty"`
 	// Label - An optional label for the codec. The label can be used to control muxing behavior.
 	Label *string `json:"label,omitempty"`
-	// OdataType - Possible values include: 'OdataTypeCodec', 'OdataTypeMicrosoftMediaAudio', 'OdataTypeMicrosoftMediaAacAudio', 'OdataTypeMicrosoftMediaCopyVideo', 'OdataTypeMicrosoftMediaVideo', 'OdataTypeMicrosoftMediaImage', 'OdataTypeMicrosoftMediaCopyAudio', 'OdataTypeMicrosoftMediaH264Video', 'OdataTypeMicrosoftMediaJpgImage', 'OdataTypeMicrosoftMediaPngImage'
+	// OdataType - Possible values include: 'OdataTypeCodec', 'OdataTypeMicrosoftMediaAudio', 'OdataTypeMicrosoftMediaAacAudio', 'OdataTypeMicrosoftMediaVideo', 'OdataTypeMicrosoftMediaCopyVideo', 'OdataTypeMicrosoftMediaImage', 'OdataTypeMicrosoftMediaCopyAudio', 'OdataTypeMicrosoftMediaH264Video', 'OdataTypeMicrosoftMediaJpgImage', 'OdataTypeMicrosoftMediaPngImage'
 	OdataType OdataTypeBasicCodec `json:"@odata.type,omitempty"`
 }
 
@@ -10217,6 +10428,9 @@ func (vVar Video) MarshalJSON() ([]byte, error) {
 	if vVar.StretchMode != "" {
 		objectMap["stretchMode"] = vVar.StretchMode
 	}
+	if vVar.SyncMode != "" {
+		objectMap["syncMode"] = vVar.SyncMode
+	}
 	if vVar.Label != nil {
 		objectMap["label"] = vVar.Label
 	}
@@ -10241,11 +10455,6 @@ func (vVar Video) AsAacAudio() (*AacAudio, bool) {
 	return nil, false
 }
 
-// AsCopyVideo is the BasicCodec implementation for Video.
-func (vVar Video) AsCopyVideo() (*CopyVideo, bool) {
-	return nil, false
-}
-
 // AsVideo is the BasicCodec implementation for Video.
 func (vVar Video) AsVideo() (*Video, bool) {
 	return &vVar, true
@@ -10254,6 +10463,11 @@ func (vVar Video) AsVideo() (*Video, bool) {
 // AsBasicVideo is the BasicCodec implementation for Video.
 func (vVar Video) AsBasicVideo() (BasicVideo, bool) {
 	return &vVar, true
+}
+
+// AsCopyVideo is the BasicCodec implementation for Video.
+func (vVar Video) AsCopyVideo() (*CopyVideo, bool) {
+	return nil, false
 }
 
 // AsImage is the BasicCodec implementation for Video.
@@ -10301,8 +10515,10 @@ func (vVar Video) AsBasicCodec() (BasicCodec, bool) {
 type VideoAnalyzerPreset struct {
 	// InsightsToExtract - Defines the type of insights that you want the service to generate. The allowed values are 'AudioInsightsOnly', 'VideoInsightsOnly', and 'AllInsights'. The default is AllInsights. If you set this to AllInsights and the input is audio only, then only audio insights are generated. Similarly if the input is video only, then only video insights are generated. It is recommended that you not use AudioInsightsOnly if you expect some of your inputs to be video only; or use VideoInsightsOnly if you expect some of your inputs to be audio only. Your Jobs in such conditions would error out. Possible values include: 'AudioInsightsOnly', 'VideoInsightsOnly', 'AllInsights'
 	InsightsToExtract InsightsType `json:"insightsToExtract,omitempty"`
-	// AudioLanguage - The language for the audio payload in the input using the BCP-47 format of 'language tag-region' (e.g: 'en-US').  If you know the language of your content, it is recommended that you specify it. If the language isn't specified or set to null, automatic language detection will choose the first language detected and process with the selected language for the duration of the file. It does not currently support dynamically switching between languages after the first language is detected. The automatic detection works best with audio recordings with clearly discernable speech. If automatic detection fails to find the language, transcription would fallback to 'en-US'." The list of supported languages is available here: https://go.microsoft.com/fwlink/?linkid=2109463
+	// AudioLanguage - The language for the audio payload in the input using the BCP-47 format of 'language tag-region' (e.g: 'en-US').  If you know the language of your content, it is recommended that you specify it. The language must be specified explicitly for AudioAnalysisMode::Basic, since automatic language detection is not included in basic mode. If the language isn't specified or set to null, automatic language detection will choose the first language detected and process with the selected language for the duration of the file. It does not currently support dynamically switching between languages after the first language is detected. The automatic detection works best with audio recordings with clearly discernable speech. If automatic detection fails to find the language, transcription would fallback to 'en-US'." The list of supported languages is available here: https://go.microsoft.com/fwlink/?linkid=2109463
 	AudioLanguage *string `json:"audioLanguage,omitempty"`
+	// Mode - Determines the set of audio analysis operations to be performed. If unspecified, the Standard AudioAnalysisMode would be chosen. Possible values include: 'Standard', 'Basic'
+	Mode AudioAnalysisMode `json:"mode,omitempty"`
 	// ExperimentalOptions - Dictionary containing key value pairs for parameters not exposed in the preset itself
 	ExperimentalOptions map[string]*string `json:"experimentalOptions"`
 	// OdataType - Possible values include: 'OdataTypePreset', 'OdataTypeMicrosoftMediaFaceDetectorPreset', 'OdataTypeMicrosoftMediaAudioAnalyzerPreset', 'OdataTypeMicrosoftMediaBuiltInStandardEncoderPreset', 'OdataTypeMicrosoftMediaStandardEncoderPreset', 'OdataTypeMicrosoftMediaVideoAnalyzerPreset'
@@ -10318,6 +10534,9 @@ func (vap VideoAnalyzerPreset) MarshalJSON() ([]byte, error) {
 	}
 	if vap.AudioLanguage != nil {
 		objectMap["audioLanguage"] = vap.AudioLanguage
+	}
+	if vap.Mode != "" {
+		objectMap["mode"] = vap.Mode
 	}
 	if vap.ExperimentalOptions != nil {
 		objectMap["experimentalOptions"] = vap.ExperimentalOptions
@@ -10518,9 +10737,9 @@ type VideoOverlay struct {
 	CropRectangle *Rectangle `json:"cropRectangle,omitempty"`
 	// InputLabel - The label of the job input which is to be used as an overlay. The Input must specify exactly one file. You can specify an image file in JPG or PNG formats, or an audio file (such as a WAV, MP3, WMA or M4A file), or a video file. See https://aka.ms/mesformats for the complete list of supported audio and video file formats.
 	InputLabel *string `json:"inputLabel,omitempty"`
-	// Start - The start position, with reference to the input video, at which the overlay starts. The value should be in ISO 8601 format. For example, PT05S to start the overlay at 5 seconds in to the input video. If not specified the overlay starts from the beginning of the input video.
+	// Start - The start position, with reference to the input video, at which the overlay starts. The value should be in ISO 8601 format. For example, PT05S to start the overlay at 5 seconds into the input video. If not specified the overlay starts from the beginning of the input video.
 	Start *string `json:"start,omitempty"`
-	// End - The position in the input video at which the overlay ends. The value should be in ISO 8601 duration format. For example, PT30S to end the overlay at 30 seconds in to the input video. If not specified the overlay will be applied until the end of the input video if inputLoop is true. Else, if inputLoop is false, then overlay will last as long as the duration of the overlay media.
+	// End - The end position, with reference to the input video, at which the overlay ends. The value should be in ISO 8601 format. For example, PT30S to end the overlay at 30 seconds into the input video. If not specified or the value is greater than the input video duration, the overlay will be applied until the end of the input video if the overlay media duration is greater than the input video duration, else the overlay will last as long as the overlay media duration.
 	End *string `json:"end,omitempty"`
 	// FadeInDuration - The duration over which the overlay fades in onto the input video. The value should be in ISO 8601 duration format. If not specified the default behavior is to have no fade in (same as PT0S).
 	FadeInDuration *string `json:"fadeInDuration,omitempty"`

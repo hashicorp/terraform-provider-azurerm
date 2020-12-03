@@ -34,6 +34,21 @@ func PossibleAacAudioProfileValues() []AacAudioProfile {
 	return []AacAudioProfile{AacLc, HeAacV1, HeAacV2}
 }
 
+// AccountEncryptionKeyType enumerates the values for account encryption key type.
+type AccountEncryptionKeyType string
+
+const (
+	// CustomerKey The Account Key is encrypted with a Customer Key.
+	CustomerKey AccountEncryptionKeyType = "CustomerKey"
+	// SystemKey The Account Key is encrypted with a System Key.
+	SystemKey AccountEncryptionKeyType = "SystemKey"
+)
+
+// PossibleAccountEncryptionKeyTypeValues returns an array of possible values for the AccountEncryptionKeyType const type.
+func PossibleAccountEncryptionKeyTypeValues() []AccountEncryptionKeyType {
+	return []AccountEncryptionKeyType{CustomerKey, SystemKey}
+}
+
 // AnalysisResolution enumerates the values for analysis resolution.
 type AnalysisResolution string
 
@@ -80,6 +95,24 @@ const (
 // PossibleAssetStorageEncryptionFormatValues returns an array of possible values for the AssetStorageEncryptionFormat const type.
 func PossibleAssetStorageEncryptionFormatValues() []AssetStorageEncryptionFormat {
 	return []AssetStorageEncryptionFormat{MediaStorageClientEncryption, None}
+}
+
+// AudioAnalysisMode enumerates the values for audio analysis mode.
+type AudioAnalysisMode string
+
+const (
+	// Basic This mode performs speech-to-text transcription and generation of a VTT subtitle/caption file. The
+	// output of this mode includes an Insights JSON file including only the keywords, transcription,and timing
+	// information. Automatic language detection and speaker diarization are not included in this mode.
+	Basic AudioAnalysisMode = "Basic"
+	// Standard Performs all operations included in the Basic mode, additionally performing language detection
+	// and speaker diarization.
+	Standard AudioAnalysisMode = "Standard"
+)
+
+// PossibleAudioAnalysisModeValues returns an array of possible values for the AudioAnalysisMode const type.
+func PossibleAudioAnalysisModeValues() []AudioAnalysisMode {
+	return []AudioAnalysisMode{Basic, Standard}
 }
 
 // ContentKeyPolicyFairPlayRentalAndLeaseKeyType enumerates the values for content key policy fair play rental
@@ -225,10 +258,9 @@ const (
 	// AACGoodQualityAudio Produces a single MP4 file containing only stereo audio encoded at 192 kbps.
 	AACGoodQualityAudio EncoderNamedPreset = "AACGoodQualityAudio"
 	// AdaptiveStreaming Produces a set of GOP aligned MP4 files with H.264 video and stereo AAC audio.
-	// Auto-generates a bitrate ladder based on the input resolution and bitrate. The auto-generated preset
-	// will never exceed the input resolution and bitrate. For example, if the input is 720p at 3 Mbps, output
-	// will remain 720p at best, and will start at rates lower than 3 Mbps. The output will have video and
-	// audio in separate MP4 files, which is optimal for adaptive streaming.
+	// Auto-generates a bitrate ladder based on the input resolution, bitrate and frame rate. The
+	// auto-generated preset will never exceed the input resolution. For example, if the input is 720p, output
+	// will remain 720p at best.
 	AdaptiveStreaming EncoderNamedPreset = "AdaptiveStreaming"
 	// ContentAwareEncoding Produces a set of GOP-aligned MP4s by using content-aware encoding. Given any input
 	// content, the service performs an initial lightweight analysis of the input content, and uses the results
@@ -242,29 +274,33 @@ const (
 	// bitrate and resolution settings for delivery by adaptive streaming. The underlying algorithms will
 	// continue to evolve over time. The output will contain MP4 files with video and audio interleaved.
 	ContentAwareEncodingExperimental EncoderNamedPreset = "ContentAwareEncodingExperimental"
+	// CopyAllBitrateNonInterleaved Copy all video and audio streams from the input asset as non-interleaved
+	// video and audio output files. This preset can be used to clip an existing asset or convert a group of
+	// key frame (GOP) aligned MP4 files as an asset that can be streamed.
+	CopyAllBitrateNonInterleaved EncoderNamedPreset = "CopyAllBitrateNonInterleaved"
 	// H264MultipleBitrate1080p Produces a set of 8 GOP-aligned MP4 files, ranging from 6000 kbps to 400 kbps,
-	// and stereo AAC audio. Resolution starts at 1080p and goes down to 360p.
+	// and stereo AAC audio. Resolution starts at 1080p and goes down to 180p.
 	H264MultipleBitrate1080p EncoderNamedPreset = "H264MultipleBitrate1080p"
 	// H264MultipleBitrate720p Produces a set of 6 GOP-aligned MP4 files, ranging from 3400 kbps to 400 kbps,
-	// and stereo AAC audio. Resolution starts at 720p and goes down to 360p.
+	// and stereo AAC audio. Resolution starts at 720p and goes down to 180p.
 	H264MultipleBitrate720p EncoderNamedPreset = "H264MultipleBitrate720p"
-	// H264MultipleBitrateSD Produces a set of 5 GOP-aligned MP4 files, ranging from 1600kbps to 400 kbps, and
-	// stereo AAC audio. Resolution starts at 480p and goes down to 360p.
+	// H264MultipleBitrateSD Produces a set of 5 GOP-aligned MP4 files, ranging from 1900kbps to 400 kbps, and
+	// stereo AAC audio. Resolution starts at 480p and goes down to 240p.
 	H264MultipleBitrateSD EncoderNamedPreset = "H264MultipleBitrateSD"
 	// H264SingleBitrate1080p Produces an MP4 file where the video is encoded with H.264 codec at 6750 kbps and
-	// a picture height of 1080 pixels, and the stereo audio is encoded with AAC-LC codec at 64 kbps.
+	// a picture height of 1080 pixels, and the stereo audio is encoded with AAC-LC codec at 128 kbps.
 	H264SingleBitrate1080p EncoderNamedPreset = "H264SingleBitrate1080p"
 	// H264SingleBitrate720p Produces an MP4 file where the video is encoded with H.264 codec at 4500 kbps and
-	// a picture height of 720 pixels, and the stereo audio is encoded with AAC-LC codec at 64 kbps.
+	// a picture height of 720 pixels, and the stereo audio is encoded with AAC-LC codec at 128 kbps.
 	H264SingleBitrate720p EncoderNamedPreset = "H264SingleBitrate720p"
 	// H264SingleBitrateSD Produces an MP4 file where the video is encoded with H.264 codec at 2200 kbps and a
-	// picture height of 480 pixels, and the stereo audio is encoded with AAC-LC codec at 64 kbps.
+	// picture height of 480 pixels, and the stereo audio is encoded with AAC-LC codec at 128 kbps.
 	H264SingleBitrateSD EncoderNamedPreset = "H264SingleBitrateSD"
 )
 
 // PossibleEncoderNamedPresetValues returns an array of possible values for the EncoderNamedPreset const type.
 func PossibleEncoderNamedPresetValues() []EncoderNamedPreset {
-	return []EncoderNamedPreset{AACGoodQualityAudio, AdaptiveStreaming, ContentAwareEncoding, ContentAwareEncodingExperimental, H264MultipleBitrate1080p, H264MultipleBitrate720p, H264MultipleBitrateSD, H264SingleBitrate1080p, H264SingleBitrate720p, H264SingleBitrateSD}
+	return []EncoderNamedPreset{AACGoodQualityAudio, AdaptiveStreaming, ContentAwareEncoding, ContentAwareEncodingExperimental, CopyAllBitrateNonInterleaved, H264MultipleBitrate1080p, H264MultipleBitrate720p, H264MultipleBitrateSD, H264SingleBitrate1080p, H264SingleBitrate720p, H264SingleBitrateSD}
 }
 
 // EncryptionScheme enumerates the values for encryption scheme.
@@ -504,28 +540,30 @@ func PossibleJobStateValues() []JobState {
 type LiveEventEncodingType string
 
 const (
-	// LiveEventEncodingTypeBasic ...
-	LiveEventEncodingTypeBasic LiveEventEncodingType = "Basic"
-	// LiveEventEncodingTypeNone ...
+	// LiveEventEncodingTypeNone A contribution live encoder sends a multiple bitrate stream. The ingested
+	// stream passes through the live event without any further processing. It is also called the pass-through
+	// mode.
 	LiveEventEncodingTypeNone LiveEventEncodingType = "None"
-	// LiveEventEncodingTypePremium1080p ...
+	// LiveEventEncodingTypePremium1080p A contribution live encoder sends a single bitrate stream to the live
+	// event and Media Services creates multiple bitrate streams. The output cannot exceed 1080p in resolution.
 	LiveEventEncodingTypePremium1080p LiveEventEncodingType = "Premium1080p"
-	// LiveEventEncodingTypeStandard ...
+	// LiveEventEncodingTypeStandard A contribution live encoder sends a single bitrate stream to the live
+	// event and Media Services creates multiple bitrate streams. The output cannot exceed 720p in resolution.
 	LiveEventEncodingTypeStandard LiveEventEncodingType = "Standard"
 )
 
 // PossibleLiveEventEncodingTypeValues returns an array of possible values for the LiveEventEncodingType const type.
 func PossibleLiveEventEncodingTypeValues() []LiveEventEncodingType {
-	return []LiveEventEncodingType{LiveEventEncodingTypeBasic, LiveEventEncodingTypeNone, LiveEventEncodingTypePremium1080p, LiveEventEncodingTypeStandard}
+	return []LiveEventEncodingType{LiveEventEncodingTypeNone, LiveEventEncodingTypePremium1080p, LiveEventEncodingTypeStandard}
 }
 
 // LiveEventInputProtocol enumerates the values for live event input protocol.
 type LiveEventInputProtocol string
 
 const (
-	// FragmentedMP4 ...
+	// FragmentedMP4 Smooth Streaming input will be sent by the contribution encoder to the live event.
 	FragmentedMP4 LiveEventInputProtocol = "FragmentedMP4"
-	// RTMP ...
+	// RTMP RTMP input will be sent by the contribution encoder to the live event.
 	RTMP LiveEventInputProtocol = "RTMP"
 )
 
@@ -538,38 +576,70 @@ func PossibleLiveEventInputProtocolValues() []LiveEventInputProtocol {
 type LiveEventResourceState string
 
 const (
-	// Deleting ...
+	// Allocating Allocate action was called on the live event and resources are being provisioned for this
+	// live event. Once allocation completes successfully, the live event will transition to StandBy state.
+	Allocating LiveEventResourceState = "Allocating"
+	// Deleting The live event is being deleted. No billing occurs in this transient state. Updates or
+	// streaming are not allowed during this state.
 	Deleting LiveEventResourceState = "Deleting"
-	// Running ...
+	// Running The live event resources have been allocated, ingest and preview URLs have been generated, and
+	// it is capable of receiving live streams. At this point, billing is active. You must explicitly call Stop
+	// on the live event resource to halt further billing.
 	Running LiveEventResourceState = "Running"
-	// Starting ...
+	// StandBy Live event resources have been provisioned and is ready to start. Billing occurs in this state.
+	// Most properties can still be updated, however ingest or streaming is not allowed during this state.
+	StandBy LiveEventResourceState = "StandBy"
+	// Starting The live event is being started and resources are being allocated. No billing occurs in this
+	// state. Updates or streaming are not allowed during this state. If an error occurs, the live event
+	// returns to the Stopped state.
 	Starting LiveEventResourceState = "Starting"
-	// Stopped ...
+	// Stopped This is the initial state of the live event after creation (unless autostart was set to true.)
+	// No billing occurs in this state. In this state, the live event properties can be updated but streaming
+	// is not allowed.
 	Stopped LiveEventResourceState = "Stopped"
-	// Stopping ...
+	// Stopping The live event is being stopped and resources are being de-provisioned. No billing occurs in
+	// this transient state. Updates or streaming are not allowed during this state.
 	Stopping LiveEventResourceState = "Stopping"
 )
 
 // PossibleLiveEventResourceStateValues returns an array of possible values for the LiveEventResourceState const type.
 func PossibleLiveEventResourceStateValues() []LiveEventResourceState {
-	return []LiveEventResourceState{Deleting, Running, Starting, Stopped, Stopping}
+	return []LiveEventResourceState{Allocating, Deleting, Running, StandBy, Starting, Stopped, Stopping}
 }
 
 // LiveOutputResourceState enumerates the values for live output resource state.
 type LiveOutputResourceState string
 
 const (
-	// LiveOutputResourceStateCreating ...
+	// LiveOutputResourceStateCreating Live output is being created. No content is archived in the asset until
+	// the live output is in running state.
 	LiveOutputResourceStateCreating LiveOutputResourceState = "Creating"
-	// LiveOutputResourceStateDeleting ...
+	// LiveOutputResourceStateDeleting Live output is being deleted. The live asset is being converted from
+	// live to on-demand asset. Any streaming URLs created on the live output asset continue to work.
 	LiveOutputResourceStateDeleting LiveOutputResourceState = "Deleting"
-	// LiveOutputResourceStateRunning ...
+	// LiveOutputResourceStateRunning Live output is running and archiving live streaming content to the asset
+	// if there is valid input from a contribution encoder.
 	LiveOutputResourceStateRunning LiveOutputResourceState = "Running"
 )
 
 // PossibleLiveOutputResourceStateValues returns an array of possible values for the LiveOutputResourceState const type.
 func PossibleLiveOutputResourceStateValues() []LiveOutputResourceState {
 	return []LiveOutputResourceState{LiveOutputResourceStateCreating, LiveOutputResourceStateDeleting, LiveOutputResourceStateRunning}
+}
+
+// ManagedIdentityType enumerates the values for managed identity type.
+type ManagedIdentityType string
+
+const (
+	// ManagedIdentityTypeNone No managed identity.
+	ManagedIdentityTypeNone ManagedIdentityType = "None"
+	// ManagedIdentityTypeSystemAssigned A system-assigned managed identity.
+	ManagedIdentityTypeSystemAssigned ManagedIdentityType = "SystemAssigned"
+)
+
+// PossibleManagedIdentityTypeValues returns an array of possible values for the ManagedIdentityType const type.
+func PossibleManagedIdentityTypeValues() []ManagedIdentityType {
+	return []ManagedIdentityType{ManagedIdentityTypeNone, ManagedIdentityTypeSystemAssigned}
 }
 
 // MetricAggregationType enumerates the values for metric aggregation type.
@@ -631,11 +701,13 @@ const (
 	OdataTypeClipTime OdataTypeBasicClipTime = "ClipTime"
 	// OdataTypeMicrosoftMediaAbsoluteClipTime ...
 	OdataTypeMicrosoftMediaAbsoluteClipTime OdataTypeBasicClipTime = "#Microsoft.Media.AbsoluteClipTime"
+	// OdataTypeMicrosoftMediaUtcClipTime ...
+	OdataTypeMicrosoftMediaUtcClipTime OdataTypeBasicClipTime = "#Microsoft.Media.UtcClipTime"
 )
 
 // PossibleOdataTypeBasicClipTimeValues returns an array of possible values for the OdataTypeBasicClipTime const type.
 func PossibleOdataTypeBasicClipTimeValues() []OdataTypeBasicClipTime {
-	return []OdataTypeBasicClipTime{OdataTypeClipTime, OdataTypeMicrosoftMediaAbsoluteClipTime}
+	return []OdataTypeBasicClipTime{OdataTypeClipTime, OdataTypeMicrosoftMediaAbsoluteClipTime, OdataTypeMicrosoftMediaUtcClipTime}
 }
 
 // OdataTypeBasicCodec enumerates the values for odata type basic codec.
@@ -889,6 +961,43 @@ func PossiblePriorityValues() []Priority {
 	return []Priority{High, Low, Normal}
 }
 
+// PrivateEndpointConnectionProvisioningState enumerates the values for private endpoint connection
+// provisioning state.
+type PrivateEndpointConnectionProvisioningState string
+
+const (
+	// PrivateEndpointConnectionProvisioningStateCreating ...
+	PrivateEndpointConnectionProvisioningStateCreating PrivateEndpointConnectionProvisioningState = "Creating"
+	// PrivateEndpointConnectionProvisioningStateDeleting ...
+	PrivateEndpointConnectionProvisioningStateDeleting PrivateEndpointConnectionProvisioningState = "Deleting"
+	// PrivateEndpointConnectionProvisioningStateFailed ...
+	PrivateEndpointConnectionProvisioningStateFailed PrivateEndpointConnectionProvisioningState = "Failed"
+	// PrivateEndpointConnectionProvisioningStateSucceeded ...
+	PrivateEndpointConnectionProvisioningStateSucceeded PrivateEndpointConnectionProvisioningState = "Succeeded"
+)
+
+// PossiblePrivateEndpointConnectionProvisioningStateValues returns an array of possible values for the PrivateEndpointConnectionProvisioningState const type.
+func PossiblePrivateEndpointConnectionProvisioningStateValues() []PrivateEndpointConnectionProvisioningState {
+	return []PrivateEndpointConnectionProvisioningState{PrivateEndpointConnectionProvisioningStateCreating, PrivateEndpointConnectionProvisioningStateDeleting, PrivateEndpointConnectionProvisioningStateFailed, PrivateEndpointConnectionProvisioningStateSucceeded}
+}
+
+// PrivateEndpointServiceConnectionStatus enumerates the values for private endpoint service connection status.
+type PrivateEndpointServiceConnectionStatus string
+
+const (
+	// Approved ...
+	Approved PrivateEndpointServiceConnectionStatus = "Approved"
+	// Pending ...
+	Pending PrivateEndpointServiceConnectionStatus = "Pending"
+	// Rejected ...
+	Rejected PrivateEndpointServiceConnectionStatus = "Rejected"
+)
+
+// PossiblePrivateEndpointServiceConnectionStatusValues returns an array of possible values for the PrivateEndpointServiceConnectionStatus const type.
+func PossiblePrivateEndpointServiceConnectionStatusValues() []PrivateEndpointServiceConnectionStatus {
+	return []PrivateEndpointServiceConnectionStatus{Approved, Pending, Rejected}
+}
+
 // Rotation enumerates the values for rotation.
 type Rotation string
 
@@ -928,21 +1037,38 @@ func PossibleStorageAccountTypeValues() []StorageAccountType {
 	return []StorageAccountType{Primary, Secondary}
 }
 
+// StorageAuthentication enumerates the values for storage authentication.
+type StorageAuthentication string
+
+const (
+	// ManagedIdentity Managed Identity authentication.
+	ManagedIdentity StorageAuthentication = "ManagedIdentity"
+	// System System authentication.
+	System StorageAuthentication = "System"
+)
+
+// PossibleStorageAuthenticationValues returns an array of possible values for the StorageAuthentication const type.
+func PossibleStorageAuthenticationValues() []StorageAuthentication {
+	return []StorageAuthentication{ManagedIdentity, System}
+}
+
 // StreamingEndpointResourceState enumerates the values for streaming endpoint resource state.
 type StreamingEndpointResourceState string
 
 const (
-	// StreamingEndpointResourceStateDeleting ...
+	// StreamingEndpointResourceStateDeleting The streaming endpoint is being deleted.
 	StreamingEndpointResourceStateDeleting StreamingEndpointResourceState = "Deleting"
-	// StreamingEndpointResourceStateRunning ...
+	// StreamingEndpointResourceStateRunning The streaming endpoint is running. It is able to stream content to
+	// clients
 	StreamingEndpointResourceStateRunning StreamingEndpointResourceState = "Running"
-	// StreamingEndpointResourceStateScaling ...
+	// StreamingEndpointResourceStateScaling The streaming endpoint is increasing or decreasing scale units.
 	StreamingEndpointResourceStateScaling StreamingEndpointResourceState = "Scaling"
-	// StreamingEndpointResourceStateStarting ...
+	// StreamingEndpointResourceStateStarting The streaming endpoint is transitioning to the running state.
 	StreamingEndpointResourceStateStarting StreamingEndpointResourceState = "Starting"
-	// StreamingEndpointResourceStateStopped ...
+	// StreamingEndpointResourceStateStopped The initial state of a streaming endpoint after creation. Content
+	// is not ready to be streamed from this endpoint.
 	StreamingEndpointResourceStateStopped StreamingEndpointResourceState = "Stopped"
-	// StreamingEndpointResourceStateStopping ...
+	// StreamingEndpointResourceStateStopping The streaming endpoint is transitioning to the stopped state.
 	StreamingEndpointResourceStateStopping StreamingEndpointResourceState = "Stopping"
 )
 
@@ -991,9 +1117,10 @@ func PossibleStreamingPolicyStreamingProtocolValues() []StreamingPolicyStreaming
 type StreamOptionsFlag string
 
 const (
-	// Default ...
+	// Default Live streaming with no special latency optimizations.
 	Default StreamOptionsFlag = "Default"
-	// LowLatency ...
+	// LowLatency The live event provides lower end to end latency by reducing its internal buffers. This could
+	// result in more client buffering during playback if network bandwidth is low.
 	LowLatency StreamOptionsFlag = "LowLatency"
 )
 
@@ -1055,4 +1182,32 @@ const (
 // PossibleTrackPropertyTypeValues returns an array of possible values for the TrackPropertyType const type.
 func PossibleTrackPropertyTypeValues() []TrackPropertyType {
 	return []TrackPropertyType{TrackPropertyTypeFourCC, TrackPropertyTypeUnknown}
+}
+
+// VideoSyncMode enumerates the values for video sync mode.
+type VideoSyncMode string
+
+const (
+	// VideoSyncModeAuto This is the default method. Chooses between Cfr and Vfr depending on muxer
+	// capabilities. For output format MP4, the default mode is Cfr.
+	VideoSyncModeAuto VideoSyncMode = "Auto"
+	// VideoSyncModeCfr Input frames will be repeated and/or dropped as needed to achieve exactly the requested
+	// constant frame rate. Recommended when the output frame rate is explicitly set at a specified value
+	VideoSyncModeCfr VideoSyncMode = "Cfr"
+	// VideoSyncModePassthrough The presentation timestamps on frames are passed through from the input file to
+	// the output file writer. Recommended when the input source has variable frame rate, and are attempting to
+	// produce multiple layers for adaptive streaming in the output which have aligned GOP boundaries. Note: if
+	// two or more frames in the input have duplicate timestamps, then the output will also have the same
+	// behavior
+	VideoSyncModePassthrough VideoSyncMode = "Passthrough"
+	// VideoSyncModeVfr Similar to the Passthrough mode, but if the input has frames that have duplicate
+	// timestamps, then only one frame is passed through to the output, and others are dropped. Recommended
+	// when the number of output frames is expected to be equal to the number of input frames. For example, the
+	// output is used to calculate a quality metric like PSNR against the input
+	VideoSyncModeVfr VideoSyncMode = "Vfr"
+)
+
+// PossibleVideoSyncModeValues returns an array of possible values for the VideoSyncMode const type.
+func PossibleVideoSyncModeValues() []VideoSyncMode {
+	return []VideoSyncMode{VideoSyncModeAuto, VideoSyncModeCfr, VideoSyncModePassthrough, VideoSyncModeVfr}
 }
