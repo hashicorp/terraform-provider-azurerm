@@ -91,7 +91,7 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 
 	workspaceID, err := parse.LogAnalyticsWorkspaceID(d.Get("workspace_id").(string))
 	if err != nil {
-		return fmt.Errorf("%v", err)
+		return err
 	}
 
 	contact := security.WorkspaceSetting{
