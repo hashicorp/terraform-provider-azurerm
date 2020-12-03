@@ -273,15 +273,13 @@ func resourceGroupTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta 
 
 	if d.HasChange("on_error_deployment") {
 		deployment.Properties.OnErrorDeployment = expandArmTemplateDeploymentResourceGroupOnErrorDeployment(d.Get("on_error_deployment").([]interface{}))
-	} else {
-		if v := template.Properties.OnErrorDeployment; v != nil {
-			deployment.Properties.OnErrorDeployment = &resources.OnErrorDeployment{
-				Type: v.Type,
-			}
+	} else if v := template.Properties.OnErrorDeployment; v != nil {
+		deployment.Properties.OnErrorDeployment = &resources.OnErrorDeployment{
+			Type: v.Type,
+		}
 
-			if v.DeploymentName != nil {
-				deployment.Properties.OnErrorDeployment.DeploymentName = v.DeploymentName
-			}
+		if v.DeploymentName != nil {
+			deployment.Properties.OnErrorDeployment.DeploymentName = v.DeploymentName
 		}
 	}
 
@@ -300,11 +298,9 @@ func resourceGroupTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta 
 		}
 
 		deployment.Properties.Parameters = parameters
-	} else {
-		if _, ok := d.GetOk("parameters_link"); !ok {
-			filteredParams := filterOutTemplateDeploymentParameters(template.Properties.Parameters)
-			deployment.Properties.Parameters = filteredParams
-		}
+	} else if _, ok := d.GetOk("parameters_link"); !ok {
+		filteredParams := filterOutTemplateDeploymentParameters(template.Properties.Parameters)
+		deployment.Properties.Parameters = filteredParams
 	}
 
 	if d.HasChange("parameters_link") {
@@ -320,16 +316,14 @@ func resourceGroupTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta 
 		}
 
 		deployment.Properties.Template = templateContents
-	} else {
-		if _, ok := d.GetOk("template_link"); !ok {
-			// retrieve the existing content and reuse that
-			exportedTemplate, err := client.ExportTemplate(ctx, id.ResourceGroup, id.DeploymentName)
-			if err != nil {
-				return fmt.Errorf("retrieving Contents for Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroup, err)
-			}
-
-			deployment.Properties.Template = exportedTemplate.Template
+	} else if _, ok := d.GetOk("template_link"); !ok {
+		// retrieve the existing content and reuse that
+		exportedTemplate, err := client.ExportTemplate(ctx, id.ResourceGroup, id.DeploymentName)
+		if err != nil {
+			return fmt.Errorf("retrieving Contents for Template Deployment %q (Resource Group %q): %+v", id.DeploymentName, id.ResourceGroup, err)
 		}
+
+		deployment.Properties.Template = exportedTemplate.Template
 	}
 
 	if d.HasChange("template_link") {
