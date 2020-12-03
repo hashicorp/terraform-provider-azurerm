@@ -1,7 +1,7 @@
 package loganalytics_test
 
 import (
-	`context`
+	"context"
 	"fmt"
 	"testing"
 

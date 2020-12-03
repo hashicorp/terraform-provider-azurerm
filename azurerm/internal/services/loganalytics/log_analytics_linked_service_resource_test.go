@@ -1,17 +1,17 @@
 package loganalytics_test
 
 import (
-	`context`
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure`
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils`
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 type LogAnalyticsLinkedServiceResource struct {
@@ -19,56 +19,56 @@ type LogAnalyticsLinkedServiceResource struct {
 
 func TestAccLogAnalyticsLinkedService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_service", "test")
-	r := LogAnalyticsLinkedServiceResource {}
+	r := LogAnalyticsLinkedServiceResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-			{
-				Config: r.basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key( "name").HasValue( fmt.Sprintf("acctestlaw-%d/Automation", data.RandomInteger)),
-					check.That(data.ResourceName).Key( "workspace_name").HasValue( fmt.Sprintf("acctestlaw-%d", data.RandomInteger)),
-					check.That(data.ResourceName).Key( "linked_service_name").HasValue( "automation"),
-				),
-			},
-			data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestlaw-%d/Automation", data.RandomInteger)),
+				check.That(data.ResourceName).Key("workspace_name").HasValue(fmt.Sprintf("acctestlaw-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("linked_service_name").HasValue("automation"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccLogAnalyticsLinkedService_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_service", "test")
-	r := LogAnalyticsLinkedServiceResource {}
+	r := LogAnalyticsLinkedServiceResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-			{
-				Config: r.basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key( "name").HasValue( fmt.Sprintf("acctestlaw-%d/Automation", data.RandomInteger)),
-					check.That(data.ResourceName).Key( "workspace_name").HasValue( fmt.Sprintf("acctestlaw-%d", data.RandomInteger)),
-					check.That(data.ResourceName).Key( "linked_service_name").HasValue( "automation"),
-				),
-			},
-			{
-				Config: r.requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_log_analytics_linked_service"),
-			},
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestlaw-%d/Automation", data.RandomInteger)),
+				check.That(data.ResourceName).Key("workspace_name").HasValue(fmt.Sprintf("acctestlaw-%d", data.RandomInteger)),
+				check.That(data.ResourceName).Key("linked_service_name").HasValue("automation"),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_log_analytics_linked_service"),
+		},
 	})
 }
 
 func TestAccLogAnalyticsLinkedService_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_service", "test")
-	r := LogAnalyticsLinkedServiceResource {}
+	r := LogAnalyticsLinkedServiceResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-			{
-				Config: r.complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key( "linked_service_name").HasValue( "automation"),
-				),
-			},
-			data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("linked_service_name").HasValue("automation"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 

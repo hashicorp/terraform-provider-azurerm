@@ -1,24 +1,23 @@
 package loganalytics_test
 
 import (
-	`context`
+	"context"
 	"fmt"
 	"testing"
 
-	`github.com/hashicorp/terraform-plugin-sdk/helper/acctest`
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics`
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
-	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils`
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 type LogAnalyticsWorkspaceResource struct {
 }
-
 
 func TestAccLogAnalyticsWorkspaceName_validation(t *testing.T) {
 	str := acctest.RandString(63)
@@ -60,7 +59,6 @@ func TestAccLogAnalyticsWorkspaceName_validation(t *testing.T) {
 		}
 	}
 }
-
 
 func TestAccLogAnalyticsWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
