@@ -288,7 +288,6 @@ func expandTransformOuputs(input []interface{}) (*[]media.TransformOutput, error
 	}
 
 	return &results, nil
-
 }
 
 func flattenTransformOutputs(input *[]media.TransformOutput) []interface{} {
