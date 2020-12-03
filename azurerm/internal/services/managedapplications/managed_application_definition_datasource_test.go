@@ -8,13 +8,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMManagedApplicationDefinition_basic(t *testing.T) {
+func TestAccManagedApplicationDefinitionDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_managed_application_definition", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagedApplicationDefinitionDestroy,
+		CheckDestroy: testCheckManagedApplicationDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceManagedApplicationDefinition_basic(data),
@@ -27,7 +27,7 @@ func TestAccDataSourceAzureRMManagedApplicationDefinition_basic(t *testing.T) {
 }
 
 func testAccDataSourceManagedApplicationDefinition_basic(data acceptance.TestData) string {
-	config := testAccAzureRMManagedApplicationDefinition_basic(data)
+	config := testAccManagedApplicationDefinition_basic(data)
 	return fmt.Sprintf(`
 %s
 

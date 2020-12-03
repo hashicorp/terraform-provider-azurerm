@@ -12,18 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMManagedApplication_basic(t *testing.T) {
+func TestAccManagedApplication_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_application", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagedApplicationDestroy,
+		CheckDestroy: testCheckManagedApplicationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMManagedApplication_basic(data),
+				Config: testAccManagedApplication_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedApplicationExists(data.ResourceName),
+					testCheckManagedApplicationExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -31,37 +31,37 @@ func TestAccAzureRMManagedApplication_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMManagedApplication_requiresImport(t *testing.T) {
+func TestAccManagedApplication_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_application", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagedApplicationDestroy,
+		CheckDestroy: testCheckManagedApplicationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMManagedApplication_basic(data),
+				Config: testAccManagedApplication_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedApplicationExists(data.ResourceName),
+					testCheckManagedApplicationExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMManagedApplication_requiresImport),
+			data.RequiresImportErrorStep(testAccManagedApplication_requiresImport),
 		},
 	})
 }
 
-func TestAccAzureRMManagedApplication_complete(t *testing.T) {
+func TestAccManagedApplication_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_application", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagedApplicationDestroy,
+		CheckDestroy: testCheckManagedApplicationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMManagedApplication_complete(data),
+				Config: testAccManagedApplication_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedApplicationExists(data.ResourceName),
+					testCheckManagedApplicationExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -69,34 +69,34 @@ func TestAccAzureRMManagedApplication_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMManagedApplication_update(t *testing.T) {
+func TestAccManagedApplication_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_application", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagedApplicationDestroy,
+		CheckDestroy: testCheckManagedApplicationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMManagedApplication_basic(data),
+				Config: testAccManagedApplication_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedApplicationExists(data.ResourceName),
+					testCheckManagedApplicationExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "kind", "ServiceCatalog"),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMManagedApplication_complete(data),
+				Config: testAccManagedApplication_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedApplicationExists(data.ResourceName),
+					testCheckManagedApplicationExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "kind", "MarketPlace"),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMManagedApplication_basic(data),
+				Config: testAccManagedApplication_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedApplicationExists(data.ResourceName),
+					testCheckManagedApplicationExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "kind", "ServiceCatalog"),
 				),
 			},
@@ -105,7 +105,7 @@ func TestAccAzureRMManagedApplication_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMManagedApplicationExists(resourceName string) resource.TestCheckFunc {
+func testCheckManagedApplicationExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -131,7 +131,7 @@ func testCheckAzureRMManagedApplicationExists(resourceName string) resource.Test
 	}
 }
 
-func testCheckAzureRMManagedApplicationDestroy(s *terraform.State) error {
+func testCheckManagedApplicationDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).ManagedApplication.ApplicationClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -157,8 +157,8 @@ func testCheckAzureRMManagedApplicationDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMManagedApplication_basic(data acceptance.TestData) string {
-	template := testAccAzureRMManagedApplication_template(data)
+func testAccManagedApplication_basic(data acceptance.TestData) string {
+	template := testAccManagedApplication_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -179,7 +179,7 @@ resource "azurerm_managed_application" "test" {
 `, template, data.RandomInteger, data.RandomInteger, data.RandomString)
 }
 
-func testAccAzureRMManagedApplication_requiresImport(data acceptance.TestData) string {
+func testAccManagedApplication_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -190,11 +190,11 @@ resource "azurerm_managed_application" "import" {
   kind                        = "ServiceCatalog"
   managed_resource_group_name = "infraGroup%d"
 }
-`, testAccAzureRMManagedApplication_basic(data), data.RandomInteger)
+`, testAccManagedApplication_basic(data), data.RandomInteger)
 }
 
-func testAccAzureRMManagedApplication_complete(data acceptance.TestData) string {
-	template := testAccAzureRMManagedApplication_template(data)
+func testAccManagedApplication_complete(data acceptance.TestData) string {
+	template := testAccManagedApplication_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -239,7 +239,7 @@ resource "azurerm_managed_application" "test" {
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMManagedApplication_template(data acceptance.TestData) string {
+func testAccManagedApplication_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
