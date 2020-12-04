@@ -88,7 +88,7 @@ The following arguments are supported:
 
 * `cluster_name` - (Required) Specifies the name of the Kusto Cluster this data connection will be added to. Changing this forces a new resource to be created.
 
-* `compression` - (Optional) Specifies compression type for the connection. Allowed values: `GZip` and `None`. Changing this forces a new resource to be created.
+* `compression` - (Optional) Specifies compression type for the connection. Allowed values: `GZip` and `None`. Defaults to `None`. Changing this forces a new resource to be created.
 
 * `database_name` - (Required) Specifies the name of the Kusto Database this data connection will be added to. Changing this forces a new resource to be created.
 

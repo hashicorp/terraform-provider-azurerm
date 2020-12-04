@@ -59,6 +59,7 @@ func resourceArmKustoEventHubDataConnection() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
+				Default:  kusto.CompressionNone,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(kusto.CompressionGZip),
 					string(kusto.CompressionNone),
