@@ -106,6 +106,25 @@ func TestAccAzureRMRecoveryServicesVault_requiresImport(t *testing.T) {
 	})
 }
 
+func TestRecoveryServicesVault_basicWithIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMRecoveryServicesVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testRecoveryServicesVault_basicWithIdentity(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRecoveryServicesVaultExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMRecoveryServicesVaultDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.VaultsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -179,6 +198,32 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
+
+  soft_delete_enabled = false
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testRecoveryServicesVault_basicWithIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-recovery-%d"
+  location = "%s"
+}
+
+resource "azurerm_recovery_services_vault" "test" {
+  name                = "acctest-Vault-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+
+  identity {
+    type = "SystemAssigned"
+  }
 
   soft_delete_enabled = false
 }
