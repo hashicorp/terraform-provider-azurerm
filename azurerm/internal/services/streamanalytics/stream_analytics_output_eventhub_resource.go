@@ -16,12 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmStreamAnalyticsOutputEventHub() *schema.Resource {
+func resourceStreamAnalyticsOutputEventHub() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStreamAnalyticsOutputEventHubCreateUpdate,
-		Read:   resourceArmStreamAnalyticsOutputEventHubRead,
-		Update: resourceArmStreamAnalyticsOutputEventHubCreateUpdate,
-		Delete: resourceArmStreamAnalyticsOutputEventHubDelete,
+		Create: resourceStreamAnalyticsOutputEventHubCreateUpdate,
+		Read:   resourceStreamAnalyticsOutputEventHubRead,
+		Update: resourceStreamAnalyticsOutputEventHubCreateUpdate,
+		Delete: resourceStreamAnalyticsOutputEventHubDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -80,7 +80,7 @@ func resourceArmStreamAnalyticsOutputEventHub() *schema.Resource {
 	}
 }
 
-func resourceArmStreamAnalyticsOutputEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -148,10 +148,10 @@ func resourceArmStreamAnalyticsOutputEventHubCreateUpdate(d *schema.ResourceData
 		return fmt.Errorf("Error Updating Stream Analytics Output EventHub %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 	}
 
-	return resourceArmStreamAnalyticsOutputEventHubRead(d, meta)
+	return resourceStreamAnalyticsOutputEventHubRead(d, meta)
 }
 
-func resourceArmStreamAnalyticsOutputEventHubRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputEventHubRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -197,7 +197,7 @@ func resourceArmStreamAnalyticsOutputEventHubRead(d *schema.ResourceData, meta i
 	return nil
 }
 
-func resourceArmStreamAnalyticsOutputEventHubDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputEventHubDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

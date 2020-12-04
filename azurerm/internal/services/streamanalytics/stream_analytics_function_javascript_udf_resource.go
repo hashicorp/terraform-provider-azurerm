@@ -16,12 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmStreamAnalyticsFunctionUDF() *schema.Resource {
+func resourceStreamAnalyticsFunctionUDF() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStreamAnalyticsFunctionUDFCreateUpdate,
-		Read:   resourceArmStreamAnalyticsFunctionUDFRead,
-		Update: resourceArmStreamAnalyticsFunctionUDFCreateUpdate,
-		Delete: resourceArmStreamAnalyticsFunctionUDFDelete,
+		Create: resourceStreamAnalyticsFunctionUDFCreateUpdate,
+		Read:   resourceStreamAnalyticsFunctionUDFRead,
+		Update: resourceStreamAnalyticsFunctionUDFCreateUpdate,
+		Delete: resourceStreamAnalyticsFunctionUDFDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -106,7 +106,7 @@ func resourceArmStreamAnalyticsFunctionUDF() *schema.Resource {
 	}
 }
 
-func resourceArmStreamAnalyticsFunctionUDFCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsFunctionUDFCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.FunctionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -170,10 +170,10 @@ func resourceArmStreamAnalyticsFunctionUDFCreateUpdate(d *schema.ResourceData, m
 		return fmt.Errorf("Error Updating Stream Analytics Function Javascript UDF %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 	}
 
-	return resourceArmStreamAnalyticsFunctionUDFRead(d, meta)
+	return resourceStreamAnalyticsFunctionUDFRead(d, meta)
 }
 
-func resourceArmStreamAnalyticsFunctionUDFRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsFunctionUDFRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.FunctionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -228,7 +228,7 @@ func resourceArmStreamAnalyticsFunctionUDFRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceArmStreamAnalyticsFunctionUDFDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsFunctionUDFDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.FunctionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

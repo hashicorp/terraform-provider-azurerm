@@ -16,12 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmStreamAnalyticsStreamInputIoTHub() *schema.Resource {
+func resourceStreamAnalyticsStreamInputIoTHub() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStreamAnalyticsStreamInputIoTHubCreateUpdate,
-		Read:   resourceArmStreamAnalyticsStreamInputIoTHubRead,
-		Update: resourceArmStreamAnalyticsStreamInputIoTHubCreateUpdate,
-		Delete: resourceArmStreamAnalyticsStreamInputIoTHubDelete,
+		Create: resourceStreamAnalyticsStreamInputIoTHubCreateUpdate,
+		Read:   resourceStreamAnalyticsStreamInputIoTHubRead,
+		Update: resourceStreamAnalyticsStreamInputIoTHubCreateUpdate,
+		Delete: resourceStreamAnalyticsStreamInputIoTHubDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -87,7 +87,7 @@ func resourceArmStreamAnalyticsStreamInputIoTHub() *schema.Resource {
 	}
 }
 
-func resourceArmStreamAnalyticsStreamInputIoTHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsStreamInputIoTHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -158,10 +158,10 @@ func resourceArmStreamAnalyticsStreamInputIoTHubCreateUpdate(d *schema.ResourceD
 		return fmt.Errorf("Error Updating Stream Analytics Stream Input IoTHub %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 	}
 
-	return resourceArmStreamAnalyticsStreamInputIoTHubRead(d, meta)
+	return resourceStreamAnalyticsStreamInputIoTHubRead(d, meta)
 }
 
-func resourceArmStreamAnalyticsStreamInputIoTHubRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsStreamInputIoTHubRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -213,7 +213,7 @@ func resourceArmStreamAnalyticsStreamInputIoTHubRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceArmStreamAnalyticsStreamInputIoTHubDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsStreamInputIoTHubDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

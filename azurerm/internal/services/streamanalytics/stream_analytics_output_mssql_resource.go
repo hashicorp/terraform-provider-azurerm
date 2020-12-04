@@ -16,12 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmStreamAnalyticsOutputSql() *schema.Resource {
+func resourceStreamAnalyticsOutputSql() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStreamAnalyticsOutputSqlCreateUpdate,
-		Read:   resourceArmStreamAnalyticsOutputSqlRead,
-		Update: resourceArmStreamAnalyticsOutputSqlCreateUpdate,
-		Delete: resourceArmStreamAnalyticsOutputSqlDelete,
+		Create: resourceStreamAnalyticsOutputSqlCreateUpdate,
+		Read:   resourceStreamAnalyticsOutputSqlRead,
+		Update: resourceStreamAnalyticsOutputSqlCreateUpdate,
+		Delete: resourceStreamAnalyticsOutputSqlDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -93,7 +93,7 @@ func resourceArmStreamAnalyticsOutputSql() *schema.Resource {
 	}
 }
 
-func resourceArmStreamAnalyticsOutputSqlCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputSqlCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -153,10 +153,10 @@ func resourceArmStreamAnalyticsOutputSqlCreateUpdate(d *schema.ResourceData, met
 		return fmt.Errorf("Error Updating Stream Analytics Output SQL %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 	}
 
-	return resourceArmStreamAnalyticsOutputSqlRead(d, meta)
+	return resourceStreamAnalyticsOutputSqlRead(d, meta)
 }
 
-func resourceArmStreamAnalyticsOutputSqlRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputSqlRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -199,7 +199,7 @@ func resourceArmStreamAnalyticsOutputSqlRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceArmStreamAnalyticsOutputSqlDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputSqlDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

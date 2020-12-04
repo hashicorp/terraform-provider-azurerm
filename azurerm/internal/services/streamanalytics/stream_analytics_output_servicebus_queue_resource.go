@@ -16,12 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmStreamAnalyticsOutputServiceBusQueue() *schema.Resource {
+func resourceStreamAnalyticsOutputServiceBusQueue() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStreamAnalyticsOutputServiceBusQueueCreateUpdate,
-		Read:   resourceArmStreamAnalyticsOutputServiceBusQueueRead,
-		Update: resourceArmStreamAnalyticsOutputServiceBusQueueCreateUpdate,
-		Delete: resourceArmStreamAnalyticsOutputServiceBusQueueDelete,
+		Create: resourceStreamAnalyticsOutputServiceBusQueueCreateUpdate,
+		Read:   resourceStreamAnalyticsOutputServiceBusQueueRead,
+		Update: resourceStreamAnalyticsOutputServiceBusQueueCreateUpdate,
+		Delete: resourceStreamAnalyticsOutputServiceBusQueueDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -80,7 +80,7 @@ func resourceArmStreamAnalyticsOutputServiceBusQueue() *schema.Resource {
 	}
 }
 
-func resourceArmStreamAnalyticsOutputServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -148,10 +148,10 @@ func resourceArmStreamAnalyticsOutputServiceBusQueueCreateUpdate(d *schema.Resou
 		return fmt.Errorf("Error Updating Stream Analytics Output ServiceBus Queue %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 	}
 
-	return resourceArmStreamAnalyticsOutputServiceBusQueueRead(d, meta)
+	return resourceStreamAnalyticsOutputServiceBusQueueRead(d, meta)
 }
 
-func resourceArmStreamAnalyticsOutputServiceBusQueueRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputServiceBusQueueRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -197,7 +197,7 @@ func resourceArmStreamAnalyticsOutputServiceBusQueueRead(d *schema.ResourceData,
 	return nil
 }
 
-func resourceArmStreamAnalyticsOutputServiceBusQueueDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputServiceBusQueueDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
