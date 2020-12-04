@@ -23,6 +23,7 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * `azurerm_security_center_workspace` - fixing the casing on the `workspace_id` [GH-9651]
+* `azurerm_eventhub_dedicated_cluster` - the `sku_name` capacity can be greater then `1` [GH-9649]
 
 ## 2.38.0 (November 27, 2020)
 
