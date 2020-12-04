@@ -393,7 +393,7 @@ func flattenSignalRFeatures(features *[]signalr.Feature) []interface{} {
 func expandSignalRCors(input []interface{}) *signalr.CorsSettings {
 	corsSettings := signalr.CorsSettings{}
 
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return &corsSettings
 	}
 
