@@ -82,7 +82,7 @@ func (client SecureScoreControlDefinitionsClient) List(ctx context.Context) (res
 
 // ListPreparer prepares the List request.
 func (client SecureScoreControlDefinitionsClient) ListPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2020-01-01-preview"
+	const APIVersion = "2020-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -200,7 +200,7 @@ func (client SecureScoreControlDefinitionsClient) ListBySubscriptionPreparer(ctx
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-01-01-preview"
+	const APIVersion = "2020-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

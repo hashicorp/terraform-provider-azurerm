@@ -94,7 +94,7 @@ func (client SecureScoreControlsClient) ListPreparer(ctx context.Context, expand
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-01-01-preview"
+	const APIVersion = "2020-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -219,7 +219,7 @@ func (client SecureScoreControlsClient) ListBySecureScorePreparer(ctx context.Co
 		"subscriptionId":  autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-01-01-preview"
+	const APIVersion = "2020-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

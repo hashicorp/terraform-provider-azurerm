@@ -46,7 +46,7 @@ func NewIntegrationRuntimesClientWithBaseURI(baseURI string, subscriptionID stri
 // Create create an integration runtime
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
-// workspaceName - the name of the workspace
+// workspaceName - the name of the workspace.
 // integrationRuntimeName - integration runtime name
 // integrationRuntime - integration runtime resource definition.
 // ifMatch - eTag of the integration runtime entity. Should only be specified for update, for which it should
@@ -144,7 +144,7 @@ func (client IntegrationRuntimesClient) CreateResponder(resp *http.Response) (re
 // Delete delete an integration runtime
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
-// workspaceName - the name of the workspace
+// workspaceName - the name of the workspace.
 // integrationRuntimeName - integration runtime name
 func (client IntegrationRuntimesClient) Delete(ctx context.Context, resourceGroupName string, workspaceName string, integrationRuntimeName string) (result IntegrationRuntimesDeleteFuture, err error) {
 	if tracing.IsEnabled() {
@@ -227,10 +227,182 @@ func (client IntegrationRuntimesClient) DeleteResponder(resp *http.Response) (re
 	return
 }
 
+// DisableInteractiveQuery disable interactive query in integration runtime
+// Parameters:
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// workspaceName - the name of the workspace.
+// integrationRuntimeName - integration runtime name
+func (client IntegrationRuntimesClient) DisableInteractiveQuery(ctx context.Context, resourceGroupName string, workspaceName string, integrationRuntimeName string) (result IntegrationRuntimesDisableInteractiveQueryFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationRuntimesClient.DisableInteractiveQuery")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("synapse.IntegrationRuntimesClient", "DisableInteractiveQuery", err.Error())
+	}
+
+	req, err := client.DisableInteractiveQueryPreparer(ctx, resourceGroupName, workspaceName, integrationRuntimeName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "DisableInteractiveQuery", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.DisableInteractiveQuerySender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "DisableInteractiveQuery", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// DisableInteractiveQueryPreparer prepares the DisableInteractiveQuery request.
+func (client IntegrationRuntimesClient) DisableInteractiveQueryPreparer(ctx context.Context, resourceGroupName string, workspaceName string, integrationRuntimeName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"integrationRuntimeName": autorest.Encode("path", integrationRuntimeName),
+		"resourceGroupName":      autorest.Encode("path", resourceGroupName),
+		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
+		"workspaceName":          autorest.Encode("path", workspaceName),
+	}
+
+	const APIVersion = "2019-06-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Synapse/workspaces/{workspaceName}/integrationRuntimes/{integrationRuntimeName}/disableInteractiveQuery", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// DisableInteractiveQuerySender sends the DisableInteractiveQuery request. The method will close the
+// http.Response Body if it receives an error.
+func (client IntegrationRuntimesClient) DisableInteractiveQuerySender(req *http.Request) (future IntegrationRuntimesDisableInteractiveQueryFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// DisableInteractiveQueryResponder handles the response to the DisableInteractiveQuery request. The method always
+// closes the http.Response Body.
+func (client IntegrationRuntimesClient) DisableInteractiveQueryResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
+// EnableInteractiveQuery enable interactive query in integration runtime
+// Parameters:
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// workspaceName - the name of the workspace.
+// integrationRuntimeName - integration runtime name
+func (client IntegrationRuntimesClient) EnableInteractiveQuery(ctx context.Context, resourceGroupName string, workspaceName string, integrationRuntimeName string) (result IntegrationRuntimesEnableInteractiveQueryFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationRuntimesClient.EnableInteractiveQuery")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("synapse.IntegrationRuntimesClient", "EnableInteractiveQuery", err.Error())
+	}
+
+	req, err := client.EnableInteractiveQueryPreparer(ctx, resourceGroupName, workspaceName, integrationRuntimeName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "EnableInteractiveQuery", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.EnableInteractiveQuerySender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "EnableInteractiveQuery", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// EnableInteractiveQueryPreparer prepares the EnableInteractiveQuery request.
+func (client IntegrationRuntimesClient) EnableInteractiveQueryPreparer(ctx context.Context, resourceGroupName string, workspaceName string, integrationRuntimeName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"integrationRuntimeName": autorest.Encode("path", integrationRuntimeName),
+		"resourceGroupName":      autorest.Encode("path", resourceGroupName),
+		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
+		"workspaceName":          autorest.Encode("path", workspaceName),
+	}
+
+	const APIVersion = "2019-06-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Synapse/workspaces/{workspaceName}/integrationRuntimes/{integrationRuntimeName}/enableInteractiveQuery", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// EnableInteractiveQuerySender sends the EnableInteractiveQuery request. The method will close the
+// http.Response Body if it receives an error.
+func (client IntegrationRuntimesClient) EnableInteractiveQuerySender(req *http.Request) (future IntegrationRuntimesEnableInteractiveQueryFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// EnableInteractiveQueryResponder handles the response to the EnableInteractiveQuery request. The method always
+// closes the http.Response Body.
+func (client IntegrationRuntimesClient) EnableInteractiveQueryResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
 // Get get an integration runtime
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
-// workspaceName - the name of the workspace
+// workspaceName - the name of the workspace.
 // integrationRuntimeName - integration runtime name
 // ifNoneMatch - eTag of the integration runtime entity. Should only be specified for get. If the ETag matches
 // the existing entity tag, or if * was provided, then no content will be returned.
@@ -323,7 +495,7 @@ func (client IntegrationRuntimesClient) GetResponder(resp *http.Response) (resul
 // ListByWorkspace list all integration runtimes
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
-// workspaceName - the name of the workspace
+// workspaceName - the name of the workspace.
 func (client IntegrationRuntimesClient) ListByWorkspace(ctx context.Context, resourceGroupName string, workspaceName string) (result IntegrationRuntimeListResponsePage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationRuntimesClient.ListByWorkspace")
@@ -449,15 +621,15 @@ func (client IntegrationRuntimesClient) ListByWorkspaceComplete(ctx context.Cont
 // Start start an integration runtime
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
-// workspaceName - the name of the workspace
+// workspaceName - the name of the workspace.
 // integrationRuntimeName - integration runtime name
-func (client IntegrationRuntimesClient) Start(ctx context.Context, resourceGroupName string, workspaceName string, integrationRuntimeName string) (result IntegrationRuntimeStatusResponse, err error) {
+func (client IntegrationRuntimesClient) Start(ctx context.Context, resourceGroupName string, workspaceName string, integrationRuntimeName string) (result IntegrationRuntimesStartFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationRuntimesClient.Start")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -478,16 +650,10 @@ func (client IntegrationRuntimesClient) Start(ctx context.Context, resourceGroup
 		return
 	}
 
-	resp, err := client.StartSender(req)
+	result, err = client.StartSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "Start", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "Start", result.Response(), "Failure sending request")
 		return
-	}
-
-	result, err = client.StartResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "Start", resp, "Failure responding to request")
 	}
 
 	return
@@ -517,8 +683,14 @@ func (client IntegrationRuntimesClient) StartPreparer(ctx context.Context, resou
 
 // StartSender sends the Start request. The method will close the
 // http.Response Body if it receives an error.
-func (client IntegrationRuntimesClient) StartSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client IntegrationRuntimesClient) StartSender(req *http.Request) (future IntegrationRuntimesStartFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
 }
 
 // StartResponder handles the response to the Start request. The method always
@@ -536,15 +708,15 @@ func (client IntegrationRuntimesClient) StartResponder(resp *http.Response) (res
 // Stop stop an integration runtime
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
-// workspaceName - the name of the workspace
+// workspaceName - the name of the workspace.
 // integrationRuntimeName - integration runtime name
-func (client IntegrationRuntimesClient) Stop(ctx context.Context, resourceGroupName string, workspaceName string, integrationRuntimeName string) (result autorest.Response, err error) {
+func (client IntegrationRuntimesClient) Stop(ctx context.Context, resourceGroupName string, workspaceName string, integrationRuntimeName string) (result IntegrationRuntimesStopFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationRuntimesClient.Stop")
 		defer func() {
 			sc := -1
-			if result.Response != nil {
-				sc = result.Response.StatusCode
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -565,16 +737,10 @@ func (client IntegrationRuntimesClient) Stop(ctx context.Context, resourceGroupN
 		return
 	}
 
-	resp, err := client.StopSender(req)
+	result, err = client.StopSender(req)
 	if err != nil {
-		result.Response = resp
-		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "Stop", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "Stop", result.Response(), "Failure sending request")
 		return
-	}
-
-	result, err = client.StopResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "Stop", resp, "Failure responding to request")
 	}
 
 	return
@@ -604,8 +770,14 @@ func (client IntegrationRuntimesClient) StopPreparer(ctx context.Context, resour
 
 // StopSender sends the Stop request. The method will close the
 // http.Response Body if it receives an error.
-func (client IntegrationRuntimesClient) StopSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client IntegrationRuntimesClient) StopSender(req *http.Request) (future IntegrationRuntimesStopFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
 }
 
 // StopResponder handles the response to the Stop request. The method always
@@ -622,7 +794,7 @@ func (client IntegrationRuntimesClient) StopResponder(resp *http.Response) (resu
 // Update update an integration runtime
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
-// workspaceName - the name of the workspace
+// workspaceName - the name of the workspace.
 // integrationRuntimeName - integration runtime name
 // updateIntegrationRuntimeRequest - the parameters for updating an integration runtime.
 func (client IntegrationRuntimesClient) Update(ctx context.Context, resourceGroupName string, workspaceName string, integrationRuntimeName string, updateIntegrationRuntimeRequest UpdateIntegrationRuntimeRequest) (result IntegrationRuntimeResource, err error) {
@@ -712,7 +884,7 @@ func (client IntegrationRuntimesClient) UpdateResponder(resp *http.Response) (re
 // Upgrade upgrade an integration runtime
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
-// workspaceName - the name of the workspace
+// workspaceName - the name of the workspace.
 // integrationRuntimeName - integration runtime name
 func (client IntegrationRuntimesClient) Upgrade(ctx context.Context, resourceGroupName string, workspaceName string, integrationRuntimeName string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {

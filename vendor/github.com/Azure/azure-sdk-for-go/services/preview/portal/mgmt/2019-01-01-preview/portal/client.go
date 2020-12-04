@@ -1,6 +1,6 @@
 // Package portal implements the Azure ARM Portal service API version 2019-01-01-preview.
 //
-// Allows creation and deletion of Azure Shared Dashboards.
+//
 package portal
 
 // Copyright (c) Microsoft and contributors.  All rights reserved.

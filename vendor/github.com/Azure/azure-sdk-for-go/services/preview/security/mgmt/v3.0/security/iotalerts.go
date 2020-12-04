@@ -130,6 +130,81 @@ func (client IotAlertsClient) GetResponder(resp *http.Response) (result IotAlert
 	return
 }
 
+// Get1 get IoT alert
+// Parameters:
+// scope - scope of the query: Subscription (i.e. /subscriptions/{subscriptionId}) or IoT Hub (i.e.
+// /subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Devices/iotHubs/{iotHubName})
+// iotAlertID - id of the alert
+func (client IotAlertsClient) Get1(ctx context.Context, scope string, iotAlertID string) (result IotAlertModel, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/IotAlertsClient.Get1")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.Get1Preparer(ctx, scope, iotAlertID)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.IotAlertsClient", "Get1", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.Get1Sender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "security.IotAlertsClient", "Get1", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.Get1Responder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.IotAlertsClient", "Get1", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// Get1Preparer prepares the Get1 request.
+func (client IotAlertsClient) Get1Preparer(ctx context.Context, scope string, iotAlertID string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"iotAlertId": autorest.Encode("path", iotAlertID),
+		"scope":      scope,
+	}
+
+	const APIVersion = "2020-08-06-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/{scope}/providers/Microsoft.Security/iotAlerts/{iotAlertId}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// Get1Sender sends the Get1 request. The method will close the
+// http.Response Body if it receives an error.
+func (client IotAlertsClient) Get1Sender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// Get1Responder handles the response to the Get1 request. The method always
+// closes the http.Response Body.
+func (client IotAlertsClient) Get1Responder(resp *http.Response) (result IotAlertModel, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // List list IoT alerts
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
@@ -278,5 +353,147 @@ func (client IotAlertsClient) ListComplete(ctx context.Context, resourceGroupNam
 		}()
 	}
 	result.page, err = client.List(ctx, resourceGroupName, solutionName, minStartTimeUtc, maxStartTimeUtc, alertType, compromisedEntity, limit, skipToken)
+	return
+}
+
+// List1 list IoT alerts
+// Parameters:
+// scope - scope of the query: Subscription (i.e. /subscriptions/{subscriptionId}) or IoT Hub (i.e.
+// /subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Devices/iotHubs/{iotHubName})
+// minStartTimeUtc - filter by minimum startTimeUtc (ISO 8601 format)
+// maxStartTimeUtc - filter by maximum startTimeUtc (ISO 8601 format)
+// alertType - filter by alert type
+// deviceManagementType - get devices only from specific type, Managed or Unmanaged.
+// compromisedEntity - filter by compromised device
+// limit - limit the number of items returned in a single page
+// skipToken - skip token used for pagination
+func (client IotAlertsClient) List1(ctx context.Context, scope string, minStartTimeUtc string, maxStartTimeUtc string, alertType string, deviceManagementType ManagementState, compromisedEntity string, limit *int32, skipToken string) (result IotAlertListModelPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/IotAlertsClient.List1")
+		defer func() {
+			sc := -1
+			if result.ialm.Response.Response != nil {
+				sc = result.ialm.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.fn = client.list1NextResults
+	req, err := client.List1Preparer(ctx, scope, minStartTimeUtc, maxStartTimeUtc, alertType, deviceManagementType, compromisedEntity, limit, skipToken)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.IotAlertsClient", "List1", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.List1Sender(req)
+	if err != nil {
+		result.ialm.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "security.IotAlertsClient", "List1", resp, "Failure sending request")
+		return
+	}
+
+	result.ialm, err = client.List1Responder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.IotAlertsClient", "List1", resp, "Failure responding to request")
+	}
+	if result.ialm.hasNextLink() && result.ialm.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
+
+	return
+}
+
+// List1Preparer prepares the List1 request.
+func (client IotAlertsClient) List1Preparer(ctx context.Context, scope string, minStartTimeUtc string, maxStartTimeUtc string, alertType string, deviceManagementType ManagementState, compromisedEntity string, limit *int32, skipToken string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"scope": scope,
+	}
+
+	const APIVersion = "2020-08-06-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+	if len(minStartTimeUtc) > 0 {
+		queryParameters["startTimeUtc>"] = autorest.Encode("query", minStartTimeUtc)
+	}
+	if len(maxStartTimeUtc) > 0 {
+		queryParameters["startTimeUtc<"] = autorest.Encode("query", maxStartTimeUtc)
+	}
+	if len(alertType) > 0 {
+		queryParameters["alertType"] = autorest.Encode("query", alertType)
+	}
+	if len(string(deviceManagementType)) > 0 {
+		queryParameters["deviceManagementType"] = autorest.Encode("query", deviceManagementType)
+	}
+	if len(compromisedEntity) > 0 {
+		queryParameters["compromisedEntity"] = autorest.Encode("query", compromisedEntity)
+	}
+	if limit != nil {
+		queryParameters["$limit"] = autorest.Encode("query", *limit)
+	}
+	if len(skipToken) > 0 {
+		queryParameters["$skipToken"] = autorest.Encode("query", skipToken)
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/{scope}/providers/Microsoft.Security/iotAlerts", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// List1Sender sends the List1 request. The method will close the
+// http.Response Body if it receives an error.
+func (client IotAlertsClient) List1Sender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// List1Responder handles the response to the List1 request. The method always
+// closes the http.Response Body.
+func (client IotAlertsClient) List1Responder(resp *http.Response) (result IotAlertListModel, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// list1NextResults retrieves the next set of results, if any.
+func (client IotAlertsClient) list1NextResults(ctx context.Context, lastResults IotAlertListModel) (result IotAlertListModel, err error) {
+	req, err := lastResults.iotAlertListModelPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "security.IotAlertsClient", "list1NextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.List1Sender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "security.IotAlertsClient", "list1NextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.List1Responder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.IotAlertsClient", "list1NextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// List1Complete enumerates all values, automatically crossing page boundaries as required.
+func (client IotAlertsClient) List1Complete(ctx context.Context, scope string, minStartTimeUtc string, maxStartTimeUtc string, alertType string, deviceManagementType ManagementState, compromisedEntity string, limit *int32, skipToken string) (result IotAlertListModelIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/IotAlertsClient.List1")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.List1(ctx, scope, minStartTimeUtc, maxStartTimeUtc, alertType, deviceManagementType, compromisedEntity, limit, skipToken)
 	return
 }

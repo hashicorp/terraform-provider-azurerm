@@ -126,7 +126,8 @@ func (a *Account) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// AccountCreateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// AccountCreateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type AccountCreateFuture struct {
 	azure.Future
 }
@@ -231,7 +232,8 @@ type AccountCreateProperties struct {
 	KeyVaultReference *KeyVaultReference `json:"keyVaultReference,omitempty"`
 }
 
-// AccountDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// AccountDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type AccountDeleteFuture struct {
 	azure.Future
 }
@@ -416,8 +418,11 @@ func (page AccountListResultPage) Values() []Account {
 }
 
 // Creates a new instance of the AccountListResultPage type.
-func NewAccountListResultPage(getNextPage func(context.Context, AccountListResult) (AccountListResult, error)) AccountListResultPage {
-	return AccountListResultPage{fn: getNextPage}
+func NewAccountListResultPage(cur AccountListResult, getNextPage func(context.Context, AccountListResult) (AccountListResult, error)) AccountListResultPage {
+	return AccountListResultPage{
+		fn:  getNextPage,
+		alr: cur,
+	}
 }
 
 // AccountProperties account specific properties.
@@ -746,7 +751,8 @@ type AutoStorageBaseProperties struct {
 	StorageAccountID *string `json:"storageAccountId,omitempty"`
 }
 
-// AutoStorageProperties contains information about the auto-storage account associated with a Batch account.
+// AutoStorageProperties contains information about the auto-storage account associated with a Batch
+// account.
 type AutoStorageProperties struct {
 	// LastKeySync - The UTC time at which storage keys were last synchronized with the Batch account.
 	LastKeySync *date.Time `json:"lastKeySync,omitempty"`
@@ -1150,8 +1156,8 @@ type ContainerRegistry struct {
 	Password       *string `json:"password,omitempty"`
 }
 
-// DataDisk settings which will be used by the data disks associated to Compute Nodes in the Pool. When using
-// attached data disks, you need to mount and format the disks from within a VM to use them.
+// DataDisk settings which will be used by the data disks associated to Compute Nodes in the Pool. When
+// using attached data disks, you need to mount and format the disks from within a VM to use them.
 type DataDisk struct {
 	// Lun - The lun is used to uniquely identify each data disk. If attaching multiple disks, each should have a distinct lun.
 	Lun *int32 `json:"lun,omitempty"`
@@ -1263,7 +1269,8 @@ type ListApplicationPackagesResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// ListApplicationPackagesResultIterator provides access to a complete listing of ApplicationPackage values.
+// ListApplicationPackagesResultIterator provides access to a complete listing of ApplicationPackage
+// values.
 type ListApplicationPackagesResultIterator struct {
 	i    int
 	page ListApplicationPackagesResultPage
@@ -1406,8 +1413,11 @@ func (page ListApplicationPackagesResultPage) Values() []ApplicationPackage {
 }
 
 // Creates a new instance of the ListApplicationPackagesResultPage type.
-func NewListApplicationPackagesResultPage(getNextPage func(context.Context, ListApplicationPackagesResult) (ListApplicationPackagesResult, error)) ListApplicationPackagesResultPage {
-	return ListApplicationPackagesResultPage{fn: getNextPage}
+func NewListApplicationPackagesResultPage(cur ListApplicationPackagesResult, getNextPage func(context.Context, ListApplicationPackagesResult) (ListApplicationPackagesResult, error)) ListApplicationPackagesResultPage {
+	return ListApplicationPackagesResultPage{
+		fn:   getNextPage,
+		lapr: cur,
+	}
 }
 
 // ListApplicationsResult the result of performing list applications.
@@ -1562,8 +1572,11 @@ func (page ListApplicationsResultPage) Values() []Application {
 }
 
 // Creates a new instance of the ListApplicationsResultPage type.
-func NewListApplicationsResultPage(getNextPage func(context.Context, ListApplicationsResult) (ListApplicationsResult, error)) ListApplicationsResultPage {
-	return ListApplicationsResultPage{fn: getNextPage}
+func NewListApplicationsResultPage(cur ListApplicationsResult, getNextPage func(context.Context, ListApplicationsResult) (ListApplicationsResult, error)) ListApplicationsResultPage {
+	return ListApplicationsResultPage{
+		fn:  getNextPage,
+		lar: cur,
+	}
 }
 
 // ListCertificatesResult values returned by the List operation.
@@ -1718,8 +1731,11 @@ func (page ListCertificatesResultPage) Values() []Certificate {
 }
 
 // Creates a new instance of the ListCertificatesResultPage type.
-func NewListCertificatesResultPage(getNextPage func(context.Context, ListCertificatesResult) (ListCertificatesResult, error)) ListCertificatesResultPage {
-	return ListCertificatesResultPage{fn: getNextPage}
+func NewListCertificatesResultPage(cur ListCertificatesResult, getNextPage func(context.Context, ListCertificatesResult) (ListCertificatesResult, error)) ListCertificatesResultPage {
+	return ListCertificatesResultPage{
+		fn:  getNextPage,
+		lcr: cur,
+	}
 }
 
 // ListPoolsResult values returned by the List operation.
@@ -1874,8 +1890,11 @@ func (page ListPoolsResultPage) Values() []Pool {
 }
 
 // Creates a new instance of the ListPoolsResultPage type.
-func NewListPoolsResultPage(getNextPage func(context.Context, ListPoolsResult) (ListPoolsResult, error)) ListPoolsResultPage {
-	return ListPoolsResultPage{fn: getNextPage}
+func NewListPoolsResultPage(cur ListPoolsResult, getNextPage func(context.Context, ListPoolsResult) (ListPoolsResult, error)) ListPoolsResultPage {
+	return ListPoolsResultPage{
+		fn:  getNextPage,
+		lpr: cur,
+	}
 }
 
 // LocationQuota quotas associated with a Batch region for a particular subscription.
@@ -2103,8 +2122,11 @@ func (page OperationListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
 // Pool contains information about a pool.
@@ -2370,8 +2392,8 @@ type ResizeError struct {
 	Details *[]ResizeError `json:"details,omitempty"`
 }
 
-// ResizeOperationStatus describes either the current operation (if the pool AllocationState is Resizing) or
-// the previously completed operation (if the AllocationState is Steady).
+// ResizeOperationStatus describes either the current operation (if the pool AllocationState is Resizing)
+// or the previously completed operation (if the AllocationState is Steady).
 type ResizeOperationStatus struct {
 	TargetDedicatedNodes   *int32 `json:"targetDedicatedNodes,omitempty"`
 	TargetLowPriorityNodes *int32 `json:"targetLowPriorityNodes,omitempty"`
@@ -2421,8 +2443,9 @@ type ResourceFile struct {
 }
 
 // ScaleSettings defines the desired size of the pool. This can either be 'fixedScale' where the requested
-// targetDedicatedNodes is specified, or 'autoScale' which defines a formula which is periodically reevaluated.
-// If this property is not specified, the pool will have a fixed scale with 0 targetDedicatedNodes.
+// targetDedicatedNodes is specified, or 'autoScale' which defines a formula which is periodically
+// reevaluated. If this property is not specified, the pool will have a fixed scale with 0
+// targetDedicatedNodes.
 type ScaleSettings struct {
 	// FixedScale - This property and autoScale are mutually exclusive and one of the properties must be specified.
 	FixedScale *FixedScaleSettings `json:"fixedScale,omitempty"`
@@ -2431,9 +2454,10 @@ type ScaleSettings struct {
 }
 
 // StartTask in some cases the start task may be re-run even though the node was not rebooted. Due to this,
-// start tasks should be idempotent and exit gracefully if the setup they're performing has already been done.
-// Special care should be taken to avoid start tasks which create breakaway process or install/launch services
-// from the start task working directory, as this will block Batch from being able to re-run the start task.
+// start tasks should be idempotent and exit gracefully if the setup they're performing has already been
+// done. Special care should be taken to avoid start tasks which create breakaway process or install/launch
+// services from the start task working directory, as this will block Batch from being able to re-run the
+// start task.
 type StartTask struct {
 	// CommandLine - The command line does not run under a shell, and therefore cannot take advantage of shell features such as environment variable expansion. If you want to take advantage of such features, you should invoke the shell in the command line, for example using "cmd /c MyCommand" in Windows or "/bin/sh -c MyCommand" in Linux. Required if any other properties of the startTask are specified.
 	CommandLine         *string               `json:"commandLine,omitempty"`

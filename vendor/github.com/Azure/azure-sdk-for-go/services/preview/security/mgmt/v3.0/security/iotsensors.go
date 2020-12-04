@@ -261,6 +261,82 @@ func (client IotSensorsClient) DownloadActivationResponder(resp *http.Response) 
 	return
 }
 
+// DownloadResetPassword download file for reset password of the sensor
+// Parameters:
+// scope - scope of the query (IoT Hub, /providers/Microsoft.Devices/iotHubs/myHub)
+// iotSensorName - name of the IoT sensor
+// body - the reset password input.
+func (client IotSensorsClient) DownloadResetPassword(ctx context.Context, scope string, iotSensorName string, body ResetPasswordInput) (result ReadCloser, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/IotSensorsClient.DownloadResetPassword")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.DownloadResetPasswordPreparer(ctx, scope, iotSensorName, body)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.IotSensorsClient", "DownloadResetPassword", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.DownloadResetPasswordSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "security.IotSensorsClient", "DownloadResetPassword", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.DownloadResetPasswordResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.IotSensorsClient", "DownloadResetPassword", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// DownloadResetPasswordPreparer prepares the DownloadResetPassword request.
+func (client IotSensorsClient) DownloadResetPasswordPreparer(ctx context.Context, scope string, iotSensorName string, body ResetPasswordInput) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"iotSensorName": autorest.Encode("path", iotSensorName),
+		"scope":         scope,
+	}
+
+	const APIVersion = "2020-08-06-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/{scope}/providers/Microsoft.Security/iotSensors/{iotSensorName}/downloadResetPassword", pathParameters),
+		autorest.WithJSON(body),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// DownloadResetPasswordSender sends the DownloadResetPassword request. The method will close the
+// http.Response Body if it receives an error.
+func (client IotSensorsClient) DownloadResetPasswordSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// DownloadResetPasswordResponder handles the response to the DownloadResetPassword request. The method always
+// closes the http.Response Body.
+func (client IotSensorsClient) DownloadResetPasswordResponder(resp *http.Response) (result ReadCloser, err error) {
+	result.Value = &resp.Body
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK))
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // Get get IoT sensor
 // Parameters:
 // scope - scope of the query (IoT Hub, /providers/Microsoft.Devices/iotHubs/myHub)

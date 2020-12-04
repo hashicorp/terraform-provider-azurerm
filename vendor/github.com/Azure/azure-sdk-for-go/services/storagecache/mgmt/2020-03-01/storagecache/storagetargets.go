@@ -140,7 +140,7 @@ func (client StorageTargetsClient) CreateOrUpdateSender(req *http.Request) (futu
 func (client StorageTargetsClient) CreateOrUpdateResponder(resp *http.Response) (result StorageTarget, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}

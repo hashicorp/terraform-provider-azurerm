@@ -42,8 +42,8 @@ func NewConnectorsClientWithBaseURI(baseURI string, subscriptionID string, ascLo
 	return ConnectorsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
 }
 
-// CreateOrUpdate create a cloud account connector or update an existing one. Connect to your AWS cloud account using
-// either account credentials or role-based authentication.
+// CreateOrUpdate create a cloud account connector or update an existing one. Connect to your cloud account. For AWS,
+// use either account credentials or role-based authentication. For GCP, use account organization credentials.
 // Parameters:
 // connectorName - name of the cloud account connector
 // connectorSetting - settings for the cloud account connector

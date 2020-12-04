@@ -25,7 +25,7 @@ import (
 	"net/http"
 )
 
-// OperationsClient is the azure Maintenance Management Client
+// OperationsClient is the maintenance Client
 type OperationsClient struct {
 	BaseClient
 }

@@ -46,7 +46,7 @@ func NewIntegrationRuntimeStatusClientWithBaseURI(baseURI string, subscriptionID
 // Get get the integration runtime status
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
-// workspaceName - the name of the workspace
+// workspaceName - the name of the workspace.
 // integrationRuntimeName - integration runtime name
 func (client IntegrationRuntimeStatusClient) Get(ctx context.Context, resourceGroupName string, workspaceName string, integrationRuntimeName string) (result IntegrationRuntimeStatusResponse, err error) {
 	if tracing.IsEnabled() {

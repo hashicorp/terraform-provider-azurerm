@@ -26,7 +26,7 @@ import (
 	"net/http"
 )
 
-// DashboardsClient is the allows creation and deletion of Azure Shared Dashboards.
+// DashboardsClient is the client for the Dashboards methods of the Portal service.
 type DashboardsClient struct {
 	BaseClient
 }
@@ -288,7 +288,7 @@ func (client DashboardsClient) GetSender(req *http.Request) (*http.Response, err
 func (client DashboardsClient) GetResponder(resp *http.Response) (result Dashboard, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -598,7 +598,7 @@ func (client DashboardsClient) UpdateSender(req *http.Request) (*http.Response, 
 func (client DashboardsClient) UpdateResponder(resp *http.Response) (result Dashboard, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}

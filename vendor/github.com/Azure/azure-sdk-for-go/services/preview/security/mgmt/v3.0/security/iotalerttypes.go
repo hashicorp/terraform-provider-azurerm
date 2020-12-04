@@ -130,6 +130,85 @@ func (client IotAlertTypesClient) GetResponder(resp *http.Response) (result IotA
 	return
 }
 
+// Get1 get IoT alert type
+// Parameters:
+// iotAlertTypeName - name of the alert type
+func (client IotAlertTypesClient) Get1(ctx context.Context, iotAlertTypeName string) (result IotAlertType, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/IotAlertTypesClient.Get1")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("security.IotAlertTypesClient", "Get1", err.Error())
+	}
+
+	req, err := client.Get1Preparer(ctx, iotAlertTypeName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.IotAlertTypesClient", "Get1", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.Get1Sender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "security.IotAlertTypesClient", "Get1", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.Get1Responder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.IotAlertTypesClient", "Get1", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// Get1Preparer prepares the Get1 request.
+func (client IotAlertTypesClient) Get1Preparer(ctx context.Context, iotAlertTypeName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"iotAlertTypeName": autorest.Encode("path", iotAlertTypeName),
+		"subscriptionId":   autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-08-06-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Security/iotAlertTypes/{iotAlertTypeName}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// Get1Sender sends the Get1 request. The method will close the
+// http.Response Body if it receives an error.
+func (client IotAlertTypesClient) Get1Sender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// Get1Responder handles the response to the Get1 request. The method always
+// closes the http.Response Body.
+func (client IotAlertTypesClient) Get1Responder(resp *http.Response) (result IotAlertType, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // List list IoT alert types
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
@@ -207,6 +286,82 @@ func (client IotAlertTypesClient) ListSender(req *http.Request) (*http.Response,
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
 func (client IotAlertTypesClient) ListResponder(resp *http.Response) (result IotAlertTypeList, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// List1 list IoT alert types
+func (client IotAlertTypesClient) List1(ctx context.Context) (result IotAlertTypeList, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/IotAlertTypesClient.List1")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("security.IotAlertTypesClient", "List1", err.Error())
+	}
+
+	req, err := client.List1Preparer(ctx)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.IotAlertTypesClient", "List1", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.List1Sender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "security.IotAlertTypesClient", "List1", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.List1Responder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.IotAlertTypesClient", "List1", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// List1Preparer prepares the List1 request.
+func (client IotAlertTypesClient) List1Preparer(ctx context.Context) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-08-06-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Security/iotAlertTypes", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// List1Sender sends the List1 request. The method will close the
+// http.Response Body if it receives an error.
+func (client IotAlertTypesClient) List1Sender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// List1Responder handles the response to the List1 request. The method always
+// closes the http.Response Body.
+func (client IotAlertTypesClient) List1Responder(resp *http.Response) (result IotAlertTypeList, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

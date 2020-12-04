@@ -49,7 +49,7 @@ func NewProductSettingsClientWithBaseURI(baseURI string, subscriptionID string) 
 // operationalInsightsResourceProvider - the namespace of workspaces resource provider-
 // Microsoft.OperationalInsights.
 // workspaceName - the name of the workspace.
-// settingsName - the setting name. Supports- EyesOn
+// settingsName - the setting name. Supports - EyesOn, EntityAnalytics, Ueba
 func (client ProductSettingsClient) Delete(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, settingsName string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ProductSettingsClient.Delete")
@@ -142,7 +142,7 @@ func (client ProductSettingsClient) DeleteResponder(resp *http.Response) (result
 // operationalInsightsResourceProvider - the namespace of workspaces resource provider-
 // Microsoft.OperationalInsights.
 // workspaceName - the name of the workspace.
-// settingsName - the setting name. Supports- EyesOn
+// settingsName - the setting name. Supports - EyesOn, EntityAnalytics, Ueba
 func (client ProductSettingsClient) Get(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, settingsName string) (result SettingsModel, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ProductSettingsClient.Get")
@@ -328,7 +328,7 @@ func (client ProductSettingsClient) GetAllResponder(resp *http.Response) (result
 // operationalInsightsResourceProvider - the namespace of workspaces resource provider-
 // Microsoft.OperationalInsights.
 // workspaceName - the name of the workspace.
-// settingsName - the setting name. Supports- EyesOn
+// settingsName - the setting name. Supports - EyesOn, EntityAnalytics, Ueba
 // settings - the setting
 func (client ProductSettingsClient) Update(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, settingsName string, settings BasicSettings) (result SettingsModel, err error) {
 	if tracing.IsEnabled() {

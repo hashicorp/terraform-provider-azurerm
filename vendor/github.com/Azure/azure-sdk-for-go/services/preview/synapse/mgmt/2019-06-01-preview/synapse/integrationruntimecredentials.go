@@ -49,7 +49,7 @@ func NewIntegrationRuntimeCredentialsClientWithBaseURI(baseURI string, subscript
 // node than using this API directly.
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
-// workspaceName - the name of the workspace
+// workspaceName - the name of the workspace.
 // integrationRuntimeName - integration runtime name
 func (client IntegrationRuntimeCredentialsClient) Sync(ctx context.Context, resourceGroupName string, workspaceName string, integrationRuntimeName string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {

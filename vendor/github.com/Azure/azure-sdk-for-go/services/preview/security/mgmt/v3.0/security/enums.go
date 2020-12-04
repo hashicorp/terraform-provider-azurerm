@@ -240,7 +240,7 @@ func PossibleAssessmentTypeValues() []AssessmentType {
 type AuthenticationProvisioningState string
 
 const (
-	// Expired the connection is expired
+	// Expired the connection has expired
 	Expired AuthenticationProvisioningState = "Expired"
 	// IncorrectPolicy Incorrect policy of the connector
 	IncorrectPolicy AuthenticationProvisioningState = "IncorrectPolicy"
@@ -272,6 +272,21 @@ const (
 // PossibleAuthenticationTypeValues returns an array of possible values for the AuthenticationType const type.
 func PossibleAuthenticationTypeValues() []AuthenticationType {
 	return []AuthenticationType{AuthenticationTypeAuthenticationDetailsProperties, AuthenticationTypeAwsAssumeRole, AuthenticationTypeAwsCreds, AuthenticationTypeGcpCredentials}
+}
+
+// AuthorizationState enumerates the values for authorization state.
+type AuthorizationState string
+
+const (
+	// Authorized ...
+	Authorized AuthorizationState = "Authorized"
+	// Unauthorized ...
+	Unauthorized AuthorizationState = "Unauthorized"
+)
+
+// PossibleAuthorizationStateValues returns an array of possible values for the AuthorizationState const type.
+func PossibleAuthorizationStateValues() []AuthorizationState {
+	return []AuthorizationState{Authorized, Unauthorized}
 }
 
 // AutoProvision enumerates the values for auto provision.
@@ -416,6 +431,36 @@ func PossibleDataSourceValues() []DataSource {
 	return []DataSource{TwinData}
 }
 
+// DeviceCriticality enumerates the values for device criticality.
+type DeviceCriticality string
+
+const (
+	// Important ...
+	Important DeviceCriticality = "Important"
+	// Standard ...
+	Standard DeviceCriticality = "Standard"
+)
+
+// PossibleDeviceCriticalityValues returns an array of possible values for the DeviceCriticality const type.
+func PossibleDeviceCriticalityValues() []DeviceCriticality {
+	return []DeviceCriticality{Important, Standard}
+}
+
+// DeviceStatus enumerates the values for device status.
+type DeviceStatus string
+
+const (
+	// DeviceStatusActive ...
+	DeviceStatusActive DeviceStatus = "Active"
+	// DeviceStatusRemoved ...
+	DeviceStatusRemoved DeviceStatus = "Removed"
+)
+
+// PossibleDeviceStatusValues returns an array of possible values for the DeviceStatus const type.
+func PossibleDeviceStatusValues() []DeviceStatus {
+	return []DeviceStatus{DeviceStatusActive, DeviceStatusRemoved}
+}
+
 // Direction enumerates the values for direction.
 type Direction string
 
@@ -473,13 +518,17 @@ const (
 	Alerts EventSource = "Alerts"
 	// Assessments ...
 	Assessments EventSource = "Assessments"
+	// SecureScoreControls ...
+	SecureScoreControls EventSource = "SecureScoreControls"
+	// SecureScores ...
+	SecureScores EventSource = "SecureScores"
 	// SubAssessments ...
 	SubAssessments EventSource = "SubAssessments"
 )
 
 // PossibleEventSourceValues returns an array of possible values for the EventSource const type.
 func PossibleEventSourceValues() []EventSource {
-	return []EventSource{Alerts, Assessments, SubAssessments}
+	return []EventSource{Alerts, Assessments, SecureScoreControls, SecureScores, SubAssessments}
 }
 
 // Exe enumerates the values for exe.
@@ -773,6 +822,36 @@ func PossibleKindEnum1Values() []KindEnum1 {
 	return []KindEnum1{KindAAD, KindATA, KindCEF, KindExternalSecuritySolution}
 }
 
+// MacSignificance enumerates the values for mac significance.
+type MacSignificance string
+
+const (
+	// Primary ...
+	Primary MacSignificance = "Primary"
+	// Secondary ...
+	Secondary MacSignificance = "Secondary"
+)
+
+// PossibleMacSignificanceValues returns an array of possible values for the MacSignificance const type.
+func PossibleMacSignificanceValues() []MacSignificance {
+	return []MacSignificance{Primary, Secondary}
+}
+
+// ManagementState enumerates the values for management state.
+type ManagementState string
+
+const (
+	// Managed ...
+	Managed ManagementState = "Managed"
+	// Unmanaged ...
+	Unmanaged ManagementState = "Unmanaged"
+)
+
+// PossibleManagementStateValues returns an array of possible values for the ManagementState const type.
+func PossibleManagementStateValues() []ManagementState {
+	return []ManagementState{Managed, Unmanaged}
+}
+
 // Msi enumerates the values for msi.
 type Msi string
 
@@ -843,15 +922,30 @@ func PossiblePermissionPropertyValues() []PermissionProperty {
 type PricingTier string
 
 const (
-	// Free Get free Azure security center experience with basic security features
-	Free PricingTier = "Free"
-	// Standard Get the standard Azure security center experience with advanced security features
-	Standard PricingTier = "Standard"
+	// PricingTierFree Get free Azure security center experience with basic security features
+	PricingTierFree PricingTier = "Free"
+	// PricingTierStandard Get the standard Azure security center experience with advanced security features
+	PricingTierStandard PricingTier = "Standard"
 )
 
 // PossiblePricingTierValues returns an array of possible values for the PricingTier const type.
 func PossiblePricingTierValues() []PricingTier {
-	return []PricingTier{Free, Standard}
+	return []PricingTier{PricingTierFree, PricingTierStandard}
+}
+
+// ProgrammingState enumerates the values for programming state.
+type ProgrammingState string
+
+const (
+	// NotProgrammingDevice ...
+	NotProgrammingDevice ProgrammingState = "NotProgrammingDevice"
+	// ProgrammingDevice ...
+	ProgrammingDevice ProgrammingState = "ProgrammingDevice"
+)
+
+// PossibleProgrammingStateValues returns an array of possible values for the ProgrammingState const type.
+func PossibleProgrammingStateValues() []ProgrammingState {
+	return []ProgrammingState{NotProgrammingDevice, ProgrammingDevice}
 }
 
 // PropertyType enumerates the values for property type.
@@ -926,6 +1020,23 @@ const (
 // PossibleProvisioningState1Values returns an array of possible values for the ProvisioningState1 const type.
 func PossibleProvisioningState1Values() []ProvisioningState1 {
 	return []ProvisioningState1{ProvisioningState1Canceled, ProvisioningState1Deprovisioning, ProvisioningState1Failed, ProvisioningState1Provisioning, ProvisioningState1Succeeded}
+}
+
+// PurdueLevel enumerates the values for purdue level.
+type PurdueLevel string
+
+const (
+	// Enterprise ...
+	Enterprise PurdueLevel = "Enterprise"
+	// ProcessControl ...
+	ProcessControl PurdueLevel = "ProcessControl"
+	// Supervisory ...
+	Supervisory PurdueLevel = "Supervisory"
+)
+
+// PossiblePurdueLevelValues returns an array of possible values for the PurdueLevel const type.
+func PossiblePurdueLevelValues() []PurdueLevel {
+	return []PurdueLevel{Enterprise, ProcessControl, Supervisory}
 }
 
 // Rank enumerates the values for rank.
@@ -1097,6 +1208,21 @@ func PossibleRecommendationTypeValues() []RecommendationType {
 	return []RecommendationType{IoTACRAuthentication, IoTAgentSendsUnutilizedMessages, IoTBaseline, IoTEdgeHubMemOptimize, IoTEdgeLoggingOptions, IoTInconsistentModuleSettings, IoTInstallAgent, IoTIPFilterDenyAll, IoTIPFilterPermissiveRule, IoTOpenPorts, IoTPermissiveFirewallPolicy, IoTPermissiveInputFirewallRules, IoTPermissiveOutputFirewallRules, IoTPrivilegedDockerOptions, IoTSharedCredentials, IoTVulnerableTLSCipherSuite}
 }
 
+// RelationToIPStatus enumerates the values for relation to ip status.
+type RelationToIPStatus string
+
+const (
+	// Certain ...
+	Certain RelationToIPStatus = "Certain"
+	// Guess ...
+	Guess RelationToIPStatus = "Guess"
+)
+
+// PossibleRelationToIPStatusValues returns an array of possible values for the RelationToIPStatus const type.
+func PossibleRelationToIPStatusValues() []RelationToIPStatus {
+	return []RelationToIPStatus{Certain, Guess}
+}
+
 // ReportedSeverity enumerates the values for reported severity.
 type ReportedSeverity string
 
@@ -1135,6 +1261,27 @@ func PossibleResourceStatusValues() []ResourceStatus {
 	return []ResourceStatus{ResourceStatusHealthy, ResourceStatusNotApplicable, ResourceStatusNotHealthy, ResourceStatusOffByPolicy}
 }
 
+// RuleSeverity enumerates the values for rule severity.
+type RuleSeverity string
+
+const (
+	// RuleSeverityHigh High
+	RuleSeverityHigh RuleSeverity = "High"
+	// RuleSeverityInformational Informational
+	RuleSeverityInformational RuleSeverity = "Informational"
+	// RuleSeverityLow Low
+	RuleSeverityLow RuleSeverity = "Low"
+	// RuleSeverityMedium Medium
+	RuleSeverityMedium RuleSeverity = "Medium"
+	// RuleSeverityObsolete Obsolete
+	RuleSeverityObsolete RuleSeverity = "Obsolete"
+)
+
+// PossibleRuleSeverityValues returns an array of possible values for the RuleSeverity const type.
+func PossibleRuleSeverityValues() []RuleSeverity {
+	return []RuleSeverity{RuleSeverityHigh, RuleSeverityInformational, RuleSeverityLow, RuleSeverityMedium, RuleSeverityObsolete}
+}
+
 // RuleState enumerates the values for rule state.
 type RuleState string
 
@@ -1152,65 +1299,150 @@ func PossibleRuleStateValues() []RuleState {
 	return []RuleState{RuleStateDisabled, RuleStateEnabled, RuleStateExpired}
 }
 
+// RuleStatus enumerates the values for rule status.
+type RuleStatus string
+
+const (
+	// Finding Finding
+	Finding RuleStatus = "Finding"
+	// InternalError InternalError
+	InternalError RuleStatus = "InternalError"
+	// NonFinding NonFinding
+	NonFinding RuleStatus = "NonFinding"
+)
+
+// PossibleRuleStatusValues returns an array of possible values for the RuleStatus const type.
+func PossibleRuleStatusValues() []RuleStatus {
+	return []RuleStatus{Finding, InternalError, NonFinding}
+}
+
 // RuleType enumerates the values for rule type.
 type RuleType string
 
 const (
-	// RuleTypeActiveConnectionsNotInAllowedRange ...
-	RuleTypeActiveConnectionsNotInAllowedRange RuleType = "ActiveConnectionsNotInAllowedRange"
-	// RuleTypeAllowlistCustomAlertRule ...
-	RuleTypeAllowlistCustomAlertRule RuleType = "AllowlistCustomAlertRule"
-	// RuleTypeAmqpC2DMessagesNotInAllowedRange ...
-	RuleTypeAmqpC2DMessagesNotInAllowedRange RuleType = "AmqpC2DMessagesNotInAllowedRange"
-	// RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange ...
-	RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange RuleType = "AmqpC2DRejectedMessagesNotInAllowedRange"
-	// RuleTypeAmqpD2CMessagesNotInAllowedRange ...
-	RuleTypeAmqpD2CMessagesNotInAllowedRange RuleType = "AmqpD2CMessagesNotInAllowedRange"
-	// RuleTypeConnectionToIPNotAllowed ...
-	RuleTypeConnectionToIPNotAllowed RuleType = "ConnectionToIpNotAllowed"
-	// RuleTypeCustomAlertRule ...
-	RuleTypeCustomAlertRule RuleType = "CustomAlertRule"
-	// RuleTypeDenylistCustomAlertRule ...
-	RuleTypeDenylistCustomAlertRule RuleType = "DenylistCustomAlertRule"
-	// RuleTypeDirectMethodInvokesNotInAllowedRange ...
-	RuleTypeDirectMethodInvokesNotInAllowedRange RuleType = "DirectMethodInvokesNotInAllowedRange"
-	// RuleTypeFailedLocalLoginsNotInAllowedRange ...
-	RuleTypeFailedLocalLoginsNotInAllowedRange RuleType = "FailedLocalLoginsNotInAllowedRange"
-	// RuleTypeFileUploadsNotInAllowedRange ...
-	RuleTypeFileUploadsNotInAllowedRange RuleType = "FileUploadsNotInAllowedRange"
-	// RuleTypeHTTPC2DMessagesNotInAllowedRange ...
-	RuleTypeHTTPC2DMessagesNotInAllowedRange RuleType = "HttpC2DMessagesNotInAllowedRange"
-	// RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange ...
-	RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange RuleType = "HttpC2DRejectedMessagesNotInAllowedRange"
-	// RuleTypeHTTPD2CMessagesNotInAllowedRange ...
-	RuleTypeHTTPD2CMessagesNotInAllowedRange RuleType = "HttpD2CMessagesNotInAllowedRange"
-	// RuleTypeListCustomAlertRule ...
-	RuleTypeListCustomAlertRule RuleType = "ListCustomAlertRule"
-	// RuleTypeLocalUserNotAllowed ...
-	RuleTypeLocalUserNotAllowed RuleType = "LocalUserNotAllowed"
-	// RuleTypeMqttC2DMessagesNotInAllowedRange ...
-	RuleTypeMqttC2DMessagesNotInAllowedRange RuleType = "MqttC2DMessagesNotInAllowedRange"
-	// RuleTypeMqttC2DRejectedMessagesNotInAllowedRange ...
-	RuleTypeMqttC2DRejectedMessagesNotInAllowedRange RuleType = "MqttC2DRejectedMessagesNotInAllowedRange"
-	// RuleTypeMqttD2CMessagesNotInAllowedRange ...
-	RuleTypeMqttD2CMessagesNotInAllowedRange RuleType = "MqttD2CMessagesNotInAllowedRange"
-	// RuleTypeProcessNotAllowed ...
-	RuleTypeProcessNotAllowed RuleType = "ProcessNotAllowed"
-	// RuleTypeQueuePurgesNotInAllowedRange ...
-	RuleTypeQueuePurgesNotInAllowedRange RuleType = "QueuePurgesNotInAllowedRange"
-	// RuleTypeThresholdCustomAlertRule ...
-	RuleTypeThresholdCustomAlertRule RuleType = "ThresholdCustomAlertRule"
-	// RuleTypeTimeWindowCustomAlertRule ...
-	RuleTypeTimeWindowCustomAlertRule RuleType = "TimeWindowCustomAlertRule"
-	// RuleTypeTwinUpdatesNotInAllowedRange ...
-	RuleTypeTwinUpdatesNotInAllowedRange RuleType = "TwinUpdatesNotInAllowedRange"
-	// RuleTypeUnauthorizedOperationsNotInAllowedRange ...
-	RuleTypeUnauthorizedOperationsNotInAllowedRange RuleType = "UnauthorizedOperationsNotInAllowedRange"
+	// BaselineExpected BaselineExpected
+	BaselineExpected RuleType = "BaselineExpected"
+	// Binary Binary
+	Binary RuleType = "Binary"
+	// NegativeList NegativeList
+	NegativeList RuleType = "NegativeList"
+	// PositiveList PositiveList
+	PositiveList RuleType = "PositiveList"
 )
 
 // PossibleRuleTypeValues returns an array of possible values for the RuleType const type.
 func PossibleRuleTypeValues() []RuleType {
-	return []RuleType{RuleTypeActiveConnectionsNotInAllowedRange, RuleTypeAllowlistCustomAlertRule, RuleTypeAmqpC2DMessagesNotInAllowedRange, RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange, RuleTypeAmqpD2CMessagesNotInAllowedRange, RuleTypeConnectionToIPNotAllowed, RuleTypeCustomAlertRule, RuleTypeDenylistCustomAlertRule, RuleTypeDirectMethodInvokesNotInAllowedRange, RuleTypeFailedLocalLoginsNotInAllowedRange, RuleTypeFileUploadsNotInAllowedRange, RuleTypeHTTPC2DMessagesNotInAllowedRange, RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange, RuleTypeHTTPD2CMessagesNotInAllowedRange, RuleTypeListCustomAlertRule, RuleTypeLocalUserNotAllowed, RuleTypeMqttC2DMessagesNotInAllowedRange, RuleTypeMqttC2DRejectedMessagesNotInAllowedRange, RuleTypeMqttD2CMessagesNotInAllowedRange, RuleTypeProcessNotAllowed, RuleTypeQueuePurgesNotInAllowedRange, RuleTypeThresholdCustomAlertRule, RuleTypeTimeWindowCustomAlertRule, RuleTypeTwinUpdatesNotInAllowedRange, RuleTypeUnauthorizedOperationsNotInAllowedRange}
+	return []RuleType{BaselineExpected, Binary, NegativeList, PositiveList}
+}
+
+// RuleTypeBasicCustomAlertRule enumerates the values for rule type basic custom alert rule.
+type RuleTypeBasicCustomAlertRule string
+
+const (
+	// RuleTypeActiveConnectionsNotInAllowedRange ...
+	RuleTypeActiveConnectionsNotInAllowedRange RuleTypeBasicCustomAlertRule = "ActiveConnectionsNotInAllowedRange"
+	// RuleTypeAllowlistCustomAlertRule ...
+	RuleTypeAllowlistCustomAlertRule RuleTypeBasicCustomAlertRule = "AllowlistCustomAlertRule"
+	// RuleTypeAmqpC2DMessagesNotInAllowedRange ...
+	RuleTypeAmqpC2DMessagesNotInAllowedRange RuleTypeBasicCustomAlertRule = "AmqpC2DMessagesNotInAllowedRange"
+	// RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange ...
+	RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange RuleTypeBasicCustomAlertRule = "AmqpC2DRejectedMessagesNotInAllowedRange"
+	// RuleTypeAmqpD2CMessagesNotInAllowedRange ...
+	RuleTypeAmqpD2CMessagesNotInAllowedRange RuleTypeBasicCustomAlertRule = "AmqpD2CMessagesNotInAllowedRange"
+	// RuleTypeConnectionToIPNotAllowed ...
+	RuleTypeConnectionToIPNotAllowed RuleTypeBasicCustomAlertRule = "ConnectionToIpNotAllowed"
+	// RuleTypeCustomAlertRule ...
+	RuleTypeCustomAlertRule RuleTypeBasicCustomAlertRule = "CustomAlertRule"
+	// RuleTypeDenylistCustomAlertRule ...
+	RuleTypeDenylistCustomAlertRule RuleTypeBasicCustomAlertRule = "DenylistCustomAlertRule"
+	// RuleTypeDirectMethodInvokesNotInAllowedRange ...
+	RuleTypeDirectMethodInvokesNotInAllowedRange RuleTypeBasicCustomAlertRule = "DirectMethodInvokesNotInAllowedRange"
+	// RuleTypeFailedLocalLoginsNotInAllowedRange ...
+	RuleTypeFailedLocalLoginsNotInAllowedRange RuleTypeBasicCustomAlertRule = "FailedLocalLoginsNotInAllowedRange"
+	// RuleTypeFileUploadsNotInAllowedRange ...
+	RuleTypeFileUploadsNotInAllowedRange RuleTypeBasicCustomAlertRule = "FileUploadsNotInAllowedRange"
+	// RuleTypeHTTPC2DMessagesNotInAllowedRange ...
+	RuleTypeHTTPC2DMessagesNotInAllowedRange RuleTypeBasicCustomAlertRule = "HttpC2DMessagesNotInAllowedRange"
+	// RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange ...
+	RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange RuleTypeBasicCustomAlertRule = "HttpC2DRejectedMessagesNotInAllowedRange"
+	// RuleTypeHTTPD2CMessagesNotInAllowedRange ...
+	RuleTypeHTTPD2CMessagesNotInAllowedRange RuleTypeBasicCustomAlertRule = "HttpD2CMessagesNotInAllowedRange"
+	// RuleTypeListCustomAlertRule ...
+	RuleTypeListCustomAlertRule RuleTypeBasicCustomAlertRule = "ListCustomAlertRule"
+	// RuleTypeLocalUserNotAllowed ...
+	RuleTypeLocalUserNotAllowed RuleTypeBasicCustomAlertRule = "LocalUserNotAllowed"
+	// RuleTypeMqttC2DMessagesNotInAllowedRange ...
+	RuleTypeMqttC2DMessagesNotInAllowedRange RuleTypeBasicCustomAlertRule = "MqttC2DMessagesNotInAllowedRange"
+	// RuleTypeMqttC2DRejectedMessagesNotInAllowedRange ...
+	RuleTypeMqttC2DRejectedMessagesNotInAllowedRange RuleTypeBasicCustomAlertRule = "MqttC2DRejectedMessagesNotInAllowedRange"
+	// RuleTypeMqttD2CMessagesNotInAllowedRange ...
+	RuleTypeMqttD2CMessagesNotInAllowedRange RuleTypeBasicCustomAlertRule = "MqttD2CMessagesNotInAllowedRange"
+	// RuleTypeProcessNotAllowed ...
+	RuleTypeProcessNotAllowed RuleTypeBasicCustomAlertRule = "ProcessNotAllowed"
+	// RuleTypeQueuePurgesNotInAllowedRange ...
+	RuleTypeQueuePurgesNotInAllowedRange RuleTypeBasicCustomAlertRule = "QueuePurgesNotInAllowedRange"
+	// RuleTypeThresholdCustomAlertRule ...
+	RuleTypeThresholdCustomAlertRule RuleTypeBasicCustomAlertRule = "ThresholdCustomAlertRule"
+	// RuleTypeTimeWindowCustomAlertRule ...
+	RuleTypeTimeWindowCustomAlertRule RuleTypeBasicCustomAlertRule = "TimeWindowCustomAlertRule"
+	// RuleTypeTwinUpdatesNotInAllowedRange ...
+	RuleTypeTwinUpdatesNotInAllowedRange RuleTypeBasicCustomAlertRule = "TwinUpdatesNotInAllowedRange"
+	// RuleTypeUnauthorizedOperationsNotInAllowedRange ...
+	RuleTypeUnauthorizedOperationsNotInAllowedRange RuleTypeBasicCustomAlertRule = "UnauthorizedOperationsNotInAllowedRange"
+)
+
+// PossibleRuleTypeBasicCustomAlertRuleValues returns an array of possible values for the RuleTypeBasicCustomAlertRule const type.
+func PossibleRuleTypeBasicCustomAlertRuleValues() []RuleTypeBasicCustomAlertRule {
+	return []RuleTypeBasicCustomAlertRule{RuleTypeActiveConnectionsNotInAllowedRange, RuleTypeAllowlistCustomAlertRule, RuleTypeAmqpC2DMessagesNotInAllowedRange, RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange, RuleTypeAmqpD2CMessagesNotInAllowedRange, RuleTypeConnectionToIPNotAllowed, RuleTypeCustomAlertRule, RuleTypeDenylistCustomAlertRule, RuleTypeDirectMethodInvokesNotInAllowedRange, RuleTypeFailedLocalLoginsNotInAllowedRange, RuleTypeFileUploadsNotInAllowedRange, RuleTypeHTTPC2DMessagesNotInAllowedRange, RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange, RuleTypeHTTPD2CMessagesNotInAllowedRange, RuleTypeListCustomAlertRule, RuleTypeLocalUserNotAllowed, RuleTypeMqttC2DMessagesNotInAllowedRange, RuleTypeMqttC2DRejectedMessagesNotInAllowedRange, RuleTypeMqttD2CMessagesNotInAllowedRange, RuleTypeProcessNotAllowed, RuleTypeQueuePurgesNotInAllowedRange, RuleTypeThresholdCustomAlertRule, RuleTypeTimeWindowCustomAlertRule, RuleTypeTwinUpdatesNotInAllowedRange, RuleTypeUnauthorizedOperationsNotInAllowedRange}
+}
+
+// ScanningFunctionality enumerates the values for scanning functionality.
+type ScanningFunctionality string
+
+const (
+	// NotScannerDevice ...
+	NotScannerDevice ScanningFunctionality = "NotScannerDevice"
+	// ScannerDevice ...
+	ScannerDevice ScanningFunctionality = "ScannerDevice"
+)
+
+// PossibleScanningFunctionalityValues returns an array of possible values for the ScanningFunctionality const type.
+func PossibleScanningFunctionalityValues() []ScanningFunctionality {
+	return []ScanningFunctionality{NotScannerDevice, ScannerDevice}
+}
+
+// ScanState enumerates the values for scan state.
+type ScanState string
+
+const (
+	// ScanStateFailed Failed
+	ScanStateFailed ScanState = "Failed"
+	// ScanStateFailedToRun FailedToRun
+	ScanStateFailedToRun ScanState = "FailedToRun"
+	// ScanStateInProgress InProgress
+	ScanStateInProgress ScanState = "InProgress"
+	// ScanStatePassed Passed
+	ScanStatePassed ScanState = "Passed"
+)
+
+// PossibleScanStateValues returns an array of possible values for the ScanState const type.
+func PossibleScanStateValues() []ScanState {
+	return []ScanState{ScanStateFailed, ScanStateFailedToRun, ScanStateInProgress, ScanStatePassed}
+}
+
+// ScanTriggerType enumerates the values for scan trigger type.
+type ScanTriggerType string
+
+const (
+	// OnDemand OnDemand
+	OnDemand ScanTriggerType = "OnDemand"
+	// Recurring Recurring
+	Recurring ScanTriggerType = "Recurring"
+)
+
+// PossibleScanTriggerTypeValues returns an array of possible values for the ScanTriggerType const type.
+func PossibleScanTriggerTypeValues() []ScanTriggerType {
+	return []ScanTriggerType{OnDemand, Recurring}
 }
 
 // Script enumerates the values for script.

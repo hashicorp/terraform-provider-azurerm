@@ -36,8 +36,95 @@ const fqdn = "github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2020-
 type APIOperation struct {
 	// Display - The object that represents the operation.
 	Display *APIOperationDisplay `json:"display,omitempty"`
+	// Origin - Origin of the operation.
+	Origin *string `json:"origin,omitempty"`
+	// IsDataAction - The flag that indicates whether the operation applies to data plane.
+	IsDataAction *bool `json:"isDataAction,omitempty"`
 	// Name - Operation name: {provider}/{resource}/{operation}
 	Name *string `json:"name,omitempty"`
+	// APIOperationProperties - Additional details about an operation.
+	*APIOperationProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for APIOperation.
+func (ao APIOperation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ao.Display != nil {
+		objectMap["display"] = ao.Display
+	}
+	if ao.Origin != nil {
+		objectMap["origin"] = ao.Origin
+	}
+	if ao.IsDataAction != nil {
+		objectMap["isDataAction"] = ao.IsDataAction
+	}
+	if ao.Name != nil {
+		objectMap["name"] = ao.Name
+	}
+	if ao.APIOperationProperties != nil {
+		objectMap["properties"] = ao.APIOperationProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for APIOperation struct.
+func (ao *APIOperation) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "display":
+			if v != nil {
+				var display APIOperationDisplay
+				err = json.Unmarshal(*v, &display)
+				if err != nil {
+					return err
+				}
+				ao.Display = &display
+			}
+		case "origin":
+			if v != nil {
+				var origin string
+				err = json.Unmarshal(*v, &origin)
+				if err != nil {
+					return err
+				}
+				ao.Origin = &origin
+			}
+		case "isDataAction":
+			if v != nil {
+				var isDataAction bool
+				err = json.Unmarshal(*v, &isDataAction)
+				if err != nil {
+					return err
+				}
+				ao.IsDataAction = &isDataAction
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				ao.Name = &name
+			}
+		case "properties":
+			if v != nil {
+				var APIOperationProperties APIOperationProperties
+				err = json.Unmarshal(*v, &APIOperationProperties)
+				if err != nil {
+					return err
+				}
+				ao.APIOperationProperties = &APIOperationProperties
+			}
+		}
+	}
+
+	return nil
 }
 
 // APIOperationDisplay the object that represents the operation.
@@ -48,6 +135,8 @@ type APIOperationDisplay struct {
 	Provider *string `json:"provider,omitempty"`
 	// Resource - Resource on which the operation is performed: Cache, etc.
 	Resource *string `json:"resource,omitempty"`
+	// Description - The description of the operation
+	Description *string `json:"description,omitempty"`
 }
 
 // APIOperationListResult result of the request to list Resource Provider operations. It contains a list of
@@ -203,8 +292,24 @@ func (page APIOperationListResultPage) Values() []APIOperation {
 }
 
 // Creates a new instance of the APIOperationListResultPage type.
-func NewAPIOperationListResultPage(getNextPage func(context.Context, APIOperationListResult) (APIOperationListResult, error)) APIOperationListResultPage {
-	return APIOperationListResultPage{fn: getNextPage}
+func NewAPIOperationListResultPage(cur APIOperationListResult, getNextPage func(context.Context, APIOperationListResult) (APIOperationListResult, error)) APIOperationListResultPage {
+	return APIOperationListResultPage{
+		fn:   getNextPage,
+		aolr: cur,
+	}
+}
+
+// APIOperationProperties additional details about an operation.
+type APIOperationProperties struct {
+	// ServiceSpecification - Specification of the all the metrics provided for a resource type.
+	ServiceSpecification *APIOperationPropertiesServiceSpecification `json:"serviceSpecification,omitempty"`
+}
+
+// APIOperationPropertiesServiceSpecification specification of the all the metrics provided for a resource
+// type.
+type APIOperationPropertiesServiceSpecification struct {
+	// MetricSpecifications - Details about operations related to metrics.
+	MetricSpecifications *[]MetricSpecification `json:"metricSpecifications,omitempty"`
 }
 
 // AscOperation the status of operation.
@@ -240,6 +345,8 @@ type Cache struct {
 	Type *string `json:"type,omitempty"`
 	// Identity - The identity of the cache, if configured.
 	Identity *CacheIdentity `json:"identity,omitempty"`
+	// SystemData - READ-ONLY; The system meta data relating to this resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
 	// CacheProperties - Properties of the Cache.
 	*CacheProperties `json:"properties,omitempty"`
 	// Sku - SKU for the Cache.
@@ -329,6 +436,15 @@ func (c *Cache) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				c.Identity = &identity
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				c.SystemData = &systemData
 			}
 		case "properties":
 			if v != nil {
@@ -551,8 +667,8 @@ type CacheSku struct {
 	Name *string `json:"name,omitempty"`
 }
 
-// CachesListResult result of the request to list Caches. It contains a list of Caches and a URL link to get
-// the next set of results.
+// CachesListResult result of the request to list Caches. It contains a list of Caches and a URL link to
+// get the next set of results.
 type CachesListResult struct {
 	autorest.Response `json:"-"`
 	// NextLink - URL to get the next set of Cache list results, if there are any.
@@ -704,8 +820,11 @@ func (page CachesListResultPage) Values() []Cache {
 }
 
 // Creates a new instance of the CachesListResultPage type.
-func NewCachesListResultPage(getNextPage func(context.Context, CachesListResult) (CachesListResult, error)) CachesListResultPage {
-	return CachesListResultPage{fn: getNextPage}
+func NewCachesListResultPage(cur CachesListResult, getNextPage func(context.Context, CachesListResult) (CachesListResult, error)) CachesListResultPage {
+	return CachesListResultPage{
+		fn:  getNextPage,
+		clr: cur,
+	}
 }
 
 // CachesStartFuture an abstraction for monitoring and retrieving the results of a long-running operation.
@@ -917,6 +1036,38 @@ type KeyVaultKeyReference struct {
 type KeyVaultKeyReferenceSourceVault struct {
 	// ID - Resource Id.
 	ID *string `json:"id,omitempty"`
+}
+
+// MetricDimension specifications of the Dimension of metrics.
+type MetricDimension struct {
+	// Name - Name of the dimension
+	Name *string `json:"name,omitempty"`
+	// DisplayName - Localized friendly display name of the dimension
+	DisplayName *string `json:"displayName,omitempty"`
+	// InternalName - Internal name of the dimension.
+	InternalName *string `json:"internalName,omitempty"`
+	// ToBeExportedForShoebox - To be exported to shoe box.
+	ToBeExportedForShoebox *bool `json:"toBeExportedForShoebox,omitempty"`
+}
+
+// MetricSpecification details about operation related to metrics.
+type MetricSpecification struct {
+	// Name - The name of the metric.
+	Name *string `json:"name,omitempty"`
+	// DisplayName - Localized display name of the metric.
+	DisplayName *string `json:"displayName,omitempty"`
+	// DisplayDescription - The description of the metric.
+	DisplayDescription *string `json:"displayDescription,omitempty"`
+	// Unit - The unit that the metric is measured in.
+	Unit *string `json:"unit,omitempty"`
+	// AggregationType - The type of metric aggregation.
+	AggregationType *string `json:"aggregationType,omitempty"`
+	// SupportedAggregationTypes - Support metric aggregation type.
+	SupportedAggregationTypes *[]MetricAggregationType `json:"supportedAggregationTypes,omitempty"`
+	// MetricClass - Type of metrics.
+	MetricClass *string `json:"metricClass,omitempty"`
+	// Dimensions - Dimensions of the metric
+	Dimensions *[]MetricDimension `json:"dimensions,omitempty"`
 }
 
 // NamespaceJunction a namespace junction.
@@ -1214,8 +1365,11 @@ func (page ResourceSkusResultPage) Values() []ResourceSku {
 }
 
 // Creates a new instance of the ResourceSkusResultPage type.
-func NewResourceSkusResultPage(getNextPage func(context.Context, ResourceSkusResult) (ResourceSkusResult, error)) ResourceSkusResultPage {
-	return ResourceSkusResultPage{fn: getNextPage}
+func NewResourceSkusResultPage(cur ResourceSkusResult, getNextPage func(context.Context, ResourceSkusResult) (ResourceSkusResult, error)) ResourceSkusResultPage {
+	return ResourceSkusResultPage{
+		fn:  getNextPage,
+		rsr: cur,
+	}
 }
 
 // Restriction the restrictions preventing this SKU from being used.
@@ -1254,6 +1408,10 @@ type StorageTarget struct {
 	ID *string `json:"id,omitempty"`
 	// Type - READ-ONLY; Type of the Storage Target; Microsoft.StorageCache/Cache/StorageTarget
 	Type *string `json:"type,omitempty"`
+	// Location - READ-ONLY; Region name string.
+	Location *string `json:"location,omitempty"`
+	// SystemData - READ-ONLY; The system meta data relating to this resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for StorageTarget.
@@ -1306,6 +1464,24 @@ func (st *StorageTarget) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				st.Type = &typeVar
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				st.Location = &location
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				st.SystemData = &systemData
 			}
 		}
 	}
@@ -1440,6 +1616,10 @@ type StorageTargetResource struct {
 	ID *string `json:"id,omitempty"`
 	// Type - READ-ONLY; Type of the Storage Target; Microsoft.StorageCache/Cache/StorageTarget
 	Type *string `json:"type,omitempty"`
+	// Location - READ-ONLY; Region name string.
+	Location *string `json:"location,omitempty"`
+	// SystemData - READ-ONLY; The system meta data relating to this resource.
+	SystemData *SystemData `json:"systemData,omitempty"`
 }
 
 // StorageTargetsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
@@ -1652,8 +1832,27 @@ func (page StorageTargetsResultPage) Values() []StorageTarget {
 }
 
 // Creates a new instance of the StorageTargetsResultPage type.
-func NewStorageTargetsResultPage(getNextPage func(context.Context, StorageTargetsResult) (StorageTargetsResult, error)) StorageTargetsResultPage {
-	return StorageTargetsResultPage{fn: getNextPage}
+func NewStorageTargetsResultPage(cur StorageTargetsResult, getNextPage func(context.Context, StorageTargetsResult) (StorageTargetsResult, error)) StorageTargetsResultPage {
+	return StorageTargetsResultPage{
+		fn:  getNextPage,
+		str: cur,
+	}
+}
+
+// SystemData metadata pertaining to creation and last modification of the resource.
+type SystemData struct {
+	// CreatedBy - The identity that created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+	// CreatedByType - The type of identity that created the resource. Possible values include: 'User', 'Application', 'ManagedIdentity', 'Key'
+	CreatedByType CreatedByType `json:"createdByType,omitempty"`
+	// CreatedAt - The timestamp of resource creation (UTC).
+	CreatedAt *date.Time `json:"createdAt,omitempty"`
+	// LastModifiedBy - The identity that last modified the resource.
+	LastModifiedBy *string `json:"lastModifiedBy,omitempty"`
+	// LastModifiedByType - The type of identity that last modified the resource. Possible values include: 'User', 'Application', 'ManagedIdentity', 'Key'
+	LastModifiedByType CreatedByType `json:"lastModifiedByType,omitempty"`
+	// LastModifiedAt - The type of identity that last modified the resource.
+	LastModifiedAt *date.Time `json:"lastModifiedAt,omitempty"`
 }
 
 // UnknownTarget properties pertained to UnknownTarget
@@ -1905,6 +2104,9 @@ func (page UsageModelsResultPage) Values() []UsageModel {
 }
 
 // Creates a new instance of the UsageModelsResultPage type.
-func NewUsageModelsResultPage(getNextPage func(context.Context, UsageModelsResult) (UsageModelsResult, error)) UsageModelsResultPage {
-	return UsageModelsResultPage{fn: getNextPage}
+func NewUsageModelsResultPage(cur UsageModelsResult, getNextPage func(context.Context, UsageModelsResult) (UsageModelsResult, error)) UsageModelsResultPage {
+	return UsageModelsResultPage{
+		fn:  getNextPage,
+		umr: cur,
+	}
 }

@@ -45,10 +45,11 @@ func NewPrivateEndpointConnectionsClientWithBaseURI(baseURI string, subscription
 
 // Create approve or reject a private endpoint connection.
 // Parameters:
+// request - request body of private endpoint connection to create.
 // resourceGroupName - the name of the resource group. The name is case insensitive.
-// workspaceName - the name of the workspace
+// workspaceName - the name of the workspace.
 // privateEndpointConnectionName - the name of the private endpoint connection.
-func (client PrivateEndpointConnectionsClient) Create(ctx context.Context, resourceGroupName string, workspaceName string, privateEndpointConnectionName string) (result PrivateEndpointConnectionsCreateFuture, err error) {
+func (client PrivateEndpointConnectionsClient) Create(ctx context.Context, request PrivateEndpointConnection, resourceGroupName string, workspaceName string, privateEndpointConnectionName string) (result PrivateEndpointConnectionsCreateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateEndpointConnectionsClient.Create")
 		defer func() {
@@ -69,7 +70,7 @@ func (client PrivateEndpointConnectionsClient) Create(ctx context.Context, resou
 		return result, validation.NewError("synapse.PrivateEndpointConnectionsClient", "Create", err.Error())
 	}
 
-	req, err := client.CreatePreparer(ctx, resourceGroupName, workspaceName, privateEndpointConnectionName)
+	req, err := client.CreatePreparer(ctx, request, resourceGroupName, workspaceName, privateEndpointConnectionName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.PrivateEndpointConnectionsClient", "Create", nil, "Failure preparing request")
 		return
@@ -85,7 +86,7 @@ func (client PrivateEndpointConnectionsClient) Create(ctx context.Context, resou
 }
 
 // CreatePreparer prepares the Create request.
-func (client PrivateEndpointConnectionsClient) CreatePreparer(ctx context.Context, resourceGroupName string, workspaceName string, privateEndpointConnectionName string) (*http.Request, error) {
+func (client PrivateEndpointConnectionsClient) CreatePreparer(ctx context.Context, request PrivateEndpointConnection, resourceGroupName string, workspaceName string, privateEndpointConnectionName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"privateEndpointConnectionName": autorest.Encode("path", privateEndpointConnectionName),
 		"resourceGroupName":             autorest.Encode("path", resourceGroupName),
@@ -99,9 +100,11 @@ func (client PrivateEndpointConnectionsClient) CreatePreparer(ctx context.Contex
 	}
 
 	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Synapse/workspaces/{workspaceName}/privateEndpointConnections/{privateEndpointConnectionName}", pathParameters),
+		autorest.WithJSON(request),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -133,7 +136,7 @@ func (client PrivateEndpointConnectionsClient) CreateResponder(resp *http.Respon
 // Delete delete a private endpoint connection.
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
-// workspaceName - the name of the workspace
+// workspaceName - the name of the workspace.
 // privateEndpointConnectionName - the name of the private endpoint connection.
 func (client PrivateEndpointConnectionsClient) Delete(ctx context.Context, resourceGroupName string, workspaceName string, privateEndpointConnectionName string) (result PrivateEndpointConnectionsDeleteFuture, err error) {
 	if tracing.IsEnabled() {
@@ -220,7 +223,7 @@ func (client PrivateEndpointConnectionsClient) DeleteResponder(resp *http.Respon
 // Get gets a private endpoint connection.
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
-// workspaceName - the name of the workspace
+// workspaceName - the name of the workspace.
 // privateEndpointConnectionName - the name of the private endpoint connection.
 func (client PrivateEndpointConnectionsClient) Get(ctx context.Context, resourceGroupName string, workspaceName string, privateEndpointConnectionName string) (result PrivateEndpointConnection, err error) {
 	if tracing.IsEnabled() {
@@ -307,7 +310,7 @@ func (client PrivateEndpointConnectionsClient) GetResponder(resp *http.Response)
 // List lists private endpoint connection in workspace.
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
-// workspaceName - the name of the workspace
+// workspaceName - the name of the workspace.
 func (client PrivateEndpointConnectionsClient) List(ctx context.Context, resourceGroupName string, workspaceName string) (result PrivateEndpointConnectionListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateEndpointConnectionsClient.List")

@@ -459,7 +459,8 @@ func (client VirtualMachinesClient) DeallocateResponder(resp *http.Response) (re
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // VMName - the name of the virtual machine.
-func (client VirtualMachinesClient) Delete(ctx context.Context, resourceGroupName string, VMName string) (result VirtualMachinesDeleteFuture, err error) {
+// forceDeletion - optional parameter to force delete virtual machines.
+func (client VirtualMachinesClient) Delete(ctx context.Context, resourceGroupName string, VMName string, forceDeletion *bool) (result VirtualMachinesDeleteFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualMachinesClient.Delete")
 		defer func() {
@@ -470,7 +471,7 @@ func (client VirtualMachinesClient) Delete(ctx context.Context, resourceGroupNam
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.DeletePreparer(ctx, resourceGroupName, VMName)
+	req, err := client.DeletePreparer(ctx, resourceGroupName, VMName, forceDeletion)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.VirtualMachinesClient", "Delete", nil, "Failure preparing request")
 		return
@@ -486,7 +487,7 @@ func (client VirtualMachinesClient) Delete(ctx context.Context, resourceGroupNam
 }
 
 // DeletePreparer prepares the Delete request.
-func (client VirtualMachinesClient) DeletePreparer(ctx context.Context, resourceGroupName string, VMName string) (*http.Request, error) {
+func (client VirtualMachinesClient) DeletePreparer(ctx context.Context, resourceGroupName string, VMName string, forceDeletion *bool) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
@@ -496,6 +497,9 @@ func (client VirtualMachinesClient) DeletePreparer(ctx context.Context, resource
 	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if forceDeletion != nil {
+		queryParameters["forceDeletion"] = autorest.Encode("query", *forceDeletion)
 	}
 
 	preparer := autorest.CreatePreparer(

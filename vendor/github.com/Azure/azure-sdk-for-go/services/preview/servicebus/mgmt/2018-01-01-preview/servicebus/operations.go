@@ -25,8 +25,7 @@ import (
 	"net/http"
 )
 
-// OperationsClient is the azure Service Bus client for managing Namespace, IPFilter Rules, VirtualNetworkRules and
-// Zone Redundant
+// OperationsClient is the client for the Operations methods of the Servicebus service.
 type OperationsClient struct {
 	BaseClient
 }

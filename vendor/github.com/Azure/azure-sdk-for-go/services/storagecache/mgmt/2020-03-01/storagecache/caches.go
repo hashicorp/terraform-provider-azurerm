@@ -115,6 +115,7 @@ func (client CachesClient) CreateOrUpdatePreparer(ctx context.Context, resourceG
 	cache.ID = nil
 	cache.Name = nil
 	cache.Type = nil
+	cache.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -145,7 +146,7 @@ func (client CachesClient) CreateOrUpdateSender(req *http.Request) (future Cache
 func (client CachesClient) CreateOrUpdateResponder(resp *http.Response) (result Cache, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -849,6 +850,7 @@ func (client CachesClient) UpdatePreparer(ctx context.Context, resourceGroupName
 	cache.ID = nil
 	cache.Name = nil
 	cache.Type = nil
+	cache.SystemData = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),

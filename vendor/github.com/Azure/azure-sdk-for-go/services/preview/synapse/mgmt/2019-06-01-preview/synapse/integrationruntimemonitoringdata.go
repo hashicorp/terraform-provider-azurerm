@@ -43,14 +43,14 @@ func NewIntegrationRuntimeMonitoringDataClientWithBaseURI(baseURI string, subscr
 	return IntegrationRuntimeMonitoringDataClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Get get monitoring data for an integration runtime
+// List get monitoring data for an integration runtime
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
-// workspaceName - the name of the workspace
+// workspaceName - the name of the workspace.
 // integrationRuntimeName - integration runtime name
-func (client IntegrationRuntimeMonitoringDataClient) Get(ctx context.Context, resourceGroupName string, workspaceName string, integrationRuntimeName string) (result IntegrationRuntimeMonitoringData, err error) {
+func (client IntegrationRuntimeMonitoringDataClient) List(ctx context.Context, resourceGroupName string, workspaceName string, integrationRuntimeName string) (result IntegrationRuntimeMonitoringData, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationRuntimeMonitoringDataClient.Get")
+		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationRuntimeMonitoringDataClient.List")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -66,32 +66,32 @@ func (client IntegrationRuntimeMonitoringDataClient) Get(ctx context.Context, re
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("synapse.IntegrationRuntimeMonitoringDataClient", "Get", err.Error())
+		return result, validation.NewError("synapse.IntegrationRuntimeMonitoringDataClient", "List", err.Error())
 	}
 
-	req, err := client.GetPreparer(ctx, resourceGroupName, workspaceName, integrationRuntimeName)
+	req, err := client.ListPreparer(ctx, resourceGroupName, workspaceName, integrationRuntimeName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimeMonitoringDataClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimeMonitoringDataClient", "List", nil, "Failure preparing request")
 		return
 	}
 
-	resp, err := client.GetSender(req)
+	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimeMonitoringDataClient", "Get", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimeMonitoringDataClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.GetResponder(resp)
+	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimeMonitoringDataClient", "Get", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimeMonitoringDataClient", "List", resp, "Failure responding to request")
 	}
 
 	return
 }
 
-// GetPreparer prepares the Get request.
-func (client IntegrationRuntimeMonitoringDataClient) GetPreparer(ctx context.Context, resourceGroupName string, workspaceName string, integrationRuntimeName string) (*http.Request, error) {
+// ListPreparer prepares the List request.
+func (client IntegrationRuntimeMonitoringDataClient) ListPreparer(ctx context.Context, resourceGroupName string, workspaceName string, integrationRuntimeName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"integrationRuntimeName": autorest.Encode("path", integrationRuntimeName),
 		"resourceGroupName":      autorest.Encode("path", resourceGroupName),
@@ -112,15 +112,15 @@ func (client IntegrationRuntimeMonitoringDataClient) GetPreparer(ctx context.Con
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// GetSender sends the Get request. The method will close the
+// ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
-func (client IntegrationRuntimeMonitoringDataClient) GetSender(req *http.Request) (*http.Response, error) {
+func (client IntegrationRuntimeMonitoringDataClient) ListSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
-// GetResponder handles the response to the Get request. The method always
+// ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client IntegrationRuntimeMonitoringDataClient) GetResponder(resp *http.Response) (result IntegrationRuntimeMonitoringData, err error) {
+func (client IntegrationRuntimeMonitoringDataClient) ListResponder(resp *http.Response) (result IntegrationRuntimeMonitoringData, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

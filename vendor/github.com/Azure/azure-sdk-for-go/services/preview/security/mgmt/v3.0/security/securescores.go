@@ -92,7 +92,7 @@ func (client SecureScoresClient) GetPreparer(ctx context.Context, secureScoreNam
 		"subscriptionId":  autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-01-01-preview"
+	const APIVersion = "2020-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -172,7 +172,7 @@ func (client SecureScoresClient) ListPreparer(ctx context.Context) (*http.Reques
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-01-01-preview"
+	const APIVersion = "2020-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

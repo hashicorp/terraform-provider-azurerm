@@ -205,7 +205,7 @@ func (client SuppressionsClient) DeleteResponder(resp *http.Response) (result au
 // recommendation applies.
 // recommendationID - the recommendation ID.
 // name - the name of the suppression.
-func (client SuppressionsClient) Get(ctx context.Context, resourceURI string, recommendationID string, name string) (result SuppressionContract, err error) {
+func (client SuppressionsClient) Get(ctx context.Context, resourceURI string, recommendationID string, name string) (result SetObject, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SuppressionsClient.Get")
 		defer func() {
@@ -266,11 +266,11 @@ func (client SuppressionsClient) GetSender(req *http.Request) (*http.Response, e
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client SuppressionsClient) GetResponder(resp *http.Response) (result SuppressionContract, err error) {
+func (client SuppressionsClient) GetResponder(resp *http.Response) (result SetObject, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
+		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
 	return

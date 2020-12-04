@@ -25,7 +25,7 @@ import (
 	"net/http"
 )
 
-// OperationsClient is the allows creation and deletion of Azure Shared Dashboards.
+// OperationsClient is the client for the Operations methods of the Portal service.
 type OperationsClient struct {
 	BaseClient
 }

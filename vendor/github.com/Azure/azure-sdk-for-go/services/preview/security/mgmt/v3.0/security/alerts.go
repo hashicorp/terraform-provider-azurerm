@@ -42,14 +42,14 @@ func NewAlertsClientWithBaseURI(baseURI string, subscriptionID string, ascLocati
 	return AlertsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
 }
 
-// GetResourceGroupLevel get an alert that is associated a resource group or a resource in a resource group
+// GetResourceGroupLevelAlerts get an alert that is associated a resource group or a resource in a resource group
 // Parameters:
 // alertName - name of the alert object
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
-func (client AlertsClient) GetResourceGroupLevel(ctx context.Context, alertName string, resourceGroupName string) (result Alert, err error) {
+func (client AlertsClient) GetResourceGroupLevelAlerts(ctx context.Context, alertName string, resourceGroupName string) (result Alert, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.GetResourceGroupLevel")
+		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.GetResourceGroupLevelAlerts")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -65,32 +65,32 @@ func (client AlertsClient) GetResourceGroupLevel(ctx context.Context, alertName 
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("security.AlertsClient", "GetResourceGroupLevel", err.Error())
+		return result, validation.NewError("security.AlertsClient", "GetResourceGroupLevelAlerts", err.Error())
 	}
 
-	req, err := client.GetResourceGroupLevelPreparer(ctx, alertName, resourceGroupName)
+	req, err := client.GetResourceGroupLevelAlertsPreparer(ctx, alertName, resourceGroupName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "GetResourceGroupLevel", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "GetResourceGroupLevelAlerts", nil, "Failure preparing request")
 		return
 	}
 
-	resp, err := client.GetResourceGroupLevelSender(req)
+	resp, err := client.GetResourceGroupLevelAlertsSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "GetResourceGroupLevel", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "GetResourceGroupLevelAlerts", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.GetResourceGroupLevelResponder(resp)
+	result, err = client.GetResourceGroupLevelAlertsResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "GetResourceGroupLevel", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "GetResourceGroupLevelAlerts", resp, "Failure responding to request")
 	}
 
 	return
 }
 
-// GetResourceGroupLevelPreparer prepares the GetResourceGroupLevel request.
-func (client AlertsClient) GetResourceGroupLevelPreparer(ctx context.Context, alertName string, resourceGroupName string) (*http.Request, error) {
+// GetResourceGroupLevelAlertsPreparer prepares the GetResourceGroupLevelAlerts request.
+func (client AlertsClient) GetResourceGroupLevelAlertsPreparer(ctx context.Context, alertName string, resourceGroupName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"alertName":         autorest.Encode("path", alertName),
 		"ascLocation":       autorest.Encode("path", client.AscLocation),
@@ -111,15 +111,15 @@ func (client AlertsClient) GetResourceGroupLevelPreparer(ctx context.Context, al
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// GetResourceGroupLevelSender sends the GetResourceGroupLevel request. The method will close the
+// GetResourceGroupLevelAlertsSender sends the GetResourceGroupLevelAlerts request. The method will close the
 // http.Response Body if it receives an error.
-func (client AlertsClient) GetResourceGroupLevelSender(req *http.Request) (*http.Response, error) {
+func (client AlertsClient) GetResourceGroupLevelAlertsSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
-// GetResourceGroupLevelResponder handles the response to the GetResourceGroupLevel request. The method always
+// GetResourceGroupLevelAlertsResponder handles the response to the GetResourceGroupLevelAlerts request. The method always
 // closes the http.Response Body.
-func (client AlertsClient) GetResourceGroupLevelResponder(resp *http.Response) (result Alert, err error) {
+func (client AlertsClient) GetResourceGroupLevelAlertsResponder(resp *http.Response) (result Alert, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -129,12 +129,12 @@ func (client AlertsClient) GetResourceGroupLevelResponder(resp *http.Response) (
 	return
 }
 
-// GetSubscriptionLevel get an alert that is associated with a subscription
+// GetSubscriptionLevelAlert get an alert that is associated with a subscription
 // Parameters:
 // alertName - name of the alert object
-func (client AlertsClient) GetSubscriptionLevel(ctx context.Context, alertName string) (result Alert, err error) {
+func (client AlertsClient) GetSubscriptionLevelAlert(ctx context.Context, alertName string) (result Alert, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.GetSubscriptionLevel")
+		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.GetSubscriptionLevelAlert")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -146,32 +146,32 @@ func (client AlertsClient) GetSubscriptionLevel(ctx context.Context, alertName s
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: client.SubscriptionID,
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("security.AlertsClient", "GetSubscriptionLevel", err.Error())
+		return result, validation.NewError("security.AlertsClient", "GetSubscriptionLevelAlert", err.Error())
 	}
 
-	req, err := client.GetSubscriptionLevelPreparer(ctx, alertName)
+	req, err := client.GetSubscriptionLevelAlertPreparer(ctx, alertName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "GetSubscriptionLevel", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "GetSubscriptionLevelAlert", nil, "Failure preparing request")
 		return
 	}
 
-	resp, err := client.GetSubscriptionLevelSender(req)
+	resp, err := client.GetSubscriptionLevelAlertSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "GetSubscriptionLevel", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "GetSubscriptionLevelAlert", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.GetSubscriptionLevelResponder(resp)
+	result, err = client.GetSubscriptionLevelAlertResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "GetSubscriptionLevel", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "GetSubscriptionLevelAlert", resp, "Failure responding to request")
 	}
 
 	return
 }
 
-// GetSubscriptionLevelPreparer prepares the GetSubscriptionLevel request.
-func (client AlertsClient) GetSubscriptionLevelPreparer(ctx context.Context, alertName string) (*http.Request, error) {
+// GetSubscriptionLevelAlertPreparer prepares the GetSubscriptionLevelAlert request.
+func (client AlertsClient) GetSubscriptionLevelAlertPreparer(ctx context.Context, alertName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"alertName":      autorest.Encode("path", alertName),
 		"ascLocation":    autorest.Encode("path", client.AscLocation),
@@ -191,15 +191,15 @@ func (client AlertsClient) GetSubscriptionLevelPreparer(ctx context.Context, ale
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// GetSubscriptionLevelSender sends the GetSubscriptionLevel request. The method will close the
+// GetSubscriptionLevelAlertSender sends the GetSubscriptionLevelAlert request. The method will close the
 // http.Response Body if it receives an error.
-func (client AlertsClient) GetSubscriptionLevelSender(req *http.Request) (*http.Response, error) {
+func (client AlertsClient) GetSubscriptionLevelAlertSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
-// GetSubscriptionLevelResponder handles the response to the GetSubscriptionLevel request. The method always
+// GetSubscriptionLevelAlertResponder handles the response to the GetSubscriptionLevelAlert request. The method always
 // closes the http.Response Body.
-func (client AlertsClient) GetSubscriptionLevelResponder(resp *http.Response) (result Alert, err error) {
+func (client AlertsClient) GetSubscriptionLevelAlertResponder(resp *http.Response) (result Alert, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -451,14 +451,14 @@ func (client AlertsClient) ListByResourceGroupComplete(ctx context.Context, reso
 	return
 }
 
-// ListResourceGroupLevelByRegion list all the alerts that are associated with the resource group that are stored in a
-// specific location
+// ListResourceGroupLevelAlertsByRegion list all the alerts that are associated with the resource group that are stored
+// in a specific location
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
-func (client AlertsClient) ListResourceGroupLevelByRegion(ctx context.Context, resourceGroupName string) (result AlertListPage, err error) {
+func (client AlertsClient) ListResourceGroupLevelAlertsByRegion(ctx context.Context, resourceGroupName string) (result AlertListPage, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.ListResourceGroupLevelByRegion")
+		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.ListResourceGroupLevelAlertsByRegion")
 		defer func() {
 			sc := -1
 			if result.al.Response.Response != nil {
@@ -474,26 +474,26 @@ func (client AlertsClient) ListResourceGroupLevelByRegion(ctx context.Context, r
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("security.AlertsClient", "ListResourceGroupLevelByRegion", err.Error())
+		return result, validation.NewError("security.AlertsClient", "ListResourceGroupLevelAlertsByRegion", err.Error())
 	}
 
-	result.fn = client.listResourceGroupLevelByRegionNextResults
-	req, err := client.ListResourceGroupLevelByRegionPreparer(ctx, resourceGroupName)
+	result.fn = client.listResourceGroupLevelAlertsByRegionNextResults
+	req, err := client.ListResourceGroupLevelAlertsByRegionPreparer(ctx, resourceGroupName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "ListResourceGroupLevelByRegion", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "ListResourceGroupLevelAlertsByRegion", nil, "Failure preparing request")
 		return
 	}
 
-	resp, err := client.ListResourceGroupLevelByRegionSender(req)
+	resp, err := client.ListResourceGroupLevelAlertsByRegionSender(req)
 	if err != nil {
 		result.al.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "ListResourceGroupLevelByRegion", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "ListResourceGroupLevelAlertsByRegion", resp, "Failure sending request")
 		return
 	}
 
-	result.al, err = client.ListResourceGroupLevelByRegionResponder(resp)
+	result.al, err = client.ListResourceGroupLevelAlertsByRegionResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "ListResourceGroupLevelByRegion", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "ListResourceGroupLevelAlertsByRegion", resp, "Failure responding to request")
 	}
 	if result.al.hasNextLink() && result.al.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -502,8 +502,8 @@ func (client AlertsClient) ListResourceGroupLevelByRegion(ctx context.Context, r
 	return
 }
 
-// ListResourceGroupLevelByRegionPreparer prepares the ListResourceGroupLevelByRegion request.
-func (client AlertsClient) ListResourceGroupLevelByRegionPreparer(ctx context.Context, resourceGroupName string) (*http.Request, error) {
+// ListResourceGroupLevelAlertsByRegionPreparer prepares the ListResourceGroupLevelAlertsByRegion request.
+func (client AlertsClient) ListResourceGroupLevelAlertsByRegionPreparer(ctx context.Context, resourceGroupName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"ascLocation":       autorest.Encode("path", client.AscLocation),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -523,15 +523,15 @@ func (client AlertsClient) ListResourceGroupLevelByRegionPreparer(ctx context.Co
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// ListResourceGroupLevelByRegionSender sends the ListResourceGroupLevelByRegion request. The method will close the
+// ListResourceGroupLevelAlertsByRegionSender sends the ListResourceGroupLevelAlertsByRegion request. The method will close the
 // http.Response Body if it receives an error.
-func (client AlertsClient) ListResourceGroupLevelByRegionSender(req *http.Request) (*http.Response, error) {
+func (client AlertsClient) ListResourceGroupLevelAlertsByRegionSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
-// ListResourceGroupLevelByRegionResponder handles the response to the ListResourceGroupLevelByRegion request. The method always
+// ListResourceGroupLevelAlertsByRegionResponder handles the response to the ListResourceGroupLevelAlertsByRegion request. The method always
 // closes the http.Response Body.
-func (client AlertsClient) ListResourceGroupLevelByRegionResponder(resp *http.Response) (result AlertList, err error) {
+func (client AlertsClient) ListResourceGroupLevelAlertsByRegionResponder(resp *http.Response) (result AlertList, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -541,31 +541,31 @@ func (client AlertsClient) ListResourceGroupLevelByRegionResponder(resp *http.Re
 	return
 }
 
-// listResourceGroupLevelByRegionNextResults retrieves the next set of results, if any.
-func (client AlertsClient) listResourceGroupLevelByRegionNextResults(ctx context.Context, lastResults AlertList) (result AlertList, err error) {
+// listResourceGroupLevelAlertsByRegionNextResults retrieves the next set of results, if any.
+func (client AlertsClient) listResourceGroupLevelAlertsByRegionNextResults(ctx context.Context, lastResults AlertList) (result AlertList, err error) {
 	req, err := lastResults.alertListPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "security.AlertsClient", "listResourceGroupLevelByRegionNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "security.AlertsClient", "listResourceGroupLevelAlertsByRegionNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
 	}
-	resp, err := client.ListResourceGroupLevelByRegionSender(req)
+	resp, err := client.ListResourceGroupLevelAlertsByRegionSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "security.AlertsClient", "listResourceGroupLevelByRegionNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "security.AlertsClient", "listResourceGroupLevelAlertsByRegionNextResults", resp, "Failure sending next results request")
 	}
-	result, err = client.ListResourceGroupLevelByRegionResponder(resp)
+	result, err = client.ListResourceGroupLevelAlertsByRegionResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "listResourceGroupLevelByRegionNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "listResourceGroupLevelAlertsByRegionNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
-// ListResourceGroupLevelByRegionComplete enumerates all values, automatically crossing page boundaries as required.
-func (client AlertsClient) ListResourceGroupLevelByRegionComplete(ctx context.Context, resourceGroupName string) (result AlertListIterator, err error) {
+// ListResourceGroupLevelAlertsByRegionComplete enumerates all values, automatically crossing page boundaries as required.
+func (client AlertsClient) ListResourceGroupLevelAlertsByRegionComplete(ctx context.Context, resourceGroupName string) (result AlertListIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.ListResourceGroupLevelByRegion")
+		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.ListResourceGroupLevelAlertsByRegion")
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {
@@ -574,15 +574,15 @@ func (client AlertsClient) ListResourceGroupLevelByRegionComplete(ctx context.Co
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListResourceGroupLevelByRegion(ctx, resourceGroupName)
+	result.page, err = client.ListResourceGroupLevelAlertsByRegion(ctx, resourceGroupName)
 	return
 }
 
-// ListSubscriptionLevelByRegion list all the alerts that are associated with the subscription that are stored in a
-// specific location
-func (client AlertsClient) ListSubscriptionLevelByRegion(ctx context.Context) (result AlertListPage, err error) {
+// ListSubscriptionLevelAlertsByRegion list all the alerts that are associated with the subscription that are stored in
+// a specific location
+func (client AlertsClient) ListSubscriptionLevelAlertsByRegion(ctx context.Context) (result AlertListPage, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.ListSubscriptionLevelByRegion")
+		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.ListSubscriptionLevelAlertsByRegion")
 		defer func() {
 			sc := -1
 			if result.al.Response.Response != nil {
@@ -594,26 +594,26 @@ func (client AlertsClient) ListSubscriptionLevelByRegion(ctx context.Context) (r
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: client.SubscriptionID,
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("security.AlertsClient", "ListSubscriptionLevelByRegion", err.Error())
+		return result, validation.NewError("security.AlertsClient", "ListSubscriptionLevelAlertsByRegion", err.Error())
 	}
 
-	result.fn = client.listSubscriptionLevelByRegionNextResults
-	req, err := client.ListSubscriptionLevelByRegionPreparer(ctx)
+	result.fn = client.listSubscriptionLevelAlertsByRegionNextResults
+	req, err := client.ListSubscriptionLevelAlertsByRegionPreparer(ctx)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "ListSubscriptionLevelByRegion", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "ListSubscriptionLevelAlertsByRegion", nil, "Failure preparing request")
 		return
 	}
 
-	resp, err := client.ListSubscriptionLevelByRegionSender(req)
+	resp, err := client.ListSubscriptionLevelAlertsByRegionSender(req)
 	if err != nil {
 		result.al.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "ListSubscriptionLevelByRegion", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "ListSubscriptionLevelAlertsByRegion", resp, "Failure sending request")
 		return
 	}
 
-	result.al, err = client.ListSubscriptionLevelByRegionResponder(resp)
+	result.al, err = client.ListSubscriptionLevelAlertsByRegionResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "ListSubscriptionLevelByRegion", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "ListSubscriptionLevelAlertsByRegion", resp, "Failure responding to request")
 	}
 	if result.al.hasNextLink() && result.al.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -622,8 +622,8 @@ func (client AlertsClient) ListSubscriptionLevelByRegion(ctx context.Context) (r
 	return
 }
 
-// ListSubscriptionLevelByRegionPreparer prepares the ListSubscriptionLevelByRegion request.
-func (client AlertsClient) ListSubscriptionLevelByRegionPreparer(ctx context.Context) (*http.Request, error) {
+// ListSubscriptionLevelAlertsByRegionPreparer prepares the ListSubscriptionLevelAlertsByRegion request.
+func (client AlertsClient) ListSubscriptionLevelAlertsByRegionPreparer(ctx context.Context) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"ascLocation":    autorest.Encode("path", client.AscLocation),
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
@@ -642,15 +642,15 @@ func (client AlertsClient) ListSubscriptionLevelByRegionPreparer(ctx context.Con
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// ListSubscriptionLevelByRegionSender sends the ListSubscriptionLevelByRegion request. The method will close the
+// ListSubscriptionLevelAlertsByRegionSender sends the ListSubscriptionLevelAlertsByRegion request. The method will close the
 // http.Response Body if it receives an error.
-func (client AlertsClient) ListSubscriptionLevelByRegionSender(req *http.Request) (*http.Response, error) {
+func (client AlertsClient) ListSubscriptionLevelAlertsByRegionSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
-// ListSubscriptionLevelByRegionResponder handles the response to the ListSubscriptionLevelByRegion request. The method always
+// ListSubscriptionLevelAlertsByRegionResponder handles the response to the ListSubscriptionLevelAlertsByRegion request. The method always
 // closes the http.Response Body.
-func (client AlertsClient) ListSubscriptionLevelByRegionResponder(resp *http.Response) (result AlertList, err error) {
+func (client AlertsClient) ListSubscriptionLevelAlertsByRegionResponder(resp *http.Response) (result AlertList, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -660,31 +660,31 @@ func (client AlertsClient) ListSubscriptionLevelByRegionResponder(resp *http.Res
 	return
 }
 
-// listSubscriptionLevelByRegionNextResults retrieves the next set of results, if any.
-func (client AlertsClient) listSubscriptionLevelByRegionNextResults(ctx context.Context, lastResults AlertList) (result AlertList, err error) {
+// listSubscriptionLevelAlertsByRegionNextResults retrieves the next set of results, if any.
+func (client AlertsClient) listSubscriptionLevelAlertsByRegionNextResults(ctx context.Context, lastResults AlertList) (result AlertList, err error) {
 	req, err := lastResults.alertListPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "security.AlertsClient", "listSubscriptionLevelByRegionNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "security.AlertsClient", "listSubscriptionLevelAlertsByRegionNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
 	}
-	resp, err := client.ListSubscriptionLevelByRegionSender(req)
+	resp, err := client.ListSubscriptionLevelAlertsByRegionSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "security.AlertsClient", "listSubscriptionLevelByRegionNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "security.AlertsClient", "listSubscriptionLevelAlertsByRegionNextResults", resp, "Failure sending next results request")
 	}
-	result, err = client.ListSubscriptionLevelByRegionResponder(resp)
+	result, err = client.ListSubscriptionLevelAlertsByRegionResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "listSubscriptionLevelByRegionNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "listSubscriptionLevelAlertsByRegionNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
-// ListSubscriptionLevelByRegionComplete enumerates all values, automatically crossing page boundaries as required.
-func (client AlertsClient) ListSubscriptionLevelByRegionComplete(ctx context.Context) (result AlertListIterator, err error) {
+// ListSubscriptionLevelAlertsByRegionComplete enumerates all values, automatically crossing page boundaries as required.
+func (client AlertsClient) ListSubscriptionLevelAlertsByRegionComplete(ctx context.Context) (result AlertListIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.ListSubscriptionLevelByRegion")
+		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.ListSubscriptionLevelAlertsByRegion")
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {
@@ -693,18 +693,18 @@ func (client AlertsClient) ListSubscriptionLevelByRegionComplete(ctx context.Con
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListSubscriptionLevelByRegion(ctx)
+	result.page, err = client.ListSubscriptionLevelAlertsByRegion(ctx)
 	return
 }
 
-// UpdateResourceGroupLevelStateToActivate update the alert's state
+// UpdateResourceGroupLevelAlertStateToDismiss update the alert's state
 // Parameters:
 // alertName - name of the alert object
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
-func (client AlertsClient) UpdateResourceGroupLevelStateToActivate(ctx context.Context, alertName string, resourceGroupName string) (result autorest.Response, err error) {
+func (client AlertsClient) UpdateResourceGroupLevelAlertStateToDismiss(ctx context.Context, alertName string, resourceGroupName string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.UpdateResourceGroupLevelStateToActivate")
+		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.UpdateResourceGroupLevelAlertStateToDismiss")
 		defer func() {
 			sc := -1
 			if result.Response != nil {
@@ -720,118 +720,32 @@ func (client AlertsClient) UpdateResourceGroupLevelStateToActivate(ctx context.C
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("security.AlertsClient", "UpdateResourceGroupLevelStateToActivate", err.Error())
+		return result, validation.NewError("security.AlertsClient", "UpdateResourceGroupLevelAlertStateToDismiss", err.Error())
 	}
 
-	req, err := client.UpdateResourceGroupLevelStateToActivatePreparer(ctx, alertName, resourceGroupName)
+	req, err := client.UpdateResourceGroupLevelAlertStateToDismissPreparer(ctx, alertName, resourceGroupName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateResourceGroupLevelStateToActivate", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateResourceGroupLevelAlertStateToDismiss", nil, "Failure preparing request")
 		return
 	}
 
-	resp, err := client.UpdateResourceGroupLevelStateToActivateSender(req)
+	resp, err := client.UpdateResourceGroupLevelAlertStateToDismissSender(req)
 	if err != nil {
 		result.Response = resp
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateResourceGroupLevelStateToActivate", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateResourceGroupLevelAlertStateToDismiss", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.UpdateResourceGroupLevelStateToActivateResponder(resp)
+	result, err = client.UpdateResourceGroupLevelAlertStateToDismissResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateResourceGroupLevelStateToActivate", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateResourceGroupLevelAlertStateToDismiss", resp, "Failure responding to request")
 	}
 
 	return
 }
 
-// UpdateResourceGroupLevelStateToActivatePreparer prepares the UpdateResourceGroupLevelStateToActivate request.
-func (client AlertsClient) UpdateResourceGroupLevelStateToActivatePreparer(ctx context.Context, alertName string, resourceGroupName string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"alertName":         autorest.Encode("path", alertName),
-		"ascLocation":       autorest.Encode("path", client.AscLocation),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2020-01-01"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Security/locations/{ascLocation}/alerts/{alertName}/activate", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// UpdateResourceGroupLevelStateToActivateSender sends the UpdateResourceGroupLevelStateToActivate request. The method will close the
-// http.Response Body if it receives an error.
-func (client AlertsClient) UpdateResourceGroupLevelStateToActivateSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
-}
-
-// UpdateResourceGroupLevelStateToActivateResponder handles the response to the UpdateResourceGroupLevelStateToActivate request. The method always
-// closes the http.Response Body.
-func (client AlertsClient) UpdateResourceGroupLevelStateToActivateResponder(resp *http.Response) (result autorest.Response, err error) {
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
-		autorest.ByClosing())
-	result.Response = resp
-	return
-}
-
-// UpdateResourceGroupLevelStateToDismiss update the alert's state
-// Parameters:
-// alertName - name of the alert object
-// resourceGroupName - the name of the resource group within the user's subscription. The name is case
-// insensitive.
-func (client AlertsClient) UpdateResourceGroupLevelStateToDismiss(ctx context.Context, alertName string, resourceGroupName string) (result autorest.Response, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.UpdateResourceGroupLevelStateToDismiss")
-		defer func() {
-			sc := -1
-			if result.Response != nil {
-				sc = result.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}},
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("security.AlertsClient", "UpdateResourceGroupLevelStateToDismiss", err.Error())
-	}
-
-	req, err := client.UpdateResourceGroupLevelStateToDismissPreparer(ctx, alertName, resourceGroupName)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateResourceGroupLevelStateToDismiss", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.UpdateResourceGroupLevelStateToDismissSender(req)
-	if err != nil {
-		result.Response = resp
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateResourceGroupLevelStateToDismiss", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.UpdateResourceGroupLevelStateToDismissResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateResourceGroupLevelStateToDismiss", resp, "Failure responding to request")
-	}
-
-	return
-}
-
-// UpdateResourceGroupLevelStateToDismissPreparer prepares the UpdateResourceGroupLevelStateToDismiss request.
-func (client AlertsClient) UpdateResourceGroupLevelStateToDismissPreparer(ctx context.Context, alertName string, resourceGroupName string) (*http.Request, error) {
+// UpdateResourceGroupLevelAlertStateToDismissPreparer prepares the UpdateResourceGroupLevelAlertStateToDismiss request.
+func (client AlertsClient) UpdateResourceGroupLevelAlertStateToDismissPreparer(ctx context.Context, alertName string, resourceGroupName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"alertName":         autorest.Encode("path", alertName),
 		"ascLocation":       autorest.Encode("path", client.AscLocation),
@@ -852,15 +766,101 @@ func (client AlertsClient) UpdateResourceGroupLevelStateToDismissPreparer(ctx co
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// UpdateResourceGroupLevelStateToDismissSender sends the UpdateResourceGroupLevelStateToDismiss request. The method will close the
+// UpdateResourceGroupLevelAlertStateToDismissSender sends the UpdateResourceGroupLevelAlertStateToDismiss request. The method will close the
 // http.Response Body if it receives an error.
-func (client AlertsClient) UpdateResourceGroupLevelStateToDismissSender(req *http.Request) (*http.Response, error) {
+func (client AlertsClient) UpdateResourceGroupLevelAlertStateToDismissSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
-// UpdateResourceGroupLevelStateToDismissResponder handles the response to the UpdateResourceGroupLevelStateToDismiss request. The method always
+// UpdateResourceGroupLevelAlertStateToDismissResponder handles the response to the UpdateResourceGroupLevelAlertStateToDismiss request. The method always
 // closes the http.Response Body.
-func (client AlertsClient) UpdateResourceGroupLevelStateToDismissResponder(resp *http.Response) (result autorest.Response, err error) {
+func (client AlertsClient) UpdateResourceGroupLevelAlertStateToDismissResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
+// UpdateResourceGroupLevelAlertStateToReactivate update the alert's state
+// Parameters:
+// alertName - name of the alert object
+// resourceGroupName - the name of the resource group within the user's subscription. The name is case
+// insensitive.
+func (client AlertsClient) UpdateResourceGroupLevelAlertStateToReactivate(ctx context.Context, alertName string, resourceGroupName string) (result autorest.Response, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.UpdateResourceGroupLevelAlertStateToReactivate")
+		defer func() {
+			sc := -1
+			if result.Response != nil {
+				sc = result.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("security.AlertsClient", "UpdateResourceGroupLevelAlertStateToReactivate", err.Error())
+	}
+
+	req, err := client.UpdateResourceGroupLevelAlertStateToReactivatePreparer(ctx, alertName, resourceGroupName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateResourceGroupLevelAlertStateToReactivate", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.UpdateResourceGroupLevelAlertStateToReactivateSender(req)
+	if err != nil {
+		result.Response = resp
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateResourceGroupLevelAlertStateToReactivate", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.UpdateResourceGroupLevelAlertStateToReactivateResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateResourceGroupLevelAlertStateToReactivate", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// UpdateResourceGroupLevelAlertStateToReactivatePreparer prepares the UpdateResourceGroupLevelAlertStateToReactivate request.
+func (client AlertsClient) UpdateResourceGroupLevelAlertStateToReactivatePreparer(ctx context.Context, alertName string, resourceGroupName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"alertName":         autorest.Encode("path", alertName),
+		"ascLocation":       autorest.Encode("path", client.AscLocation),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-01-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Security/locations/{ascLocation}/alerts/{alertName}/activate", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// UpdateResourceGroupLevelAlertStateToReactivateSender sends the UpdateResourceGroupLevelAlertStateToReactivate request. The method will close the
+// http.Response Body if it receives an error.
+func (client AlertsClient) UpdateResourceGroupLevelAlertStateToReactivateSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// UpdateResourceGroupLevelAlertStateToReactivateResponder handles the response to the UpdateResourceGroupLevelAlertStateToReactivate request. The method always
+// closes the http.Response Body.
+func (client AlertsClient) UpdateResourceGroupLevelAlertStateToReactivateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
@@ -955,12 +955,12 @@ func (client AlertsClient) UpdateResourceGroupLevelStateToResolveResponder(resp 
 	return
 }
 
-// UpdateSubscriptionLevelStateToActivate update the alert's state
+// UpdateSubscriptionLevelAlertStateToDismiss update the alert's state
 // Parameters:
 // alertName - name of the alert object
-func (client AlertsClient) UpdateSubscriptionLevelStateToActivate(ctx context.Context, alertName string) (result autorest.Response, err error) {
+func (client AlertsClient) UpdateSubscriptionLevelAlertStateToDismiss(ctx context.Context, alertName string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.UpdateSubscriptionLevelStateToActivate")
+		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.UpdateSubscriptionLevelAlertStateToDismiss")
 		defer func() {
 			sc := -1
 			if result.Response != nil {
@@ -972,111 +972,32 @@ func (client AlertsClient) UpdateSubscriptionLevelStateToActivate(ctx context.Co
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: client.SubscriptionID,
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("security.AlertsClient", "UpdateSubscriptionLevelStateToActivate", err.Error())
+		return result, validation.NewError("security.AlertsClient", "UpdateSubscriptionLevelAlertStateToDismiss", err.Error())
 	}
 
-	req, err := client.UpdateSubscriptionLevelStateToActivatePreparer(ctx, alertName)
+	req, err := client.UpdateSubscriptionLevelAlertStateToDismissPreparer(ctx, alertName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateSubscriptionLevelStateToActivate", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateSubscriptionLevelAlertStateToDismiss", nil, "Failure preparing request")
 		return
 	}
 
-	resp, err := client.UpdateSubscriptionLevelStateToActivateSender(req)
+	resp, err := client.UpdateSubscriptionLevelAlertStateToDismissSender(req)
 	if err != nil {
 		result.Response = resp
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateSubscriptionLevelStateToActivate", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateSubscriptionLevelAlertStateToDismiss", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.UpdateSubscriptionLevelStateToActivateResponder(resp)
+	result, err = client.UpdateSubscriptionLevelAlertStateToDismissResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateSubscriptionLevelStateToActivate", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateSubscriptionLevelAlertStateToDismiss", resp, "Failure responding to request")
 	}
 
 	return
 }
 
-// UpdateSubscriptionLevelStateToActivatePreparer prepares the UpdateSubscriptionLevelStateToActivate request.
-func (client AlertsClient) UpdateSubscriptionLevelStateToActivatePreparer(ctx context.Context, alertName string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"alertName":      autorest.Encode("path", alertName),
-		"ascLocation":    autorest.Encode("path", client.AscLocation),
-		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2020-01-01"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Security/locations/{ascLocation}/alerts/{alertName}/activate", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// UpdateSubscriptionLevelStateToActivateSender sends the UpdateSubscriptionLevelStateToActivate request. The method will close the
-// http.Response Body if it receives an error.
-func (client AlertsClient) UpdateSubscriptionLevelStateToActivateSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
-}
-
-// UpdateSubscriptionLevelStateToActivateResponder handles the response to the UpdateSubscriptionLevelStateToActivate request. The method always
-// closes the http.Response Body.
-func (client AlertsClient) UpdateSubscriptionLevelStateToActivateResponder(resp *http.Response) (result autorest.Response, err error) {
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
-		autorest.ByClosing())
-	result.Response = resp
-	return
-}
-
-// UpdateSubscriptionLevelStateToDismiss update the alert's state
-// Parameters:
-// alertName - name of the alert object
-func (client AlertsClient) UpdateSubscriptionLevelStateToDismiss(ctx context.Context, alertName string) (result autorest.Response, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.UpdateSubscriptionLevelStateToDismiss")
-		defer func() {
-			sc := -1
-			if result.Response != nil {
-				sc = result.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("security.AlertsClient", "UpdateSubscriptionLevelStateToDismiss", err.Error())
-	}
-
-	req, err := client.UpdateSubscriptionLevelStateToDismissPreparer(ctx, alertName)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateSubscriptionLevelStateToDismiss", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.UpdateSubscriptionLevelStateToDismissSender(req)
-	if err != nil {
-		result.Response = resp
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateSubscriptionLevelStateToDismiss", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.UpdateSubscriptionLevelStateToDismissResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateSubscriptionLevelStateToDismiss", resp, "Failure responding to request")
-	}
-
-	return
-}
-
-// UpdateSubscriptionLevelStateToDismissPreparer prepares the UpdateSubscriptionLevelStateToDismiss request.
-func (client AlertsClient) UpdateSubscriptionLevelStateToDismissPreparer(ctx context.Context, alertName string) (*http.Request, error) {
+// UpdateSubscriptionLevelAlertStateToDismissPreparer prepares the UpdateSubscriptionLevelAlertStateToDismiss request.
+func (client AlertsClient) UpdateSubscriptionLevelAlertStateToDismissPreparer(ctx context.Context, alertName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"alertName":      autorest.Encode("path", alertName),
 		"ascLocation":    autorest.Encode("path", client.AscLocation),
@@ -1096,15 +1017,94 @@ func (client AlertsClient) UpdateSubscriptionLevelStateToDismissPreparer(ctx con
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// UpdateSubscriptionLevelStateToDismissSender sends the UpdateSubscriptionLevelStateToDismiss request. The method will close the
+// UpdateSubscriptionLevelAlertStateToDismissSender sends the UpdateSubscriptionLevelAlertStateToDismiss request. The method will close the
 // http.Response Body if it receives an error.
-func (client AlertsClient) UpdateSubscriptionLevelStateToDismissSender(req *http.Request) (*http.Response, error) {
+func (client AlertsClient) UpdateSubscriptionLevelAlertStateToDismissSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
-// UpdateSubscriptionLevelStateToDismissResponder handles the response to the UpdateSubscriptionLevelStateToDismiss request. The method always
+// UpdateSubscriptionLevelAlertStateToDismissResponder handles the response to the UpdateSubscriptionLevelAlertStateToDismiss request. The method always
 // closes the http.Response Body.
-func (client AlertsClient) UpdateSubscriptionLevelStateToDismissResponder(resp *http.Response) (result autorest.Response, err error) {
+func (client AlertsClient) UpdateSubscriptionLevelAlertStateToDismissResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
+// UpdateSubscriptionLevelAlertStateToReactivate update the alert's state
+// Parameters:
+// alertName - name of the alert object
+func (client AlertsClient) UpdateSubscriptionLevelAlertStateToReactivate(ctx context.Context, alertName string) (result autorest.Response, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.UpdateSubscriptionLevelAlertStateToReactivate")
+		defer func() {
+			sc := -1
+			if result.Response != nil {
+				sc = result.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("security.AlertsClient", "UpdateSubscriptionLevelAlertStateToReactivate", err.Error())
+	}
+
+	req, err := client.UpdateSubscriptionLevelAlertStateToReactivatePreparer(ctx, alertName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateSubscriptionLevelAlertStateToReactivate", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.UpdateSubscriptionLevelAlertStateToReactivateSender(req)
+	if err != nil {
+		result.Response = resp
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateSubscriptionLevelAlertStateToReactivate", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.UpdateSubscriptionLevelAlertStateToReactivateResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateSubscriptionLevelAlertStateToReactivate", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// UpdateSubscriptionLevelAlertStateToReactivatePreparer prepares the UpdateSubscriptionLevelAlertStateToReactivate request.
+func (client AlertsClient) UpdateSubscriptionLevelAlertStateToReactivatePreparer(ctx context.Context, alertName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"alertName":      autorest.Encode("path", alertName),
+		"ascLocation":    autorest.Encode("path", client.AscLocation),
+		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-01-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Security/locations/{ascLocation}/alerts/{alertName}/activate", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// UpdateSubscriptionLevelAlertStateToReactivateSender sends the UpdateSubscriptionLevelAlertStateToReactivate request. The method will close the
+// http.Response Body if it receives an error.
+func (client AlertsClient) UpdateSubscriptionLevelAlertStateToReactivateSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// UpdateSubscriptionLevelAlertStateToReactivateResponder handles the response to the UpdateSubscriptionLevelAlertStateToReactivate request. The method always
+// closes the http.Response Body.
+func (client AlertsClient) UpdateSubscriptionLevelAlertStateToReactivateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),

@@ -2168,6 +2168,83 @@ func (client StaticSitesClient) ListStaticSiteUsersComplete(ctx context.Context,
 	return
 }
 
+// PreviewWorkflow description for Generates a preview workflow file for the static site
+// Parameters:
+// location - location where you plan to create the static site.
+// staticSitesWorkflowPreviewRequest - a JSON representation of the StaticSitesWorkflowPreviewRequest
+// properties. See example.
+func (client StaticSitesClient) PreviewWorkflow(ctx context.Context, location string, staticSitesWorkflowPreviewRequest StaticSitesWorkflowPreviewRequest) (result StaticSitesWorkflowPreview, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/StaticSitesClient.PreviewWorkflow")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.PreviewWorkflowPreparer(ctx, location, staticSitesWorkflowPreviewRequest)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "PreviewWorkflow", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.PreviewWorkflowSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "PreviewWorkflow", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.PreviewWorkflowResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "PreviewWorkflow", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// PreviewWorkflowPreparer prepares the PreviewWorkflow request.
+func (client StaticSitesClient) PreviewWorkflowPreparer(ctx context.Context, location string, staticSitesWorkflowPreviewRequest StaticSitesWorkflowPreviewRequest) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"location":       autorest.Encode("path", location),
+		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-06-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Web/locations/{location}/previewStaticSiteWorkflowFile", pathParameters),
+		autorest.WithJSON(staticSitesWorkflowPreviewRequest),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// PreviewWorkflowSender sends the PreviewWorkflow request. The method will close the
+// http.Response Body if it receives an error.
+func (client StaticSitesClient) PreviewWorkflowSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// PreviewWorkflowResponder handles the response to the PreviewWorkflow request. The method always
+// closes the http.Response Body.
+func (client StaticSitesClient) PreviewWorkflowResponder(resp *http.Response) (result StaticSitesWorkflowPreview, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // ResetStaticSiteAPIKey description for Resets the api key for an existing static site.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.

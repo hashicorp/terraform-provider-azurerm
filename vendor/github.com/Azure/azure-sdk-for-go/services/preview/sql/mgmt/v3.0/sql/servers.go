@@ -356,6 +356,94 @@ func (client ServersClient) GetResponder(resp *http.Response) (result Server, er
 	return
 }
 
+// ImportDatabase imports a bacpac into a new database.
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
+// serverName - the name of the server.
+// parameters - the database import request parameters.
+func (client ServersClient) ImportDatabase(ctx context.Context, resourceGroupName string, serverName string, parameters ImportNewDatabaseDefinition) (result ServersImportDatabaseFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ServersClient.ImportDatabase")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: parameters,
+			Constraints: []validation.Constraint{{Target: "parameters.StorageKey", Name: validation.Null, Rule: true, Chain: nil},
+				{Target: "parameters.StorageURI", Name: validation.Null, Rule: true, Chain: nil},
+				{Target: "parameters.AdministratorLogin", Name: validation.Null, Rule: true, Chain: nil},
+				{Target: "parameters.AdministratorLoginPassword", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("sql.ServersClient", "ImportDatabase", err.Error())
+	}
+
+	req, err := client.ImportDatabasePreparer(ctx, resourceGroupName, serverName, parameters)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ServersClient", "ImportDatabase", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.ImportDatabaseSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ServersClient", "ImportDatabase", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// ImportDatabasePreparer prepares the ImportDatabase request.
+func (client ServersClient) ImportDatabasePreparer(ctx context.Context, resourceGroupName string, serverName string, parameters ImportNewDatabaseDefinition) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"serverName":        autorest.Encode("path", serverName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-02-02-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/servers/{serverName}/import", pathParameters),
+		autorest.WithJSON(parameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ImportDatabaseSender sends the ImportDatabase request. The method will close the
+// http.Response Body if it receives an error.
+func (client ServersClient) ImportDatabaseSender(req *http.Request) (future ServersImportDatabaseFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// ImportDatabaseResponder handles the response to the ImportDatabase request. The method always
+// closes the http.Response Body.
+func (client ServersClient) ImportDatabaseResponder(resp *http.Response) (result ImportExportOperationResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // List gets a list of all servers in the subscription.
 func (client ServersClient) List(ctx context.Context) (result ServerListResultPage, err error) {
 	if tracing.IsEnabled() {

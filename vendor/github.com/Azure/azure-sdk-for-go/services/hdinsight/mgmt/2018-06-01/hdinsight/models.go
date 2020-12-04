@@ -88,8 +88,8 @@ type ApplicationGetHTTPSEndpoint struct {
 	DisableGatewayAuth *bool `json:"disableGatewayAuth,omitempty"`
 }
 
-// ApplicationListResult result of the request to list cluster Applications. It contains a list of operations
-// and a URL link to get the next set of results.
+// ApplicationListResult result of the request to list cluster Applications. It contains a list of
+// operations and a URL link to get the next set of results.
 type ApplicationListResult struct {
 	autorest.Response `json:"-"`
 	// Value - The list of HDInsight applications installed on HDInsight cluster.
@@ -250,8 +250,11 @@ func (page ApplicationListResultPage) Values() []Application {
 }
 
 // Creates a new instance of the ApplicationListResultPage type.
-func NewApplicationListResultPage(getNextPage func(context.Context, ApplicationListResult) (ApplicationListResult, error)) ApplicationListResultPage {
-	return ApplicationListResultPage{fn: getNextPage}
+func NewApplicationListResultPage(cur ApplicationListResult, getNextPage func(context.Context, ApplicationListResult) (ApplicationListResult, error)) ApplicationListResultPage {
+	return ApplicationListResultPage{
+		fn:  getNextPage,
+		alr: cur,
+	}
 }
 
 // ApplicationProperties the HDInsight cluster application GET response.
@@ -389,8 +392,8 @@ type AutoscaleRecurrence struct {
 	Schedule *[]AutoscaleSchedule `json:"schedule,omitempty"`
 }
 
-// AutoscaleSchedule parameters for a schedule-based autoscale rule, consisting of an array of days + a time
-// and capacity
+// AutoscaleSchedule parameters for a schedule-based autoscale rule, consisting of an array of days + a
+// time and capacity
 type AutoscaleSchedule struct {
 	// Days - Days of the week for a schedule-based autoscale rule
 	Days *[]DaysOfWeek `json:"days,omitempty"`
@@ -428,7 +431,8 @@ type BillingResources struct {
 	DiskBillingMeters *[]DiskBillingMeters `json:"diskBillingMeters,omitempty"`
 }
 
-// BillingResponseListResult the response for the operation to get regional billingSpecs for a subscription.
+// BillingResponseListResult the response for the operation to get regional billingSpecs for a
+// subscription.
 type BillingResponseListResult struct {
 	autorest.Response `json:"-"`
 	// VMSizes - The virtual machine sizes to include or exclude.
@@ -894,8 +898,11 @@ func (page ClusterListResultPage) Values() []Cluster {
 }
 
 // Creates a new instance of the ClusterListResultPage type.
-func NewClusterListResultPage(getNextPage func(context.Context, ClusterListResult) (ClusterListResult, error)) ClusterListResultPage {
-	return ClusterListResultPage{fn: getNextPage}
+func NewClusterListResultPage(cur ClusterListResult, getNextPage func(context.Context, ClusterListResult) (ClusterListResult, error)) ClusterListResultPage {
+	return ClusterListResultPage{
+		fn:  getNextPage,
+		clr: cur,
+	}
 }
 
 // ClusterListRuntimeScriptActionDetailResult the list runtime script action detail response.
@@ -944,7 +951,8 @@ type ClusterResizeParameters struct {
 	TargetInstanceCount *int32 `json:"targetInstanceCount,omitempty"`
 }
 
-// ClustersCreateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// ClustersCreateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ClustersCreateFuture struct {
 	azure.Future
 }
@@ -972,7 +980,8 @@ func (future *ClustersCreateFuture) Result(client ClustersClient) (c Cluster, er
 	return
 }
 
-// ClustersDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// ClustersDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ClustersDeleteFuture struct {
 	azure.Future
 }
@@ -1017,7 +1026,8 @@ func (future *ClustersExecuteScriptActionsFuture) Result(client ClustersClient) 
 	return
 }
 
-// ClustersResizeFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// ClustersResizeFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ClustersResizeFuture struct {
 	azure.Future
 }
@@ -1233,7 +1243,8 @@ type Extension struct {
 	PrimaryKey *string `json:"primaryKey,omitempty"`
 }
 
-// ExtensionsCreateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// ExtensionsCreateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ExtensionsCreateFuture struct {
 	azure.Future
 }
@@ -1255,7 +1266,8 @@ func (future *ExtensionsCreateFuture) Result(client ExtensionsClient) (ar autore
 	return
 }
 
-// ExtensionsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// ExtensionsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ExtensionsDeleteFuture struct {
 	azure.Future
 }
@@ -1277,8 +1289,8 @@ func (future *ExtensionsDeleteFuture) Result(client ExtensionsClient) (ar autore
 	return
 }
 
-// ExtensionsDisableMonitoringFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ExtensionsDisableMonitoringFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type ExtensionsDisableMonitoringFuture struct {
 	azure.Future
 }
@@ -1300,8 +1312,8 @@ func (future *ExtensionsDisableMonitoringFuture) Result(client ExtensionsClient)
 	return
 }
 
-// ExtensionsEnableMonitoringFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ExtensionsEnableMonitoringFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type ExtensionsEnableMonitoringFuture struct {
 	azure.Future
 }
@@ -1402,8 +1414,8 @@ type OperationDisplay struct {
 	Operation *string `json:"operation,omitempty"`
 }
 
-// OperationListResult result of the request to list HDInsight operations. It contains a list of operations and
-// a URL link to get the next set of results.
+// OperationListResult result of the request to list HDInsight operations. It contains a list of operations
+// and a URL link to get the next set of results.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
 	// Value - The list of HDInsight operations supported by the HDInsight resource provider.
@@ -1555,8 +1567,11 @@ func (page OperationListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
 // OperationResource the azure async operation response.
@@ -1746,8 +1761,8 @@ type ScriptActionExecutionHistoryList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// ScriptActionExecutionHistoryListIterator provides access to a complete listing of RuntimeScriptActionDetail
-// values.
+// ScriptActionExecutionHistoryListIterator provides access to a complete listing of
+// RuntimeScriptActionDetail values.
 type ScriptActionExecutionHistoryListIterator struct {
 	i    int
 	page ScriptActionExecutionHistoryListPage
@@ -1890,8 +1905,11 @@ func (page ScriptActionExecutionHistoryListPage) Values() []RuntimeScriptActionD
 }
 
 // Creates a new instance of the ScriptActionExecutionHistoryListPage type.
-func NewScriptActionExecutionHistoryListPage(getNextPage func(context.Context, ScriptActionExecutionHistoryList) (ScriptActionExecutionHistoryList, error)) ScriptActionExecutionHistoryListPage {
-	return ScriptActionExecutionHistoryListPage{fn: getNextPage}
+func NewScriptActionExecutionHistoryListPage(cur ScriptActionExecutionHistoryList, getNextPage func(context.Context, ScriptActionExecutionHistoryList) (ScriptActionExecutionHistoryList, error)) ScriptActionExecutionHistoryListPage {
+	return ScriptActionExecutionHistoryListPage{
+		fn:    getNextPage,
+		saehl: cur,
+	}
 }
 
 // ScriptActionExecutionSummary the execution summary of a script action.
@@ -2077,8 +2095,11 @@ func (page ScriptActionsListPage) Values() []RuntimeScriptActionDetail {
 }
 
 // Creates a new instance of the ScriptActionsListPage type.
-func NewScriptActionsListPage(getNextPage func(context.Context, ScriptActionsList) (ScriptActionsList, error)) ScriptActionsListPage {
-	return ScriptActionsListPage{fn: getNextPage}
+func NewScriptActionsListPage(cur ScriptActionsList, getNextPage func(context.Context, ScriptActionsList) (ScriptActionsList, error)) ScriptActionsListPage {
+	return ScriptActionsListPage{
+		fn:  getNextPage,
+		sal: cur,
+	}
 }
 
 // SecurityProfile the security profile which contains Ssh public key for the HDInsight cluster.
@@ -2245,8 +2266,8 @@ func (vs VersionSpec) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// VirtualMachinesRestartHostsFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// VirtualMachinesRestartHostsFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type VirtualMachinesRestartHostsFuture struct {
 	azure.Future
 }
@@ -2292,11 +2313,11 @@ type VMSizeCompatibilityFilter struct {
 	Vmsizes *[]string `json:"vmsizes,omitempty"`
 }
 
-// VMSizeCompatibilityFilterV2 this class represent a single filter object that defines a multidimensional set.
-// The dimensions of this set are Regions, ClusterFlavors, NodeTypes and ClusterVersions. The constraint should
-// be defined based on the following: FilterMode (Exclude vs Include), VMSizes (the vm sizes in affect of
-// exclusion/inclusion) and the ordering of the Filters. Later filters override previous settings if
-// conflicted.
+// VMSizeCompatibilityFilterV2 this class represent a single filter object that defines a multidimensional
+// set. The dimensions of this set are Regions, ClusterFlavors, NodeTypes and ClusterVersions. The
+// constraint should be defined based on the following: FilterMode (Exclude vs Include), VMSizes (the vm
+// sizes in affect of exclusion/inclusion) and the ordering of the Filters. Later filters override previous
+// settings if conflicted.
 type VMSizeCompatibilityFilterV2 struct {
 	// FilterMode - The filtering mode. Effectively this can enabling or disabling the VM sizes in a particular set. Possible values include: 'Exclude', 'Include'
 	FilterMode FilterMode `json:"filterMode,omitempty"`

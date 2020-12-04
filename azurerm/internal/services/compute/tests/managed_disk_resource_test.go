@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMManagedDisk_empty(t *testing.T) {
@@ -474,7 +475,7 @@ func testDeleteAzureRMVirtualMachine(resourceName string) resource.TestCheckFunc
 			return fmt.Errorf("Bad: no resource group found in state for virtual machine: %s", vmName)
 		}
 
-		future, err := client.Delete(ctx, resourceGroup, vmName)
+		future, err := client.Delete(ctx, resourceGroup, vmName, utils.Bool(false))
 		if err != nil {
 			return fmt.Errorf("Bad: Delete on vmClient: %+v", err)
 		}

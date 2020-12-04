@@ -42,6 +42,97 @@ func NewSQLPoolTablesClientWithBaseURI(baseURI string, subscriptionID string) SQ
 	return SQLPoolTablesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
+// Get get Sql pool table
+// Parameters:
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// workspaceName - the name of the workspace
+// SQLPoolName - SQL pool name
+// schemaName - the name of the schema.
+// tableName - the name of the table.
+func (client SQLPoolTablesClient) Get(ctx context.Context, resourceGroupName string, workspaceName string, SQLPoolName string, schemaName string, tableName string) (result SQLPoolTable, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SQLPoolTablesClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("synapse.SQLPoolTablesClient", "Get", err.Error())
+	}
+
+	req, err := client.GetPreparer(ctx, resourceGroupName, workspaceName, SQLPoolName, schemaName, tableName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "synapse.SQLPoolTablesClient", "Get", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "synapse.SQLPoolTablesClient", "Get", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "synapse.SQLPoolTablesClient", "Get", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// GetPreparer prepares the Get request.
+func (client SQLPoolTablesClient) GetPreparer(ctx context.Context, resourceGroupName string, workspaceName string, SQLPoolName string, schemaName string, tableName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"schemaName":        autorest.Encode("path", schemaName),
+		"sqlPoolName":       autorest.Encode("path", SQLPoolName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"tableName":         autorest.Encode("path", tableName),
+		"workspaceName":     autorest.Encode("path", workspaceName),
+	}
+
+	const APIVersion = "2019-06-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Synapse/workspaces/{workspaceName}/sqlPools/{sqlPoolName}/schemas/{schemaName}/tables/{tableName}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetSender sends the Get request. The method will close the
+// http.Response Body if it receives an error.
+func (client SQLPoolTablesClient) GetSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetResponder handles the response to the Get request. The method always
+// closes the http.Response Body.
+func (client SQLPoolTablesClient) GetResponder(resp *http.Response) (result SQLPoolTable, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // ListBySchema gets tables of a given schema in a SQL pool.
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.

@@ -222,3 +222,131 @@ func (client SQLPoolBlobAuditingPoliciesClient) GetResponder(resp *http.Response
 	result.Response = autorest.Response{Response: resp}
 	return
 }
+
+// ListBySQLPool lists auditing settings of a Sql pool.
+// Parameters:
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// workspaceName - the name of the workspace
+// SQLPoolName - SQL pool name
+func (client SQLPoolBlobAuditingPoliciesClient) ListBySQLPool(ctx context.Context, resourceGroupName string, workspaceName string, SQLPoolName string) (result SQLPoolBlobAuditingPolicyListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SQLPoolBlobAuditingPoliciesClient.ListBySQLPool")
+		defer func() {
+			sc := -1
+			if result.spbaplr.Response.Response != nil {
+				sc = result.spbaplr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("synapse.SQLPoolBlobAuditingPoliciesClient", "ListBySQLPool", err.Error())
+	}
+
+	result.fn = client.listBySQLPoolNextResults
+	req, err := client.ListBySQLPoolPreparer(ctx, resourceGroupName, workspaceName, SQLPoolName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "synapse.SQLPoolBlobAuditingPoliciesClient", "ListBySQLPool", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListBySQLPoolSender(req)
+	if err != nil {
+		result.spbaplr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "synapse.SQLPoolBlobAuditingPoliciesClient", "ListBySQLPool", resp, "Failure sending request")
+		return
+	}
+
+	result.spbaplr, err = client.ListBySQLPoolResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "synapse.SQLPoolBlobAuditingPoliciesClient", "ListBySQLPool", resp, "Failure responding to request")
+	}
+	if result.spbaplr.hasNextLink() && result.spbaplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
+
+	return
+}
+
+// ListBySQLPoolPreparer prepares the ListBySQLPool request.
+func (client SQLPoolBlobAuditingPoliciesClient) ListBySQLPoolPreparer(ctx context.Context, resourceGroupName string, workspaceName string, SQLPoolName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"sqlPoolName":       autorest.Encode("path", SQLPoolName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"workspaceName":     autorest.Encode("path", workspaceName),
+	}
+
+	const APIVersion = "2019-06-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Synapse/workspaces/{workspaceName}/sqlPools/{sqlPoolName}/auditingSettings", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListBySQLPoolSender sends the ListBySQLPool request. The method will close the
+// http.Response Body if it receives an error.
+func (client SQLPoolBlobAuditingPoliciesClient) ListBySQLPoolSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListBySQLPoolResponder handles the response to the ListBySQLPool request. The method always
+// closes the http.Response Body.
+func (client SQLPoolBlobAuditingPoliciesClient) ListBySQLPoolResponder(resp *http.Response) (result SQLPoolBlobAuditingPolicyListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// listBySQLPoolNextResults retrieves the next set of results, if any.
+func (client SQLPoolBlobAuditingPoliciesClient) listBySQLPoolNextResults(ctx context.Context, lastResults SQLPoolBlobAuditingPolicyListResult) (result SQLPoolBlobAuditingPolicyListResult, err error) {
+	req, err := lastResults.sQLPoolBlobAuditingPolicyListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "synapse.SQLPoolBlobAuditingPoliciesClient", "listBySQLPoolNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListBySQLPoolSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "synapse.SQLPoolBlobAuditingPoliciesClient", "listBySQLPoolNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListBySQLPoolResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "synapse.SQLPoolBlobAuditingPoliciesClient", "listBySQLPoolNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListBySQLPoolComplete enumerates all values, automatically crossing page boundaries as required.
+func (client SQLPoolBlobAuditingPoliciesClient) ListBySQLPoolComplete(ctx context.Context, resourceGroupName string, workspaceName string, SQLPoolName string) (result SQLPoolBlobAuditingPolicyListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SQLPoolBlobAuditingPoliciesClient.ListBySQLPool")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListBySQLPool(ctx, resourceGroupName, workspaceName, SQLPoolName)
+	return
+}

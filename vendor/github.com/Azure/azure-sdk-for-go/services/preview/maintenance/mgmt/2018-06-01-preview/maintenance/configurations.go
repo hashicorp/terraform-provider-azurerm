@@ -25,7 +25,7 @@ import (
 	"net/http"
 )
 
-// ConfigurationsClient is the azure Maintenance Management Client
+// ConfigurationsClient is the maintenance Client
 type ConfigurationsClient struct {
 	BaseClient
 }

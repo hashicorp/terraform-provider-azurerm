@@ -125,7 +125,7 @@ func (client WorkspaceManagedIdentitySQLControlSettingsClient) CreateOrUpdateSen
 func (client WorkspaceManagedIdentitySQLControlSettingsClient) CreateOrUpdateResponder(resp *http.Response) (result ManagedIdentitySQLControlSettingsModel, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}

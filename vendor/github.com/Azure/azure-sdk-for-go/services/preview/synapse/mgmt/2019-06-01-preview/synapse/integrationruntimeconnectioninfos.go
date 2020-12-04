@@ -47,7 +47,7 @@ func NewIntegrationRuntimeConnectionInfosClientWithBaseURI(baseURI string, subsc
 // Get get connection info for an integration runtime
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
-// workspaceName - the name of the workspace
+// workspaceName - the name of the workspace.
 // integrationRuntimeName - integration runtime name
 func (client IntegrationRuntimeConnectionInfosClient) Get(ctx context.Context, resourceGroupName string, workspaceName string, integrationRuntimeName string) (result IntegrationRuntimeConnectionInfo, err error) {
 	if tracing.IsEnabled() {
