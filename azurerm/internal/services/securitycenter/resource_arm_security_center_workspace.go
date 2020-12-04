@@ -6,6 +6,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -87,10 +89,15 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 		return fmt.Errorf("Security Center Subscription workspace cannot be set when pricing tier is `Free`")
 	}
 
+	workspaceID, err := parse.LogAnalyticsWorkspaceID(d.Get("workspace_id").(string))
+	if err != nil {
+		return err
+	}
+
 	contact := security.WorkspaceSetting{
 		WorkspaceSettingProperties: &security.WorkspaceSettingProperties{
 			Scope:       utils.String(d.Get("scope").(string)),
-			WorkspaceID: utils.String(d.Get("workspace_id").(string)),
+			WorkspaceID: utils.String(workspaceID.ID("")),
 		},
 	}
 
