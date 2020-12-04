@@ -55,6 +55,16 @@ func resourceArmKustoEventHubDataConnection() *schema.Resource {
 				ValidateFunc: validateAzureRMKustoClusterName,
 			},
 
+			"compression": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(kusto.CompressionGZip),
+					string(kusto.CompressionNone),
+				}, false),
+			},
+
 			"database_name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -218,6 +228,7 @@ func resourceArmKustoEventHubDataConnectionRead(d *schema.ResourceData, meta int
 			d.Set("table_name", props.TableName)
 			d.Set("mapping_rule_name", props.MappingRuleName)
 			d.Set("data_format", props.DataFormat)
+			d.Set("compression", props.Compression)
 		}
 	}
 
@@ -303,6 +314,10 @@ func expandKustoEventHubDataConnectionProperties(d *schema.ResourceData) *kusto.
 
 	if df, ok := d.GetOk("data_format"); ok {
 		eventHubConnectionProperties.DataFormat = kusto.EventHubDataFormat(df.(string))
+	}
+
+	if compression, ok := d.GetOk("compression"); ok {
+		eventHubConnectionProperties.Compression = kusto.Compression(compression.(string))
 	}
 
 	return eventHubConnectionProperties
