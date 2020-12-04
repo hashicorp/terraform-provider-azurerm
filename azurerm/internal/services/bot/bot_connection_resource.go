@@ -54,6 +54,7 @@ func resourceArmBotConnection() *schema.Resource {
 			"bot_name": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
