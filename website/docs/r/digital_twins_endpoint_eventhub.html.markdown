@@ -1,4 +1,4 @@
-e---
+---
 subcategory: "Digital Twins"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_digital_twins_endpoint_eventhub"
