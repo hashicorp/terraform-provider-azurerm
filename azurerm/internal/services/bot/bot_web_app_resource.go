@@ -219,11 +219,14 @@ func resourceArmBotWebAppUpdate(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id, err := parse.BotServiceID(d.Id())
+	if err != nil {
+		return err
+	}
+
 	displayName := d.Get("display_name").(string)
 	if displayName == "" {
-		displayName = name
+		displayName = id.Name
 	}
 
 	bot := botservice.Bot{
@@ -245,20 +248,9 @@ func resourceArmBotWebAppUpdate(d *schema.ResourceData, meta interface{}) error 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err := client.Update(ctx, resourceGroup, name, bot); err != nil {
-		return fmt.Errorf("Error issuing update request for Web App Bot %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, bot); err != nil {
+		return fmt.Errorf("updating Web App Bot %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
-
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error making get request for Web App Bot %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Web App Bot %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	d.SetId(*resp.ID)
 
 	return resourceArmBotWebAppRead(d, meta)
 }
