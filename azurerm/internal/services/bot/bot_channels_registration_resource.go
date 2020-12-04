@@ -12,7 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -24,16 +26,40 @@ func resourceArmBotChannelsRegistration() *schema.Resource {
 		Delete: resourceArmBotChannelsRegistrationDelete,
 		Update: resourceArmBotChannelsRegistrationUpdate,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
-
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
 			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
+			_, err := parse.BotServiceID(id)
+			return err
+		}, func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+			client := meta.(*clients.Client).Bot.BotClient
+			ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+			defer cancel()
+
+			id, err := parse.BotServiceID(d.Id())
+			if err != nil {
+				return nil, err
+			}
+
+			resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+			if err != nil {
+				if utils.ResponseWasNotFound(resp.Response) {
+					return nil, fmt.Errorf("Bot Channels Registration %q was not found in Resource Group %q", id.Name, id.ResourceGroup)
+				}
+
+				return nil, fmt.Errorf("retrieving Bot Channels Registration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			}
+			if resp.Kind != botservice.KindBot {
+				return nil, fmt.Errorf("Bot %q (Resource Group %q) was not a Channel Registration - got %q", id.Name, id.ResourceGroup, string(resp.Kind))
+			}
+
+			return []*schema.ResourceData{d}, nil
+		}),
 
 		Schema: map[string]*schema.Schema{
 			"name": {
