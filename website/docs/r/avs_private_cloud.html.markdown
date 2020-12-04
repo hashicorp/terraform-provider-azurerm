@@ -12,8 +12,6 @@ Manages a Azure Vmware Solution Private Cloud.
 
 ## Example Usage
 
--> **NOTE:** Please set `disable_correlation_request_id` = `true` for AVS resources. Else, continuous CRUD operations might not be triggered.
-
 ```hcl
 provider "azurerm" {
   features {}
