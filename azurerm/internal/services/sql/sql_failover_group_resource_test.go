@@ -1,4 +1,4 @@
-package tests
+package sql_test
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMSqlFailoverGroup_basic(t *testing.T) {
+func TestAccSqlFailoverGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_failover_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -30,7 +30,7 @@ func TestAccAzureRMSqlFailoverGroup_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlFailoverGroup_requiresImport(t *testing.T) {
+func TestAccSqlFailoverGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_failover_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -49,7 +49,7 @@ func TestAccAzureRMSqlFailoverGroup_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlFailoverGroup_disappears(t *testing.T) {
+func TestAccSqlFailoverGroup_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_failover_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -69,7 +69,7 @@ func TestAccAzureRMSqlFailoverGroup_disappears(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlFailoverGroup_withTags(t *testing.T) {
+func TestAccSqlFailoverGroup_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_failover_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

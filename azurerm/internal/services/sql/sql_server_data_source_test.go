@@ -1,4 +1,4 @@
-package tests
+package sql_test
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMSqlServer_basic(t *testing.T) {
+func TestAccDataSourceSqlServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_sql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

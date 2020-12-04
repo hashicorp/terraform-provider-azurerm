@@ -1,4 +1,4 @@
-package tests
+package sql_test
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
-func TestAccAzureRMSqlElasticPool_basic(t *testing.T) {
+func TestAccSqlElasticPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_elasticpool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -30,7 +30,7 @@ func TestAccAzureRMSqlElasticPool_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlElasticPool_requiresImport(t *testing.T) {
+func TestAccSqlElasticPool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_elasticpool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -49,7 +49,7 @@ func TestAccAzureRMSqlElasticPool_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlElasticPool_disappears(t *testing.T) {
+func TestAccSqlElasticPool_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_elasticpool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -69,7 +69,7 @@ func TestAccAzureRMSqlElasticPool_disappears(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlElasticPool_resizeDtu(t *testing.T) {
+func TestAccSqlElasticPool_resizeDtu(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_elasticpool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

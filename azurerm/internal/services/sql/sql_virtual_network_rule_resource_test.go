@@ -1,11 +1,9 @@
-package tests
+package sql_test
 
 import (
 	"fmt"
 	"regexp"
 	"testing"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql"
 
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
@@ -21,7 +19,7 @@ import (
 	Test a basic SQL virtual network rule configuration setup and update scenario, and
 	validate that new property is set correctly.
 */
-func TestAccAzureRMSqlVirtualNetworkRule_basic(t *testing.T) {
+func TestAccSqlVirtualNetworkRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_virtual_network_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -48,7 +46,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlVirtualNetworkRule_requiresImport(t *testing.T) {
+func TestAccSqlVirtualNetworkRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_virtual_network_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -76,7 +74,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_requiresImport(t *testing.T) {
 	Test an update to the SQL Virtual Network Rule to connect to a different subnet, and
 	validate that new subnet is set correctly.
 */
-func TestAccAzureRMSqlVirtualNetworkRule_switchSubnets(t *testing.T) {
+func TestAccSqlVirtualNetworkRule_switchSubnets(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_virtual_network_rule", "test")
 
 	// Create regex strings that will ensure that one subnet name exists, but not the other
@@ -109,7 +107,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_switchSubnets(t *testing.T) {
 /*
 	---Testing for Success---
 */
-func TestAccAzureRMSqlVirtualNetworkRule_disappears(t *testing.T) {
+func TestAccSqlVirtualNetworkRule_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_virtual_network_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -134,7 +132,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_disappears(t *testing.T) {
 	Test if we are able to create a vnet without the SQL endpoint, but SQL rule
 	is still applied since the endpoint validation will be set to false.
 */
-func TestAccAzureRMSqlVirtualNetworkRule_IgnoreEndpointValid(t *testing.T) {
+func TestAccSqlVirtualNetworkRule_IgnoreEndpointValid(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_virtual_network_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -157,7 +155,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_IgnoreEndpointValid(t *testing.T) {
 	Test if we are able to create a vnet with out the SQL endpoint, but SQL rule
 	is still applied since the endpoint validation will be set to false.
 */
-func TestAccAzureRMSqlVirtualNetworkRule_IgnoreEndpointInvalid(t *testing.T) {
+func TestAccSqlVirtualNetworkRule_IgnoreEndpointInvalid(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_virtual_network_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -178,7 +176,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_IgnoreEndpointInvalid(t *testing.T) {
 	Test if we are able to create multiple subnets and connect multiple subnets to the
 	SQL server.
 */
-func TestAccAzureRMSqlVirtualNetworkRule_multipleSubnets(t *testing.T) {
+func TestAccSqlVirtualNetworkRule_multipleSubnets(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_virtual_network_rule", "test")
 	resourceName2 := "azurerm_sql_virtual_network_rule.rule2"
 	resourceName3 := "azurerm_sql_virtual_network_rule.rule3"
@@ -267,7 +265,7 @@ func TestResourceAzureRMSqlVirtualNetworkRule_invalidNameValidation(t *testing.T
 	}
 
 	for _, tc := range cases {
-		_, errors := sql.ValidateSqlVirtualNetworkRuleName(tc.Value, "azurerm_sql_virtual_network_rule")
+		_, errors := ValidateSqlVirtualNetworkRuleName(tc.Value, "azurerm_sql_virtual_network_rule")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Bad: Expected the Azure RM SQL Virtual Network Rule Name to trigger a validation error.")
@@ -362,7 +360,7 @@ func TestResourceAzureRMSqlVirtualNetworkRule_validNameValidation(t *testing.T) 
 	}
 
 	for _, tc := range cases {
-		_, errors := sql.ValidateSqlVirtualNetworkRuleName(tc.Value, "azurerm_sql_virtual_network_rule")
+		_, errors := ValidateSqlVirtualNetworkRuleName(tc.Value, "azurerm_sql_virtual_network_rule")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Bad: Expected the Azure RM SQL Virtual Network Rule Name pass name validation successfully but triggered a validation error.")

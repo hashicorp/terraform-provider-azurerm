@@ -1,7 +1,10 @@
-package tests
+package sql_test
 
 import (
+	"context"
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/parse"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -11,143 +14,88 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMSqlAdministrator_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_sql_active_directory_administrator", "test")
+type SqlAdministratorResource struct {}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlAdministratorDestroy,
-		Steps: []resource.TestStep{
+func TestAccSqlAdministrator_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sql_active_directory_administrator", "test")
+	r := SqlAdministratorResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlAdministrator_basic(data),
+				Config: basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlAdministratorExists(data.ResourceName),
+					check.That(data.ResourceName).ExistsInAzure(r),
 					resource.TestCheckResourceAttr(data.ResourceName, "login", "sqladmin"),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMSqlAdministrator_withUpdates(data),
+				Config: withUpdates(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlAdministratorExists(data.ResourceName),
+					check.That(data.ResourceName).ExistsInAzure(r),
 					resource.TestCheckResourceAttr(data.ResourceName, "login", "sqladmin2"),
 				),
 			},
-		},
+			data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMSqlAdministrator_requiresImport(t *testing.T) {
+func TestAccSqlAdministrator_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_active_directory_administrator", "test")
+	r := SqlAdministratorResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlAdministratorDestroy,
-		Steps: []resource.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlAdministrator_basic(data),
+				Config: basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlAdministratorExists(data.ResourceName),
+					check.That(data.ResourceName).ExistsInAzure(r),
 					resource.TestCheckResourceAttr(data.ResourceName, "login", "sqladmin"),
 				),
 			},
-			{
-				Config:      testAccAzureRMSqlAdministrator_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_sql_active_directory_administrator"),
-			},
-		},
+			data.RequiresImportErrorStep(requiresImport),
 	})
 }
 
-func TestAccAzureRMSqlAdministrator_disappears(t *testing.T) {
+func TestAccSqlAdministrator_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_active_directory_administrator", "test")
+	r := SqlAdministratorResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlAdministratorDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSqlAdministrator_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlAdministratorExists(data.ResourceName),
-					testCheckAzureRMSqlAdministratorDisappears(data.ResourceName),
-				),
-				ExpectNonEmptyPlan: true,
-			},
-		},
+	data.ResourceTest(t, r, []resource.TestStep{
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       basic,
+			TestResource: r,
+		}),
 	})
 }
 
-func testCheckAzureRMSqlAdministratorExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.ServerAzureADAdministratorsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serverName := rs.Primary.Attributes["server_name"]
-
-		_, err := client.Get(ctx, resourceGroup, serverName)
-		return err
+func (r SqlAdministratorResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.AzureActiveDirectoryAdministratorID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+	
+	resp, err := client.Sql.ServerAzureADAdministratorsClient.Get(ctx, id.ResourceGroup, id.ServerName)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
+		}
+		return nil, fmt.Errorf("retrieving AAD Administrator %q (Server %q / Resource Group %q): %+v", id.AdministratorName, id.ServerName, id.ResourceGroup, err)
+	}
+	return utils.Bool(true), nil
 }
 
-func testCheckAzureRMSqlAdministratorDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.ServerAzureADAdministratorsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serverName := rs.Primary.Attributes["server_name"]
-
-		if _, err := client.Delete(ctx, resourceGroup, serverName); err != nil {
-			return fmt.Errorf("Bad: Delete on sqlAdministratorClient: %+v", err)
-		}
-
-		return nil
+func (r SqlAdministratorResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.AzureActiveDirectoryAdministratorID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+	if _, err := client.Sql.ServerAzureADAdministratorsClient.Delete(ctx, id.ResourceGroup, id.ServerName); err != nil {
+		return nil, err
+	}
+	return utils.Bool(true), nil
 }
 
-func testCheckAzureRMSqlAdministratorDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.ServerAzureADAdministratorsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_sql_active_directory_administrator" {
-			continue
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serverName := rs.Primary.Attributes["server_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, serverName)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("SQL Administrator (server %q / resource group %q) still exists: %+v", serverName, resourceGroup, resp)
-	}
-
-	return nil
-}
-
-func testAccAzureRMSqlAdministrator_basic(data acceptance.TestData) string {
+func (r SqlAdministratorResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -180,7 +128,7 @@ resource "azurerm_sql_active_directory_administrator" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMSqlAdministrator_requiresImport(data acceptance.TestData) string {
+func (r SqlAdministratorResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -191,10 +139,10 @@ resource "azurerm_sql_active_directory_administrator" "import" {
   tenant_id           = azurerm_sql_active_directory_administrator.test.tenant_id
   object_id           = azurerm_sql_active_directory_administrator.test.object_id
 }
-`, testAccAzureRMSqlAdministrator_basic(data))
+`, r.basic(data))
 }
 
-func testAccAzureRMSqlAdministrator_withUpdates(data acceptance.TestData) string {
+func (r SqlAdministratorResource) withUpdates(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

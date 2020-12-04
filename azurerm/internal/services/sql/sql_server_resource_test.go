@@ -1,4 +1,4 @@
-package tests
+package sql_test
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMSqlServer_basic(t *testing.T) {
+func TestAccSqlServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -36,7 +36,7 @@ func TestAccAzureRMSqlServer_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlServer_requiresImport(t *testing.T) {
+func TestAccSqlServer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -55,7 +55,7 @@ func TestAccAzureRMSqlServer_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlServer_disappears(t *testing.T) {
+func TestAccSqlServer_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -75,7 +75,7 @@ func TestAccAzureRMSqlServer_disappears(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlServer_withTags(t *testing.T) {
+func TestAccSqlServer_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -107,7 +107,7 @@ func TestAccAzureRMSqlServer_withTags(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlServer_withIdentity(t *testing.T) {
+func TestAccSqlServer_withIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -134,7 +134,7 @@ func TestAccAzureRMSqlServer_withIdentity(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlServer_updateWithIdentityAdded(t *testing.T) {
+func TestAccSqlServer_updateWithIdentityAdded(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -167,7 +167,7 @@ func TestAccAzureRMSqlServer_updateWithIdentityAdded(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlServer_updateWithBlobAuditingPolices(t *testing.T) {
+func TestAccSqlServer_updateWithBlobAuditingPolices(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

@@ -1,4 +1,4 @@
-package tests
+package sql_test
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMSqlFirewallRule_basic(t *testing.T) {
+func TestAccSqlFirewallRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_firewall_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -40,7 +40,7 @@ func TestAccAzureRMSqlFirewallRule_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlFirewallRule_requiresImport(t *testing.T) {
+func TestAccSqlFirewallRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_firewall_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -61,7 +61,7 @@ func TestAccAzureRMSqlFirewallRule_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlFirewallRule_disappears(t *testing.T) {
+func TestAccSqlFirewallRule_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_firewall_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

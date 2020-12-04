@@ -1,4 +1,4 @@
-package tests
+package sql_test
 
 import (
 	"fmt"
@@ -8,14 +8,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMSqlDatabase_basic(t *testing.T) {
+type SqlDatabaseDataSource struct {}
+
+func TestAccDataSourceSqlDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_sql_database", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
-		Steps: []resource.TestStep{
+	data.DataSourceTest(t, []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMSqlDatabase_basic(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -30,18 +28,13 @@ func TestAccDataSourceAzureRMSqlDatabase_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
-		},
 	})
 }
 
-func TestAccDataSourceAzureRMSqlDatabase_elasticPool(t *testing.T) {
+func TestAccDataSourceSqlDatabase_elasticPool(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_sql_database", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
-		Steps: []resource.TestStep{
+	data.DataSourceTest(t, []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMSqlDatabase_elasticPool(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -53,18 +46,13 @@ func TestAccDataSourceAzureRMSqlDatabase_elasticPool(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "server_name"),
 				),
 			},
-		},
 	})
 }
 
-func TestAccDataSourceAzureRMSqlDatabase_readScale(t *testing.T) {
+func TestAccDataSourceSqlDatabase_readScale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_sql_database", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
-		Steps: []resource.TestStep{
+	data.DataSourceTest(t, []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMSqlDatabase_readScale(data, true),
 				Check: resource.ComposeTestCheckFunc(
@@ -76,7 +64,6 @@ func TestAccDataSourceAzureRMSqlDatabase_readScale(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "server_name"),
 				),
 			},
-		},
 	})
 }
 

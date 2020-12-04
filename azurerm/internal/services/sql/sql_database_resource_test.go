@@ -1,4 +1,4 @@
-package tests
+package sql_test
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMSqlDatabase_basic(t *testing.T) {
+func TestAccSqlDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -36,7 +36,7 @@ func TestAccAzureRMSqlDatabase_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlDatabase_requiresImport(t *testing.T) {
+func TestAccSqlDatabase_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -58,7 +58,7 @@ func TestAccAzureRMSqlDatabase_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlDatabase_disappears(t *testing.T) {
+func TestAccSqlDatabase_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -78,7 +78,7 @@ func TestAccAzureRMSqlDatabase_disappears(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlDatabase_elasticPool(t *testing.T) {
+func TestAccSqlDatabase_elasticPool(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -98,7 +98,7 @@ func TestAccAzureRMSqlDatabase_elasticPool(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlDatabase_withTags(t *testing.T) {
+func TestAccSqlDatabase_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -124,7 +124,7 @@ func TestAccAzureRMSqlDatabase_withTags(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlDatabase_dataWarehouse(t *testing.T) {
+func TestAccSqlDatabase_dataWarehouse(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -148,7 +148,7 @@ func TestAccAzureRMSqlDatabase_dataWarehouse(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlDatabase_restorePointInTime(t *testing.T) {
+func TestAccSqlDatabase_restorePointInTime(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 	timeToRestore := time.Now().Add(15 * time.Minute)
 	formattedTime := timeToRestore.UTC().Format(time.RFC3339)
@@ -177,7 +177,7 @@ func TestAccAzureRMSqlDatabase_restorePointInTime(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlDatabase_collation(t *testing.T) {
+func TestAccSqlDatabase_collation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -203,7 +203,7 @@ func TestAccAzureRMSqlDatabase_collation(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlDatabase_requestedServiceObjectiveName(t *testing.T) {
+func TestAccSqlDatabase_requestedServiceObjectiveName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -229,7 +229,7 @@ func TestAccAzureRMSqlDatabase_requestedServiceObjectiveName(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlDatabase_threatDetectionPolicy(t *testing.T) {
+func TestAccSqlDatabase_threatDetectionPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -266,7 +266,7 @@ func TestAccAzureRMSqlDatabase_threatDetectionPolicy(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlDatabase_readScale(t *testing.T) {
+func TestAccSqlDatabase_readScale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -292,7 +292,7 @@ func TestAccAzureRMSqlDatabase_readScale(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlDatabase_zoneRedundant(t *testing.T) {
+func TestAccSqlDatabase_zoneRedundant(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -396,7 +396,7 @@ func testCheckAzureRMSqlDatabaseDisappears(resourceName string) resource.TestChe
 	}
 }
 
-func TestAccAzureRMSqlDatabase_bacpac(t *testing.T) {
+func TestAccSqlDatabase_bacpac(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -414,7 +414,7 @@ func TestAccAzureRMSqlDatabase_bacpac(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlDatabase_withBlobAuditingPolices(t *testing.T) {
+func TestAccSqlDatabase_withBlobAuditingPolices(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -447,7 +447,7 @@ func TestAccAzureRMSqlDatabase_withBlobAuditingPolices(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlDatabase_withBlobAuditingPolicesUpdate(t *testing.T) {
+func TestAccSqlDatabase_withBlobAuditingPolicesUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -479,7 +479,7 @@ func TestAccAzureRMSqlDatabase_withBlobAuditingPolicesUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlDatabase_onlineSecondaryMode(t *testing.T) {
+func TestAccSqlDatabase_onlineSecondaryMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
