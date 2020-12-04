@@ -1,4 +1,4 @@
-package tests
+package subscription_test
 
 import (
 	"fmt"
@@ -8,49 +8,44 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
-func TestAccDataSourceAzureRMSubscription_current(t *testing.T) {
+type SubscriptionDataSource struct{}
+
+func TestAccDataSourceSubscription_current(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_subscription", "current")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMSubscription_currentConfig,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "subscription_id"),
-					testCheckAzureRMSubscriptionId(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "display_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "tenant_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "state", "Enabled"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: SubscriptionDataSource{}.currentConfig(),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckAzureRMSubscriptionId(data.ResourceName),
+				check.That(data.ResourceName).Key("subscription_id").Exists(),
+				check.That(data.ResourceName).Key("display_name").Exists(),
+				check.That(data.ResourceName).Key("tenant_id").Exists(),
+				check.That(data.ResourceName).Key("state").HasValue("Enabled"),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMSubscription_specific(t *testing.T) {
+func TestAccDataSourceSubscription_specific(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_subscription", "specific")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMSubscription_specificConfig(os.Getenv("ARM_SUBSCRIPTION_ID")),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "subscription_id"),
-					testCheckAzureRMSubscriptionId(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "display_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "tenant_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "location_placement_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "quota_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "spending_limit"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: SubscriptionDataSource{}.specificConfig(os.Getenv("ARM_SUBSCRIPTION_ID")),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckAzureRMSubscriptionId(data.ResourceName),
+				check.That(data.ResourceName).Key("subscription_id").Exists(),
+				check.That(data.ResourceName).Key("display_name").Exists(),
+				check.That(data.ResourceName).Key("tenant_id").Exists(),
+				check.That(data.ResourceName).Key("location_placement_id").Exists(),
+				check.That(data.ResourceName).Key("quota_id").Exists(),
+				check.That(data.ResourceName).Key("spending_limit").Exists(),
+			),
 		},
 	})
 }
@@ -74,15 +69,17 @@ func testCheckAzureRMSubscriptionId(resourceName string) resource.TestCheckFunc 
 	}
 }
 
-const testAccDataSourceAzureRMSubscription_currentConfig = `
+func (d SubscriptionDataSource) currentConfig() string {
+	return `
 provider "azurerm" {
   features {}
 }
 
 data "azurerm_subscription" "current" {}
 `
+}
 
-func testAccDataSourceAzureRMSubscription_specificConfig(subscriptionId string) string {
+func (d SubscriptionDataSource) specificConfig(subscriptionId string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
