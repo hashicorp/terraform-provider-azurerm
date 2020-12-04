@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDigitalTwinsEndpointEventHub() *schema.Resource {
+func resourceDigitalTwinsEndpointEventHub() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDigitalTwinsEndpointEventHubCreateUpdate,
-		Read:   resourceArmDigitalTwinsEndpointEventHubRead,
-		Update: resourceArmDigitalTwinsEndpointEventHubCreateUpdate,
-		Delete: resourceArmDigitalTwinsEndpointEventHubDelete,
+		Create: resourceDigitalTwinsEndpointEventHubCreateUpdate,
+		Read:   resourceDigitalTwinsEndpointEventHubRead,
+		Update: resourceDigitalTwinsEndpointEventHubCreateUpdate,
+		Delete: resourceDigitalTwinsEndpointEventHubDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -41,14 +41,14 @@ func resourceArmDigitalTwinsEndpointEventHub() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DigitaltwinsInstanceName,
+				ValidateFunc: validate.DigitalTwinsInstanceName,
 			},
 
 			"digital_twins_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DigitaltwinsInstanceID,
+				ValidateFunc: validate.DigitalTwinsInstanceID,
 			},
 
 			"eventhub_primary_connection_string": {
@@ -71,7 +71,7 @@ func resourceArmDigitalTwinsEndpointEventHub() *schema.Resource {
 		},
 	}
 }
-func resourceArmDigitalTwinsEndpointEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsEndpointEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DigitalTwins.EndpointClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -108,23 +108,23 @@ func resourceArmDigitalTwinsEndpointEventHubCreateUpdate(d *schema.ResourceData,
 
 	future, err := client.CreateOrUpdate(ctx, digitalTwinsId.ResourceGroup, digitalTwinsId.Name, name, properties)
 	if err != nil {
-		return fmt.Errorf("creating/updating Digital Twins Endpoint Event Hub %q (Resource Group %q / Instance %q): %+v", name, digitalTwinsId.ResourceGroup, digitalTwinsId.Name, err)
+		return fmt.Errorf("creating/updating Digital Twins Endpoint EventHub %q (Resource Group %q / Instance %q): %+v", name, digitalTwinsId.ResourceGroup, digitalTwinsId.Name, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of the Digital Twins Endpoint Event Hub %q (Resource Group %q / Instance %q): %+v", name, digitalTwinsId.ResourceGroup, digitalTwinsId.Name, err)
+		return fmt.Errorf("waiting for creation/update of the Digital Twins Endpoint EventHub %q (Resource Group %q / Instance %q): %+v", name, digitalTwinsId.ResourceGroup, digitalTwinsId.Name, err)
 	}
 
 	if _, err := client.Get(ctx, digitalTwinsId.ResourceGroup, digitalTwinsId.Name, name); err != nil {
-		return fmt.Errorf("retrieving Digital Twins Endpoint Event Hub %q (Resource Group %q / Instance %q): %+v", name, digitalTwinsId.ResourceGroup, digitalTwinsId.Name, err)
+		return fmt.Errorf("retrieving Digital Twins Endpoint EventHub %q (Resource Group %q / Instance %q): %+v", name, digitalTwinsId.ResourceGroup, digitalTwinsId.Name, err)
 	}
 
 	d.SetId(id)
 
-	return resourceArmDigitalTwinsEndpointEventHubRead(d, meta)
+	return resourceDigitalTwinsEndpointEventHubRead(d, meta)
 }
 
-func resourceArmDigitalTwinsEndpointEventHubRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsEndpointEventHubRead(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DigitalTwins.EndpointClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -142,19 +142,19 @@ func resourceArmDigitalTwinsEndpointEventHubRead(d *schema.ResourceData, meta in
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Digital Twins Endpoint Event Hub %q (Resource Group %q / Instance %q): %+v", id.EndpointName, id.ResourceGroup, id.DigitalTwinsInstanceName, err)
+		return fmt.Errorf("retrieving Digital Twins Endpoint EventHub %q (Resource Group %q / Instance %q): %+v", id.EndpointName, id.ResourceGroup, id.DigitalTwinsInstanceName, err)
 	}
 	d.Set("name", id.EndpointName)
 	d.Set("digital_twins_id", parse.NewDigitalTwinsInstanceID(subscriptionId, id.ResourceGroup, id.DigitalTwinsInstanceName).ID(""))
 	if resp.Properties != nil {
 		if _, ok := resp.Properties.AsEventHub(); !ok {
-			return fmt.Errorf("retrieving Digital Twins Endpoint %q (Resource Group %q / Instance %q) is not type Event Hub", id.EndpointName, id.ResourceGroup, id.DigitalTwinsInstanceName)
+			return fmt.Errorf("retrieving Digital Twins Endpoint %q (Resource Group %q / Instance %q) is not type EventHub", id.EndpointName, id.ResourceGroup, id.DigitalTwinsInstanceName)
 		}
 	}
 	return nil
 }
 
-func resourceArmDigitalTwinsEndpointEventHubDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalTwinsEndpointEventHubDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DigitalTwins.EndpointClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -166,11 +166,11 @@ func resourceArmDigitalTwinsEndpointEventHubDelete(d *schema.ResourceData, meta 
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.DigitalTwinsInstanceName, id.EndpointName)
 	if err != nil {
-		return fmt.Errorf("deleting Digital Twins Endpoint Event Hub %q (Resource Group %q / Instance %q): %+v", id.EndpointName, id.ResourceGroup, id.DigitalTwinsInstanceName, err)
+		return fmt.Errorf("deleting Digital Twins Endpoint EventHub %q (Resource Group %q / Instance %q): %+v", id.EndpointName, id.ResourceGroup, id.DigitalTwinsInstanceName, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of the Digital Twins Endpoint Event Hub %q (Resource Group %q / Instance %q): %+v", id.EndpointName, id.ResourceGroup, id.DigitalTwinsInstanceName, err)
+		return fmt.Errorf("waiting for deletion of the Digital Twins Endpoint EventHub %q (Resource Group %q / Instance %q): %+v", id.EndpointName, id.ResourceGroup, id.DigitalTwinsInstanceName, err)
 	}
 	return nil
 }
