@@ -95,7 +95,7 @@ func (client AttachedDatabaseConfigurationsClient) CreateOrUpdatePreparer(ctx co
 		"subscriptionId":                    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-02-15"
+	const APIVersion = "2020-09-18"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -174,7 +174,7 @@ func (client AttachedDatabaseConfigurationsClient) DeletePreparer(ctx context.Co
 		"subscriptionId":                    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-02-15"
+	const APIVersion = "2020-09-18"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -256,7 +256,7 @@ func (client AttachedDatabaseConfigurationsClient) GetPreparer(ctx context.Conte
 		"subscriptionId":                    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-02-15"
+	const APIVersion = "2020-09-18"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -331,7 +331,7 @@ func (client AttachedDatabaseConfigurationsClient) ListByClusterPreparer(ctx con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-02-15"
+	const APIVersion = "2020-09-18"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

@@ -98,7 +98,7 @@ func (client DataConnectionsClient) CheckNameAvailabilityPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-02-15"
+	const APIVersion = "2020-09-18"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -174,7 +174,7 @@ func (client DataConnectionsClient) CreateOrUpdatePreparer(ctx context.Context, 
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-02-15"
+	const APIVersion = "2020-09-18"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -219,13 +219,13 @@ func (client DataConnectionsClient) CreateOrUpdateResponder(resp *http.Response)
 // clusterName - the name of the Kusto cluster.
 // databaseName - the name of the database in the Kusto cluster.
 // parameters - the data connection parameters supplied to the CreateOrUpdate operation.
-func (client DataConnectionsClient) DataConnectionValidationMethod(ctx context.Context, resourceGroupName string, clusterName string, databaseName string, parameters DataConnectionValidation) (result DataConnectionValidationListResult, err error) {
+func (client DataConnectionsClient) DataConnectionValidationMethod(ctx context.Context, resourceGroupName string, clusterName string, databaseName string, parameters DataConnectionValidation) (result DataConnectionsDataConnectionValidationMethodFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DataConnectionsClient.DataConnectionValidationMethod")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -236,16 +236,10 @@ func (client DataConnectionsClient) DataConnectionValidationMethod(ctx context.C
 		return
 	}
 
-	resp, err := client.DataConnectionValidationMethodSender(req)
+	result, err = client.DataConnectionValidationMethodSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "kusto.DataConnectionsClient", "DataConnectionValidationMethod", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "kusto.DataConnectionsClient", "DataConnectionValidationMethod", result.Response(), "Failure sending request")
 		return
-	}
-
-	result, err = client.DataConnectionValidationMethodResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "kusto.DataConnectionsClient", "DataConnectionValidationMethod", resp, "Failure responding to request")
 	}
 
 	return
@@ -260,7 +254,7 @@ func (client DataConnectionsClient) DataConnectionValidationMethodPreparer(ctx c
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-02-15"
+	const APIVersion = "2020-09-18"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -277,8 +271,14 @@ func (client DataConnectionsClient) DataConnectionValidationMethodPreparer(ctx c
 
 // DataConnectionValidationMethodSender sends the DataConnectionValidationMethod request. The method will close the
 // http.Response Body if it receives an error.
-func (client DataConnectionsClient) DataConnectionValidationMethodSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client DataConnectionsClient) DataConnectionValidationMethodSender(req *http.Request) (future DataConnectionsDataConnectionValidationMethodFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
 }
 
 // DataConnectionValidationMethodResponder handles the response to the DataConnectionValidationMethod request. The method always
@@ -286,7 +286,7 @@ func (client DataConnectionsClient) DataConnectionValidationMethodSender(req *ht
 func (client DataConnectionsClient) DataConnectionValidationMethodResponder(resp *http.Response) (result DataConnectionValidationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -335,7 +335,7 @@ func (client DataConnectionsClient) DeletePreparer(ctx context.Context, resource
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-02-15"
+	const APIVersion = "2020-09-18"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -419,7 +419,7 @@ func (client DataConnectionsClient) GetPreparer(ctx context.Context, resourceGro
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-02-15"
+	const APIVersion = "2020-09-18"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -496,7 +496,7 @@ func (client DataConnectionsClient) ListByDatabasePreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-02-15"
+	const APIVersion = "2020-09-18"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -570,7 +570,7 @@ func (client DataConnectionsClient) UpdatePreparer(ctx context.Context, resource
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-02-15"
+	const APIVersion = "2020-09-18"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

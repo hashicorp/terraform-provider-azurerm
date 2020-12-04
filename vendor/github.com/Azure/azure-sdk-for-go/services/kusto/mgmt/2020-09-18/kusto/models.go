@@ -28,7 +28,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-02-15/kusto"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
 
 // AttachedDatabaseConfiguration class representing an attached database configuration.
 type AttachedDatabaseConfiguration struct {
@@ -242,7 +242,7 @@ type AzureResourceSku struct {
 
 // AzureSku azure SKU definition.
 type AzureSku struct {
-	// Name - SKU name. Possible values include: 'StandardDS13V21TBPS', 'StandardDS13V22TBPS', 'StandardDS14V23TBPS', 'StandardDS14V24TBPS', 'StandardD13V2', 'StandardD14V2', 'StandardL8s', 'StandardL16s', 'StandardD11V2', 'StandardD12V2', 'StandardL4s', 'DevNoSLAStandardD11V2', 'StandardE2aV4', 'StandardE4aV4', 'StandardE8aV4', 'StandardE16aV4', 'StandardE8asV41TBPS', 'StandardE8asV42TBPS', 'StandardE16asV43TBPS', 'StandardE16asV44TBPS', 'DevNoSLAStandardE2aV4'
+	// Name - SKU name. Possible values include: 'StandardDS13V21TBPS', 'StandardDS13V22TBPS', 'StandardDS14V23TBPS', 'StandardDS14V24TBPS', 'StandardD13V2', 'StandardD14V2', 'StandardL8s', 'StandardL16s', 'StandardD11V2', 'StandardD12V2', 'StandardL4s', 'DevNoSLAStandardD11V2', 'StandardE64iV3', 'StandardE2aV4', 'StandardE4aV4', 'StandardE8aV4', 'StandardE16aV4', 'StandardE8asV41TBPS', 'StandardE8asV42TBPS', 'StandardE16asV43TBPS', 'StandardE16asV44TBPS', 'DevNoSLAStandardE2aV4'
 	Name AzureSkuName `json:"name,omitempty"`
 	// Capacity - The number of instances of the cluster.
 	Capacity *int32 `json:"capacity,omitempty"`
@@ -649,8 +649,12 @@ type ClusterProperties struct {
 	KeyVaultProperties *KeyVaultProperties `json:"keyVaultProperties,omitempty"`
 	// EnablePurge - A boolean value that indicates if the purge operations are enabled.
 	EnablePurge *bool `json:"enablePurge,omitempty"`
-	// LanguageExtensions - List of the cluster's language extensions.
+	// LanguageExtensions - READ-ONLY; List of the cluster's language extensions.
 	LanguageExtensions *LanguageExtensionsList `json:"languageExtensions,omitempty"`
+	// EnableDoubleEncryption - A boolean value that indicates if double encryption is enabled.
+	EnableDoubleEncryption *bool `json:"enableDoubleEncryption,omitempty"`
+	// EngineType - The engine type. Possible values include: 'V2', 'V3'
+	EngineType EngineType `json:"engineType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ClusterProperties.
@@ -677,8 +681,11 @@ func (cp ClusterProperties) MarshalJSON() ([]byte, error) {
 	if cp.EnablePurge != nil {
 		objectMap["enablePurge"] = cp.EnablePurge
 	}
-	if cp.LanguageExtensions != nil {
-		objectMap["languageExtensions"] = cp.LanguageExtensions
+	if cp.EnableDoubleEncryption != nil {
+		objectMap["enableDoubleEncryption"] = cp.EnableDoubleEncryption
+	}
+	if cp.EngineType != "" {
+		objectMap["engineType"] = cp.EngineType
 	}
 	return json.Marshal(objectMap)
 }
@@ -1681,6 +1688,35 @@ func (future *DataConnectionsCreateOrUpdateFuture) Result(client DataConnections
 	return
 }
 
+// DataConnectionsDataConnectionValidationMethodFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
+type DataConnectionsDataConnectionValidationMethodFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *DataConnectionsDataConnectionValidationMethodFuture) Result(client DataConnectionsClient) (dcvlr DataConnectionValidationListResult, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "kusto.DataConnectionsDataConnectionValidationMethodFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("kusto.DataConnectionsDataConnectionValidationMethodFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if dcvlr.Response.Response, err = future.GetResult(sender); err == nil && dcvlr.Response.Response.StatusCode != http.StatusNoContent {
+		dcvlr, err = client.DataConnectionValidationMethodResponder(dcvlr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "kusto.DataConnectionsDataConnectionValidationMethodFuture", "Result", dcvlr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
 // DataConnectionsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type DataConnectionsDeleteFuture struct {
@@ -1805,8 +1841,44 @@ type EventGridConnectionProperties struct {
 	TableName *string `json:"tableName,omitempty"`
 	// MappingRuleName - The mapping rule to be used to ingest the data. Optionally the mapping information can be added to each message.
 	MappingRuleName *string `json:"mappingRuleName,omitempty"`
-	// DataFormat - The data format of the message. Optionally the data format can be added to each message. Possible values include: 'MULTIJSON', 'JSON', 'CSV', 'TSV', 'SCSV', 'SOHSV', 'PSV', 'TXT', 'RAW', 'SINGLEJSON', 'AVRO', 'TSVE', 'PARQUET', 'ORC'
+	// DataFormat - The data format of the message. Optionally the data format can be added to each message. Possible values include: 'MULTIJSON', 'JSON', 'CSV', 'TSV', 'SCSV', 'SOHSV', 'PSV', 'TXT', 'RAW', 'SINGLEJSON', 'AVRO', 'TSVE', 'PARQUET', 'ORC', 'APACHEAVRO', 'W3CLOGFILE'
 	DataFormat EventGridDataFormat `json:"dataFormat,omitempty"`
+	// IgnoreFirstRecord - A Boolean value that, if set to true, indicates that ingestion should ignore the first record of every file
+	IgnoreFirstRecord *bool `json:"ignoreFirstRecord,omitempty"`
+	// BlobStorageEventType - The name of blob storage event type to process. Possible values include: 'MicrosoftStorageBlobCreated', 'MicrosoftStorageBlobRenamed'
+	BlobStorageEventType BlobStorageEventType `json:"blobStorageEventType,omitempty"`
+	// ProvisioningState - READ-ONLY; The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
+	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for EventGridConnectionProperties.
+func (egcp EventGridConnectionProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if egcp.StorageAccountResourceID != nil {
+		objectMap["storageAccountResourceId"] = egcp.StorageAccountResourceID
+	}
+	if egcp.EventHubResourceID != nil {
+		objectMap["eventHubResourceId"] = egcp.EventHubResourceID
+	}
+	if egcp.ConsumerGroup != nil {
+		objectMap["consumerGroup"] = egcp.ConsumerGroup
+	}
+	if egcp.TableName != nil {
+		objectMap["tableName"] = egcp.TableName
+	}
+	if egcp.MappingRuleName != nil {
+		objectMap["mappingRuleName"] = egcp.MappingRuleName
+	}
+	if egcp.DataFormat != "" {
+		objectMap["dataFormat"] = egcp.DataFormat
+	}
+	if egcp.IgnoreFirstRecord != nil {
+		objectMap["ignoreFirstRecord"] = egcp.IgnoreFirstRecord
+	}
+	if egcp.BlobStorageEventType != "" {
+		objectMap["blobStorageEventType"] = egcp.BlobStorageEventType
+	}
+	return json.Marshal(objectMap)
 }
 
 // EventGridDataConnection class representing an Event Grid data connection.
@@ -1945,12 +2017,41 @@ type EventHubConnectionProperties struct {
 	TableName *string `json:"tableName,omitempty"`
 	// MappingRuleName - The mapping rule to be used to ingest the data. Optionally the mapping information can be added to each message.
 	MappingRuleName *string `json:"mappingRuleName,omitempty"`
-	// DataFormat - The data format of the message. Optionally the data format can be added to each message. Possible values include: 'EventHubDataFormatMULTIJSON', 'EventHubDataFormatJSON', 'EventHubDataFormatCSV', 'EventHubDataFormatTSV', 'EventHubDataFormatSCSV', 'EventHubDataFormatSOHSV', 'EventHubDataFormatPSV', 'EventHubDataFormatTXT', 'EventHubDataFormatRAW', 'EventHubDataFormatSINGLEJSON', 'EventHubDataFormatAVRO', 'EventHubDataFormatTSVE', 'EventHubDataFormatPARQUET', 'EventHubDataFormatORC'
+	// DataFormat - The data format of the message. Optionally the data format can be added to each message. Possible values include: 'EventHubDataFormatMULTIJSON', 'EventHubDataFormatJSON', 'EventHubDataFormatCSV', 'EventHubDataFormatTSV', 'EventHubDataFormatSCSV', 'EventHubDataFormatSOHSV', 'EventHubDataFormatPSV', 'EventHubDataFormatTXT', 'EventHubDataFormatRAW', 'EventHubDataFormatSINGLEJSON', 'EventHubDataFormatAVRO', 'EventHubDataFormatTSVE', 'EventHubDataFormatPARQUET', 'EventHubDataFormatORC', 'EventHubDataFormatAPACHEAVRO', 'EventHubDataFormatW3CLOGFILE'
 	DataFormat EventHubDataFormat `json:"dataFormat,omitempty"`
 	// EventSystemProperties - System properties of the event hub
 	EventSystemProperties *[]string `json:"eventSystemProperties,omitempty"`
 	// Compression - The event hub messages compression type. Possible values include: 'CompressionNone', 'CompressionGZip'
 	Compression Compression `json:"compression,omitempty"`
+	// ProvisioningState - READ-ONLY; The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
+	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for EventHubConnectionProperties.
+func (ehcp EventHubConnectionProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ehcp.EventHubResourceID != nil {
+		objectMap["eventHubResourceId"] = ehcp.EventHubResourceID
+	}
+	if ehcp.ConsumerGroup != nil {
+		objectMap["consumerGroup"] = ehcp.ConsumerGroup
+	}
+	if ehcp.TableName != nil {
+		objectMap["tableName"] = ehcp.TableName
+	}
+	if ehcp.MappingRuleName != nil {
+		objectMap["mappingRuleName"] = ehcp.MappingRuleName
+	}
+	if ehcp.DataFormat != "" {
+		objectMap["dataFormat"] = ehcp.DataFormat
+	}
+	if ehcp.EventSystemProperties != nil {
+		objectMap["eventSystemProperties"] = ehcp.EventSystemProperties
+	}
+	if ehcp.Compression != "" {
+		objectMap["compression"] = ehcp.Compression
+	}
+	return json.Marshal(objectMap)
 }
 
 // EventHubDataConnection class representing an event hub data connection.
@@ -2114,7 +2215,7 @@ type Identity struct {
 	PrincipalID *string `json:"principalId,omitempty"`
 	// TenantID - READ-ONLY; The tenant ID of resource.
 	TenantID *string `json:"tenantId,omitempty"`
-	// Type - The identity type. Possible values include: 'IdentityTypeNone', 'IdentityTypeSystemAssigned'
+	// Type - The type of managed identity used. The type 'SystemAssigned, UserAssigned' includes both an implicitly created identity and a set of user-assigned identities. The type 'None' will remove all identities. Possible values include: 'IdentityTypeNone', 'IdentityTypeSystemAssigned', 'IdentityTypeUserAssigned', 'IdentityTypeSystemAssignedUserAssigned'
 	Type IdentityType `json:"type,omitempty"`
 	// UserAssignedIdentities - The list of user identities associated with the Kusto cluster. The user identity dictionary key references will be ARM resource ids in the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}'.
 	UserAssignedIdentities map[string]*IdentityUserAssignedIdentitiesValue `json:"userAssignedIdentities"`
@@ -2150,12 +2251,41 @@ type IotHubConnectionProperties struct {
 	TableName *string `json:"tableName,omitempty"`
 	// MappingRuleName - The mapping rule to be used to ingest the data. Optionally the mapping information can be added to each message.
 	MappingRuleName *string `json:"mappingRuleName,omitempty"`
-	// DataFormat - The data format of the message. Optionally the data format can be added to each message. Possible values include: 'IotHubDataFormatMULTIJSON', 'IotHubDataFormatJSON', 'IotHubDataFormatCSV', 'IotHubDataFormatTSV', 'IotHubDataFormatSCSV', 'IotHubDataFormatSOHSV', 'IotHubDataFormatPSV', 'IotHubDataFormatTXT', 'IotHubDataFormatRAW', 'IotHubDataFormatSINGLEJSON', 'IotHubDataFormatAVRO', 'IotHubDataFormatTSVE', 'IotHubDataFormatPARQUET', 'IotHubDataFormatORC'
+	// DataFormat - The data format of the message. Optionally the data format can be added to each message. Possible values include: 'IotHubDataFormatMULTIJSON', 'IotHubDataFormatJSON', 'IotHubDataFormatCSV', 'IotHubDataFormatTSV', 'IotHubDataFormatSCSV', 'IotHubDataFormatSOHSV', 'IotHubDataFormatPSV', 'IotHubDataFormatTXT', 'IotHubDataFormatRAW', 'IotHubDataFormatSINGLEJSON', 'IotHubDataFormatAVRO', 'IotHubDataFormatTSVE', 'IotHubDataFormatPARQUET', 'IotHubDataFormatORC', 'IotHubDataFormatAPACHEAVRO', 'IotHubDataFormatW3CLOGFILE'
 	DataFormat IotHubDataFormat `json:"dataFormat,omitempty"`
 	// EventSystemProperties - System properties of the iot hub
 	EventSystemProperties *[]string `json:"eventSystemProperties,omitempty"`
 	// SharedAccessPolicyName - The name of the share access policy
 	SharedAccessPolicyName *string `json:"sharedAccessPolicyName,omitempty"`
+	// ProvisioningState - READ-ONLY; The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
+	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for IotHubConnectionProperties.
+func (ihcp IotHubConnectionProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ihcp.IotHubResourceID != nil {
+		objectMap["iotHubResourceId"] = ihcp.IotHubResourceID
+	}
+	if ihcp.ConsumerGroup != nil {
+		objectMap["consumerGroup"] = ihcp.ConsumerGroup
+	}
+	if ihcp.TableName != nil {
+		objectMap["tableName"] = ihcp.TableName
+	}
+	if ihcp.MappingRuleName != nil {
+		objectMap["mappingRuleName"] = ihcp.MappingRuleName
+	}
+	if ihcp.DataFormat != "" {
+		objectMap["dataFormat"] = ihcp.DataFormat
+	}
+	if ihcp.EventSystemProperties != nil {
+		objectMap["eventSystemProperties"] = ihcp.EventSystemProperties
+	}
+	if ihcp.SharedAccessPolicyName != nil {
+		objectMap["sharedAccessPolicyName"] = ihcp.SharedAccessPolicyName
+	}
+	return json.Marshal(objectMap)
 }
 
 // IotHubDataConnection class representing an iot hub data connection.
@@ -2292,6 +2422,8 @@ type KeyVaultProperties struct {
 	KeyVersion *string `json:"keyVersion,omitempty"`
 	// KeyVaultURI - The Uri of the key vault.
 	KeyVaultURI *string `json:"keyVaultUri,omitempty"`
+	// UserIdentity - The user assigned identity (ARM resource id) that has access to the key.
+	UserIdentity *string `json:"userIdentity,omitempty"`
 }
 
 // LanguageExtension the language extension object.
