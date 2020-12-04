@@ -1,119 +1,75 @@
-package tests
+package synapse_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/synapse/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMSynapseRoleAssignment_basic(t *testing.T) {
+type SynapseRoleAssignmentResource struct{}
+
+func TestAccSynapseRoleAssignment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_role_assignment", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSynapseRoleAssignmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSynapseRoleAssignment_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSynapseRoleAssignmentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := SynapseRoleAssignmentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMSynapseRoleAssignment_requiresImport(t *testing.T) {
+func TestAccSynapseRoleAssignment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_role_assignment", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSynapseRoleAssignmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSynapseRoleAssignment_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSynapseRoleAssignmentExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMSynapseRoleAssignment_requiresImport),
+	r := SynapseRoleAssignmentResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckAzureRMSynapseRoleAssignmentExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		synapseClient := acceptance.AzureProvider.Meta().(*clients.Client).Synapse
-		environment := acceptance.AzureProvider.Meta().(*clients.Client).Account.Environment
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("synapse role assignment not found: %s", resourceName)
-		}
-		id, err := parse.RoleAssignmentID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		client, err := synapseClient.AccessControlClient(id.Workspace.Name, environment.SynapseEndpointSuffix)
-		if err != nil {
-			return err
-		}
-		if resp, err := client.GetRoleAssignmentByID(ctx, id.DataPlaneAssignmentId); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Synapse role assignment %q does not exist", id.DataPlaneAssignmentId)
-			}
-			return fmt.Errorf("bad: Get on Synapse.AccessControlClient: %+v", err)
-		}
-		return nil
+func (r SynapseRoleAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.RoleAssignmentID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	environment := client.Account.Environment
+	accessClient, err := client.Synapse.AccessControlClient(id.Workspace.Name, environment.SynapseEndpointSuffix)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := accessClient.GetRoleAssignmentByID(ctx, id.DataPlaneAssignmentId)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
+		}
+		return nil, fmt.Errorf("retrieving Synapse RoleAssignment (Resource Group %q): %+v", id.Workspace.Name, err)
+	}
+
+	return utils.Bool(true), nil
 }
 
-func testCheckAzureRMSynapseRoleAssignmentDestroy(s *terraform.State) error {
-	synapseClient := acceptance.AzureProvider.Meta().(*clients.Client).Synapse
-	workspaceClient := acceptance.AzureProvider.Meta().(*clients.Client).Synapse.WorkspaceClient
-	environment := acceptance.AzureProvider.Meta().(*clients.Client).Account.Environment
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_synapse_role_assignment" {
-			continue
-		}
-		id, err := parse.RoleAssignmentID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		if resp, err := workspaceClient.Get(ctx, id.Workspace.ResourceGroup, id.Workspace.Name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Get on Synapse.WorkspaceClient %q, %+v", id.Workspace.ID(""), err)
-			}
-			return nil
-		}
-
-		client, err := synapseClient.AccessControlClient(id.Workspace.Name, environment.SynapseEndpointSuffix)
-		if err != nil {
-			return err
-		}
-		resp, err := client.GetRoleAssignmentByID(ctx, id.DataPlaneAssignmentId)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Get on Synapse.AccessControlClient: %+v", err)
-			}
-			return nil
-		}
-		return fmt.Errorf("expected no Synapse Role Assignment but found %+v", resp)
-	}
-	return nil
-}
-
-func testAccAzureRMSynapseRoleAssignment_basic(data acceptance.TestData) string {
-	template := testAccAzureRMSynapseRoleAssignment_template(data)
+func (r SynapseRoleAssignmentResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -127,8 +83,8 @@ resource "azurerm_synapse_role_assignment" "test" {
 `, template)
 }
 
-func testAccAzureRMSynapseRoleAssignment_requiresImport(data acceptance.TestData) string {
-	config := testAccAzureRMSynapseRoleAssignment_basic(data)
+func (r SynapseRoleAssignmentResource) requiresImport(data acceptance.TestData) string {
+	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -140,7 +96,7 @@ resource "azurerm_synapse_role_assignment" "import" {
 `, config)
 }
 
-func testAccAzureRMSynapseRoleAssignment_template(data acceptance.TestData) string {
+func (r SynapseRoleAssignmentResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

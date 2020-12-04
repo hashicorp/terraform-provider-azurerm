@@ -1,132 +1,92 @@
-package tests
+package synapse_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/synapse/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMSynapseFirewallRule_basic(t *testing.T) {
+type SynapseFirewallRuleResource struct{}
+
+func TestAccSynapseFirewallRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_firewall_rule", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSynapseFirewallRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSynapseFirewallRule_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSynapseFirewallRuleExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := SynapseFirewallRuleResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMSynapseFirewallRule_requiresImport(t *testing.T) {
+func TestAccSynapseFirewallRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_firewall_rule", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSynapseFirewallRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSynapseFirewallRule_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSynapseFirewallRuleExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMSynapseFirewallRule_requiresImport),
+	r := SynapseFirewallRuleResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMSynapseFirewallRule_update(t *testing.T) {
+func TestAccSynapseFirewallRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_firewall_rule", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSynapseFirewallRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSynapseFirewallRule_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSynapseFirewallRuleExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMSynapseFirewallRule_withUpdates(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSynapseFirewallRuleExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := SynapseFirewallRuleResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.withUpdates(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMSynapseFirewallRuleExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Synapse.FirewallRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("synapse Firewall Rule not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		workspaceId, err := parse.WorkspaceID(rs.Primary.Attributes["synapse_workspace_id"])
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name, name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Synapse Firewall Rule %q does not exist", name)
-			}
-			return fmt.Errorf("bad: Get on Synapse.FirewallRulesClient: %+v", err)
-		}
-		return nil
+func (r SynapseFirewallRuleResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.FirewallRuleID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-}
 
-func testCheckAzureRMSynapseFirewallRuleDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Synapse.FirewallRulesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_synapse_firewall_rule" {
-			continue
+	resp, err := client.Synapse.FirewallRulesClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
 		}
-
-		name := rs.Primary.Attributes["name"]
-		workspaceId, err := parse.WorkspaceID(rs.Primary.Attributes["synapse_workspace_id"])
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Get on Synapse.FirewallRulesClient: %+v", err)
-			}
-			return nil
-		}
-		return fmt.Errorf("expected no Firewall Rule but found %+v", resp)
+		return nil, fmt.Errorf("retrieving Synapse Firewall Rule %q (Workspace %q / Resource Group %q): %+v", id.Name, id.WorkspaceName, id.ResourceGroup, err)
 	}
-	return nil
+
+	return utils.Bool(true), nil
 }
 
-func testAccAzureRMSynapseFirewallRule_basic(data acceptance.TestData) string {
-	template := testAccAzureRMSynapseFirewallRule_template(data)
+func (r SynapseFirewallRuleResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -139,8 +99,8 @@ resource "azurerm_synapse_firewall_rule" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMSynapseFirewallRule_requiresImport(data acceptance.TestData) string {
-	config := testAccAzureRMSynapseFirewallRule_basic(data)
+func (r SynapseFirewallRuleResource) requiresImport(data acceptance.TestData) string {
+	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -153,8 +113,8 @@ resource "azurerm_synapse_firewall_rule" "import" {
 `, config)
 }
 
-func testAccAzureRMSynapseFirewallRule_withUpdates(data acceptance.TestData) string {
-	template := testAccAzureRMSynapseFirewallRule_template(data)
+func (r SynapseFirewallRuleResource) withUpdates(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -167,7 +127,7 @@ resource "azurerm_synapse_firewall_rule" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMSynapseFirewallRule_template(data acceptance.TestData) string {
+func (r SynapseFirewallRuleResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
