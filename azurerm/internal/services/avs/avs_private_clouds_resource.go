@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAvsPrivateCloud() *schema.Resource {
+func resourceAvsPrivateCloud() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAvsPrivateCloudCreate,
-		Read:   resourceArmAvsPrivateCloudRead,
-		Update: resourceArmAvsPrivateCloudUpdate,
-		Delete: resourceArmAvsPrivateCloudDelete,
+		Create: resourceAvsPrivateCloudCreate,
+		Read:   resourceAvsPrivateCloudRead,
+		Update: resourceAvsPrivateCloudUpdate,
+		Delete: resourceAvsPrivateCloudDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(6 * time.Hour),
@@ -190,7 +190,7 @@ func resourceArmAvsPrivateCloud() *schema.Resource {
 		},
 	}
 }
-func resourceArmAvsPrivateCloudCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAvsPrivateCloudCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Avs.PrivateCloudClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -248,10 +248,10 @@ func resourceArmAvsPrivateCloudCreate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	d.SetId(*resp.ID)
-	return resourceArmAvsPrivateCloudRead(d, meta)
+	return resourceAvsPrivateCloudRead(d, meta)
 }
 
-func resourceArmAvsPrivateCloudRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAvsPrivateCloudRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Avs.PrivateCloudClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -296,7 +296,7 @@ func resourceArmAvsPrivateCloudRead(d *schema.ResourceData, meta interface{}) er
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmAvsPrivateCloudUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAvsPrivateCloudUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Avs.PrivateCloudClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -334,10 +334,10 @@ func resourceArmAvsPrivateCloudUpdate(d *schema.ResourceData, meta interface{}) 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting on updating future for Avs PrivateCloud %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
-	return resourceArmAvsPrivateCloudRead(d, meta)
+	return resourceAvsPrivateCloudRead(d, meta)
 }
 
-func resourceArmAvsPrivateCloudDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAvsPrivateCloudDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Avs.PrivateCloudClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
