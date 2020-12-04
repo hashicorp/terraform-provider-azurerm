@@ -419,24 +419,6 @@ func validateSubscriptionTemplateDeployment(ctx context.Context, id parse.Subscr
 	return nil
 }
 
-func expandArmTemplateDeploymentSubscriptionOnErrorDeployment(input []interface{}) *resources.OnErrorDeployment {
-	if len(input) == 0 {
-		return nil
-	}
-
-	v := input[0].(map[string]interface{})
-
-	result := resources.OnErrorDeployment{
-		Type: resources.OnErrorDeploymentType(v["type"].(string)),
-	}
-
-	if deploymentName := v["deployment_name"].(string); deploymentName != "" {
-		result.DeploymentName = utils.String(deploymentName)
-	}
-
-	return &result
-}
-
 func expandArmTemplateDeploymentSubscriptionTemplateLink(input []interface{}) *resources.TemplateLink {
 	if len(input) == 0 {
 		return nil
@@ -471,29 +453,6 @@ func expandArmTemplateDeploymentSubscriptionParametersLink(input []interface{}) 
 	}
 
 	return &result
-}
-
-func flattenArmTemplateDeploymentSubscriptionOnErrorDeployment(input *resources.OnErrorDeploymentExtended) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	var deploymentName string
-	if input.DeploymentName != nil {
-		deploymentName = *input.DeploymentName
-	}
-
-	var onErrorDeploymentType resources.OnErrorDeploymentType
-	if input.Type != "" {
-		onErrorDeploymentType = input.Type
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"deployment_name": deploymentName,
-			"type":            onErrorDeploymentType,
-		},
-	}
 }
 
 func flattenArmTemplateDeploymentSubscriptionTemplateLink(input *resources.TemplateLink) []interface{} {
