@@ -1,159 +1,116 @@
-package tests
+package synapse_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/synapse/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMSynapseSparkPool_basic(t *testing.T) {
+type SynapseSparkPoolResource struct{}
+
+func TestAccSynapseSparkPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_spark_pool", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSynapseSparkPoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSynapseSparkPool_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSynapseSparkPoolExists(data.ResourceName),
-				),
-			},
-			// not returned by service
-			data.ImportStep("spark_events_folder", "spark_log_folder"),
+	r := SynapseSparkPoolResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		// not returned by service
+		data.ImportStep("spark_events_folder", "spark_log_folder"),
 	})
 }
 
-func TestAccAzureRMSynapseSparkPool_requiresImport(t *testing.T) {
+func TestAccSynapseSparkPool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_spark_pool", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSynapseSparkPoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSynapseSparkPool_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSynapseSparkPoolExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMSynapseSparkPool_requiresImport),
+	r := SynapseSparkPoolResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMSynapseSparkPool_complete(t *testing.T) {
+func TestAccSynapseSparkPool_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_spark_pool", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSynapseSparkPoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSynapseSparkPool_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSynapseSparkPoolExists(data.ResourceName),
-				),
-			},
-			// not returned by service
-			data.ImportStep("spark_events_folder", "spark_log_folder"),
+	r := SynapseSparkPoolResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		// not returned by service
+		data.ImportStep("spark_events_folder", "spark_log_folder"),
 	})
 }
 
-func TestAccAzureRMSynapseSparkPool_update(t *testing.T) {
+func TestAccSynapseSparkPool_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_spark_pool", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSynapseSparkPoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSynapseSparkPool_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSynapseSparkPoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("spark_events_folder", "spark_log_folder"),
-			{
-				Config: testAccAzureRMSynapseSparkPool_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSynapseSparkPoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("spark_events_folder", "spark_log_folder"),
-			{
-				Config: testAccAzureRMSynapseSparkPool_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSynapseSparkPoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("spark_events_folder", "spark_log_folder"),
+	r := SynapseSparkPoolResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("spark_events_folder", "spark_log_folder"),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("spark_events_folder", "spark_log_folder"),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("spark_events_folder", "spark_log_folder"),
 	})
 }
 
-func testCheckAzureRMSynapseSparkPoolExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Synapse.SparkPoolClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("synapse Spark Pool not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		workspaceId, err := parse.WorkspaceID(rs.Primary.Attributes["synapse_workspace_id"])
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name, name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Synapse BigDataPool %q does not exist", name)
-			}
-			return fmt.Errorf("bad: Get on Synapse.SparkPoolClient: %+v", err)
-		}
-		return nil
+func (r SynapseSparkPoolResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.SparkPoolID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-}
 
-func testCheckAzureRMSynapseSparkPoolDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Synapse.SparkPoolClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_synapse_spark_pool" {
-			continue
+	resp, err := client.Synapse.SparkPoolClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.BigDataPoolName)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
 		}
-
-		name := rs.Primary.Attributes["name"]
-		workspaceId, err := parse.WorkspaceID(rs.Primary.Attributes["synapse_workspace_id"])
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Get on Synapse.SparkPoolClient: %+v", err)
-			}
-			return nil
-		}
-		return fmt.Errorf("expected no bigDataPool but found %+v", resp)
+		return nil, fmt.Errorf("retrieving Synapse Spark Pool %q (Workspace %q / Resource Group %q): %+v", id.BigDataPoolName, id.WorkspaceName, id.ResourceGroup, err)
 	}
-	return nil
+
+	return utils.Bool(true), nil
 }
 
-func testAccAzureRMSynapseSparkPool_basic(data acceptance.TestData) string {
-	template := testAccAzureRMSynapseSparkPool_template(data)
+func (r SynapseSparkPoolResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -167,8 +124,8 @@ resource "azurerm_synapse_spark_pool" "test" {
 `, template, data.RandomString)
 }
 
-func testAccAzureRMSynapseSparkPool_requiresImport(data acceptance.TestData) string {
-	config := testAccAzureRMSynapseSparkPool_basic(data)
+func (r SynapseSparkPoolResource) requiresImport(data acceptance.TestData) string {
+	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -182,8 +139,8 @@ resource "azurerm_synapse_spark_pool" "import" {
 `, config)
 }
 
-func testAccAzureRMSynapseSparkPool_complete(data acceptance.TestData) string {
-	template := testAccAzureRMSynapseSparkPool_template(data)
+func (r SynapseSparkPoolResource) complete(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -221,7 +178,7 @@ EOF
 `, template, data.RandomString)
 }
 
-func testAccAzureRMSynapseSparkPool_template(data acceptance.TestData) string {
+func (r SynapseSparkPoolResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
