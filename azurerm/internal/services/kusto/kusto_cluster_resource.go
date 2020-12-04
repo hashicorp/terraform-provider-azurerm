@@ -178,6 +178,17 @@ func resourceArmKustoCluster() *schema.Resource {
 				},
 			},
 
+			"engine": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(kusto.V2),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(kusto.V2),
+					string(kusto.V3),
+				}, false),
+			},
+
 			"uri": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -245,11 +256,14 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 		}
 	}
 
+	engine := kusto.EngineType(d.Get("engine").(string))
+
 	clusterProperties := kusto.ClusterProperties{
 		OptimizedAutoscale:    optimizedAutoScale,
 		EnableDiskEncryption:  utils.Bool(d.Get("enable_disk_encryption").(bool)),
 		EnableStreamingIngest: utils.Bool(d.Get("enable_streaming_ingest").(bool)),
 		EnablePurge:           utils.Bool(d.Get("enable_purge").(bool)),
+		EngineType:            engine,
 	}
 
 	if v, ok := d.GetOk("virtual_network_configuration"); ok {
@@ -392,6 +406,7 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("language_extensions", flattenKustoClusterLanguageExtensions(clusterProperties.LanguageExtensions))
 		d.Set("uri", clusterProperties.URI)
 		d.Set("data_ingestion_uri", clusterProperties.DataIngestionURI)
+		d.Set("engine", clusterProperties.EngineType)
 	}
 
 	return tags.FlattenAndSet(d, clusterResponse.Tags)
