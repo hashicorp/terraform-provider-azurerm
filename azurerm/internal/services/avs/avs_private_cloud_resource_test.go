@@ -17,7 +17,7 @@ import (
 type AvsPrivateCloudResource struct {
 }
 
-func TestAccAzureRMavsPrivateCloud_basic(t *testing.T) {
+func TestAccAvsPrivateCloud_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_avs_private_cloud", "test")
 	r := AvsPrivateCloudResource{}
 
@@ -46,7 +46,7 @@ func TestAccAzureRMavsPrivateCloud_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMavsPrivateCloud_requiresImport(t *testing.T) {
+func TestAccAvsPrivateCloud_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_avs_private_cloud", "test")
 	r := AvsPrivateCloudResource{}
 
@@ -61,7 +61,7 @@ func TestAccAzureRMavsPrivateCloud_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMavsPrivateCloud_complete(t *testing.T) {
+func TestAccAvsPrivateCloud_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_avs_private_cloud", "test")
 	r := AvsPrivateCloudResource{}
 
@@ -91,7 +91,7 @@ func TestAccAzureRMavsPrivateCloud_complete(t *testing.T) {
 }
 
 // Internet availability, cluster size, identity sources, vcenter password or nsxt password cannot be updated at the same time
-func TestAccAzureRMavsPrivateCloud_update(t *testing.T) {
+func TestAccAvsPrivateCloud_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_avs_private_cloud", "test")
 	r := AvsPrivateCloudResource{}
 

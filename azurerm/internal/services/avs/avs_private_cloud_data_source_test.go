@@ -12,7 +12,7 @@ import (
 type AvsPrivateCloudDataSource struct {
 }
 
-func TestAccDataSourceAzureRMavsPrivateCloud_basic(t *testing.T) {
+func TestAccDataSourceAvsPrivateCloud_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_avs_private_cloud", "test")
 	r := AvsPrivateCloudDataSource{}
 

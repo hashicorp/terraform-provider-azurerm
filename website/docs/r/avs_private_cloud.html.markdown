@@ -15,7 +15,6 @@ Manages a Azure Vmware Solution Private Cloud.
 ```hcl
 provider "azurerm" {
   features {}
-  disable_correlation_request_id = true
 }
 
 resource "azurerm_resource_group" "example" {
