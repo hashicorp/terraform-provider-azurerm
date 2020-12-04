@@ -1,155 +1,114 @@
-package tests
+package synapse_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/synapse/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMSynapseSqlPool_basic(t *testing.T) {
+type SynapseSqlPoolResource struct{}
+
+func TestAccSynapseSqlPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_sql_pool", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSynapseSqlPoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSynapseSqlPool_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSynapseSqlPoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := SynapseSqlPoolResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMSynapseSqlPool_requiresImport(t *testing.T) {
+func TestAccSynapseSqlPool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_sql_pool", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSynapseSqlPoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSynapseSqlPool_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSynapseSqlPoolExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMSynapseSqlPool_requiresImport),
+	r := SynapseSqlPoolResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMSynapseSqlPool_complete(t *testing.T) {
+func TestAccSynapseSqlPool_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_sql_pool", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSynapseSqlPoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSynapseSqlPool_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSynapseSqlPoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := SynapseSqlPoolResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMSynapseSqlPool_update(t *testing.T) {
+func TestAccSynapseSqlPool_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_sql_pool", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSynapseSqlPoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSynapseSqlPool_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSynapseSqlPoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMSynapseSqlPool_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSynapseSqlPoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMSynapseSqlPool_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSynapseSqlPoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := SynapseSqlPoolResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMSynapseSqlPoolExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Synapse.SqlPoolClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Synapse Sql Pool not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		workspaceId, err := parse.WorkspaceID(rs.Primary.Attributes["synapse_workspace_id"])
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name, name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Synapse Sql Pool %q does not exist", name)
-			}
-			return fmt.Errorf("bad: Get on Synapse.SqlPoolClient: %+v", err)
-		}
-		return nil
+func (r SynapseSqlPoolResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.SqlPoolID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-}
 
-func testCheckAzureRMSynapseSqlPoolDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Synapse.SqlPoolClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_synapse_sql_pool" {
-			continue
+	resp, err := client.Synapse.SqlPoolClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
 		}
-
-		name := rs.Primary.Attributes["name"]
-		workspaceId, err := parse.WorkspaceID(rs.Primary.Attributes["synapse_workspace_id"])
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name, name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Get on Synapse.SqlPoolClient: %+v", err)
-			}
-		}
-		return nil
+		return nil, fmt.Errorf("retrieving Synapse Sql Pool %q (Workspace %q / Resource Group %q): %+v", id.Name, id.WorkspaceName, id.ResourceGroup, err)
 	}
-	return nil
+
+	return utils.Bool(true), nil
 }
 
-func testAccAzureRMSynapseSqlPool_basic(data acceptance.TestData) string {
-	template := testAccAzureRMSynapseSqlPool_template(data)
+func (r SynapseSqlPoolResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -166,8 +125,8 @@ resource "azurerm_synapse_sql_pool" "test" {
 `, template, data.RandomString)
 }
 
-func testAccAzureRMSynapseSqlPool_requiresImport(data acceptance.TestData) string {
-	config := testAccAzureRMSynapseSqlPool_basic(data)
+func (r SynapseSqlPoolResource) requiresImport(data acceptance.TestData) string {
+	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -180,8 +139,8 @@ resource "azurerm_synapse_sql_pool" "import" {
 `, config)
 }
 
-func testAccAzureRMSynapseSqlPool_complete(data acceptance.TestData) string {
-	template := testAccAzureRMSynapseSqlPool_template(data)
+func (r SynapseSqlPoolResource) complete(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -204,7 +163,7 @@ resource "azurerm_synapse_sql_pool" "test" {
 `, template, data.RandomString)
 }
 
-func testAccAzureRMSynapseSqlPool_template(data acceptance.TestData) string {
+func (r SynapseSqlPoolResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-synapse-%d"
