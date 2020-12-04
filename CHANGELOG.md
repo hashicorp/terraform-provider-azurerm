@@ -4,6 +4,10 @@ FEATURES:
 
 * **New Resource:** `azurerm_digital_twins_endpoint_eventhub` [GH-9673]
 
+BUG FIXES:
+
+* `azurerm_signar_service` - fixing a bug when expanding the `cors` block [GH-9671]
+
 ## 2.39.0 (December 04, 2020)
 
 FEATURES:
