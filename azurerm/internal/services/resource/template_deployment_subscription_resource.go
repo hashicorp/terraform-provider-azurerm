@@ -51,12 +51,6 @@ func subscriptionTemplateDeploymentResource() *schema.Resource {
 
 			"location": location.Schema(),
 
-			"template_content": {
-				Type:      schema.TypeString,
-				Required:  true,
-				StateFunc: utils.NormalizeJson,
-			},
-
 			// Optional
 			"debug_level": {
 				Type:         schema.TypeString,
@@ -65,10 +59,64 @@ func subscriptionTemplateDeploymentResource() *schema.Resource {
 			},
 
 			"parameters_content": {
-				Type:      schema.TypeString,
-				Optional:  true,
-				Computed:  true,
-				StateFunc: utils.NormalizeJson,
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				StateFunc:     utils.NormalizeJson,
+				ConflictsWith: []string{"parameters_link"},
+			},
+
+			"parameters_link": {
+				Type:          schema.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"parameters_content"},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"uri": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+						},
+
+						"content_version": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.TemplateDeploymentContentVersion,
+						},
+					},
+				},
+			},
+
+			"template_content": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				StateFunc:     utils.NormalizeJson,
+				ConflictsWith: []string{"template_link"},
+			},
+
+			"template_link": {
+				Type:          schema.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"template_content"},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"uri": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+						},
+
+						"content_version": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validate.TemplateDeploymentContentVersion,
+						},
+					},
+				},
 			},
 
 			"tags": tags.Schema(),
@@ -102,18 +150,27 @@ func subscriptionTemplateDeploymentResourceCreate(d *schema.ResourceData, meta i
 	if existing.Properties != nil {
 		return tf.ImportAsExistsError("azurerm_subscription_template_deployment", id.ID(""))
 	}
-	template, err := expandTemplateDeploymentBody(d.Get("template_content").(string))
-	if err != nil {
-		return fmt.Errorf("expanding `template_content`: %+v", err)
-	}
+
 	deployment := resources.Deployment{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &resources.DeploymentProperties{
 			DebugSetting: expandTemplateDeploymentDebugSetting(d.Get("debug_level").(string)),
 			Mode:         resources.Incremental,
-			Template:     template,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if v, ok := d.GetOk("template_content"); ok {
+		template, err := expandTemplateDeploymentBody(v.(string))
+		if err != nil {
+			return fmt.Errorf("expanding `template_content`: %+v", err)
+		}
+
+		deployment.Properties.Template = template
+	}
+
+	if v, ok := d.GetOk("template_link"); ok {
+		deployment.Properties.TemplateLink = expandArmTemplateDeploymentSubscriptionTemplateLink(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("parameters_content"); ok && v != "" {
@@ -122,6 +179,10 @@ func subscriptionTemplateDeploymentResourceCreate(d *schema.ResourceData, meta i
 			return fmt.Errorf("expanding `parameters_content`: %+v", err)
 		}
 		deployment.Properties.Parameters = parameters
+	}
+
+	if v, ok := d.GetOk("parameters_link"); ok {
+		deployment.Properties.ParametersLink = expandArmTemplateDeploymentSubscriptionParametersLink(v.([]interface{}))
 	}
 
 	log.Printf("[DEBUG] Running validation of Subscription Template Deployment %q..", id.DeploymentName)
@@ -184,6 +245,15 @@ func subscriptionTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta i
 			return fmt.Errorf("expanding `parameters_content`: %+v", err)
 		}
 		deployment.Properties.Parameters = parameters
+	} else if _, ok := d.GetOk("parameters_link"); !ok {
+		filteredParams := filterOutTemplateDeploymentParameters(template.Properties.Parameters)
+		deployment.Properties.Parameters = filteredParams
+	}
+
+	if d.HasChange("parameters_link") {
+		deployment.Properties.ParametersLink = expandArmTemplateDeploymentSubscriptionParametersLink(d.Get("parameters_link").([]interface{}))
+	} else {
+		deployment.Properties.ParametersLink = template.Properties.ParametersLink
 	}
 
 	if d.HasChange("template_content") {
@@ -193,7 +263,7 @@ func subscriptionTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta i
 		}
 
 		deployment.Properties.Template = templateContents
-	} else {
+	} else if _, ok := d.GetOk("template_link"); !ok {
 		// retrieve the existing content and reuse that
 		exportedTemplate, err := client.ExportTemplateAtSubscriptionScope(ctx, id.DeploymentName)
 		if err != nil {
@@ -201,6 +271,12 @@ func subscriptionTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta i
 		}
 
 		deployment.Properties.Template = exportedTemplate.Template
+	}
+
+	if d.HasChange("template_link") {
+		deployment.Properties.TemplateLink = expandArmTemplateDeploymentSubscriptionTemplateLink(d.Get("template_link").([]interface{}))
+	} else {
+		deployment.Properties.TemplateLink = template.Properties.TemplateLink
 	}
 
 	if d.HasChange("tags") {
@@ -259,12 +335,20 @@ func subscriptionTemplateDeploymentResourceRead(d *schema.ResourceData, meta int
 	if props := resp.Properties; props != nil {
 		d.Set("debug_level", flattenTemplateDeploymentDebugSetting(props.DebugSetting))
 
+		if err := d.Set("template_link", flattenArmTemplateDeploymentSubscriptionTemplateLink(props.TemplateLink)); err != nil {
+			return fmt.Errorf("setting `template_link`: %+v", err)
+		}
+
 		filteredParams := filterOutTemplateDeploymentParameters(props.Parameters)
 		flattenedParams, err := flattenTemplateDeploymentBody(filteredParams)
 		if err != nil {
 			return fmt.Errorf("flattening `parameters_content`: %+v", err)
 		}
 		d.Set("parameters_content", flattenedParams)
+
+		if err := d.Set("parameters_link", flattenArmTemplateDeploymentSubscriptionParametersLink(props.ParametersLink)); err != nil {
+			return fmt.Errorf("setting `parameters_link`: %+v", err)
+		}
 
 		flattenedOutputs, err := flattenTemplateDeploymentBody(props.Outputs)
 		if err != nil {
@@ -273,11 +357,14 @@ func subscriptionTemplateDeploymentResourceRead(d *schema.ResourceData, meta int
 		d.Set("output_content", flattenedOutputs)
 	}
 
-	flattenedTemplate, err := flattenTemplateDeploymentBody(templateContents.Template)
-	if err != nil {
-		return fmt.Errorf("flattening `template_content`: %+v", err)
+	if templateContents.Template != nil {
+		flattenedTemplate, err := flattenTemplateDeploymentBody(templateContents.Template)
+		if err != nil {
+			return fmt.Errorf("flattening `template_content`: %+v", err)
+		}
+
+		d.Set("template_content", flattenedTemplate)
 	}
-	d.Set("template_content", flattenedTemplate)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -330,4 +417,127 @@ func validateSubscriptionTemplateDeployment(ctx context.Context, id parse.Subscr
 	}
 
 	return nil
+}
+
+func expandArmTemplateDeploymentSubscriptionOnErrorDeployment(input []interface{}) *resources.OnErrorDeployment {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	result := resources.OnErrorDeployment{
+		Type: resources.OnErrorDeploymentType(v["type"].(string)),
+	}
+
+	if deploymentName := v["deployment_name"].(string); deploymentName != "" {
+		result.DeploymentName = utils.String(deploymentName)
+	}
+
+	return &result
+}
+
+func expandArmTemplateDeploymentSubscriptionTemplateLink(input []interface{}) *resources.TemplateLink {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	result := resources.TemplateLink{
+		URI: utils.String(v["uri"].(string)),
+	}
+
+	if contentVersion := v["content_version"].(string); contentVersion != "" {
+		result.ContentVersion = utils.String(contentVersion)
+	}
+
+	return &result
+}
+
+func expandArmTemplateDeploymentSubscriptionParametersLink(input []interface{}) *resources.ParametersLink {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	result := resources.ParametersLink{
+		URI: utils.String(v["uri"].(string)),
+	}
+
+	if contentVersion := v["content_version"].(string); contentVersion != "" {
+		result.ContentVersion = utils.String(contentVersion)
+	}
+
+	return &result
+}
+
+func flattenArmTemplateDeploymentSubscriptionOnErrorDeployment(input *resources.OnErrorDeploymentExtended) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	var deploymentName string
+	if input.DeploymentName != nil {
+		deploymentName = *input.DeploymentName
+	}
+
+	var onErrorDeploymentType resources.OnErrorDeploymentType
+	if input.Type != "" {
+		onErrorDeploymentType = input.Type
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"deployment_name": deploymentName,
+			"type":            onErrorDeploymentType,
+		},
+	}
+}
+
+func flattenArmTemplateDeploymentSubscriptionTemplateLink(input *resources.TemplateLink) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	var contentVersion string
+	if input.ContentVersion != nil {
+		contentVersion = *input.ContentVersion
+	}
+
+	var uri string
+	if input.URI != nil {
+		uri = *input.URI
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"content_version": contentVersion,
+			"uri":             uri,
+		},
+	}
+}
+
+func flattenArmTemplateDeploymentSubscriptionParametersLink(input *resources.ParametersLink) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	var uri string
+	if input.URI != nil {
+		uri = *input.URI
+	}
+
+	var contentVersion string
+	if input.ContentVersion != nil {
+		contentVersion = *input.ContentVersion
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"uri":             uri,
+			"content_version": contentVersion,
+		},
+	}
 }
