@@ -1,3 +1,9 @@
+## 2.40.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource:** `azurerm_digital_twins_endpoint_eventhub` [GH-9673]
+
 ## 2.39.0 (December 04, 2020)
 
 FEATURES:
