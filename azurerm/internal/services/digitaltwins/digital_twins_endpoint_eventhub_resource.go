@@ -54,18 +54,21 @@ func resourceDigitalTwinsEndpointEventHub() *schema.Resource {
 			"eventhub_primary_connection_string": {
 				Type:         schema.TypeString,
 				Required:     true,
+				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"eventhub_secondary_connection_string": {
 				Type:         schema.TypeString,
 				Required:     true,
+				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"dead_letter_storage_secret": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
