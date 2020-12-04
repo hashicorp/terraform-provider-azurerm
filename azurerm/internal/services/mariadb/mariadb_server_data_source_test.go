@@ -1,4 +1,4 @@
-package tests
+package mariadb_test
 
 import (
 	"fmt"
@@ -6,30 +6,29 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMMariaDbServer_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_mariadb_server", "test")
+type MariaDbServerDataSource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMMariaDbServer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMariaDbServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "administrator_login", "acctestun"),
-					resource.TestCheckResourceAttr(data.ResourceName, "version", "10.2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "ssl_enforcement", "Enabled"),
-				),
-			},
+func TestAccMariaDbServerDataSource_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_mariadb_server", "test")
+	r := MariaDbServerDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("administrator_login").HasValue("acctestun"),
+				check.That(data.ResourceName).Key("version").HasValue("10.2"),
+				check.That(data.ResourceName).Key("ssl_enforcement").HasValue("Enabled"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMMariaDbServer_basic(data acceptance.TestData) string {
+func (MariaDbServerDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

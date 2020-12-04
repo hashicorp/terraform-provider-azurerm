@@ -15,11 +15,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMariaDbConfiguration() *schema.Resource {
+func resourceMariaDbConfiguration() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMariaDbConfigurationCreateUpdate,
-		Read:   resourceArmMariaDbConfigurationRead,
-		Delete: resourceArmMariaDbConfigurationDelete,
+		Create: resourceMariaDbConfigurationCreateUpdate,
+		Read:   resourceMariaDbConfigurationRead,
+		Delete: resourceMariaDbConfigurationDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -58,7 +58,7 @@ func resourceArmMariaDbConfiguration() *schema.Resource {
 	}
 }
 
-func resourceArmMariaDbConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMariaDbConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.ConfigurationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -95,10 +95,10 @@ func resourceArmMariaDbConfigurationCreateUpdate(d *schema.ResourceData, meta in
 
 	d.SetId(*read.ID)
 
-	return resourceArmMariaDbConfigurationRead(d, meta)
+	return resourceMariaDbConfigurationRead(d, meta)
 }
 
-func resourceArmMariaDbConfigurationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMariaDbConfigurationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.ConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -130,7 +130,7 @@ func resourceArmMariaDbConfigurationRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceArmMariaDbConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMariaDbConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.ConfigurationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
