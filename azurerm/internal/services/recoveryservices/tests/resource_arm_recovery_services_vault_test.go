@@ -107,7 +107,7 @@ func TestAccAzureRMRecoveryServicesVault_requiresImport(t *testing.T) {
 }
 
 func TestRecoveryServicesVault_basicWithIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
