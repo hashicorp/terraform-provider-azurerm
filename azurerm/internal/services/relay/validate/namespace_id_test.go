@@ -1,49 +1,72 @@
 package validate
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import "testing"
 
-func TestValidateNamespaceID(t *testing.T) {
+func TestNamespaceID(t *testing.T) {
 	cases := []struct {
-		ID    string
+		Input string
 		Valid bool
 	}{
+
 		{
-			ID:    "",
+			// empty
+			Input: "",
 			Valid: false,
 		},
+
 		{
-			ID:    "nonsense",
+			// missing SubscriptionId
+			Input: "/",
 			Valid: false,
 		},
+
 		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000",
+			// missing value for SubscriptionId
+			Input: "/subscriptions/",
 			Valid: false,
 		},
+
 		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups",
+			// missing ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/",
 			Valid: false,
 		},
+
 		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo",
+			// missing value for ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
 			Valid: false,
 		},
+
 		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/providers/Microsoft.Relay/namespaces",
+			// missing Name
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Relay/",
 			Valid: false,
 		},
+
 		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/providers/Microsoft.Relay/Namespaces/relay1",
+			// missing value for Name
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Relay/namespaces/",
 			Valid: false,
 		},
+
 		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/providers/Microsoft.Relay/namespaces/relay1",
+			// valid
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Relay/namespaces/namespace1",
 			Valid: true,
 		},
-	}
 
+		{
+			// upper-cased
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.RELAY/NAMESPACES/NAMESPACE1",
+			Valid: false,
+		},
+	}
 	for _, tc := range cases {
-		t.Logf("[DEBUG] Testing value %s", tc.ID)
-		_, errors := ValidateNamespaceID(tc.ID, "test")
+		t.Logf("[DEBUG] Testing Value %s", tc.Input)
+		_, errors := NamespaceID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {
