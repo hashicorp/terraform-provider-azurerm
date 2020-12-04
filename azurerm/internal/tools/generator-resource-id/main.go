@@ -101,6 +101,8 @@ func parseServicePackageName(relativePath string) (*string, error) {
 		path = abs
 	}
 
+	// we do this replacement to avoid the case that on windows machine, the absolute path are using the path separator of \ instead of /
+	path = strings.ReplaceAll(path, "\\", "/")
 	segments := strings.Split(path, "/")
 	serviceIndex := -1
 	for i, v := range segments {
