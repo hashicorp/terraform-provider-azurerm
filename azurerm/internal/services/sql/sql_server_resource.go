@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSqlServer() *schema.Resource {
+func resourceSqlServer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSqlServerCreateUpdate,
-		Read:   resourceArmSqlServerRead,
-		Update: resourceArmSqlServerCreateUpdate,
-		Delete: resourceArmSqlServerDelete,
+		Create: resourceSqlServerCreateUpdate,
+		Read:   resourceSqlServerRead,
+		Update: resourceSqlServerCreateUpdate,
+		Delete: resourceSqlServerDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -119,7 +119,7 @@ func resourceArmSqlServer() *schema.Resource {
 	}
 }
 
-func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.ServersClient
 	auditingClient := meta.(*clients.Client).Sql.ServerExtendedBlobAuditingPoliciesClient
 	connectionClient := meta.(*clients.Client).Sql.ServerConnectionPoliciesClient
@@ -203,10 +203,10 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error issuing create/update request for SQL Server %q Blob Auditing Policies(Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	return resourceArmSqlServerRead(d, meta)
+	return resourceSqlServerRead(d, meta)
 }
 
-func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.ServersClient
 	auditingClient := meta.(*clients.Client).Sql.ServerExtendedBlobAuditingPoliciesClient
 	connectionClient := meta.(*clients.Client).Sql.ServerConnectionPoliciesClient
@@ -266,7 +266,7 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmSqlServerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSqlServerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.ServersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

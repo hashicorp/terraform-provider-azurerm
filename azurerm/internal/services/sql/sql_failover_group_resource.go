@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSqlFailoverGroup() *schema.Resource {
+func resourceSqlFailoverGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSqlFailoverGroupCreateUpdate,
-		Read:   resourceArmSqlFailoverGroupRead,
-		Update: resourceArmSqlFailoverGroupCreateUpdate,
-		Delete: resourceArmSqlFailoverGroupDelete,
+		Create: resourceSqlFailoverGroupCreateUpdate,
+		Read:   resourceSqlFailoverGroupRead,
+		Update: resourceSqlFailoverGroupCreateUpdate,
+		Delete: resourceSqlFailoverGroupDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -136,7 +136,7 @@ func resourceArmSqlFailoverGroup() *schema.Resource {
 	}
 }
 
-func resourceArmSqlFailoverGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSqlFailoverGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.FailoverGroupsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -195,10 +195,10 @@ func resourceArmSqlFailoverGroupCreateUpdate(d *schema.ResourceData, meta interf
 
 	d.SetId(*resp.ID)
 
-	return resourceArmSqlFailoverGroupRead(d, meta)
+	return resourceSqlFailoverGroupRead(d, meta)
 }
 
-func resourceArmSqlFailoverGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSqlFailoverGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.FailoverGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -247,7 +247,7 @@ func resourceArmSqlFailoverGroupRead(d *schema.ResourceData, meta interface{}) e
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmSqlFailoverGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSqlFailoverGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.FailoverGroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
