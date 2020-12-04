@@ -6,33 +6,30 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
+
+type SqlServerDataSource struct{}
 
 func TestAccDataSourceSqlServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_sql_server", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMSqlServer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlServerExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "version"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "administrator_login"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: SqlServerDataSource{}.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("location").Exists(),
+				check.That(data.ResourceName).Key("fqdn").Exists(),
+				check.That(data.ResourceName).Key("version").Exists(),
+				check.That(data.ResourceName).Key("administrator_login").Exists(),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMSqlServer_basic(data acceptance.TestData) string {
-	template := testAccAzureRMSqlServer_basic(data)
+func (d SqlServerDataSource) basic(data acceptance.TestData) string {
+	template := SqlServerResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
