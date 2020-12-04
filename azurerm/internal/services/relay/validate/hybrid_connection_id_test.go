@@ -1,41 +1,84 @@
 package validate
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import "testing"
 
-func TestValidateHybridConnectionID(t *testing.T) {
+func TestHybridConnectionID(t *testing.T) {
 	cases := []struct {
-		ID    string
+		Input string
 		Valid bool
 	}{
+
 		{
-			ID:    "",
+			// empty
+			Input: "",
 			Valid: false,
 		},
+
 		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000",
+			// missing SubscriptionId
+			Input: "/",
 			Valid: false,
 		},
+
 		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/",
+			// missing value for SubscriptionId
+			Input: "/subscriptions/",
 			Valid: false,
 		},
+
 		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/",
+			// missing ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/",
 			Valid: false,
 		},
+
 		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/providers/Microsoft.Relay/namespaces/",
+			// missing value for ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
 			Valid: false,
 		},
+
 		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Relay/namespaces/relay1/hybridConnections/hconn1",
+			// missing NamespaceName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Relay/",
+			Valid: false,
+		},
+
+		{
+			// missing value for NamespaceName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Relay/namespaces/",
+			Valid: false,
+		},
+
+		{
+			// missing Name
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Relay/namespaces/namespace1/",
+			Valid: false,
+		},
+
+		{
+			// missing value for Name
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Relay/namespaces/namespace1/hybridConnections/",
+			Valid: false,
+		},
+
+		{
+			// valid
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Relay/namespaces/namespace1/hybridConnections/hybridConnection1",
 			Valid: true,
 		},
-	}
 
+		{
+			// upper-cased
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.RELAY/NAMESPACES/NAMESPACE1/HYBRIDCONNECTIONS/HYBRIDCONNECTION1",
+			Valid: false,
+		},
+	}
 	for _, tc := range cases {
-		t.Logf("[DEBUG] Testing Value %q", tc.ID)
-		_, errors := HybridConnectionID(tc.ID, "test")
+		t.Logf("[DEBUG] Testing Value %s", tc.Input)
+		_, errors := HybridConnectionID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {
