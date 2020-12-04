@@ -1,148 +1,113 @@
-package tests
+package synapse_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/synapse/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMSynapseWorkspace_basic(t *testing.T) {
+type SynapseWorkspaceResource struct{}
+
+func TestAccSynapseWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSynapseWorkspaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSynapseWorkspace_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSynapseWorkspaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("sql_administrator_login_password"),
+	r := SynapseWorkspaceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("sql_administrator_login_password"),
+	})
+}
+
+func TestAccSynapseWorkspace_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace", "test")
+	r := SynapseWorkspaceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccSynapseWorkspace_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace", "test")
+	r := SynapseWorkspaceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("sql_administrator_login_password"),
+	})
+}
+
+func TestAccSynapseWorkspace_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace", "test")
+	r := SynapseWorkspaceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("sql_administrator_login_password"),
+		{
+			Config: r.withUpdateFields(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("sql_administrator_login_password"),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMSynapseWorkspace_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSynapseWorkspaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSynapseWorkspace_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSynapseWorkspaceExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMSynapseWorkspace_requiresImport),
-		},
-	})
-}
-
-func TestAccAzureRMSynapseWorkspace_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace", "test")
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSynapseWorkspaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSynapseWorkspace_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSynapseWorkspaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("sql_administrator_login_password"),
-		},
-	})
-}
-
-func TestAccAzureRMSynapseWorkspace_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSynapseWorkspaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSynapseWorkspace_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSynapseWorkspaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("sql_administrator_login_password"),
-			{
-				Config: testAccAzureRMSynapseWorkspace_withUpdateFields(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSynapseWorkspaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("sql_administrator_login_password"),
-			{
-				Config: testAccAzureRMSynapseWorkspace_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSynapseWorkspaceExists(data.ResourceName),
-				),
-			},
-		},
-	})
-}
-
-func testCheckAzureRMSynapseWorkspaceExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Synapse.WorkspaceClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("synapse Workspace not found: %s", resourceName)
-		}
-		id, err := parse.WorkspaceID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Synapse Workspace %q does not exist", id.Name)
-			}
-			return fmt.Errorf("bad: Get on Synapse.WorkspaceClient: %+v", err)
-		}
-		return nil
+func (r SynapseWorkspaceResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.WorkspaceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-}
 
-func testCheckAzureRMSynapseWorkspaceDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Synapse.WorkspaceClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_synapse_workspace" {
-			continue
+	resp, err := client.Synapse.WorkspaceClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
 		}
-		id, err := parse.WorkspaceID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Get on Synapse.WorkspaceClient: %+v", err)
-			}
-		}
-		return nil
+		return nil, fmt.Errorf("retrieving Synapse Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
-	return nil
+
+	return utils.Bool(true), nil
 }
 
-func testAccAzureRMSynapseWorkspace_basic(data acceptance.TestData) string {
-	template := testAccAzureRMSynapseWorkspace_template(data)
+func (r SynapseWorkspaceResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -157,8 +122,8 @@ resource "azurerm_synapse_workspace" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMSynapseWorkspace_requiresImport(data acceptance.TestData) string {
-	config := testAccAzureRMSynapseWorkspace_basic(data)
+func (r SynapseWorkspaceResource) requiresImport(data acceptance.TestData) string {
+	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -173,8 +138,8 @@ resource "azurerm_synapse_workspace" "import" {
 `, config)
 }
 
-func testAccAzureRMSynapseWorkspace_complete(data acceptance.TestData) string {
-	template := testAccAzureRMSynapseWorkspace_template(data)
+func (r SynapseWorkspaceResource) complete(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -194,8 +159,8 @@ resource "azurerm_synapse_workspace" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMSynapseWorkspace_withUpdateFields(data acceptance.TestData) string {
-	template := testAccAzureRMSynapseWorkspace_template(data)
+func (r SynapseWorkspaceResource) withUpdateFields(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -223,7 +188,7 @@ resource "azurerm_synapse_workspace" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMSynapseWorkspace_template(data acceptance.TestData) string {
+func (r SynapseWorkspaceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
