@@ -1,171 +1,118 @@
-package tests
+package streamanalytics_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMStreamAnalyticsOutputBlob_avro(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_blob", "test")
+type StreamAnalyticsOutputBlobResource struct{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputBlobDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStreamAnalyticsOutputBlob_avro(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputBlobExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("storage_account_key"),
+func TestAccStreamAnalyticsOutputBlob_avro(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_blob", "test")
+	r := StreamAnalyticsOutputBlobResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.avro(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("storage_account_key"),
 	})
 }
 
-func TestAccAzureRMStreamAnalyticsOutputBlob_csv(t *testing.T) {
+func TestAccStreamAnalyticsOutputBlob_csv(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_blob", "test")
+	r := StreamAnalyticsOutputBlobResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputBlobDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStreamAnalyticsOutputBlob_csv(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputBlobExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("storage_account_key"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.csv(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("storage_account_key"),
 	})
 }
 
-func TestAccAzureRMStreamAnalyticsOutputBlob_json(t *testing.T) {
+func TestAccStreamAnalyticsOutputBlob_json(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_blob", "test")
+	r := StreamAnalyticsOutputBlobResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputBlobDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStreamAnalyticsOutputBlob_json(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputBlobExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("storage_account_key"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.json(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("storage_account_key"),
 	})
 }
 
-func TestAccAzureRMStreamAnalyticsOutputBlob_update(t *testing.T) {
+func TestAccStreamAnalyticsOutputBlob_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_blob", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputBlobDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStreamAnalyticsOutputBlob_json(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputBlobExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMStreamAnalyticsOutputBlob_updated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputBlobExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("storage_account_key"),
+	r := StreamAnalyticsOutputBlobResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.json(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		{
+			Config: r.updated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_key"),
 	})
 }
 
-func TestAccAzureRMStreamAnalyticsOutputBlob_requiresImport(t *testing.T) {
+func TestAccStreamAnalyticsOutputBlob_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_blob", "test")
+	r := StreamAnalyticsOutputBlobResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputBlobDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStreamAnalyticsOutputBlob_json(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputBlobExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMStreamAnalyticsOutputBlob_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.json(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckAzureRMStreamAnalyticsOutputBlobExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.OutputsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (r StreamAnalyticsOutputBlobResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	name := state.Attributes["name"]
+	jobName := state.Attributes["stream_analytics_job_name"]
+	resourceGroup := state.Attributes["resource_group_name"]
 
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
+	resp, err := client.StreamAnalytics.OutputsClient.Get(ctx, resourceGroup, jobName, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
 		}
-
-		name := rs.Primary.Attributes["name"]
-		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on streamAnalyticsOutputsClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Stream Output %q (Stream Analytics Job %q / Resource Group %q) does not exist", name, jobName, resourceGroup)
-		}
-
-		return nil
+		return nil, fmt.Errorf("retrieving Stream Output %q (Stream Analytic Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 	}
+	return utils.Bool(true), nil
 }
 
-func testCheckAzureRMStreamAnalyticsOutputBlobDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.OutputsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_stream_analytics_output_blob" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Stream Analytics Output ServiceBus Queue still exists:\n%#v", resp.OutputProperties)
-		}
-	}
-
-	return nil
-}
-
-func testAccAzureRMStreamAnalyticsOutputBlob_avro(data acceptance.TestData) string {
-	template := testAccAzureRMStreamAnalyticsOutputBlob_template(data)
+func (r StreamAnalyticsOutputBlobResource) avro(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -187,8 +134,8 @@ resource "azurerm_stream_analytics_output_blob" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsOutputBlob_csv(data acceptance.TestData) string {
-	template := testAccAzureRMStreamAnalyticsOutputBlob_template(data)
+func (r StreamAnalyticsOutputBlobResource) csv(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -212,8 +159,8 @@ resource "azurerm_stream_analytics_output_blob" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsOutputBlob_json(data acceptance.TestData) string {
-	template := testAccAzureRMStreamAnalyticsOutputBlob_template(data)
+func (r StreamAnalyticsOutputBlobResource) json(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -237,8 +184,8 @@ resource "azurerm_stream_analytics_output_blob" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsOutputBlob_updated(data acceptance.TestData) string {
-	template := testAccAzureRMStreamAnalyticsOutputBlob_template(data)
+func (r StreamAnalyticsOutputBlobResource) updated(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -274,8 +221,8 @@ resource "azurerm_stream_analytics_output_blob" "test" {
 `, template, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsOutputBlob_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMStreamAnalyticsOutputBlob_json(data)
+func (r StreamAnalyticsOutputBlobResource) requiresImport(data acceptance.TestData) string {
+	template := r.json(data)
 	return fmt.Sprintf(`
 %s
 
@@ -301,7 +248,7 @@ resource "azurerm_stream_analytics_output_blob" "import" {
 `, template)
 }
 
-func testAccAzureRMStreamAnalyticsOutputBlob_template(data acceptance.TestData) string {
+func (r StreamAnalyticsOutputBlobResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

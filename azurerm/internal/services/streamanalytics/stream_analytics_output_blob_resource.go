@@ -16,12 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmStreamAnalyticsOutputBlob() *schema.Resource {
+func resourceStreamAnalyticsOutputBlob() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStreamAnalyticsOutputBlobCreateUpdate,
-		Read:   resourceArmStreamAnalyticsOutputBlobRead,
-		Update: resourceArmStreamAnalyticsOutputBlobCreateUpdate,
-		Delete: resourceArmStreamAnalyticsOutputBlobDelete,
+		Create: resourceStreamAnalyticsOutputBlobCreateUpdate,
+		Read:   resourceStreamAnalyticsOutputBlobRead,
+		Update: resourceStreamAnalyticsOutputBlobCreateUpdate,
+		Delete: resourceStreamAnalyticsOutputBlobDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -91,7 +91,7 @@ func resourceArmStreamAnalyticsOutputBlob() *schema.Resource {
 	}
 }
 
-func resourceArmStreamAnalyticsOutputBlobCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputBlobCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -167,10 +167,10 @@ func resourceArmStreamAnalyticsOutputBlobCreateUpdate(d *schema.ResourceData, me
 		return fmt.Errorf("Error Updating Stream Analytics Output Blob %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 	}
 
-	return resourceArmStreamAnalyticsOutputBlobRead(d, meta)
+	return resourceStreamAnalyticsOutputBlobRead(d, meta)
 }
 
-func resourceArmStreamAnalyticsOutputBlobRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputBlobRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -222,7 +222,7 @@ func resourceArmStreamAnalyticsOutputBlobRead(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func resourceArmStreamAnalyticsOutputBlobDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsOutputBlobDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

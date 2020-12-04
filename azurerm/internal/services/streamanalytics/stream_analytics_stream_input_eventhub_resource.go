@@ -16,12 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmStreamAnalyticsStreamInputBlob() *schema.Resource {
+func resourceStreamAnalyticsStreamInputEventHub() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStreamAnalyticsStreamInputBlobCreateUpdate,
-		Read:   resourceArmStreamAnalyticsStreamInputBlobRead,
-		Update: resourceArmStreamAnalyticsStreamInputBlobCreateUpdate,
-		Delete: resourceArmStreamAnalyticsStreamInputBlobDelete,
+		Create: resourceStreamAnalyticsStreamInputEventHubCreateUpdate,
+		Read:   resourceStreamAnalyticsStreamInputEventHubRead,
+		Update: resourceStreamAnalyticsStreamInputEventHubCreateUpdate,
+		Delete: resourceStreamAnalyticsStreamInputEventHubDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -50,37 +50,32 @@ func resourceArmStreamAnalyticsStreamInputBlob() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"date_format": {
+			"eventhub_consumer_group_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"path_pattern": {
-				Type:     schema.TypeString,
-				Required: true,
+			"eventhub_name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"storage_account_key": {
+			"servicebus_namespace": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"shared_access_policy_key": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"storage_account_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"storage_container_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"time_format": {
+			"shared_access_policy_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -91,12 +86,12 @@ func resourceArmStreamAnalyticsStreamInputBlob() *schema.Resource {
 	}
 }
 
-func resourceArmStreamAnalyticsStreamInputBlobCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsStreamInputEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Stream Input Blob creation.")
+	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Stream Input EventHub creation.")
 	name := d.Get("name").(string)
 	jobName := d.Get("stream_analytics_job_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -110,16 +105,15 @@ func resourceArmStreamAnalyticsStreamInputBlobCreateUpdate(d *schema.ResourceDat
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_stream_input_blob", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_stream_analytics_stream_input_eventhub", *existing.ID)
 		}
 	}
 
-	containerName := d.Get("storage_container_name").(string)
-	dateFormat := d.Get("date_format").(string)
-	pathPattern := d.Get("path_pattern").(string)
-	storageAccountKey := d.Get("storage_account_key").(string)
-	storageAccountName := d.Get("storage_account_name").(string)
-	timeFormat := d.Get("time_format").(string)
+	consumerGroupName := d.Get("eventhub_consumer_group_name").(string)
+	eventHubName := d.Get("eventhub_name").(string)
+	serviceBusNamespace := d.Get("servicebus_namespace").(string)
+	sharedAccessPolicyKey := d.Get("shared_access_policy_key").(string)
+	sharedAccessPolicyName := d.Get("shared_access_policy_name").(string)
 
 	serializationRaw := d.Get("serialization").([]interface{})
 	serialization, err := azure.ExpandStreamAnalyticsStreamInputSerialization(serializationRaw)
@@ -131,19 +125,14 @@ func resourceArmStreamAnalyticsStreamInputBlobCreateUpdate(d *schema.ResourceDat
 		Name: utils.String(name),
 		Properties: &streamanalytics.StreamInputProperties{
 			Type: streamanalytics.TypeStream,
-			Datasource: &streamanalytics.BlobStreamInputDataSource{
-				Type: streamanalytics.TypeBasicStreamInputDataSourceTypeMicrosoftStorageBlob,
-				BlobStreamInputDataSourceProperties: &streamanalytics.BlobStreamInputDataSourceProperties{
-					Container:   utils.String(containerName),
-					DateFormat:  utils.String(dateFormat),
-					PathPattern: utils.String(pathPattern),
-					TimeFormat:  utils.String(timeFormat),
-					StorageAccounts: &[]streamanalytics.StorageAccount{
-						{
-							AccountName: utils.String(storageAccountName),
-							AccountKey:  utils.String(storageAccountKey),
-						},
-					},
+			Datasource: &streamanalytics.EventHubStreamInputDataSource{
+				Type: streamanalytics.TypeBasicStreamInputDataSourceTypeMicrosoftServiceBusEventHub,
+				EventHubStreamInputDataSourceProperties: &streamanalytics.EventHubStreamInputDataSourceProperties{
+					ConsumerGroupName:      utils.String(consumerGroupName),
+					EventHubName:           utils.String(eventHubName),
+					ServiceBusNamespace:    utils.String(serviceBusNamespace),
+					SharedAccessPolicyKey:  utils.String(sharedAccessPolicyKey),
+					SharedAccessPolicyName: utils.String(sharedAccessPolicyName),
 				},
 			},
 			Serialization: serialization,
@@ -152,26 +141,26 @@ func resourceArmStreamAnalyticsStreamInputBlobCreateUpdate(d *schema.ResourceDat
 
 	if d.IsNewResource() {
 		if _, err := client.CreateOrReplace(ctx, props, resourceGroup, jobName, name, "", ""); err != nil {
-			return fmt.Errorf("Error Creating Stream Analytics Stream Input Blob %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+			return fmt.Errorf("Error Creating Stream Analytics Stream Input EventHub %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 		}
 
 		read, err := client.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
-			return fmt.Errorf("Error retrieving Stream Analytics Stream Input Blob %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+			return fmt.Errorf("Error retrieving Stream Analytics Stream Input EventHub %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 		}
 		if read.ID == nil {
-			return fmt.Errorf("Cannot read ID of Stream Analytics Stream Input Blob %q (Job %q / Resource Group %q)", name, jobName, resourceGroup)
+			return fmt.Errorf("Cannot read ID of Stream Analytics Stream Input EventHub %q (Job %q / Resource Group %q)", name, jobName, resourceGroup)
 		}
 
 		d.SetId(*read.ID)
 	} else if _, err := client.Update(ctx, props, resourceGroup, jobName, name, ""); err != nil {
-		return fmt.Errorf("Error Updating Stream Analytics Stream Input Blob %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+		return fmt.Errorf("Error Updating Stream Analytics Stream Input EventHub %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 	}
 
-	return resourceArmStreamAnalyticsStreamInputBlobRead(d, meta)
+	return resourceStreamAnalyticsStreamInputEventHubRead(d, meta)
 }
 
-func resourceArmStreamAnalyticsStreamInputBlobRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsStreamInputEventHubRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -187,12 +176,12 @@ func resourceArmStreamAnalyticsStreamInputBlobRead(d *schema.ResourceData, meta 
 	resp, err := client.Get(ctx, resourceGroup, jobName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Stream Input Blob %q was not found in Stream Analytics Job %q / Resource Group %q - removing from state!", name, jobName, resourceGroup)
+			log.Printf("[DEBUG] Stream Input EventHub %q was not found in Stream Analytics Job %q / Resource Group %q - removing from state!", name, jobName, resourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Stream Input Blob %q (Stream Analytics Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Stream Input EventHub %q (Stream Analytics Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -202,23 +191,18 @@ func resourceArmStreamAnalyticsStreamInputBlobRead(d *schema.ResourceData, meta 
 	if props := resp.Properties; props != nil {
 		v, ok := props.AsStreamInputProperties()
 		if !ok {
-			return fmt.Errorf("Error converting Stream Input Blob to an Stream Input: %+v", err)
+			return fmt.Errorf("Error converting Stream Input EventHub to an Stream Input: %+v", err)
 		}
 
-		eventHub, ok := v.Datasource.AsBlobStreamInputDataSource()
+		eventHub, ok := v.Datasource.AsEventHubStreamInputDataSource()
 		if !ok {
-			return fmt.Errorf("Error converting Stream Input Blob to an Blob Stream Input: %+v", err)
+			return fmt.Errorf("Error converting Stream Input EventHub to an EventHub Stream Input: %+v", err)
 		}
 
-		d.Set("date_format", eventHub.DateFormat)
-		d.Set("path_pattern", eventHub.PathPattern)
-		d.Set("storage_container_name", eventHub.Container)
-		d.Set("time_format", eventHub.TimeFormat)
-
-		if accounts := eventHub.StorageAccounts; accounts != nil && len(*accounts) > 0 {
-			account := (*accounts)[0]
-			d.Set("storage_account_name", account.AccountName)
-		}
+		d.Set("eventhub_consumer_group_name", eventHub.ConsumerGroupName)
+		d.Set("eventhub_name", eventHub.EventHubName)
+		d.Set("servicebus_namespace", eventHub.ServiceBusNamespace)
+		d.Set("shared_access_policy_name", eventHub.SharedAccessPolicyName)
 
 		if err := d.Set("serialization", azure.FlattenStreamAnalyticsStreamInputSerialization(v.Serialization)); err != nil {
 			return fmt.Errorf("Error setting `serialization`: %+v", err)
@@ -228,7 +212,7 @@ func resourceArmStreamAnalyticsStreamInputBlobRead(d *schema.ResourceData, meta 
 	return nil
 }
 
-func resourceArmStreamAnalyticsStreamInputBlobDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsStreamInputEventHubDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -243,7 +227,7 @@ func resourceArmStreamAnalyticsStreamInputBlobDelete(d *schema.ResourceData, met
 
 	if resp, err := client.Delete(ctx, resourceGroup, jobName, name); err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting Stream Input Blob %q (Stream Analytics Job %q / Resource Group %q) %+v", name, jobName, resourceGroup, err)
+			return fmt.Errorf("Error deleting Stream Input EventHub %q (Stream Analytics Job %q / Resource Group %q) %+v", name, jobName, resourceGroup, err)
 		}
 	}
 

@@ -16,12 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmStreamAnalyticsStreamInputEventHub() *schema.Resource {
+func resourceStreamAnalyticsOutputServiceBusQueue() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStreamAnalyticsStreamInputEventHubCreateUpdate,
-		Read:   resourceArmStreamAnalyticsStreamInputEventHubRead,
-		Update: resourceArmStreamAnalyticsStreamInputEventHubCreateUpdate,
-		Delete: resourceArmStreamAnalyticsStreamInputEventHubDelete,
+		Create: resourceStreamAnalyticsOutputServiceBusQueueCreateUpdate,
+		Read:   resourceStreamAnalyticsOutputServiceBusQueueRead,
+		Update: resourceStreamAnalyticsOutputServiceBusQueueCreateUpdate,
+		Delete: resourceStreamAnalyticsOutputServiceBusQueueDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -50,13 +50,7 @@ func resourceArmStreamAnalyticsStreamInputEventHub() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"eventhub_consumer_group_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"eventhub_name": {
+			"queue_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -81,17 +75,17 @@ func resourceArmStreamAnalyticsStreamInputEventHub() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"serialization": azure.SchemaStreamAnalyticsStreamInputSerialization(),
+			"serialization": azure.SchemaStreamAnalyticsOutputSerialization(),
 		},
 	}
 }
 
-func resourceArmStreamAnalyticsStreamInputEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StreamAnalytics.InputsClient
+func resourceStreamAnalyticsOutputServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Stream Input EventHub creation.")
+	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Output ServiceBus Queue creation.")
 	name := d.Get("name").(string)
 	jobName := d.Get("stream_analytics_job_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -100,36 +94,33 @@ func resourceArmStreamAnalyticsStreamInputEventHubCreateUpdate(d *schema.Resourc
 		existing, err := client.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Stream Analytics Stream Input %q (Job %q / Resource Group %q): %s", name, jobName, resourceGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Stream Analytics Output ServiceBus Queue %q (Job %q / Resource Group %q): %s", name, jobName, resourceGroup, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_stream_input_eventhub", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_stream_analytics_output_servicebus_queue", *existing.ID)
 		}
 	}
 
-	consumerGroupName := d.Get("eventhub_consumer_group_name").(string)
-	eventHubName := d.Get("eventhub_name").(string)
+	queueName := d.Get("queue_name").(string)
 	serviceBusNamespace := d.Get("servicebus_namespace").(string)
 	sharedAccessPolicyKey := d.Get("shared_access_policy_key").(string)
 	sharedAccessPolicyName := d.Get("shared_access_policy_name").(string)
 
 	serializationRaw := d.Get("serialization").([]interface{})
-	serialization, err := azure.ExpandStreamAnalyticsStreamInputSerialization(serializationRaw)
+	serialization, err := azure.ExpandStreamAnalyticsOutputSerialization(serializationRaw)
 	if err != nil {
 		return fmt.Errorf("Error expanding `serialization`: %+v", err)
 	}
 
-	props := streamanalytics.Input{
+	props := streamanalytics.Output{
 		Name: utils.String(name),
-		Properties: &streamanalytics.StreamInputProperties{
-			Type: streamanalytics.TypeStream,
-			Datasource: &streamanalytics.EventHubStreamInputDataSource{
-				Type: streamanalytics.TypeBasicStreamInputDataSourceTypeMicrosoftServiceBusEventHub,
-				EventHubStreamInputDataSourceProperties: &streamanalytics.EventHubStreamInputDataSourceProperties{
-					ConsumerGroupName:      utils.String(consumerGroupName),
-					EventHubName:           utils.String(eventHubName),
+		OutputProperties: &streamanalytics.OutputProperties{
+			Datasource: &streamanalytics.ServiceBusQueueOutputDataSource{
+				Type: streamanalytics.TypeMicrosoftServiceBusQueue,
+				ServiceBusQueueOutputDataSourceProperties: &streamanalytics.ServiceBusQueueOutputDataSourceProperties{
+					QueueName:              utils.String(queueName),
 					ServiceBusNamespace:    utils.String(serviceBusNamespace),
 					SharedAccessPolicyKey:  utils.String(sharedAccessPolicyKey),
 					SharedAccessPolicyName: utils.String(sharedAccessPolicyName),
@@ -141,27 +132,27 @@ func resourceArmStreamAnalyticsStreamInputEventHubCreateUpdate(d *schema.Resourc
 
 	if d.IsNewResource() {
 		if _, err := client.CreateOrReplace(ctx, props, resourceGroup, jobName, name, "", ""); err != nil {
-			return fmt.Errorf("Error Creating Stream Analytics Stream Input EventHub %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+			return fmt.Errorf("Error Creating Stream Analytics Output ServiceBus Queue %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 		}
 
 		read, err := client.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
-			return fmt.Errorf("Error retrieving Stream Analytics Stream Input EventHub %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+			return fmt.Errorf("Error retrieving Stream Analytics Output ServiceBus Queue %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 		}
 		if read.ID == nil {
-			return fmt.Errorf("Cannot read ID of Stream Analytics Stream Input EventHub %q (Job %q / Resource Group %q)", name, jobName, resourceGroup)
+			return fmt.Errorf("Cannot read ID of Stream Analytics Output ServiceBus Queue %q (Job %q / Resource Group %q)", name, jobName, resourceGroup)
 		}
 
 		d.SetId(*read.ID)
 	} else if _, err := client.Update(ctx, props, resourceGroup, jobName, name, ""); err != nil {
-		return fmt.Errorf("Error Updating Stream Analytics Stream Input EventHub %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+		return fmt.Errorf("Error Updating Stream Analytics Output ServiceBus Queue %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 	}
 
-	return resourceArmStreamAnalyticsStreamInputEventHubRead(d, meta)
+	return resourceStreamAnalyticsOutputServiceBusQueueRead(d, meta)
 }
 
-func resourceArmStreamAnalyticsStreamInputEventHubRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StreamAnalytics.InputsClient
+func resourceStreamAnalyticsOutputServiceBusQueueRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -171,40 +162,34 @@ func resourceArmStreamAnalyticsStreamInputEventHubRead(d *schema.ResourceData, m
 	}
 	resourceGroup := id.ResourceGroup
 	jobName := id.Path["streamingjobs"]
-	name := id.Path["inputs"]
+	name := id.Path["outputs"]
 
 	resp, err := client.Get(ctx, resourceGroup, jobName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Stream Input EventHub %q was not found in Stream Analytics Job %q / Resource Group %q - removing from state!", name, jobName, resourceGroup)
+			log.Printf("[DEBUG] Output ServiceBus Queue %q was not found in Stream Analytics Job %q / Resource Group %q - removing from state!", name, jobName, resourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Stream Input EventHub %q (Stream Analytics Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Stream Output EventHub %q (Stream Analytics Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 	}
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("stream_analytics_job_name", jobName)
 
-	if props := resp.Properties; props != nil {
-		v, ok := props.AsStreamInputProperties()
+	if props := resp.OutputProperties; props != nil {
+		v, ok := props.Datasource.AsServiceBusQueueOutputDataSource()
 		if !ok {
-			return fmt.Errorf("Error converting Stream Input EventHub to an Stream Input: %+v", err)
+			return fmt.Errorf("Error converting Output Data Source to a ServiceBus Queue Output: %+v", err)
 		}
 
-		eventHub, ok := v.Datasource.AsEventHubStreamInputDataSource()
-		if !ok {
-			return fmt.Errorf("Error converting Stream Input EventHub to an EventHub Stream Input: %+v", err)
-		}
+		d.Set("queue_name", v.QueueName)
+		d.Set("servicebus_namespace", v.ServiceBusNamespace)
+		d.Set("shared_access_policy_name", v.SharedAccessPolicyName)
 
-		d.Set("eventhub_consumer_group_name", eventHub.ConsumerGroupName)
-		d.Set("eventhub_name", eventHub.EventHubName)
-		d.Set("servicebus_namespace", eventHub.ServiceBusNamespace)
-		d.Set("shared_access_policy_name", eventHub.SharedAccessPolicyName)
-
-		if err := d.Set("serialization", azure.FlattenStreamAnalyticsStreamInputSerialization(v.Serialization)); err != nil {
+		if err := d.Set("serialization", azure.FlattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
 			return fmt.Errorf("Error setting `serialization`: %+v", err)
 		}
 	}
@@ -212,8 +197,8 @@ func resourceArmStreamAnalyticsStreamInputEventHubRead(d *schema.ResourceData, m
 	return nil
 }
 
-func resourceArmStreamAnalyticsStreamInputEventHubDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StreamAnalytics.InputsClient
+func resourceStreamAnalyticsOutputServiceBusQueueDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -223,11 +208,11 @@ func resourceArmStreamAnalyticsStreamInputEventHubDelete(d *schema.ResourceData,
 	}
 	resourceGroup := id.ResourceGroup
 	jobName := id.Path["streamingjobs"]
-	name := id.Path["inputs"]
+	name := id.Path["outputs"]
 
 	if resp, err := client.Delete(ctx, resourceGroup, jobName, name); err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting Stream Input EventHub %q (Stream Analytics Job %q / Resource Group %q) %+v", name, jobName, resourceGroup, err)
+			return fmt.Errorf("Error deleting Output ServiceBus Queue %q (Stream Analytics Job %q / Resource Group %q) %+v", name, jobName, resourceGroup, err)
 		}
 	}
 

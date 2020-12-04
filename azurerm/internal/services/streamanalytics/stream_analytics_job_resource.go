@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmStreamAnalyticsJob() *schema.Resource {
+func resourceStreamAnalyticsJob() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStreamAnalyticsJobCreateUpdate,
-		Read:   resourceArmStreamAnalyticsJobRead,
-		Update: resourceArmStreamAnalyticsJobCreateUpdate,
-		Delete: resourceArmStreamAnalyticsJobDelete,
+		Create: resourceStreamAnalyticsJobCreateUpdate,
+		Read:   resourceStreamAnalyticsJobRead,
+		Update: resourceStreamAnalyticsJobCreateUpdate,
+		Delete: resourceStreamAnalyticsJobDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -125,7 +125,7 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 	}
 }
 
-func resourceArmStreamAnalyticsJobCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsJobCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.JobsClient
 	transformationsClient := meta.(*clients.Client).StreamAnalytics.TransformationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -226,10 +226,10 @@ func resourceArmStreamAnalyticsJobCreateUpdate(d *schema.ResourceData, meta inte
 		}
 	}
 
-	return resourceArmStreamAnalyticsJobRead(d, meta)
+	return resourceStreamAnalyticsJobRead(d, meta)
 }
 
-func resourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.JobsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -285,7 +285,7 @@ func resourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{})
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmStreamAnalyticsJobDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStreamAnalyticsJobDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.JobsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
