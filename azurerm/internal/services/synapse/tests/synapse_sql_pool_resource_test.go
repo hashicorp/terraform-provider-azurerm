@@ -104,15 +104,18 @@ func testCheckAzureRMSynapseSqlPoolExists(resourceName string) resource.TestChec
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("synapse SqlPool not found: %s", resourceName)
+			return fmt.Errorf("Synapse Sql Pool not found: %s", resourceName)
 		}
-		id, err := parse.SynapseSqlPoolID(rs.Primary.ID)
+
+		name := rs.Primary.Attributes["name"]
+		workspaceId, err := parse.WorkspaceID(rs.Primary.Attributes["synapse_workspace_id"])
 		if err != nil {
 			return err
 		}
-		if resp, err := client.Get(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name); err != nil {
+
+		if resp, err := client.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name, name); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Synapse SqlPool %q does not exist", id.Name)
+				return fmt.Errorf("bad: Synapse Sql Pool %q does not exist", name)
 			}
 			return fmt.Errorf("bad: Get on Synapse.SqlPoolClient: %+v", err)
 		}
@@ -128,11 +131,14 @@ func testCheckAzureRMSynapseSqlPoolDestroy(s *terraform.State) error {
 		if rs.Type != "azurerm_synapse_sql_pool" {
 			continue
 		}
-		id, err := parse.SynapseSqlPoolID(rs.Primary.ID)
+
+		name := rs.Primary.Attributes["name"]
+		workspaceId, err := parse.WorkspaceID(rs.Primary.Attributes["synapse_workspace_id"])
 		if err != nil {
 			return err
 		}
-		if resp, err := client.Get(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name); err != nil {
+
+		if resp, err := client.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name, name); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("bad: Get on Synapse.SqlPoolClient: %+v", err)
 			}

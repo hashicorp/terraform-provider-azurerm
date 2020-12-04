@@ -31,7 +31,7 @@ func resourceArmSqlDatabase() *schema.Resource {
 		Delete: resourceArmSqlDatabaseDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.SqlDatabaseID(id)
+			_, err := parse.DatabaseID(id)
 			return err
 		}),
 
@@ -526,7 +526,7 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SqlDatabaseID(d.Id())
+	id, err := parse.DatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -616,7 +616,7 @@ func resourceArmSqlDatabaseDelete(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SqlDatabaseID(d.Id())
+	id, err := parse.DatabaseID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -25,7 +26,7 @@ func resourceArmResourceGroup() *schema.Resource {
 		Update: resourceArmResourceGroupCreateUpdate,
 		Delete: resourceArmResourceGroupDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := ParseResourceGroupID(id)
+			_, err := parse.ResourceGroupID(id)
 			return err
 		}),
 
@@ -92,12 +93,12 @@ func resourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseResourceGroupID(d.Id())
+	id, err := parse.ResourceGroupID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading resource group %q - removing from state", d.Id())
@@ -118,18 +119,18 @@ func resourceArmResourceGroupDelete(d *schema.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseResourceGroupID(d.Id())
+	id, err := parse.ResourceGroupID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	deleteFuture, err := client.Delete(ctx, id.Name)
+	deleteFuture, err := client.Delete(ctx, id.ResourceGroup)
 	if err != nil {
 		if response.WasNotFound(deleteFuture.Response()) {
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting Resource Group %q: %+v", id.Name, err)
+		return fmt.Errorf("Error deleting Resource Group %q: %+v", id.ResourceGroup, err)
 	}
 
 	err = deleteFuture.WaitForCompletionRef(ctx, client.Client)
@@ -138,7 +139,7 @@ func resourceArmResourceGroupDelete(d *schema.ResourceData, meta interface{}) er
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting Resource Group %q: %+v", id.Name, err)
+		return fmt.Errorf("Error deleting Resource Group %q: %+v", id.ResourceGroup, err)
 	}
 
 	return nil

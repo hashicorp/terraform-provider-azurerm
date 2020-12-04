@@ -3,15 +3,14 @@ package storage
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/queue/queues"
 )
 
 func resourceArmStorageQueue() *schema.Resource {
@@ -38,7 +37,7 @@ func resourceArmStorageQueue() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateArmStorageQueueName,
+				ValidateFunc: validate.StorageQueueName,
 			},
 
 			"storage_account_name": {
@@ -51,35 +50,6 @@ func resourceArmStorageQueue() *schema.Resource {
 			"metadata": MetaDataSchema(),
 		},
 	}
-}
-
-func ValidateArmStorageQueueName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if !regexp.MustCompile(`^[a-z0-9-]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"only lowercase alphanumeric characters and hyphens allowed in %q", k))
-	}
-
-	if regexp.MustCompile(`^-`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("%q cannot start with a hyphen", k))
-	}
-
-	if regexp.MustCompile(`-$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("%q cannot end with a hyphen", k))
-	}
-
-	if len(value) > 63 {
-		errors = append(errors, fmt.Errorf(
-			"%q cannot be longer than 63 characters", k))
-	}
-
-	if len(value) < 3 {
-		errors = append(errors, fmt.Errorf(
-			"%q must be at least 3 characters", k))
-	}
-
-	return warnings, errors
 }
 
 func resourceArmStorageQueueCreate(d *schema.ResourceData, meta interface{}) error {
@@ -95,35 +65,32 @@ func resourceArmStorageQueueCreate(d *schema.ResourceData, meta interface{}) err
 
 	account, err := storageClient.FindAccount(ctx, accountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for Queue %q: %s", accountName, queueName, err)
+		return fmt.Errorf("retrieving Account %q for Queue %q: %s", accountName, queueName, err)
 	}
 	if account == nil {
-		return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
+		return fmt.Errorf("unable to locate Storage Account %q", accountName)
 	}
 
-	queueClient, err := storageClient.QueuesClient(ctx, *account)
+	client, err := storageClient.QueuesClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building Queues Client: %s", err)
+		return fmt.Errorf("building Queues Client: %s", err)
 	}
 
-	resourceID := queueClient.GetResourceID(accountName, queueName)
-	existing, err := queueClient.GetMetaData(ctx, accountName, queueName)
+	resourceId := parse.NewStorageQueueDataPlaneId(accountName, storageClient.Environment.StorageEndpointSuffix, queueName).ID("")
+
+	exists, err := client.Exists(ctx, account.ResourceGroup, accountName, queueName)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of existing Queue %q (Storage Account %q): %s", queueName, accountName, err)
-		}
+		return fmt.Errorf("checking for presence of existing Queue %q (Storage Account %q): %s", queueName, accountName, err)
+	}
+	if exists != nil && *exists {
+		return tf.ImportAsExistsError("azurerm_storage_queue", resourceId)
 	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_storage_queue", resourceID)
+	if err := client.Create(ctx, account.ResourceGroup, accountName, queueName, metaData); err != nil {
+		return fmt.Errorf("creating Queue %q (Account %q): %+v", queueName, accountName, err)
 	}
 
-	if _, err := queueClient.Create(ctx, accountName, queueName, metaData); err != nil {
-		return fmt.Errorf("Error creating Queue %q (Account %q): %+v", queueName, accountName, err)
-	}
-
-	d.SetId(resourceID)
-
+	d.SetId(resourceId)
 	return resourceArmStorageQueueRead(d, meta)
 }
 
@@ -132,7 +99,7 @@ func resourceArmStorageQueueUpdate(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := queues.ParseResourceID(d.Id())
+	id, err := parse.StorageQueueDataPlaneID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -142,19 +109,19 @@ func resourceArmStorageQueueUpdate(d *schema.ResourceData, meta interface{}) err
 
 	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for Queue %q: %s", id.AccountName, id.QueueName, err)
+		return fmt.Errorf("retrieving Account %q for Queue %q: %s", id.AccountName, id.Name, err)
 	}
 	if account == nil {
-		return fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
+		return fmt.Errorf("unable to locate Storage Account %q!", id.AccountName)
 	}
 
-	queuesClient, err := storageClient.QueuesClient(ctx, *account)
+	client, err := storageClient.QueuesClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building Queues Client: %s", err)
+		return fmt.Errorf("building Queues Client: %s", err)
 	}
 
-	if _, err := queuesClient.SetMetaData(ctx, id.AccountName, id.QueueName, metaData); err != nil {
-		return fmt.Errorf("Error setting MetaData for Queue %q (Storage Account %q): %s", id.QueueName, id.AccountName, err)
+	if err := client.UpdateMetaData(ctx, account.ResourceGroup, id.AccountName, id.Name, metaData); err != nil {
+		return fmt.Errorf("updating MetaData for Queue %q (Storage Account %q): %s", id.Name, id.AccountName, err)
 	}
 
 	return resourceArmStorageQueueRead(d, meta)
@@ -165,42 +132,41 @@ func resourceArmStorageQueueRead(d *schema.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := queues.ParseResourceID(d.Id())
+	id, err := parse.StorageQueueDataPlaneID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for Queue %q: %s", id.AccountName, id.QueueName, err)
+		return fmt.Errorf("retrieving Account %q for Queue %q: %s", id.AccountName, id.Name, err)
 	}
 	if account == nil {
-		log.Printf("[WARN] Unable to determine Resource Group for Storage Queue %q (Account %s) - assuming removed & removing from state", id.QueueName, id.AccountName)
+		log.Printf("[WARN] Unable to determine Resource Group for Storage Queue %q (Account %s) - assuming removed & removing from state", id.Name, id.AccountName)
 		d.SetId("")
 		return nil
 	}
 
-	queuesClient, err := storageClient.QueuesClient(ctx, *account)
+	client, err := storageClient.QueuesClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building Queues Client: %s", err)
+		return fmt.Errorf("building Queues Client: %s", err)
 	}
 
-	metaData, err := queuesClient.GetMetaData(ctx, id.AccountName, id.QueueName)
+	queue, err := client.Get(ctx, account.ResourceGroup, id.AccountName, id.Name)
 	if err != nil {
-		if utils.ResponseWasNotFound(metaData.Response) {
-			log.Printf("[INFO] Storage Queue %q no longer exists, removing from state...", id.QueueName)
-			d.SetId("")
-			return nil
-		}
-
+		return fmt.Errorf("retrieving Queue %q (Account %q): %+v", id.AccountName, id.Name, err)
+	}
+	if queue == nil {
+		log.Printf("[INFO] Storage Queue %q no longer exists, removing from state...", id.Name)
+		d.SetId("")
 		return nil
 	}
 
-	d.Set("name", id.QueueName)
+	d.Set("name", id.Name)
 	d.Set("storage_account_name", id.AccountName)
 
-	if err := d.Set("metadata", FlattenMetaData(metaData.MetaData)); err != nil {
-		return fmt.Errorf("Error setting `metadata`: %s", err)
+	if err := d.Set("metadata", FlattenMetaData(queue.MetaData)); err != nil {
+		return fmt.Errorf("setting `metadata`: %s", err)
 	}
 
 	return nil
@@ -211,28 +177,28 @@ func resourceArmStorageQueueDelete(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := queues.ParseResourceID(d.Id())
+	id, err := parse.StorageQueueDataPlaneID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for Queue %q: %s", id.AccountName, id.QueueName, err)
+		return fmt.Errorf("retrieving Account %q for Queue %q: %s", id.AccountName, id.Name, err)
 	}
 	if account == nil {
-		log.Printf("[WARN] Unable to determine Resource Group for Storage Queue %q (Account %s) - assuming removed & removing from state", id.QueueName, id.AccountName)
+		log.Printf("[WARN] Unable to determine Resource Group for Storage Queue %q (Account %s) - assuming removed & removing from state", id.Name, id.AccountName)
 		d.SetId("")
 		return nil
 	}
 
-	queuesClient, err := storageClient.QueuesClient(ctx, *account)
+	client, err := storageClient.QueuesClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building Queues Client: %s", err)
+		return fmt.Errorf("building Queues Client: %s", err)
 	}
 
-	if _, err := queuesClient.Delete(ctx, id.AccountName, id.QueueName); err != nil {
-		return fmt.Errorf("Error deleting Storage Queue %q: %s", id.QueueName, err)
+	if err := client.Delete(ctx, account.ResourceGroup, id.AccountName, id.Name); err != nil {
+		return fmt.Errorf("deleting Storage Queue %q (Account %q): %s", id.Name, id.AccountName, err)
 	}
 
 	return nil

@@ -507,12 +507,12 @@ func testCheckAzureRMSignalRServiceDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.SignalRServiceID(rs.Primary.ID)
+		id, err := parse.ServiceID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.SignalRName)
 		if err != nil {
 			return nil
 		}
@@ -534,17 +534,17 @@ func testCheckAzureRMSignalRServiceExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.SignalRServiceID(rs.Primary.ID)
+		id, err := parse.ServiceID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.SignalRName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on signalRClient: %+v", err)
 		}
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: SignalR service %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
+			return fmt.Errorf("Bad: SignalR service %q (resource group: %q) does not exist", id.SignalRName, id.ResourceGroup)
 		}
 
 		return nil

@@ -1007,8 +1007,8 @@ func CdnEndpointV0ToV1(rawState map[string]interface{}, _ interface{}) (map[stri
 		return rawState, err
 	}
 
-	newId := parse.NewCdnEndpointID(parse.NewCdnProfileID(resourceGroup, profileName), name)
-	newIdStr := newId.ID(oldParsedId.SubscriptionID)
+	newId := parse.NewEndpointID(oldParsedId.SubscriptionID, resourceGroup, profileName, name)
+	newIdStr := newId.ID("")
 
 	log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newIdStr)
 

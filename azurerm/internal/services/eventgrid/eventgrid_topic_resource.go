@@ -3,6 +3,7 @@ package eventgrid
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-04-01-preview/eventgrid"
@@ -19,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmEventGridTopic() *schema.Resource {
+func resourceEventGridTopic() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmEventGridTopicCreateUpdate,
-		Read:   resourceArmEventGridTopicRead,
-		Update: resourceArmEventGridTopicCreateUpdate,
-		Delete: resourceArmEventGridTopicDelete,
+		Create: resourceEventGridTopicCreateUpdate,
+		Read:   resourceEventGridTopicRead,
+		Update: resourceEventGridTopicCreateUpdate,
+		Delete: resourceEventGridTopicDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -34,16 +35,22 @@ func resourceArmEventGridTopic() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.EventGridTopicID(id)
+			_, err := parse.TopicID(id)
 			return err
 		}),
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.All(
+					validation.StringIsNotEmpty,
+					validation.StringMatch(
+						regexp.MustCompile("^[-a-zA-Z0-9]{3,50}$"),
+						"EventGrid topic name must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
+					),
+				),
 			},
 
 			"location": azure.SchemaLocation(),
@@ -151,7 +158,7 @@ func resourceArmEventGridTopic() *schema.Resource {
 	}
 }
 
-func resourceArmEventGridTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.TopicsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -207,15 +214,15 @@ func resourceArmEventGridTopicCreateUpdate(d *schema.ResourceData, meta interfac
 
 	d.SetId(*read.ID)
 
-	return resourceArmEventGridTopicRead(d, meta)
+	return resourceEventGridTopicRead(d, meta)
 }
 
-func resourceArmEventGridTopicRead(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridTopicRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.TopicsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EventGridTopicID(d.Id())
+	id, err := parse.TopicID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -273,12 +280,12 @@ func resourceArmEventGridTopicRead(d *schema.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmEventGridTopicDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridTopicDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.TopicsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EventGridTopicID(d.Id())
+	id, err := parse.TopicID(d.Id())
 	if err != nil {
 		return err
 	}

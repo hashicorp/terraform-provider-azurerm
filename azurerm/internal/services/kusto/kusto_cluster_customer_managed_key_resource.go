@@ -74,7 +74,7 @@ func resourceArmKustoClusterCustomerManagedKeyCreateUpdate(d *schema.ResourceDat
 	defer cancel()
 
 	clusterIDRaw := d.Get("cluster_id").(string)
-	clusterID, err := parse.KustoClusterID(clusterIDRaw)
+	clusterID, err := parse.ClusterID(clusterIDRaw)
 	if err != nil {
 		return err
 	}
@@ -102,7 +102,7 @@ func resourceArmKustoClusterCustomerManagedKeyCreateUpdate(d *schema.ResourceDat
 	}
 
 	keyVaultIDRaw := d.Get("key_vault_id").(string)
-	keyVaultID, err := keyVaultParse.KeyVaultID(keyVaultIDRaw)
+	keyVaultID, err := keyVaultParse.VaultID(keyVaultIDRaw)
 	if err != nil {
 		return err
 	}
@@ -162,7 +162,7 @@ func resourceArmKustoClusterCustomerManagedKeyRead(d *schema.ResourceData, meta 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	clusterID, err := parse.KustoClusterID(d.Id())
+	clusterID, err := parse.ClusterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -226,7 +226,7 @@ func resourceArmKustoClusterCustomerManagedKeyDelete(d *schema.ResourceData, met
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	clusterID, err := parse.KustoClusterID(d.Id())
+	clusterID, err := parse.ClusterID(d.Id())
 	if err != nil {
 		return err
 	}

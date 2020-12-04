@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -36,9 +37,18 @@ func resourceArmDesktopVirtualizationWorkspace() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.VirtualDesktopWorkspaceID(id)
+			_, err := parse.WorkspaceID(id)
 			return err
 		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    migration.WorkspaceUpgradeV0Schema().CoreConfigSchema().ImpliedType(),
+				Upgrade: migration.WorkspaceUpgradeV0ToV1,
+				Version: 0,
+			},
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -80,8 +90,7 @@ func resourceArmDesktopVirtualizationWorkspaceCreateUpdate(d *schema.ResourceDat
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := parse.NewVirtualDesktopWorkspaceId(resourceGroup, name)
-
+	resourceId := parse.NewWorkspaceID(subscriptionId, resourceGroup, name).ID("")
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -91,7 +100,7 @@ func resourceArmDesktopVirtualizationWorkspaceCreateUpdate(d *schema.ResourceDat
 		}
 
 		if existing.WorkspaceProperties != nil {
-			return tf.ImportAsExistsError("azurerm_virtual_desktop_workspace", id.ID(subscriptionId))
+			return tf.ImportAsExistsError("azurerm_virtual_desktop_workspace", resourceId)
 		}
 	}
 
@@ -111,7 +120,7 @@ func resourceArmDesktopVirtualizationWorkspaceCreateUpdate(d *schema.ResourceDat
 		return fmt.Errorf("creating Virtual Desktop Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	d.SetId(id.ID(subscriptionId))
+	d.SetId(resourceId)
 
 	return resourceArmDesktopVirtualizationWorkspaceRead(d, meta)
 }
@@ -121,7 +130,7 @@ func resourceArmDesktopVirtualizationWorkspaceRead(d *schema.ResourceData, meta 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualDesktopWorkspaceID(d.Id())
+	id, err := parse.WorkspaceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -155,7 +164,7 @@ func resourceArmDesktopVirtualizationWorkspaceRead(d *schema.ResourceData, meta 
 func resourceArmDesktopVirtualizationWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.WorkspacesClient
 
-	id, err := parse.VirtualDesktopWorkspaceID(d.Id())
+	id, err := parse.WorkspaceID(d.Id())
 	if err != nil {
 		return err
 	}

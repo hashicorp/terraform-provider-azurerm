@@ -95,7 +95,7 @@ func testCheckAzureRMIoTTimeSeriesInsightsStandardEnvironmentExists(name string)
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		id, err := parse.TimeSeriesInsightsEnvironmentID(rs.Primary.ID)
+		id, err := parse.EnvironmentID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -122,12 +122,11 @@ func testCheckAzureRMIoTTimeSeriesInsightsStandardEnvironmentDestroy(s *terrafor
 			continue
 		}
 
-		id, err := parse.TimeSeriesInsightsEnvironmentID(rs.Primary.ID)
+		id, err := parse.EnvironmentID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 		resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
-
 		if err != nil {
 			return nil
 		}

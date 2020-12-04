@@ -106,15 +106,18 @@ func testCheckAzureRMSynapseSparkPoolExists(resourceName string) resource.TestCh
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("synapse BigDataPool not found: %s", resourceName)
+			return fmt.Errorf("synapse Spark Pool not found: %s", resourceName)
 		}
-		id, err := parse.SynapseSparkPoolID(rs.Primary.ID)
+
+		name := rs.Primary.Attributes["name"]
+		workspaceId, err := parse.WorkspaceID(rs.Primary.Attributes["synapse_workspace_id"])
 		if err != nil {
 			return err
 		}
-		if resp, err := client.Get(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name); err != nil {
+
+		if resp, err := client.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name, name); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Synapse BigDataPool %q does not exist", id.Name)
+				return fmt.Errorf("bad: Synapse BigDataPool %q does not exist", name)
 			}
 			return fmt.Errorf("bad: Get on Synapse.SparkPoolClient: %+v", err)
 		}
@@ -130,11 +133,14 @@ func testCheckAzureRMSynapseSparkPoolDestroy(s *terraform.State) error {
 		if rs.Type != "azurerm_synapse_spark_pool" {
 			continue
 		}
-		id, err := parse.SynapseSparkPoolID(rs.Primary.ID)
+
+		name := rs.Primary.Attributes["name"]
+		workspaceId, err := parse.WorkspaceID(rs.Primary.Attributes["synapse_workspace_id"])
 		if err != nil {
 			return err
 		}
-		resp, err := client.Get(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name)
+
+		resp, err := client.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("bad: Get on Synapse.SparkPoolClient: %+v", err)

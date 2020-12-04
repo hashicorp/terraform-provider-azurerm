@@ -105,7 +105,7 @@ func testCheckAzureRMSynapseWorkspaceExists(resourceName string) resource.TestCh
 		if !ok {
 			return fmt.Errorf("synapse Workspace not found: %s", resourceName)
 		}
-		id, err := parse.SynapseWorkspaceID(rs.Primary.ID)
+		id, err := parse.WorkspaceID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -127,7 +127,7 @@ func testCheckAzureRMSynapseWorkspaceDestroy(s *terraform.State) error {
 		if rs.Type != "azurerm_synapse_workspace" {
 			continue
 		}
-		id, err := parse.SynapseWorkspaceID(rs.Primary.ID)
+		id, err := parse.WorkspaceID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

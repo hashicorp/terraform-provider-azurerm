@@ -260,7 +260,6 @@ func dataSourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	redisConfiguration, err := flattenRedisConfiguration(resp.RedisConfiguration)
-
 	if err != nil {
 		return fmt.Errorf("Error flattening `redis_configuration`: %+v", err)
 	}

@@ -73,6 +73,38 @@ func TestAccAzureRMPrivateDnsZone_withTags(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPrivateDnsZone_withSOARecord(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_zone", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMPrivateDnsZoneDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPrivateDnsZone_withBasicSOARecord(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPrivateDnsZoneExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMPrivateDnsZone_withCompletedSOARecord(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPrivateDnsZoneExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMPrivateDnsZone_withBasicSOARecord(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPrivateDnsZoneExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMPrivateDnsZoneExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).PrivateDns.PrivateZonesClient
@@ -200,6 +232,59 @@ resource "azurerm_private_dns_zone" "test" {
 
   tags = {
     environment = "staging"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMPrivateDnsZone_withBasicSOARecord(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-privatedns-%d"
+  location = "%s"
+}
+
+resource "azurerm_private_dns_zone" "test" {
+  name                = "acctestzone%d.com"
+  resource_group_name = azurerm_resource_group.test.name
+
+  soa_record {
+    email = "testemail.com"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMPrivateDnsZone_withCompletedSOARecord(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-privatedns-%d"
+  location = "%s"
+}
+
+resource "azurerm_private_dns_zone" "test" {
+  name                = "acctestzone%d.com"
+  resource_group_name = azurerm_resource_group.test.name
+
+  soa_record {
+    email        = "testemail.com"
+    expire_time  = 2419200
+    minimum_ttl  = 200
+    refresh_time = 2600
+    retry_time   = 200
+    ttl          = 100
+
+    tags = {
+      ENv = "Test"
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,32 +9,45 @@ import (
 )
 
 type ImageId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func NewImageId(resourceGroup, name string) ImageId {
+func NewImageID(subscriptionId, resourceGroup, name string) ImageId {
 	return ImageId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
 }
 
-func (id ImageId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/images/%s", subscriptionId, id.ResourceGroup, id.Name)
+func (id ImageId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/images/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
+// ImageID parses a Image ID into an ImageId struct
 func ImageID(input string) (*ImageId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse Image ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	set := ImageId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := ImageId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if set.Name, err = id.PopSegment("images"); err != nil {
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.Name, err = id.PopSegment("images"); err != nil {
 		return nil, err
 	}
 
@@ -40,5 +55,5 @@ func ImageID(input string) (*ImageId, error) {
 		return nil, err
 	}
 
-	return &set, nil
+	return &resourceId, nil
 }

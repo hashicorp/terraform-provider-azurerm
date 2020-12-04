@@ -165,7 +165,7 @@ func apiManagementCustomDomainRead(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ApiManagementCustomDomainID(d.Id())
+	id, err := parse.CustomDomainID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -189,6 +189,7 @@ func apiManagementCustomDomainRead(d *schema.ResourceData, meta interface{}) err
 		configs := flattenApiManagementHostnameConfiguration(resp.ServiceProperties.HostnameConfigurations, d)
 		for _, config := range configs {
 			for key, v := range config.(map[string]interface{}) {
+				// lintignore:R001
 				if err := d.Set(key, v); err != nil {
 					return fmt.Errorf("setting `hostname_configuration` %q: %+v", key, err)
 				}
@@ -204,7 +205,7 @@ func apiManagementCustomDomainDelete(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ApiManagementCustomDomainID(d.Id())
+	id, err := parse.CustomDomainID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -59,13 +59,12 @@ func testCheckAzureRMServiceFabricMeshSecretValueDestroy(s *terraform.State) err
 			continue
 		}
 
-		id, err := parse.ServiceFabricMeshSecretValueID(rs.Primary.ID)
+		id, err := parse.SecretValueID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := client.Get(ctx, id.ResourceGroup, id.SecretName, id.Name)
-
+		resp, err := client.Get(ctx, id.ResourceGroup, id.SecretName, id.ValueName)
 		if err != nil {
 			return nil
 		}
@@ -89,18 +88,18 @@ func testCheckAzureRMServiceFabricMeshSecretValueExists(resourceName string) res
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.ServiceFabricMeshSecretValueID(rs.Primary.ID)
+		id, err := parse.SecretValueID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := client.Get(ctx, id.ResourceGroup, id.SecretName, id.Name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.SecretName, id.ValueName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on serviceFabricMeshSecretValuesClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Service Fabric Mesh Secret Value %q (Resource Group: %q) does not exist", id.Name, id.ResourceGroup)
+			return fmt.Errorf("Bad: Service Fabric Mesh Secret Value %q (Resource Group: %q) does not exist", id.ValueName, id.ResourceGroup)
 		}
 
 		return nil

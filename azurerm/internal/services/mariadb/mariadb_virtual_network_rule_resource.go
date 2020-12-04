@@ -50,7 +50,7 @@ func resourceArmMariaDbVirtualNetworkRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.MariaDbServerServerName,
+				ValidateFunc: validate.ServerName,
 			},
 
 			"subnet_id": {
@@ -196,7 +196,6 @@ func resourceArmMariaDbVirtualNetworkRuleDelete(d *schema.ResourceData, meta int
 func mariaDbVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client *mariadb.VirtualNetworkRulesClient, resourceGroup string, serverName string, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				log.Printf("[DEBUG] Retrieving MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q) returned 404.", resourceGroup, serverName, name)

@@ -151,11 +151,9 @@ For some advanced scenarios, such as where more granular permissions are necessa
 
 It's also possible to use multiple Provider blocks within a single Terraform configuration, for example, to work with resources across multiple Subscriptions - more information can be found [in the documentation for Providers](https://www.terraform.io/docs/configuration/providers.html#multiple-provider-instances).
 
-## Features
+## Features
 
 It's possible to configure the behaviour of certain resources using the `features` block - more details can be found below.
-
-## Features
 
 The `features` block supports the following:
 
@@ -171,9 +169,9 @@ The `features` block supports the following:
 
 The `key_vault` block supports the following:
 
-* `recover_soft_deleted_key_vaults` - (Optional) Should the `azurerm_key_vault` resource recover a Key Vault which has previously been Soft Deleted? Defaults to `true`. 
+* `recover_soft_deleted_key_vaults` - (Optional) Should the `azurerm_key_vault` resource recover a Key Vault which has previously been Soft Deleted? Defaults to `true`.
 
-* `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_key_vault` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `true`. 
+* `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_key_vault` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
 
 ~> **Note:** When purge protection is enabled, a key vault or an object in the deleted state cannot be purged until the retention period(90 days) has passed.
 
@@ -192,6 +190,10 @@ The `virtual_machine` block supports the following:
 * `delete_os_disk_on_deletion` - (Optional) Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` resources delete the OS Disk attached to the Virtual Machine when the Virtual Machine is destroyed? Defaults to `true`.
 
 ~> **Note:** This does not affect the older `azurerm_virtual_machine` resource, which has its own flags for managing this within the resource.
+
+* `graceful_shutdown` - (Optional) Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` request a graceful shutdown when the Virtual Machine is destroyed? Defaults to `false`.
+
+~> **Note:** When using a graceful shutdown, Azure gives the Virtual Machine a 5 minutes window in which to complete the shutdown process, at which point the machine will be force powered off - [more information can be found in this blog post](https://azure.microsoft.com/en-us/blog/linux-and-graceful-shutdowns-2/).
 
 ---
 

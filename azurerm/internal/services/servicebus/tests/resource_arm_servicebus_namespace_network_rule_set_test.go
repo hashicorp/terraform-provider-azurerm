@@ -113,7 +113,7 @@ func testCheckAzureRMServiceBusNamespaceNetworkRuleExists(resourceName string) r
 			return fmt.Errorf("Service Bus Namespace Network Rule Set not found: %s", resourceName)
 		}
 
-		id, err := parse.ServiceBusNamespaceNetworkRuleSetID(rs.Primary.ID)
+		id, err := parse.NamespaceNetworkRuleSetID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -138,7 +138,7 @@ func testCheckAzureRMServiceBusNamespaceNetworkRuleDestroy(s *terraform.State) e
 			continue
 		}
 
-		id, err := parse.ServiceBusNamespaceNetworkRuleSetID(rs.Primary.ID)
+		id, err := parse.NamespaceNetworkRuleSetID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
