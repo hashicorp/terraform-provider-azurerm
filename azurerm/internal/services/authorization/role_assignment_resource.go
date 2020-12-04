@@ -151,15 +151,14 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	// TODO: we should switch this to use the timeout
-	if err := resource.Retry(300*time.Second, retryRoleAssignmentsClient(d, scope, name, properties, meta)); err != nil {
+	var roleID string
+	retryFunc := retryRoleAssignmentsClient(d, scope, name, properties, meta)
+	if err := resource.Retry(300*time.Second, func() *resource.RetryError {
+		var retryErr *resource.RetryError
+		roleID, retryErr = retryFunc()
+		return retryErr
+	}); err != nil {
 		return err
-	}
-	read, err := roleAssignmentsClient.Get(ctx, scope, name)
-	if err != nil {
-		return err
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Role Assignment ID for %q (Scope %q)", name, scope)
 	}
 
 	stateConf := &resource.StateChangeConf{
@@ -169,7 +168,7 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 		Target: []string{
 			"ready",
 		},
-		Refresh:                   roleAssignmentCreateStateRefreshFunc(ctx, roleAssignmentsClient, *read.ID),
+		Refresh:                   roleAssignmentCreateStateRefreshFunc(ctx, roleAssignmentsClient, roleID),
 		MinTimeout:                5 * time.Second,
 		ContinuousTargetOccurence: 5,
 		Timeout:                   d.Timeout(schema.TimeoutCreate),
@@ -179,7 +178,7 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("failed waiting for Role Assignment %q to finish replicating: %+v", name, err)
 	}
 
-	d.SetId(*read.ID)
+	d.SetId(roleID)
 	return resourceArmRoleAssignmentRead(d, meta)
 }
 
@@ -244,8 +243,8 @@ func resourceArmRoleAssignmentDelete(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func retryRoleAssignmentsClient(d *schema.ResourceData, scope string, name string, properties authorization.RoleAssignmentCreateParameters, meta interface{}) func() *resource.RetryError {
-	return func() *resource.RetryError {
+func retryRoleAssignmentsClient(d *schema.ResourceData, scope string, name string, properties authorization.RoleAssignmentCreateParameters, meta interface{}) func() (string, *resource.RetryError) {
+	return func() (string, *resource.RetryError) {
 		roleAssignmentsClient := meta.(*clients.Client).Authorization.RoleAssignmentsClient
 		ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 		defer cancel()
@@ -253,16 +252,16 @@ func retryRoleAssignmentsClient(d *schema.ResourceData, scope string, name strin
 		resp, err := roleAssignmentsClient.Create(ctx, scope, name, properties)
 		if err != nil {
 			if utils.ResponseErrorIsRetryable(err) {
-				return resource.RetryableError(err)
+				return "", resource.RetryableError(err)
 			} else if resp.Response.StatusCode == 400 && strings.Contains(err.Error(), "PrincipalNotFound") {
 				// When waiting for service principal to become available
-				return resource.RetryableError(err)
+				return "", resource.RetryableError(err)
 			}
 
-			return resource.NonRetryableError(err)
+			return "", resource.NonRetryableError(err)
 		}
 
-		return nil
+		return *resp.ID, nil
 	}
 }
 
