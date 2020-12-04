@@ -22,12 +22,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApplicationInsightsWebTests() *schema.Resource {
+func resourceApplicationInsightsWebTests() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApplicationInsightsWebTestsCreateUpdate,
-		Read:   resourceArmApplicationInsightsWebTestsRead,
-		Update: resourceArmApplicationInsightsWebTestsCreateUpdate,
-		Delete: resourceArmApplicationInsightsWebTestsDelete,
+		Create: resourceApplicationInsightsWebTestsCreateUpdate,
+		Read:   resourceApplicationInsightsWebTestsRead,
+		Update: resourceApplicationInsightsWebTestsCreateUpdate,
+		Delete: resourceApplicationInsightsWebTestsDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.WebTestID(id)
 			return err
@@ -129,7 +129,7 @@ func resourceArmApplicationInsightsWebTests() *schema.Resource {
 	}
 }
 
-func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.WebTestsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -138,20 +138,16 @@ func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, 
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	appInsightsID := d.Get("application_insights_id").(string)
-
-	id, err := azure.ParseAzureResourceID(appInsightsID)
+	appInsightsId, err := parse.ComponentID(d.Get("application_insights_id").(string))
 	if err != nil {
 		return err
 	}
-
-	appInsightsName := id.Path["components"]
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Application Insights WebTests %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing Application Insights WebTests %q (Resource Group %q): %s", name, resGroup, err)
 			}
 		}
 
@@ -172,7 +168,7 @@ func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, 
 	testConf := d.Get("configuration").(string)
 
 	t := d.Get("tags").(map[string]interface{})
-	tagKey := fmt.Sprintf("hidden-link:/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/components/%s", client.SubscriptionID, resGroup, appInsightsName)
+	tagKey := fmt.Sprintf("hidden-link:%s", appInsightsId.ID(""))
 	t[tagKey] = "Resource"
 
 	webTest := insights.WebTest{
@@ -198,15 +194,15 @@ func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, 
 
 	resp, err := client.CreateOrUpdate(ctx, resGroup, name, webTest)
 	if err != nil {
-		return fmt.Errorf("Error creating Application Insights WebTest %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("creating/updating Application Insights WebTest %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	d.SetId(*resp.ID)
 
-	return resourceArmApplicationInsightsWebTestsRead(d, meta)
+	return resourceApplicationInsightsWebTestsRead(d, meta)
 }
 
-func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsWebTestsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.WebTestsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -225,7 +221,7 @@ func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta int
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Application Insights WebTests %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Application Insights WebTests %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	appInsightsId := ""
@@ -267,7 +263,7 @@ func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta int
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmApplicationInsightsWebTestsDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsWebTestsDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.WebTestsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

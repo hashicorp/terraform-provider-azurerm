@@ -25,10 +25,11 @@ func NewTableID(subscriptionId, resourceGroup, databaseAccountName, name string)
 }
 
 func (id TableId) ID(_ string) string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/DatabaseAccounts/%s/tables/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/databaseAccounts/%s/tables/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DatabaseAccountName, id.Name)
 }
 
+// TableID parses a Table ID into an TableId struct
 func TableID(input string) (*TableId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -40,7 +41,15 @@ func TableID(input string) (*TableId, error) {
 		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if resourceId.DatabaseAccountName, err = id.PopSegment("DatabaseAccounts"); err != nil {
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.DatabaseAccountName, err = id.PopSegment("databaseAccounts"); err != nil {
 		return nil, err
 	}
 	if resourceId.Name, err = id.PopSegment("tables"); err != nil {

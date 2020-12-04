@@ -27,6 +27,7 @@ func (id SystemTopicId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
+// SystemTopicID parses a SystemTopic ID into an SystemTopicId struct
 func SystemTopicID(input string) (*SystemTopicId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -36,6 +37,14 @@ func SystemTopicID(input string) (*SystemTopicId, error) {
 	resourceId := SystemTopicId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.Name, err = id.PopSegment("systemTopics"); err != nil {

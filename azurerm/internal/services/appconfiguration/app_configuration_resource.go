@@ -21,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAppConfiguration() *schema.Resource {
+func resourceAppConfiguration() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAppConfigurationCreate,
-		Read:   resourceArmAppConfigurationRead,
-		Update: resourceArmAppConfigurationUpdate,
-		Delete: resourceArmAppConfigurationDelete,
+		Create: resourceAppConfigurationCreate,
+		Read:   resourceAppConfigurationRead,
+		Update: resourceAppConfigurationUpdate,
+		Delete: resourceAppConfigurationDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -45,7 +45,7 @@ func resourceArmAppConfiguration() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.AppConfigurationName,
+				ValidateFunc: validate.ConfigurationStoreName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -195,7 +195,7 @@ func resourceArmAppConfiguration() *schema.Resource {
 	}
 }
 
-func resourceArmAppConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppConfiguration.AppConfigurationsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -236,10 +236,10 @@ func resourceArmAppConfigurationCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	d.SetId(resourceId)
-	return resourceArmAppConfigurationRead(d, meta)
+	return resourceAppConfigurationRead(d, meta)
 }
 
-func resourceArmAppConfigurationUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppConfigurationUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppConfiguration.AppConfigurationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -280,10 +280,10 @@ func resourceArmAppConfigurationUpdate(d *schema.ResourceData, meta interface{})
 
 	d.SetId(*read.ID)
 
-	return resourceArmAppConfigurationRead(d, meta)
+	return resourceAppConfigurationRead(d, meta)
 }
 
-func resourceArmAppConfigurationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppConfigurationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppConfiguration.AppConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -337,7 +337,7 @@ func resourceArmAppConfigurationRead(d *schema.ResourceData, meta interface{}) e
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmAppConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppConfiguration.AppConfigurationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

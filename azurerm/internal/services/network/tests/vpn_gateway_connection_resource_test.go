@@ -139,14 +139,14 @@ func testCheckAzureRMVpnGatewayConnectionExists(resourceName string) resource.Te
 			return fmt.Errorf("Vpn Gateway Connection not found: %s", resourceName)
 		}
 
-		id, err := parse.VPNGatewayConnectionID(rs.Primary.ID)
+		id, err := parse.VpnConnectionID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.Gateway, id.Name); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.VpnGatewayName, id.Name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Vpn Gateway Connection %q (Resource Group %q / VPN Gateway %q) does not exist", id.Name, id.ResourceGroup, id.Gateway)
+				return fmt.Errorf("Vpn Gateway Connection %q (Resource Group %q / VPN Gateway %q) does not exist", id.Name, id.ResourceGroup, id.VpnGatewayName)
 			}
 			return fmt.Errorf("Getting on Network.VpnConnetions: %+v", err)
 		}
@@ -164,12 +164,12 @@ func testCheckAzureRMVpnGatewayConnectionDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.VPNGatewayConnectionID(rs.Primary.ID)
+		id, err := parse.VpnConnectionID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Gateway, id.Name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.VpnGatewayName, id.Name)
 		if err == nil {
 			return fmt.Errorf("Network.VpnConnetions still exists")
 		}

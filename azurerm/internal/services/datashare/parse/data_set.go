@@ -31,6 +31,7 @@ func (id DataSetId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.AccountName, id.ShareName, id.Name)
 }
 
+// DataSetID parses a DataSet ID into an DataSetId struct
 func DataSetID(input string) (*DataSetId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -40,6 +41,14 @@ func DataSetID(input string) (*DataSetId, error) {
 	resourceId := DataSetId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.AccountName, err = id.PopSegment("accounts"); err != nil {

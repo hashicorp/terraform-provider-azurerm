@@ -29,6 +29,7 @@ func (id NodePoolId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ManagedClusterName, id.AgentPoolName)
 }
 
+// NodePoolID parses a NodePool ID into an NodePoolId struct
 func NodePoolID(input string) (*NodePoolId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -38,6 +39,14 @@ func NodePoolID(input string) (*NodePoolId, error) {
 	resourceId := NodePoolId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.ManagedClusterName, err = id.PopSegment("managedClusters"); err != nil {

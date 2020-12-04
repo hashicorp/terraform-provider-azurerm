@@ -29,6 +29,7 @@ func (id VirtualMachineExtensionId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VirtualMachineName, id.ExtensionName)
 }
 
+// VirtualMachineExtensionID parses a VirtualMachineExtension ID into an VirtualMachineExtensionId struct
 func VirtualMachineExtensionID(input string) (*VirtualMachineExtensionId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -38,6 +39,14 @@ func VirtualMachineExtensionID(input string) (*VirtualMachineExtensionId, error)
 	resourceId := VirtualMachineExtensionId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.VirtualMachineName, err = id.PopSegment("virtualMachines"); err != nil {

@@ -128,8 +128,9 @@ The following arguments are supported:
 
 * `endpoint` - (Optional) An `endpoint` block as defined below.
 
-
 * `fallback_route` - (Optional) A `fallback_route` block as defined below. If the fallback route is enabled, messages that don't match any of the supplied routes are automatically sent to this route. Defaults to messages/events.
+
+~> **NOTE:** If `fallback_route` isn't explicitly specified, the fallback route wouldn't be enabled by default.
 
 * `file_upload` - (Optional) A `file_upload` block as defined below.
 

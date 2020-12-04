@@ -27,6 +27,7 @@ func (id DedicatedHostGroupId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.HostGroupName)
 }
 
+// DedicatedHostGroupID parses a DedicatedHostGroup ID into an DedicatedHostGroupId struct
 func DedicatedHostGroupID(input string) (*DedicatedHostGroupId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -36,6 +37,14 @@ func DedicatedHostGroupID(input string) (*DedicatedHostGroupId, error) {
 	resourceId := DedicatedHostGroupId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.HostGroupName, err = id.PopSegment("hostGroups"); err != nil {

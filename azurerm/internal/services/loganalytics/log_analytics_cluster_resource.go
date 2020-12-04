@@ -44,7 +44,7 @@ func resourceArmLogAnalyticsCluster() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.LogAnalyticsClustersName,
+				ValidateFunc: validate.LogAnalyticsClusterName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),

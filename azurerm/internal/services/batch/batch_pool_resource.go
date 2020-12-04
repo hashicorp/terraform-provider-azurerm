@@ -23,12 +23,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmBatchPool() *schema.Resource {
+func resourceBatchPool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmBatchPoolCreate,
-		Read:   resourceArmBatchPoolRead,
-		Update: resourceArmBatchPoolUpdate,
-		Delete: resourceArmBatchPoolDelete,
+		Create: resourceBatchPoolCreate,
+		Read:   resourceBatchPoolRead,
+		Update: resourceBatchPoolUpdate,
+		Delete: resourceBatchPoolDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -489,7 +489,7 @@ func resourceArmBatchPool() *schema.Resource {
 	}
 }
 
-func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBatchPoolCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.PoolClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -627,10 +627,10 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 		}
 	}
 
-	return resourceArmBatchPoolRead(d, meta)
+	return resourceBatchPoolRead(d, meta)
 }
 
-func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.PoolClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -720,10 +720,10 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 		}
 	}
 
-	return resourceArmBatchPoolRead(d, meta)
+	return resourceBatchPoolRead(d, meta)
 }
 
-func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.PoolClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -792,7 +792,7 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceArmBatchPoolDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBatchPoolDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.PoolClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

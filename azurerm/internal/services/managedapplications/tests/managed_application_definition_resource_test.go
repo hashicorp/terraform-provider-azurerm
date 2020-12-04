@@ -126,7 +126,7 @@ func testCheckAzureRMManagedApplicationDefinitionExists(resourceName string) res
 			return fmt.Errorf("Managed Application Definition not found: %s", resourceName)
 		}
 
-		id, err := parse.ManagedApplicationDefinitionID(rs.Primary.ID)
+		id, err := parse.ApplicationDefinitionID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -154,7 +154,7 @@ func testCheckAzureRMManagedApplicationDefinitionDestroy(s *terraform.State) err
 			continue
 		}
 
-		id, err := parse.ManagedApplicationDefinitionID(rs.Primary.ID)
+		id, err := parse.ApplicationDefinitionID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

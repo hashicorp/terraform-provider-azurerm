@@ -16,7 +16,7 @@ import (
 
 type CustomProviderResource struct{}
 
-func TestAccAzureRMCustomProvider_basic(t *testing.T) {
+func TestAccCustomProvider_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_custom_provider", "test")
 	r := CustomProviderResource{}
 
@@ -31,7 +31,7 @@ func TestAccAzureRMCustomProvider_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCustomProvider_complete(t *testing.T) {
+func TestAccCustomProvider_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_custom_provider", "test")
 	r := CustomProviderResource{}
 
@@ -60,7 +60,7 @@ func TestAccAzureRMCustomProvider_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCustomProvider_action(t *testing.T) {
+func TestAccCustomProvider_action(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_custom_provider", "test")
 	r := CustomProviderResource{}
 
