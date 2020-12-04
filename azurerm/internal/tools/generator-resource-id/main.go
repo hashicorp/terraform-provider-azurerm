@@ -364,7 +364,7 @@ func (id %[1]sId) String() string {
 	segments := []string{
 %s
 	}
-	return strings.Join(segments, " ")
+	return strings.Join(segments, " / ")
 }
 `, id.TypeName, formatKeysString)
 }
