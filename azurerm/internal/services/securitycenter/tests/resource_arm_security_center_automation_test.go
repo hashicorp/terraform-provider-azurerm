@@ -605,6 +605,11 @@ resource "azurerm_security_center_automation" "test" {
       }
     }
   }
+
+  description = "Security Center Automation Acc test"
+  tags = {
+	  Env = "Test"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }

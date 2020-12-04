@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -60,6 +61,12 @@ func resourceArmSecurityCenterAutomation() *schema.Resource {
 				Type:     schema.TypeBool,
 				Default:  true,
 				Optional: true,
+			},
+
+			"description": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"scopes": {
@@ -179,6 +186,8 @@ func resourceArmSecurityCenterAutomation() *schema.Resource {
 					},
 				},
 			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -212,8 +221,10 @@ func resourceArmSecurityCenterAutomationCreateUpdate(d *schema.ResourceData, met
 	automation := security.Automation{
 		Location: &location,
 		AutomationProperties: &security.AutomationProperties{
-			IsEnabled: &enabled,
+			Description: utils.String(d.Get("description").(string)),
+			IsEnabled:   &enabled,
 		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	automation.AutomationProperties.Scopes = expandSecurityCenterAutomationScopes(d.Get("scopes").([]interface{}))
@@ -270,6 +281,7 @@ func resourceArmSecurityCenterAutomationRead(d *schema.ResourceData, meta interf
 	}
 
 	if properties := resp.AutomationProperties; properties != nil {
+		d.Set("description", properties.Description)
 		d.Set("enabled", properties.IsEnabled)
 
 		flatScopes, err := flattenSecurityCenterAutomationScopes(properties.Scopes)
@@ -297,7 +309,7 @@ func resourceArmSecurityCenterAutomationRead(d *schema.ResourceData, meta interf
 		}
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmSecurityCenterAutomationDelete(d *schema.ResourceData, meta interface{}) error {
