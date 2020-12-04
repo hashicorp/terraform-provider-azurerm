@@ -35,7 +35,7 @@ func resourceAvsPrivateCloud() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.AvsPrivateCloudID(id)
+			_, err := parse.PrivateCloudID(id)
 			return err
 		}),
 
@@ -191,6 +191,7 @@ func resourceAvsPrivateCloud() *schema.Resource {
 	}
 }
 func resourceAvsPrivateCloudCreate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Avs.PrivateCloudClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -198,14 +199,16 @@ func resourceAvsPrivateCloudCreate(d *schema.ResourceData, meta interface{}) err
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	id := parse.NewPrivateCloudID(subscriptionId, resourceGroup, name).ID("")
+
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return fmt.Errorf("checking for present of existing Avs PrivateCloud %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_avs_private_cloud", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_avs_private_cloud", id)
 	}
 
 	internet := avs.Disabled
@@ -229,25 +232,22 @@ func resourceAvsPrivateCloudCreate(d *schema.ResourceData, meta interface{}) err
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
+
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, privateCloud)
 	if err != nil {
 		return fmt.Errorf("creating Avs PrivateCloud %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on creating future for Avs PrivateCloud %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of the Avs PrivateCloud %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
+	if _, err := client.Get(ctx, resourceGroup, name); err != nil {
 		return fmt.Errorf("retrieving Avs PrivateCloud %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Avs PrivateCloud %q (Resource Group %q) ID", name, resourceGroup)
-	}
+	d.SetId(id)
 
-	d.SetId(*resp.ID)
 	return resourceAvsPrivateCloudRead(d, meta)
 }
 
@@ -256,7 +256,7 @@ func resourceAvsPrivateCloudRead(d *schema.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AvsPrivateCloudID(d.Id())
+	id, err := parse.PrivateCloudID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -264,7 +264,7 @@ func resourceAvsPrivateCloudRead(d *schema.ResourceData, meta interface{}) error
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] avs %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] Avs Private Cloud %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
@@ -301,7 +301,7 @@ func resourceAvsPrivateCloudUpdate(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AvsPrivateCloudID(d.Id())
+	id, err := parse.PrivateCloudID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -342,7 +342,7 @@ func resourceAvsPrivateCloudDelete(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AvsPrivateCloudID(d.Id())
+	id, err := parse.PrivateCloudID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -353,7 +353,7 @@ func resourceAvsPrivateCloudDelete(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Avs PrivateCloud %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of the Avs PrivateCloud %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil

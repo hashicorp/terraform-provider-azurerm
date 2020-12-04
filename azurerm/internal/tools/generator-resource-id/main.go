@@ -101,7 +101,7 @@ func parseServicePackageName(relativePath string) (*string, error) {
 		path = abs
 	}
 
-	segments := strings.Split(path, "/")
+	segments := strings.Split(path, "\\")
 	serviceIndex := -1
 	for i, v := range segments {
 		if strings.EqualFold(v, "services") {

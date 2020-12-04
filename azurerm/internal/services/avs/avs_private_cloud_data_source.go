@@ -9,6 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/digitaltwins/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -16,7 +17,7 @@ import (
 
 func dataSourceAvsPrivateCloud() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmAvsPrivateCloudRead,
+		Read: dataSourceAvsPrivateCloudRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -146,13 +147,16 @@ func dataSourceAvsPrivateCloud() *schema.Resource {
 	}
 }
 
-func dataSourceArmAvsPrivateCloudRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAvsPrivateCloudRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Avs.PrivateCloudClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+
+	id := parse.NewDigitalTwinsInstanceID(subscriptionId, resourceGroup, name).ID("")
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -161,11 +165,8 @@ func dataSourceArmAvsPrivateCloudRead(d *schema.ResourceData, meta interface{}) 
 		}
 		return fmt.Errorf("retrieving Avs PrivateCloud %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Avs PrivateCloud %q (Resource Group %q) ID", name, resourceGroup)
-	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id)
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
