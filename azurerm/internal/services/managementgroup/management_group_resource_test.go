@@ -63,8 +63,8 @@ func TestAccManagementGroup_nested(t *testing.T) {
 				check.That("azurerm_management_group.child").ExistsInAzure(r),
 			),
 		},
-		acceptance.ImportStepFor("azurerm_management_group.parent"),
-		acceptance.ImportStepFor("azurerm_management_group.child"),
+		data.ImportStep(),
+		data.ImportStepFor("azurerm_management_group.child"),
 	})
 }
 
@@ -81,9 +81,9 @@ func TestAccManagementGroup_multiLevel(t *testing.T) {
 				check.That("azurerm_management_group.child").ExistsInAzure(r),
 			),
 		},
-		acceptance.ImportStepFor("azurerm_management_group.grandparent"),
-		acceptance.ImportStepFor("azurerm_management_group.parent"),
-		acceptance.ImportStepFor("azurerm_management_group.child"),
+		data.ImportStepFor("azurerm_management_group.grandparent"),
+		data.ImportStep(),
+		data.ImportStepFor("azurerm_management_group.child"),
 	})
 }
 
@@ -99,8 +99,8 @@ func TestAccManagementGroup_multiLevelUpdated(t *testing.T) {
 				check.That("azurerm_management_group.child").ExistsInAzure(r),
 			),
 		},
-		acceptance.ImportStepFor("azurerm_management_group.parent"),
-		acceptance.ImportStepFor("azurerm_management_group.child"),
+		data.ImportStep(),
+		data.ImportStepFor("azurerm_management_group.child"),
 		{
 			Config: r.multiLevel(),
 			Check: resource.ComposeTestCheckFunc(
@@ -109,9 +109,9 @@ func TestAccManagementGroup_multiLevelUpdated(t *testing.T) {
 				check.That("azurerm_management_group.child").ExistsInAzure(r),
 			),
 		},
-		acceptance.ImportStepFor("azurerm_management_group.grandparent"),
-		acceptance.ImportStepFor("azurerm_management_group.parent"),
-		acceptance.ImportStepFor("azurerm_management_group.child"),
+		data.ImportStepFor("azurerm_management_group.grandparent"),
+		data.ImportStep(),
+		data.ImportStepFor("azurerm_management_group.child"),
 	})
 }
 

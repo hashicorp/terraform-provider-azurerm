@@ -220,7 +220,8 @@ func resourceManagementGroupRead(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.Name, "children", utils.Bool(true), "", managementGroupCacheControl)
+	recurse := utils.Bool(true)
+	resp, err := client.Get(ctx, id.Name, "children", recurse, "", managementGroupCacheControl)
 	if err != nil {
 		if utils.ResponseWasForbidden(resp.Response) || utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Management Group %q doesn't exist - removing from state", d.Id())
