@@ -328,7 +328,7 @@ resource "azurerm_kusto_cluster" "test" {
     name     = "Dev(No SLA)_Standard_D11_v2"
     capacity = 1
   }
-  engine			  = "V3"
+  engine = "V3"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
