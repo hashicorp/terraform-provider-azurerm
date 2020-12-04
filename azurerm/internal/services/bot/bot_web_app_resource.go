@@ -194,8 +194,8 @@ func resourceArmBotWebAppRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving Web App Bot %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if sku := resp.Sku; sku != nil {
@@ -260,16 +260,15 @@ func resourceArmBotWebAppDelete(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.BotServiceID(d.Id())
 	if err != nil {
 		return err
 	}
-	name := id.Path["botServices"]
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting Web App Bot %q (Resource Group %q): %+v", name, id.ResourceGroup, err)
+			return fmt.Errorf("deleting Web App Bot %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 
