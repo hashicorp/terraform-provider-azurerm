@@ -1,4 +1,4 @@
-package tests
+package streamanalytics_test
 
 import (
 	"fmt"
@@ -6,30 +6,28 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMStreamAnalyticsJob_basic(t *testing.T) {
+type StreamAnalyticsJobDataSource struct{}
+
+func TestAccDataSourceStreamAnalyticsJob_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_stream_analytics_job", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsJobDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMStreamAnalyticsJob_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "job_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "streaming_units"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "transformation_query"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: StreamAnalyticsJobDataSource{}.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("job_id").Exists(),
+				check.That(data.ResourceName).Key("streaming_units").Exists(),
+				check.That(data.ResourceName).Key("transformation_query").Exists(),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMStreamAnalyticsJob_basic(data acceptance.TestData) string {
-	config := testAccAzureRMStreamAnalyticsJob_basic(data)
+func (d StreamAnalyticsJobDataSource) basic(data acceptance.TestData) string {
+	config := StreamAnalyticsJobResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 

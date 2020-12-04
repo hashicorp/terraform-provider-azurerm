@@ -1,153 +1,105 @@
-package tests
+package streamanalytics_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMStreamAnalyticsJob_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_job", "test")
+type StreamAnalyticsJobResource struct{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsJobDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStreamAnalyticsJob_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsJobExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Test"),
-				),
-			},
-			data.ImportStep(),
+func TestAccStreamAnalyticsJob_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_job", "test")
+	r := StreamAnalyticsJobResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("Test"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMStreamAnalyticsJob_complete(t *testing.T) {
+func TestAccStreamAnalyticsJob_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_job", "test")
+	r := StreamAnalyticsJobResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsJobDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStreamAnalyticsJob_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsJobExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Test"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("Test"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMStreamAnalyticsJob_requiresImport(t *testing.T) {
+func TestAccStreamAnalyticsJob_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_job", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsJobDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStreamAnalyticsJob_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsJobExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMStreamAnalyticsJob_requiresImport),
+	r := StreamAnalyticsJobResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMStreamAnalyticsJob_update(t *testing.T) {
+func TestAccStreamAnalyticsJob_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_job", "test")
+	r := StreamAnalyticsJobResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsJobDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStreamAnalyticsJob_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsJobExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMStreamAnalyticsJob_updated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsJobExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		{
+			Config: r.updated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMStreamAnalyticsJobExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.JobsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (r StreamAnalyticsJobResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	name := state.Attributes["name"]
+	resourceGroup := state.Attributes["resource_group_name"]
 
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
+	resp, err := client.StreamAnalytics.JobsClient.Get(ctx, resourceGroup, name, "")
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), err
 		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, name, "")
-		if err != nil {
-			return fmt.Errorf("Bad: Get on streamAnalyticsJobsClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Stream Analytics Job %q (resource group: %q) does not exist", name, resourceGroup)
-		}
-
-		return nil
+		return nil, fmt.Errorf("retrieving Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
+	return utils.Bool(true), nil
 }
 
-func testCheckAzureRMStreamAnalyticsJobDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.JobsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_stream_analytics_job" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		resp, err := conn.Get(ctx, resourceGroup, name, "")
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Stream Analytics Job still exists:\n%#v", resp.StreamingJobProperties)
-		}
-	}
-
-	return nil
-}
-
-func testAccAzureRMStreamAnalyticsJob_basic(data acceptance.TestData) string {
+func (r StreamAnalyticsJobResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -178,7 +130,7 @@ QUERY
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsJob_complete(data acceptance.TestData) string {
+func (r StreamAnalyticsJobResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -215,8 +167,8 @@ QUERY
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsJob_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMStreamAnalyticsJob_basic(data)
+func (r StreamAnalyticsJobResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -237,7 +189,7 @@ resource "azurerm_stream_analytics_job" "import" {
 `, template)
 }
 
-func testAccAzureRMStreamAnalyticsJob_updated(data acceptance.TestData) string {
+func (r StreamAnalyticsJobResource) updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

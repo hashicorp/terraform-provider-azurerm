@@ -1,134 +1,90 @@
-package tests
+package streamanalytics_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_function_javascript_udf", "test")
+type StreamAnalyticsFunctionJavaScriptUDFResource struct{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccStreamAnalyticsFunctionJavaScriptUDF_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_function_javascript_udf", "test")
+	r := StreamAnalyticsFunctionJavaScriptUDFResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_requiresImport(t *testing.T) {
+func TestAccStreamAnalyticsFunctionJavaScriptUDF_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_function_javascript_udf", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_requiresImport),
+	r := StreamAnalyticsFunctionJavaScriptUDFResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_inputs(t *testing.T) {
+func TestAccStreamAnalyticsFunctionJavaScriptUDF_inputs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_function_javascript_udf", "test")
+	r := StreamAnalyticsFunctionJavaScriptUDFResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_inputs(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.inputs(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.FunctionsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (r StreamAnalyticsFunctionJavaScriptUDFResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	name := state.Attributes["name"]
+	jobName := state.Attributes["stream_analytics_job_name"]
+	resourceGroup := state.Attributes["resource_group_name"]
 
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
+	resp, err := client.StreamAnalytics.FunctionsClient.Get(ctx, resourceGroup, jobName, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
 		}
-
-		name := rs.Primary.Attributes["name"]
-		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on streamAnalyticsFunctionsClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Function JavaScript UDF %q (Stream Analytics Job %q / Resource Group %q) does not exist", name, jobName, resourceGroup)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.OutputsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_stream_analytics_function_javascript_udf" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Stream Analytics Function JavaScript UDF still exists:\n%#v", resp.OutputProperties)
-		}
+		return nil, fmt.Errorf("retrieving Function JavaScript UDF %q (Stream Analytics Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 	}
 
-	return nil
+	return utils.Bool(true), nil
 }
 
-func testAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_basic(data acceptance.TestData) string {
-	template := testAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_template(data)
+func (r StreamAnalyticsFunctionJavaScriptUDFResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -155,8 +111,8 @@ SCRIPT
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_basic(data)
+func (r StreamAnalyticsFunctionJavaScriptUDFResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -177,8 +133,8 @@ resource "azurerm_stream_analytics_function_javascript_udf" "import" {
 `, template)
 }
 
-func testAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_inputs(data acceptance.TestData) string {
-	template := testAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_template(data)
+func (r StreamAnalyticsFunctionJavaScriptUDFResource) inputs(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -209,7 +165,7 @@ SCRIPT
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_template(data acceptance.TestData) string {
+func (r StreamAnalyticsFunctionJavaScriptUDFResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

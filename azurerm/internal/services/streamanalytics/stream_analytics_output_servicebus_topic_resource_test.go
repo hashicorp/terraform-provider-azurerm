@@ -1,172 +1,118 @@
-package tests
+package streamanalytics_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMStreamAnalyticsOutputServiceBusTopic_avro(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_servicebus_topic", "test")
+type StreamAnalyticsOutputServiceBusTopicResource struct{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputServiceBusTopicDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStreamAnalyticsOutputServiceBusTopic_avro(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputServiceBusTopicExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("shared_access_policy_key"),
+func TestAccStreamAnalyticsOutputServiceBusTopic_avro(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_servicebus_topic", "test")
+	r := StreamAnalyticsOutputServiceBusTopicResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.avro(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("shared_access_policy_key"),
 	})
 }
 
-func TestAccAzureRMStreamAnalyticsOutputServiceBusTopic_csv(t *testing.T) {
+func TestAccStreamAnalyticsOutputServiceBusTopic_csv(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_servicebus_topic", "test")
+	r := StreamAnalyticsOutputServiceBusTopicResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputServiceBusTopicDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStreamAnalyticsOutputServiceBusTopic_csv(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputServiceBusTopicExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("shared_access_policy_key"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.csv(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("shared_access_policy_key"),
 	})
 }
 
-func TestAccAzureRMStreamAnalyticsOutputServiceBusTopic_json(t *testing.T) {
+func TestAccStreamAnalyticsOutputServiceBusTopic_json(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_servicebus_topic", "test")
+	r := StreamAnalyticsOutputServiceBusTopicResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputServiceBusTopicDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStreamAnalyticsOutputServiceBusTopic_json(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputServiceBusTopicExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("shared_access_policy_key"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.json(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("shared_access_policy_key"),
 	})
 }
 
-func TestAccAzureRMStreamAnalyticsOutputServiceBusTopic_update(t *testing.T) {
+func TestAccStreamAnalyticsOutputServiceBusTopic_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_servicebus_topic", "test")
+	r := StreamAnalyticsOutputServiceBusTopicResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputServiceBusTopicDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStreamAnalyticsOutputServiceBusTopic_json(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputServiceBusTopicExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMStreamAnalyticsOutputServiceBusTopic_updated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputServiceBusTopicExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("shared_access_policy_key"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.json(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		{
+			Config: r.updated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("shared_access_policy_key"),
 	})
 }
 
-func TestAccAzureRMStreamAnalyticsOutputServiceBusTopic_requiresImport(t *testing.T) {
+func TestAccStreamAnalyticsOutputServiceBusTopic_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_servicebus_topic", "test")
+	r := StreamAnalyticsOutputServiceBusTopicResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputServiceBusTopicDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStreamAnalyticsOutputServiceBusTopic_json(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputServiceBusTopicExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMStreamAnalyticsOutputServiceBusTopic_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.json(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckAzureRMStreamAnalyticsOutputServiceBusTopicExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.OutputsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (r StreamAnalyticsOutputServiceBusTopicResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	name := state.Attributes["name"]
+	jobName := state.Attributes["stream_analytics_job_name"]
+	resourceGroup := state.Attributes["resource_group_name"]
 
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
+	resp, err := client.StreamAnalytics.OutputsClient.Get(ctx, resourceGroup, jobName, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
 		}
-
-		name := rs.Primary.Attributes["name"]
-		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on streamAnalyticsOutputsClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Stream Output %q (Stream Analytics Job %q / Resource Group %q) does not exist", name, jobName, resourceGroup)
-		}
-
-		return nil
+		return nil, fmt.Errorf("retrieving Stream Output %q (Stream Analytics Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 	}
+	return utils.Bool(true), nil
 }
 
-func testCheckAzureRMStreamAnalyticsOutputServiceBusTopicDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.OutputsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_stream_analytics_output_servicebus_topic" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Stream Analytics Output ServiceBus Topic still exists:\n%#v", resp.OutputProperties)
-		}
-	}
-
-	return nil
-}
-
-func testAccAzureRMStreamAnalyticsOutputServiceBusTopic_avro(data acceptance.TestData) string {
-	template := testAccAzureRMStreamAnalyticsOutputServiceBusTopic_template(data)
+func (r StreamAnalyticsOutputServiceBusTopicResource) avro(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -186,8 +132,8 @@ resource "azurerm_stream_analytics_output_servicebus_topic" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsOutputServiceBusTopic_csv(data acceptance.TestData) string {
-	template := testAccAzureRMStreamAnalyticsOutputServiceBusTopic_template(data)
+func (r StreamAnalyticsOutputServiceBusTopicResource) csv(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -209,8 +155,8 @@ resource "azurerm_stream_analytics_output_servicebus_topic" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsOutputServiceBusTopic_json(data acceptance.TestData) string {
-	template := testAccAzureRMStreamAnalyticsOutputServiceBusTopic_template(data)
+func (r StreamAnalyticsOutputServiceBusTopicResource) json(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -232,8 +178,8 @@ resource "azurerm_stream_analytics_output_servicebus_topic" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsOutputServiceBusTopic_updated(data acceptance.TestData) string {
-	template := testAccAzureRMStreamAnalyticsOutputServiceBusTopic_template(data)
+func (r StreamAnalyticsOutputServiceBusTopicResource) updated(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -267,8 +213,8 @@ resource "azurerm_stream_analytics_output_servicebus_topic" "test" {
 `, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsOutputServiceBusTopic_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMStreamAnalyticsOutputServiceBusTopic_json(data)
+func (r StreamAnalyticsOutputServiceBusTopicResource) requiresImport(data acceptance.TestData) string {
+	template := r.json(data)
 	return fmt.Sprintf(`
 %s
 
@@ -292,7 +238,7 @@ resource "azurerm_stream_analytics_output_servicebus_topic" "import" {
 `, template)
 }
 
-func testAccAzureRMStreamAnalyticsOutputServiceBusTopic_template(data acceptance.TestData) string {
+func (r StreamAnalyticsOutputServiceBusTopicResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

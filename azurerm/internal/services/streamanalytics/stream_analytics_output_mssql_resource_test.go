@@ -1,136 +1,88 @@
-package tests
+package streamanalytics_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMStreamAnalyticsOutputSql_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_mssql", "test")
+type StreamAnalyticsOutputSqlResource struct{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputSqlDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStreamAnalyticsOutputSql_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputSqlExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("password"),
+func TestAccStreamAnalyticsOutputSql_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_mssql", "test")
+	r := StreamAnalyticsOutputSqlResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("password"),
 	})
 }
 
-func TestAccAzureRMStreamAnalyticsOutputSql_update(t *testing.T) {
+func TestAccStreamAnalyticsOutputSql_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_mssql", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputSqlDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStreamAnalyticsOutputSql_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputSqlExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMStreamAnalyticsOutputSql_updated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputSqlExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("password"),
+	r := StreamAnalyticsOutputSqlResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		{
+			Config: r.updated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("password"),
 	})
 }
 
-func TestAccAzureRMStreamAnalyticsOutputSql_requiresImport(t *testing.T) {
+func TestAccStreamAnalyticsOutputSql_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_mssql", "test")
+	r := StreamAnalyticsOutputSqlResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputSqlDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStreamAnalyticsOutputSql_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputSqlExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMStreamAnalyticsOutputSql_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_stream_analytics_output_mssql"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckAzureRMStreamAnalyticsOutputSqlExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.OutputsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (r StreamAnalyticsOutputSqlResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	name := state.Attributes["name"]
+	jobName := state.Attributes["stream_analytics_job_name"]
+	resourceGroup := state.Attributes["resource_group_name"]
 
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
+	resp, err := client.StreamAnalytics.OutputsClient.Get(ctx, resourceGroup, jobName, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
 		}
-
-		name := rs.Primary.Attributes["name"]
-		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on streamAnalyticsOutputsClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Stream Output SQL %q (Stream Analytics Job %q / Resource Group %q) does not exist", name, jobName, resourceGroup)
-		}
-
-		return nil
+		return nil, fmt.Errorf("retrieving Stream Output %q (Stream Analytics Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 	}
+	return utils.Bool(true), nil
 }
 
-func testCheckAzureRMStreamAnalyticsOutputSqlDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.OutputsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_stream_analytics_output_mssql" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Stream Analytics Output SQL still exists:\n%#v", resp.OutputProperties)
-		}
-	}
-
-	return nil
-}
-
-func testAccAzureRMStreamAnalyticsOutputSql_basic(data acceptance.TestData) string {
-	template := testAccAzureRMStreamAnalyticsOutputSql_template(data)
+func (r StreamAnalyticsOutputSqlResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -148,8 +100,8 @@ resource "azurerm_stream_analytics_output_mssql" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsOutputSql_updated(data acceptance.TestData) string {
-	template := testAccAzureRMStreamAnalyticsOutputSql_template(data)
+func (r StreamAnalyticsOutputSqlResource) updated(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -167,8 +119,8 @@ resource "azurerm_stream_analytics_output_mssql" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsOutputSql_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMStreamAnalyticsOutputSql_basic(data)
+func (r StreamAnalyticsOutputSqlResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -186,7 +138,7 @@ resource "azurerm_stream_analytics_output_mssql" "import" {
 `, template)
 }
 
-func testAccAzureRMStreamAnalyticsOutputSql_template(data acceptance.TestData) string {
+func (r StreamAnalyticsOutputSqlResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
