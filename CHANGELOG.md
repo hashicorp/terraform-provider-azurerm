@@ -10,6 +10,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_postgresql_server` - Add ForceNew to `geo_redundant_backup_enabled` [GH-9694]
 * `azurerm_signar_service` - fixing a bug when expanding the `cors` block [GH-9671]
 
 ## 2.39.0 (December 04, 2020)
