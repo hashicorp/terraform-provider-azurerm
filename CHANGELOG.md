@@ -4,6 +4,10 @@ FEATURES:
 
 * **New Resource:** `azurerm_digital_twins_endpoint_eventhub` [GH-9673]
 
+IMPROVEMENTS:
+
+* `azurerm_iothub` - Add support for `min_tls_version` [GH-9670]
+
 BUG FIXES:
 
 * `azurerm_signar_service` - fixing a bug when expanding the `cors` block [GH-9671]
