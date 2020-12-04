@@ -26,9 +26,32 @@ func resourceArmBotWebApp() *schema.Resource {
 		Read:   resourceArmBotWebAppRead,
 		Update: resourceArmBotWebAppUpdate,
 		Delete: resourceArmBotWebAppDelete,
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			_, err := parse.BotServiceID(id)
 			return err
+		}, func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+			client := meta.(*clients.Client).Bot.BotClient
+			ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+			defer cancel()
+
+			id, err := parse.BotServiceID(d.Id())
+			if err != nil {
+				return nil, err
+			}
+
+			resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+			if err != nil {
+				if utils.ResponseWasNotFound(resp.Response) {
+					return nil, fmt.Errorf("Web App Bot %q was not found in Resource Group %q", id.Name, id.ResourceGroup)
+				}
+
+				return nil, fmt.Errorf("retrieving Web App Bot %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			}
+			if resp.Kind != botservice.KindSdk {
+				return nil, fmt.Errorf("Bot %q (Resource Group %q) was not a Web App - got %q", id.Name, id.ResourceGroup, string(resp.Kind))
+			}
+
+			return []*schema.ResourceData{d}, nil
 		}),
 
 		Timeouts: &schema.ResourceTimeout{
