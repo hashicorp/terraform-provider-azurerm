@@ -241,9 +241,12 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 	optimizedAutoScale := expandOptimizedAutoScale(d.Get("optimized_auto_scale").([]interface{}))
 
 	if optimizedAutoScale != nil && *optimizedAutoScale.IsEnabled {
-		// if Capacity has not been set use min instances
-		if *sku.Capacity == 0 {
+		// Ensure that requested Capcity is always between min and max to support updating to not overlapping autoscale ranges
+		if *sku.Capacity < *optimizedAutoScale.Minimum {
 			sku.Capacity = utils.Int32(*optimizedAutoScale.Minimum)
+		}
+		if *sku.Capacity > *optimizedAutoScale.Maximum {
+			sku.Capacity = utils.Int32(*optimizedAutoScale.Maximum)
 		}
 
 		// Capacity must be set for the initial creation when using OptimizedAutoScaling but cannot be updated
