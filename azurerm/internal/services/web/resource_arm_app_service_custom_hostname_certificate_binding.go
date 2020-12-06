@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -25,7 +26,7 @@ func resourceArmAppServiceCustomHostnameCertificateBinding() *schema.Resource {
 		Read:   resourceArmAppServiceCustomHostnameCertificateBindingRead,
 		Delete: resourceArmAppServiceCustomHostnameCertificateBindingDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := ParseAppServiceCustomHostnameBindingID(id)
+			_, err := parse.AppServiceCustomHostnameBindingID(id)
 			return err
 		}),
 
@@ -102,7 +103,7 @@ func resourceArmAppServiceCustomHostnameCertificateBindingCreate(d *schema.Resou
 
 	hostname := certID.Name
 
-	id, err := ParseAppServiceCustomHostnameBindingID(hostnameBindingID)
+	id, err := parse.AppServiceCustomHostnameBindingID(hostnameBindingID)
 	if err != nil {
 		return err
 	}
@@ -169,7 +170,7 @@ func resourceArmAppServiceCustomHostnameCertificateBindingRead(d *schema.Resourc
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseAppServiceCustomHostnameBindingID(d.Id())
+	id, err := Parse.parse.AppServiceCustomHostnameBindingID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -205,7 +206,7 @@ func resourceArmAppServiceCustomHostnameCertificateBindingDelete(d *schema.Resou
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseAppServiceCustomHostnameBindingID(d.Id())
+	id, err := parse.AppServiceCustomHostnameBindingID(d.Id())
 	if err != nil {
 		return err
 	}
