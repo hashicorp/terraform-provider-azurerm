@@ -117,6 +117,11 @@ func resourceArmAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData,
 	}
 	appServicePlanID = *appService.SiteProperties.ServerFarmID
 
+	appServicePlanIDParts, err := parse.AppServicePlanID(appServicePlanID)
+	if err != nil {
+		return err
+	}
+
 	appServiceLocation := ""
 	if appService.Location != nil {
 		appServiceLocation = location.Normalize(*appService.Location)
@@ -124,7 +129,7 @@ func resourceArmAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData,
 
 	t := d.Get("tags").(map[string]interface{})
 
-	id := parse.NewManagedCertificateID(subscriptionId, customHostnameBindingId.ResourceGroup, name)
+	id := parse.NewManagedCertificateID(subscriptionId, appServicePlanIDParts.ResourceGroup, name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.CertificateName)
