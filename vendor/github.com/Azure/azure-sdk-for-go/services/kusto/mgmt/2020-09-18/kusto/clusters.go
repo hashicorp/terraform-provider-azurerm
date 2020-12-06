@@ -83,7 +83,7 @@ func (client ClustersClient) AddLanguageExtensionsPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-02-15"
+	const APIVersion = "2020-09-18"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -171,7 +171,7 @@ func (client ClustersClient) CheckNameAvailabilityPreparer(ctx context.Context, 
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-02-15"
+	const APIVersion = "2020-09-18"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -237,7 +237,6 @@ func (client ClustersClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 							}},
 						{Target: "parameters.ClusterProperties.KeyVaultProperties", Name: validation.Null, Rule: false,
 							Chain: []validation.Constraint{{Target: "parameters.ClusterProperties.KeyVaultProperties.KeyName", Name: validation.Null, Rule: true, Chain: nil},
-								{Target: "parameters.ClusterProperties.KeyVaultProperties.KeyVersion", Name: validation.Null, Rule: true, Chain: nil},
 								{Target: "parameters.ClusterProperties.KeyVaultProperties.KeyVaultURI", Name: validation.Null, Rule: true, Chain: nil},
 							}},
 					}}}}}); err != nil {
@@ -267,7 +266,7 @@ func (client ClustersClient) CreateOrUpdatePreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-02-15"
+	const APIVersion = "2020-09-18"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -344,7 +343,7 @@ func (client ClustersClient) DeletePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-02-15"
+	const APIVersion = "2020-09-18"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -426,7 +425,7 @@ func (client ClustersClient) DetachFollowerDatabasesPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-02-15"
+	const APIVersion = "2020-09-18"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -504,7 +503,7 @@ func (client ClustersClient) DiagnoseVirtualNetworkPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-02-15"
+	const APIVersion = "2020-09-18"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -585,7 +584,7 @@ func (client ClustersClient) GetPreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-02-15"
+	const APIVersion = "2020-09-18"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -655,7 +654,7 @@ func (client ClustersClient) ListPreparer(ctx context.Context) (*http.Request, e
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-02-15"
+	const APIVersion = "2020-09-18"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -728,7 +727,7 @@ func (client ClustersClient) ListByResourceGroupPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-02-15"
+	const APIVersion = "2020-09-18"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -804,7 +803,7 @@ func (client ClustersClient) ListFollowerDatabasesPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-02-15"
+	const APIVersion = "2020-09-18"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -879,7 +878,7 @@ func (client ClustersClient) ListLanguageExtensionsPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-02-15"
+	const APIVersion = "2020-09-18"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -949,7 +948,7 @@ func (client ClustersClient) ListSkusPreparer(ctx context.Context) (*http.Reques
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-02-15"
+	const APIVersion = "2020-09-18"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1024,7 +1023,7 @@ func (client ClustersClient) ListSkusByResourcePreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-02-15"
+	const APIVersion = "2020-09-18"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1094,7 +1093,7 @@ func (client ClustersClient) RemoveLanguageExtensionsPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-02-15"
+	const APIVersion = "2020-09-18"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1170,7 +1169,7 @@ func (client ClustersClient) StartPreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-02-15"
+	const APIVersion = "2020-09-18"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1244,7 +1243,7 @@ func (client ClustersClient) StopPreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-02-15"
+	const APIVersion = "2020-09-18"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1319,7 +1318,7 @@ func (client ClustersClient) UpdatePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-02-15"
+	const APIVersion = "2020-09-18"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

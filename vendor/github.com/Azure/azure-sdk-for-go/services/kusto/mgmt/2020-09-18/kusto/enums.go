@@ -68,6 +68,8 @@ const (
 	StandardE2aV4 AzureSkuName = "Standard_E2a_v4"
 	// StandardE4aV4 ...
 	StandardE4aV4 AzureSkuName = "Standard_E4a_v4"
+	// StandardE64iV3 ...
+	StandardE64iV3 AzureSkuName = "Standard_E64i_v3"
 	// StandardE8asV41TBPS ...
 	StandardE8asV41TBPS AzureSkuName = "Standard_E8as_v4+1TB_PS"
 	// StandardE8asV42TBPS ...
@@ -84,7 +86,7 @@ const (
 
 // PossibleAzureSkuNameValues returns an array of possible values for the AzureSkuName const type.
 func PossibleAzureSkuNameValues() []AzureSkuName {
-	return []AzureSkuName{DevNoSLAStandardD11V2, DevNoSLAStandardE2aV4, StandardD11V2, StandardD12V2, StandardD13V2, StandardD14V2, StandardDS13V21TBPS, StandardDS13V22TBPS, StandardDS14V23TBPS, StandardDS14V24TBPS, StandardE16asV43TBPS, StandardE16asV44TBPS, StandardE16aV4, StandardE2aV4, StandardE4aV4, StandardE8asV41TBPS, StandardE8asV42TBPS, StandardE8aV4, StandardL16s, StandardL4s, StandardL8s}
+	return []AzureSkuName{DevNoSLAStandardD11V2, DevNoSLAStandardE2aV4, StandardD11V2, StandardD12V2, StandardD13V2, StandardD14V2, StandardDS13V21TBPS, StandardDS13V22TBPS, StandardDS14V23TBPS, StandardDS14V24TBPS, StandardE16asV43TBPS, StandardE16asV44TBPS, StandardE16aV4, StandardE2aV4, StandardE4aV4, StandardE64iV3, StandardE8asV41TBPS, StandardE8asV42TBPS, StandardE8aV4, StandardL16s, StandardL4s, StandardL8s}
 }
 
 // AzureSkuTier enumerates the values for azure sku tier.
@@ -100,6 +102,21 @@ const (
 // PossibleAzureSkuTierValues returns an array of possible values for the AzureSkuTier const type.
 func PossibleAzureSkuTierValues() []AzureSkuTier {
 	return []AzureSkuTier{Basic, Standard}
+}
+
+// BlobStorageEventType enumerates the values for blob storage event type.
+type BlobStorageEventType string
+
+const (
+	// MicrosoftStorageBlobCreated ...
+	MicrosoftStorageBlobCreated BlobStorageEventType = "Microsoft.Storage.BlobCreated"
+	// MicrosoftStorageBlobRenamed ...
+	MicrosoftStorageBlobRenamed BlobStorageEventType = "Microsoft.Storage.BlobRenamed"
+)
+
+// PossibleBlobStorageEventTypeValues returns an array of possible values for the BlobStorageEventType const type.
+func PossibleBlobStorageEventTypeValues() []BlobStorageEventType {
+	return []BlobStorageEventType{MicrosoftStorageBlobCreated, MicrosoftStorageBlobRenamed}
 }
 
 // ClusterPrincipalRole enumerates the values for cluster principal role.
@@ -189,10 +206,27 @@ func PossibleDefaultPrincipalsModificationKindValues() []DefaultPrincipalsModifi
 	return []DefaultPrincipalsModificationKind{DefaultPrincipalsModificationKindNone, DefaultPrincipalsModificationKindReplace, DefaultPrincipalsModificationKindUnion}
 }
 
+// EngineType enumerates the values for engine type.
+type EngineType string
+
+const (
+	// V2 ...
+	V2 EngineType = "V2"
+	// V3 ...
+	V3 EngineType = "V3"
+)
+
+// PossibleEngineTypeValues returns an array of possible values for the EngineType const type.
+func PossibleEngineTypeValues() []EngineType {
+	return []EngineType{V2, V3}
+}
+
 // EventGridDataFormat enumerates the values for event grid data format.
 type EventGridDataFormat string
 
 const (
+	// APACHEAVRO ...
+	APACHEAVRO EventGridDataFormat = "APACHEAVRO"
 	// AVRO ...
 	AVRO EventGridDataFormat = "AVRO"
 	// CSV ...
@@ -221,17 +255,21 @@ const (
 	TSVE EventGridDataFormat = "TSVE"
 	// TXT ...
 	TXT EventGridDataFormat = "TXT"
+	// W3CLOGFILE ...
+	W3CLOGFILE EventGridDataFormat = "W3CLOGFILE"
 )
 
 // PossibleEventGridDataFormatValues returns an array of possible values for the EventGridDataFormat const type.
 func PossibleEventGridDataFormatValues() []EventGridDataFormat {
-	return []EventGridDataFormat{AVRO, CSV, JSON, MULTIJSON, ORC, PARQUET, PSV, RAW, SCSV, SINGLEJSON, SOHSV, TSV, TSVE, TXT}
+	return []EventGridDataFormat{APACHEAVRO, AVRO, CSV, JSON, MULTIJSON, ORC, PARQUET, PSV, RAW, SCSV, SINGLEJSON, SOHSV, TSV, TSVE, TXT, W3CLOGFILE}
 }
 
 // EventHubDataFormat enumerates the values for event hub data format.
 type EventHubDataFormat string
 
 const (
+	// EventHubDataFormatAPACHEAVRO ...
+	EventHubDataFormatAPACHEAVRO EventHubDataFormat = "APACHEAVRO"
 	// EventHubDataFormatAVRO ...
 	EventHubDataFormatAVRO EventHubDataFormat = "AVRO"
 	// EventHubDataFormatCSV ...
@@ -260,11 +298,13 @@ const (
 	EventHubDataFormatTSVE EventHubDataFormat = "TSVE"
 	// EventHubDataFormatTXT ...
 	EventHubDataFormatTXT EventHubDataFormat = "TXT"
+	// EventHubDataFormatW3CLOGFILE ...
+	EventHubDataFormatW3CLOGFILE EventHubDataFormat = "W3CLOGFILE"
 )
 
 // PossibleEventHubDataFormatValues returns an array of possible values for the EventHubDataFormat const type.
 func PossibleEventHubDataFormatValues() []EventHubDataFormat {
-	return []EventHubDataFormat{EventHubDataFormatAVRO, EventHubDataFormatCSV, EventHubDataFormatJSON, EventHubDataFormatMULTIJSON, EventHubDataFormatORC, EventHubDataFormatPARQUET, EventHubDataFormatPSV, EventHubDataFormatRAW, EventHubDataFormatSCSV, EventHubDataFormatSINGLEJSON, EventHubDataFormatSOHSV, EventHubDataFormatTSV, EventHubDataFormatTSVE, EventHubDataFormatTXT}
+	return []EventHubDataFormat{EventHubDataFormatAPACHEAVRO, EventHubDataFormatAVRO, EventHubDataFormatCSV, EventHubDataFormatJSON, EventHubDataFormatMULTIJSON, EventHubDataFormatORC, EventHubDataFormatPARQUET, EventHubDataFormatPSV, EventHubDataFormatRAW, EventHubDataFormatSCSV, EventHubDataFormatSINGLEJSON, EventHubDataFormatSOHSV, EventHubDataFormatTSV, EventHubDataFormatTSVE, EventHubDataFormatTXT, EventHubDataFormatW3CLOGFILE}
 }
 
 // IdentityType enumerates the values for identity type.
@@ -275,17 +315,23 @@ const (
 	IdentityTypeNone IdentityType = "None"
 	// IdentityTypeSystemAssigned ...
 	IdentityTypeSystemAssigned IdentityType = "SystemAssigned"
+	// IdentityTypeSystemAssignedUserAssigned ...
+	IdentityTypeSystemAssignedUserAssigned IdentityType = "SystemAssigned, UserAssigned"
+	// IdentityTypeUserAssigned ...
+	IdentityTypeUserAssigned IdentityType = "UserAssigned"
 )
 
 // PossibleIdentityTypeValues returns an array of possible values for the IdentityType const type.
 func PossibleIdentityTypeValues() []IdentityType {
-	return []IdentityType{IdentityTypeNone, IdentityTypeSystemAssigned}
+	return []IdentityType{IdentityTypeNone, IdentityTypeSystemAssigned, IdentityTypeSystemAssignedUserAssigned, IdentityTypeUserAssigned}
 }
 
 // IotHubDataFormat enumerates the values for iot hub data format.
 type IotHubDataFormat string
 
 const (
+	// IotHubDataFormatAPACHEAVRO ...
+	IotHubDataFormatAPACHEAVRO IotHubDataFormat = "APACHEAVRO"
 	// IotHubDataFormatAVRO ...
 	IotHubDataFormatAVRO IotHubDataFormat = "AVRO"
 	// IotHubDataFormatCSV ...
@@ -314,11 +360,13 @@ const (
 	IotHubDataFormatTSVE IotHubDataFormat = "TSVE"
 	// IotHubDataFormatTXT ...
 	IotHubDataFormatTXT IotHubDataFormat = "TXT"
+	// IotHubDataFormatW3CLOGFILE ...
+	IotHubDataFormatW3CLOGFILE IotHubDataFormat = "W3CLOGFILE"
 )
 
 // PossibleIotHubDataFormatValues returns an array of possible values for the IotHubDataFormat const type.
 func PossibleIotHubDataFormatValues() []IotHubDataFormat {
-	return []IotHubDataFormat{IotHubDataFormatAVRO, IotHubDataFormatCSV, IotHubDataFormatJSON, IotHubDataFormatMULTIJSON, IotHubDataFormatORC, IotHubDataFormatPARQUET, IotHubDataFormatPSV, IotHubDataFormatRAW, IotHubDataFormatSCSV, IotHubDataFormatSINGLEJSON, IotHubDataFormatSOHSV, IotHubDataFormatTSV, IotHubDataFormatTSVE, IotHubDataFormatTXT}
+	return []IotHubDataFormat{IotHubDataFormatAPACHEAVRO, IotHubDataFormatAVRO, IotHubDataFormatCSV, IotHubDataFormatJSON, IotHubDataFormatMULTIJSON, IotHubDataFormatORC, IotHubDataFormatPARQUET, IotHubDataFormatPSV, IotHubDataFormatRAW, IotHubDataFormatSCSV, IotHubDataFormatSINGLEJSON, IotHubDataFormatSOHSV, IotHubDataFormatTSV, IotHubDataFormatTSVE, IotHubDataFormatTXT, IotHubDataFormatW3CLOGFILE}
 }
 
 // Kind enumerates the values for kind.
