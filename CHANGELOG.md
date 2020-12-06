@@ -6,6 +6,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* `azurerm_kusto_cluster` - Add support for `engine` [GH-9696]
 * `azurerm_iothub` - Add support for `min_tls_version` [GH-9670]
 
 BUG FIXES:
