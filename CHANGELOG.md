@@ -4,8 +4,14 @@ FEATURES:
 
 * **New Resource:** `azurerm_digital_twins_endpoint_eventhub` [GH-9673]
 
+IMPROVEMENTS:
+
+* `azurerm_kusto_cluster` - Add support for `engine` [GH-9696]
+* `azurerm_iothub` - Add support for `min_tls_version` [GH-9670]
+
 BUG FIXES:
 
+* `azurerm_postgresql_server` - Add ForceNew to `geo_redundant_backup_enabled` [GH-9694]
 * `azurerm_signar_service` - fixing a bug when expanding the `cors` block [GH-9671]
 
 ## 2.39.0 (December 04, 2020)
