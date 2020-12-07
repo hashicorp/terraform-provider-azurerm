@@ -1,4 +1,4 @@
-package lighthouse
+package lighthouse_test
 
 import (
 	"fmt"

@@ -1,4 +1,4 @@
-package tests
+package kusto_test
 
 import (
 	"fmt"
