@@ -22,6 +22,7 @@ IMPROVEMENTS:
 * `azurerm_kusto_eventhub_data_connection` - support for `compression` [GH-9692]
 * `azurerm_iothub` - support for the `min_tls_version` property [GH-9670]
 * `azurerm_recovery_services_vault` - support for the `identity` block [GH-9689]
+* `azurerm_security_center_automation` - support for the `description` and `tags` properties [GH-9676]
 
 BUG FIXES:
 
