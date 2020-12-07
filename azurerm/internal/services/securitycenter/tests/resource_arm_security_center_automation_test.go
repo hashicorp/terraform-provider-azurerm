@@ -87,6 +87,39 @@ func TestAccAzureRMSecurityCenterAutomation_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSecurityCenterAutomation_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_security_center_automation", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testAccAzureRMSecurityCenterAutomationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSecurityCenterAutomation_logicApp(data),
+				Check: resource.ComposeTestCheckFunc(
+					testAccAzureRMSecurityCenterAutomationExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("action.0.trigger_url"), // trigger_url needs to be ignored
+			{
+				Config: testAccAzureRMSecurityCenterAutomation_ruleSingle(data),
+				Check: resource.ComposeTestCheckFunc(
+					testAccAzureRMSecurityCenterAutomationExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("action.0.trigger_url"), // trigger_url needs to be ignored
+			{
+				Config: testAccAzureRMSecurityCenterAutomation_logicApp(data),
+				Check: resource.ComposeTestCheckFunc(
+					testAccAzureRMSecurityCenterAutomationExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("action.0.trigger_url"), // trigger_url needs to be ignored
+		},
+	})
+}
+
 func TestAccAzureRMSecurityCenterAutomation_ruleSingle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_automation", "test")
 
