@@ -19,11 +19,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceAsset() *schema.Resource {
+func resourceMediaAsset() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAssetCreateUpdate,
-		Read:   resourceAssetRead,
-		Update: resourceAssetCreateUpdate,
+		Create: resourceMediaAssetCreateUpdate,
+		Read:   resourceMediaAssetRead,
+		Update: resourceMediaAssetCreateUpdate,
 		Delete: resourceAssetDelete,
 
 		Timeouts: &schema.ResourceTimeout{
@@ -95,7 +95,7 @@ func resourceAsset() *schema.Resource {
 	}
 }
 
-func resourceAssetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMediaAssetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.AssetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -133,10 +133,10 @@ func resourceAssetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 	d.SetId(*asset.ID)
 
-	return resourceAssetRead(d, meta)
+	return resourceMediaAssetRead(d, meta)
 }
 
-func resourceAssetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMediaAssetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.AssetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
