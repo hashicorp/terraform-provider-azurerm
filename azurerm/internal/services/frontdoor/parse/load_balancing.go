@@ -21,7 +21,7 @@ func (id LoadBalancingId) ID(subscriptionId string) string {
 	return fmt.Sprintf("%s/loadBalancingSettings/%s", base, id.Name)
 }
 
-func LoadBalancingID(input string) (*LoadBalancingId, error) {
+func LoadBalancingIDInsensitively(input string) (*LoadBalancingId, error) {
 	frontDoorId, id, err := parseFrontDoorChildResourceId(input)
 	if err != nil {
 		return nil, fmt.Errorf("parsing FrontDoor Load Balancing ID %q: %+v", input, err)

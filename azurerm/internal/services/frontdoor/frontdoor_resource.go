@@ -1124,7 +1124,7 @@ func flattenFrontDoorBackendPools(input *[]frontdoor.BackendPool, frontDoorId pa
 			}
 
 			if props.LoadBalancingSettings != nil && props.LoadBalancingSettings.ID != nil {
-				name, err := parse.LoadBalancingID(*props.LoadBalancingSettings.ID)
+				name, err := parse.LoadBalancingIDInsensitively(*props.LoadBalancingSettings.ID)
 				if err != nil {
 					return nil, err
 				}

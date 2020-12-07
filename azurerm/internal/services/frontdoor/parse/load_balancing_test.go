@@ -53,7 +53,7 @@ func TestLoadBalancingIDParser(t *testing.T) {
 	}
 	for _, test := range testData {
 		t.Logf("Testing %q..", test.input)
-		actual, err := LoadBalancingID(test.input)
+		actual, err := LoadBalancingIDInsensitively(test.input)
 		if err != nil && test.expected == nil {
 			continue
 		} else {
