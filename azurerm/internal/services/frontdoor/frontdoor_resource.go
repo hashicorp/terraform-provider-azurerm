@@ -581,7 +581,6 @@ func resourceFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) err
 				customHttpsProvisioningEnabled:  customHttpsProvisioningEnabled,
 				frontendEndpointId:              frontendInputId,
 				provisioningState:               properties.CustomHTTPSProvisioningState,
-				subscriptionId:                  subscriptionId,
 			}
 			if err := updateCustomHttpsConfiguration(ctx, frontendClient, input); err != nil {
 				return fmt.Errorf("updating Custom HTTPS configuration for Frontend Endpoint %q (Front Door %q / Resource Group %q): %+v", endpointName, name, resourceGroup, err)
