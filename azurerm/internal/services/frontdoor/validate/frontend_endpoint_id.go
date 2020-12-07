@@ -13,7 +13,7 @@ func FrontendEndpointID(i interface{}, k string) (warnings []string, errors []er
 		return
 	}
 
-	if _, err := parse.FrontendEndpointIDForImport(v); err != nil {
+	if _, err := parse.FrontendEndpointID(v); err != nil {
 		errors = append(errors, fmt.Errorf("Can not parse %q as a resource id: %v", k, err))
 		return
 	}

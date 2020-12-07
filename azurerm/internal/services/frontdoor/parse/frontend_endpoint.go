@@ -25,7 +25,7 @@ func FrontendEndpointIDInsensitively(input string) (*FrontendEndpointId, error) 
 	return parseFrontendEndpointID(input, false)
 }
 
-func FrontendEndpointIDForImport(input string) (*FrontendEndpointId, error) {
+func FrontendEndpointID(input string) (*FrontendEndpointId, error) {
 	return parseFrontendEndpointID(input, true)
 }
 
