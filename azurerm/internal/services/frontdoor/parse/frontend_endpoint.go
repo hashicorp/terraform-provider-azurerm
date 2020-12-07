@@ -1,67 +1,130 @@
 package parse
 
-import "fmt"
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+)
 
 type FrontendEndpointId struct {
-	ResourceGroup string
-	FrontDoorName string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	FrontDoorName  string
+	Name           string
 }
 
 func NewFrontendEndpointID(subscriptionId, resourceGroup, frontDoorName, name string) FrontendEndpointId {
 	return FrontendEndpointId{
-		ResourceGroup: resourceGroup,
-		FrontDoorName: frontDoorName,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		FrontDoorName:  frontDoorName,
+		Name:           name,
 	}
 }
 
-func (id FrontendEndpointId) ID(subscriptionId string) string {
-	base := NewFrontDoorID(subscriptionId, id.ResourceGroup, id.FrontDoorName).ID(subscriptionId)
-	return fmt.Sprintf("%s/frontendEndpoints/%s", base, id.Name)
+func (id FrontendEndpointId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Front Door Name %q", id.FrontDoorName),
+		fmt.Sprintf("Name %q", id.Name),
+	}
+	return strings.Join(segments, " / ")
 }
 
-func FrontendEndpointIDInsensitively(input string) (*FrontendEndpointId, error) {
-	return parseFrontendEndpointID(input, false)
+func (id FrontendEndpointId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/frontDoors/%s/frontendEndpoints/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.FrontDoorName, id.Name)
 }
 
+// FrontendEndpointID parses a FrontendEndpoint ID into an FrontendEndpointId struct
 func FrontendEndpointID(input string) (*FrontendEndpointId, error) {
-	return parseFrontendEndpointID(input, true)
-}
-
-func parseFrontendEndpointID(input string, caseSensitive bool) (*FrontendEndpointId, error) {
-	frontDoorId, id, err := parseFrontDoorChildResourceId(input)
+	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing Frontend Endpoint ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	endpointId := FrontendEndpointId{
-		ResourceGroup: frontDoorId.ResourceGroup,
-		FrontDoorName: frontDoorId.Name,
+	resourceId := FrontendEndpointId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	// The Azure API (per the ARM Spec/chatting with the ARM Team) should be following Postel's Law;
-	// where ID's are insensitive for Requests but sensitive in responses - but it's not.
-	//
-	// For us this means ID's should be sensitive at import time - but we have to work around these
-	// API bugs for the moment.
-	if caseSensitive {
-		if endpointId.Name, err = id.PopSegment("frontendEndpoints"); err != nil {
-			return nil, err
-		}
-	} else {
-		// https://github.com/Azure/azure-sdk-for-go/issues/6762
-		// note: the ordering is important since the defined case (we want to error with) is frontendEndpoints
-		if endpointId.Name, err = id.PopSegment("FrontendEndpoints"); err != nil {
-			if endpointId.Name, err = id.PopSegment("frontendEndpoints"); err != nil {
-				return nil, err
-			}
-		}
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.FrontDoorName, err = id.PopSegment("frontDoors"); err != nil {
+		return nil, err
+	}
+	if resourceId.Name, err = id.PopSegment("frontendEndpoints"); err != nil {
+		return nil, err
 	}
 
 	if err := id.ValidateNoEmptySegments(input); err != nil {
 		return nil, err
 	}
 
-	return &endpointId, nil
+	return &resourceId, nil
+}
+
+// FrontendEndpointIDInsensitively parses an FrontendEndpoint ID into an FrontendEndpointId struct, insensitively
+// This should only be used to parse an ID for rewriting, the FrontendEndpointID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func FrontendEndpointIDInsensitively(input string) (*FrontendEndpointId, error) {
+	id, err := azure.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := FrontendEndpointId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'frontDoors' segment
+	frontDoorsKey := "frontDoors"
+	for key := range id.Path {
+		if strings.EqualFold(key, frontDoorsKey) {
+			frontDoorsKey = key
+			break
+		}
+	}
+	if resourceId.FrontDoorName, err = id.PopSegment(frontDoorsKey); err != nil {
+		return nil, err
+	}
+
+	// find the correct casing for the 'frontendEndpoints' segment
+	frontendEndpointsKey := "frontendEndpoints"
+	for key := range id.Path {
+		if strings.EqualFold(key, frontendEndpointsKey) {
+			frontendEndpointsKey = key
+			break
+		}
+	}
+	if resourceId.Name, err = id.PopSegment(frontendEndpointsKey); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
 }
