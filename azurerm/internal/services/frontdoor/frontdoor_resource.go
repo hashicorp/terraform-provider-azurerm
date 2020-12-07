@@ -1115,7 +1115,7 @@ func flattenFrontDoorBackendPools(input *[]frontdoor.BackendPool, frontDoorId pa
 			backend = flattenFrontDoorBackend(props.Backends)
 
 			if props.HealthProbeSettings != nil && props.HealthProbeSettings.ID != nil {
-				name, err := parse.HealthProbeID(*props.HealthProbeSettings.ID)
+				name, err := parse.HealthProbeIDInsensitively(*props.HealthProbeSettings.ID)
 				if err != nil {
 					return nil, err
 				}

@@ -21,7 +21,7 @@ func (id HealthProbeId) ID(subscriptionId string) string {
 	return fmt.Sprintf("%s/healthProbeSettings/%s", base, id.Name)
 }
 
-func HealthProbeID(input string) (*HealthProbeId, error) {
+func HealthProbeIDInsensitively(input string) (*HealthProbeId, error) {
 	frontDoorId, id, err := parseFrontDoorChildResourceId(input)
 	if err != nil {
 		return nil, fmt.Errorf("parsing FrontDoor Health Probe ID %q: %+v", input, err)

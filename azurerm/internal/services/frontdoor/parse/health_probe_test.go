@@ -53,7 +53,7 @@ func TestHealthProbeIDParser(t *testing.T) {
 	}
 	for _, test := range testData {
 		t.Logf("Testing %q..", test.input)
-		actual, err := HealthProbeID(test.input)
+		actual, err := HealthProbeIDInsensitively(test.input)
 		if err != nil && test.expected == nil {
 			continue
 		} else {
