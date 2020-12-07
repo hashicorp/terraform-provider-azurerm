@@ -18,13 +18,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-var appServiceCustomHostnameCertificateBindingResourceName = "azurerm_app_service_custom_hostname_certificate_binding"
+var appServiceCertificateBindingResourceName = "azurerm_app_service_certificate_binding"
 
-func resourceArmAppServiceCustomHostnameCertificateBinding() *schema.Resource {
+func resourceArmAppServiceCertificateBinding() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAppServiceCustomHostnameCertificateBindingCreate,
-		Read:   resourceArmAppServiceCustomHostnameCertificateBindingRead,
-		Delete: resourceArmAppServiceCustomHostnameCertificateBindingDelete,
+		Create: resourceArmAppServiceCertificateBindingCreate,
+		Read:   resourceArmAppServiceCertificateBindingRead,
+		Delete: resourceArmAppServiceCertificateBindingDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.AppServiceCustomHostnameBindingID(id)
 			return err
@@ -81,7 +81,7 @@ func resourceArmAppServiceCustomHostnameCertificateBinding() *schema.Resource {
 	}
 }
 
-func resourceArmAppServiceCustomHostnameCertificateBindingCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAppServiceCertificateBindingCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	certClient := meta.(*clients.Client).Web.CertificatesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -120,8 +120,8 @@ func resourceArmAppServiceCustomHostnameCertificateBindingCreate(d *schema.Resou
 	appServiceName := id.AppServiceName
 	resourceGroup := id.ResourceGroup
 
-	locks.ByName(appServiceName, appServiceCustomHostnameCertificateBindingResourceName)
-	defer locks.UnlockByName(appServiceName, appServiceCustomHostnameCertificateBindingResourceName)
+	locks.ByName(appServiceName, appServiceCertificateBindingResourceName)
+	defer locks.UnlockByName(appServiceName, appServiceCertificateBindingResourceName)
 
 	if d.IsNewResource() {
 		props := resp.HostNameBindingProperties
@@ -131,7 +131,7 @@ func resourceArmAppServiceCustomHostnameCertificateBindingCreate(d *schema.Resou
 		}
 
 		if existing {
-			return tf.ImportAsExistsError("azurerm_app_service_custom_hostname_certificate_binding", hostnameBindingID)
+			return tf.ImportAsExistsError("azurerm_app_service_certificate_binding", hostnameBindingID)
 		}
 	}
 
@@ -162,10 +162,10 @@ func resourceArmAppServiceCustomHostnameCertificateBindingCreate(d *schema.Resou
 	d.Set("resource_group_name", resourceGroup)
 	d.SetId(*read.ID)
 
-	return resourceArmAppServiceCustomHostnameCertificateBindingRead(d, meta)
+	return resourceArmAppServiceCertificateBindingRead(d, meta)
 }
 
-func resourceArmAppServiceCustomHostnameCertificateBindingRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAppServiceCertificateBindingRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -201,7 +201,7 @@ func resourceArmAppServiceCustomHostnameCertificateBindingRead(d *schema.Resourc
 	return nil
 }
 
-func resourceArmAppServiceCustomHostnameCertificateBindingDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAppServiceCertificateBindingDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -228,8 +228,8 @@ func resourceArmAppServiceCustomHostnameCertificateBindingDelete(d *schema.Resou
 		return nil
 	}
 
-	locks.ByName(id.AppServiceName, appServiceCustomHostnameCertificateBindingResourceName)
-	defer locks.UnlockByName(id.AppServiceName, appServiceCustomHostnameCertificateBindingResourceName)
+	locks.ByName(id.AppServiceName, appServiceCertificateBindingResourceName)
+	defer locks.UnlockByName(id.AppServiceName, appServiceCertificateBindingResourceName)
 
 	log.Printf("[DEBUG] Deleting App Service Hostname Binding %q (App Service %q / Resource Group %q)", id.Name, id.AppServiceName, id.ResourceGroup)
 
