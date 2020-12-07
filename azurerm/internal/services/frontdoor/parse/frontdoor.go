@@ -8,8 +8,9 @@ import (
 )
 
 type FrontDoorId struct {
-	Name          string
-	ResourceGroup string
+	SubscriptionId string
+	Name           string
+	ResourceGroup  string
 }
 
 func NewFrontDoorID(subscriptionId, resourceGroup, name string) FrontDoorId {
