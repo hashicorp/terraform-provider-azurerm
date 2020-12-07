@@ -172,8 +172,8 @@ func (r DigitalTwinsEndpointServiceBusResource) requiresImport(data acceptance.T
 resource "azurerm_digital_twins_endpoint_servicebus" "import" {
   name                                   = azurerm_digital_twins_endpoint_servicebus.test.name
   digital_twins_id                       = azurerm_digital_twins_endpoint_servicebus.test.digital_twins_id
-  servicebus_primary_connection_string   = azurerm_digital_twins_endpoint_servicebus.test.primary_connection_string
-  servicebus_secondary_connection_string = azurerm_digital_twins_endpoint_servicebus.test.secondary_connection_string
+  servicebus_primary_connection_string   = azurerm_digital_twins_endpoint_servicebus.test.servicebus_primary_connection_string
+  servicebus_secondary_connection_string = azurerm_digital_twins_endpoint_servicebus.test.servicebus_secondary_connection_string
 }
 `, r.basic(data))
 }
@@ -273,8 +273,8 @@ resource "azurerm_storage_container" "test" {
 resource "azurerm_digital_twins_endpoint_servicebus" "test" {
   name                                   = "acctest-EndpointSB-%[3]d"
   digital_twins_id                       = azurerm_digital_twins_instance.test.id
-  servicebus_primary_connection_string   = azurerm_servicebus_namespace.test.primary_connection_string
-  servicebus_secondary_connection_string = azurerm_servicebus_namespace.test.secondary_connection_string
+  servicebus_primary_connection_string   = azurerm_servicebus_topic_authorization_rule.test.primary_connection_string
+  servicebus_secondary_connection_string = azurerm_servicebus_topic_authorization_rule.test.secondary_connection_string
   dead_letter_storage_secret             = "${azurerm_storage_container.test.id}?${azurerm_storage_account.test.primary_access_key}"
 }
 `, r.template(data), data.RandomString, data.RandomInteger)
@@ -301,8 +301,8 @@ resource "azurerm_storage_container" "test" {
 resource "azurerm_digital_twins_endpoint_servicebus" "test" {
   name                                   = "acctest-EndpointSB-%[3]d"
   digital_twins_id                       = azurerm_digital_twins_instance.test.id
-  servicebus_primary_connection_string   = azurerm_servicebus_namespace.test.primary_connection_string
-  servicebus_secondary_connection_string = azurerm_servicebus_namespace.test.secondary_connection_string
+  servicebus_primary_connection_string   = azurerm_servicebus_topic_authorization_rule.test.primary_connection_string
+  servicebus_secondary_connection_string = azurerm_servicebus_topic_authorization_rule.test.secondary_connection_string
 }
 `, r.template(data), data.RandomString, data.RandomInteger)
 }
