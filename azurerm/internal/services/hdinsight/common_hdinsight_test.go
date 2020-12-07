@@ -1,4 +1,4 @@
-package tests
+package hdinsight_test
 
 import (
 	"fmt"

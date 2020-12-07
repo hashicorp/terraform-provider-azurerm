@@ -1,4 +1,4 @@
-package tests
+package hdinsight_test
 
 import (
 	"fmt"
@@ -8,15 +8,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccAzureRMHDInsightSparkCluster_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
+func TestAccAzureRMHDInsightHadoopCluster_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHDInsightSparkCluster_basic(data),
+				Config: testAccAzureRMHDInsightHadoopCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
@@ -34,15 +34,51 @@ func TestAccAzureRMHDInsightSparkCluster_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHDInsightSparkCluster_gen2basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
+func TestAccAzureRMHDInsightHadoopCluster_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHDInsightSparkCluster_gen2basic(data),
+				Config: testAccAzureRMHDInsightHadoopCluster_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
+				),
+			},
+			data.RequiresImportErrorStep(testAccAzureRMHDInsightHadoopCluster_requiresImport),
+		},
+	})
+}
+
+func TestAccAzureRMHDInsightHadoopCluster_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMHDInsightHadoopCluster_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
+				),
+			},
+			data.ImportStep("roles.0.head_node.0.password",
+				"roles.0.head_node.0.vm_size",
+				"roles.0.worker_node.0.password",
+				"roles.0.worker_node.0.vm_size",
+				"roles.0.zookeeper_node.0.password",
+				"roles.0.zookeeper_node.0.vm_size",
+				"storage_account"),
+			{
+				Config: testAccAzureRMHDInsightHadoopCluster_updated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
@@ -60,77 +96,15 @@ func TestAccAzureRMHDInsightSparkCluster_gen2basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHDInsightSparkCluster_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
-
+func TestAccAzureRMHDInsightHadoopCluster_sshKeys(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHDInsightSparkCluster_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMHDInsightSparkCluster_requiresImport),
-		},
-	})
-}
-
-func TestAccAzureRMHDInsightSparkCluster_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMHDInsightSparkCluster_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
-				),
-			},
-			data.ImportStep("roles.0.head_node.0.password",
-				"roles.0.head_node.0.vm_size",
-				"roles.0.worker_node.0.password",
-				"roles.0.worker_node.0.vm_size",
-				"roles.0.zookeeper_node.0.password",
-				"roles.0.zookeeper_node.0.vm_size",
-				"storage_account"),
-			{
-				Config: testAccAzureRMHDInsightSparkCluster_updated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
-				),
-			},
-			data.ImportStep("roles.0.head_node.0.password",
-				"roles.0.head_node.0.vm_size",
-				"roles.0.worker_node.0.password",
-				"roles.0.worker_node.0.vm_size",
-				"roles.0.zookeeper_node.0.password",
-				"roles.0.zookeeper_node.0.vm_size",
-				"storage_account"),
-		},
-	})
-}
-
-func TestAccAzureRMHDInsightSparkCluster_sshKeys(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMHDInsightSparkCluster_sshKeys(data),
+				Config: testAccAzureRMHDInsightHadoopCluster_sshKeys(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
@@ -148,15 +122,15 @@ func TestAccAzureRMHDInsightSparkCluster_sshKeys(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHDInsightSparkCluster_virtualNetwork(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
+func TestAccAzureRMHDInsightHadoopCluster_virtualNetwork(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHDInsightSparkCluster_virtualNetwork(data),
+				Config: testAccAzureRMHDInsightHadoopCluster_virtualNetwork(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
@@ -174,15 +148,15 @@ func TestAccAzureRMHDInsightSparkCluster_virtualNetwork(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHDInsightSparkCluster_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
+func TestAccAzureRMHDInsightHadoopCluster_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHDInsightSparkCluster_complete(data),
+				Config: testAccAzureRMHDInsightHadoopCluster_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
@@ -200,15 +174,103 @@ func TestAccAzureRMHDInsightSparkCluster_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHDInsightSparkCluster_tls(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
+func TestAccAzureRMHDInsightHadoopCluster_edgeNodeBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHDInsightSparkCluster_tls(data),
+				Config: testAccAzureRMHDInsightHadoopCluster_edgeNodeBasic(data, 2, "Standard_D3_V2"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
+				),
+			},
+			data.ImportStep("roles.0.head_node.0.password",
+				"roles.0.head_node.0.vm_size",
+				"roles.0.worker_node.0.password",
+				"roles.0.worker_node.0.vm_size",
+				"roles.0.zookeeper_node.0.password",
+				"roles.0.zookeeper_node.0.vm_size",
+				"roles.0.edge_node.0.password",
+				"roles.0.edge_node.0.vm_size",
+				"storage_account"),
+		},
+	})
+}
+
+func TestAccAzureRMHDInsightHadoopCluster_addEdgeNodeBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMHDInsightHadoopCluster_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
+				),
+			},
+			data.ImportStep("roles.0.head_node.0.password",
+				"roles.0.head_node.0.vm_size",
+				"roles.0.worker_node.0.password",
+				"roles.0.worker_node.0.vm_size",
+				"roles.0.zookeeper_node.0.password",
+				"roles.0.zookeeper_node.0.vm_size",
+				"storage_account"),
+			{
+				Config: testAccAzureRMHDInsightHadoopCluster_edgeNodeBasic(data, 1, "Standard_D3_V2"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
+				),
+			},
+			data.ImportStep("roles.0.head_node.0.password",
+				"roles.0.head_node.0.vm_size",
+				"roles.0.worker_node.0.password",
+				"roles.0.worker_node.0.vm_size",
+				"roles.0.zookeeper_node.0.password",
+				"roles.0.zookeeper_node.0.vm_size",
+				"roles.0.edge_node.0.password",
+				"roles.0.edge_node.0.vm_size",
+				"storage_account"),
+			{
+				Config: testAccAzureRMHDInsightHadoopCluster_edgeNodeBasic(data, 3, "Standard_D4_V2"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
+				),
+			},
+			data.ImportStep("roles.0.head_node.0.password",
+				"roles.0.head_node.0.vm_size",
+				"roles.0.worker_node.0.password",
+				"roles.0.worker_node.0.vm_size",
+				"roles.0.zookeeper_node.0.password",
+				"roles.0.zookeeper_node.0.vm_size",
+				"roles.0.edge_node.0.password",
+				"roles.0.edge_node.0.vm_size",
+				"storage_account"),
+		},
+	})
+}
+
+func TestAccAzureRMHDInsightHadoopCluster_gen2storage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMHDInsightHadoopCluster_gen2storage(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
@@ -226,15 +288,67 @@ func TestAccAzureRMHDInsightSparkCluster_tls(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHDInsightSparkCluster_allMetastores(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
+func TestAccAzureRMHDInsightHadoopCluster_gen2AndBlobStorage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHDInsightSparkCluster_allMetastores(data),
+				Config: testAccAzureRMHDInsightHadoopCluster_gen2AndBlobStorage(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
+				),
+			},
+			data.ImportStep("roles.0.head_node.0.password",
+				"roles.0.head_node.0.vm_size",
+				"roles.0.worker_node.0.password",
+				"roles.0.worker_node.0.vm_size",
+				"roles.0.zookeeper_node.0.password",
+				"roles.0.zookeeper_node.0.vm_size",
+				"storage_account"),
+		},
+	})
+}
+
+func TestAccAzureRMHDInsightHadoopCluster_tls(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMHDInsightHadoopCluster_tls(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
+				),
+			},
+			data.ImportStep("roles.0.head_node.0.password",
+				"roles.0.head_node.0.vm_size",
+				"roles.0.worker_node.0.password",
+				"roles.0.worker_node.0.vm_size",
+				"roles.0.zookeeper_node.0.password",
+				"roles.0.zookeeper_node.0.vm_size",
+				"storage_account"),
+		},
+	})
+}
+
+func TestAccAzureRMHDInsightHadoopCluster_allMetastores(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMHDInsightHadoopCluster_allMetastores(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
@@ -255,15 +369,15 @@ func TestAccAzureRMHDInsightSparkCluster_allMetastores(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHDInsightSparkCluster_hiveMetastore(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
+func TestAccAzureRMHDInsightHadoopCluster_hiveMetastore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHDInsightSparkCluster_hiveMetastore(data),
+				Config: testAccAzureRMHDInsightHadoopCluster_hiveMetastore(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
@@ -274,15 +388,15 @@ func TestAccAzureRMHDInsightSparkCluster_hiveMetastore(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHDInsightSparkCluster_updateMetastore(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
+func TestAccAzureRMHDInsightHadoopCluster_updateMetastore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHDInsightSparkCluster_hiveMetastore(data),
+				Config: testAccAzureRMHDInsightHadoopCluster_hiveMetastore(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
@@ -300,7 +414,7 @@ func TestAccAzureRMHDInsightSparkCluster_updateMetastore(t *testing.T) {
 				"metastores.0.oozie.0.password",
 				"metastores.0.ambari.0.password"),
 			{
-				Config: testAccAzureRMHDInsightSparkCluster_allMetastores(data),
+				Config: testAccAzureRMHDInsightHadoopCluster_allMetastores(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
@@ -321,15 +435,15 @@ func TestAccAzureRMHDInsightSparkCluster_updateMetastore(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHDInsightSparkCluster_monitor(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
+func TestAccAzureRMHDInsightHadoopCluster_monitor(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHDInsightSparkCluster_monitor(data),
+				Config: testAccAzureRMHDInsightHadoopCluster_monitor(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
@@ -347,8 +461,49 @@ func TestAccAzureRMHDInsightSparkCluster_monitor(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHDInsightSparkCluster_updateMonitor(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
+func TestAccAzureRMHDInsightHadoopCluster_updateGateway(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMHDInsightHadoopCluster_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
+				),
+			},
+			data.ImportStep("roles.0.head_node.0.password",
+				"roles.0.head_node.0.vm_size",
+				"roles.0.worker_node.0.password",
+				"roles.0.worker_node.0.vm_size",
+				"roles.0.zookeeper_node.0.password",
+				"roles.0.zookeeper_node.0.vm_size",
+				"storage_account"),
+			{
+				Config: testAccAzureRMHDInsightHadoopCluster_updateGateway(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
+				),
+			},
+			data.ImportStep("roles.0.head_node.0.password",
+				"roles.0.head_node.0.vm_size",
+				"roles.0.worker_node.0.password",
+				"roles.0.worker_node.0.vm_size",
+				"roles.0.zookeeper_node.0.password",
+				"roles.0.zookeeper_node.0.vm_size",
+				"storage_account"),
+		},
+	})
+}
+
+func TestAccAzureRMHDInsightHadoopCluster_updateMonitor(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
@@ -356,7 +511,7 @@ func TestAccAzureRMHDInsightSparkCluster_updateMonitor(t *testing.T) {
 		Steps: []resource.TestStep{
 			// No monitor
 			{
-				Config: testAccAzureRMHDInsightSparkCluster_basic(data),
+				Config: testAccAzureRMHDInsightHadoopCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
@@ -372,7 +527,7 @@ func TestAccAzureRMHDInsightSparkCluster_updateMonitor(t *testing.T) {
 				"storage_account"),
 			// Add monitor
 			{
-				Config: testAccAzureRMHDInsightSparkCluster_monitor(data),
+				Config: testAccAzureRMHDInsightHadoopCluster_monitor(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
@@ -391,7 +546,7 @@ func TestAccAzureRMHDInsightSparkCluster_updateMonitor(t *testing.T) {
 				PreConfig: func() {
 					data.RandomString += "new"
 				},
-				Config: testAccAzureRMHDInsightSparkCluster_monitor(data),
+				Config: testAccAzureRMHDInsightHadoopCluster_monitor(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
@@ -407,7 +562,7 @@ func TestAccAzureRMHDInsightSparkCluster_updateMonitor(t *testing.T) {
 				"storage_account"),
 			// Remove monitor
 			{
-				Config: testAccAzureRMHDInsightSparkCluster_basic(data),
+				Config: testAccAzureRMHDInsightHadoopCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
@@ -425,12 +580,12 @@ func TestAccAzureRMHDInsightSparkCluster_updateMonitor(t *testing.T) {
 	})
 }
 
-func testAccAzureRMHDInsightSparkCluster_basic(data acceptance.TestData) string {
-	template := testAccAzureRMHDInsightSparkCluster_template(data)
+func testAccAzureRMHDInsightHadoopCluster_basic(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightHadoopCluster_template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_hdinsight_spark_cluster" "test" {
+resource "azurerm_hdinsight_hadoop_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -438,11 +593,10 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   tier                = "Standard"
 
   component_version {
-    spark = "2.4"
+    hadoop = "3.1"
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
@@ -455,20 +609,20 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_D3_v2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_D4_V2"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
-      target_instance_count = 3
+      target_instance_count = 2
     }
 
     zookeeper_node {
-      vm_size  = "Medium"
+      vm_size  = "Standard_D3_v2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -477,80 +631,25 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMHDInsightSparkCluster_gen2basic(data acceptance.TestData) string {
-	template := testAccAzureRMHDInsightSparkCluster_gen2template(data)
+func testAccAzureRMHDInsightHadoopCluster_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightHadoopCluster_basic(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_hdinsight_spark_cluster" "test" {
-  depends_on = [azurerm_role_assignment.test]
-
-  name                = "acctesthdi-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  cluster_version     = "4.0"
-  tier                = "Standard"
-
-  component_version {
-    spark = "2.4"
-  }
-
-  gateway {
-    enabled  = true
-    username = "acctestusrgw"
-    password = "TerrAform123!"
-  }
-
-  storage_account_gen2 {
-    storage_resource_id          = azurerm_storage_account.gen2test.id
-    filesystem_id                = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
-    managed_identity_resource_id = azurerm_user_assigned_identity.test.id
-    is_default                   = true
-  }
-
-  roles {
-    head_node {
-      vm_size  = "Standard_A4_V2"
-      username = "acctestusrvm"
-      password = "AccTestvdSC4daf986!"
-    }
-
-    worker_node {
-      vm_size               = "Standard_A4_V2"
-      username              = "acctestusrvm"
-      password              = "AccTestvdSC4daf986!"
-      target_instance_count = 3
-    }
-
-    zookeeper_node {
-      vm_size  = "Medium"
-      username = "acctestusrvm"
-      password = "AccTestvdSC4daf986!"
-    }
-  }
-}
-`, template, data.RandomInteger)
-}
-
-func testAccAzureRMHDInsightSparkCluster_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMHDInsightSparkCluster_basic(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_hdinsight_spark_cluster" "import" {
-  name                = azurerm_hdinsight_spark_cluster.test.name
-  resource_group_name = azurerm_hdinsight_spark_cluster.test.resource_group_name
-  location            = azurerm_hdinsight_spark_cluster.test.location
-  cluster_version     = azurerm_hdinsight_spark_cluster.test.cluster_version
-  tier                = azurerm_hdinsight_spark_cluster.test.tier
+resource "azurerm_hdinsight_hadoop_cluster" "import" {
+  name                = azurerm_hdinsight_hadoop_cluster.test.name
+  resource_group_name = azurerm_hdinsight_hadoop_cluster.test.resource_group_name
+  location            = azurerm_hdinsight_hadoop_cluster.test.location
+  cluster_version     = azurerm_hdinsight_hadoop_cluster.test.cluster_version
+  tier                = azurerm_hdinsight_hadoop_cluster.test.tier
   dynamic "component_version" {
-    for_each = azurerm_hdinsight_spark_cluster.test.component_version
+    for_each = azurerm_hdinsight_hadoop_cluster.test.component_version
     content {
-      spark = component_version.value.spark
+      hadoop = component_version.value.hadoop
     }
   }
   dynamic "gateway" {
-    for_each = azurerm_hdinsight_spark_cluster.test.gateway
+    for_each = azurerm_hdinsight_hadoop_cluster.test.gateway
     content {
       enabled  = gateway.value.enabled
       password = gateway.value.password
@@ -558,7 +657,7 @@ resource "azurerm_hdinsight_spark_cluster" "import" {
     }
   }
   dynamic "storage_account" {
-    for_each = azurerm_hdinsight_spark_cluster.test.storage_account
+    for_each = azurerm_hdinsight_hadoop_cluster.test.storage_account
     content {
       is_default           = storage_account.value.is_default
       storage_account_key  = storage_account.value.storage_account_key
@@ -566,8 +665,24 @@ resource "azurerm_hdinsight_spark_cluster" "import" {
     }
   }
   dynamic "roles" {
-    for_each = azurerm_hdinsight_spark_cluster.test.roles
+    for_each = azurerm_hdinsight_hadoop_cluster.test.roles
     content {
+      dynamic "edge_node" {
+        for_each = lookup(roles.value, "edge_node", [])
+        content {
+          target_instance_count = edge_node.value.target_instance_count
+          vm_size               = edge_node.value.vm_size
+
+          dynamic "install_script_action" {
+            for_each = lookup(edge_node.value, "install_script_action", [])
+            content {
+              name = install_script_action.value.name
+              uri  = install_script_action.value.uri
+            }
+          }
+        }
+      }
+
       dynamic "head_node" {
         for_each = lookup(roles.value, "head_node", [])
         content {
@@ -607,8 +722,8 @@ resource "azurerm_hdinsight_spark_cluster" "import" {
 `, template)
 }
 
-func testAccAzureRMHDInsightSparkCluster_sshKeys(data acceptance.TestData) string {
-	template := testAccAzureRMHDInsightSparkCluster_template(data)
+func testAccAzureRMHDInsightHadoopCluster_sshKeys(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightHadoopCluster_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -616,7 +731,7 @@ variable "ssh_key" {
   default = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
 }
 
-resource "azurerm_hdinsight_spark_cluster" "test" {
+resource "azurerm_hdinsight_hadoop_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -624,7 +739,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   tier                = "Standard"
 
   component_version {
-    spark = "2.4"
+    hadoop = "3.1"
   }
 
   gateway {
@@ -641,20 +756,20 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_D3_v2"
       username = "acctestusrvm"
       ssh_keys = [var.ssh_key]
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_D4_v2"
       username              = "acctestusrvm"
       ssh_keys              = [var.ssh_key]
       target_instance_count = 3
     }
 
     zookeeper_node {
-      vm_size  = "Medium"
+      vm_size  = "Standard_D3_v2"
       username = "acctestusrvm"
       ssh_keys = [var.ssh_key]
     }
@@ -663,12 +778,12 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMHDInsightSparkCluster_updated(data acceptance.TestData) string {
-	template := testAccAzureRMHDInsightSparkCluster_template(data)
+func testAccAzureRMHDInsightHadoopCluster_updated(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightHadoopCluster_template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_hdinsight_spark_cluster" "test" {
+resource "azurerm_hdinsight_hadoop_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -676,7 +791,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   tier                = "Standard"
 
   component_version {
-    spark = "2.4"
+    hadoop = "3.1"
   }
 
   gateway {
@@ -693,20 +808,20 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_D3_v2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_D4_v2"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 5
     }
 
     zookeeper_node {
-      vm_size  = "Medium"
+      vm_size  = "Standard_D3_v2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -719,8 +834,8 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMHDInsightSparkCluster_virtualNetwork(data acceptance.TestData) string {
-	template := testAccAzureRMHDInsightSparkCluster_template(data)
+func testAccAzureRMHDInsightHadoopCluster_virtualNetwork(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightHadoopCluster_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -738,7 +853,7 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_hdinsight_spark_cluster" "test" {
+resource "azurerm_hdinsight_hadoop_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -746,7 +861,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   tier                = "Standard"
 
   component_version {
-    spark = "2.4"
+    hadoop = "3.1"
   }
 
   gateway {
@@ -763,7 +878,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 
   roles {
     head_node {
-      vm_size            = "Standard_A4_V2"
+      vm_size            = "Standard_D3_v2"
       username           = "acctestusrvm"
       password           = "AccTestvdSC4daf986!"
       subnet_id          = azurerm_subnet.test.id
@@ -771,7 +886,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_D4_v2"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 3
@@ -780,7 +895,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size            = "Medium"
+      vm_size            = "Standard_D3_v2"
       username           = "acctestusrvm"
       password           = "AccTestvdSC4daf986!"
       subnet_id          = azurerm_subnet.test.id
@@ -791,8 +906,8 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 `, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMHDInsightSparkCluster_complete(data acceptance.TestData) string {
-	template := testAccAzureRMHDInsightSparkCluster_template(data)
+func testAccAzureRMHDInsightHadoopCluster_complete(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightHadoopCluster_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -810,7 +925,7 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_hdinsight_spark_cluster" "test" {
+resource "azurerm_hdinsight_hadoop_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -818,7 +933,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   tier                = "Standard"
 
   component_version {
-    spark = "2.4"
+    hadoop = "3.1"
   }
 
   gateway {
@@ -835,7 +950,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 
   roles {
     head_node {
-      vm_size            = "Standard_A4_V2"
+      vm_size            = "Standard_D3_v2"
       username           = "acctestusrvm"
       password           = "AccTestvdSC4daf986!"
       subnet_id          = azurerm_subnet.test.id
@@ -843,7 +958,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_D4_v2"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 3
@@ -852,7 +967,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size            = "Medium"
+      vm_size            = "Standard_D3_v2"
       username           = "acctestusrvm"
       password           = "AccTestvdSC4daf986!"
       subnet_id          = azurerm_subnet.test.id
@@ -867,7 +982,184 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 `, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMHDInsightSparkCluster_template(data acceptance.TestData) string {
+func testAccAzureRMHDInsightHadoopCluster_edgeNodeBasic(data acceptance.TestData, numEdgeNodes int, instanceType string) string {
+	template := testAccAzureRMHDInsightHadoopCluster_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hdinsight_hadoop_cluster" "test" {
+  name                = "acctesthdi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_version     = "4.0"
+  tier                = "Standard"
+
+  component_version {
+    hadoop = "3.1"
+  }
+
+  gateway {
+    enabled  = true
+    username = "acctestusrgw"
+    password = "TerrAform123!"
+  }
+
+  storage_account {
+    storage_container_id = azurerm_storage_container.test.id
+    storage_account_key  = azurerm_storage_account.test.primary_access_key
+    is_default           = true
+  }
+
+  roles {
+    head_node {
+      vm_size  = "Standard_D3_v2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+
+    worker_node {
+      vm_size               = "Standard_D4_V2"
+      username              = "acctestusrvm"
+      password              = "AccTestvdSC4daf986!"
+      target_instance_count = 2
+    }
+
+    zookeeper_node {
+      vm_size  = "Standard_D3_v2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+
+    edge_node {
+      target_instance_count = %d
+      vm_size               = "%s"
+      install_script_action {
+        name = "script1"
+        uri  = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-hdinsight-linux-with-edge-node/scripts/EmptyNodeSetup.sh"
+      }
+    }
+  }
+}
+`, template, data.RandomInteger, numEdgeNodes, instanceType)
+}
+
+func testAccAzureRMHDInsightHadoopCluster_gen2storage(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightHadoopCluster_gen2template(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_hdinsight_hadoop_cluster" "test" {
+  depends_on = [azurerm_role_assignment.test]
+
+  name                = "acctesthdi-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  cluster_version     = "4.0"
+  tier                = "Standard"
+  component_version {
+    hadoop = "3.1"
+  }
+  gateway {
+    enabled  = true
+    username = "acctestusrgw"
+    password = "TerrAform123!"
+  }
+  storage_account_gen2 {
+    storage_resource_id          = azurerm_storage_account.gen2test.id
+    filesystem_id                = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
+    managed_identity_resource_id = azurerm_user_assigned_identity.test.id
+    is_default                   = true
+  }
+  roles {
+    head_node {
+      vm_size  = "Standard_D3_v2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+    worker_node {
+      vm_size               = "Standard_D4_V2"
+      username              = "acctestusrvm"
+      password              = "AccTestvdSC4daf986!"
+      target_instance_count = 2
+    }
+    zookeeper_node {
+      vm_size  = "Standard_D3_v2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMHDInsightHadoopCluster_gen2AndBlobStorage(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightHadoopCluster_gen2template(data)
+
+	return fmt.Sprintf(`
+%s
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "acctest"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
+}
+
+resource "azurerm_hdinsight_hadoop_cluster" "test" {
+  depends_on = [azurerm_role_assignment.test]
+
+  name                = "acctesthdi-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  cluster_version     = "4.0"
+  tier                = "Standard"
+  component_version {
+    hadoop = "3.1"
+  }
+  gateway {
+    enabled  = true
+    username = "acctestusrgw"
+    password = "TerrAform123!"
+  }
+  storage_account_gen2 {
+    storage_resource_id          = azurerm_storage_account.gen2test.id
+    filesystem_id                = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
+    managed_identity_resource_id = azurerm_user_assigned_identity.test.id
+    is_default                   = true
+  }
+  storage_account {
+    storage_container_id = "${azurerm_storage_container.test.id}"
+    storage_account_key  = "${azurerm_storage_account.test.primary_access_key}"
+    is_default           = false
+  }
+  roles {
+    head_node {
+      vm_size  = "Standard_D3_v2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+    worker_node {
+      vm_size               = "Standard_D4_V2"
+      username              = "acctestusrvm"
+      password              = "AccTestvdSC4daf986!"
+      target_instance_count = 2
+    }
+    zookeeper_node {
+      vm_size  = "Standard_D3_v2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+  }
+}
+`, template, data.RandomString, data.RandomInteger)
+}
+
+func testAccAzureRMHDInsightHadoopCluster_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -894,7 +1186,7 @@ resource "azurerm_storage_container" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMHDInsightSparkCluster_gen2template(data acceptance.TestData) string {
+func testAccAzureRMHDInsightHadoopCluster_gen2template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -929,59 +1221,54 @@ resource "azurerm_user_assigned_identity" "test" {
 
 data "azurerm_subscription" "primary" {}
 
+
 resource "azurerm_role_assignment" "test" {
   scope                = "${data.azurerm_subscription.primary.id}"
   role_definition_name = "Storage Blob Data Owner"
   principal_id         = "${azurerm_user_assigned_identity.test.principal_id}"
 }
+
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMHDInsightSparkCluster_tls(data acceptance.TestData) string {
-	template := testAccAzureRMHDInsightSparkCluster_template(data)
+func testAccAzureRMHDInsightHadoopCluster_tls(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightHadoopCluster_template(data)
 	return fmt.Sprintf(`
 %s
-
-resource "azurerm_hdinsight_spark_cluster" "test" {
+resource "azurerm_hdinsight_hadoop_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   cluster_version     = "4.0"
   tier                = "Standard"
   tls_min_version     = "1.2"
-
   component_version {
-    spark = "2.4"
+    hadoop = "3.1"
   }
-
   gateway {
     enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
-
   storage_account {
     storage_container_id = azurerm_storage_container.test.id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
-
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_D3_v2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
-
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_D4_V2"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
-      target_instance_count = 3
+      target_instance_count = 2
     }
-
     zookeeper_node {
-      vm_size  = "Medium"
+      vm_size  = "Standard_D3_v2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -990,8 +1277,8 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMHDInsightSparkCluster_allMetastores(data acceptance.TestData) string {
-	template := testAccAzureRMHDInsightSparkCluster_template(data)
+func testAccAzureRMHDInsightHadoopCluster_allMetastores(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightHadoopCluster_template(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_sql_server" "test" {
@@ -1036,14 +1323,14 @@ resource "azurerm_sql_firewall_rule" "AzureServices" {
   start_ip_address    = "0.0.0.0"
   end_ip_address      = "0.0.0.0"
 }
-resource "azurerm_hdinsight_spark_cluster" "test" {
+resource "azurerm_hdinsight_hadoop_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   cluster_version     = "4.0"
   tier                = "Standard"
   component_version {
-    spark = "2.4"
+    hadoop = "3.1"
   }
   gateway {
     enabled  = true
@@ -1097,8 +1384,8 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMHDInsightSparkCluster_hiveMetastore(data acceptance.TestData) string {
-	template := testAccAzureRMHDInsightSparkCluster_template(data)
+func testAccAzureRMHDInsightHadoopCluster_hiveMetastore(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightHadoopCluster_template(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_sql_server" "test" {
@@ -1125,14 +1412,14 @@ resource "azurerm_sql_firewall_rule" "AzureServices" {
   start_ip_address    = "0.0.0.0"
   end_ip_address      = "0.0.0.0"
 }
-resource "azurerm_hdinsight_spark_cluster" "test" {
+resource "azurerm_hdinsight_hadoop_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   cluster_version     = "4.0"
   tier                = "Standard"
   component_version {
-    spark = "2.4"
+    hadoop = "3.1"
   }
   gateway {
     enabled  = true
@@ -1174,8 +1461,8 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMHDInsightSparkCluster_monitor(data acceptance.TestData) string {
-	template := testAccAzureRMHDInsightSparkCluster_template(data)
+func testAccAzureRMHDInsightHadoopCluster_monitor(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightHadoopCluster_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1186,7 +1473,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   sku                 = "PerGB2018"
 }
 
-resource "azurerm_hdinsight_spark_cluster" "test" {
+resource "azurerm_hdinsight_hadoop_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -1194,7 +1481,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   tier                = "Standard"
 
   component_version {
-    spark = "2.4"
+    hadoop = "3.1"
   }
 
   gateway {
@@ -1211,20 +1498,20 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_A4_V2"
+      vm_size  = "Standard_D3_v2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_A4_V2"
+      vm_size               = "Standard_D4_V2"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
-      target_instance_count = 3
+      target_instance_count = 2
     }
 
     zookeeper_node {
-      vm_size  = "Medium"
+      vm_size  = "Standard_D3_v2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -1236,4 +1523,48 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   }
 }
 `, template, data.RandomString, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMHDInsightHadoopCluster_updateGateway(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightHadoopCluster_template(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_hdinsight_hadoop_cluster" "test" {
+  name                = "acctesthdi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_version     = "4.0"
+  tier                = "Standard"
+  component_version {
+    hadoop = "3.1"
+  }
+  gateway {
+    username = "acctestusrgw"
+    password = "TerrAformne3!"
+  }
+  storage_account {
+    storage_container_id = azurerm_storage_container.test.id
+    storage_account_key  = azurerm_storage_account.test.primary_access_key
+    is_default           = true
+  }
+  roles {
+    head_node {
+      vm_size  = "Standard_D3_v2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+    worker_node {
+      vm_size               = "Standard_D4_V2"
+      username              = "acctestusrvm"
+      password              = "AccTestvdSC4daf986!"
+      target_instance_count = 2
+    }
+    zookeeper_node {
+      vm_size  = "Standard_D3_v2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+  }
+}
+`, template, data.RandomInteger)
 }
