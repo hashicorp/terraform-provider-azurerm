@@ -92,7 +92,7 @@ func resourceArmAppServiceCustomHostnameCertificateBindingCreate(d *schema.Resou
 	hostnameBindingID := d.Get("hostname_binding_id").(string)
 	certificateID := d.Get("certificate_id").(string)
 
-	certID, err := ParseAppServiceCertificateID(certificateID)
+	certID, err := parse.CertificateID(certificateID)
 	if err != nil {
 		return err
 	}
@@ -170,7 +170,7 @@ func resourceArmAppServiceCustomHostnameCertificateBindingRead(d *schema.Resourc
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := Parse.parse.AppServiceCustomHostnameBindingID(d.Id())
+	id, err := parse.AppServiceCustomHostnameBindingID(d.Id())
 	if err != nil {
 		return err
 	}
