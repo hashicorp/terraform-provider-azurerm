@@ -14,12 +14,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-type AssetResource struct {
+type MediaAssetResource struct {
 }
 
 func TestAccMediaAsset_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_asset", "test")
-	r := AssetResource{}
+	r := MediaAssetResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -34,7 +34,7 @@ func TestAccMediaAsset_basic(t *testing.T) {
 
 func TestMediaAccAsset_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_asset", "test")
-	r := AssetResource{}
+	r := MediaAssetResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -52,7 +52,7 @@ func TestMediaAccAsset_complete(t *testing.T) {
 
 func TestAccMediaAsset_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_asset", "test")
-	r := AssetResource{}
+	r := MediaAssetResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -84,7 +84,7 @@ func TestAccMediaAsset_update(t *testing.T) {
 	})
 }
 
-func (AssetResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (MediaAssetResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.AssetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -98,8 +98,8 @@ func (AssetResource) Exists(ctx context.Context, clients *clients.Client, state 
 	return utils.Bool(resp.AssetProperties != nil), nil
 }
 
-func (AssetResource) basic(data acceptance.TestData) string {
-	template := AssetResource{}.template(data)
+func (MediaAssetResource) basic(data acceptance.TestData) string {
+	template := MediaAssetResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -112,8 +112,8 @@ resource "azurerm_media_asset" "test" {
 `, template)
 }
 
-func (AssetResource) complete(data acceptance.TestData) string {
-	template := AssetResource{}.template(data)
+func (MediaAssetResource) complete(data acceptance.TestData) string {
+	template := MediaAssetResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -130,7 +130,7 @@ resource "azurerm_media_asset" "test" {
 `, template)
 }
 
-func (AssetResource) template(data acceptance.TestData) string {
+func (MediaAssetResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
