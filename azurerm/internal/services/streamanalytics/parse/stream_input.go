@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -22,6 +23,15 @@ func NewStreamInputID(subscriptionId, resourceGroup, streamingjobName, inputName
 		StreamingjobName: streamingjobName,
 		InputName:        inputName,
 	}
+}
+
+func (id StreamInputId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Streamingjob Name %q", id.StreamingjobName),
+		fmt.Sprintf("Input Name %q", id.InputName),
+	}
+	return strings.Join(segments, " / ")
 }
 
 func (id StreamInputId) ID(_ string) string {
