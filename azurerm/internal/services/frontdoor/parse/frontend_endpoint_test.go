@@ -53,7 +53,7 @@ func TestFrontendEndpointIDParser(t *testing.T) {
 	}
 	for _, test := range testData {
 		t.Logf("Testing %q..", test.input)
-		actual, err := FrontendEndpointID(test.input)
+		actual, err := FrontendEndpointIDInsensitively(test.input)
 		if err != nil && test.expected == nil {
 			continue
 		} else {

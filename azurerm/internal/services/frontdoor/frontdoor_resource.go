@@ -1583,7 +1583,7 @@ func flattenFrontDoorFrontendEndpointsSubResources(input *[]frontdoor.SubResourc
 			continue
 		}
 
-		id, err := parse.FrontendEndpointID(*v.ID)
+		id, err := parse.FrontendEndpointIDInsensitively(*v.ID)
 		if err != nil {
 			return nil, err
 		}

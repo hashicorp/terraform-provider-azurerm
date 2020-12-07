@@ -21,7 +21,7 @@ func (id FrontendEndpointId) ID(subscriptionId string) string {
 	return fmt.Sprintf("%s/frontendEndpoints/%s", base, id.Name)
 }
 
-func FrontendEndpointID(input string) (*FrontendEndpointId, error) {
+func FrontendEndpointIDInsensitively(input string) (*FrontendEndpointId, error) {
 	return parseFrontendEndpointID(input, false)
 }
 

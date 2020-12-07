@@ -82,7 +82,7 @@ func resourceFrontDoorCustomHttpsConfigurationCreateUpdate(d *schema.ResourceDat
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontendEndpointID(d.Get("frontend_endpoint_id").(string))
+	id, err := parse.FrontendEndpointIDInsensitively(d.Get("frontend_endpoint_id").(string))
 	if err != nil {
 		return err
 	}
@@ -122,7 +122,7 @@ func resourceFrontDoorCustomHttpsConfigurationRead(d *schema.ResourceData, meta 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontendEndpointID(d.Id())
+	id, err := parse.FrontendEndpointIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
@@ -157,7 +157,7 @@ func resourceFrontDoorCustomHttpsConfigurationDelete(d *schema.ResourceData, met
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontendEndpointID(d.Id())
+	id, err := parse.FrontendEndpointIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
