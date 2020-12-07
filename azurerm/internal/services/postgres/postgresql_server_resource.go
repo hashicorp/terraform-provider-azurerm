@@ -900,8 +900,8 @@ func flattenSecurityAlertPolicy(props *postgresql.SecurityAlertPolicyProperties,
 
 	block["enabled"] = props.State == postgresql.ServerSecurityAlertPolicyStateEnabled
 
-	block["disabled_alerts"] = utils.FlattenStringSlice(props.DisabledAlerts)
-	block["email_addresses"] = utils.FlattenStringSlice(props.EmailAddresses)
+	block["disabled_alerts"] = flattenSecurityAlertPolicySet(props.DisabledAlerts)
+	block["email_addresses"] = flattenSecurityAlertPolicySet(props.EmailAddresses)
 
 	if v := props.EmailAccountAdmins; v != nil {
 		block["email_account_admins"] = *v
@@ -951,4 +951,19 @@ func flattenServerIdentity(input *postgresql.ResourceIdentity) []interface{} {
 			"tenant_id":    tenantID,
 		},
 	}
+}
+
+func flattenSecurityAlertPolicySet(input *[]string) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	// When empty, `disabledAlerts` and `emailAddresses` are returned as `[""]` by the api. We'll catch that here and return
+	// an empty interface to set.
+	attr := *input
+	if len(attr) == 1 && attr[0] == "" {
+		return make([]interface{}, 0)
+	}
+
+	return utils.FlattenStringSlice(input)
 }
