@@ -14,13 +14,13 @@ Version 2.0 of the AzureRM Provider requires Terraform 0.12.x and later.
 provider "azurerm" {
   # We recommend pinning to the specific version of the Azure Provider you're using
   # since new versions are released frequently
-  version = "=2.20.0"
+  version = "=2.39.0"
 
   features {}
 
   # More information on the authentication methods supported by
   # the AzureRM Provider can be found here:
-  # http://terraform.io/docs/providers/azurerm/index.html
+  # https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs
 
   # subscription_id = "..."
   # client_id       = "..."
@@ -37,8 +37,8 @@ resource "azurerm_resource_group" "example" {
 # Create a virtual network in the production-resources resource group
 resource "azurerm_virtual_network" "test" {
   name                = "production-network"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   address_space       = ["10.0.0.0/16"]
 }
 ```
