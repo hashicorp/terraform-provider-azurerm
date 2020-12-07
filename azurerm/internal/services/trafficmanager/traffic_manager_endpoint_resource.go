@@ -19,6 +19,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+// TODO: split this resource
+
 func resourceArmTrafficManagerEndpoint() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmTrafficManagerEndpointCreateUpdate,
