@@ -8,10 +8,10 @@ type FrontendEndpointId struct {
 	Name          string
 }
 
-func NewFrontendEndpointID(id FrontDoorId, name string) FrontendEndpointId {
+func NewFrontendEndpointID(resourceGroup, frontDoorName, name string) FrontendEndpointId {
 	return FrontendEndpointId{
-		ResourceGroup: id.ResourceGroup,
-		FrontDoorName: id.Name,
+		ResourceGroup: resourceGroup,
+		FrontDoorName: frontDoorName,
 		Name:          name,
 	}
 }

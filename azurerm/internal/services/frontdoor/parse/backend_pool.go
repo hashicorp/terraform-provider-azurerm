@@ -8,10 +8,10 @@ type BackendPoolId struct {
 	Name          string
 }
 
-func NewBackendPoolID(id FrontDoorId, name string) BackendPoolId {
+func NewBackendPoolID(resourceGroup, frontDoorName, name string) BackendPoolId {
 	return BackendPoolId{
-		ResourceGroup: id.ResourceGroup,
-		FrontDoorName: id.Name,
+		ResourceGroup: resourceGroup,
+		FrontDoorName: frontDoorName,
 		Name:          name,
 	}
 }

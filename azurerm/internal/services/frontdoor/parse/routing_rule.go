@@ -8,10 +8,10 @@ type RoutingRuleId struct {
 	Name          string
 }
 
-func NewRoutingRuleID(id FrontDoorId, name string) RoutingRuleId {
+func NewRoutingRuleID(resourceGroup, frontDoorName, name string) RoutingRuleId {
 	return RoutingRuleId{
-		ResourceGroup: id.ResourceGroup,
-		FrontDoorName: id.Name,
+		ResourceGroup: resourceGroup,
+		FrontDoorName: frontDoorName,
 		Name:          name,
 	}
 }

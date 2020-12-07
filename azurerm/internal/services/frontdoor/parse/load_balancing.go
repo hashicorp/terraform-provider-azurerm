@@ -8,10 +8,10 @@ type LoadBalancingId struct {
 	Name          string
 }
 
-func NewLoadBalancingID(id FrontDoorId, name string) LoadBalancingId {
+func NewLoadBalancingID(resourceGroup, frontDoorName, name string) LoadBalancingId {
 	return LoadBalancingId{
-		ResourceGroup: id.ResourceGroup,
-		FrontDoorName: id.Name,
+		ResourceGroup: resourceGroup,
+		FrontDoorName: frontDoorName,
 		Name:          name,
 	}
 }

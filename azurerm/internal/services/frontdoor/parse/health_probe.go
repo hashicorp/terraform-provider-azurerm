@@ -8,10 +8,10 @@ type HealthProbeId struct {
 	Name          string
 }
 
-func NewHealthProbeID(id FrontDoorId, name string) HealthProbeId {
+func NewHealthProbeID(resourceGroup, frontDoorName, name string) HealthProbeId {
 	return HealthProbeId{
-		ResourceGroup: id.ResourceGroup,
-		FrontDoorName: id.Name,
+		ResourceGroup: resourceGroup,
+		FrontDoorName: frontDoorName,
 		Name:          name,
 	}
 }

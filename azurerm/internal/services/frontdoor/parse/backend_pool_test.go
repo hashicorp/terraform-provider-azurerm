@@ -10,8 +10,7 @@ var _ resourceid.Formatter = BackendPoolId{}
 
 func TestBackendPoolIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	frontDoorId := NewFrontDoorID("group1", "frontdoor1")
-	actual := NewBackendPoolID(frontDoorId, "pool1").ID(subscriptionId)
+	actual := NewBackendPoolID("group1", "frontdoor1", "pool1").ID(subscriptionId)
 	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/frontDoors/frontdoor1/backendPools/pool1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
