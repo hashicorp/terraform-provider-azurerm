@@ -63,6 +63,7 @@ func resourceArmSentinelAlertRuleScheduled() *schema.Resource {
 			"alert_rule_template_name": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 

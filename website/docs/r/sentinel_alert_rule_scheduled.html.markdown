@@ -59,7 +59,7 @@ The following arguments are supported:
 
 ---
 
-* `alert_rule_template_name` - (Optional) The name of the alert rule template which is used for this Sentinel Scheduled Alert Rule.
+* `alert_rule_template_name` - (Optional) The name of the alert rule template which is used for this Sentinel Scheduled Alert Rule. Changing this forces a new Sentinel Scheduled Alert Rule to be created.
 
 -> **NOTE** `alert_rule_template_name` should be a valid GUID.
 
