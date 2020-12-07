@@ -1,4 +1,4 @@
-package keyvault
+package keyvault_test
 
 import (
 	"fmt"

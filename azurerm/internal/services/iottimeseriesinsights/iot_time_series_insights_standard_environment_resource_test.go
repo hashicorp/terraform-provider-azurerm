@@ -1,4 +1,4 @@
-package tests
+package iottimeseriesinsights_test
 
 import (
 	"fmt"
