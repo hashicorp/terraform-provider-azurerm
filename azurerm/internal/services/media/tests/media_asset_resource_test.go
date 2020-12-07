@@ -17,7 +17,7 @@ import (
 type AssetResource struct {
 }
 
-func TestAccAsset_basic(t *testing.T) {
+func TestAccMediaAsset_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_asset", "test")
 	r := AssetResource{}
 
