@@ -179,6 +179,27 @@ func TestAccAzureRMCosmosDbSqlContainer_indexing_policy(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCosmosDbSqlContainer_partition_key_version(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMCosmosDbSqlContainerDestroy,
+		Steps: []resource.TestStep{
+			{
+
+				Config: testAccAzureRMCosmosDbSqlContainer_partition_key_version(data, 2),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMCosmosDbSqlContainerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "partition_key_version", "2"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMCosmosDbSqlContainerDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.SqlClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -439,4 +460,18 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   }
 }
 `, testAccAzureRMCosmosDbSqlDatabase_basic(data), data.RandomInteger, includedPath, excludedPath)
+}
+
+func testAccAzureRMCosmosDbSqlContainer_partition_key_version(data acceptance.TestData, version int) string {
+	return fmt.Sprintf(`
+%[1]s
+resource "azurerm_cosmosdb_sql_container" "test" {
+  name                  = "acctest-CSQLC-%[2]d"
+  resource_group_name   = azurerm_cosmosdb_account.test.resource_group_name
+  account_name          = azurerm_cosmosdb_account.test.name
+  database_name         = azurerm_cosmosdb_sql_database.test.name
+  partition_key_path    = "/definition/id"
+  partition_key_version = %[3]d
+}
+`, testAccAzureRMCosmosDbSqlDatabase_basic(data), data.RandomInteger, version)
 }
