@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault`
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -175,7 +176,7 @@ func testCheckAzureRMKeyVaultAccessPolicyExists(resourceName string) resource.Te
 			return fmt.Errorf("Bad: Get on keyVaultClient: %+v", err)
 		}
 
-		policy := FindKeyVaultAccessPolicy(resp.Properties.AccessPolicies, objectId, applicationId)
+		policy := keyvault.FindKeyVaultAccessPolicy(resp.Properties.AccessPolicies, objectId, applicationId)
 
 		if policy == nil {
 			return fmt.Errorf("Bad: Key Vault Policy %q (resource group: %q, object_id: %s) does not exist", vaultName, resGroup, objectId)
