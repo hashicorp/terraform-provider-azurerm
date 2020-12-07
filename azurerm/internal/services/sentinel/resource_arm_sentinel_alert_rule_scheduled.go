@@ -266,8 +266,8 @@ func resourceArmSentinelAlertRuleScheduledCreateUpdate(d *schema.ResourceData, m
 }
 
 func resourceArmSentinelAlertRuleScheduledRead(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
-	workspaceClient := meta.(*clients.Client).LogAnalytics.WorkspacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -294,11 +294,8 @@ func resourceArmSentinelAlertRuleScheduledRead(d *schema.ResourceData, meta inte
 
 	d.Set("name", id.Name)
 
-	workspaceResp, err := workspaceClient.Get(ctx, id.ResourceGroup, id.Workspace)
-	if err != nil {
-		return fmt.Errorf("retrieving Log Analytics Workspace %q (Resource Group: %q) where this Alert Rule belongs to: %+v", id.Workspace, id.ResourceGroup, err)
-	}
-	d.Set("log_analytics_workspace_id", workspaceResp.ID)
+	logAnalyticsWorkspaceId := loganalyticsParse.NewLogAnalyticsWorkspaceID(id.Workspace, id.ResourceGroup)
+	d.Set("log_analytics_workspace_id", logAnalyticsWorkspaceId.ID(subscriptionId))
 
 	if prop := rule.ScheduledAlertRuleProperties; prop != nil {
 		d.Set("description", prop.Description)
