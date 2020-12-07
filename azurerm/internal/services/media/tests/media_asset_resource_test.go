@@ -32,7 +32,7 @@ func TestAccAsset_basic(t *testing.T) {
 	})
 }
 
-func TestAccAsset_complete(t *testing.T) {
+func TestMediaAccAsset_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_asset", "test")
 	r := AssetResource{}
 
