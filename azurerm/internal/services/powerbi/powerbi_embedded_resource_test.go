@@ -1,4 +1,4 @@
-package azurerm
+package powerbi_test
 
 import (
 	"fmt"

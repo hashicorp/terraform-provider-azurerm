@@ -1,4 +1,4 @@
-package tests
+package privatedns_test
 
 import (
 	"fmt"
