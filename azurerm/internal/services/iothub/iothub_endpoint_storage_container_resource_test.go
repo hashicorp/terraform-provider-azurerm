@@ -1,4 +1,4 @@
-package tests
+package iothub
 
 import (
 	"fmt"
@@ -13,8 +13,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMIotHubEndpointServiceBusTopic_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_servicebus_topic", "test")
+func TestAccAzureRMIotHubEndpointStorageContainer_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_storage_container", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -22,9 +22,13 @@ func TestAccAzureRMIotHubEndpointServiceBusTopic_basic(t *testing.T) {
 		CheckDestroy: testAccAzureRMIotHubEndpointStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubEndpointServiceBusTopic_basic(data),
+				Config: testAccAzureRMIotHubEndpointStorageContainer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testAccAzureRMIotHubEndpointServiceBusTopicExists(data.ResourceName),
+					testAccAzureRMIotHubEndpointStorageContainerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "file_name_format", "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"),
+					resource.TestCheckResourceAttr(data.ResourceName, "batch_frequency_in_seconds", "60"),
+					resource.TestCheckResourceAttr(data.ResourceName, "max_chunk_size_in_bytes", "10485760"),
+					resource.TestCheckResourceAttr(data.ResourceName, "encoding", "JSON"),
 				),
 			},
 			data.ImportStep(),
@@ -32,29 +36,29 @@ func TestAccAzureRMIotHubEndpointServiceBusTopic_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMIotHubEndpointServiceBusTopic_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_servicebus_topic", "test")
+func TestAccAzureRMIotHubEndpointStorageContainer_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_storage_container", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testAccAzureRMIotHubEndpointServiceBusTopicDestroy,
+		CheckDestroy: testAccAzureRMIotHubEndpointStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubEndpointServiceBusTopic_basic(data),
+				Config: testAccAzureRMIotHubEndpointStorageContainer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testAccAzureRMIotHubEndpointServiceBusTopicExists(data.ResourceName),
+					testAccAzureRMIotHubEndpointStorageContainerExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMIotHubEndpointServiceBusTopic_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_iothub_endpoint_servicebus_topic"),
+				Config:      testAccAzureRMIotHubEndpointStorageContainer_requiresImport(data),
+				ExpectError: acceptance.RequiresImportError("azurerm_iothub_endpoint_storage_container"),
 			},
 		},
 	})
 }
 
-func testAccAzureRMIotHubEndpointServiceBusTopic_basic(data acceptance.TestData) string {
+func testAccAzureRMIotHubEndpointStorageContainer_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -65,28 +69,18 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_servicebus_namespace" "test" {
-  name                = "acctest-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard"
+resource "azurerm_storage_account" "test" {
+  name                     = "acc%[1]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
-resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%[1]d"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_servicebus_topic_authorization_rule" "test" {
-  name                = "acctest-%[1]d"
-  namespace_name      = azurerm_servicebus_namespace.test.name
-  topic_name          = azurerm_servicebus_topic.test.name
-  resource_group_name = azurerm_resource_group.test.name
-
-  listen = false
-  send   = true
-  manage = false
+resource "azurerm_storage_container" "test" {
+  name                  = "acctestcont"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
 }
 
 resource "azurerm_iothub" "test" {
@@ -104,32 +98,44 @@ resource "azurerm_iothub" "test" {
   }
 }
 
-resource "azurerm_iothub_endpoint_servicebus_topic" "test" {
+resource "azurerm_iothub_endpoint_storage_container" "test" {
   resource_group_name = azurerm_resource_group.test.name
   iothub_name         = azurerm_iothub.test.name
   name                = "acctest"
 
-  connection_string = azurerm_servicebus_topic_authorization_rule.test.primary_connection_string
+  container_name    = "acctestcont"
+  connection_string = azurerm_storage_account.test.primary_blob_connection_string
+
+  file_name_format           = "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"
+  batch_frequency_in_seconds = 60
+  max_chunk_size_in_bytes    = 10485760
+  encoding                   = "JSON"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMIotHubEndpointServiceBusTopic_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMIotHubEndpointServiceBusTopic_basic(data)
+func testAccAzureRMIotHubEndpointStorageContainer_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMIotHubEndpointStorageContainer_basic(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_iothub_endpoint_servicebus_topic" "import" {
+resource "azurerm_iothub_endpoint_storage_container" "import" {
   resource_group_name = azurerm_resource_group.test.name
   iothub_name         = azurerm_iothub.test.name
   name                = "acctest"
 
-  connection_string = azurerm_servicebus_topic_authorization_rule.test.primary_connection_string
+  container_name    = "acctestcont"
+  connection_string = azurerm_storage_account.test.primary_blob_connection_string
+
+  file_name_format           = "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"
+  batch_frequency_in_seconds = 60
+  max_chunk_size_in_bytes    = 10485760
+  encoding                   = "JSON"
 }
 `, template)
 }
 
-func testAccAzureRMIotHubEndpointServiceBusTopicExists(resourceName string) resource.TestCheckFunc {
+func testAccAzureRMIotHubEndpointStorageContainerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -138,14 +144,15 @@ func testAccAzureRMIotHubEndpointServiceBusTopicExists(resourceName string) reso
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
+
 		parsedIothubId, err := azure.ParseAzureResourceID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
+
 		iothubName := parsedIothubId.Path["IotHubs"]
 		endpointName := parsedIothubId.Path["Endpoints"]
 		resourceGroup := parsedIothubId.ResourceGroup
-
 		iothub, err := client.Get(ctx, resourceGroup, iothubName)
 		if err != nil {
 			if utils.ResponseWasNotFound(iothub.Response) {
@@ -158,10 +165,10 @@ func testAccAzureRMIotHubEndpointServiceBusTopicExists(resourceName string) reso
 		if iothub.Properties == nil || iothub.Properties.Routing == nil || iothub.Properties.Routing.Endpoints == nil {
 			return fmt.Errorf("Bad: No endpoint %s defined for IotHub %s", endpointName, iothubName)
 		}
-		endpoints := iothub.Properties.Routing.Endpoints.ServiceBusTopics
+		endpoints := iothub.Properties.Routing.Endpoints.StorageContainers
 
 		if endpoints == nil {
-			return fmt.Errorf("Bad: No ServiceBus Topic endpoint %s defined for IotHub %s", endpointName, iothubName)
+			return fmt.Errorf("Bad: No Storage Container endpoint %s defined for IotHub %s", endpointName, iothubName)
 		}
 
 		for _, endpoint := range *endpoints {
@@ -171,16 +178,17 @@ func testAccAzureRMIotHubEndpointServiceBusTopicExists(resourceName string) reso
 				}
 			}
 		}
-		return fmt.Errorf("Bad: No ServiceBus Topic endpoint %s defined for IotHub %s", endpointName, iothubName)
+
+		return fmt.Errorf("Bad: No Storage Container endpoint %s defined for IotHub %s", endpointName, iothubName)
 	}
 }
 
-func testAccAzureRMIotHubEndpointServiceBusTopicDestroy(s *terraform.State) error {
+func testAccAzureRMIotHubEndpointStorageContainerDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_iothub_endpoint_servicebus_topic" {
+		if rs.Type != "azurerm_iothub_endpoint_storage_container" {
 			continue
 		}
 
@@ -192,14 +200,13 @@ func testAccAzureRMIotHubEndpointServiceBusTopicDestroy(s *terraform.State) erro
 			if utils.ResponseWasNotFound(iothub.Response) {
 				return nil
 			}
-
 			return fmt.Errorf("Bad: Get on iothubResourceClient: %+v", err)
 		}
 		if iothub.Properties == nil || iothub.Properties.Routing == nil || iothub.Properties.Routing.Endpoints == nil {
 			return nil
 		}
-		endpoints := iothub.Properties.Routing.Endpoints.ServiceBusTopics
 
+		endpoints := iothub.Properties.Routing.Endpoints.StorageContainers
 		if endpoints == nil {
 			return nil
 		}
@@ -207,7 +214,7 @@ func testAccAzureRMIotHubEndpointServiceBusTopicDestroy(s *terraform.State) erro
 		for _, endpoint := range *endpoints {
 			if existingEndpointName := endpoint.Name; existingEndpointName != nil {
 				if strings.EqualFold(*existingEndpointName, endpointName) {
-					return fmt.Errorf("Bad: ServiceBus Topic endpoint %s still exists on IoTHb %s", endpointName, iothubName)
+					return fmt.Errorf("Bad: Storage Container endpoint %s still exists on IoTHb %s", endpointName, iothubName)
 				}
 			}
 		}

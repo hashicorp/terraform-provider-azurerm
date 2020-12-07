@@ -1,7 +1,8 @@
-package tests
+package iothub
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -12,21 +13,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-// NOTE: this resource intentionally doesn't support Requires Import
-//       since a fallback route is created by default
-
-func TestAccAzureRMIotHubFallbackRoute_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_iothub_fallback_route", "test")
+func TestAccAzureRMIotHubRoute_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_route", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubFallbackRouteDestroy,
+		CheckDestroy: testCheckAzureRMIotHubRouteDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubFallbackRoute_basic(data),
+				Config: testAccAzureRMIotHubRoute_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubFallbackRouteExists(data.ResourceName),
+					testCheckAzureRMIotHubRouteExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -34,25 +32,47 @@ func TestAccAzureRMIotHubFallbackRoute_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMIotHubFallbackRoute_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_iothub_fallback_route", "test")
+func TestAccAzureRMIotHubRoute_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_route", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubFallbackRouteDestroy,
+		CheckDestroy: testCheckAzureRMIotHubRouteDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubFallbackRoute_basic(data),
+				Config: testAccAzureRMIotHubRoute_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubFallbackRouteExists(data.ResourceName),
+					testCheckAzureRMIotHubRouteExists(data.ResourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMIotHubRoute_requiresImport(data),
+				ExpectError: acceptance.RequiresImportError("azurerm_iothub_route"),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMIotHubRoute_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_route", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMIotHubRouteDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMIotHubRoute_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMIotHubRouteExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMIotHubFallbackRoute_update(data),
+				Config: testAccAzureRMIotHubRoute_update(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubFallbackRouteExists(data.ResourceName),
+					testCheckAzureRMIotHubRouteExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -60,15 +80,16 @@ func TestAccAzureRMIotHubFallbackRoute_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMIotHubFallbackRouteDestroy(s *terraform.State) error {
+func testCheckAzureRMIotHubRouteDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_iothub_fallback_route" {
+		if rs.Type != "azurerm_iothub_route" {
 			continue
 		}
 
+		routeName := rs.Primary.Attributes["name"]
 		iothubName := rs.Primary.Attributes["iothub_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
@@ -83,14 +104,22 @@ func testCheckAzureRMIotHubFallbackRouteDestroy(s *terraform.State) error {
 		if iothub.Properties == nil || iothub.Properties.Routing == nil {
 			return nil
 		}
-		if iothub.Properties.Routing.FallbackRoute != nil {
-			return fmt.Errorf("Bad: fallback route still exists on IoTHb %s", iothubName)
+		routes := iothub.Properties.Routing.Routes
+
+		if routes == nil {
+			return nil
+		}
+
+		for _, route := range *routes {
+			if strings.EqualFold(*route.Name, routeName) {
+				return fmt.Errorf("Bad: route %s still exists on IoTHb %s", routeName, iothubName)
+			}
 		}
 	}
 	return nil
 }
 
-func testCheckAzureRMIotHubFallbackRouteExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMIotHubRouteExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -104,6 +133,7 @@ func testCheckAzureRMIotHubFallbackRouteExists(resourceName string) resource.Tes
 			return err
 		}
 		iothubName := parsedIothubId.Path["IotHubs"]
+		routeName := parsedIothubId.Path["Routes"]
 		resourceGroup := parsedIothubId.ResourceGroup
 
 		iothub, err := client.Get(ctx, resourceGroup, iothubName)
@@ -115,15 +145,44 @@ func testCheckAzureRMIotHubFallbackRouteExists(resourceName string) resource.Tes
 			return fmt.Errorf("Error loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
 		}
 
-		if iothub.Properties == nil || iothub.Properties.Routing == nil || iothub.Properties.Routing.FallbackRoute == nil {
-			return fmt.Errorf("Bad: No fallbackroute defined for IotHub %s", iothubName)
+		if iothub.Properties == nil || iothub.Properties.Routing == nil {
+			return fmt.Errorf("Bad: No route %s defined for IotHub %s", routeName, iothubName)
+		}
+		routes := iothub.Properties.Routing.Routes
+
+		if routes == nil {
+			return fmt.Errorf("Bad: No route %s defined for IotHub %s", routeName, iothubName)
 		}
 
-		return nil
+		for _, route := range *routes {
+			if strings.EqualFold(*route.Name, routeName) {
+				return nil
+			}
+		}
+
+		return fmt.Errorf("Bad: No route %s defined for IotHub %s", routeName, iothubName)
 	}
 }
 
-func testAccAzureRMIotHubFallbackRoute_basic(data acceptance.TestData) string {
+func testAccAzureRMIotHubRoute_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMIotHubRoute_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_iothub_route" "import" {
+  resource_group_name = azurerm_resource_group.test.name
+  iothub_name         = azurerm_iothub.test.name
+  name                = "acctest"
+
+  source         = "DeviceMessages"
+  condition      = "true"
+  endpoint_names = [azurerm_iothub_endpoint_storage_container.test.name]
+  enabled        = true
+}
+`, template)
+}
+
+func testAccAzureRMIotHubRoute_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -143,13 +202,13 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_container" "test" {
-  name                  = "test-%[1]d"
+  name                  = "test%[1]d"
   storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_iothub" "test" {
-  name                = "acctestIoTHub-%[1]d"
+  name                = "acctestIoTHub%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -176,10 +235,12 @@ resource "azurerm_iothub_endpoint_storage_container" "test" {
   file_name_format           = "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"
 }
 
-resource "azurerm_iothub_fallback_route" "test" {
+resource "azurerm_iothub_route" "test" {
   resource_group_name = azurerm_resource_group.test.name
   iothub_name         = azurerm_iothub.test.name
+  name                = "acctest"
 
+  source         = "DeviceMessages"
   condition      = "true"
   endpoint_names = [azurerm_iothub_endpoint_storage_container.test.name]
   enabled        = true
@@ -187,7 +248,7 @@ resource "azurerm_iothub_fallback_route" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMIotHubFallbackRoute_update(data acceptance.TestData) string {
+func testAccAzureRMIotHubRoute_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -207,13 +268,13 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_container" "test" {
-  name                  = "test-%[1]d"
+  name                  = "test%[1]d"
   storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_iothub" "test" {
-  name                = "acctestIoTHub-%[1]d"
+  name                = "acctestIoTHub%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -240,10 +301,12 @@ resource "azurerm_iothub_endpoint_storage_container" "test" {
   file_name_format           = "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"
 }
 
-resource "azurerm_iothub_fallback_route" "test" {
+resource "azurerm_iothub_route" "test" {
   resource_group_name = azurerm_resource_group.test.name
   iothub_name         = azurerm_iothub.test.name
+  name                = "acctest"
 
+  source         = "DeviceLifecycleEvents"
   condition      = "true"
   endpoint_names = [azurerm_iothub_endpoint_storage_container.test.name]
   enabled        = false
