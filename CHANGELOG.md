@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Resource:** `azurerm_digital_twins_endpoint_eventhub` [GH-9673]
+* **New Resource:** `azurerm_digital_twins_endpoint_servicebus`  [GH-9702]
 * **New Resource:** `azurerm_media_asset` [GH-9387]
 * **New Resource:** `azurerm_resource_provider` [GH-7951]
 
