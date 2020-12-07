@@ -1,73 +1,66 @@
-package tests
+package sql_test
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql"
-
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+type SqlVirtualNetworkRuleResource struct{}
 
 /*
 	---Testing for Success---
 	Test a basic SQL virtual network rule configuration setup and update scenario, and
 	validate that new property is set correctly.
 */
-func TestAccAzureRMSqlVirtualNetworkRule_basic(t *testing.T) {
+func TestAccSqlVirtualNetworkRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_virtual_network_rule", "test")
+	r := SqlVirtualNetworkRuleResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSqlVirtualNetworkRule_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlVirtualNetworkRuleExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "ignore_missing_vnet_service_endpoint", "false"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMSqlVirtualNetworkRule_withUpdates(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlVirtualNetworkRuleExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "ignore_missing_vnet_service_endpoint", "true"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ignore_missing_vnet_service_endpoint").HasValue("false"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.withUpdates(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ignore_missing_vnet_service_endpoint").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMSqlVirtualNetworkRule_requiresImport(t *testing.T) {
+func TestAccSqlVirtualNetworkRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_virtual_network_rule", "test")
+	r := SqlVirtualNetworkRuleResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSqlVirtualNetworkRule_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlVirtualNetworkRuleExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "ignore_missing_vnet_service_endpoint", "false"),
-				),
-			},
-			{
-				Config:      testAccAzureRMSqlVirtualNetworkRule_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_sql_virtual_network_rule"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ignore_missing_vnet_service_endpoint").HasValue("false"),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
@@ -76,32 +69,28 @@ func TestAccAzureRMSqlVirtualNetworkRule_requiresImport(t *testing.T) {
 	Test an update to the SQL Virtual Network Rule to connect to a different subnet, and
 	validate that new subnet is set correctly.
 */
-func TestAccAzureRMSqlVirtualNetworkRule_switchSubnets(t *testing.T) {
+func TestAccSqlVirtualNetworkRule_switchSubnets(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_virtual_network_rule", "test")
+	r := SqlVirtualNetworkRuleResource{}
 
 	// Create regex strings that will ensure that one subnet name exists, but not the other
 	preConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet1%d)$|(subnet[^2]%d)$", data.RandomInteger, data.RandomInteger))  // subnet 1 but not 2
 	postConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet2%d)$|(subnet[^1]%d)$", data.RandomInteger, data.RandomInteger)) // subnet 2 but not 1
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSqlVirtualNetworkRule_subnetSwitchPre(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlVirtualNetworkRuleExists(data.ResourceName),
-					resource.TestMatchResourceAttr(data.ResourceName, "subnet_id", preConfigRegex),
-				),
-			},
-			{
-				Config: testAccAzureRMSqlVirtualNetworkRule_subnetSwitchPost(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlVirtualNetworkRuleExists(data.ResourceName),
-					resource.TestMatchResourceAttr(data.ResourceName, "subnet_id", postConfigRegex),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.subnetSwitchPre(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subnet_id").MatchesRegex(preConfigRegex),
+			),
+		},
+		{
+			Config: r.subnetSwitchPost(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subnet_id").MatchesRegex(postConfigRegex),
+			),
 		},
 	})
 }
@@ -109,23 +98,15 @@ func TestAccAzureRMSqlVirtualNetworkRule_switchSubnets(t *testing.T) {
 /*
 	---Testing for Success---
 */
-func TestAccAzureRMSqlVirtualNetworkRule_disappears(t *testing.T) {
+func TestAccSqlVirtualNetworkRule_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_virtual_network_rule", "test")
+	r := SqlVirtualNetworkRuleResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSqlVirtualNetworkRule_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlVirtualNetworkRuleExists(data.ResourceName),
-					testCheckAzureRMSqlVirtualNetworkRuleDisappears(data.ResourceName),
-				),
-				ExpectNonEmptyPlan: true,
-			},
-		},
+	data.ResourceTest(t, r, []resource.TestStep{
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
 	})
 }
 
@@ -134,20 +115,16 @@ func TestAccAzureRMSqlVirtualNetworkRule_disappears(t *testing.T) {
 	Test if we are able to create a vnet without the SQL endpoint, but SQL rule
 	is still applied since the endpoint validation will be set to false.
 */
-func TestAccAzureRMSqlVirtualNetworkRule_IgnoreEndpointValid(t *testing.T) {
+func TestAccSqlVirtualNetworkRule_ignoreEndpointValid(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_virtual_network_rule", "test")
+	r := SqlVirtualNetworkRuleResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSqlVirtualNetworkRule_ignoreEndpointValid(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlVirtualNetworkRuleExists(data.ResourceName),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.ignoreEndpointValid(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
@@ -157,18 +134,14 @@ func TestAccAzureRMSqlVirtualNetworkRule_IgnoreEndpointValid(t *testing.T) {
 	Test if we are able to create a vnet with out the SQL endpoint, but SQL rule
 	is still applied since the endpoint validation will be set to false.
 */
-func TestAccAzureRMSqlVirtualNetworkRule_IgnoreEndpointInvalid(t *testing.T) {
+func TestAccSqlVirtualNetworkRule_IgnoreEndpointInvalid(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_virtual_network_rule", "test")
+	r := SqlVirtualNetworkRuleResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      testAccAzureRMSqlVirtualNetworkRule_ignoreEndpointInvalid(data),
-				ExpectError: regexp.MustCompile("Code=\"VirtualNetworkRuleBadRequest\""),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config:      r.ignoreEndpointInvalid(data),
+			ExpectError: regexp.MustCompile("Code=\"VirtualNetworkRuleBadRequest\""),
 		},
 	})
 }
@@ -178,24 +151,20 @@ func TestAccAzureRMSqlVirtualNetworkRule_IgnoreEndpointInvalid(t *testing.T) {
 	Test if we are able to create multiple subnets and connect multiple subnets to the
 	SQL server.
 */
-func TestAccAzureRMSqlVirtualNetworkRule_multipleSubnets(t *testing.T) {
+func TestAccSqlVirtualNetworkRule_multipleSubnets(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_virtual_network_rule", "test")
 	resourceName2 := "azurerm_sql_virtual_network_rule.rule2"
 	resourceName3 := "azurerm_sql_virtual_network_rule.rule3"
+	r := SqlVirtualNetworkRuleResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSqlVirtualNetworkRule_multipleSubnets(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlVirtualNetworkRuleExists(data.ResourceName),
-					testCheckAzureRMSqlVirtualNetworkRuleExists(resourceName2),
-					testCheckAzureRMSqlVirtualNetworkRuleExists(resourceName3),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.multipleSubnets(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(resourceName2).ExistsInAzure(r),
+				check.That(resourceName3).ExistsInAzure(r),
+			),
 		},
 	})
 }
@@ -370,114 +339,42 @@ func TestResourceAzureRMSqlVirtualNetworkRule_validNameValidation(t *testing.T) 
 	}
 }
 
-/*
-	Test Check function to assert if a rule exists or not.
-*/
-func testCheckAzureRMSqlVirtualNetworkRuleExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.VirtualNetworkRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serverName := rs.Primary.Attributes["server_name"]
-		ruleName := rs.Primary.Attributes["name"]
-
-		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: SQL Firewall Rule %q (server %q / resource group %q) was not found", ruleName, serverName, resourceGroup)
-			}
-
-			return err
-		}
-
-		return nil
+func (r SqlVirtualNetworkRuleResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.VirtualNetworkRuleID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+	resp, err := client.Sql.VirtualNetworkRulesClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
+		}
+		return nil, fmt.Errorf("retrieving Sql Virtual Network Rule %q (Server %q / Resource Group %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
+	}
+	return utils.Bool(true), nil
 }
 
-/*
-	Test Check function to delete a rule.
-*/
-func testCheckAzureRMSqlVirtualNetworkRuleDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.VirtualNetworkRulesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_sql_virtual_network_rule" {
-			continue
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serverName := rs.Primary.Attributes["server_name"]
-		ruleName := rs.Primary.Attributes["name"]
-
-		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("Bad: SQL Firewall Rule %q (server %q / resource group %q) still exists: %+v", ruleName, serverName, resourceGroup, resp)
+func (r SqlVirtualNetworkRuleResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.VirtualNetworkRuleID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-
-	return nil
-}
-
-/*
-	Test Check function to assert if that a rule gets deleted.
-*/
-func testCheckAzureRMSqlVirtualNetworkRuleDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.VirtualNetworkRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serverName := rs.Primary.Attributes["server_name"]
-		ruleName := rs.Primary.Attributes["name"]
-
-		future, err := client.Delete(ctx, resourceGroup, serverName, ruleName)
-		if err != nil {
-			// If the error is that the resource we want to delete does not exist in the first
-			// place (404), then just return with no error.
-			if response.WasNotFound(future.Response()) {
-				return nil
-			}
-
-			return fmt.Errorf("Error deleting SQL Virtual Network Rule: %+v", err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			// Same deal as before. Just in case.
-			if response.WasNotFound(future.Response()) {
-				return nil
-			}
-
-			return fmt.Errorf("Error deleting SQL Virtual Network Rule: %+v", err)
-		}
-
-		return nil
+	rulesClient := client.Sql.VirtualNetworkRulesClient
+	future, err := rulesClient.Delete(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("deleting Sql Virtual Network Rule %q (Server %q / Resource Group %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
 	}
+	if err := future.WaitForCompletionRef(ctx, rulesClient.Client); err != nil {
+		return nil, fmt.Errorf("waiting for deletion for Sql Virtual Network Rule %q (Server %q / Resource Group %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
+	}
+	return utils.Bool(true), nil
 }
 
 /*
 	(This test configuration is intended to succeed.)
 	Basic Provisioning Configuration
 */
-func testAccAzureRMSqlVirtualNetworkRule_basic(data acceptance.TestData) string {
+func (r SqlVirtualNetworkRuleResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -522,7 +419,7 @@ resource "azurerm_sql_virtual_network_rule" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMSqlVirtualNetworkRule_requiresImport(data acceptance.TestData) string {
+func (r SqlVirtualNetworkRuleResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -533,7 +430,7 @@ resource "azurerm_sql_virtual_network_rule" "import" {
   subnet_id                            = azurerm_sql_virtual_network_rule.test.subnet_id
   ignore_missing_vnet_service_endpoint = azurerm_sql_virtual_network_rule.test.ignore_missing_vnet_service_endpoint
 }
-`, testAccAzureRMSqlVirtualNetworkRule_basic(data))
+`, r.basic(data))
 }
 
 /*
@@ -541,7 +438,7 @@ resource "azurerm_sql_virtual_network_rule" "import" {
 	Basic Provisioning Update Configuration (all other properties would recreate the rule)
 	ignore_missing_vnet_service_endpoint (false ==> true)
 */
-func testAccAzureRMSqlVirtualNetworkRule_withUpdates(data acceptance.TestData) string {
+func (r SqlVirtualNetworkRuleResource) withUpdates(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -591,7 +488,7 @@ resource "azurerm_sql_virtual_network_rule" "test" {
 	This test is designed to set up a scenario where a user would want to update the subnet
 	on a given SQL virtual network rule. This configuration sets up the resources initially.
 */
-func testAccAzureRMSqlVirtualNetworkRule_subnetSwitchPre(data acceptance.TestData) string {
+func (r SqlVirtualNetworkRuleResource) subnetSwitchPre(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -649,7 +546,7 @@ resource "azurerm_sql_virtual_network_rule" "test" {
 	on a given SQL virtual network rule. This configuration contains the update from
 	azurerm_subnet.test1 to azurerm_subnet.test2.
 */
-func testAccAzureRMSqlVirtualNetworkRule_subnetSwitchPost(data acceptance.TestData) string {
+func (r SqlVirtualNetworkRuleResource) subnetSwitchPost(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -707,7 +604,7 @@ resource "azurerm_sql_virtual_network_rule" "test" {
     virtual network rule is set to *not* validate that the service_endpoint includes that value.
     The endpoint is purposefully set to Microsoft.Storage.
 */
-func testAccAzureRMSqlVirtualNetworkRule_ignoreEndpointValid(data acceptance.TestData) string {
+func (r SqlVirtualNetworkRuleResource) ignoreEndpointValid(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -758,7 +655,7 @@ resource "azurerm_sql_virtual_network_rule" "test" {
     virtual network rule is set to validate that the service_endpoint includes that value.
     The endpoint is purposefully set to Microsoft.Storage.
 */
-func testAccAzureRMSqlVirtualNetworkRule_ignoreEndpointInvalid(data acceptance.TestData) string {
+func (r SqlVirtualNetworkRuleResource) ignoreEndpointInvalid(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -808,7 +705,7 @@ resource "azurerm_sql_virtual_network_rule" "test" {
 	This configuration sets up 3 subnets in 2 different virtual networks, and adds
 	SQL virtual network rules for all 3 subnets to the SQL server.
 */
-func testAccAzureRMSqlVirtualNetworkRule_multipleSubnets(data acceptance.TestData) string {
+func (r SqlVirtualNetworkRuleResource) multipleSubnets(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

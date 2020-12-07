@@ -16,12 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSqlFirewallRule() *schema.Resource {
+func resourceSqlFirewallRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSqlFirewallRuleCreateUpdate,
-		Read:   resourceArmSqlFirewallRuleRead,
-		Update: resourceArmSqlFirewallRuleCreateUpdate,
-		Delete: resourceArmSqlFirewallRuleDelete,
+		Create: resourceSqlFirewallRuleCreateUpdate,
+		Read:   resourceSqlFirewallRuleRead,
+		Update: resourceSqlFirewallRuleCreateUpdate,
+		Delete: resourceSqlFirewallRuleDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -71,7 +71,7 @@ func resourceArmSqlFirewallRule() *schema.Resource {
 	}
 }
 
-func resourceArmSqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.FirewallRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -113,10 +113,10 @@ func resourceArmSqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta interfa
 
 	d.SetId(*resp.ID)
 
-	return resourceArmSqlFirewallRuleRead(d, meta)
+	return resourceSqlFirewallRuleRead(d, meta)
 }
 
-func resourceArmSqlFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSqlFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.FirewallRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -146,7 +146,7 @@ func resourceArmSqlFirewallRuleRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceArmSqlFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSqlFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.FirewallRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

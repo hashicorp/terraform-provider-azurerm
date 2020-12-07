@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSqlVirtualNetworkRule() *schema.Resource {
+func resourceSqlVirtualNetworkRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSqlVirtualNetworkRuleCreateUpdate,
-		Read:   resourceArmSqlVirtualNetworkRuleRead,
-		Update: resourceArmSqlVirtualNetworkRuleCreateUpdate,
-		Delete: resourceArmSqlVirtualNetworkRuleDelete,
+		Create: resourceSqlVirtualNetworkRuleCreateUpdate,
+		Read:   resourceSqlVirtualNetworkRuleRead,
+		Update: resourceSqlVirtualNetworkRuleCreateUpdate,
+		Delete: resourceSqlVirtualNetworkRuleDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -68,7 +68,7 @@ func resourceArmSqlVirtualNetworkRule() *schema.Resource {
 	}
 }
 
-func resourceArmSqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.VirtualNetworkRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -130,10 +130,10 @@ func resourceArmSqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta i
 
 	d.SetId(*resp.ID)
 
-	return resourceArmSqlVirtualNetworkRuleRead(d, meta)
+	return resourceSqlVirtualNetworkRuleRead(d, meta)
 }
 
-func resourceArmSqlVirtualNetworkRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSqlVirtualNetworkRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.VirtualNetworkRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -166,7 +166,7 @@ func resourceArmSqlVirtualNetworkRuleRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func resourceArmSqlVirtualNetworkRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSqlVirtualNetworkRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.VirtualNetworkRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

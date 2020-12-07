@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSqlElasticPool() *schema.Resource {
+func resourceSqlElasticPool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSqlElasticPoolCreateUpdate,
-		Read:   resourceArmSqlElasticPoolRead,
-		Update: resourceArmSqlElasticPoolCreateUpdate,
-		Delete: resourceArmSqlElasticPoolDelete,
+		Create: resourceSqlElasticPoolCreateUpdate,
+		Read:   resourceSqlElasticPoolRead,
+		Update: resourceSqlElasticPoolCreateUpdate,
+		Delete: resourceSqlElasticPoolDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -97,7 +97,7 @@ func resourceArmSqlElasticPool() *schema.Resource {
 	}
 }
 
-func resourceArmSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.ElasticPoolsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -149,10 +149,10 @@ func resourceArmSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interfac
 
 	d.SetId(*read.ID)
 
-	return resourceArmSqlElasticPoolRead(d, meta)
+	return resourceSqlElasticPoolRead(d, meta)
 }
 
-func resourceArmSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.ElasticPoolsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -217,7 +217,7 @@ func resourceArmSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmSqlElasticPoolDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSqlElasticPoolDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.ElasticPoolsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

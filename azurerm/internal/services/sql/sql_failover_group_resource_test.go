@@ -1,183 +1,112 @@
-package tests
+package sql_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMSqlFailoverGroup_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_sql_failover_group", "test")
+type SqlFailoverGroupResource struct{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlFailoverGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSqlFailoverGroup_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlFailoverGroupExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccSqlFailoverGroup_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sql_failover_group", "test")
+	r := SqlFailoverGroupResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSqlFailoverGroup_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sql_failover_group", "test")
+	r := SqlFailoverGroupResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccSqlFailoverGroup_disappears(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sql_failover_group", "test")
+	r := SqlFailoverGroupResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
+	})
+}
+
+func TestAccSqlFailoverGroup_withTags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sql_failover_group", "test")
+	r := SqlFailoverGroupResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withTags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+			),
+		},
+		{
+			Config: r.withTagsUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMSqlFailoverGroup_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_sql_failover_group", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlFailoverGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSqlFailoverGroup_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlFailoverGroupExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMSqlFailoverGroup_requiresImport),
-		},
-	})
-}
-
-func TestAccAzureRMSqlFailoverGroup_disappears(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_sql_failover_group", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlFailoverGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSqlFailoverGroup_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlFailoverGroupExists(data.ResourceName),
-					testCheckAzureRMSqlFailoverGroupDisappears(data.ResourceName),
-				),
-				ExpectNonEmptyPlan: true,
-			},
-		},
-	})
-}
-
-func TestAccAzureRMSqlFailoverGroup_withTags(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_sql_failover_group", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlFailoverGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSqlFailoverGroup_withTags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlFailoverGroupExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
-				),
-			},
-			{
-				Config: testAccAzureRMSqlFailoverGroup_withTagsUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlFailoverGroupExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-				),
-			},
-		},
-	})
-}
-
-func testCheckAzureRMSqlFailoverGroupExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.FailoverGroupsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serverName := rs.Primary.Attributes["server_name"]
-		name := rs.Primary.Attributes["name"]
-
-		resp, err := client.Get(ctx, resourceGroup, serverName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("SQL Failover Group %q (server %q / resource group %q) was not found", name, serverName, resourceGroup)
-			}
-
-			return err
-		}
-
-		return nil
+func (r SqlFailoverGroupResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.FailoverGroupID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-}
-
-func testCheckAzureRMSqlFailoverGroupDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.FailoverGroupsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
+	resp, err := client.Sql.FailoverGroupsClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
 		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serverName := rs.Primary.Attributes["server_name"]
-		name := rs.Primary.Attributes["name"]
-
-		future, err := client.Delete(ctx, resourceGroup, serverName, name)
-		if err != nil {
-			return fmt.Errorf("Bad: Delete on sqlFailoverGroupsClient: %+v", err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error deleting SQL Failover Group %q (Resource Group %q): %+v", name, resourceGroup, err)
-		}
-
-		return nil
+		return nil, fmt.Errorf("retrieving Sql Failover Group %q (Server %q / Resource Group %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
 	}
+	return utils.Bool(true), nil
 }
 
-func testCheckAzureRMSqlFailoverGroupDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.FailoverGroupsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_sql_failover_group" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serverName := rs.Primary.Attributes["server_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, serverName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("SQL Failover Group %q (server %q / resource group %q) still exists: %+v", name, serverName, resourceGroup, resp)
+func (r SqlFailoverGroupResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.FailoverGroupID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-
-	return nil
+	if _, err := client.Sql.FailoverGroupsClient.Delete(ctx, id.ResourceGroup, id.ServerName, id.Name); err != nil {
+		return nil, fmt.Errorf("deleting Sql Failover Group %q (Server %q / Resource Group %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
+	}
+	return utils.Bool(true), nil
 }
 
-func testAccAzureRMSqlFailoverGroup_basic(data acceptance.TestData) string {
+func (r SqlFailoverGroupResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -235,7 +164,7 @@ resource "azurerm_sql_failover_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
 
-func testAccAzureRMSqlFailoverGroup_requiresImport(data acceptance.TestData) string {
+func (r SqlFailoverGroupResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -254,10 +183,10 @@ resource "azurerm_sql_failover_group" "import" {
     grace_minutes = azurerm_sql_failover_group.test.read_write_endpoint_failover_policy[0].grace_minutes
   }
 }
-`, testAccAzureRMSqlFailoverGroup_basic(data))
+`, r.basic(data))
 }
 
-func testAccAzureRMSqlFailoverGroup_withTags(data acceptance.TestData) string {
+func (r SqlFailoverGroupResource) withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -318,7 +247,7 @@ resource "azurerm_sql_failover_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
 
-func testAccAzureRMSqlFailoverGroup_withTagsUpdate(data acceptance.TestData) string {
+func (r SqlFailoverGroupResource) withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

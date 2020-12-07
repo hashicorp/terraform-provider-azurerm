@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSqlAdministrator() *schema.Resource {
+func resourceSqlAdministrator() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSqlActiveDirectoryAdministratorCreateUpdate,
-		Read:   resourceArmSqlActiveDirectoryAdministratorRead,
-		Update: resourceArmSqlActiveDirectoryAdministratorCreateUpdate,
-		Delete: resourceArmSqlActiveDirectoryAdministratorDelete,
+		Create: resourceSqlActiveDirectoryAdministratorCreateUpdate,
+		Read:   resourceSqlActiveDirectoryAdministratorRead,
+		Update: resourceSqlActiveDirectoryAdministratorCreateUpdate,
+		Delete: resourceSqlActiveDirectoryAdministratorDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -63,7 +63,7 @@ func resourceArmSqlAdministrator() *schema.Resource {
 	}
 }
 
-func resourceArmSqlActiveDirectoryAdministratorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSqlActiveDirectoryAdministratorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.ServerAzureADAdministratorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -114,7 +114,7 @@ func resourceArmSqlActiveDirectoryAdministratorCreateUpdate(d *schema.ResourceDa
 	return nil
 }
 
-func resourceArmSqlActiveDirectoryAdministratorRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSqlActiveDirectoryAdministratorRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.ServerAzureADAdministratorsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -145,7 +145,7 @@ func resourceArmSqlActiveDirectoryAdministratorRead(d *schema.ResourceData, meta
 	return nil
 }
 
-func resourceArmSqlActiveDirectoryAdministratorDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSqlActiveDirectoryAdministratorDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.ServerAzureADAdministratorsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
