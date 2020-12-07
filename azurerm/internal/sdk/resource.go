@@ -66,6 +66,13 @@ type Resource interface {
 // TODO: ResourceWithStateMigration
 // TODO: a generic state migration for updating ID's
 
+type ResourceWithCustomImporter interface {
+	Resource
+
+	// CustomImporter returns a ResourceRunFunc which allows overriding the import
+	CustomImporter() ResourceRunFunc
+}
+
 // ResourceWithUpdate is an optional interface
 //
 // Notably the Arguments for Resources implementing this interface
