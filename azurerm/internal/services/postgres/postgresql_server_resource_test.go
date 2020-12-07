@@ -867,8 +867,8 @@ resource "azurerm_postgresql_server" "test" {
   version    = "%[3]s"
   storage_mb = 640000
 
-  ssl_enforcement_enabled           = false
-  ssl_minimal_tls_version_enforced  = "TLSEnforcementDisabled"
+  ssl_enforcement_enabled          = false
+  ssl_minimal_tls_version_enforced = "TLSEnforcementDisabled"
 
   threat_detection_policy {
     enabled              = true
