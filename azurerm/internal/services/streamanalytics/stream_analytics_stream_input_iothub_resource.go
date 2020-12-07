@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics/parse"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -23,9 +24,10 @@ func resourceStreamAnalyticsStreamInputIoTHub() *schema.Resource {
 		Read:   resourceStreamAnalyticsStreamInputIoTHubRead,
 		Update: resourceStreamAnalyticsStreamInputIoTHubCreateUpdate,
 		Delete: resourceStreamAnalyticsStreamInputIoTHubDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.StreamInputID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -90,24 +92,23 @@ func resourceStreamAnalyticsStreamInputIoTHub() *schema.Resource {
 
 func resourceStreamAnalyticsStreamInputIoTHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.InputsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Stream Input IoTHub creation.")
-	name := d.Get("name").(string)
-	jobName := d.Get("stream_analytics_job_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
 
+	resourceId := parse.NewStreamInputID(subscriptionId, d.Get("resource_group_name").(string), d.Get("stream_analytics_job_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, jobName, name)
+		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.StreamingjobName, resourceId.StreamingjobName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Stream Analytics Stream Input IoTHub %q (Job %q / Resource Group %q): %s", name, jobName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %s", resourceId, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_stream_input_iothub", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_stream_analytics_stream_input_iothub", resourceId.ID(""))
 		}
 	}
 
@@ -120,11 +121,11 @@ func resourceStreamAnalyticsStreamInputIoTHubCreateUpdate(d *schema.ResourceData
 	serializationRaw := d.Get("serialization").([]interface{})
 	serialization, err := azure.ExpandStreamAnalyticsStreamInputSerialization(serializationRaw)
 	if err != nil {
-		return fmt.Errorf("Error expanding `serialization`: %+v", err)
+		return fmt.Errorf("expanding `serialization`: %+v", err)
 	}
 
 	props := streamanalytics.Input{
-		Name: utils.String(name),
+		Name: utils.String(resourceId.InputName),
 		Properties: &streamanalytics.StreamInputProperties{
 			Type: streamanalytics.TypeStream,
 			Datasource: &streamanalytics.IoTHubStreamInputDataSource{
@@ -142,21 +143,13 @@ func resourceStreamAnalyticsStreamInputIoTHubCreateUpdate(d *schema.ResourceData
 	}
 
 	if d.IsNewResource() {
-		if _, err := client.CreateOrReplace(ctx, props, resourceGroup, jobName, name, "", ""); err != nil {
-			return fmt.Errorf("Error Creating Stream Analytics Stream Input IoTHub %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+		if _, err := client.CreateOrReplace(ctx, props, resourceId.ResourceGroup, resourceId.StreamingjobName, resourceId.InputName, "", ""); err != nil {
+			return fmt.Errorf("creating %s: %+v", resourceId, err)
 		}
 
-		read, err := client.Get(ctx, resourceGroup, jobName, name)
-		if err != nil {
-			return fmt.Errorf("Error retrieving Stream Analytics Stream Input IoTHub %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
-		}
-		if read.ID == nil {
-			return fmt.Errorf("Cannot read ID of Stream Analytics Stream Input IoTHub %q (Job %q / Resource Group %q)", name, jobName, resourceGroup)
-		}
-
-		d.SetId(*read.ID)
-	} else if _, err := client.Update(ctx, props, resourceGroup, jobName, name, ""); err != nil {
-		return fmt.Errorf("Error Updating Stream Analytics Stream Input IoTHub %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+		d.SetId(resourceId.ID(""))
+	} else if _, err := client.Update(ctx, props, resourceId.ResourceGroup, resourceId.StreamingjobName, resourceId.InputName, ""); err != nil {
+		return fmt.Errorf("updating %s: %+v", resourceId, err)
 	}
 
 	return resourceStreamAnalyticsStreamInputIoTHubRead(d, meta)
