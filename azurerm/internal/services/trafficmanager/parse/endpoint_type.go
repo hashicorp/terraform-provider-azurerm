@@ -2,6 +2,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
@@ -23,6 +24,7 @@ func (id EndpointId) EndpointType() string {
 }
 
 func NewEndpointId(subscriptionId, resourceGroup, trafficManagerProfile, endpoint, name string) (*EndpointId, error) {
+	endpoint = strings.TrimSuffix(endpoint, "Endpoints")
 	if endpoint != "azure" && endpoint != "external" && endpoint != "nested" {
 		return nil, fmt.Errorf("unsupported value for Endpoint")
 	}
