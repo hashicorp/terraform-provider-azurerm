@@ -9,11 +9,11 @@ IMPROVEMENTS:
 * `azurerm_cosmosdb_sql_container` - support for the `partition_key_version` property [GH-9496]
 * `azurerm_kusto_cluster` - support for the `engine` property [GH-9696]
 * `azurerm_iothub` - support for the `min_tls_version` property [GH-9670]
+* `azurerm_recovery_services_vault` - support for the `identity` block [GH-9689]
 
 BUG FIXES:
 
 * `azurerm_postgresql_server` - changing the `geo_redundant_backup_enabled` property now forces a new resource [GH-9694]
-* `azurerm_recovery_services_vault` - support for the `identity` block [GH-9689]
 * `azurerm_signar_service` -  having an empty `allowed_origins` in the `cors` block will no longer cause a panic [GH-9671]
 
 ## 2.39.0 (December 04, 2020)
