@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSynapseSparkPool() *schema.Resource {
+func resourceSynapseSparkPool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSynapseSparkPoolCreateUpdate,
-		Read:   resourceArmSynapseSparkPoolRead,
-		Update: resourceArmSynapseSparkPoolCreateUpdate,
-		Delete: resourceArmSynapseSparkPoolDelete,
+		Create: resourceSynapseSparkPoolCreateUpdate,
+		Read:   resourceSynapseSparkPoolRead,
+		Update: resourceSynapseSparkPoolCreateUpdate,
+		Delete: resourceSynapseSparkPoolDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -159,7 +159,7 @@ func resourceArmSynapseSparkPool() *schema.Resource {
 	}
 }
 
-func resourceArmSynapseSparkPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseSparkPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.SparkPoolClient
 	workspaceClient := meta.(*clients.Client).Synapse.WorkspaceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -224,10 +224,10 @@ func resourceArmSynapseSparkPoolCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	d.SetId(*resp.ID)
-	return resourceArmSynapseSparkPoolRead(d, meta)
+	return resourceSynapseSparkPoolRead(d, meta)
 }
 
-func resourceArmSynapseSparkPoolRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseSparkPoolRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.SparkPoolClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -268,7 +268,7 @@ func resourceArmSynapseSparkPoolRead(d *schema.ResourceData, meta interface{}) e
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmSynapseSparkPoolDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseSparkPoolDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.SparkPoolClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

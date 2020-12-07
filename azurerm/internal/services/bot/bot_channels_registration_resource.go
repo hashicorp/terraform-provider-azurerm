@@ -12,7 +12,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -24,16 +27,40 @@ func resourceArmBotChannelsRegistration() *schema.Resource {
 		Delete: resourceArmBotChannelsRegistrationDelete,
 		Update: resourceArmBotChannelsRegistrationUpdate,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
-
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
 			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
+			_, err := parse.BotServiceID(id)
+			return err
+		}, func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+			client := meta.(*clients.Client).Bot.BotClient
+			ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+			defer cancel()
+
+			id, err := parse.BotServiceID(d.Id())
+			if err != nil {
+				return nil, err
+			}
+
+			resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+			if err != nil {
+				if utils.ResponseWasNotFound(resp.Response) {
+					return nil, fmt.Errorf("Bot Channels Registration %q was not found in Resource Group %q", id.Name, id.ResourceGroup)
+				}
+
+				return nil, fmt.Errorf("retrieving Bot Channels Registration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			}
+			if resp.Kind != botservice.KindBot {
+				return nil, fmt.Errorf("Bot %q (Resource Group %q) was not a Channel Registration - got %q", id.Name, id.ResourceGroup, string(resp.Kind))
+			}
+
+			return []*schema.ResourceData{d}, nil
+		}),
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -106,27 +133,26 @@ func resourceArmBotChannelsRegistration() *schema.Resource {
 
 func resourceArmBotChannelsRegistrationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.BotClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
+	resourceId := parse.NewBotServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of creating Bot Channels Registration %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Bot Channels Registration %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_bot_channels_registration", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_bot_channels_registration", resourceId.ID(""))
 		}
 	}
 
 	displayName := d.Get("display_name").(string)
 	if displayName == "" {
-		displayName = name
+		displayName = resourceId.Name
 	}
 
 	bot := botservice.Bot{
@@ -146,21 +172,11 @@ func resourceArmBotChannelsRegistrationCreate(d *schema.ResourceData, meta inter
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err := client.Create(ctx, resourceGroup, name, bot); err != nil {
-		return fmt.Errorf("Error issuing create request for Bot Channels Registration %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.Create(ctx, resourceId.ResourceGroup, resourceId.Name, bot); err != nil {
+		return fmt.Errorf("creating Bot Channels Registration %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error making get request for Bot Channels Registration %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Bot Channels Registration %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	d.SetId(*resp.ID)
-
+	d.SetId(resourceId.ID(""))
 	return resourceArmBotChannelsRegistrationRead(d, meta)
 }
 
@@ -169,26 +185,25 @@ func resourceArmBotChannelsRegistrationRead(d *schema.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.BotServiceID(d.Id())
 	if err != nil {
 		return err
 	}
-	name := id.Path["botServices"]
 
-	resp, err := client.Get(ctx, id.ResourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading Bot Channels Registration %q (Resource Group %q) - removing from state", name, id.ResourceGroup)
+			log.Printf("[INFO] Bot Channels Registration %q (Resource Group %q) was not found - removing from state", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Bot Channels Registration %q (Resource Group %q): %+v", name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Bot Channels Registration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("name", resp.Name)
-	d.Set("location", resp.Location)
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", string(sku.Name))
@@ -210,12 +225,15 @@ func resourceArmBotChannelsRegistrationUpdate(d *schema.ResourceData, meta inter
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id, err := parse.BotServiceID(d.Id())
+	if err != nil {
+		return err
+	}
+
 	t := d.Get("tags").(map[string]interface{})
 	displayName := d.Get("display_name").(string)
 	if displayName == "" {
-		displayName = name
+		displayName = id.Name
 	}
 
 	bot := botservice.Bot{
@@ -235,20 +253,9 @@ func resourceArmBotChannelsRegistrationUpdate(d *schema.ResourceData, meta inter
 		Tags: tags.Expand(t),
 	}
 
-	if _, err := client.Update(ctx, resourceGroup, name, bot); err != nil {
-		return fmt.Errorf("Error issuing update request for Bot Channels Registration %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, bot); err != nil {
+		return fmt.Errorf("updating Bot Channels Registration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
-
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error making get request for Bot Channels Registration %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Bot Channels Registration %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	d.SetId(*resp.ID)
 
 	return resourceArmBotChannelsRegistrationRead(d, meta)
 }
@@ -258,16 +265,15 @@ func resourceArmBotChannelsRegistrationDelete(d *schema.ResourceData, meta inter
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.BotServiceID(d.Id())
 	if err != nil {
 		return err
 	}
-	name := id.Path["botServices"]
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting Bot Channels Registration %q (Resource Group %q): %+v", name, id.ResourceGroup, err)
+			return fmt.Errorf("deleting Bot Channels Registration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 

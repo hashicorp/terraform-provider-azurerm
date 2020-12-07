@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -22,6 +23,15 @@ func NewFirewallPolicyRuleCollectionGroupID(subscriptionId, resourceGroup, firew
 		FirewallPolicyName:      firewallPolicyName,
 		RuleCollectionGroupName: ruleCollectionGroupName,
 	}
+}
+
+func (id FirewallPolicyRuleCollectionGroupId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Firewall Policy Name %q", id.FirewallPolicyName),
+		fmt.Sprintf("Rule Collection Group Name %q", id.RuleCollectionGroupName),
+	}
+	return strings.Join(segments, " / ")
 }
 
 func (id FirewallPolicyRuleCollectionGroupId) ID(_ string) string {

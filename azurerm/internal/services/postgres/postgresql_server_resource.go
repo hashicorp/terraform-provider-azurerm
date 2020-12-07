@@ -154,6 +154,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 							Type:          schema.TypeString,
 							Optional:      true,
 							Computed:      true,
+							ForceNew:      true,
 							ConflictsWith: []string{"geo_redundant_backup_enabled"},
 							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
 							ValidateFunc: validation.StringInSlice([]string{
@@ -198,6 +199,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 			"geo_redundant_backup_enabled": {
 				Type:          schema.TypeBool,
 				Optional:      true,
+				ForceNew:      true,
 				Computed:      true, // TODO: remove in 2.0 and default to false
 				ConflictsWith: []string{"storage_profile", "storage_profile.0.geo_redundant_backup"},
 			},

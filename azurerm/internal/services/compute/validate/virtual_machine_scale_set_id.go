@@ -1,27 +1,22 @@
 package validate
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 )
 
-func VirtualMachineScaleSetID(i interface{}, k string) (s []string, es []error) {
-	v, ok := i.(string)
+func VirtualMachineScaleSetID(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
 	if !ok {
-		es = append(es, fmt.Errorf("expected type of %s to be string", k))
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
 
-	id, err := parse.VirtualMachineScaleSetID(v)
-	if err != nil {
-		es = append(es, fmt.Errorf("Error parsing %q as a VM Scale Set Resource ID: %s", v, err))
-		return
-	}
-
-	if id.Name == "" {
-		es = append(es, fmt.Errorf("Error parsing %q as a VM Scale Set Resource ID: `virtualMachineScaleSets` segment was empty", v))
-		return
+	if _, err := parse.VirtualMachineScaleSetID(v); err != nil {
+		errors = append(errors, err)
 	}
 
 	return
