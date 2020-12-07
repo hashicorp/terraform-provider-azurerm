@@ -116,6 +116,15 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 		resource.Timeouts.Update = d(v.Update().Timeout)
 	}
 
+	if v, ok := rw.resource.(ResourceWithDeprecation); ok {
+		message := v.DeprecationMessage()
+		if message == "" {
+			return nil, fmt.Errorf("Resource %q must return a non-empty DeprecationMessage if implementing ResourceWithDeprecation", rw.resource.ResourceType())
+		}
+
+		resource.DeprecationMessage = message
+	}
+
 	// TODO: CustomizeDiff
 	// TODO: State Migrations
 
