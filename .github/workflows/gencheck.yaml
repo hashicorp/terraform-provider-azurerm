@@ -5,7 +5,7 @@ on:
     types: ['opened', 'synchronize']
     paths:
       - '**.go'
-      - 'vendor/**'
+      - 'azurerm/**'
       - '.github/workflows/**'
 
 jobs:
