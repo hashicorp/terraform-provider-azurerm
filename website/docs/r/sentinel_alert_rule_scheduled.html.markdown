@@ -59,6 +59,10 @@ The following arguments are supported:
 
 ---
 
+* `alert_rule_template_name` - (Optional) The name of the alert rule template which is used for this Sentinel Scheduled Alert Rule.
+
+-> **NOTE** `alert_rule_template_name` should be a valid GUID.
+
 * `description` - (Optional) The description of this Sentinel Scheduled Alert Rule.
 
 * `enabled` - (Optional) Should the Sentinel Scheduled Alert Rule be enabled? Defaults to `true`.

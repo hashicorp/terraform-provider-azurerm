@@ -102,6 +102,25 @@ func TestAccAzureRMSentinelAlertRuleScheduled_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSentinelAlertRuleScheduled_withAlertRuleTemplateName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_scheduled", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMSentinelAlertRuleScheduledDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSentinelAlertRuleScheduled_withAlertRuleTemplateName(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSentinelAlertRuleScheduledExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMSentinelAlertRuleScheduledExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Sentinel.AlertRulesClient
@@ -216,6 +235,27 @@ resource "azurerm_sentinel_alert_rule_scheduled" "import" {
   query                      = azurerm_sentinel_alert_rule_scheduled.test.query
 }
 `, template)
+}
+
+func testAccAzureRMSentinelAlertRuleScheduled_withAlertRuleTemplateName(data acceptance.TestData) string {
+	template := testAccAzureRMSentinelAlertRuleScheduled_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sentinel_alert_rule_scheduled" "test" {
+  name                       = "acctest-SentinelAlertRule-Sche-%d"
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  display_name               = "Some Rule"
+  severity                   = "Low"
+  alert_rule_template_name   = "65360bb0-8986-4ade-a89d-af3cf44d28aa"
+  query                      = <<QUERY
+AzureActivity |
+  where OperationName == "Create or Update Virtual Machine" or OperationName =="Create Deployment" |
+  where ActivityStatus == "Succeeded" |
+  make-series dcount(ResourceId) default=0 on EventSubmissionTimestamp in range(ago(7d), now(), 1d) by Caller
+QUERY
+}
+`, template, data.RandomInteger)
 }
 
 func testAccAzureRMSentinelAlertRuleScheduled_template(data acceptance.TestData) string {

@@ -60,6 +60,12 @@ func resourceArmSentinelAlertRuleScheduled() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"alert_rule_template_name": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsUUID,
+			},
+
 			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -224,6 +230,10 @@ func resourceArmSentinelAlertRuleScheduledCreateUpdate(d *schema.ResourceData, m
 		},
 	}
 
+	if v, ok := d.GetOk("alert_rule_template_name"); ok {
+		param.ScheduledAlertRuleProperties.AlertRuleTemplateName = utils.String(v.(string))
+	}
+
 	// Service avoid concurrent update of this resource via checking the "etag" to guarantee it is the same value as last Read.
 	if !d.IsNewResource() {
 		resp, err := client.Get(ctx, workspaceID.ResourceGroup, "Microsoft.OperationalInsights", workspaceID.Name, name)
@@ -311,6 +321,7 @@ func resourceArmSentinelAlertRuleScheduledRead(d *schema.ResourceData, meta inte
 		d.Set("trigger_threshold", int(threshold))
 		d.Set("suppression_enabled", prop.SuppressionEnabled)
 		d.Set("suppression_duration", prop.SuppressionDuration)
+		d.Set("alert_rule_template_name", prop.AlertRuleTemplateName)
 	}
 
 	return nil
