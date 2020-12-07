@@ -1,92 +1,101 @@
 package storage_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMStorageAccountNetworkRules_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_account_network_rules", "test")
+type StorageAccountNetworkRulesResource struct{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageAccountNetworkRules_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists("azurerm_storage_account.test"),
-				),
-			},
-			data.ImportStep(),
+func TestAccStorageAccountNetworkRules_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account_network_rules", "test")
+	r := StorageAccountNetworkRulesResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That("azurerm_storage_account.test").ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMStorageAccountNetworkRules_update(t *testing.T) {
+func TestAccStorageAccountNetworkRules_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_network_rules", "test")
+	r := StorageAccountNetworkRulesResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageAccountNetworkRules_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists("azurerm_storage_account.test"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMStorageAccountNetworkRules_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists("azurerm_storage_account.test"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMStorageAccountNetworkRules_empty(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists("azurerm_storage_account.test"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMStorageAccountNetworkRules_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists("azurerm_storage_account.test"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That("azurerm_storage_account.test").ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That("azurerm_storage_account.test").ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.empty(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That("azurerm_storage_account.test").ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That("azurerm_storage_account.test").ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMStorageAccountNetworkRules_empty(t *testing.T) {
+func TestAccStorageAccountNetworkRules_empty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_network_rules", "test")
+	r := StorageAccountNetworkRulesResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageAccountNetworkRules_empty(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists("azurerm_storage_account.test"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.empty(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That("azurerm_storage_account.test").ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testAccAzureRMStorageAccountNetworkRules_basic(data acceptance.TestData) string {
+func (r StorageAccountNetworkRulesResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	storageAccountName := state.Attributes["storage_account_name"]
+	resourceGroup := state.Attributes["resource_group_name"]
+
+	resp, err := client.Storage.AccountsClient.GetProperties(ctx, resourceGroup, storageAccountName, "")
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
+		}
+		return nil, fmt.Errorf("retrieving Storage Account %q (Resource Group %q): %+v", storageAccountName, resourceGroup, err)
+	}
+	return utils.Bool(true), nil
+}
+
+func (r StorageAccountNetworkRulesResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -135,7 +144,7 @@ resource "azurerm_storage_account_network_rules" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString)
 }
 
-func testAccAzureRMStorageAccountNetworkRules_update(data acceptance.TestData) string {
+func (r StorageAccountNetworkRulesResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -193,7 +202,7 @@ resource "azurerm_storage_account_network_rules" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString)
 }
 
-func testAccAzureRMStorageAccountNetworkRules_empty(data acceptance.TestData) string {
+func (r StorageAccountNetworkRulesResource) empty(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -7,34 +7,33 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 )
 
-func TestAccDataSourceArmStorageAccountSas_basic(t *testing.T) {
+type StorageAccountSasDataSource struct{}
+
+func TestAccDataSourceStorageAccountSas_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_account_sas", "test")
 	utcNow := time.Now().UTC()
 	startDate := utcNow.Format(time.RFC3339)
 	endDate := utcNow.Add(time.Hour * 24).Format(time.RFC3339)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMStorageAccountSas_basic(data, startDate, endDate),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "https_only", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "signed_version", "2019-10-10"),
-					resource.TestCheckResourceAttr(data.ResourceName, "start", startDate),
-					resource.TestCheckResourceAttr(data.ResourceName, "expiry", endDate),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "sas"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: StorageAccountSasDataSource{}.basic(data, startDate, endDate),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("https_only").HasValue("true"),
+				check.That(data.ResourceName).Key("signed_version").HasValue("2019-10-10"),
+				check.That(data.ResourceName).Key("start").HasValue(startDate),
+				check.That(data.ResourceName).Key("expiry").HasValue(endDate),
+				check.That(data.ResourceName).Key("sas").Exists(),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMStorageAccountSas_basic(data acceptance.TestData, startDate string, endDate string) string {
+func (d StorageAccountSasDataSource) basic(data acceptance.TestData, startDate string, endDate string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -93,7 +92,7 @@ data "azurerm_storage_account_sas" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, startDate, endDate)
 }
 
-func TestAccDataSourceArmStorageAccountSas_resourceTypesString(t *testing.T) {
+func TestAccDataSourceStorageAccountSas_resourceTypesString(t *testing.T) {
 	testCases := []struct {
 		input    map[string]interface{}
 		expected string
@@ -112,7 +111,7 @@ func TestAccDataSourceArmStorageAccountSas_resourceTypesString(t *testing.T) {
 	}
 }
 
-func TestAccDataSourceArmStorageAccountSas_servicesString(t *testing.T) {
+func TestAccDataSourceStorageAccountSas_servicesString(t *testing.T) {
 	testCases := []struct {
 		input    map[string]interface{}
 		expected string
@@ -132,7 +131,7 @@ func TestAccDataSourceArmStorageAccountSas_servicesString(t *testing.T) {
 	}
 }
 
-func TestAccDataSourceArmStorageAccountSas_permissionsString(t *testing.T) {
+func TestAccDataSourceStorageAccountSas_permissionsString(t *testing.T) {
 	testCases := []struct {
 		input    map[string]interface{}
 		expected string

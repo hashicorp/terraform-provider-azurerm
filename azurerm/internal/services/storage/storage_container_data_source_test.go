@@ -6,30 +6,29 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceArmStorageContainer_basic(t *testing.T) {
+type StorageContainerDataSource struct{}
+
+func TestAccDataSourceStorageContainer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_container", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMStorageContainer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "container_access_type", "private"),
-					resource.TestCheckResourceAttr(data.ResourceName, "has_immutability_policy", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "metadata.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "metadata.k1", "v1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "metadata.k2", "v2"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: StorageContainerDataSource{}.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("container_access_type").HasValue("private"),
+				check.That(data.ResourceName).Key("has_immutability_policy").HasValue("false"),
+				check.That(data.ResourceName).Key("metadata.%").HasValue("2"),
+				check.That(data.ResourceName).Key("metadata.k1").HasValue("v1"),
+				check.That(data.ResourceName).Key("metadata.k2").HasValue("v2"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMStorageContainer_basic(data acceptance.TestData) string {
+func (d StorageContainerDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

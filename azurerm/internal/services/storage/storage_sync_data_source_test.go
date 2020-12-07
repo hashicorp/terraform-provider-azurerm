@@ -6,30 +6,27 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMStorageSync_basic(t *testing.T) {
+type StorageSyncDataSource struct{}
+
+func TestAccDataSourceStorageSync_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_sync", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageSyncDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMStorageSync_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageSyncExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "incoming_traffic_policy"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "tags.%"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: StorageSyncDataSource{}.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("incoming_traffic_policy").Exists(),
+				check.That(data.ResourceName).Key("tags.%").Exists(),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMStorageSync_basic(data acceptance.TestData) string {
-	basic := testAccAzureRMStorageSync_basic(data)
+func (d StorageSyncDataSource) basic(data acceptance.TestData) string {
+	basic := StorageSyncResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 

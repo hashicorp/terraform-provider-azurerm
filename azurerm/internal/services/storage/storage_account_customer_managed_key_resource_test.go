@@ -1,119 +1,106 @@
 package storage_test
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-06-01/storage"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMStorageAccountCustomerManagedKey_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_account_customer_managed_key", "test")
+type StorageAccountCustomerManagedKeyResource struct{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageAccountCustomerManagedKey_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountCustomerManagedKeyExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				// Delete the encryption settings resource and verify it is gone
-				Config: testAccAzureRMStorageAccountCustomerManagedKey_template(data),
-				Check: resource.ComposeTestCheckFunc(
-					// Then ensure the encryption settings on the storage account
-					// have been reverted to their default state
-					testCheckAzureRMStorageAccountExistsWithDefaultSettings("azurerm_storage_account.test"),
-				),
-			},
+func TestAccStorageAccountCustomerManagedKey_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account_customer_managed_key", "test")
+	r := StorageAccountCustomerManagedKeyResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Delete the encryption settings resource and verify it is gone
+			Config: r.template(data),
+			Check: resource.ComposeTestCheckFunc(
+				// Then ensure the encryption settings on the storage account
+				// have been reverted to their default state
+				testCheckStorageAccountExistsWithDefaultSettings("azurerm_storage_account.test"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMStorageAccountCustomerManagedKey_requiresImport(t *testing.T) {
+func TestAccStorageAccountCustomerManagedKey_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_customer_managed_key", "test")
+	r := StorageAccountCustomerManagedKeyResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageAccountCustomerManagedKey_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountCustomerManagedKeyExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMStorageAccountCustomerManagedKey_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMStorageAccountCustomerManagedKey_updateKey(t *testing.T) {
+func TestAccStorageAccountCustomerManagedKey_updateKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_customer_managed_key", "test")
+	r := StorageAccountCustomerManagedKeyResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageAccountCustomerManagedKey_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountCustomerManagedKeyExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMStorageAccountCustomerManagedKey_updated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountCustomerManagedKeyExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.updated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMStorageAccountCustomerManagedKey_testKeyVersion(t *testing.T) {
+func TestAccStorageAccountCustomerManagedKey_testKeyVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_customer_managed_key", "test")
+	r := StorageAccountCustomerManagedKeyResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageAccountCustomerManagedKey_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountCustomerManagedKeyExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMStorageAccountCustomerManagedKey_autoKeyRotation(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountCustomerManagedKeyExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.autoKeyRotation(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMStorageAccountExistsWithDefaultSettings(resourceName string) resource.TestCheckFunc {
+func testCheckStorageAccountExistsWithDefaultSettings(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -160,24 +147,15 @@ func testCheckAzureRMStorageAccountExistsWithDefaultSettings(resourceName string
 	}
 }
 
-func testCheckAzureRMStorageAccountCustomerManagedKeyExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		if storageAccountId := rs.Primary.Attributes["storage_account_id"]; storageAccountId == "" {
-			return fmt.Errorf("Unable to read storageAccountId: %s", resourceName)
-		}
-
-		return nil
+func (r StorageAccountCustomerManagedKeyResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	if storageAccountId := state.Attributes["storage_account_id"]; storageAccountId == "" {
+		return nil, fmt.Errorf("cannot read storage account ID from Storage Account Customer Managed Key resource")
 	}
+	return utils.Bool(true), nil
 }
 
-func testAccAzureRMStorageAccountCustomerManagedKey_basic(data acceptance.TestData) string {
-	template := testAccAzureRMStorageAccountCustomerManagedKey_template(data)
+func (r StorageAccountCustomerManagedKeyResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -190,8 +168,8 @@ resource "azurerm_storage_account_customer_managed_key" "test" {
 `, template)
 }
 
-func testAccAzureRMStorageAccountCustomerManagedKey_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMStorageAccountCustomerManagedKey_basic(data)
+func (r StorageAccountCustomerManagedKeyResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -204,8 +182,8 @@ resource "azurerm_storage_account_customer_managed_key" "import" {
 `, template)
 }
 
-func testAccAzureRMStorageAccountCustomerManagedKey_updated(data acceptance.TestData) string {
-	template := testAccAzureRMStorageAccountCustomerManagedKey_template(data)
+func (r StorageAccountCustomerManagedKeyResource) updated(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -231,8 +209,8 @@ resource "azurerm_storage_account_customer_managed_key" "test" {
 `, template)
 }
 
-func testAccAzureRMStorageAccountCustomerManagedKey_autoKeyRotation(data acceptance.TestData) string {
-	template := testAccAzureRMStorageAccountCustomerManagedKey_template(data)
+func (r StorageAccountCustomerManagedKeyResource) autoKeyRotation(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -244,7 +222,7 @@ resource "azurerm_storage_account_customer_managed_key" "test" {
 `, template)
 }
 
-func testAccAzureRMStorageAccountCustomerManagedKey_template(data acceptance.TestData) string {
+func (r StorageAccountCustomerManagedKeyResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {

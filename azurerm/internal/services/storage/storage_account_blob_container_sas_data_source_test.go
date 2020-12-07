@@ -7,46 +7,45 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 )
 
-func TestAccDataSourceArmStorageAccountBlobContainerSas_basic(t *testing.T) {
+type StorageAccountBlobContainerSASDataSource struct{}
+
+func TestAccDataSourceStorageAccountBlobContainerSas_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_account_blob_container_sas", "test")
 	utcNow := time.Now().UTC()
 	startDate := utcNow.Format(time.RFC3339)
 	endDate := utcNow.Add(time.Hour * 24).Format(time.RFC3339)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMStorageAccountBlobContainerSas_basic(data, startDate, endDate),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "https_only", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "start", startDate),
-					resource.TestCheckResourceAttr(data.ResourceName, "expiry", endDate),
-					resource.TestCheckResourceAttr(data.ResourceName, "ip_address", "168.1.5.65"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.read", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.add", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.create", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.write", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.delete", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.list", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "cache_control", "max-age=5"),
-					resource.TestCheckResourceAttr(data.ResourceName, "content_disposition", "inline"),
-					resource.TestCheckResourceAttr(data.ResourceName, "content_encoding", "deflate"),
-					resource.TestCheckResourceAttr(data.ResourceName, "content_language", "en-US"),
-					resource.TestCheckResourceAttr(data.ResourceName, "content_type", "application/json"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "sas"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: StorageAccountBlobContainerSASDataSource{}.basic(data, startDate, endDate),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("https_only").HasValue("true"),
+				check.That(data.ResourceName).Key("start").HasValue(startDate),
+				check.That(data.ResourceName).Key("expiry").HasValue(endDate),
+				check.That(data.ResourceName).Key("ip_address").HasValue("168.1.5.65"),
+				check.That(data.ResourceName).Key("permissions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("permissions.0.read").HasValue("true"),
+				check.That(data.ResourceName).Key("permissions.0.add").HasValue("true"),
+				check.That(data.ResourceName).Key("permissions.0.create").HasValue("false"),
+				check.That(data.ResourceName).Key("permissions.0.write").HasValue("false"),
+				check.That(data.ResourceName).Key("permissions.0.delete").HasValue("true"),
+				check.That(data.ResourceName).Key("permissions.0.list").HasValue("true"),
+				check.That(data.ResourceName).Key("cache_control").HasValue("max-age=5"),
+				check.That(data.ResourceName).Key("content_disposition").HasValue("inline"),
+				check.That(data.ResourceName).Key("content_encoding").HasValue("deflate"),
+				check.That(data.ResourceName).Key("content_language").HasValue("en-US"),
+				check.That(data.ResourceName).Key("content_type").HasValue("application/json"),
+				check.That(data.ResourceName).Key("sas").Exists(),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMStorageAccountBlobContainerSas_basic(data acceptance.TestData, startDate string, endDate string) string {
+func (d StorageAccountBlobContainerSASDataSource) basic(data acceptance.TestData, startDate string, endDate string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -100,7 +99,7 @@ data "azurerm_storage_account_blob_container_sas" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, startDate, endDate)
 }
 
-func TestAccDataSourceArmStorageAccountBlobContainerSas_permissionsString(t *testing.T) {
+func TestAccDataSourceStorageAccountBlobContainerSas_permissionsString(t *testing.T) {
 	testCases := []struct {
 		input    map[string]interface{}
 		expected string

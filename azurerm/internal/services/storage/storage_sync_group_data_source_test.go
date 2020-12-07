@@ -6,28 +6,26 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMStorageSyncGroup_basic(t *testing.T) {
+type StorageSyncGroupDataSource struct{}
+
+func TestAccDataSourceStorageSyncGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_sync_group", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageSyncGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMStorageSyncGroup_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageSyncGroupExists(data.ResourceName),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: StorageSyncGroupDataSource{}.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("storage_sync_id").Exists(),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMStorageSyncGroup_basic(data acceptance.TestData) string {
-	basic := testAccAzureRMStorageSyncGroup_basic(data)
+func (d StorageSyncGroupDataSource) basic(data acceptance.TestData) string {
+	basic := StorageSyncGroupResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 

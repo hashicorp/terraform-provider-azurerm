@@ -98,7 +98,7 @@ func TestAccAzureRMStorageShareFile_withFile(t *testing.T) {
 		t.Fatalf("Failed to create local source blob file")
 	}
 
-	if err := testAccAzureRMStorageBlob_populateTempFile(sourceBlob); err != nil {
+	if err := populateTempFile(sourceBlob); err != nil {
 		t.Fatalf("Error populating temp file: %s", err)
 	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")
