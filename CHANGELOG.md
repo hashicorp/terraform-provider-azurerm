@@ -13,6 +13,7 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * `azurerm_postgresql_server` - changing the `geo_redundant_backup_enabled` property now forces a new resource [GH-9694]
+* `azurerm_recovery_services_vault` - support for the `identity` block [GH-9689]
 * `azurerm_signar_service` -  having an empty `allowed_origins` in the `cors` block will no longer cause a panic [GH-9671]
 
 ## 2.39.0 (December 04, 2020)
