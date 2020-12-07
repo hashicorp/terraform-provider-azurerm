@@ -21,7 +21,7 @@ func (id RoutingRuleId) ID(subscriptionId string) string {
 	return fmt.Sprintf("%s/routingRules/%s", base, id.Name)
 }
 
-func RoutingRuleID(input string) (*RoutingRuleId, error) {
+func RoutingRuleIDInsensitively(input string) (*RoutingRuleId, error) {
 	frontDoorId, id, err := parseFrontDoorChildResourceId(input)
 	if err != nil {
 		return nil, fmt.Errorf("parsing Routing Rule ID %q: %+v", input, err)
