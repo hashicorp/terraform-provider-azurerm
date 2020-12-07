@@ -1,4 +1,4 @@
-package tests
+package signalr_test
 
 import (
 	"fmt"
@@ -6,37 +6,34 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMSignalRService_basic(t *testing.T) {
+type SignalRServiceDataSource struct{}
+
+func TestAccDataSourceSignalRService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_signalr_service", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMSignalRService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSignalRServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "hostname"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "server_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: SignalRServiceDataSource{}.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("id").Exists(),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMSignalRService_basic(data acceptance.TestData) string {
-	template := testAccAzureRMSignalRService_basic(data)
+func (r SignalRServiceDataSource) basic(data acceptance.TestData) string {
+	template := SignalRServiceResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 

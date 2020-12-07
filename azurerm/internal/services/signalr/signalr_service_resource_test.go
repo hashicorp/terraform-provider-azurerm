@@ -1,370 +1,353 @@
-package tests
+package signalr_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMSignalRService_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
+type SignalRServiceResource struct{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSignalRService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSignalRServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Free_F1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "hostname"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "server_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
-				),
-			},
-			data.ImportStep(),
+func TestAccSignalRService_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
+	r := SignalRServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku.0.name").HasValue("Free_F1"),
+				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSignalRService_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
+	r := SignalRServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku.0.name").HasValue("Free_F1"),
+				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccSignalRService_standard(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
+	r := SignalRServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.standardWithCapacity(data, 1),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_S1"),
+				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSignalRService_standardWithCap2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
+	r := SignalRServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.standardWithCapacity(data, 2),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_S1"),
+				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("2"),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSignalRService_skuUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
+	r := SignalRServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku.0.name").HasValue("Free_F1"),
+				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
+		},
+		{
+			Config: r.standardWithCapacity(data, 1),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_S1"),
+				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
+		},
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku.0.name").HasValue("Free_F1"),
+				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMSignalRService_requiresImport(t *testing.T) {
+func TestAccSignalRService_capacityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
+	r := SignalRServiceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSignalRService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSignalRServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Free_F1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "hostname"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "server_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMSignalRService_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.standardWithCapacity(data, 1),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_S1"),
+				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
+		},
+		{
+			Config: r.standardWithCapacity(data, 5),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_S1"),
+				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("5"),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
+		},
+		{
+			Config: r.standardWithCapacity(data, 1),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_S1"),
+				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMSignalRService_standard(t *testing.T) {
+func TestAccSignalRService_skuAndCapacityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
+	r := SignalRServiceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSignalRService_standardWithCapacity(data, 1),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSignalRServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Standard_S1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "hostname"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "server_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku.0.name").HasValue("Free_F1"),
+				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
+		},
+		{
+			Config: r.standardWithCapacity(data, 2),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku.0.name").HasValue("Standard_S1"),
+				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("2"),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
+		},
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku.0.name").HasValue("Free_F1"),
+				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("1"),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMSignalRService_standardWithCap2(t *testing.T) {
+func TestAccSignalRService_serviceMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
+	r := SignalRServiceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSignalRService_standardWithCapacity(data, 2),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSignalRServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Standard_S1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "2"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "hostname"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "server_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withServiceMode(data, "Serverless"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMSignalRService_skuUpdate(t *testing.T) {
+func TestAccSignalRService_cors(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
+	r := SignalRServiceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSignalRService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSignalRServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Free_F1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "hostname"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "server_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
-				),
-			},
-			{
-				Config: testAccAzureRMSignalRService_standardWithCapacity(data, 1),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSignalRServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Standard_S1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "hostname"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "server_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
-				),
-			},
-			{
-				Config: testAccAzureRMSignalRService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSignalRServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Free_F1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "hostname"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "server_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withCors(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("cors.#").HasValue("1"),
+				check.That(data.ResourceName).Key("cors.0.allowed_origins.#").HasValue("2"),
+				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+				check.That(data.ResourceName).Key("public_port").Exists(),
+				check.That(data.ResourceName).Key("server_port").Exists(),
+				check.That(data.ResourceName).Key("primary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMSignalRService_capacityUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSignalRService_standardWithCapacity(data, 1),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSignalRServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Standard_S1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "hostname"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "server_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
-				),
-			},
-			{
-				Config: testAccAzureRMSignalRService_standardWithCapacity(data, 5),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSignalRServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Standard_S1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "5"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "hostname"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "server_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
-				),
-			},
-			{
-				Config: testAccAzureRMSignalRService_standardWithCapacity(data, 1),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSignalRServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Standard_S1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "hostname"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "server_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
-				),
-			},
-		},
-	})
+func (r SignalRServiceResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ServiceID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := client.SignalR.Client.Get(ctx, id.ResourceGroup, id.SignalRName)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
+		}
+		return nil, fmt.Errorf("retrieving SignalR Service %q (Resource Group %q): %+v", id.SignalRName, id.ResourceGroup, err)
+	}
+	return utils.Bool(true), nil
 }
 
-func TestAccAzureRMSignalRService_skuAndCapacityUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSignalRService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSignalRServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Free_F1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "hostname"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "server_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
-				),
-			},
-			{
-				Config: testAccAzureRMSignalRService_standardWithCapacity(data, 2),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSignalRServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Standard_S1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "2"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "hostname"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "server_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
-				),
-			},
-			{
-				Config: testAccAzureRMSignalRService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSignalRServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Free_F1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "hostname"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "server_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMSignalRService_serviceMode(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSignalRService_withServiceMode(data, "Serverless"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSignalRServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "hostname"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "server_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMSignalRService_cors(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSignalRService_withCors(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSignalRServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "cors.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "cors.0.allowed_origins.#", "2"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "hostname"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_address"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "server_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testAccAzureRMSignalRService_basic(data acceptance.TestData) string {
+func (r SignalRServiceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -388,7 +371,7 @@ resource "azurerm_signalr_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMSignalRService_requiresImport(data acceptance.TestData) string {
+func (r SignalRServiceResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -402,10 +385,10 @@ resource "azurerm_signalr_service" "import" {
     capacity = 1
   }
 }
-`, testAccAzureRMSignalRService_basic(data))
+`, r.basic(data))
 }
 
-func testAccAzureRMSignalRService_standardWithCapacity(data acceptance.TestData, capacity int) string {
+func (r SignalRServiceResource) standardWithCapacity(data acceptance.TestData, capacity int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -429,7 +412,7 @@ resource "azurerm_signalr_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, capacity)
 }
 
-func testAccAzureRMSignalRService_withCors(data acceptance.TestData) string {
+func (r SignalRServiceResource) withCors(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -460,7 +443,7 @@ resource "azurerm_signalr_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMSignalRService_withServiceMode(data acceptance.TestData, serviceMode string) string {
+func (r SignalRServiceResource) withServiceMode(data acceptance.TestData, serviceMode string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -497,56 +480,4 @@ resource "azurerm_signalr_service" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, serviceMode)
-}
-
-func testCheckAzureRMSignalRServiceDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).SignalR.Client
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_signalr_service" {
-			continue
-		}
-
-		id, err := parse.ServiceID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.SignalRName)
-		if err != nil {
-			return nil
-		}
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("SignalR service still exists:\n%#v", resp)
-		}
-	}
-	return nil
-}
-
-func testCheckAzureRMSignalRServiceExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).SignalR.Client
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		id, err := parse.ServiceID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.SignalRName)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on signalRClient: %+v", err)
-		}
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: SignalR service %q (resource group: %q) does not exist", id.SignalRName, id.ResourceGroup)
-		}
-
-		return nil
-	}
 }
