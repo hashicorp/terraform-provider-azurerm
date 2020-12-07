@@ -1,4 +1,4 @@
-package tests
+package notificationhub_test
 
 import (
 	"fmt"
