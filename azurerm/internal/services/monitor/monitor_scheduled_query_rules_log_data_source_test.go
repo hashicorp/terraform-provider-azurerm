@@ -1,4 +1,4 @@
-package tests
+package monitor_test
 
 import (
 	"fmt"
