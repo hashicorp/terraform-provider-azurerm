@@ -8,6 +8,13 @@ FEATURES:
 IMPROVEMENTS:
 
 * `azurerm_app_service` - support for PHP version `7.4` [GH-9727]
+* `azurerm_bot_channel_directline` - support for enhanced import validation [GH-9690]
+* `azurerm_bot_channel_email` - support for enhanced import validation [GH-9690]
+* `azurerm_bot_channel_ms_teams` - support for enhanced import validation [GH-9690]
+* `azurerm_bot_channel_slack` - support for enhanced import validation [GH-9690]
+* `azurerm_bot_channels_registration` - support for enhanced import validation [GH-9690]
+* `azurerm_bot_connection` - support for enhanced import validation [GH-9690]
+* `azurerm_bot_web_app` - support for enhanced import validation [GH-9690]
 * `azurerm_cosmosdb_sql_container` - support for the `partition_key_version` property [GH-9496]
 * `azurerm_kusto_cluster` - support for the `engine` property [GH-9696]
 * `azurerm_kusto_eventhub_data_connection` - support for `compression` [GH-9692]
@@ -16,6 +23,10 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_bot_channel_directline` - the field `bot_name` is now ForceNew to match the documentation/API behaviour [GH-9690]
+* `azurerm_bot_channel_ms_teams` - the field `bot_name` is now ForceNew to match the documentation/API behaviour [GH-9690]
+* `azurerm_bot_channel_slack` - the field `bot_name` is now ForceNew to match the documentation/API behaviour [GH-9690]
+* `azurerm_bot_connection` - the field `bot_name` is now ForceNew to match the documentation/API behaviour [GH-9690]
 * `azurerm_postgresql_server` - changing the `geo_redundant_backup_enabled` property now forces a new resource [GH-9694]
 * `azurerm_signar_service` -  having an empty `allowed_origins` in the `cors` block will no longer cause a panic [GH-9671]
 
