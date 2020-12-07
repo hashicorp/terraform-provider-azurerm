@@ -1,4 +1,4 @@
-package mixedreality
+package mixedreality_test
 
 import (
 	"context"
