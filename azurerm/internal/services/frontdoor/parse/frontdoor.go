@@ -33,7 +33,7 @@ func FrontDoorIDInsensitively(input string) (*FrontDoorId, error) {
 	return frontDoorId, nil
 }
 
-func FrontDoorIDForImport(input string) (*FrontDoorId, error) {
+func FrontDoorID(input string) (*FrontDoorId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("parsing FrontDoor ID %q: %+v", input, err)
