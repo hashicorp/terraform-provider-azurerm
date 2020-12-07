@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -24,6 +25,16 @@ func NewDatabaseExtendedAuditingPolicyID(subscriptionId, resourceGroup, serverNa
 		DatabaseName:                databaseName,
 		ExtendedAuditingSettingName: extendedAuditingSettingName,
 	}
+}
+
+func (id DatabaseExtendedAuditingPolicyId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Server Name %q", id.ServerName),
+		fmt.Sprintf("Database Name %q", id.DatabaseName),
+		fmt.Sprintf("Extended Auditing Setting Name %q", id.ExtendedAuditingSettingName),
+	}
+	return strings.Join(segments, " / ")
 }
 
 func (id DatabaseExtendedAuditingPolicyId) ID(_ string) string {

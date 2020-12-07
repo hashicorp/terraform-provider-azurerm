@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -22,6 +23,15 @@ func NewAzureActiveDirectoryAdministratorID(subscriptionId, resourceGroup, serve
 		ServerName:        serverName,
 		AdministratorName: administratorName,
 	}
+}
+
+func (id AzureActiveDirectoryAdministratorId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Server Name %q", id.ServerName),
+		fmt.Sprintf("Administrator Name %q", id.AdministratorName),
+	}
+	return strings.Join(segments, " / ")
 }
 
 func (id AzureActiveDirectoryAdministratorId) ID(_ string) string {

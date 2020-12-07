@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -22,6 +23,15 @@ func NewNamespaceAuthorizationRuleID(subscriptionId, resourceGroup, namespaceNam
 		NamespaceName:         namespaceName,
 		AuthorizationRuleName: authorizationRuleName,
 	}
+}
+
+func (id NamespaceAuthorizationRuleId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Namespace Name %q", id.NamespaceName),
+		fmt.Sprintf("Authorization Rule Name %q", id.AuthorizationRuleName),
+	}
+	return strings.Join(segments, " / ")
 }
 
 func (id NamespaceAuthorizationRuleId) ID(_ string) string {

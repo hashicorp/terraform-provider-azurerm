@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -22,6 +23,15 @@ func NewSpringCloudCertificateID(subscriptionId, resourceGroup, springName, cert
 		SpringName:      springName,
 		CertificateName: certificateName,
 	}
+}
+
+func (id SpringCloudCertificateId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Spring Name %q", id.SpringName),
+		fmt.Sprintf("Certificate Name %q", id.CertificateName),
+	}
+	return strings.Join(segments, " / ")
 }
 
 func (id SpringCloudCertificateId) ID(_ string) string {

@@ -288,6 +288,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -297,7 +298,8 @@ import (
 %s
 %s
 %s
-`, id.codeForType(), id.codeForConstructor(), id.codeForFormatter(), id.codeForParser(), id.codeForParserInsensitive())
+%s
+`, id.codeForType(), id.codeForConstructor(), id.codeForDescription(), id.codeForFormatter(), id.codeForParser(), id.codeForParserInsensitive())
 }
 
 func (id ResourceIdGenerator) codeForType() string {
@@ -331,6 +333,40 @@ func New%[1]sID(%[2]s string) %[1]sId {
 	}
 }
 `, id.TypeName, argumentsStr, assignmentsStr)
+}
+
+func (id ResourceIdGenerator) codeForDescription() string {
+	var makeHumanReadable = func(input string) string {
+		chars := make([]rune, 0)
+		for _, c := range input {
+			if unicode.IsUpper(c) {
+				chars = append(chars, ' ')
+			}
+
+			chars = append(chars, c)
+		}
+		out := string(chars)
+		return strings.TrimSpace(out)
+	}
+
+	formatKeys := make([]string, 0)
+	for _, segment := range id.Segments {
+		if segment.FieldName == "SubscriptionId" {
+			continue
+		}
+
+		humanReadableKey := makeHumanReadable(segment.FieldName)
+		formatKeys = append(formatKeys, fmt.Sprintf("\t\tfmt.Sprintf(\"%[1]s %%q\", id.%[2]s),", humanReadableKey, segment.FieldName))
+	}
+	formatKeysString := strings.Join(formatKeys, "\n")
+	return fmt.Sprintf(`
+func (id %[1]sId) String() string {
+	segments := []string{
+%s
+	}
+	return strings.Join(segments, " / ")
+}
+`, id.TypeName, formatKeysString)
 }
 
 func (id ResourceIdGenerator) codeForFormatter() string {

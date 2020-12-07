@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -18,6 +19,13 @@ func NewSubscriptionTemplateDeploymentID(subscriptionId, deploymentName string) 
 		SubscriptionId: subscriptionId,
 		DeploymentName: deploymentName,
 	}
+}
+
+func (id SubscriptionTemplateDeploymentId) String() string {
+	segments := []string{
+		fmt.Sprintf("Deployment Name %q", id.DeploymentName),
+	}
+	return strings.Join(segments, " / ")
 }
 
 func (id SubscriptionTemplateDeploymentId) ID(_ string) string {
