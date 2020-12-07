@@ -1,4 +1,4 @@
-package tests
+package postgres_test_test
 
 import (
 	"fmt"
