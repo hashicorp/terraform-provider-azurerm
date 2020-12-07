@@ -1461,7 +1461,7 @@ func flattenRoutingRuleForwardingConfiguration(config frontdoor.BasicRouteConfig
 
 	name := ""
 	if v.BackendPool != nil && v.BackendPool.ID != nil {
-		backendPoolId, err := parse.BackendPoolID(*v.BackendPool.ID)
+		backendPoolId, err := parse.BackendPoolIDInsensitively(*v.BackendPool.ID)
 		if err != nil {
 			return nil, err
 		}

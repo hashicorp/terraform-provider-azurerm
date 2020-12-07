@@ -21,7 +21,7 @@ func (id BackendPoolId) ID(subscriptionId string) string {
 	return fmt.Sprintf("%s/backendPools/%s", base, id.Name)
 }
 
-func BackendPoolID(input string) (*BackendPoolId, error) {
+func BackendPoolIDInsensitively(input string) (*BackendPoolId, error) {
 	frontDoorId, id, err := parseFrontDoorChildResourceId(input)
 	if err != nil {
 		return nil, fmt.Errorf("parsing Backend Pool ID %q: %+v", input, err)
