@@ -13,7 +13,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -24,9 +27,10 @@ func resourceArmBotConnection() *schema.Resource {
 		Read:   resourceArmBotConnectionRead,
 		Update: resourceArmBotConnectionUpdate,
 		Delete: resourceArmBotConnectionDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.BotConnectionID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -50,6 +54,7 @@ func resourceArmBotConnection() *schema.Resource {
 			"bot_name": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -94,22 +99,20 @@ func resourceArmBotConnection() *schema.Resource {
 
 func resourceArmBotConnectionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.ConnectionClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	botName := d.Get("bot_name").(string)
-
+	resourceId := parse.NewBotConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name, botName)
+		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, resourceId.ConnectionName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of creating Bot Connection %q (Resource Group %q / Bot %q): %+v", name, resourceGroup, botName, err)
+				return fmt.Errorf("checking for presence of existing Bot Connection %q (Bot %q / Resource Group %q): %+v", resourceId.ConnectionName, resourceId.BotServiceName, resourceId.ResourceGroup, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_bot_connection", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_bot_connection", resourceId.ID(""))
 		}
 	}
 
@@ -154,21 +157,11 @@ func resourceArmBotConnectionCreate(d *schema.ResourceData, meta interface{}) er
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err := client.Create(ctx, resourceGroup, botName, name, connection); err != nil {
-		return fmt.Errorf("Error issuing create request for creating Bot Connection %q (Resource Group %q / Bot %q): %+v", name, resourceGroup, botName, err)
+	if _, err := client.Create(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, resourceId.ConnectionName, connection); err != nil {
+		return fmt.Errorf("creating Bot Connection %q (Bot %q / Resource Group %q): %+v", resourceId.ConnectionName, resourceId.BotServiceName, resourceId.ResourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, botName, name)
-	if err != nil {
-		return fmt.Errorf("Error making get request for Bot Connection %q (Resource Group %q / Bot %q): %+v", name, resourceGroup, botName, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Bot Connection %q (Resource Group %q / Bot %q): %+v", name, resourceGroup, botName, err)
-	}
-
-	d.SetId(*resp.ID)
-
+	d.SetId(resourceId.ID(""))
 	return resourceArmBotConnectionRead(d, meta)
 }
 
@@ -177,35 +170,32 @@ func resourceArmBotConnectionRead(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.BotConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	botName := id.Path["botServices"]
-	name := id.Path["connections"]
-
-	resp, err := client.Get(ctx, id.ResourceGroup, botName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, id.ConnectionName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading Bot Connection %q (Resource Group %q / Bot %q)", name, id.ResourceGroup, botName)
+			log.Printf("[INFO] Bot Connection %q (Bot %q / Resource Group %q) was not found - removing from state!", id.ConnectionName, id.BotServiceName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Bot Connection %q (Resource Group %q / Bot %q): %+v", name, id.ResourceGroup, botName, err)
+		return fmt.Errorf("Error reading Bot Connection %q (Bot %q / Resource Group %q): %+v", id.ConnectionName, id.BotServiceName, id.ResourceGroup, err)
 	}
 
+	d.Set("name", id.ConnectionName)
+	d.Set("bot_name", id.BotServiceName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("name", name)
-	d.Set("bot_name", botName)
-	d.Set("location", resp.Location)
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.Properties; props != nil {
 		d.Set("client_id", props.ClientID)
 		d.Set("scopes", props.Scopes)
 		if err := d.Set("parameters", flattenAzureRMBotConnectionParameters(props.Parameters)); err != nil {
-			return fmt.Errorf("Error setting `parameters`: %+v", err)
+			return fmt.Errorf("setting `parameters`: %+v", err)
 		}
 	}
 
@@ -217,9 +207,10 @@ func resourceArmBotConnectionUpdate(d *schema.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	botName := d.Get("bot_name").(string)
+	id, err := parse.BotConnectionID(d.Id())
+	if err != nil {
+		return err
+	}
 
 	connection := botservice.ConnectionSetting{
 		Properties: &botservice.ConnectionSettingProperties{
@@ -234,20 +225,9 @@ func resourceArmBotConnectionUpdate(d *schema.ResourceData, meta interface{}) er
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err := client.Update(ctx, resourceGroup, botName, name, connection); err != nil {
-		return fmt.Errorf("Error issuing update request for creating Bot Connection %q (Resource Group %q / Bot %q): %+v", name, resourceGroup, botName, err)
+	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, id.ConnectionName, connection); err != nil {
+		return fmt.Errorf("updating Bot Connection %q (Bot %q / Resource Group %q): %+v", id.ConnectionName, id.BotServiceName, id.ResourceGroup, err)
 	}
-
-	resp, err := client.Get(ctx, resourceGroup, botName, name)
-	if err != nil {
-		return fmt.Errorf("Error making get request for Bot Connection %q (Resource Group %q / Bot %q): %+v", name, resourceGroup, botName, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Bot Connection %q (Resource Group %q / Bot %q): %+v", name, resourceGroup, botName, err)
-	}
-
-	d.SetId(*resp.ID)
 
 	return resourceArmBotConnectionRead(d, meta)
 }
@@ -257,17 +237,15 @@ func resourceArmBotConnectionDelete(d *schema.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.BotConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
-	botName := id.Path["botServices"]
-	name := id.Path["connections"]
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, botName, name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.BotServiceName, id.ConnectionName)
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting Bot Connection %q (Resource Group %q / Bot %q): %+v", name, id.ResourceGroup, botName, err)
+			return fmt.Errorf("deleting Bot Connection %q (Bot %q / Resource Group %q): %+v", id.ConnectionName, id.BotServiceName, id.ResourceGroup, err)
 		}
 	}
 
