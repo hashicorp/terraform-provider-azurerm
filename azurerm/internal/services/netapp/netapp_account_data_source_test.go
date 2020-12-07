@@ -1,4 +1,4 @@
-package tests
+package netapp_test
 
 import (
 	"fmt"
