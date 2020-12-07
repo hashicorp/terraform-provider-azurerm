@@ -7,9 +7,10 @@ FEATURES:
 
 IMPROVEMENTS:
 
-* `azurerm_app_service`: Support PHP version `7.4` [GH-9727]
+* `azurerm_app_service` - support for PHP version `7.4` [GH-9727]
 * `azurerm_cosmosdb_sql_container` - support for the `partition_key_version` property [GH-9496]
 * `azurerm_kusto_cluster` - support for the `engine` property [GH-9696]
+* `azurerm_kusto_eventhub_data_connection` - support for `compression` [GH-9692]
 * `azurerm_iothub` - support for the `min_tls_version` property [GH-9670]
 * `azurerm_recovery_services_vault` - support for the `identity` block [GH-9689]
 
