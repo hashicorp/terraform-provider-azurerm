@@ -50,7 +50,7 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateAzureRmLogAnalyticsWorkspaceName,
+				ValidateFunc: validate.LogAnalyticsWorkspaceName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -283,10 +283,6 @@ func resourceArmLogAnalyticsWorkspaceDelete(d *schema.ResourceData, meta interfa
 	}
 
 	return nil
-}
-
-func ValidateAzureRmLogAnalyticsWorkspaceName(v interface{}, k string) (warnings []string, errors []error) {
-	return validate.LogAnalyticsWorkspaceName(v, k)
 }
 
 func dailyQuotaGbDiffSuppressFunc(_, _, _ string, d *schema.ResourceData) bool {
