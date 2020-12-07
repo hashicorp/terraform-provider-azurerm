@@ -1,4 +1,4 @@
-package tests
+package loganalytics
 
 import (
 	"fmt"
@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 )
 
@@ -47,7 +46,7 @@ func TestAccAzureRmLogAnalyticsWorkspaceName_validation(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := loganalytics.ValidateAzureRmLogAnalyticsWorkspaceName(tc.Value, "azurerm_log_analytics")
+		_, errors := ValidateAzureRmLogAnalyticsWorkspaceName(tc.Value, "azurerm_log_analytics")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected the AzureRM Log Analytics Workspace Name to trigger a validation error for '%s'", tc.Value)

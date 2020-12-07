@@ -1,4 +1,4 @@
-package tests
+package loganalytics
 
 import (
 	"fmt"
