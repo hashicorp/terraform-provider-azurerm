@@ -1,48 +1,130 @@
 package parse
 
-import "fmt"
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+)
 
 type HealthProbeId struct {
-	ResourceGroup string
-	FrontDoorName string
-	Name          string
+	SubscriptionId         string
+	ResourceGroup          string
+	FrontDoorName          string
+	HealthProbeSettingName string
 }
 
-func NewHealthProbeID(subscriptionId, resourceGroup, frontDoorName, name string) HealthProbeId {
+func NewHealthProbeID(subscriptionId, resourceGroup, frontDoorName, healthProbeSettingName string) HealthProbeId {
 	return HealthProbeId{
-		ResourceGroup: resourceGroup,
-		FrontDoorName: frontDoorName,
-		Name:          name,
+		SubscriptionId:         subscriptionId,
+		ResourceGroup:          resourceGroup,
+		FrontDoorName:          frontDoorName,
+		HealthProbeSettingName: healthProbeSettingName,
 	}
 }
 
-func (id HealthProbeId) ID(subscriptionId string) string {
-	base := NewFrontDoorID(subscriptionId, id.ResourceGroup, id.FrontDoorName).ID(subscriptionId)
-	return fmt.Sprintf("%s/healthProbeSettings/%s", base, id.Name)
+func (id HealthProbeId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Front Door Name %q", id.FrontDoorName),
+		fmt.Sprintf("Health Probe Setting Name %q", id.HealthProbeSettingName),
+	}
+	return strings.Join(segments, " / ")
 }
 
-func HealthProbeIDInsensitively(input string) (*HealthProbeId, error) {
-	frontDoorId, id, err := parseFrontDoorChildResourceId(input)
+func (id HealthProbeId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/frontDoors/%s/healthProbeSettings/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.FrontDoorName, id.HealthProbeSettingName)
+}
+
+// HealthProbeID parses a HealthProbe ID into an HealthProbeId struct
+func HealthProbeID(input string) (*HealthProbeId, error) {
+	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing FrontDoor Health Probe ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	probeId := HealthProbeId{
-		ResourceGroup: frontDoorId.ResourceGroup,
-		FrontDoorName: frontDoorId.Name,
+	resourceId := HealthProbeId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	// https://github.com/Azure/azure-sdk-for-go/issues/6762
-	// note: the ordering is important since the defined case (we want to error with) is healthProbeSettings
-	if probeId.Name, err = id.PopSegment("HealthProbeSettings"); err != nil {
-		if probeId.Name, err = id.PopSegment("healthProbeSettings"); err != nil {
-			return nil, err
-		}
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.FrontDoorName, err = id.PopSegment("frontDoors"); err != nil {
+		return nil, err
+	}
+	if resourceId.HealthProbeSettingName, err = id.PopSegment("healthProbeSettings"); err != nil {
+		return nil, err
 	}
 
 	if err := id.ValidateNoEmptySegments(input); err != nil {
 		return nil, err
 	}
 
-	return &probeId, nil
+	return &resourceId, nil
+}
+
+// HealthProbeIDInsensitively parses an HealthProbe ID into an HealthProbeId struct, insensitively
+// This should only be used to parse an ID for rewriting, the HealthProbeID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func HealthProbeIDInsensitively(input string) (*HealthProbeId, error) {
+	id, err := azure.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := HealthProbeId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'frontDoors' segment
+	frontDoorsKey := "frontDoors"
+	for key := range id.Path {
+		if strings.EqualFold(key, frontDoorsKey) {
+			frontDoorsKey = key
+			break
+		}
+	}
+	if resourceId.FrontDoorName, err = id.PopSegment(frontDoorsKey); err != nil {
+		return nil, err
+	}
+
+	// find the correct casing for the 'healthProbeSettings' segment
+	healthProbeSettingsKey := "healthProbeSettings"
+	for key := range id.Path {
+		if strings.EqualFold(key, healthProbeSettingsKey) {
+			healthProbeSettingsKey = key
+			break
+		}
+	}
+	if resourceId.HealthProbeSettingName, err = id.PopSegment(healthProbeSettingsKey); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
 }
