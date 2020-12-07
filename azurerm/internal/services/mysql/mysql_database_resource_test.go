@@ -1,4 +1,4 @@
-package tests
+package mysql_test
 
 import (
 	"fmt"
