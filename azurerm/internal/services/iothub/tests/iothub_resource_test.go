@@ -241,6 +241,25 @@ func TestAccAzureRMIotHub_publicAccess(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMIotHub_minTLSVersion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMIotHubDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMIotHub_minTLSVersion(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMIotHubExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMIotHubDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -808,4 +827,34 @@ resource "azurerm_iothub" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMIotHub_minTLSVersion(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-iothub-%d"
+  location = "%s"
+}
+
+resource "azurerm_iothub" "test" {
+  name                = "acctestIoTHub-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  min_tls_version = "1.2"
+
+  sku {
+    name     = "B1"
+    capacity = "1"
+  }
+
+  tags = {
+    purpose = "testing"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

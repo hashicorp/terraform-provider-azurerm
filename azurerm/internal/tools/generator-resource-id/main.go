@@ -18,7 +18,6 @@ func main() {
 	id := flag.String("id", "", "An example of this Resource ID")
 	rewrite := flag.Bool("rewrite", false, "Should this Resource ID be parsed insensitively, to workaround an API bug?")
 	showHelp := flag.Bool("help", false, "Display this message")
-	shouldValidate := false // TODO: enable once the existing files are renamed
 
 	flag.Parse()
 
@@ -27,12 +26,12 @@ func main() {
 		return
 	}
 
-	if err := run(*servicePackagePath, *name, *id, *rewrite, shouldValidate); err != nil {
+	if err := run(*servicePackagePath, *name, *id, *rewrite); err != nil {
 		panic(err)
 	}
 }
 
-func run(servicePackagePath, name, id string, shouldRewrite, shouldValidate bool) error {
+func run(servicePackagePath, name, id string, shouldRewrite bool) error {
 	servicePackage, err := parseServicePackageName(servicePackagePath)
 	if err != nil {
 		return fmt.Errorf("determining Service Package Name for %q: %+v", servicePackagePath, err)
@@ -44,13 +43,12 @@ func run(servicePackagePath, name, id string, shouldRewrite, shouldValidate bool
 	}
 
 	validatorPath := path.Join(servicePackagePath, "/validate")
-	if shouldValidate {
-		if err := os.Mkdir(validatorPath, 0755); err != nil && !os.IsExist(err) {
-			return fmt.Errorf("creating validate directory at %q: %+v", validatorPath, err)
-		}
+	if err := os.Mkdir(validatorPath, 0755); err != nil && !os.IsExist(err) {
+		return fmt.Errorf("creating validate directory at %q: %+v", validatorPath, err)
 	}
 
 	fileName := convertToSnakeCase(name)
+	validatorFileName := fmt.Sprintf("%s_id", fileName)
 	if strings.HasSuffix(fileName, "_test") {
 		// e.g. "webtest" in applicationInsights
 		fileName += "_id"
@@ -75,16 +73,14 @@ func run(servicePackagePath, name, id string, shouldRewrite, shouldValidate bool
 		return fmt.Errorf("generating Parser Tests at %q: %+v", parserTestsFilePath, err)
 	}
 
-	if shouldValidate {
-		validatorFilePath := fmt.Sprintf("%s/%s_id.go", validatorPath, fileName)
-		if err := goFmtAndWriteToFile(validatorFilePath, generator.ValidatorCode()); err != nil {
-			return fmt.Errorf("generating Validator at %q: %+v", validatorFilePath, err)
-		}
+	validatorFilePath := fmt.Sprintf("%s/%s.go", validatorPath, validatorFileName)
+	if err := goFmtAndWriteToFile(validatorFilePath, generator.ValidatorCode()); err != nil {
+		return fmt.Errorf("generating Validator at %q: %+v", validatorFilePath, err)
+	}
 
-		validatorTestsFilePath := fmt.Sprintf("%s/%s_id_test.go", validatorPath, fileName)
-		if err := goFmtAndWriteToFile(validatorTestsFilePath, generator.ValidatorTestCode()); err != nil {
-			return fmt.Errorf("generating Validator Tests at %q: %+v", validatorTestsFilePath, err)
-		}
+	validatorTestsFilePath := fmt.Sprintf("%s/%s_test.go", validatorPath, validatorFileName)
+	if err := goFmtAndWriteToFile(validatorTestsFilePath, generator.ValidatorTestCode()); err != nil {
+		return fmt.Errorf("generating Validator Tests at %q: %+v", validatorTestsFilePath, err)
 	}
 
 	return nil
@@ -101,6 +97,8 @@ func parseServicePackageName(relativePath string) (*string, error) {
 		path = abs
 	}
 
+	// we do this replacement to avoid the case that on windows machine, the absolute path are using the path separator of \ instead of /
+	path = strings.ReplaceAll(path, "\\", "/")
 	segments := strings.Split(path, "/")
 	serviceIndex := -1
 	for i, v := range segments {

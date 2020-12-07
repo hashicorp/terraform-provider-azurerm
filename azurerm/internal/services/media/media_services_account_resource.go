@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMediaServicesAccount() *schema.Resource {
+func resourceMediaServicesAccount() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMediaServicesAccountCreateUpdate,
-		Read:   resourceArmMediaServicesAccountRead,
-		Update: resourceArmMediaServicesAccountCreateUpdate,
-		Delete: resourceArmMediaServicesAccountDelete,
+		Create: resourceMediaServicesAccountCreateUpdate,
+		Read:   resourceMediaServicesAccountRead,
+		Update: resourceMediaServicesAccountCreateUpdate,
+		Delete: resourceMediaServicesAccountDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -117,7 +117,7 @@ func resourceArmMediaServicesAccount() *schema.Resource {
 	}
 }
 
-func resourceArmMediaServicesAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMediaServicesAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.ServicesClient
 	subscription := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -157,10 +157,10 @@ func resourceArmMediaServicesAccountCreateUpdate(d *schema.ResourceData, meta in
 
 	d.SetId(id.ID(""))
 
-	return resourceArmMediaServicesAccountRead(d, meta)
+	return resourceMediaServicesAccountRead(d, meta)
 }
 
-func resourceArmMediaServicesAccountRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMediaServicesAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.ServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -203,7 +203,7 @@ func resourceArmMediaServicesAccountRead(d *schema.ResourceData, meta interface{
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmMediaServicesAccountDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMediaServicesAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.ServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
