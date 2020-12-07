@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -166,38 +167,35 @@ func resourceStreamAnalyticsStreamInputIoTHubRead(d *schema.ResourceData, meta i
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.StreamInputID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	jobName := id.Path["streamingjobs"]
-	name := id.Path["inputs"]
 
-	resp, err := client.Get(ctx, resourceGroup, jobName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.StreamingjobName, id.InputName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Stream Input IoTHub %q was not found in Stream Analytics Job %q / Resource Group %q - removing from state!", name, jobName, resourceGroup)
+			log.Printf("[DEBUG] %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Stream Input IoTHub %q (Stream Analytics Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("stream_analytics_job_name", jobName)
+	d.Set("name", id.InputName)
+	d.Set("stream_analytics_job_name", id.StreamingjobName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.Properties; props != nil {
 		v, ok := props.AsStreamInputProperties()
 		if !ok {
-			return fmt.Errorf("Error converting Stream Input IoTHub to an Stream Input: %+v", err)
+			return fmt.Errorf("converting Stream Input IoTHub to an Stream Input: %+v", err)
 		}
 
 		eventHub, ok := v.Datasource.AsIoTHubStreamInputDataSource()
 		if !ok {
-			return fmt.Errorf("Error converting Stream Input IoTHub to an IoTHub Stream Input: %+v", err)
+			return fmt.Errorf("converting Stream Input IoTHub to an IoTHub Stream Input: %+v", err)
 		}
 
 		d.Set("eventhub_consumer_group_name", eventHub.ConsumerGroupName)
@@ -206,7 +204,7 @@ func resourceStreamAnalyticsStreamInputIoTHubRead(d *schema.ResourceData, meta i
 		d.Set("shared_access_policy_name", eventHub.SharedAccessPolicyName)
 
 		if err := d.Set("serialization", azure.FlattenStreamAnalyticsStreamInputSerialization(v.Serialization)); err != nil {
-			return fmt.Errorf("Error setting `serialization`: %+v", err)
+			return fmt.Errorf("setting `serialization`: %+v", err)
 		}
 	}
 
@@ -218,17 +216,14 @@ func resourceStreamAnalyticsStreamInputIoTHubDelete(d *schema.ResourceData, meta
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.StreamInputID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	jobName := id.Path["streamingjobs"]
-	name := id.Path["inputs"]
 
-	if resp, err := client.Delete(ctx, resourceGroup, jobName, name); err != nil {
+	if resp, err := client.Delete(ctx, id.ResourceGroup, id.StreamingjobName, id.StreamingjobName); err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting Stream Input IoTHub %q (Stream Analytics Job %q / Resource Group %q) %+v", name, jobName, resourceGroup, err)
+			return fmt.Errorf("deleting %s: %+v", id, err)
 		}
 	}
 
