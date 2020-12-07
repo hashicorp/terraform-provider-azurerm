@@ -57,7 +57,7 @@ func TestFrontDoorIDParser(t *testing.T) {
 	}
 	for _, test := range testData {
 		t.Logf("Testing %q..", test.input)
-		actual, err := FrontDoorID(test.input)
+		actual, err := FrontDoorIDInsensitively(test.input)
 		if err != nil && test.expected == nil {
 			continue
 		} else {

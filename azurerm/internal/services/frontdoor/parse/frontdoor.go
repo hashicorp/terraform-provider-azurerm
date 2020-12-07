@@ -20,7 +20,7 @@ func NewFrontDoorID(subscriptionId, resourceGroup, name string) FrontDoorId {
 	}
 }
 
-func FrontDoorID(input string) (*FrontDoorId, error) {
+func FrontDoorIDInsensitively(input string) (*FrontDoorId, error) {
 	frontDoorId, id, err := parseFrontDoorChildResourceId(input)
 	if err != nil {
 		return nil, fmt.Errorf("parsing FrontDoor ID %q: %+v", input, err)
