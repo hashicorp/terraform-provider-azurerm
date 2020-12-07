@@ -13,10 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMBotChannelDirectline_basic(t *testing.T) {
-	testAccAzureRMBotChannelDirectline_basic(t)
-}
-
 func testAccAzureRMBotChannelDirectline_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_directline", "test")
 
