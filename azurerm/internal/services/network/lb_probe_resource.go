@@ -112,7 +112,6 @@ func resourceArmLoadBalancerProbe() *schema.Resource {
 
 func resourceArmLoadBalancerProbeCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.LoadBalancersClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -121,7 +120,7 @@ func resourceArmLoadBalancerProbeCreateUpdate(d *schema.ResourceData, meta inter
 	if err != nil {
 		return err
 	}
-	loadBalancerIDRaw := loadBalancerId.ID(subscriptionId)
+	loadBalancerIDRaw := loadBalancerId.ID("")
 	locks.ByID(loadBalancerIDRaw)
 	defer locks.UnlockByID(loadBalancerIDRaw)
 

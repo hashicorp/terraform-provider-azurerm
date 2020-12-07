@@ -117,7 +117,6 @@ func resourceArmLoadBalancerOutboundRule() *schema.Resource {
 
 func resourceArmLoadBalancerOutboundRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.LoadBalancersClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -126,7 +125,7 @@ func resourceArmLoadBalancerOutboundRuleCreateUpdate(d *schema.ResourceData, met
 	if err != nil {
 		return err
 	}
-	loadBalancerIDRaw := loadBalancerId.ID(subscriptionId)
+	loadBalancerIDRaw := loadBalancerId.ID("")
 	locks.ByID(loadBalancerIDRaw)
 	defer locks.UnlockByID(loadBalancerIDRaw)
 
@@ -203,7 +202,6 @@ func resourceArmLoadBalancerOutboundRuleCreateUpdate(d *schema.ResourceData, met
 
 func resourceArmLoadBalancerOutboundRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.LoadBalancersClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -247,7 +245,7 @@ func resourceArmLoadBalancerOutboundRuleRead(d *schema.ResourceData, meta interf
 				return err
 			}
 
-			backendAddressPoolId = bapid.ID(subscriptionId)
+			backendAddressPoolId = bapid.ID("")
 		}
 		d.Set("backend_address_pool_id", backendAddressPoolId)
 		d.Set("enable_tcp_reset", props.EnableTCPReset)
@@ -263,7 +261,7 @@ func resourceArmLoadBalancerOutboundRuleRead(d *schema.ResourceData, meta interf
 			}
 
 			frontendIpConfigurations = append(frontendIpConfigurations, map[string]interface{}{
-				"id":   feid.ID(subscriptionId),
+				"id":   feid.ID(""),
 				"name": feid.FrontendIPConfigurationName,
 			})
 		}
