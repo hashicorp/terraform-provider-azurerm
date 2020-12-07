@@ -1,6 +1,7 @@
 // NOTE: this is Generated from the Service Definitions - manual changes will be lost
 //       to re-generate this file, run 'make generate' in the root of the repository
 var services = mapOf(
+        "eventhub" to "EventHub",
         "advisor" to "Advisor",
         "analysisservices" to "Analysis Services",
         "apimanagement" to "API Management",
@@ -31,7 +32,6 @@ var services = mapOf(
         "digitaltwins" to "Digital Twins",
         "dns" to "DNS",
         "eventgrid" to "EventGrid",
-        "eventhub" to "EventHub",
         "frontdoor" to "FrontDoor",
         "hpccache" to "HPC Cache",
         "hsm" to "Hardware Security Module",
