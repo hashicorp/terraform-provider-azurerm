@@ -54,20 +54,35 @@ var services = mapOf(
 )`
 	items := make([]string, 0)
 
+	categories := make(map[string]bool, 0)
 	for _, service := range provider.SupportedTypedServices() {
 		info := reflect.TypeOf(service)
 		packageSegments := strings.Split(info.PkgPath(), "/")
 		packageName := packageSegments[len(packageSegments)-1]
+
+		// Service Registrations are reused across Typed and Untyped Services now
+		if _, exists := categories[packageName]; exists {
+			continue
+		}
+
 		item := fmt.Sprintf("        %q to %q", packageName, service.Name())
 		items = append(items, item)
+		categories[packageName] = true
 	}
 
 	for _, service := range provider.SupportedUntypedServices() {
 		info := reflect.TypeOf(service)
 		packageSegments := strings.Split(info.PkgPath(), "/")
 		packageName := packageSegments[len(packageSegments)-1]
+
+		// Service Registrations are reused across Typed and Untyped Services now
+		if _, exists := categories[packageName]; exists {
+			continue
+		}
+
 		item := fmt.Sprintf("        %q to %q", packageName, service.Name())
 		items = append(items, item)
+		categories[packageName] = true
 	}
 
 	formatted := fmt.Sprintf(template, strings.Join(items, ",\n"))
