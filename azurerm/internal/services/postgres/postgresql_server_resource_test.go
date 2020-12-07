@@ -409,6 +409,24 @@ func TestAccAzureRMPostgreSQLServer_createPointInTimeRestore(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPostgreSQLServer_threatDetectionEmptyAttrs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPostgreSQLServer_emptyAttrs(data, "9.5"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("administrator_login_password"),
+		},
+	})
+}
+
 func testCheckAzureRMPostgreSQLServerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.ServersClient
@@ -824,4 +842,40 @@ resource "azurerm_postgresql_server" "restore" {
   ssl_enforcement_enabled = true
 }
 `, testAccAzureRMPostgreSQLServer_basic(data, version), data.RandomInteger, restoreTime, version)
+}
+
+func testAccAzureRMPostgreSQLServer_emptyAttrs(data acceptance.TestData, version string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-psql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_postgresql_server" "test" {
+  name                = "acctest-psql-server-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!updated"
+
+  sku_name   = "GP_Gen5_4"
+  version    = "%[3]s"
+  storage_mb = 640000
+
+  ssl_enforcement_enabled           = false
+  ssl_minimal_tls_version_enforced  = "TLSEnforcementDisabled"
+
+  threat_detection_policy {
+    enabled              = true
+    email_account_admins = true
+
+    retention_days = 7
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, version)
 }
