@@ -1,4 +1,4 @@
-package iothub
+package iothub_test
 
 import (
 	"fmt"

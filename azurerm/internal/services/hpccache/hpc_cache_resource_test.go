@@ -1,4 +1,4 @@
-package tests
+package hpccache_test
 
 import (
 	"fmt"
