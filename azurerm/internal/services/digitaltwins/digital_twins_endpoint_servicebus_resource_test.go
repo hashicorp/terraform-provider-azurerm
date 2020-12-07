@@ -165,7 +165,7 @@ resource "azurerm_digital_twins_endpoint_servicebus" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DigitalTwinsEndpointServiceBusResource) requiresImport(data acceptance.TestData) string {
+func (r DigitalTwinsEndpointSeerviceBusResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
