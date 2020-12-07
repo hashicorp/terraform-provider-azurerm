@@ -6,70 +6,65 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMStorageManagementPolicy_basic(t *testing.T) {
+type StorageManagementPolicyDataSource struct{}
+
+func TestAccDataSourceStorageManagementPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_management_policy", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMStorageManagementPolicy_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.name", "rule1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.filters.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.filters.0.prefix_match.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.filters.0.prefix_match.3439697764", "container1/prefix1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.filters.0.blob_types.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.filters.0.blob_types.1068358194", "blockBlob"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.actions.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.actions.0.base_blob.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.actions.0.base_blob.0.tier_to_cool_after_days_since_modification_greater_than", "10"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.actions.0.base_blob.0.tier_to_archive_after_days_since_modification_greater_than", "50"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.actions.0.base_blob.0.delete_after_days_since_modification_greater_than", "100"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.actions.0.snapshot.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.actions.0.snapshot.0.delete_after_days_since_creation_greater_than", "30"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: StorageManagementPolicyDataSource{}.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("rule.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.name").HasValue("rule1"),
+				check.That(data.ResourceName).Key("rule.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("rule.0.filters.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.filters.0.prefix_match.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.filters.0.prefix_match.3439697764").HasValue("container1/prefix1"),
+				check.That(data.ResourceName).Key("rule.0.filters.0.blob_types.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.filters.0.blob_types.1068358194").HasValue("blockBlob"),
+				check.That(data.ResourceName).Key("rule.0.actions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.0.tier_to_cool_after_days_since_modification_greater_than").HasValue("10"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.0.tier_to_archive_after_days_since_modification_greater_than").HasValue("50"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.0.delete_after_days_since_modification_greater_than").HasValue("100"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.snapshot.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.snapshot.0.delete_after_days_since_creation_greater_than").HasValue("30"),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMStorageManagementPolicy_blobTypes(t *testing.T) {
+func TestAccDataSourceStorageManagementPolicy_blobTypes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_management_policy", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMStorageManagementPolicy_blobTypes(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.name", "rule1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.filters.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.filters.0.prefix_match.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.filters.0.prefix_match.3439697764", "container1/prefix1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.filters.0.blob_types.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.filters.0.blob_types.1068358194", "blockBlob"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.filters.0.blob_types.932666486", "appendBlob"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.actions.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.actions.0.base_blob.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.actions.0.base_blob.0.delete_after_days_since_modification_greater_than", "100"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.actions.0.snapshot.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.actions.0.snapshot.0.delete_after_days_since_creation_greater_than", "30"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: StorageManagementPolicyDataSource{}.blobTypes(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("rule.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.name").HasValue("rule1"),
+				check.That(data.ResourceName).Key("rule.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("rule.0.filters.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.filters.0.prefix_match.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.filters.0.prefix_match.3439697764").HasValue("container1/prefix1"),
+				check.That(data.ResourceName).Key("rule.0.filters.0.blob_types.#").HasValue("2"),
+				check.That(data.ResourceName).Key("rule.0.filters.0.blob_types.1068358194").HasValue("blockBlob"),
+				check.That(data.ResourceName).Key("rule.0.filters.0.blob_types.932666486").HasValue("appendBlob"),
+				check.That(data.ResourceName).Key("rule.0.actions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.base_blob.0.delete_after_days_since_modification_greater_than").HasValue("100"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.snapshot.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.actions.0.snapshot.0.delete_after_days_since_creation_greater_than").HasValue("30"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMStorageManagementPolicy_basic(data acceptance.TestData) string {
+func (d StorageManagementPolicyDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -119,7 +114,7 @@ data "azurerm_storage_management_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccDataSourceAzureRMStorageManagementPolicy_blobTypes(data acceptance.TestData) string {
+func (d StorageManagementPolicyDataSource) blobTypes(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

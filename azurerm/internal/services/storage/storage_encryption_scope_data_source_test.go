@@ -9,13 +9,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-type StorageEncryptionScopeDataSourceTests struct{}
+type StorageEncryptionScopeDataSource struct{}
 
 func TestAccDataSourceStorageEncryptionScope_keyVaultKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_encryption_scope", "test")
 	data.DataSourceTest(t, []resource.TestStep{
 		{
-			Config: StorageEncryptionScopeDataSourceTests{}.keyVaultKey(data),
+			Config: StorageEncryptionScopeDataSource{}.keyVaultKey(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("source").HasValue("Microsoft.KeyVault"),
 			),
@@ -27,7 +27,7 @@ func TestAccDataSourceStorageEncryptionScope_microsoftManagedKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_encryption_scope", "test")
 	data.DataSourceTest(t, []resource.TestStep{
 		{
-			Config: StorageEncryptionScopeDataSourceTests{}.microsoftManagedKey(data),
+			Config: StorageEncryptionScopeDataSource{}.microsoftManagedKey(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("source").HasValue("Microsoft.Storage"),
 				check.That(data.ResourceName).Key("key_vault_key_id").IsEmpty(),
@@ -36,8 +36,8 @@ func TestAccDataSourceStorageEncryptionScope_microsoftManagedKey(t *testing.T) {
 	})
 }
 
-func (StorageEncryptionScopeDataSourceTests) keyVaultKey(data acceptance.TestData) string {
-	basic := StorageEncryptionScopeResourceTests{}.keyVaultKey(data)
+func (StorageEncryptionScopeDataSource) keyVaultKey(data acceptance.TestData) string {
+	basic := StorageEncryptionScopeResource{}.keyVaultKey(data)
 	return fmt.Sprintf(`
 %s
 
@@ -48,8 +48,8 @@ data "azurerm_storage_encryption_scope" "test" {
 `, basic)
 }
 
-func (StorageEncryptionScopeDataSourceTests) microsoftManagedKey(data acceptance.TestData) string {
-	basic := StorageEncryptionScopeResourceTests{}.microsoftManagedKey(data)
+func (StorageEncryptionScopeDataSource) microsoftManagedKey(data acceptance.TestData) string {
+	basic := StorageEncryptionScopeResource{}.microsoftManagedKey(data)
 	return fmt.Sprintf(`
 %s
 

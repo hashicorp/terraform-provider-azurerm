@@ -1,179 +1,108 @@
 package storage_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/table/entities"
 )
 
-func TestAccAzureRMTableEntity_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
+type StorageTableEntityResource struct{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTableEntityDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMTableEntity_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTableEntityExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccTableEntity_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
+	r := StorageTableEntityResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMTableEntity_requiresImport(t *testing.T) {
+func TestAccTableEntity_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
+	r := StorageTableEntityResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTableEntityDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMTableEntity_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTableEntityExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMTableEntity_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_storage_table_entity"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMTableEntity_update(t *testing.T) {
+func TestAccTableEntity_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
+	r := StorageTableEntityResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTableEntityDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMTableEntity_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTableEntityExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMTableEntity_updated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTableEntityExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.updated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMTableEntityExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		tableName := rs.Primary.Attributes["table_name"]
-		accountName := rs.Primary.Attributes["storage_account_name"]
-		partitionKey := rs.Primary.Attributes["partition_key"]
-		rowKey := rs.Primary.Attributes["row_key"]
-
-		account, err := storageClient.FindAccount(ctx, accountName)
-		if err != nil {
-			return fmt.Errorf("Error locating Resource Group for Storage Table Entity (Partition Key %q / Row Key %q) (Table %q / Account %q): %v", partitionKey, rowKey, tableName, accountName, err)
-		}
-		if account == nil {
-			return fmt.Errorf("Storage Account %q was not found!", accountName)
-		}
-
-		client, err := storageClient.TableEntityClient(ctx, *account)
-		if err != nil {
-			return fmt.Errorf("Error building Table Entity Client: %s", err)
-		}
-
-		input := entities.GetEntityInput{
-			PartitionKey:  partitionKey,
-			RowKey:        rowKey,
-			MetaDataLevel: entities.NoMetaData,
-		}
-		resp, err := client.Get(ctx, accountName, tableName, input)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on Table EntityClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Entity (Partition Key %q / Row Key %q) (Table %q / Account %q / Resource Group %q) does not exist", partitionKey, rowKey, tableName, accountName, account.ResourceGroup)
-		}
-
-		return nil
+func (r StorageTableEntityResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := entities.ParseResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-}
-
-func testCheckAzureRMTableEntityDestroy(s *terraform.State) error {
-	storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_storage_table_entity" {
-			continue
-		}
-
-		tableName := rs.Primary.Attributes["table_name"]
-		accountName := rs.Primary.Attributes["storage_account_name"]
-		partitionKey := rs.Primary.Attributes["parititon_key"]
-		rowKey := rs.Primary.Attributes["row_key"]
-
-		account, err := storageClient.FindAccount(ctx, accountName)
-		if err != nil {
-			return fmt.Errorf("Error locating Resource Group for Storage Table Entity (Partition Key %q / Row Key %q) (Table %q / Account %q): %v", partitionKey, rowKey, tableName, accountName, err)
-		}
-
-		// not found, the account's gone
-		if account == nil {
-			return nil
-		}
-
-		client, err := storageClient.TableEntityClient(ctx, *account)
-		if err != nil {
-			return fmt.Errorf("Error building TableEntity Client: %s", err)
-		}
-
-		input := entities.GetEntityInput{
-			PartitionKey: partitionKey,
-			RowKey:       rowKey,
-		}
-		resp, err := client.Get(ctx, accountName, tableName, input)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on Table Entity: %+v", err)
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Table Entity still exists:\n%#v", resp)
-		}
+	account, err := client.Storage.FindAccount(ctx, id.AccountName)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Account %q for Table %q: %+v", id.AccountName, id.TableName, err)
+	}
+	if account == nil {
+		return nil, fmt.Errorf("storage Account %q was not found", id.AccountName)
 	}
 
-	return nil
+	entitiesClient, err := client.Storage.TableEntityClient(ctx, *account)
+	if err != nil {
+		return nil, fmt.Errorf("building Table Entity Client: %+v", err)
+	}
+
+	input := entities.GetEntityInput{
+		PartitionKey:  id.PartitionKey,
+		RowKey:        id.RowKey,
+		MetaDataLevel: entities.NoMetaData,
+	}
+	resp, err := entitiesClient.Get(ctx, id.AccountName, id.TableName, input)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
+		}
+		return nil, fmt.Errorf("retrieving Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %+v", id.PartitionKey, id.RowKey, id.TableName, id.AccountName, account.ResourceGroup, err)
+	}
+	return utils.Bool(true), nil
 }
 
-func testAccAzureRMTableEntity_basic(data acceptance.TestData) string {
-	template := testAccAzureRMTableEntity_template(data)
+func (r StorageTableEntityResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -190,8 +119,8 @@ resource "azurerm_storage_table_entity" "test" {
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMTableEntity_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMTableEntity_basic(data)
+func (r StorageTableEntityResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -208,8 +137,8 @@ resource "azurerm_storage_table_entity" "import" {
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMTableEntity_updated(data acceptance.TestData) string {
-	template := testAccAzureRMTableEntity_template(data)
+func (r StorageTableEntityResource) updated(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -227,7 +156,7 @@ resource "azurerm_storage_table_entity" "test" {
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMTableEntity_template(data acceptance.TestData) string {
+func (r StorageTableEntityResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

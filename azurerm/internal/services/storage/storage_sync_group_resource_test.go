@@ -1,106 +1,67 @@
 package storage_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMStorageSyncGroup_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_sync_group", "test")
+type StorageSyncGroupResource struct{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageSyncGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageSyncGroup_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageSyncGroupExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccStorageSyncGroup_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_sync_group", "test")
+	r := StorageSyncGroupResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMStorageSyncGroup_requiresImport(t *testing.T) {
+func TestAccStorageSyncGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_sync_group", "test")
+	r := StorageSyncGroupResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageSyncGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageSyncGroup_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageSyncGroupExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMStorageSyncGroup_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckAzureRMStorageSyncGroupExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("storage Sync Group not found: %s", resourceName)
-		}
-		id, err := parse.StorageSyncGroupID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.SyncGroupsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.StorageSyncServiceName, id.SyncGroupName); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Storage Sync Group (Storage Sync Group Name %q / Resource Group %q) does not exist", id.SyncGroupName, id.ResourceGroup)
-			}
-			return fmt.Errorf("bad: Get on StorageSyncGroupsClient: %+v", err)
-		}
-
-		return nil
+func (r StorageSyncGroupResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.StorageSyncGroupID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+	resp, err := client.Storage.SyncGroupsClient.Get(ctx, id.ResourceGroup, id.StorageSyncServiceName, id.SyncGroupName)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
+		}
+		return nil, fmt.Errorf("retrieving Storage Sync Group %q (Service %q / Resource Group %q): %+v", id.SyncGroupName, id.StorageSyncServiceName, id.ResourceGroup, err)
+	}
+	return utils.Bool(true), nil
 }
 
-func testCheckAzureRMStorageSyncGroupDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.SyncGroupsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_storage_sync_group" {
-			continue
-		}
-
-		id, err := parse.StorageSyncGroupID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.StorageSyncServiceName, id.SyncGroupName); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Get on StorageSyncGroupsClient: %+v", err)
-			}
-		}
-
-		return nil
-	}
-	return nil
-}
-
-func testAccAzureRMStorageSyncGroup_basic(data acceptance.TestData) string {
+func (r StorageSyncGroupResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -124,8 +85,8 @@ resource "azurerm_storage_sync_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMStorageSyncGroup_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMStorageSyncGroup_basic(data)
+func (r StorageSyncGroupResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 

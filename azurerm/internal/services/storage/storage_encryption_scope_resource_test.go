@@ -16,11 +16,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-type StorageEncryptionScopeResourceTests struct{}
+type StorageEncryptionScopeResource struct{}
 
 func TestAccStorageEncryptionScope_keyVaultKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_encryption_scope", "test")
-	r := StorageEncryptionScopeResourceTests{}
+	r := StorageEncryptionScopeResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.keyVaultKey(data),
@@ -35,7 +35,7 @@ func TestAccStorageEncryptionScope_keyVaultKey(t *testing.T) {
 
 func TestAccStorageEncryptionScope_keyVaultKeyUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_encryption_scope", "test")
-	r := StorageEncryptionScopeResourceTests{}
+	r := StorageEncryptionScopeResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.keyVaultKey(data),
@@ -58,7 +58,7 @@ func TestAccStorageEncryptionScope_keyVaultKeyUpdate(t *testing.T) {
 
 func TestAccStorageEncryptionScope_keyVaultKeyToMicrosoftManagedKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_encryption_scope", "test")
-	r := StorageEncryptionScopeResourceTests{}
+	r := StorageEncryptionScopeResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.keyVaultKey(data),
@@ -82,7 +82,7 @@ func TestAccStorageEncryptionScope_keyVaultKeyToMicrosoftManagedKey(t *testing.T
 func TestAccStorageEncryptionScope_microsoftManagedKeyToKeyVaultManagedKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_encryption_scope", "test")
 
-	r := StorageEncryptionScopeResourceTests{}
+	r := StorageEncryptionScopeResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.microsoftManagedKey(data),
@@ -106,7 +106,7 @@ func TestAccStorageEncryptionScope_microsoftManagedKeyToKeyVaultManagedKey(t *te
 func TestAccStorageEncryptionScope_microsoftManagedKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_encryption_scope", "test")
 
-	r := StorageEncryptionScopeResourceTests{}
+	r := StorageEncryptionScopeResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.microsoftManagedKey(data),
@@ -122,7 +122,7 @@ func TestAccStorageEncryptionScope_microsoftManagedKey(t *testing.T) {
 func TestAccStorageEncryptionScope_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_encryption_scope", "test")
 
-	r := StorageEncryptionScopeResourceTests{}
+	r := StorageEncryptionScopeResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.microsoftManagedKey(data),
@@ -135,7 +135,7 @@ func TestAccStorageEncryptionScope_requiresImport(t *testing.T) {
 	})
 }
 
-func (t StorageEncryptionScopeResourceTests) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t StorageEncryptionScopeResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.EncryptionScopeID(state.Attributes["id"])
 	if err != nil {
 		return nil, err
@@ -154,7 +154,7 @@ func (t StorageEncryptionScopeResourceTests) Exists(ctx context.Context, clients
 	return utils.Bool(enabled), nil
 }
 
-func (t StorageEncryptionScopeResourceTests) keyVaultKey(data acceptance.TestData) string {
+func (t StorageEncryptionScopeResource) keyVaultKey(data acceptance.TestData) string {
 	template := t.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -172,7 +172,7 @@ resource "azurerm_storage_encryption_scope" "test" {
 `, template, data.RandomInteger)
 }
 
-func (t StorageEncryptionScopeResourceTests) keyVaultKeyUpdated(data acceptance.TestData) string {
+func (t StorageEncryptionScopeResource) keyVaultKeyUpdated(data acceptance.TestData) string {
 	template := t.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -203,7 +203,7 @@ resource "azurerm_storage_encryption_scope" "test" {
 `, template, data.RandomInteger)
 }
 
-func (t StorageEncryptionScopeResourceTests) microsoftManagedKey(data acceptance.TestData) string {
+func (t StorageEncryptionScopeResource) microsoftManagedKey(data acceptance.TestData) string {
 	template := t.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -219,7 +219,7 @@ resource "azurerm_storage_encryption_scope" "test" {
 `, template, data.RandomInteger)
 }
 
-func (t StorageEncryptionScopeResourceTests) requiresImport(data acceptance.TestData) string {
+func (t StorageEncryptionScopeResource) requiresImport(data acceptance.TestData) string {
 	template := t.microsoftManagedKey(data)
 	return fmt.Sprintf(`
 %s
@@ -232,7 +232,7 @@ resource "azurerm_storage_encryption_scope" "import" {
 `, template)
 }
 
-func (StorageEncryptionScopeResourceTests) template(data acceptance.TestData) string {
+func (StorageEncryptionScopeResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"

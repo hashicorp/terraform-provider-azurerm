@@ -1,343 +1,242 @@
 package storage_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMStorageShare_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+type StorageShareResource struct{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageShareDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageShare_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageShareExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccStorageShare_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+	r := StorageShareResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageShare_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+	r := StorageShareResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccStorageShare_disappears(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+	r := StorageShareResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
+	})
+}
+
+func TestAccStorageShare_deleteAndRecreate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+	r := StorageShareResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.template(data),
+		},
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageShare_metaData(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+	r := StorageShareResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.metaData(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.metaDataUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageShare_acl(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+	r := StorageShareResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.acl(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.aclUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageShare_aclGhostedRecall(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+	r := StorageShareResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.aclGhostedRecall(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageShare_updateQuota(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+	r := StorageShareResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.updateQuota(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("quota").HasValue("5"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMStorageShare_requiresImport(t *testing.T) {
+func TestAccStorageShare_largeQuota(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+	r := StorageShareResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageShareDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageShare_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageShareExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMStorageShare_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_storage_share"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.largeQuota(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.largeQuotaUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMStorageShare_disappears(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageShareDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageShare_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageShareExists(data.ResourceName),
-					testCheckAzureRMStorageShareDisappears(data.ResourceName),
-				),
-				ExpectNonEmptyPlan: true,
-			},
-		},
-	})
-}
-
-func TestAccAzureRMStorageShare_deleteAndRecreate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageShareDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageShare_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageShareExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMStorageShare_template(data),
-			},
-			{
-				Config: testAccAzureRMStorageShare_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageShareExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMStorageShare_metaData(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageShareDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageShare_metaData(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageShareExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMStorageShare_metaDataUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageShareExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMStorageShare_acl(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageShareDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageShare_acl(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageShareExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMStorageShare_aclUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageShareExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMStorageShare_aclGhostedRecall(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageShareDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageShare_aclGhostedRecall(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageShareExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMStorageShare_updateQuota(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageShareDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageShare_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageShareExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMStorageShare_updateQuota(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageShareExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "quota", "5"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMStorageShare_largeQuota(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageShareDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageShare_largeQuota(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageShareExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMStorageShare_largeQuotaUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageShareExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testCheckAzureRMStorageShareExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		shareName := rs.Primary.Attributes["name"]
-		accountName := rs.Primary.Attributes["storage_account_name"]
-
-		account, err := storageClient.FindAccount(ctx, accountName)
-		if err != nil {
-			return fmt.Errorf("Error retrieving Account %q for Share %q: %s", accountName, shareName, err)
-		}
-		if account == nil {
-			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
-		}
-
-		client, err := storageClient.FileSharesClient(ctx, *account)
-		if err != nil {
-			return fmt.Errorf("Error building FileShare Client: %s", err)
-		}
-
-		exists, err := client.Exists(ctx, account.ResourceGroup, accountName, shareName)
-		if err != nil {
-			return fmt.Errorf("Bad: checking for presence of Share %q (Storage Account: %q): %+v", shareName, accountName, err)
-		}
-		if exists == nil || !*exists {
-			return fmt.Errorf("Bad: Share %q (Storage Account: %q) does not exist", shareName, accountName)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMStorageShareDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		shareName := rs.Primary.Attributes["name"]
-		accountName := rs.Primary.Attributes["storage_account_name"]
-
-		account, err := storageClient.FindAccount(ctx, accountName)
-		if err != nil {
-			return fmt.Errorf("Error retrieving Account %q for Share %q: %s", accountName, shareName, err)
-		}
-		if account == nil {
-			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
-		}
-
-		client, err := storageClient.FileSharesClient(ctx, *account)
-		if err != nil {
-			return fmt.Errorf("Error building FileShare Client: %s", err)
-		}
-
-		if err := client.Delete(ctx, account.ResourceGroup, accountName, shareName); err != nil {
-			return fmt.Errorf("Error deleting Share %q (Account %q): %v", shareName, accountName, err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMStorageShareDestroy(s *terraform.State) error {
-	storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_storage_share" {
-			continue
-		}
-
-		shareName := rs.Primary.Attributes["name"]
-		accountName := rs.Primary.Attributes["storage_account_name"]
-
-		account, err := storageClient.FindAccount(ctx, accountName)
-		if err != nil {
-			return fmt.Errorf("Error retrieving Account %q for Share %q: %s", accountName, shareName, err)
-		}
-
-		// expected since it's been deleted
-		if account == nil {
-			return nil
-		}
-
-		client, err := storageClient.FileSharesClient(ctx, *account)
-		if err != nil {
-			return fmt.Errorf("Error building FileShare Client: %s", err)
-		}
-
-		exists, err := client.Exists(ctx, account.ResourceGroup, accountName, shareName)
-		if err != nil {
-			return nil
-		}
-
-		if exists != nil && *exists {
-			return fmt.Errorf("Share still exists!")
-		}
-
-		return nil
+func (r StorageShareResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.StorageShareDataPlaneID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	account, err := client.Storage.FindAccount(ctx, id.AccountName)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Account %q for Share %q: %+v", id.AccountName, id.Name, err)
+	}
+	if account == nil {
+		return nil, fmt.Errorf("unable to determine Account %q for Storage Share %q", id.AccountName, id.Name)
+	}
+
+	sharesClient, err := client.Storage.FileSharesClient(ctx, *account)
+	if err != nil {
+		return nil, fmt.Errorf("building File Share Client for Storage Account %q (Resource Group %q): %+v", id.AccountName, account.ResourceGroup, err)
+	}
+
+	props, err := sharesClient.Get(ctx, account.ResourceGroup, id.AccountName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving File Share %q (Account %q / Resource Group %q): %+v", id.Name, id.AccountName, account.ResourceGroup, err)
+	}
+	return utils.Bool(props != nil), nil
 }
 
-func testAccAzureRMStorageShare_basic(data acceptance.TestData) string {
-	template := testAccAzureRMStorageShare_template(data)
+func (r StorageShareResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.StorageShareDataPlaneID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	account, err := client.Storage.FindAccount(ctx, id.AccountName)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Account %q for Share %q: %+v", id.AccountName, id.Name, err)
+	}
+	if account == nil {
+		return nil, fmt.Errorf("unable to determine Account %q for Storage Share %q", id.AccountName, id.Name)
+	}
+
+	sharesClient, err := client.Storage.FileSharesClient(ctx, *account)
+	if err != nil {
+		return nil, fmt.Errorf("building File Share Client for Storage Account %q (Resource Group %q): %+v", id.AccountName, account.ResourceGroup, err)
+	}
+	if err := sharesClient.Delete(ctx, account.ResourceGroup, id.AccountName, id.Name); err != nil {
+		return nil, fmt.Errorf("deleting File Share %q (Account %q / Resource Group %q): %+v", id.Name, id.AccountName, account.ResourceGroup, err)
+	}
+	return utils.Bool(true), nil
+}
+
+func (r StorageShareResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -348,8 +247,8 @@ resource "azurerm_storage_share" "test" {
 `, template, data.RandomString)
 }
 
-func testAccAzureRMStorageShare_metaData(data acceptance.TestData) string {
-	template := testAccAzureRMStorageShare_template(data)
+func (r StorageShareResource) metaData(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -364,8 +263,8 @@ resource "azurerm_storage_share" "test" {
 `, template, data.RandomString)
 }
 
-func testAccAzureRMStorageShare_metaDataUpdated(data acceptance.TestData) string {
-	template := testAccAzureRMStorageShare_template(data)
+func (r StorageShareResource) metaDataUpdated(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -381,8 +280,8 @@ resource "azurerm_storage_share" "test" {
 `, template, data.RandomString)
 }
 
-func testAccAzureRMStorageShare_acl(data acceptance.TestData) string {
-	template := testAccAzureRMStorageShare_template(data)
+func (r StorageShareResource) acl(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -403,8 +302,8 @@ resource "azurerm_storage_share" "test" {
 `, template, data.RandomString)
 }
 
-func testAccAzureRMStorageShare_aclGhostedRecall(data acceptance.TestData) string {
-	template := testAccAzureRMStorageShare_template(data)
+func (r StorageShareResource) aclGhostedRecall(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -422,8 +321,8 @@ resource "azurerm_storage_share" "test" {
 `, template, data.RandomString)
 }
 
-func testAccAzureRMStorageShare_aclUpdated(data acceptance.TestData) string {
-	template := testAccAzureRMStorageShare_template(data)
+func (r StorageShareResource) aclUpdated(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -453,8 +352,8 @@ resource "azurerm_storage_share" "test" {
 `, template, data.RandomString)
 }
 
-func testAccAzureRMStorageShare_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMStorageShare_basic(data)
+func (r StorageShareResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -465,8 +364,8 @@ resource "azurerm_storage_share" "import" {
 `, template)
 }
 
-func testAccAzureRMStorageShare_updateQuota(data acceptance.TestData) string {
-	template := testAccAzureRMStorageShare_template(data)
+func (r StorageShareResource) updateQuota(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -478,7 +377,7 @@ resource "azurerm_storage_share" "test" {
 `, template, data.RandomString)
 }
 
-func testAccAzureRMStorageShare_largeQuota(data acceptance.TestData) string {
+func (r StorageShareResource) largeQuota(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -510,7 +409,7 @@ resource "azurerm_storage_share" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testAccAzureRMStorageShare_largeQuotaUpdate(data acceptance.TestData) string {
+func (r StorageShareResource) largeQuotaUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -542,7 +441,7 @@ resource "azurerm_storage_share" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testAccAzureRMStorageShare_template(data acceptance.TestData) string {
+func (r StorageShareResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

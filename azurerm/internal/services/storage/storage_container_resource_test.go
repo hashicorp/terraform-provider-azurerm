@@ -1,6 +1,7 @@
 package storage_test
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
@@ -9,328 +10,228 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMStorageContainer_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+type StorageContainerResource struct{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageContainer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccStorageContainer_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+	r := StorageContainerResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMStorageContainer_deleteAndRecreate(t *testing.T) {
+func TestAccStorageContainer_deleteAndRecreate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+	r := StorageContainerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageContainer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMStorageContainer_template(data),
-			},
-			{
-				Config: testAccAzureRMStorageContainer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.template(data),
+		},
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMStorageContainer_basicAzureADAuth(t *testing.T) {
+func TestAccStorageContainer_basicAzureADAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+	r := StorageContainerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageContainer_basicAzureADAuth(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicAzureADAuth(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMStorageContainer_requiresImport(t *testing.T) {
+func TestAccStorageContainer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+	r := StorageContainerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageContainer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMStorageContainer_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMStorageContainer_update(t *testing.T) {
+func TestAccStorageContainer_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+	r := StorageContainerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageContainer_update(data, "private"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "container_access_type", "private"),
-				),
-			},
-			{
-				Config: testAccAzureRMStorageContainer_update(data, "container"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "container_access_type", "container"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.update(data, "private"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("container_access_type").HasValue("private"),
+			),
 		},
+		{
+			Config: r.update(data, "container"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("container_access_type").HasValue("container"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMStorageContainer_metaData(t *testing.T) {
+func TestAccStorageContainer_metaData(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+	r := StorageContainerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageContainer_metaData(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMStorageContainer_metaDataUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMStorageContainer_metaDataEmpty(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.metaData(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.metaDataUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.metaDataEmpty(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMStorageContainer_disappears(t *testing.T) {
+func TestAccStorageContainer_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+	r := StorageContainerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageContainer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists(data.ResourceName),
-					testAccARMStorageContainerDisappears(data.ResourceName),
-				),
-				ExpectNonEmptyPlan: true,
-			},
-		},
+	data.ResourceTest(t, r, []resource.TestStep{
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
 	})
 }
 
-func TestAccAzureRMStorageContainer_root(t *testing.T) {
+func TestAccStorageContainer_root(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+	r := StorageContainerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageContainer_root(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "name", "$root"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.root(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").HasValue("$root"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMStorageContainer_web(t *testing.T) {
+func TestAccStorageContainer_web(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+	r := StorageContainerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageContainer_web(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "name", "$web"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.web(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").HasValue("$web"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMStorageContainerExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		containerName := rs.Primary.Attributes["name"]
-		accountName := rs.Primary.Attributes["storage_account_name"]
-
-		account, err := storageClient.FindAccount(ctx, accountName)
-		if err != nil {
-			return fmt.Errorf("Error retrieving Account %q for Container %q: %s", accountName, containerName, err)
-		}
-		if account == nil {
-			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
-		}
-
-		client, err := storageClient.ContainersClient(ctx, *account)
-		if err != nil {
-			return fmt.Errorf("Error building Containers Client: %s", err)
-		}
-
-		resp, err := client.Get(ctx, account.ResourceGroup, accountName, containerName)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on ContainersClient: %+v", err)
-		}
-		if resp == nil {
-			return fmt.Errorf("Bad: Container %q (Account %q / Resource Group %q) does not exist", containerName, accountName, account.ResourceGroup)
-		}
-
-		return nil
+func (r StorageContainerResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.StorageContainerDataPlaneID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-}
-
-func testAccARMStorageContainerDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		containerName := rs.Primary.Attributes["name"]
-		accountName := rs.Primary.Attributes["storage_account_name"]
-
-		account, err := storageClient.FindAccount(ctx, accountName)
-		if err != nil {
-			return fmt.Errorf("Error retrieving Account %q for Container %q: %s", accountName, containerName, err)
-		}
-		if account == nil {
-			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
-		}
-
-		client, err := storageClient.ContainersClient(ctx, *account)
-		if err != nil {
-			return fmt.Errorf("Error building Containers Client: %s", err)
-		}
-
-		if err := client.Delete(ctx, account.ResourceGroup, accountName, containerName); err != nil {
-			return fmt.Errorf("deleting Container %q (Account %q): %s", containerName, accountName, err)
-		}
-
-		return nil
+	account, err := client.Storage.FindAccount(ctx, id.AccountName)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Account %q for Container %q: %+v", id.AccountName, id.Name, err)
 	}
-}
-
-func testCheckAzureRMStorageContainerDestroy(s *terraform.State) error {
-	storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_storage_container" {
-			continue
-		}
-
-		containerName := rs.Primary.Attributes["name"]
-		accountName := rs.Primary.Attributes["storage_account_name"]
-
-		account, err := storageClient.FindAccount(ctx, accountName)
-		if err != nil {
-			return fmt.Errorf("Error retrieving Account %q for Container %q: %s", accountName, containerName, err)
-		}
-		if account == nil {
-			return nil
-		}
-
-		client, err := storageClient.ContainersClient(ctx, *account)
-		if err != nil {
-			return fmt.Errorf("Error building Containers Client: %s", err)
-		}
-
-		props, err := client.Get(ctx, account.ResourceGroup, accountName, containerName)
-		if err != nil {
-			return nil
-		}
-		if props == nil {
-			return nil
-		}
-
-		return fmt.Errorf("Container still exists: %+v", props)
+	if account == nil {
+		return nil, fmt.Errorf("unable to locate Storage Account %q", id.AccountName)
 	}
 
-	return nil
+	containersClient, err := client.Storage.ContainersClient(ctx, *account)
+	if err != nil {
+		return nil, fmt.Errorf("building Containers Client: %+v", err)
+	}
+	prop, err := containersClient.Get(ctx, account.ResourceGroup, id.AccountName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Container %q (Account %q / Resource Group %q): %+v", id.Name, id.AccountName, account.ResourceGroup, err)
+	}
+	return utils.Bool(prop != nil), nil
 }
 
-func testAccAzureRMStorageContainer_basic(data acceptance.TestData) string {
-	template := testAccAzureRMStorageContainer_template(data)
+func (r StorageContainerResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.StorageContainerDataPlaneID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+	account, err := client.Storage.FindAccount(ctx, id.AccountName)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Account %q for Container %q: %+v", id.AccountName, id.Name, err)
+	}
+	if account == nil {
+		return nil, fmt.Errorf("unable to locate Storage Account %q", id.AccountName)
+	}
+	containersClient, err := client.Storage.ContainersClient(ctx, *account)
+	if err != nil {
+		return nil, fmt.Errorf("building Containers Client: %+v", err)
+	}
+	if err := containersClient.Delete(ctx, account.ResourceGroup, id.AccountName, id.Name); err != nil {
+		return nil, fmt.Errorf("deleting Container %q (Account %q / Resource Group %q): %+v", id.Name, id.AccountName, account.ResourceGroup, err)
+	}
+	return utils.Bool(true), nil
+}
+
+func (r StorageContainerResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -342,7 +243,7 @@ resource "azurerm_storage_container" "test" {
 `, template)
 }
 
-func testAccAzureRMStorageContainer_basicAzureADAuth(data acceptance.TestData) string {
+func (r StorageContainerResource) basicAzureADAuth(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   storage_use_azuread = true
@@ -374,8 +275,8 @@ resource "azurerm_storage_container" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMStorageContainer_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMStorageContainer_basic(data)
+func (r StorageContainerResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -387,8 +288,8 @@ resource "azurerm_storage_container" "import" {
 `, template)
 }
 
-func testAccAzureRMStorageContainer_update(data acceptance.TestData, accessType string) string {
-	template := testAccAzureRMStorageContainer_template(data)
+func (r StorageContainerResource) update(data acceptance.TestData, accessType string) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -400,8 +301,8 @@ resource "azurerm_storage_container" "test" {
 `, template, accessType)
 }
 
-func testAccAzureRMStorageContainer_metaData(data acceptance.TestData) string {
-	template := testAccAzureRMStorageContainer_template(data)
+func (r StorageContainerResource) metaData(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -417,8 +318,8 @@ resource "azurerm_storage_container" "test" {
 `, template)
 }
 
-func testAccAzureRMStorageContainer_metaDataUpdated(data acceptance.TestData) string {
-	template := testAccAzureRMStorageContainer_template(data)
+func (r StorageContainerResource) metaDataUpdated(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -435,8 +336,8 @@ resource "azurerm_storage_container" "test" {
 `, template)
 }
 
-func testAccAzureRMStorageContainer_metaDataEmpty(data acceptance.TestData) string {
-	template := testAccAzureRMStorageContainer_template(data)
+func (r StorageContainerResource) metaDataEmpty(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -450,8 +351,8 @@ resource "azurerm_storage_container" "test" {
 `, template)
 }
 
-func testAccAzureRMStorageContainer_root(data acceptance.TestData) string {
-	template := testAccAzureRMStorageContainer_template(data)
+func (r StorageContainerResource) root(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -463,8 +364,8 @@ resource "azurerm_storage_container" "test" {
 `, template)
 }
 
-func testAccAzureRMStorageContainer_web(data acceptance.TestData) string {
-	template := testAccAzureRMStorageContainer_template(data)
+func (r StorageContainerResource) web(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -476,7 +377,7 @@ resource "azurerm_storage_container" "test" {
 `, template)
 }
 
-func testAccAzureRMStorageContainer_template(data acceptance.TestData) string {
+func (r StorageContainerResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

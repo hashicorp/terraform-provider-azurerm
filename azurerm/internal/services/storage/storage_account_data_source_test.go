@@ -6,61 +6,54 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMStorageAccount_basic(t *testing.T) {
+type StorageAccountDataSource struct{}
+
+func TestAccDataSourceStorageAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_account", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMStorageAccount_basic(data),
-			},
-			{
-				Config: testAccDataSourceAzureRMStorageAccount_basicWithDataSource(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "account_tier", "Standard"),
-					resource.TestCheckResourceAttr(data.ResourceName, "account_replication_type", "LRS"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "production"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: StorageAccountDataSource{}.basic(data),
+		},
+		{
+			Config: StorageAccountDataSource{}.basicWithDataSource(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("account_tier").HasValue("Standard"),
+				check.That(data.ResourceName).Key("account_replication_type").HasValue("LRS"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("production"),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMStorageAccount_withWriteLock(t *testing.T) {
+func TestAccDataSourceStorageAccount_withWriteLock(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_account", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMStorageAccount_basicWriteLock(data),
-			},
-			{
-				Config: testAccDataSourceAzureRMStorageAccount_basicWriteLockWithDataSource(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "account_tier", "Standard"),
-					resource.TestCheckResourceAttr(data.ResourceName, "account_replication_type", "LRS"),
-					resource.TestCheckResourceAttr(data.ResourceName, "primary_connection_string", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "secondary_connection_string", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "primary_blob_connection_string", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "secondary_blob_connection_string", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "primary_access_key", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "secondary_access_key", ""),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: StorageAccountDataSource{}.basicWriteLock(data),
+		},
+		{
+			Config: StorageAccountDataSource{}.basicWriteLockWithDataSource(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("account_tier").HasValue("Standard"),
+				check.That(data.ResourceName).Key("account_replication_type").HasValue("LRS"),
+				check.That(data.ResourceName).Key("primary_connection_string").IsEmpty(),
+				check.That(data.ResourceName).Key("secondary_connection_string").IsEmpty(),
+				check.That(data.ResourceName).Key("primary_blob_connection_string").IsEmpty(),
+				check.That(data.ResourceName).Key("secondary_blob_connection_string").IsEmpty(),
+				check.That(data.ResourceName).Key("primary_access_key").IsEmpty(),
+				check.That(data.ResourceName).Key("secondary_access_key").IsEmpty(),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMStorageAccount_basic(data acceptance.TestData) string {
+func (d StorageAccountDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -86,8 +79,8 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccDataSourceAzureRMStorageAccount_basicWriteLock(data acceptance.TestData) string {
-	template := testAccDataSourceAzureRMStorageAccount_basic(data)
+func (d StorageAccountDataSource) basicWriteLock(data acceptance.TestData) string {
+	template := d.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -99,8 +92,8 @@ resource "azurerm_management_lock" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccDataSourceAzureRMStorageAccount_basicWithDataSource(data acceptance.TestData) string {
-	config := testAccDataSourceAzureRMStorageAccount_basic(data)
+func (d StorageAccountDataSource) basicWithDataSource(data acceptance.TestData) string {
+	config := d.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -111,8 +104,8 @@ data "azurerm_storage_account" "test" {
 `, config)
 }
 
-func testAccDataSourceAzureRMStorageAccount_basicWriteLockWithDataSource(data acceptance.TestData) string {
-	config := testAccDataSourceAzureRMStorageAccount_basicWriteLock(data)
+func (d StorageAccountDataSource) basicWriteLockWithDataSource(data acceptance.TestData) string {
+	config := d.basicWriteLock(data)
 	return fmt.Sprintf(`
 %s
 

@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 )
 
 func TestAzureRMStorageShareMigrateStateV0ToV1(t *testing.T) {
@@ -40,7 +41,7 @@ func TestAzureRMStorageShareMigrateStateV0ToV1(t *testing.T) {
 			"quota":                5120,
 		}
 
-		actual, err := ResourceStorageShareStateUpgradeV0ToV1(input, meta)
+		actual, err := storage.ResourceStorageShareStateUpgradeV0ToV1(input, meta)
 		if err != nil {
 			t.Fatalf("Expected no error but got: %s", err)
 		}
@@ -84,7 +85,7 @@ func TestAzureRMStorageShareMigrateStateV1ToV2(t *testing.T) {
 			"quota":                5120,
 		}
 
-		actual, err := ResourceStorageShareStateUpgradeV1ToV2(input, meta)
+		actual, err := storage.ResourceStorageShareStateUpgradeV1ToV2(input, meta)
 		if err != nil {
 			t.Fatalf("Expected no error but got: %s", err)
 		}

@@ -1,197 +1,135 @@
 package storage_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/datalakestore/paths"
 )
 
-func TestAccAzureRMStorageDataLakeGen2Path_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen2_path", "test")
+type StorageDataLakeGen2PathResource struct{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageDataLakeGen2PathDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageDataLakeGen2Path_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageDataLakeGen2PathExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccStorageDataLakeGen2Path_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen2_path", "test")
+	r := StorageDataLakeGen2PathResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMStorageDataLakeGen2Path_requiresImport(t *testing.T) {
+func TestAccStorageDataLakeGen2Path_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen2_path", "test")
+	r := StorageDataLakeGen2PathResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageDataLakeGen2PathDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageDataLakeGen2Path_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageDataLakeGen2PathExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMStorageDataLakeGen2Path_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMStorageDataLakeGen2Path_withSimpleACL(t *testing.T) {
+func TestAccStorageDataLakeGen2Path_withSimpleACL(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen2_path", "test")
+	r := StorageDataLakeGen2PathResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageDataLakeGen2PathDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageDataLakeGen2Path_withSimpleACL(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageDataLakeGen2PathExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMStorageDataLakeGen2Path_withSimpleACLUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageDataLakeGen2PathExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withSimpleACL(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.withSimpleACLUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMStorageDataLakeGen2Path_withSimpleACLAndUpdate(t *testing.T) {
+func TestAccStorageDataLakeGen2Path_withSimpleACLAndUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen2_path", "test")
+	r := StorageDataLakeGen2PathResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageDataLakeGen2PathDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageDataLakeGen2Path_withSimpleACL(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageDataLakeGen2PathExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withSimpleACL(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMStorageDataLakeGen2Path_withACLWithSpecificUserAndDefaults(t *testing.T) {
+func TestAccStorageDataLakeGen2Path_withACLWithSpecificUserAndDefaults(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen2_path", "test")
+	r := StorageDataLakeGen2PathResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageDataLakeGen2PathDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageDataLakeGen2Path_withACLWithSpecificUserAndDefaults(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageDataLakeGen2PathExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withACLWithSpecificUserAndDefaults(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMStorageDataLakeGen2Path_withOwner(t *testing.T) {
+func TestAccStorageDataLakeGen2Path_withOwner(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen2_path", "test")
+	r := StorageDataLakeGen2PathResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageDataLakeGen2PathDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageDataLakeGen2Path_withOwner(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageDataLakeGen2PathExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withOwner(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
-func testCheckAzureRMStorageDataLakeGen2PathExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.ADLSGen2PathsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		fileSystemName := rs.Primary.Attributes["filesystem_name"]
-		path := rs.Primary.Attributes["path"]
-		storageID, err := parse.StorageAccountID(rs.Primary.Attributes["storage_account_id"])
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.GetProperties(ctx, storageID.Name, fileSystemName, path, paths.GetPropertiesActionGetStatus)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Path %q in File System %q (Account %q) does not exist", path, fileSystemName, storageID.Name)
-			}
-
-			return fmt.Errorf("Bad: Get on ADLSGen2PathsClient: %+v", err)
-		}
-
-		return nil
+func (r StorageDataLakeGen2PathResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := paths.ParseResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-}
-
-func testCheckAzureRMStorageDataLakeGen2PathDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.ADLSGen2PathsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_storage_data_lake_gen2_path" {
-			continue
+	resp, err := client.Storage.ADLSGen2PathsClient.GetProperties(ctx, id.AccountName, id.FileSystemName, id.Path, paths.GetPropertiesActionGetStatus)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
 		}
-
-		fileSystemName := rs.Primary.Attributes["filesystem_name"]
-		path := rs.Primary.Attributes["path"]
-		storageID, err := parse.StorageAccountID(rs.Primary.Attributes["storage_account_id"])
-		if err != nil {
-			return err
-		}
-
-		_, err = client.GetProperties(ctx, storageID.Name, fileSystemName, path, paths.GetPropertiesActionGetStatus)
-		if err != nil {
-			return nil
-		}
-
-		return fmt.Errorf("Path still exists: %q", path)
+		return nil, fmt.Errorf("retrieving Path %q (File System %q / Account %q): %+v", id.Path, id.FileSystemName, id.AccountName, err)
 	}
-
-	return nil
+	return utils.Bool(true), nil
 }
 
-func testAccAzureRMStorageDataLakeGen2Path_basic(data acceptance.TestData) string {
-	template := testAccAzureRMStorageDataLakeGen2Path_template(data)
+func (r StorageDataLakeGen2PathResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -204,8 +142,8 @@ resource "azurerm_storage_data_lake_gen2_path" "test" {
 `, template)
 }
 
-func testAccAzureRMStorageDataLakeGen2Path_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMStorageDataLakeGen2Path_basic(data)
+func (r StorageDataLakeGen2PathResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -218,8 +156,8 @@ resource "azurerm_storage_data_lake_gen2_path" "import" {
 `, template)
 }
 
-func testAccAzureRMStorageDataLakeGen2Path_withSimpleACL(data acceptance.TestData) string {
-	template := testAccAzureRMStorageDataLakeGen2Path_template(data)
+func (r StorageDataLakeGen2PathResource) withSimpleACL(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -249,8 +187,8 @@ resource "azurerm_storage_data_lake_gen2_path" "test" {
 }
 `, template)
 }
-func testAccAzureRMStorageDataLakeGen2Path_withSimpleACLUpdated(data acceptance.TestData) string {
-	template := testAccAzureRMStorageDataLakeGen2Path_template(data)
+func (r StorageDataLakeGen2PathResource) withSimpleACLUpdated(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -281,8 +219,8 @@ resource "azurerm_storage_data_lake_gen2_path" "test" {
 `, template)
 }
 
-func testAccAzureRMStorageDataLakeGen2Path_withACLWithSpecificUserAndDefaults(data acceptance.TestData) string {
-	template := testAccAzureRMStorageDataLakeGen2Path_template(data)
+func (r StorageDataLakeGen2PathResource) withACLWithSpecificUserAndDefaults(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -350,8 +288,8 @@ resource "azurerm_storage_data_lake_gen2_path" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMStorageDataLakeGen2Path_withOwner(data acceptance.TestData) string {
-	template := testAccAzureRMStorageDataLakeGen2Path_template(data)
+func (r StorageDataLakeGen2PathResource) withOwner(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -379,7 +317,7 @@ resource "azurerm_storage_data_lake_gen2_path" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMStorageDataLakeGen2Path_template(data acceptance.TestData) string {
+func (r StorageDataLakeGen2PathResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
