@@ -8,7 +8,7 @@ type FrontendEndpointId struct {
 	Name          string
 }
 
-func NewFrontendEndpointID(resourceGroup, frontDoorName, name string) FrontendEndpointId {
+func NewFrontendEndpointID(subscriptionId, resourceGroup, frontDoorName, name string) FrontendEndpointId {
 	return FrontendEndpointId{
 		ResourceGroup: resourceGroup,
 		FrontDoorName: frontDoorName,
@@ -17,7 +17,7 @@ func NewFrontendEndpointID(resourceGroup, frontDoorName, name string) FrontendEn
 }
 
 func (id FrontendEndpointId) ID(subscriptionId string) string {
-	base := NewFrontDoorID(id.ResourceGroup, id.FrontDoorName).ID(subscriptionId)
+	base := NewFrontDoorID(subscriptionId, id.ResourceGroup, id.FrontDoorName).ID(subscriptionId)
 	return fmt.Sprintf("%s/frontendEndpoints/%s", base, id.Name)
 }
 

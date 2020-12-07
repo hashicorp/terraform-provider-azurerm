@@ -8,7 +8,7 @@ type RoutingRuleId struct {
 	Name          string
 }
 
-func NewRoutingRuleID(resourceGroup, frontDoorName, name string) RoutingRuleId {
+func NewRoutingRuleID(subscriptionId, resourceGroup, frontDoorName, name string) RoutingRuleId {
 	return RoutingRuleId{
 		ResourceGroup: resourceGroup,
 		FrontDoorName: frontDoorName,
@@ -17,7 +17,7 @@ func NewRoutingRuleID(resourceGroup, frontDoorName, name string) RoutingRuleId {
 }
 
 func (id RoutingRuleId) ID(subscriptionId string) string {
-	base := NewFrontDoorID(id.ResourceGroup, id.FrontDoorName).ID(subscriptionId)
+	base := NewFrontDoorID(subscriptionId, id.ResourceGroup, id.FrontDoorName).ID(subscriptionId)
 	return fmt.Sprintf("%s/routingRules/%s", base, id.Name)
 }
 

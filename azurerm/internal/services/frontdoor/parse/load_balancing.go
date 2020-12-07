@@ -8,7 +8,7 @@ type LoadBalancingId struct {
 	Name          string
 }
 
-func NewLoadBalancingID(resourceGroup, frontDoorName, name string) LoadBalancingId {
+func NewLoadBalancingID(subscriptionId, resourceGroup, frontDoorName, name string) LoadBalancingId {
 	return LoadBalancingId{
 		ResourceGroup: resourceGroup,
 		FrontDoorName: frontDoorName,
@@ -17,7 +17,7 @@ func NewLoadBalancingID(resourceGroup, frontDoorName, name string) LoadBalancing
 }
 
 func (id LoadBalancingId) ID(subscriptionId string) string {
-	base := NewFrontDoorID(id.ResourceGroup, id.FrontDoorName).ID(subscriptionId)
+	base := NewFrontDoorID(subscriptionId, id.ResourceGroup, id.FrontDoorName).ID(subscriptionId)
 	return fmt.Sprintf("%s/loadBalancingSettings/%s", base, id.Name)
 }
 

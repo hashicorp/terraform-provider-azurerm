@@ -10,7 +10,7 @@ var _ resourceid.Formatter = HealthProbeId{}
 
 func TestHealthProbeIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	actual := NewHealthProbeID("group1", "frontdoor1", "probe1").ID(subscriptionId)
+	actual := NewHealthProbeID(subscriptionId, "group1", "frontdoor1", "probe1").ID("")
 	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/frontDoors/frontdoor1/healthProbeSettings/probe1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

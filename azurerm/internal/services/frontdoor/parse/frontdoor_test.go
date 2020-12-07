@@ -10,7 +10,7 @@ var _ resourceid.Formatter = FrontDoorId{}
 
 func TestFrontDoorIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	actual := NewFrontDoorID("group1", "frontDoor1").ID(subscriptionId)
+	actual := NewFrontDoorID(subscriptionId, "group1", "frontDoor1").ID("")
 	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/frontDoors/frontDoor1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

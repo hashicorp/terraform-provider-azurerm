@@ -10,7 +10,7 @@ var _ resourceid.Formatter = RoutingRuleId{}
 
 func TestRoutingRuleIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	actual := NewRoutingRuleID("group1", "frontdoor1", "rule1").ID(subscriptionId)
+	actual := NewRoutingRuleID(subscriptionId, "group1", "frontdoor1", "rule1").ID("")
 	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/frontDoors/frontdoor1/routingRules/rule1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

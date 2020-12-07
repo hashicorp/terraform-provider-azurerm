@@ -8,7 +8,7 @@ type HealthProbeId struct {
 	Name          string
 }
 
-func NewHealthProbeID(resourceGroup, frontDoorName, name string) HealthProbeId {
+func NewHealthProbeID(subscriptionId, resourceGroup, frontDoorName, name string) HealthProbeId {
 	return HealthProbeId{
 		ResourceGroup: resourceGroup,
 		FrontDoorName: frontDoorName,
@@ -17,7 +17,7 @@ func NewHealthProbeID(resourceGroup, frontDoorName, name string) HealthProbeId {
 }
 
 func (id HealthProbeId) ID(subscriptionId string) string {
-	base := NewFrontDoorID(id.ResourceGroup, id.FrontDoorName).ID(subscriptionId)
+	base := NewFrontDoorID(subscriptionId, id.ResourceGroup, id.FrontDoorName).ID(subscriptionId)
 	return fmt.Sprintf("%s/healthProbeSettings/%s", base, id.Name)
 }
 

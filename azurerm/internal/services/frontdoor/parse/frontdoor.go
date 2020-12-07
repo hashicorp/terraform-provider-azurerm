@@ -12,7 +12,7 @@ type FrontDoorId struct {
 	ResourceGroup string
 }
 
-func NewFrontDoorID(resourceGroup, name string) FrontDoorId {
+func NewFrontDoorID(subscriptionId, resourceGroup, name string) FrontDoorId {
 	return FrontDoorId{
 		Name:          name,
 		ResourceGroup: resourceGroup,

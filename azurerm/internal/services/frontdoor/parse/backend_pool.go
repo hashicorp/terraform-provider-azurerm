@@ -8,7 +8,7 @@ type BackendPoolId struct {
 	Name          string
 }
 
-func NewBackendPoolID(resourceGroup, frontDoorName, name string) BackendPoolId {
+func NewBackendPoolID(subscriptionId, resourceGroup, frontDoorName, name string) BackendPoolId {
 	return BackendPoolId{
 		ResourceGroup: resourceGroup,
 		FrontDoorName: frontDoorName,
@@ -17,7 +17,7 @@ func NewBackendPoolID(resourceGroup, frontDoorName, name string) BackendPoolId {
 }
 
 func (id BackendPoolId) ID(subscriptionId string) string {
-	base := NewFrontDoorID(id.ResourceGroup, id.FrontDoorName).ID(subscriptionId)
+	base := NewFrontDoorID(subscriptionId, id.ResourceGroup, id.FrontDoorName).ID(subscriptionId)
 	return fmt.Sprintf("%s/backendPools/%s", base, id.Name)
 }
 
