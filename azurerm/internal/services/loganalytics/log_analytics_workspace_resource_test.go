@@ -5,55 +5,12 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 )
-
-func TestAccAzureRmLogAnalyticsWorkspaceName_validation(t *testing.T) {
-	str := acctest.RandString(63)
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{
-			Value:    "abc",
-			ErrCount: 1,
-		},
-		{
-			Value:    "Ab-c",
-			ErrCount: 0,
-		},
-		{
-			Value:    "-abc",
-			ErrCount: 1,
-		},
-		{
-			Value:    "abc-",
-			ErrCount: 1,
-		},
-		{
-			Value:    str,
-			ErrCount: 0,
-		},
-		{
-			Value:    str + "a",
-			ErrCount: 1,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := loganalytics.ValidateAzureRmLogAnalyticsWorkspaceName(tc.Value, "azurerm_log_analytics")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the AzureRM Log Analytics Workspace Name to trigger a validation error for '%s'", tc.Value)
-		}
-	}
-}
 
 func TestAccAzureRMLogAnalyticsWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
