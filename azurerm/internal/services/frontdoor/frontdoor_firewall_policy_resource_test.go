@@ -114,9 +114,9 @@ func (FrontDoorFirewallPolicyResource) Exists(ctx context.Context, clients *clie
 		return nil, err
 	}
 
-	resp, err := clients.Frontdoor.FrontDoorsPolicyClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Frontdoor.FrontDoorsPolicyClient.Get(ctx, id.ResourceGroup, id.FrontDoorWebApplicationFirewallPolicyName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Front Door Firewall Policy %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Front Door Firewall Policy %q (Resource Group %q): %v", id.FrontDoorWebApplicationFirewallPolicyName, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.WebApplicationFirewallPolicyProperties != nil), nil

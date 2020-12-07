@@ -1119,7 +1119,7 @@ func flattenFrontDoorBackendPools(input *[]frontdoor.BackendPool, frontDoorId pa
 					return nil, err
 				}
 
-				healthProbeName = name.Name
+				healthProbeName = name.HealthProbeSettingName
 			}
 
 			if props.LoadBalancingSettings != nil && props.LoadBalancingSettings.ID != nil {
@@ -1128,7 +1128,7 @@ func flattenFrontDoorBackendPools(input *[]frontdoor.BackendPool, frontDoorId pa
 					return nil, err
 				}
 
-				loadBalancingName = name.Name
+				loadBalancingName = name.LoadBalancingSettingName
 			}
 		}
 		output = append(output, map[string]interface{}{
