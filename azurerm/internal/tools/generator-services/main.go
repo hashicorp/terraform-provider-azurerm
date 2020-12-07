@@ -54,35 +54,45 @@ var services = mapOf(
 )`
 	items := make([]string, 0)
 
-	categories := make(map[string]bool, 0)
+	services := make(map[string]string, 0)
+	serviceNames := make([]string, 0)
+
+	// combine and unique these
 	for _, service := range provider.SupportedTypedServices() {
 		info := reflect.TypeOf(service)
 		packageSegments := strings.Split(info.PkgPath(), "/")
 		packageName := packageSegments[len(packageSegments)-1]
+		serviceName := service.Name()
 
 		// Service Registrations are reused across Typed and Untyped Services now
-		if _, exists := categories[packageName]; exists {
+		if _, exists := services[serviceName]; exists {
 			continue
 		}
 
-		item := fmt.Sprintf("        %q to %q", packageName, service.Name())
-		items = append(items, item)
-		categories[packageName] = true
+		services[serviceName] = packageName
+		serviceNames = append(serviceNames, serviceName)
 	}
-
 	for _, service := range provider.SupportedUntypedServices() {
 		info := reflect.TypeOf(service)
 		packageSegments := strings.Split(info.PkgPath(), "/")
 		packageName := packageSegments[len(packageSegments)-1]
+		serviceName := service.Name()
 
 		// Service Registrations are reused across Typed and Untyped Services now
-		if _, exists := categories[packageName]; exists {
+		if _, exists := services[serviceName]; exists {
 			continue
 		}
 
-		item := fmt.Sprintf("        %q to %q", packageName, service.Name())
+		services[serviceName] = packageName
+		serviceNames = append(serviceNames, serviceName)
+	}
+
+	// then ensure these are sorted so they're alphabetical
+	sort.Strings(serviceNames)
+	for _, serviceName := range serviceNames {
+		packageName := services[serviceName]
+		item := fmt.Sprintf("        %q to %q", packageName, serviceName)
 		items = append(items, item)
-		categories[packageName] = true
 	}
 
 	formatted := fmt.Sprintf(template, strings.Join(items, ",\n"))
