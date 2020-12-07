@@ -1272,7 +1272,7 @@ func flattenFrontEndEndpoints(input *[]frontdoor.FrontendEndpoint, frontDoorId p
 
 			if waf := props.WebApplicationFirewallPolicyLink; waf != nil && waf.ID != nil {
 				// rewrite the ID to ensure it's consistent
-				parsed, err := parse.WebApplicationFirewallPolicyID(*waf.ID)
+				parsed, err := parse.WebApplicationFirewallPolicyIDInsensitively(*waf.ID)
 				if err != nil {
 					return nil, err
 				}

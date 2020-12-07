@@ -109,7 +109,7 @@ func TestAccFrontDoorFirewallPolicy_complete(t *testing.T) {
 }
 
 func (FrontDoorFirewallPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.WebApplicationFirewallPolicyID(state.ID)
+	id, err := parse.WebApplicationFirewallPolicyIDInsensitively(state.ID)
 	if err != nil {
 		return nil, err
 	}

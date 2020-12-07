@@ -48,7 +48,7 @@ func TestWebApplicationFirewallPolicyIDParser(t *testing.T) {
 	}
 	for _, test := range testData {
 		t.Logf("Testing %q..", test.input)
-		actual, err := WebApplicationFirewallPolicyID(test.input)
+		actual, err := WebApplicationFirewallPolicyIDInsensitively(test.input)
 		if err != nil && test.expected == nil {
 			continue
 		} else {

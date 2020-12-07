@@ -30,7 +30,7 @@ func resourceFrontDoorFirewallPolicy() *schema.Resource {
 		Delete: resourceFrontDoorFirewallPolicyDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.WebApplicationFirewallPolicyID(id)
+			_, err := parse.WebApplicationFirewallPolicyIDInsensitively(id)
 			return err
 		}),
 
@@ -512,7 +512,7 @@ func resourceFrontDoorFirewallPolicyRead(d *schema.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.WebApplicationFirewallPolicyID(d.Id())
+	id, err := parse.WebApplicationFirewallPolicyIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
@@ -564,7 +564,7 @@ func resourceFrontDoorFirewallPolicyDelete(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.WebApplicationFirewallPolicyID(d.Id())
+	id, err := parse.WebApplicationFirewallPolicyIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}

@@ -22,7 +22,7 @@ func (id WebApplicationFirewallPolicyId) ID(subscriptionId string) string {
 	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/%s", subscriptionId, id.ResourceGroup, id.Name)
 }
 
-func WebApplicationFirewallPolicyID(input string) (*WebApplicationFirewallPolicyId, error) {
+func WebApplicationFirewallPolicyIDInsensitively(input string) (*WebApplicationFirewallPolicyId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("parsing Web Application Firewall Policy ID %q: %+v", input, err)
