@@ -54,7 +54,7 @@ var services = mapOf(
 )`
 	items := make([]string, 0)
 
-	services := make(map[string]string, 0)
+	services := make(map[string]string)
 	serviceNames := make([]string, 0)
 
 	// combine and unique these
