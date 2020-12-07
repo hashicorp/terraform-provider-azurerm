@@ -123,16 +123,23 @@ func resourceArmBotChannelDirectlineCreate(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceId := parse.NewBotChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(botservice.ChannelNameDirectLineChannel))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, resourceId.ChannelName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Directline Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroup, err)
-			}
+	resourceId := parse.NewBotChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(botservice.ChannelNameDirectLineChannel1))
+	existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, resourceId.ChannelName)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("checking for presence of existing Directline Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroup, err)
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_bot_channel_directline", resourceId.ID(""))
+	}
+	if !utils.ResponseWasNotFound(existing.Response) {
+		// a "Default Site" site gets created and returned.. so let's check it's not just that
+		if props := existing.Properties; props != nil {
+			directLineChannel, ok := props.AsDirectLineChannel()
+			if ok && directLineChannel.Properties != nil {
+				sites := filterSites(directLineChannel.Properties.Sites)
+				if len(sites) != 0 {
+					return tf.ImportAsExistsError("azurerm_bot_channel_directline", resourceId.ID(""))
+				}
+			}
 		}
 	}
 
