@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -53,18 +54,17 @@ func resourceArmAdvancedThreatProtectionCreateUpdate(d *schema.ResourceData, met
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceID := d.Get("target_resource_id").(string)
-
+	id := parse.NewAdvancedThreatProtectionId(d.Get("target_resource_id").(string))
 	if d.IsNewResource() {
-		server, err := client.Get(ctx, resourceID)
+		server, err := client.Get(ctx, id.TargetResourceID)
 		if err != nil {
 			if !utils.ResponseWasNotFound(server.Response) {
-				return fmt.Errorf("Checking for presence of existing Advanced Threat Protection for resource %q: %+v", resourceID, err)
+				return fmt.Errorf("checking for presence of existing Advanced Threat Protection for %q: %+v", id.TargetResourceID, err)
 			}
 		}
 
 		if server.ID != nil && *server.ID != "" && server.IsEnabled != nil && *server.IsEnabled {
-			return tf.ImportAsExistsError("azurerm_advanced_threat_protection", *server.ID)
+			return tf.ImportAsExistsError("azurerm_advanced_threat_protection", id.ID(""))
 		}
 	}
 
@@ -74,16 +74,11 @@ func resourceArmAdvancedThreatProtectionCreateUpdate(d *schema.ResourceData, met
 		},
 	}
 
-	resp, err := client.Create(ctx, resourceID, setting)
-	if err != nil {
-		return fmt.Errorf("Updating Advanced Threat protection for resource %q: %+v", resourceID, err)
+	if _, err := client.Create(ctx, id.TargetResourceID, setting); err != nil {
+		return fmt.Errorf("updating Advanced Threat protection for %q: %+v", id.TargetResourceID, err)
 	}
 
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read ID for Advanced Threat Protection for resource %q ", resourceID)
-	}
-	d.SetId(*resp.ID)
-
+	d.SetId(id.ID(""))
 	return resourceArmAdvancedThreatProtectionRead(d, meta)
 }
 
@@ -92,7 +87,7 @@ func resourceArmAdvancedThreatProtectionRead(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseAdvancedThreatProtectionID(d.Id())
+	id, err := parse.AdvancedThreatProtectionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -100,12 +95,12 @@ func resourceArmAdvancedThreatProtectionRead(d *schema.ResourceData, meta interf
 	resp, err := client.Get(ctx, id.TargetResourceID)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("Advanced Threat Protection was not found for resource %q: %+v", id.TargetResourceID, err)
+			log.Printf("Advanced Threat Protection was not found for %q: %+v", id.TargetResourceID, err)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Reading Advanced Threat protection for resource %q: %+v", id.TargetResourceID, err)
+		return fmt.Errorf("retrieving Advanced Threat Protection status for %q: %+v", id.TargetResourceID, err)
 	}
 
 	d.Set("target_resource_id", id.TargetResourceID)
@@ -121,7 +116,7 @@ func resourceArmAdvancedThreatProtectionDelete(d *schema.ResourceData, meta inte
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseAdvancedThreatProtectionID(d.Id())
+	id, err := parse.AdvancedThreatProtectionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -134,7 +129,7 @@ func resourceArmAdvancedThreatProtectionDelete(d *schema.ResourceData, meta inte
 	}
 
 	if _, err := client.Create(ctx, id.TargetResourceID, setting); err != nil {
-		return fmt.Errorf("Resetting Advanced Threat protection to false for resource %q: %+v", id.TargetResourceID, err)
+		return fmt.Errorf("removing Advanced Threat Protection for %q: %+v", id.TargetResourceID, err)
 	}
 
 	return nil
