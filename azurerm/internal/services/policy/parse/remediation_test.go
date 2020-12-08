@@ -119,8 +119,8 @@ func TestRemediationID(t *testing.T) {
 			Expected: &PolicyRemediationId{
 				Name: "test",
 				PolicyScopeId: ScopeAtManagementGroup{
-					scopeId:           "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000",
-					ManagementGroupId: "00000000-0000-0000-0000-000000000000",
+					scopeId:             "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000",
+					ManagementGroupName: "00000000-0000-0000-0000-000000000000",
 				},
 			},
 		},
@@ -130,8 +130,8 @@ func TestRemediationID(t *testing.T) {
 			Expected: &PolicyRemediationId{
 				Name: "test",
 				PolicyScopeId: ScopeAtManagementGroup{
-					scopeId:           "/providers/Microsoft.Management/managementGroups/group1",
-					ManagementGroupId: "group1",
+					scopeId:             "/providers/Microsoft.Management/managementGroups/group1",
+					ManagementGroupName: "group1",
 				},
 			},
 		},
@@ -141,8 +141,8 @@ func TestRemediationID(t *testing.T) {
 			Expected: &PolicyRemediationId{
 				Name: "test",
 				PolicyScopeId: ScopeAtManagementGroup{
-					scopeId:           "/providers/microsoft.management/managementgroups/00000000-0000-0000-0000-000000000000",
-					ManagementGroupId: "00000000-0000-0000-0000-000000000000",
+					scopeId:             "/providers/microsoft.management/managementgroups/00000000-0000-0000-0000-000000000000",
+					ManagementGroupName: "00000000-0000-0000-0000-000000000000",
 				},
 			},
 		},

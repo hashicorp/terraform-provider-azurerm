@@ -120,7 +120,6 @@ func (client CheckNameAvailabilityClient) ExecuteSender(req *http.Request) (*htt
 func (client CheckNameAvailabilityClient) ExecuteResponder(resp *http.Response) (result NameAvailability, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

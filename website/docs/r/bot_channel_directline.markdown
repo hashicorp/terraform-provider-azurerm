@@ -6,7 +6,7 @@ description: |-
   Manages an Directline integration for a Bot Channel
 ---
 
-# azurerm_bot_connection
+# azurerm_bot_channel_directline
 
 Manages a Directline integration for a Bot Channel
 
@@ -23,15 +23,15 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_bot_channels_registration" "example" {
   name                = "example"
   location            = "global"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "F0"
   microsoft_app_id    = "${data.azurerm_client_config.current.service_principal_application_id}"
 }
 
 resource "azurerm_bot_channel_directline" "example" {
-  bot_name            = "${azurerm_bot_channels_registration.example.name}"
-  location            = "${azurerm_bot_channels_registration.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  bot_name            = azurerm_bot_channels_registration.example.name
+  location            = azurerm_bot_channels_registration.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   site {
     name    = "default"
@@ -50,7 +50,7 @@ The following arguments are supported:
 
 - `bot_name` - (Required) The name of the Bot Resource this channel will be associated with. Changing this forces a new resource to be created.
 
-- `site` - (Optional) A site represents a client application that you want to connect to your bot. Multiple `site` blocks may be defined as below
+- `site` - (Required) A site represents a client application that you want to connect to your bot. Multiple `site` blocks may be defined as below
 
 A `site` block has the following properties:
 
@@ -82,6 +82,15 @@ A `site` block exports the following:
 - `key2` - Secondary key for accessing this site
 
 - `id` - Id for the site
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Directline Channel.
+* `update` - (Defaults to 30 minutes) Used when updating the Directline Channel.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Directline Channel.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Directline Channel.
 
 ## Import
 

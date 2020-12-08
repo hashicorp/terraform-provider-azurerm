@@ -127,7 +127,6 @@ func (client ChannelsClient) CreateSender(req *http.Request) (*http.Response, er
 func (client ChannelsClient) CreateResponder(resp *http.Response) (result BotChannel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -221,7 +220,6 @@ func (client ChannelsClient) DeleteSender(req *http.Request) (*http.Response, er
 func (client ChannelsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -314,7 +312,6 @@ func (client ChannelsClient) GetSender(req *http.Request) (*http.Response, error
 func (client ChannelsClient) GetResponder(resp *http.Response) (result BotChannel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -367,6 +364,9 @@ func (client ChannelsClient) ListByResourceGroup(ctx context.Context, resourceGr
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.ChannelsClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.crl.hasNextLink() && result.crl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -403,7 +403,6 @@ func (client ChannelsClient) ListByResourceGroupSender(req *http.Request) (*http
 func (client ChannelsClient) ListByResourceGroupResponder(resp *http.Response) (result ChannelResponseList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -530,7 +529,6 @@ func (client ChannelsClient) ListWithKeysSender(req *http.Request) (*http.Respon
 func (client ChannelsClient) ListWithKeysResponder(resp *http.Response) (result BotChannel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -623,7 +621,6 @@ func (client ChannelsClient) UpdateSender(req *http.Request) (*http.Response, er
 func (client ChannelsClient) UpdateResponder(resp *http.Response) (result BotChannel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

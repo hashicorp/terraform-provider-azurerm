@@ -101,7 +101,6 @@ func (client GlobalAdministratorClient) ElevateAccessSender(req *http.Request) (
 func (client GlobalAdministratorClient) ElevateAccessResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp

@@ -124,7 +124,6 @@ func (client LinkedServerClient) CreateSender(req *http.Request) (future LinkedS
 func (client LinkedServerClient) CreateResponder(resp *http.Response) (result LinkedServerWithProperties, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -202,7 +201,6 @@ func (client LinkedServerClient) DeleteSender(req *http.Request) (*http.Response
 func (client LinkedServerClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -279,7 +277,6 @@ func (client LinkedServerClient) GetSender(req *http.Request) (*http.Response, e
 func (client LinkedServerClient) GetResponder(resp *http.Response) (result LinkedServerWithProperties, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -320,6 +317,9 @@ func (client LinkedServerClient) List(ctx context.Context, resourceGroupName str
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.LinkedServerClient", "List", resp, "Failure responding to request")
 	}
+	if result.lswpl.hasNextLink() && result.lswpl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -356,7 +356,6 @@ func (client LinkedServerClient) ListSender(req *http.Request) (*http.Response, 
 func (client LinkedServerClient) ListResponder(resp *http.Response) (result LinkedServerWithPropertiesList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

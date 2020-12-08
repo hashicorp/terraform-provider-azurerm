@@ -9,8 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
-
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -20,8 +18,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -292,24 +290,18 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.Get(ctx, resGroup, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Redis Instance %s (resource group %s) ID", name, resGroup)
-			}
-		}
-
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_redis_cache", *existing.ID)
-		}
-	}
-
-	patchSchedule, err := expandRedisPatchSchedule(d)
+	existing, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error parsing Patch Schedule: %+v", err)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of existing Redis Instance %s (resource group %s) ID", name, resGroup)
+		}
 	}
 
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_redis_cache", *existing.ID)
+	}
+
+	patchSchedule := expandRedisPatchSchedule(d)
 	redisConfiguration, err := expandRedisConfiguration(d)
 	if err != nil {
 		return fmt.Errorf("Error parsing Redis Configuration: %+v", err)
@@ -476,10 +468,7 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 
 	d.SetId(*read.ID)
 
-	patchSchedule, err := expandRedisPatchSchedule(d)
-	if err != nil {
-		return fmt.Errorf("Error parsing Patch Schedule: %+v", err)
-	}
+	patchSchedule := expandRedisPatchSchedule(d)
 
 	patchClient := meta.(*clients.Client).Redis.PatchSchedulesClient
 	if patchSchedule == nil || len(*patchSchedule.ScheduleEntries.ScheduleEntries) == 0 {
@@ -577,8 +566,9 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("secondary_access_key", keysResp.SecondaryKey)
 
 	if props != nil {
-		d.Set("primary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.PrimaryKey, *props.EnableNonSslPort))
-		d.Set("secondary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.SecondaryKey, *props.EnableNonSslPort))
+		enableSslPort := !*props.EnableNonSslPort
+		d.Set("primary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.PrimaryKey, enableSslPort))
+		d.Set("secondary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.SecondaryKey, enableSslPort))
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -652,89 +642,86 @@ func redisStateRefreshFunc(ctx context.Context, client *redis.Client, resourceGr
 func expandRedisConfiguration(d *schema.ResourceData) (map[string]*string, error) {
 	output := make(map[string]*string)
 
-	if v, ok := d.GetOk("redis_configuration.0.maxclients"); ok {
-		clients := strconv.Itoa(v.(int))
-		output["maxclients"] = utils.String(clients)
+	input := d.Get("redis_configuration").([]interface{})
+	if len(input) == 0 || input[0] == nil {
+		return output, nil
+	}
+	raw := input[0].(map[string]interface{})
+
+	if v := raw["maxclients"].(int); v > 0 {
+		output["maxclients"] = utils.String(strconv.Itoa(v))
 	}
 
-	if v, ok := d.GetOk("redis_configuration.0.maxmemory_delta"); ok {
-		delta := strconv.Itoa(v.(int))
-		output["maxmemory-delta"] = utils.String(delta)
+	if v := raw["maxmemory_delta"].(int); v > 0 {
+		output["maxmemory-delta"] = utils.String(strconv.Itoa(v))
 	}
 
-	if v, ok := d.GetOk("redis_configuration.0.maxmemory_reserved"); ok {
-		delta := strconv.Itoa(v.(int))
-		output["maxmemory-reserved"] = utils.String(delta)
+	if v := raw["maxmemory_reserved"].(int); v > 0 {
+		output["maxmemory-reserved"] = utils.String(strconv.Itoa(v))
 	}
 
-	if v, ok := d.GetOk("redis_configuration.0.maxmemory_policy"); ok {
-		output["maxmemory-policy"] = utils.String(v.(string))
+	if v := raw["maxmemory_policy"].(string); v != "" {
+		output["maxmemory-policy"] = utils.String(v)
 	}
 
-	if v, ok := d.GetOk("redis_configuration.0.maxfragmentationmemory_reserved"); ok {
-		delta := strconv.Itoa(v.(int))
-		output["maxfragmentationmemory-reserved"] = utils.String(delta)
+	if v := raw["maxfragmentationmemory_reserved"].(int); v > 0 {
+		output["maxfragmentationmemory-reserved"] = utils.String(strconv.Itoa(v))
 	}
 
 	// RDB Backup
-	if v, ok := d.GetOk("redis_configuration.0.rdb_backup_enabled"); ok {
-		delta := strconv.FormatBool(v.(bool))
-		output["rdb-backup-enabled"] = utils.String(delta)
+	if v := raw["rdb_backup_enabled"].(bool); v {
+		if connStr := raw["rdb_storage_connection_string"].(string); connStr == "" {
+			return nil, fmt.Errorf("The rdb_storage_connection_string property must be set when rdb_backup_enabled is true")
+		}
+		output["rdb-backup-enabled"] = utils.String(strconv.FormatBool(v))
 	}
 
-	if v, ok := d.GetOk("redis_configuration.0.rdb_backup_frequency"); ok {
-		delta := strconv.Itoa(v.(int))
-		output["rdb-backup-frequency"] = utils.String(delta)
+	if v := raw["rdb_backup_frequency"].(int); v > 0 {
+		output["rdb-backup-frequency"] = utils.String(strconv.Itoa(v))
 	}
 
-	if v, ok := d.GetOk("redis_configuration.0.rdb_backup_max_snapshot_count"); ok {
-		delta := strconv.Itoa(v.(int))
-		output["rdb-backup-max-snapshot-count"] = utils.String(delta)
+	if v := raw["rdb_backup_max_snapshot_count"].(int); v > 0 {
+		output["rdb-backup-max-snapshot-count"] = utils.String(strconv.Itoa(v))
 	}
 
-	if v, ok := d.GetOk("redis_configuration.0.rdb_storage_connection_string"); ok {
-		output["rdb-storage-connection-string"] = utils.String(v.(string))
+	if v := raw["rdb_storage_connection_string"].(string); v != "" {
+		output["rdb-storage-connection-string"] = utils.String(v)
 	}
 
-	if v, ok := d.GetOk("redis_configuration.0.notify_keyspace_events"); ok {
-		output["notify-keyspace-events"] = utils.String(v.(string))
+	if v := raw["notify_keyspace_events"].(string); v != "" {
+		output["notify-keyspace-events"] = utils.String(v)
 	}
 
 	// AOF Backup
-	if v, ok := d.GetOk("redis_configuration.0.aof_backup_enabled"); ok {
-		delta := strconv.FormatBool(v.(bool))
-		output["aof-backup-enabled"] = utils.String(delta)
+	if v := raw["aof_backup_enabled"].(bool); v {
+		output["aof-backup-enabled"] = utils.String(strconv.FormatBool(v))
 	}
 
-	if v, ok := d.GetOk("redis_configuration.0.aof_storage_connection_string_0"); ok {
-		output["aof-storage-connection-string-0"] = utils.String(v.(string))
+	if v := raw["aof_storage_connection_string_0"].(string); v != "" {
+		output["aof-storage-connection-string-0"] = utils.String(v)
 	}
 
-	if v, ok := d.GetOk("redis_configuration.0.aof_storage_connection_string_1"); ok {
-		output["aof-storage-connection-string-1"] = utils.String(v.(string))
+	if v := raw["aof_storage_connection_string_1"].(string); v != "" {
+		output["aof-storage-connection-string-1"] = utils.String(v)
 	}
 
-	if v, ok := d.GetOkExists("redis_configuration.0.enable_authentication"); ok {
-		authEnabled := v.(bool)
-		_, isPrivate := d.GetOk("subnet_id")
-
-		// Redis authentication can only be disabled if it is launched inside a VNET.
-		if !isPrivate {
-			if !authEnabled {
-				return nil, fmt.Errorf("Cannot set `enable_authentication` to `false` when `subnet_id` is not set")
-			}
-		} else {
-			value := isAuthNotRequiredAsString(authEnabled)
-			output["authnotrequired"] = utils.String(value)
+	authEnabled := raw["enable_authentication"].(bool)
+	// Redis authentication can only be disabled if it is launched inside a VNET.
+	if _, isPrivate := d.GetOk("subnet_id"); !isPrivate {
+		if !authEnabled {
+			return nil, fmt.Errorf("Cannot set `enable_authentication` to `false` when `subnet_id` is not set")
 		}
+	} else {
+		value := isAuthNotRequiredAsString(authEnabled)
+		output["authnotrequired"] = utils.String(value)
 	}
 	return output, nil
 }
 
-func expandRedisPatchSchedule(d *schema.ResourceData) (*redis.PatchSchedule, error) {
+func expandRedisPatchSchedule(d *schema.ResourceData) *redis.PatchSchedule {
 	v, ok := d.GetOk("patch_schedule")
 	if !ok {
-		return nil, nil
+		return nil
 	}
 
 	scheduleValues := v.([]interface{})
@@ -756,7 +743,7 @@ func expandRedisPatchSchedule(d *schema.ResourceData) (*redis.PatchSchedule, err
 			ScheduleEntries: &entries,
 		},
 	}
-	return &schedule, nil
+	return &schedule
 }
 
 func flattenRedisConfiguration(input map[string]*string) ([]interface{}, error) {
@@ -901,10 +888,12 @@ func validateRedisMaxMemoryPolicy(v interface{}, _ string) (warnings []string, e
 		"allkeys-random":  true,
 		"volatile-random": true,
 		"volatile-ttl":    true,
+		"allkeys-lfu":     true,
+		"volatile-lfu":    true,
 	}
 
 	if !families[value] {
-		errors = append(errors, fmt.Errorf("Redis Max Memory Policy can only be 'noeviction' / 'allkeys-lru' / 'volatile-lru' / 'allkeys-random' / 'volatile-random' / 'volatile-ttl'"))
+		errors = append(errors, fmt.Errorf("Redis Max Memory Policy can only be 'noeviction' / 'allkeys-lru' / 'volatile-lru' / 'allkeys-random' / 'volatile-random' / 'volatile-ttl' / 'allkeys-lfu' / 'volatile-lfu'"))
 	}
 
 	return warnings, errors

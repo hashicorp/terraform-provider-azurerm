@@ -121,7 +121,6 @@ func (client ComponentAvailableFeaturesClient) GetSender(req *http.Request) (*ht
 func (client ComponentAvailableFeaturesClient) GetResponder(resp *http.Response) (result ApplicationInsightsComponentAvailableFeatures, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

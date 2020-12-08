@@ -121,7 +121,6 @@ func (client DataMaskingPoliciesClient) CreateOrUpdateSender(req *http.Request) 
 func (client DataMaskingPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result DataMaskingPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -201,7 +200,6 @@ func (client DataMaskingPoliciesClient) GetSender(req *http.Request) (*http.Resp
 func (client DataMaskingPoliciesClient) GetResponder(resp *http.Response) (result DataMaskingPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

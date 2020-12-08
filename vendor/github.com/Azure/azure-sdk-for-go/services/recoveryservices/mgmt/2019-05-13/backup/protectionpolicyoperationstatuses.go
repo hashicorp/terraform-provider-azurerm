@@ -118,7 +118,6 @@ func (client ProtectionPolicyOperationStatusesClient) GetSender(req *http.Reques
 func (client ProtectionPolicyOperationStatusesClient) GetResponder(resp *http.Response) (result OperationStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

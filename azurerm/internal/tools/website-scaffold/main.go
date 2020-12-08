@@ -14,6 +14,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/provider"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/sdk"
 )
 
 // NOTE: since we're using `go run` for these tools all of the code needs to live within the main.go
@@ -29,7 +30,7 @@ func main() {
 
 	_ = f.Parse(os.Args[1:])
 
-	var quitWithError = func(message string) {
+	quitWithError := func(message string) {
 		log.Print(message)
 		os.Exit(1)
 	}
@@ -88,7 +89,22 @@ func getContent(resourceName, brandName string, resourceId *string, isResource b
 	}
 
 	if !isResource {
-		for _, service := range provider.SupportedServices() {
+		for _, service := range provider.SupportedTypedServices() {
+			for _, ds := range service.DataSources() {
+				if ds.ResourceType() == resourceName {
+					wrapper := sdk.NewDataSourceWrapper(ds)
+					dsWrapper, err := wrapper.DataSource()
+					if err != nil {
+						return nil, fmt.Errorf("wrapping Data Source %q: %+v", ds.ResourceType(), err)
+					}
+
+					generator.resource = dsWrapper
+					generator.websiteCategories = service.WebsiteCategories()
+					break
+				}
+			}
+		}
+		for _, service := range provider.SupportedUntypedServices() {
 			for key, ds := range service.SupportedDataSources() {
 				if key == resourceName {
 					generator.resource = ds
@@ -102,7 +118,22 @@ func getContent(resourceName, brandName string, resourceId *string, isResource b
 			return nil, fmt.Errorf("Data Source %q was not registered!", resourceName)
 		}
 	} else {
-		for _, service := range provider.SupportedServices() {
+		for _, service := range provider.SupportedTypedServices() {
+			for _, rs := range service.Resources() {
+				if rs.ResourceType() == resourceName {
+					wrapper := sdk.NewResourceWrapper(rs)
+					rsWrapper, err := wrapper.Resource()
+					if err != nil {
+						return nil, fmt.Errorf("wrapping Resource %q: %+v", rs.ResourceType(), err)
+					}
+
+					generator.resource = rsWrapper
+					generator.websiteCategories = service.WebsiteCategories()
+					break
+				}
+			}
+		}
+		for _, service := range provider.SupportedUntypedServices() {
 			for key, rs := range service.SupportedResources() {
 				if key == resourceName {
 					generator.resource = rs
@@ -204,7 +235,7 @@ func (gen documentationGenerator) generate() string {
 
 // blocks
 func (gen documentationGenerator) argumentsBlock() string {
-	var documentationForArguments = func(input map[string]*schema.Schema, onlyRequired, onlyOptional bool, blockName string) string {
+	documentationForArguments := func(input map[string]*schema.Schema, onlyRequired, onlyOptional bool, blockName string) string {
 		fields := ""
 
 		for _, fieldName := range gen.sortFields(input) {
@@ -283,7 +314,7 @@ The following arguments are supported:
 }
 
 func (gen documentationGenerator) attributesBlock() string {
-	var documentationForAttributes = func(input map[string]*schema.Schema, onlyComputed bool, blockName string) string {
+	documentationForAttributes := func(input map[string]*schema.Schema, onlyComputed bool, blockName string) string {
 		fields := ""
 
 		// now list all of the top-level fields / blocks alphabetically
@@ -409,7 +440,7 @@ func (gen documentationGenerator) timeoutsBlock() string {
 
 	timeoutsBlurb := "The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:"
 
-	var timeoutToFriendlyText = func(duration time.Duration) string {
+	timeoutToFriendlyText := func(duration time.Duration) string {
 		hours := int(math.Floor(duration.Hours()))
 		if hours > 0 {
 			var hoursText string
@@ -502,12 +533,12 @@ func (gen documentationGenerator) buildDescriptionForArgument(name string, field
 	if name == "name" {
 		if blockName == "" {
 			if gen.isDataSource {
-				return fmt.Sprintf("The Name of this %s.", gen.brandName)
+				return fmt.Sprintf("The name of this %s.", gen.brandName)
 			}
 
-			return fmt.Sprintf("The Name which should be used for this %s.", gen.brandName)
+			return fmt.Sprintf("The name which should be used for this %s.", gen.brandName)
 		} else {
-			return "The Name which should be used for this TODO."
+			return "The name which should be used for this TODO."
 		}
 	}
 	if name == "location" {
@@ -537,28 +568,30 @@ func (gen documentationGenerator) buildDescriptionForArgument(name string, field
 	}
 
 	if field.Elem != nil {
-		if _, ok := field.Elem.(*schema.Schema); ok {
-			if gen.blockIsBefore(name, blockName) {
-				return fmt.Sprintf("A `%s` block as defined above.", name)
-			} else {
-				return fmt.Sprintf("A `%s` block as defined below.", name)
-			}
-		}
-
 		if _, ok := field.Elem.(*schema.Resource); ok {
-			if gen.blockIsBefore(name, blockName) {
-				return fmt.Sprintf("A `%s` block as defined above.", name)
-			} else {
-				return fmt.Sprintf("A `%s` block as defined below.", name)
+			fmtBlock := func(name string, maxItem int, blockIsBefore bool) string {
+				var head string
+				if maxItem == 1 {
+					head = fmt.Sprintf("A `%s` block", name)
+				} else {
+					head = fmt.Sprintf("One or more `%s` blocks", name)
+				}
+
+				var tail string
+				if blockIsBefore {
+					tail = "as defined above."
+				} else {
+					tail = "as defined below."
+				}
+				return head + " " + tail
 			}
+			return fmtBlock(name, field.MaxItems, gen.blockIsBefore(name, blockName))
 		}
 	}
-	if field.Type == schema.TypeList {
-		if gen.blockIsBefore(name, blockName) {
-			return fmt.Sprintf("A `%s` block as defined above.", name)
-		} else {
-			return fmt.Sprintf("A `%s` block as defined below.", name)
-		}
+
+	switch field.Type {
+	case schema.TypeList, schema.TypeSet, schema.TypeMap:
+		return "Specifies a list of TODO."
 	}
 
 	return "TODO."
@@ -567,9 +600,9 @@ func (gen documentationGenerator) buildDescriptionForArgument(name string, field
 func (gen documentationGenerator) buildDescriptionForAttribute(name string, field *schema.Schema, blockName string) string {
 	if name == "name" {
 		if blockName == "" {
-			return fmt.Sprintf("The Name of this %s.", gen.brandName)
+			return fmt.Sprintf("The name of this %s.", gen.brandName)
 		} else {
-			return "The Name of this TODO."
+			return "The name of this TODO."
 		}
 	}
 	if name == "location" {
@@ -712,7 +745,7 @@ func (gen documentationGenerator) requiredFieldsForExampleBlock(fields map[strin
 	indent := gen.buildIndentForExample(indentLevel)
 	output := ""
 
-	var processField = func(name string, field *schema.Schema) string {
+	processField := func(name string, field *schema.Schema) string {
 		value := gen.determineDefaultValueForExample(name, field)
 		return fmt.Sprintf("%s%s = %s\n", indent, name, value)
 	}

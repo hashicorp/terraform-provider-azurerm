@@ -38,6 +38,8 @@ resource "azurerm_analysis_services_server" "server" {
 }
 ```
 
+-> **NOTE:** The server resource will automatically be started and stopped during an update if it is in `paused` state.
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -48,11 +50,11 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the Analysis Services Server should be exist. Changing this forces a new resource to be created.
 
-* `sku` - (Required) SKU for the Analysis Services Server. Possible values are: `D1`, `B1`, `B2`, `S0`, `S1`, `S2`, `S4`, `S8` and `S9`
+* `sku` - (Required) SKU for the Analysis Services Server. Possible values are: `D1`, `B1`, `B2`, `S0`, `S1`, `S2`, `S4`, `S8`, `S9`, `S8v2` and `S9v2`.
 
 * `admin_users` - (Optional) List of email addresses of admin users.
 
-* `querypool_connection_mode` - (Optional) Controls how the read-write server is used in the query pool. If this values is set to `All` then read-write servers are also used for queries. Otherwise with `ReadOnly` these servers do not participate in query operations.
+* `querypool_connection_mode` - (Optional) Controls how the read-write server is used in the query pool. If this value is set to `All` then read-write servers are also used for queries. Otherwise with `ReadOnly` these servers do not participate in query operations.
 
 * `backup_blob_container_uri` - (Optional) URI and SAS token for a blob container to store backups.
 

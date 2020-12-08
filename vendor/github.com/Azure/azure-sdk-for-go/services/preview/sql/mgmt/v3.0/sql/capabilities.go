@@ -113,7 +113,6 @@ func (client CapabilitiesClient) ListByLocationSender(req *http.Request) (*http.
 func (client CapabilitiesClient) ListByLocationResponder(resp *http.Response) (result LocationCapabilities, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

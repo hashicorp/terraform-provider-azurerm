@@ -13,7 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -49,7 +49,7 @@ func resourceArmServiceBusSubscriptionRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateServiceBusNamespaceName(),
+				ValidateFunc: validate.NamespaceName,
 			},
 
 			"topic_name": {
@@ -82,8 +82,9 @@ func resourceArmServiceBusSubscriptionRule() *schema.Resource {
 			},
 
 			"sql_filter": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.SqlFilter,
 			},
 
 			"correlation_filter": {
@@ -125,6 +126,13 @@ func resourceArmServiceBusSubscriptionRule() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+						"properties": {
+							Type:     schema.TypeMap,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
 					},
 				},
 			},
@@ -145,7 +153,7 @@ func resourceArmServiceBusSubscriptionRuleCreateUpdate(d *schema.ResourceData, m
 	resourceGroup := d.Get("resource_group_name").(string)
 	filterType := d.Get("filter_type").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, namespaceName, topicName, subscriptionName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -294,8 +302,9 @@ func expandAzureRmServiceBusCorrelationFilter(d *schema.ResourceData) (*serviceb
 	replyToSessionID := config["reply_to_session_id"].(string)
 	sessionID := config["session_id"].(string)
 	to := config["to"].(string)
+	properties := utils.ExpandMapStringPtrString(config["properties"].(map[string]interface{}))
 
-	if contentType == "" && correlationID == "" && label == "" && messageID == "" && replyTo == "" && replyToSessionID == "" && sessionID == "" && to == "" {
+	if contentType == "" && correlationID == "" && label == "" && messageID == "" && replyTo == "" && replyToSessionID == "" && sessionID == "" && to == "" && len(properties) == 0 {
 		return nil, fmt.Errorf("At least one property must be set in the `correlation_filter` block")
 	}
 
@@ -331,6 +340,10 @@ func expandAzureRmServiceBusCorrelationFilter(d *schema.ResourceData) (*serviceb
 
 	if contentType != "" {
 		correlationFilter.ContentType = utils.String(contentType)
+	}
+
+	if len(properties) > 0 {
+		correlationFilter.Properties = properties
 	}
 
 	return &correlationFilter, nil
@@ -373,6 +386,10 @@ func flattenAzureRmServiceBusCorrelationFilter(input *servicebus.CorrelationFilt
 
 	if input.ContentType != nil {
 		filter["content_type"] = *input.ContentType
+	}
+
+	if input.Properties != nil {
+		filter["properties"] = utils.FlattenMapStringPtrString(input.Properties)
 	}
 
 	return []interface{}{filter}

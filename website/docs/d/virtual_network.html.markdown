@@ -34,6 +34,7 @@ output "virtual_network_id" {
 * `location` - Location of the virtual network.
 * `address_space` - The list of address spaces used by the virtual network.
 * `dns_servers` - The list of DNS servers used by the virtual network.
+* `guid` - The GUID of the virtual network.
 * `subnets` - The list of name of the subnets that are attached to this virtual network.
 * `vnet_peerings` - A mapping of name - virtual network id of the virtual network peerings.
 

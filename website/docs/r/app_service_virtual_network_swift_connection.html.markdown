@@ -14,26 +14,26 @@ Manages an App Service Virtual Network Association (this is for the [Regional VN
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "uksouth"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvnet"
+resource "azurerm_virtual_network" "example" {
+  name                = "example-virtual-network"
   address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_subnet" "test1" {
-  name                 = "acctestsubnet1"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+resource "azurerm_subnet" "example" {
+  name                 = "example-subnet"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.0.1.0/24"]
 
   delegation {
-    name = "acctestdelegation"
+    name = "example-delegation"
 
     service_delegation {
       name    = "Microsoft.Web/serverFarms"
@@ -42,10 +42,10 @@ resource "azurerm_subnet" "test1" {
   }
 }
 
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestasp"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+resource "azurerm_app_service_plan" "example" {
+  name                = "example-app-service-plan"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku {
     tier = "Standard"
@@ -53,16 +53,16 @@ resource "azurerm_app_service_plan" "test" {
   }
 }
 
-resource "azurerm_app_service" "test" {
-  name                = "acctestas"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  app_service_plan_id = azurerm_app_service_plan.test.id
+resource "azurerm_app_service" "example" {
+  name                = "example-app-service"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  app_service_plan_id = azurerm_app_service_plan.example.id
 }
 
-resource "azurerm_app_service_virtual_network_swift_connection" "test" {
-  app_service_id = azurerm_app_service.test.id
-  subnet_id      = azurerm_subnet.test1.id
+resource "azurerm_app_service_virtual_network_swift_connection" "example" {
+  app_service_id = azurerm_app_service.example.id
+  subnet_id      = azurerm_subnet.example.id
 }
 ```
 
@@ -94,5 +94,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 App Service Virtual Network Associations can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_app_service_virtual_network_swift_connection.myassociation /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/instance1/networkconfig/virtualNetwork
+terraform import azurerm_app_service_virtual_network_swift_connection.myassociation /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/instance1/config/virtualNetwork
 ```

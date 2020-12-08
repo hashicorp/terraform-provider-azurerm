@@ -113,7 +113,6 @@ func (client IntegrationServiceEnvironmentManagedApisClient) DeleteSender(req *h
 func (client IntegrationServiceEnvironmentManagedApisClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -190,7 +189,6 @@ func (client IntegrationServiceEnvironmentManagedApisClient) GetSender(req *http
 func (client IntegrationServiceEnvironmentManagedApisClient) GetResponder(resp *http.Response) (result ManagedAPI, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -231,6 +229,9 @@ func (client IntegrationServiceEnvironmentManagedApisClient) List(ctx context.Co
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedApisClient", "List", resp, "Failure responding to request")
 	}
+	if result.malr.hasNextLink() && result.malr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -267,7 +268,6 @@ func (client IntegrationServiceEnvironmentManagedApisClient) ListSender(req *htt
 func (client IntegrationServiceEnvironmentManagedApisClient) ListResponder(resp *http.Response) (result ManagedAPIListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -382,7 +382,6 @@ func (client IntegrationServiceEnvironmentManagedApisClient) PutSender(req *http
 func (client IntegrationServiceEnvironmentManagedApisClient) PutResponder(resp *http.Response) (result ManagedAPI, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

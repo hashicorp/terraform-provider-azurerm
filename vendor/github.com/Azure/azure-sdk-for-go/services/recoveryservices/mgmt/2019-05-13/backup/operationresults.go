@@ -116,7 +116,6 @@ func (client OperationResultsClient) GetSender(req *http.Request) (*http.Respons
 func (client OperationResultsClient) GetResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

@@ -124,7 +124,6 @@ func (client ProactiveDetectionConfigurationsClient) GetSender(req *http.Request
 func (client ProactiveDetectionConfigurationsClient) GetResponder(resp *http.Response) (result ApplicationInsightsComponentProactiveDetectionConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -210,7 +209,6 @@ func (client ProactiveDetectionConfigurationsClient) ListSender(req *http.Reques
 func (client ProactiveDetectionConfigurationsClient) ListResponder(resp *http.Response) (result ListApplicationInsightsComponentProactiveDetectionConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -303,7 +301,6 @@ func (client ProactiveDetectionConfigurationsClient) UpdateSender(req *http.Requ
 func (client ProactiveDetectionConfigurationsClient) UpdateResponder(resp *http.Response) (result ApplicationInsightsComponentProactiveDetectionConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

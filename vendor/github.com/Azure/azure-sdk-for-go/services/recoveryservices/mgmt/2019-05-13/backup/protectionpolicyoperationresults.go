@@ -114,7 +114,6 @@ func (client ProtectionPolicyOperationResultsClient) GetSender(req *http.Request
 func (client ProtectionPolicyOperationResultsClient) GetResponder(resp *http.Response) (result ProtectionPolicyResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

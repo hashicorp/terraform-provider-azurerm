@@ -128,7 +128,6 @@ func (client ScheduledQueryRulesClient) CreateOrUpdateSender(req *http.Request) 
 func (client ScheduledQueryRulesClient) CreateOrUpdateResponder(resp *http.Response) (result LogSearchRuleResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -204,7 +203,6 @@ func (client ScheduledQueryRulesClient) DeleteSender(req *http.Request) (*http.R
 func (client ScheduledQueryRulesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -279,7 +277,6 @@ func (client ScheduledQueryRulesClient) GetSender(req *http.Request) (*http.Resp
 func (client ScheduledQueryRulesClient) GetResponder(resp *http.Response) (result LogSearchRuleResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -358,7 +355,6 @@ func (client ScheduledQueryRulesClient) ListByResourceGroupSender(req *http.Requ
 func (client ScheduledQueryRulesClient) ListByResourceGroupResponder(resp *http.Response) (result LogSearchRuleResourceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -435,7 +431,6 @@ func (client ScheduledQueryRulesClient) ListBySubscriptionSender(req *http.Reque
 func (client ScheduledQueryRulesClient) ListBySubscriptionResponder(resp *http.Response) (result LogSearchRuleResourceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -514,7 +509,6 @@ func (client ScheduledQueryRulesClient) UpdateSender(req *http.Request) (*http.R
 func (client ScheduledQueryRulesClient) UpdateResponder(resp *http.Response) (result LogSearchRuleResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

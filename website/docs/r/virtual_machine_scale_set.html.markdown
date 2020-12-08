@@ -35,7 +35,7 @@ resource "azurerm_subnet" "example" {
   name                 = "acctsub"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_public_ip" "example" {
@@ -185,7 +185,7 @@ resource "azurerm_subnet" "example" {
   name                 = "acctsub"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_storage_account" "example" {
@@ -202,7 +202,6 @@ resource "azurerm_storage_account" "example" {
 
 resource "azurerm_storage_container" "example" {
   name                  = "vhds"
-  resource_group_name   = azurerm_resource_group.example.name
   storage_account_name  = azurerm_storage_account.example.name
   container_access_type = "private"
 }
@@ -304,7 +303,7 @@ The following arguments are supported:
 
 * `os_profile_secrets` - (Optional) A collection of Secret blocks as documented below.
 
-* `overprovision` - (Optional) Specifies whether the virtual machine scale set should be overprovisioned.
+* `overprovision` - (Optional) Specifies whether the virtual machine scale set should be overprovisioned. Defaults to `true`.
 
 * `plan` - (Optional) A plan block as documented below.
 

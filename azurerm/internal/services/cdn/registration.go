@@ -8,7 +8,7 @@ type Registration struct{}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
-	return "Cdn"
+	return "CDN"
 }
 
 // WebsiteCategories returns a list of categories which can be used for the sidebar
@@ -21,14 +21,14 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_cdn_profile": dataSourceArmCdnProfile(),
+		"azurerm_cdn_profile": dataSourceCdnProfile(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_cdn_endpoint": resourceArmCdnEndpoint(),
-		"azurerm_cdn_profile":  resourceArmCdnProfile(),
+		"azurerm_cdn_endpoint": resourceCdnEndpoint(),
+		"azurerm_cdn_profile":  resourceCdnProfile(),
 	}
 }

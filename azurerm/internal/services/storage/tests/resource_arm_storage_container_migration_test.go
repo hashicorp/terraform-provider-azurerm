@@ -34,7 +34,7 @@ func TestAccAzureRMStorageContainerMigrateState(t *testing.T) {
 		return
 	}
 
-	client.StopContext = acceptance.AzureProvider.StopContext()
+	client.StopContext = context.Background()
 
 	suffix := client.Account.Environment.StorageEndpointSuffix
 
@@ -63,7 +63,6 @@ func TestAccAzureRMStorageContainerMigrateState(t *testing.T) {
 			Attributes: tc.InputAttributes,
 		}
 		is, err := storage.ResourceStorageContainerMigrateState(tc.StateVersion, is, client)
-
 		if err != nil {
 			t.Fatalf("bad: %s, err: %#v", tn, err)
 		}

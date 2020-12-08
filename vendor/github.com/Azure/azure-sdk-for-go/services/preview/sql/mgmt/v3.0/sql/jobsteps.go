@@ -139,7 +139,6 @@ func (client JobStepsClient) CreateOrUpdateSender(req *http.Request) (*http.Resp
 func (client JobStepsClient) CreateOrUpdateResponder(resp *http.Response) (result JobStep, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -222,7 +221,6 @@ func (client JobStepsClient) DeleteSender(req *http.Request) (*http.Response, er
 func (client JobStepsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -304,7 +302,6 @@ func (client JobStepsClient) GetSender(req *http.Request) (*http.Response, error
 func (client JobStepsClient) GetResponder(resp *http.Response) (result JobStep, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -389,7 +386,6 @@ func (client JobStepsClient) GetByVersionSender(req *http.Request) (*http.Respon
 func (client JobStepsClient) GetByVersionResponder(resp *http.Response) (result JobStep, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -433,6 +429,9 @@ func (client JobStepsClient) ListByJob(ctx context.Context, resourceGroupName st
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobStepsClient", "ListByJob", resp, "Failure responding to request")
 	}
+	if result.jslr.hasNextLink() && result.jslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -471,7 +470,6 @@ func (client JobStepsClient) ListByJobSender(req *http.Request) (*http.Response,
 func (client JobStepsClient) ListByJobResponder(resp *http.Response) (result JobStepListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -553,6 +551,9 @@ func (client JobStepsClient) ListByVersion(ctx context.Context, resourceGroupNam
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobStepsClient", "ListByVersion", resp, "Failure responding to request")
 	}
+	if result.jslr.hasNextLink() && result.jslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -592,7 +593,6 @@ func (client JobStepsClient) ListByVersionSender(req *http.Request) (*http.Respo
 func (client JobStepsClient) ListByVersionResponder(resp *http.Response) (result JobStepListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

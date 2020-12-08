@@ -79,5 +79,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 API Management Properties can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_api_management_property.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Microsoft.ApiManagement/service/example-apim/properties/example-apimp
+terraform import azurerm_api_management_property.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Microsoft.ApiManagement/service/example-apim/namedValues/example-apimp
 ```

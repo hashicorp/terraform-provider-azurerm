@@ -50,6 +50,13 @@ func TestAccAzureRMStorageAccountNetworkRules_update(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
+				Config: testAccAzureRMStorageAccountNetworkRules_empty(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists("azurerm_storage_account.test"),
+				),
+			},
+			data.ImportStep(),
+			{
 				Config: testAccAzureRMStorageAccountNetworkRules_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists("azurerm_storage_account.test"),
@@ -213,8 +220,10 @@ resource "azurerm_storage_account_network_rules" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   storage_account_name = azurerm_storage_account.test.name
 
-  default_action = "Deny"
-  bypass         = ["Metrics"]
+  default_action             = "Deny"
+  bypass                     = ["None"]
+  ip_rules                   = []
+  virtual_network_subnet_ids = []
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

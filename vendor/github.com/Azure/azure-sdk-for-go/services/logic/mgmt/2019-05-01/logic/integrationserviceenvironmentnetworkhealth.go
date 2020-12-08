@@ -111,7 +111,6 @@ func (client IntegrationServiceEnvironmentNetworkHealthClient) GetSender(req *ht
 func (client IntegrationServiceEnvironmentNetworkHealthClient) GetResponder(resp *http.Response) (result SetIntegrationServiceEnvironmentSubnetNetworkHealth, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())

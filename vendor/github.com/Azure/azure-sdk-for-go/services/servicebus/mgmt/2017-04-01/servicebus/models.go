@@ -31,237 +31,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 
-// AccessRights enumerates the values for access rights.
-type AccessRights string
-
-const (
-	// Listen ...
-	Listen AccessRights = "Listen"
-	// Manage ...
-	Manage AccessRights = "Manage"
-	// Send ...
-	Send AccessRights = "Send"
-)
-
-// PossibleAccessRightsValues returns an array of possible values for the AccessRights const type.
-func PossibleAccessRightsValues() []AccessRights {
-	return []AccessRights{Listen, Manage, Send}
-}
-
-// DefaultAction enumerates the values for default action.
-type DefaultAction string
-
-const (
-	// Allow ...
-	Allow DefaultAction = "Allow"
-	// Deny ...
-	Deny DefaultAction = "Deny"
-)
-
-// PossibleDefaultActionValues returns an array of possible values for the DefaultAction const type.
-func PossibleDefaultActionValues() []DefaultAction {
-	return []DefaultAction{Allow, Deny}
-}
-
-// EncodingCaptureDescription enumerates the values for encoding capture description.
-type EncodingCaptureDescription string
-
-const (
-	// Avro ...
-	Avro EncodingCaptureDescription = "Avro"
-	// AvroDeflate ...
-	AvroDeflate EncodingCaptureDescription = "AvroDeflate"
-)
-
-// PossibleEncodingCaptureDescriptionValues returns an array of possible values for the EncodingCaptureDescription const type.
-func PossibleEncodingCaptureDescriptionValues() []EncodingCaptureDescription {
-	return []EncodingCaptureDescription{Avro, AvroDeflate}
-}
-
-// EntityStatus enumerates the values for entity status.
-type EntityStatus string
-
-const (
-	// Active ...
-	Active EntityStatus = "Active"
-	// Creating ...
-	Creating EntityStatus = "Creating"
-	// Deleting ...
-	Deleting EntityStatus = "Deleting"
-	// Disabled ...
-	Disabled EntityStatus = "Disabled"
-	// ReceiveDisabled ...
-	ReceiveDisabled EntityStatus = "ReceiveDisabled"
-	// Renaming ...
-	Renaming EntityStatus = "Renaming"
-	// Restoring ...
-	Restoring EntityStatus = "Restoring"
-	// SendDisabled ...
-	SendDisabled EntityStatus = "SendDisabled"
-	// Unknown ...
-	Unknown EntityStatus = "Unknown"
-)
-
-// PossibleEntityStatusValues returns an array of possible values for the EntityStatus const type.
-func PossibleEntityStatusValues() []EntityStatus {
-	return []EntityStatus{Active, Creating, Deleting, Disabled, ReceiveDisabled, Renaming, Restoring, SendDisabled, Unknown}
-}
-
-// FilterType enumerates the values for filter type.
-type FilterType string
-
-const (
-	// FilterTypeCorrelationFilter ...
-	FilterTypeCorrelationFilter FilterType = "CorrelationFilter"
-	// FilterTypeSQLFilter ...
-	FilterTypeSQLFilter FilterType = "SqlFilter"
-)
-
-// PossibleFilterTypeValues returns an array of possible values for the FilterType const type.
-func PossibleFilterTypeValues() []FilterType {
-	return []FilterType{FilterTypeCorrelationFilter, FilterTypeSQLFilter}
-}
-
-// KeyType enumerates the values for key type.
-type KeyType string
-
-const (
-	// PrimaryKey ...
-	PrimaryKey KeyType = "PrimaryKey"
-	// SecondaryKey ...
-	SecondaryKey KeyType = "SecondaryKey"
-)
-
-// PossibleKeyTypeValues returns an array of possible values for the KeyType const type.
-func PossibleKeyTypeValues() []KeyType {
-	return []KeyType{PrimaryKey, SecondaryKey}
-}
-
-// NameSpaceType enumerates the values for name space type.
-type NameSpaceType string
-
-const (
-	// EventHub ...
-	EventHub NameSpaceType = "EventHub"
-	// Messaging ...
-	Messaging NameSpaceType = "Messaging"
-	// Mixed ...
-	Mixed NameSpaceType = "Mixed"
-	// NotificationHub ...
-	NotificationHub NameSpaceType = "NotificationHub"
-	// Relay ...
-	Relay NameSpaceType = "Relay"
-)
-
-// PossibleNameSpaceTypeValues returns an array of possible values for the NameSpaceType const type.
-func PossibleNameSpaceTypeValues() []NameSpaceType {
-	return []NameSpaceType{EventHub, Messaging, Mixed, NotificationHub, Relay}
-}
-
-// NetworkRuleIPAction enumerates the values for network rule ip action.
-type NetworkRuleIPAction string
-
-const (
-	// NetworkRuleIPActionAllow ...
-	NetworkRuleIPActionAllow NetworkRuleIPAction = "Allow"
-)
-
-// PossibleNetworkRuleIPActionValues returns an array of possible values for the NetworkRuleIPAction const type.
-func PossibleNetworkRuleIPActionValues() []NetworkRuleIPAction {
-	return []NetworkRuleIPAction{NetworkRuleIPActionAllow}
-}
-
-// ProvisioningStateDR enumerates the values for provisioning state dr.
-type ProvisioningStateDR string
-
-const (
-	// Accepted ...
-	Accepted ProvisioningStateDR = "Accepted"
-	// Failed ...
-	Failed ProvisioningStateDR = "Failed"
-	// Succeeded ...
-	Succeeded ProvisioningStateDR = "Succeeded"
-)
-
-// PossibleProvisioningStateDRValues returns an array of possible values for the ProvisioningStateDR const type.
-func PossibleProvisioningStateDRValues() []ProvisioningStateDR {
-	return []ProvisioningStateDR{Accepted, Failed, Succeeded}
-}
-
-// RoleDisasterRecovery enumerates the values for role disaster recovery.
-type RoleDisasterRecovery string
-
-const (
-	// Primary ...
-	Primary RoleDisasterRecovery = "Primary"
-	// PrimaryNotReplicating ...
-	PrimaryNotReplicating RoleDisasterRecovery = "PrimaryNotReplicating"
-	// Secondary ...
-	Secondary RoleDisasterRecovery = "Secondary"
-)
-
-// PossibleRoleDisasterRecoveryValues returns an array of possible values for the RoleDisasterRecovery const type.
-func PossibleRoleDisasterRecoveryValues() []RoleDisasterRecovery {
-	return []RoleDisasterRecovery{Primary, PrimaryNotReplicating, Secondary}
-}
-
-// SkuName enumerates the values for sku name.
-type SkuName string
-
-const (
-	// Basic ...
-	Basic SkuName = "Basic"
-	// Premium ...
-	Premium SkuName = "Premium"
-	// Standard ...
-	Standard SkuName = "Standard"
-)
-
-// PossibleSkuNameValues returns an array of possible values for the SkuName const type.
-func PossibleSkuNameValues() []SkuName {
-	return []SkuName{Basic, Premium, Standard}
-}
-
-// SkuTier enumerates the values for sku tier.
-type SkuTier string
-
-const (
-	// SkuTierBasic ...
-	SkuTierBasic SkuTier = "Basic"
-	// SkuTierPremium ...
-	SkuTierPremium SkuTier = "Premium"
-	// SkuTierStandard ...
-	SkuTierStandard SkuTier = "Standard"
-)
-
-// PossibleSkuTierValues returns an array of possible values for the SkuTier const type.
-func PossibleSkuTierValues() []SkuTier {
-	return []SkuTier{SkuTierBasic, SkuTierPremium, SkuTierStandard}
-}
-
-// UnavailableReason enumerates the values for unavailable reason.
-type UnavailableReason string
-
-const (
-	// InvalidName ...
-	InvalidName UnavailableReason = "InvalidName"
-	// NameInLockdown ...
-	NameInLockdown UnavailableReason = "NameInLockdown"
-	// NameInUse ...
-	NameInUse UnavailableReason = "NameInUse"
-	// None ...
-	None UnavailableReason = "None"
-	// SubscriptionIsDisabled ...
-	SubscriptionIsDisabled UnavailableReason = "SubscriptionIsDisabled"
-	// TooManyNamespaceInCurrentSubscription ...
-	TooManyNamespaceInCurrentSubscription UnavailableReason = "TooManyNamespaceInCurrentSubscription"
-)
-
-// PossibleUnavailableReasonValues returns an array of possible values for the UnavailableReason const type.
-func PossibleUnavailableReasonValues() []UnavailableReason {
-	return []UnavailableReason{InvalidName, NameInLockdown, NameInUse, None, SubscriptionIsDisabled, TooManyNamespaceInCurrentSubscription}
-}
-
 // AccessKeys namespace/ServiceBus Connection String
 type AccessKeys struct {
 	autorest.Response `json:"-"`
@@ -281,8 +50,8 @@ type AccessKeys struct {
 	KeyName *string `json:"keyName,omitempty"`
 }
 
-// Action represents the filter actions which are allowed for the transformation of a message that have
-// been matched by a filter expression.
+// Action represents the filter actions which are allowed for the transformation of a message that have been
+// matched by a filter expression.
 type Action struct {
 	// SQLExpression - SQL expression. e.g. MyProperty='ABC'
 	SQLExpression *string `json:"sqlExpression,omitempty"`
@@ -374,8 +143,16 @@ type ArmDisasterRecoveryListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// ArmDisasterRecoveryListResultIterator provides access to a complete listing of ArmDisasterRecovery
-// values.
+// MarshalJSON is the custom marshaler for ArmDisasterRecoveryListResult.
+func (adrlr ArmDisasterRecoveryListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if adrlr.Value != nil {
+		objectMap["value"] = adrlr.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// ArmDisasterRecoveryListResultIterator provides access to a complete listing of ArmDisasterRecovery values.
 type ArmDisasterRecoveryListResultIterator struct {
 	i    int
 	page ArmDisasterRecoveryListResultPage
@@ -443,10 +220,15 @@ func (adrlr ArmDisasterRecoveryListResult) IsEmpty() bool {
 	return adrlr.Value == nil || len(*adrlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (adrlr ArmDisasterRecoveryListResult) hasNextLink() bool {
+	return adrlr.NextLink != nil && len(*adrlr.NextLink) != 0
+}
+
 // armDisasterRecoveryListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (adrlr ArmDisasterRecoveryListResult) armDisasterRecoveryListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if adrlr.NextLink == nil || len(to.String(adrlr.NextLink)) < 1 {
+	if !adrlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -474,11 +256,16 @@ func (page *ArmDisasterRecoveryListResultPage) NextWithContext(ctx context.Conte
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.adrlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.adrlr)
+		if err != nil {
+			return err
+		}
+		page.adrlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.adrlr = next
 	return nil
 }
 
@@ -527,6 +314,18 @@ type ArmDisasterRecoveryProperties struct {
 	Role RoleDisasterRecovery `json:"role,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ArmDisasterRecoveryProperties.
+func (adr ArmDisasterRecoveryProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if adr.PartnerNamespace != nil {
+		objectMap["partnerNamespace"] = adr.PartnerNamespace
+	}
+	if adr.AlternateName != nil {
+		objectMap["alternateName"] = adr.AlternateName
+	}
+	return json.Marshal(objectMap)
+}
+
 // AuthorizationRuleProperties authorizationRule properties.
 type AuthorizationRuleProperties struct {
 	// Rights - The rights associated with the rule.
@@ -562,6 +361,18 @@ type CheckNameAvailabilityResult struct {
 	NameAvailable *bool `json:"nameAvailable,omitempty"`
 	// Reason - The reason for unavailability of a namespace. Possible values include: 'None', 'InvalidName', 'SubscriptionIsDisabled', 'NameInUse', 'NameInLockdown', 'TooManyNamespaceInCurrentSubscription'
 	Reason UnavailableReason `json:"reason,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CheckNameAvailabilityResult.
+func (cnar CheckNameAvailabilityResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cnar.NameAvailable != nil {
+		objectMap["nameAvailable"] = cnar.NameAvailable
+	}
+	if cnar.Reason != "" {
+		objectMap["reason"] = cnar.Reason
+	}
+	return json.Marshal(objectMap)
 }
 
 // CorrelationFilter represents the correlation filter expression.
@@ -677,8 +488,8 @@ func (d *Destination) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// DestinationProperties properties describing the storage account, blob container and archive name format
-// for capture destination
+// DestinationProperties properties describing the storage account, blob container and archive name format for
+// capture destination
 type DestinationProperties struct {
 	// StorageAccountResourceID - Resource id of the storage account to be used to create the blobs
 	StorageAccountResourceID *string `json:"storageAccountResourceId,omitempty"`
@@ -688,8 +499,8 @@ type DestinationProperties struct {
 	ArchiveNameFormat *string `json:"archiveNameFormat,omitempty"`
 }
 
-// ErrorResponse error response indicates ServiceBus service is not able to process the incoming request.
-// The reason is provided in the error message.
+// ErrorResponse error response indicates ServiceBus service is not able to process the incoming request. The
+// reason is provided in the error message.
 type ErrorResponse struct {
 	// Code - Error code.
 	Code *string `json:"code,omitempty"`
@@ -778,6 +589,15 @@ type EventHubListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for EventHubListResult.
+func (ehlr EventHubListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ehlr.Value != nil {
+		objectMap["value"] = ehlr.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // EventHubListResultIterator provides access to a complete listing of Eventhub values.
 type EventHubListResultIterator struct {
 	i    int
@@ -846,10 +666,15 @@ func (ehlr EventHubListResult) IsEmpty() bool {
 	return ehlr.Value == nil || len(*ehlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (ehlr EventHubListResult) hasNextLink() bool {
+	return ehlr.NextLink != nil && len(*ehlr.NextLink) != 0
+}
+
 // eventHubListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (ehlr EventHubListResult) eventHubListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if ehlr.NextLink == nil || len(to.String(ehlr.NextLink)) < 1 {
+	if !ehlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -877,11 +702,16 @@ func (page *EventHubListResultPage) NextWithContext(ctx context.Context) (err er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.ehlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.ehlr)
+		if err != nil {
+			return err
+		}
+		page.ehlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.ehlr = next
 	return nil
 }
 
@@ -933,6 +763,24 @@ type EventhubProperties struct {
 	CaptureDescription *CaptureDescription `json:"captureDescription,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for EventhubProperties.
+func (e EventhubProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if e.MessageRetentionInDays != nil {
+		objectMap["messageRetentionInDays"] = e.MessageRetentionInDays
+	}
+	if e.PartitionCount != nil {
+		objectMap["partitionCount"] = e.PartitionCount
+	}
+	if e.Status != "" {
+		objectMap["status"] = e.Status
+	}
+	if e.CaptureDescription != nil {
+		objectMap["captureDescription"] = e.CaptureDescription
+	}
+	return json.Marshal(objectMap)
+}
+
 // MessageCountDetails message Count Details.
 type MessageCountDetails struct {
 	// ActiveMessageCount - READ-ONLY; Number of active messages in the queue, topic, or subscription.
@@ -956,8 +804,16 @@ type MigrationConfigListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// MigrationConfigListResultIterator provides access to a complete listing of MigrationConfigProperties
-// values.
+// MarshalJSON is the custom marshaler for MigrationConfigListResult.
+func (mclr MigrationConfigListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mclr.Value != nil {
+		objectMap["value"] = mclr.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// MigrationConfigListResultIterator provides access to a complete listing of MigrationConfigProperties values.
 type MigrationConfigListResultIterator struct {
 	i    int
 	page MigrationConfigListResultPage
@@ -1025,10 +881,15 @@ func (mclr MigrationConfigListResult) IsEmpty() bool {
 	return mclr.Value == nil || len(*mclr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (mclr MigrationConfigListResult) hasNextLink() bool {
+	return mclr.NextLink != nil && len(*mclr.NextLink) != 0
+}
+
 // migrationConfigListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (mclr MigrationConfigListResult) migrationConfigListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if mclr.NextLink == nil || len(to.String(mclr.NextLink)) < 1 {
+	if !mclr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1056,11 +917,16 @@ func (page *MigrationConfigListResultPage) NextWithContext(ctx context.Context) 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.mclr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.mclr)
+		if err != nil {
+			return err
+		}
+		page.mclr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.mclr = next
 	return nil
 }
 
@@ -1181,8 +1047,20 @@ type MigrationConfigPropertiesProperties struct {
 	MigrationState *string `json:"migrationState,omitempty"`
 }
 
-// MigrationConfigsCreateAndStartMigrationFuture an abstraction for monitoring and retrieving the results
-// of a long-running operation.
+// MarshalJSON is the custom marshaler for MigrationConfigPropertiesProperties.
+func (mcp MigrationConfigPropertiesProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mcp.TargetNamespace != nil {
+		objectMap["targetNamespace"] = mcp.TargetNamespace
+	}
+	if mcp.PostMigrationName != nil {
+		objectMap["postMigrationName"] = mcp.PostMigrationName
+	}
+	return json.Marshal(objectMap)
+}
+
+// MigrationConfigsCreateAndStartMigrationFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type MigrationConfigsCreateAndStartMigrationFuture struct {
 	azure.Future
 }
@@ -1210,8 +1088,8 @@ func (future *MigrationConfigsCreateAndStartMigrationFuture) Result(client Migra
 	return
 }
 
-// NamespacesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// NamespacesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type NamespacesCreateOrUpdateFuture struct {
 	azure.Future
 }
@@ -1239,8 +1117,7 @@ func (future *NamespacesCreateOrUpdateFuture) Result(client NamespacesClient) (s
 	return
 }
 
-// NamespacesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// NamespacesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type NamespacesDeleteFuture struct {
 	azure.Future
 }
@@ -1412,10 +1289,15 @@ func (nrslr NetworkRuleSetListResult) IsEmpty() bool {
 	return nrslr.Value == nil || len(*nrslr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (nrslr NetworkRuleSetListResult) hasNextLink() bool {
+	return nrslr.NextLink != nil && len(*nrslr.NextLink) != 0
+}
+
 // networkRuleSetListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (nrslr NetworkRuleSetListResult) networkRuleSetListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if nrslr.NextLink == nil || len(to.String(nrslr.NextLink)) < 1 {
+	if !nrslr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1443,11 +1325,16 @@ func (page *NetworkRuleSetListResultPage) NextWithContext(ctx context.Context) (
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.nrslr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.nrslr)
+		if err != nil {
+			return err
+		}
+		page.nrslr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.nrslr = next
 	return nil
 }
 
@@ -1515,6 +1402,15 @@ type Operation struct {
 	Display *OperationDisplay `json:"display,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Operation.
+func (o Operation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if o.Display != nil {
+		objectMap["display"] = o.Display
+	}
+	return json.Marshal(objectMap)
+}
+
 // OperationDisplay the object that represents the operation.
 type OperationDisplay struct {
 	// Provider - READ-ONLY; Service provider: Microsoft.ServiceBus
@@ -1525,8 +1421,8 @@ type OperationDisplay struct {
 	Operation *string `json:"operation,omitempty"`
 }
 
-// OperationListResult result of the request to list ServiceBus operations. It contains a list of
-// operations and a URL link to get the next set of results.
+// OperationListResult result of the request to list ServiceBus operations. It contains a list of operations
+// and a URL link to get the next set of results.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; List of ServiceBus operations supported by the Microsoft.ServiceBus resource provider.
@@ -1603,10 +1499,15 @@ func (olr OperationListResult) IsEmpty() bool {
 	return olr.Value == nil || len(*olr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (olr OperationListResult) hasNextLink() bool {
+	return olr.NextLink != nil && len(*olr.NextLink) != 0
+}
+
 // operationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (olr OperationListResult) operationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if olr.NextLink == nil || len(to.String(olr.NextLink)) < 1 {
+	if !olr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1634,11 +1535,16 @@ func (page *OperationListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.olr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.olr)
+		if err != nil {
+			return err
+		}
+		page.olr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.olr = next
 	return nil
 }
 
@@ -1711,8 +1617,17 @@ type PremiumMessagingRegionsListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// PremiumMessagingRegionsListResultIterator provides access to a complete listing of
-// PremiumMessagingRegions values.
+// MarshalJSON is the custom marshaler for PremiumMessagingRegionsListResult.
+func (pmrlr PremiumMessagingRegionsListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pmrlr.Value != nil {
+		objectMap["value"] = pmrlr.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// PremiumMessagingRegionsListResultIterator provides access to a complete listing of PremiumMessagingRegions
+// values.
 type PremiumMessagingRegionsListResultIterator struct {
 	i    int
 	page PremiumMessagingRegionsListResultPage
@@ -1780,10 +1695,15 @@ func (pmrlr PremiumMessagingRegionsListResult) IsEmpty() bool {
 	return pmrlr.Value == nil || len(*pmrlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (pmrlr PremiumMessagingRegionsListResult) hasNextLink() bool {
+	return pmrlr.NextLink != nil && len(*pmrlr.NextLink) != 0
+}
+
 // premiumMessagingRegionsListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (pmrlr PremiumMessagingRegionsListResult) premiumMessagingRegionsListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if pmrlr.NextLink == nil || len(to.String(pmrlr.NextLink)) < 1 {
+	if !pmrlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1811,11 +1731,16 @@ func (page *PremiumMessagingRegionsListResultPage) NextWithContext(ctx context.C
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.pmrlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.pmrlr)
+		if err != nil {
+			return err
+		}
+		page.pmrlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.pmrlr = next
 	return nil
 }
 
@@ -1857,8 +1782,8 @@ type PremiumMessagingRegionsProperties struct {
 	FullName *string `json:"fullName,omitempty"`
 }
 
-// RegenerateAccessKeyParameters parameters supplied to the Regenerate Authorization Rule operation,
-// specifies which key needs to be reset.
+// RegenerateAccessKeyParameters parameters supplied to the Regenerate Authorization Rule operation, specifies
+// which key needs to be reset.
 type RegenerateAccessKeyParameters struct {
 	// KeyType - The access key to regenerate. Possible values include: 'PrimaryKey', 'SecondaryKey'
 	KeyType KeyType `json:"keyType,omitempty"`
@@ -2052,10 +1977,15 @@ func (rlr RuleListResult) IsEmpty() bool {
 	return rlr.Value == nil || len(*rlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rlr RuleListResult) hasNextLink() bool {
+	return rlr.NextLink != nil && len(*rlr.NextLink) != 0
+}
+
 // ruleListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rlr RuleListResult) ruleListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if rlr.NextLink == nil || len(to.String(rlr.NextLink)) < 1 {
+	if !rlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2083,11 +2013,16 @@ func (page *RuleListResultPage) NextWithContext(ctx context.Context) (err error)
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rlr)
+		if err != nil {
+			return err
+		}
+		page.rlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rlr = next
 	return nil
 }
 
@@ -2215,8 +2150,7 @@ type SBAuthorizationRuleListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// SBAuthorizationRuleListResultIterator provides access to a complete listing of SBAuthorizationRule
-// values.
+// SBAuthorizationRuleListResultIterator provides access to a complete listing of SBAuthorizationRule values.
 type SBAuthorizationRuleListResultIterator struct {
 	i    int
 	page SBAuthorizationRuleListResultPage
@@ -2284,10 +2218,15 @@ func (sarlr SBAuthorizationRuleListResult) IsEmpty() bool {
 	return sarlr.Value == nil || len(*sarlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (sarlr SBAuthorizationRuleListResult) hasNextLink() bool {
+	return sarlr.NextLink != nil && len(*sarlr.NextLink) != 0
+}
+
 // sBAuthorizationRuleListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (sarlr SBAuthorizationRuleListResult) sBAuthorizationRuleListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if sarlr.NextLink == nil || len(to.String(sarlr.NextLink)) < 1 {
+	if !sarlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2315,11 +2254,16 @@ func (page *SBAuthorizationRuleListResultPage) NextWithContext(ctx context.Conte
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.sarlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.sarlr)
+		if err != nil {
+			return err
+		}
+		page.sarlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.sarlr = next
 	return nil
 }
 
@@ -2551,10 +2495,15 @@ func (snlr SBNamespaceListResult) IsEmpty() bool {
 	return snlr.Value == nil || len(*snlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (snlr SBNamespaceListResult) hasNextLink() bool {
+	return snlr.NextLink != nil && len(*snlr.NextLink) != 0
+}
+
 // sBNamespaceListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (snlr SBNamespaceListResult) sBNamespaceListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if snlr.NextLink == nil || len(to.String(snlr.NextLink)) < 1 {
+	if !snlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2582,11 +2531,16 @@ func (page *SBNamespaceListResultPage) NextWithContext(ctx context.Context) (err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.snlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.snlr)
+		if err != nil {
+			return err
+		}
+		page.snlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.snlr = next
 	return nil
 }
 
@@ -2904,10 +2858,15 @@ func (sqlr SBQueueListResult) IsEmpty() bool {
 	return sqlr.Value == nil || len(*sqlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (sqlr SBQueueListResult) hasNextLink() bool {
+	return sqlr.NextLink != nil && len(*sqlr.NextLink) != 0
+}
+
 // sBQueueListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (sqlr SBQueueListResult) sBQueueListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if sqlr.NextLink == nil || len(to.String(sqlr.NextLink)) < 1 {
+	if !sqlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2935,11 +2894,16 @@ func (page *SBQueueListResultPage) NextWithContext(ctx context.Context) (err err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.sqlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.sqlr)
+		if err != nil {
+			return err
+		}
+		page.sqlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.sqlr = next
 	return nil
 }
 
@@ -3017,6 +2981,57 @@ type SBQueueProperties struct {
 	ForwardTo *string `json:"forwardTo,omitempty"`
 	// ForwardDeadLetteredMessagesTo - Queue/Topic name to forward the Dead Letter message
 	ForwardDeadLetteredMessagesTo *string `json:"forwardDeadLetteredMessagesTo,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SBQueueProperties.
+func (sqp SBQueueProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sqp.LockDuration != nil {
+		objectMap["lockDuration"] = sqp.LockDuration
+	}
+	if sqp.MaxSizeInMegabytes != nil {
+		objectMap["maxSizeInMegabytes"] = sqp.MaxSizeInMegabytes
+	}
+	if sqp.RequiresDuplicateDetection != nil {
+		objectMap["requiresDuplicateDetection"] = sqp.RequiresDuplicateDetection
+	}
+	if sqp.RequiresSession != nil {
+		objectMap["requiresSession"] = sqp.RequiresSession
+	}
+	if sqp.DefaultMessageTimeToLive != nil {
+		objectMap["defaultMessageTimeToLive"] = sqp.DefaultMessageTimeToLive
+	}
+	if sqp.DeadLetteringOnMessageExpiration != nil {
+		objectMap["deadLetteringOnMessageExpiration"] = sqp.DeadLetteringOnMessageExpiration
+	}
+	if sqp.DuplicateDetectionHistoryTimeWindow != nil {
+		objectMap["duplicateDetectionHistoryTimeWindow"] = sqp.DuplicateDetectionHistoryTimeWindow
+	}
+	if sqp.MaxDeliveryCount != nil {
+		objectMap["maxDeliveryCount"] = sqp.MaxDeliveryCount
+	}
+	if sqp.Status != "" {
+		objectMap["status"] = sqp.Status
+	}
+	if sqp.EnableBatchedOperations != nil {
+		objectMap["enableBatchedOperations"] = sqp.EnableBatchedOperations
+	}
+	if sqp.AutoDeleteOnIdle != nil {
+		objectMap["autoDeleteOnIdle"] = sqp.AutoDeleteOnIdle
+	}
+	if sqp.EnablePartitioning != nil {
+		objectMap["enablePartitioning"] = sqp.EnablePartitioning
+	}
+	if sqp.EnableExpress != nil {
+		objectMap["enableExpress"] = sqp.EnableExpress
+	}
+	if sqp.ForwardTo != nil {
+		objectMap["forwardTo"] = sqp.ForwardTo
+	}
+	if sqp.ForwardDeadLetteredMessagesTo != nil {
+		objectMap["forwardDeadLetteredMessagesTo"] = sqp.ForwardDeadLetteredMessagesTo
+	}
+	return json.Marshal(objectMap)
 }
 
 // SBSku SKU of the namespace.
@@ -3179,10 +3194,15 @@ func (sslr SBSubscriptionListResult) IsEmpty() bool {
 	return sslr.Value == nil || len(*sslr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (sslr SBSubscriptionListResult) hasNextLink() bool {
+	return sslr.NextLink != nil && len(*sslr.NextLink) != 0
+}
+
 // sBSubscriptionListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (sslr SBSubscriptionListResult) sBSubscriptionListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if sslr.NextLink == nil || len(to.String(sslr.NextLink)) < 1 {
+	if !sslr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -3210,11 +3230,16 @@ func (page *SBSubscriptionListResultPage) NextWithContext(ctx context.Context) (
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.sslr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.sslr)
+		if err != nil {
+			return err
+		}
+		page.sslr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.sslr = next
 	return nil
 }
 
@@ -3284,6 +3309,48 @@ type SBSubscriptionProperties struct {
 	ForwardTo *string `json:"forwardTo,omitempty"`
 	// ForwardDeadLetteredMessagesTo - Queue/Topic name to forward the Dead Letter message
 	ForwardDeadLetteredMessagesTo *string `json:"forwardDeadLetteredMessagesTo,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SBSubscriptionProperties.
+func (ssp SBSubscriptionProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ssp.LockDuration != nil {
+		objectMap["lockDuration"] = ssp.LockDuration
+	}
+	if ssp.RequiresSession != nil {
+		objectMap["requiresSession"] = ssp.RequiresSession
+	}
+	if ssp.DefaultMessageTimeToLive != nil {
+		objectMap["defaultMessageTimeToLive"] = ssp.DefaultMessageTimeToLive
+	}
+	if ssp.DeadLetteringOnFilterEvaluationExceptions != nil {
+		objectMap["deadLetteringOnFilterEvaluationExceptions"] = ssp.DeadLetteringOnFilterEvaluationExceptions
+	}
+	if ssp.DeadLetteringOnMessageExpiration != nil {
+		objectMap["deadLetteringOnMessageExpiration"] = ssp.DeadLetteringOnMessageExpiration
+	}
+	if ssp.DuplicateDetectionHistoryTimeWindow != nil {
+		objectMap["duplicateDetectionHistoryTimeWindow"] = ssp.DuplicateDetectionHistoryTimeWindow
+	}
+	if ssp.MaxDeliveryCount != nil {
+		objectMap["maxDeliveryCount"] = ssp.MaxDeliveryCount
+	}
+	if ssp.Status != "" {
+		objectMap["status"] = ssp.Status
+	}
+	if ssp.EnableBatchedOperations != nil {
+		objectMap["enableBatchedOperations"] = ssp.EnableBatchedOperations
+	}
+	if ssp.AutoDeleteOnIdle != nil {
+		objectMap["autoDeleteOnIdle"] = ssp.AutoDeleteOnIdle
+	}
+	if ssp.ForwardTo != nil {
+		objectMap["forwardTo"] = ssp.ForwardTo
+	}
+	if ssp.ForwardDeadLetteredMessagesTo != nil {
+		objectMap["forwardDeadLetteredMessagesTo"] = ssp.ForwardDeadLetteredMessagesTo
+	}
+	return json.Marshal(objectMap)
 }
 
 // SBTopic description of topic resource.
@@ -3436,10 +3503,15 @@ func (stlr SBTopicListResult) IsEmpty() bool {
 	return stlr.Value == nil || len(*stlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (stlr SBTopicListResult) hasNextLink() bool {
+	return stlr.NextLink != nil && len(*stlr.NextLink) != 0
+}
+
 // sBTopicListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (stlr SBTopicListResult) sBTopicListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if stlr.NextLink == nil || len(to.String(stlr.NextLink)) < 1 {
+	if !stlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -3467,11 +3539,16 @@ func (page *SBTopicListResultPage) NextWithContext(ctx context.Context) (err err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.stlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.stlr)
+		if err != nil {
+			return err
+		}
+		page.stlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.stlr = next
 	return nil
 }
 
@@ -3541,8 +3618,44 @@ type SBTopicProperties struct {
 	EnableExpress *bool `json:"enableExpress,omitempty"`
 }
 
-// SQLFilter represents a filter which is a composition of an expression and an action that is executed in
-// the pub/sub pipeline.
+// MarshalJSON is the custom marshaler for SBTopicProperties.
+func (stp SBTopicProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if stp.DefaultMessageTimeToLive != nil {
+		objectMap["defaultMessageTimeToLive"] = stp.DefaultMessageTimeToLive
+	}
+	if stp.MaxSizeInMegabytes != nil {
+		objectMap["maxSizeInMegabytes"] = stp.MaxSizeInMegabytes
+	}
+	if stp.RequiresDuplicateDetection != nil {
+		objectMap["requiresDuplicateDetection"] = stp.RequiresDuplicateDetection
+	}
+	if stp.DuplicateDetectionHistoryTimeWindow != nil {
+		objectMap["duplicateDetectionHistoryTimeWindow"] = stp.DuplicateDetectionHistoryTimeWindow
+	}
+	if stp.EnableBatchedOperations != nil {
+		objectMap["enableBatchedOperations"] = stp.EnableBatchedOperations
+	}
+	if stp.Status != "" {
+		objectMap["status"] = stp.Status
+	}
+	if stp.SupportOrdering != nil {
+		objectMap["supportOrdering"] = stp.SupportOrdering
+	}
+	if stp.AutoDeleteOnIdle != nil {
+		objectMap["autoDeleteOnIdle"] = stp.AutoDeleteOnIdle
+	}
+	if stp.EnablePartitioning != nil {
+		objectMap["enablePartitioning"] = stp.EnablePartitioning
+	}
+	if stp.EnableExpress != nil {
+		objectMap["enableExpress"] = stp.EnableExpress
+	}
+	return json.Marshal(objectMap)
+}
+
+// SQLFilter represents a filter which is a composition of an expression and an action that is executed in the
+// pub/sub pipeline.
 type SQLFilter struct {
 	// SQLExpression - The SQL expression. e.g. MyProperty='ABC'
 	SQLExpression *string `json:"sqlExpression,omitempty"`

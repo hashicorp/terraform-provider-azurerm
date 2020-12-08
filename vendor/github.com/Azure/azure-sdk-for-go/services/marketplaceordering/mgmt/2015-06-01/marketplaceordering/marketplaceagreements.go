@@ -112,7 +112,6 @@ func (client MarketplaceAgreementsClient) CancelSender(req *http.Request) (*http
 func (client MarketplaceAgreementsClient) CancelResponder(resp *http.Response) (result AgreementTerms, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -194,7 +193,6 @@ func (client MarketplaceAgreementsClient) CreateSender(req *http.Request) (*http
 func (client MarketplaceAgreementsClient) CreateResponder(resp *http.Response) (result AgreementTerms, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -273,7 +271,6 @@ func (client MarketplaceAgreementsClient) GetSender(req *http.Request) (*http.Re
 func (client MarketplaceAgreementsClient) GetResponder(resp *http.Response) (result AgreementTerms, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -351,7 +348,6 @@ func (client MarketplaceAgreementsClient) GetAgreementSender(req *http.Request) 
 func (client MarketplaceAgreementsClient) GetAgreementResponder(resp *http.Response) (result AgreementTerms, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -422,7 +418,6 @@ func (client MarketplaceAgreementsClient) ListSender(req *http.Request) (*http.R
 func (client MarketplaceAgreementsClient) ListResponder(resp *http.Response) (result ListAgreementTerms, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -500,7 +495,6 @@ func (client MarketplaceAgreementsClient) SignSender(req *http.Request) (*http.R
 func (client MarketplaceAgreementsClient) SignResponder(resp *http.Response) (result AgreementTerms, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

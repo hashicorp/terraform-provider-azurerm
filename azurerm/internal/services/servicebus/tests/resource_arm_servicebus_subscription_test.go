@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -33,10 +32,6 @@ func TestAccAzureRMServiceBusSubscription_basic(t *testing.T) {
 }
 
 func TestAccAzureRMServiceBusSubscription_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -175,6 +170,68 @@ func TestAccAzureRMServiceBusSubscription_updateForwardDeadLetteredMessagesTo(t 
 				),
 			},
 			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMServiceBusSubscription_updateDeadLetteringOnFilterEvaluationExceptions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceBusSubscription_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusSubscriptionExists(data.ResourceName),
+				),
+			},
+			{
+				Config: testAccAzureRMServiceBusSubscription_updateDeadLetteringOnFilterEvaluationExceptions(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusSubscriptionExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMServiceBusSubscription_status(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceBusSubscription_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusSubscriptionExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "status", "Active"),
+				),
+			},
+			{
+				Config: testAccAzureRMServiceBusSubscription_status(data, "Disabled"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(data.ResourceName, "status", "Disabled"),
+				),
+			},
+			{
+				Config: testAccAzureRMServiceBusSubscription_status(data, "ReceiveDisabled"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(data.ResourceName, "status", "ReceiveDisabled"),
+				),
+			},
+			{
+				Config: testAccAzureRMServiceBusSubscription_status(data, "Active"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(data.ResourceName, "status", "Active"),
+				),
+			},
 		},
 	})
 }
@@ -329,4 +386,14 @@ resource "azurerm_servicebus_topic" "forward_dl_messages_to" {
 `
 	return fmt.Sprintf(forwardToTf, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
 		"forward_dead_lettered_messages_to = \"${azurerm_servicebus_topic.forward_dl_messages_to.name}\"\n", data.RandomInteger)
+}
+
+func testAccAzureRMServiceBusSubscription_status(data acceptance.TestData, status string) string {
+	return fmt.Sprintf(testAccAzureRMServiceBusSubscription_tfTemplate, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
+		fmt.Sprintf("status = \"%s\"", status))
+}
+
+func testAccAzureRMServiceBusSubscription_updateDeadLetteringOnFilterEvaluationExceptions(data acceptance.TestData) string {
+	return fmt.Sprintf(testAccAzureRMServiceBusSubscription_tfTemplate, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
+		"dead_lettering_on_filter_evaluation_error = false\n")
 }

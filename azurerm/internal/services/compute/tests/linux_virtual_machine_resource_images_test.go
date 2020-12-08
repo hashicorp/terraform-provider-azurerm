@@ -32,7 +32,7 @@ func TestAccLinuxVirtualMachine_imageFromImage(t *testing.T) {
 					checkLinuxVirtualMachineExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("admin_password"),
 		},
 	})
 }
@@ -51,7 +51,7 @@ func TestAccLinuxVirtualMachine_imageFromPlan(t *testing.T) {
 					checkLinuxVirtualMachineExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("admin_password"),
 		},
 	})
 }

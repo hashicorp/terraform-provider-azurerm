@@ -10,6 +10,8 @@ description: |-
 
 Manages a DevSpace Controller.
 
+~> **NOTE:** Microsoft will be retiring Azure Dev Spaces on 31 October 2023, please see the product [documentation](https://azure.microsoft.com/en-us/updates/azure-dev-spaces-is-retiring-on-31-october-2023/) for more information.
+
 ## Example Usage
 
 ```hcl
@@ -44,7 +46,7 @@ resource "azurerm_devspace_controller" "example" {
   sku_name = "S1"
 
   host_suffix                              = "suffix"
-  target_container_host_resource_id        = "${azurerm_kubernetes_cluster.example.id}"
+  target_container_host_resource_id        = azurerm_kubernetes_cluster.example.id
   target_container_host_credentials_base64 = "${base64encode(azurerm_kubernetes_cluster.example.kube_config_raw)}"
 
   tags = {

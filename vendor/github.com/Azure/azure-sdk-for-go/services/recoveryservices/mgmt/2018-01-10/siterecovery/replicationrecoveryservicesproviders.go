@@ -140,7 +140,6 @@ func (client ReplicationRecoveryServicesProvidersClient) CreateSender(req *http.
 func (client ReplicationRecoveryServicesProvidersClient) CreateResponder(resp *http.Response) (result RecoveryServicesProvider, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -218,7 +217,6 @@ func (client ReplicationRecoveryServicesProvidersClient) DeleteSender(req *http.
 func (client ReplicationRecoveryServicesProvidersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -295,7 +293,6 @@ func (client ReplicationRecoveryServicesProvidersClient) GetSender(req *http.Req
 func (client ReplicationRecoveryServicesProvidersClient) GetResponder(resp *http.Response) (result RecoveryServicesProvider, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -333,6 +330,9 @@ func (client ReplicationRecoveryServicesProvidersClient) List(ctx context.Contex
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryServicesProvidersClient", "List", resp, "Failure responding to request")
 	}
+	if result.rspc.hasNextLink() && result.rspc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -369,7 +369,6 @@ func (client ReplicationRecoveryServicesProvidersClient) ListSender(req *http.Re
 func (client ReplicationRecoveryServicesProvidersClient) ListResponder(resp *http.Response) (result RecoveryServicesProviderCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -446,6 +445,9 @@ func (client ReplicationRecoveryServicesProvidersClient) ListByReplicationFabric
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryServicesProvidersClient", "ListByReplicationFabrics", resp, "Failure responding to request")
 	}
+	if result.rspc.hasNextLink() && result.rspc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -483,7 +485,6 @@ func (client ReplicationRecoveryServicesProvidersClient) ListByReplicationFabric
 func (client ReplicationRecoveryServicesProvidersClient) ListByReplicationFabricsResponder(resp *http.Response) (result RecoveryServicesProviderCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -598,7 +599,6 @@ func (client ReplicationRecoveryServicesProvidersClient) PurgeSender(req *http.R
 func (client ReplicationRecoveryServicesProvidersClient) PurgeResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -675,7 +675,6 @@ func (client ReplicationRecoveryServicesProvidersClient) RefreshProviderSender(r
 func (client ReplicationRecoveryServicesProvidersClient) RefreshProviderResponder(resp *http.Response) (result RecoveryServicesProvider, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

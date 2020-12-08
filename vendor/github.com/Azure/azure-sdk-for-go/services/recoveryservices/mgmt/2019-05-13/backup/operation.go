@@ -112,7 +112,6 @@ func (client OperationClient) ValidateSender(req *http.Request) (*http.Response,
 func (client OperationClient) ValidateResponder(resp *http.Response) (result ValidateOperationsResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

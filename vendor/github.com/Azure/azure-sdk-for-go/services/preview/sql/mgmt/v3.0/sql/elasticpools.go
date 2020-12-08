@@ -126,7 +126,6 @@ func (client ElasticPoolsClient) CreateOrUpdateSender(req *http.Request) (future
 func (client ElasticPoolsClient) CreateOrUpdateResponder(resp *http.Response) (result ElasticPool, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -205,7 +204,6 @@ func (client ElasticPoolsClient) DeleteSender(req *http.Request) (future Elastic
 func (client ElasticPoolsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -283,7 +281,6 @@ func (client ElasticPoolsClient) FailoverSender(req *http.Request) (future Elast
 func (client ElasticPoolsClient) FailoverResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -361,7 +358,6 @@ func (client ElasticPoolsClient) GetSender(req *http.Request) (*http.Response, e
 func (client ElasticPoolsClient) GetResponder(resp *http.Response) (result ElasticPool, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -404,6 +400,9 @@ func (client ElasticPoolsClient) ListByServer(ctx context.Context, resourceGroup
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ElasticPoolsClient", "ListByServer", resp, "Failure responding to request")
 	}
+	if result.eplr.hasNextLink() && result.eplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -443,7 +442,6 @@ func (client ElasticPoolsClient) ListByServerSender(req *http.Request) (*http.Re
 func (client ElasticPoolsClient) ListByServerResponder(resp *http.Response) (result ElasticPoolListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -559,7 +557,6 @@ func (client ElasticPoolsClient) ListMetricDefinitionsSender(req *http.Request) 
 func (client ElasticPoolsClient) ListMetricDefinitionsResponder(resp *http.Response) (result MetricDefinitionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -640,7 +637,6 @@ func (client ElasticPoolsClient) ListMetricsSender(req *http.Request) (*http.Res
 func (client ElasticPoolsClient) ListMetricsResponder(resp *http.Response) (result MetricListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -722,7 +718,6 @@ func (client ElasticPoolsClient) UpdateSender(req *http.Request) (future Elastic
 func (client ElasticPoolsClient) UpdateResponder(resp *http.Response) (result ElasticPool, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

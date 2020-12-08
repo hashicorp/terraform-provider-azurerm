@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/datalakestore/filesystems"
+	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/datalakestore/filesystems"
 )
 
 func resourceArmStorageDataLakeGen2FileSystem() *schema.Resource {
@@ -65,7 +65,12 @@ func resourceArmStorageDataLakeGen2FileSystem() *schema.Resource {
 				ValidateFunc: validateArmStorageDataLakeGen2FileSystemName,
 			},
 
-			"storage_account_id": AccountIDSchema(),
+			"storage_account_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.StorageAccountID,
+			},
 
 			"properties": MetaDataSchema(),
 		},
@@ -78,7 +83,7 @@ func resourceArmStorageDataLakeGen2FileSystemCreate(d *schema.ResourceData, meta
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	storageID, err := parsers.ParseAccountID(d.Get("storage_account_id").(string))
+	storageID, err := parse.StorageAccountID(d.Get("storage_account_id").(string))
 	if err != nil {
 		return err
 	}
@@ -99,17 +104,15 @@ func resourceArmStorageDataLakeGen2FileSystemCreate(d *schema.ResourceData, meta
 
 	id := client.GetResourceID(storageID.Name, fileSystemName)
 
-	if features.ShouldResourcesBeImported() {
-		resp, err := client.GetProperties(ctx, storageID.Name, fileSystemName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Error checking for existence of existing File System %q (Account %q): %+v", fileSystemName, storageID.Name, err)
-			}
-		}
-
+	resp, err := client.GetProperties(ctx, storageID.Name, fileSystemName)
+	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return tf.ImportAsExistsError("azurerm_storage_data_lake_gen2_filesystem", id)
+			return fmt.Errorf("Error checking for existence of existing File System %q (Account %q): %+v", fileSystemName, storageID.Name, err)
 		}
+	}
+
+	if !utils.ResponseWasNotFound(resp.Response) {
+		return tf.ImportAsExistsError("azurerm_storage_data_lake_gen2_filesystem", id)
 	}
 
 	log.Printf("[INFO] Creating File System %q in Storage Account %q.", fileSystemName, storageID.Name)
@@ -135,7 +138,7 @@ func resourceArmStorageDataLakeGen2FileSystemUpdate(d *schema.ResourceData, meta
 		return err
 	}
 
-	storageID, err := parsers.ParseAccountID(d.Get("storage_account_id").(string))
+	storageID, err := parse.StorageAccountID(d.Get("storage_account_id").(string))
 	if err != nil {
 		return err
 	}
@@ -165,6 +168,7 @@ func resourceArmStorageDataLakeGen2FileSystemUpdate(d *schema.ResourceData, meta
 }
 
 func resourceArmStorageDataLakeGen2FileSystemRead(d *schema.ResourceData, meta interface{}) error {
+	accountsClient := meta.(*clients.Client).Storage.AccountsClient
 	client := meta.(*clients.Client).Storage.FileSystemsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -172,6 +176,23 @@ func resourceArmStorageDataLakeGen2FileSystemRead(d *schema.ResourceData, meta i
 	id, err := filesystems.ParseResourceID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	storageID, err := parse.StorageAccountID(d.Get("storage_account_id").(string))
+	if err != nil {
+		return err
+	}
+
+	// confirm the storage account exists, otherwise Data Plane API requests will fail
+	storageAccount, err := accountsClient.GetProperties(ctx, storageID.ResourceGroup, storageID.Name, "")
+	if err != nil {
+		if utils.ResponseWasNotFound(storageAccount.Response) {
+			log.Printf("[INFO] Storage Account %q does not exist removing from state...", id.AccountName)
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("Error checking for existence of Storage Account %q for File System %q (Resource Group %q): %+v", storageID.Name, id.DirectoryName, storageID.ResourceGroup, err)
 	}
 
 	// TODO: what about when this has been removed?

@@ -117,7 +117,6 @@ func (client ServiceTierAdvisorsClient) GetSender(req *http.Request) (*http.Resp
 func (client ServiceTierAdvisorsClient) GetResponder(resp *http.Response) (result ServiceTierAdvisor, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -196,7 +195,6 @@ func (client ServiceTierAdvisorsClient) ListByDatabaseSender(req *http.Request) 
 func (client ServiceTierAdvisorsClient) ListByDatabaseResponder(resp *http.Response) (result ServiceTierAdvisorListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

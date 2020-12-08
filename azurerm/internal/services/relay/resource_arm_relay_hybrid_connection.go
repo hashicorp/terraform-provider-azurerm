@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay/parse"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 
 	"github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
@@ -16,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -28,7 +28,7 @@ func resourceArmHybridConnection() *schema.Resource {
 		Update: resourceArmHybridConnectionCreateUpdate,
 		Delete: resourceArmHybridConnectionDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := ParseHybridConnectionID(id)
+			_, err := parse.HybridConnectionID(id)
 			return err
 		}),
 
@@ -82,7 +82,7 @@ func resourceArmHybridConnectionCreateUpdate(d *schema.ResourceData, meta interf
 	resourceGroup := d.Get("resource_group_name").(string)
 	relayNamespace := d.Get("relay_namespace_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, relayNamespace, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -173,7 +173,6 @@ func resourceArmHybridConnectionDelete(d *schema.ResourceData, meta interface{})
 
 	log.Printf("[INFO] Waiting for Relay Hybrid Connection %q (Namespace %q Resource Group %q) to be deleted", name, relayNamespace, resourceGroup)
 	rc, err := client.Delete(ctx, resourceGroup, relayNamespace, name)
-
 	if err != nil {
 		if response.WasNotFound(rc.Response) {
 			return nil

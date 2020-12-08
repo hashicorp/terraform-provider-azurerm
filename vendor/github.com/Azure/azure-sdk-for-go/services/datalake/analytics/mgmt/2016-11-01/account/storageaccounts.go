@@ -122,7 +122,6 @@ func (client StorageAccountsClient) AddSender(req *http.Request) (*http.Response
 func (client StorageAccountsClient) AddResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -199,7 +198,6 @@ func (client StorageAccountsClient) DeleteSender(req *http.Request) (*http.Respo
 func (client StorageAccountsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -276,7 +274,6 @@ func (client StorageAccountsClient) GetSender(req *http.Request) (*http.Response
 func (client StorageAccountsClient) GetResponder(resp *http.Response) (result StorageAccountInformation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -357,7 +354,6 @@ func (client StorageAccountsClient) GetStorageContainerSender(req *http.Request)
 func (client StorageAccountsClient) GetStorageContainerResponder(resp *http.Response) (result StorageContainer, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -419,6 +415,9 @@ func (client StorageAccountsClient) ListByAccount(ctx context.Context, resourceG
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "ListByAccount", resp, "Failure responding to request")
 	}
+	if result.sailr.hasNextLink() && result.sailr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -473,7 +472,6 @@ func (client StorageAccountsClient) ListByAccountSender(req *http.Request) (*htt
 func (client StorageAccountsClient) ListByAccountResponder(resp *http.Response) (result StorageAccountInformationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -554,6 +552,9 @@ func (client StorageAccountsClient) ListSasTokens(ctx context.Context, resourceG
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "ListSasTokens", resp, "Failure responding to request")
 	}
+	if result.stilr.hasNextLink() && result.stilr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -592,7 +593,6 @@ func (client StorageAccountsClient) ListSasTokensSender(req *http.Request) (*htt
 func (client StorageAccountsClient) ListSasTokensResponder(resp *http.Response) (result SasTokenInformationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -672,6 +672,9 @@ func (client StorageAccountsClient) ListStorageContainers(ctx context.Context, r
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "ListStorageContainers", resp, "Failure responding to request")
 	}
+	if result.sclr.hasNextLink() && result.sclr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -709,7 +712,6 @@ func (client StorageAccountsClient) ListStorageContainersSender(req *http.Reques
 func (client StorageAccountsClient) ListStorageContainersResponder(resp *http.Response) (result StorageContainerListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -832,7 +834,6 @@ func (client StorageAccountsClient) UpdateSender(req *http.Request) (*http.Respo
 func (client StorageAccountsClient) UpdateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp

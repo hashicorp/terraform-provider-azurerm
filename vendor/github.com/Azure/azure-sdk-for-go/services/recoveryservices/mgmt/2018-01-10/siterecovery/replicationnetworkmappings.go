@@ -118,7 +118,6 @@ func (client ReplicationNetworkMappingsClient) CreateSender(req *http.Request) (
 func (client ReplicationNetworkMappingsClient) CreateResponder(resp *http.Response) (result NetworkMapping, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -198,7 +197,6 @@ func (client ReplicationNetworkMappingsClient) DeleteSender(req *http.Request) (
 func (client ReplicationNetworkMappingsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -277,7 +275,6 @@ func (client ReplicationNetworkMappingsClient) GetSender(req *http.Request) (*ht
 func (client ReplicationNetworkMappingsClient) GetResponder(resp *http.Response) (result NetworkMapping, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -315,6 +312,9 @@ func (client ReplicationNetworkMappingsClient) List(ctx context.Context) (result
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationNetworkMappingsClient", "List", resp, "Failure responding to request")
 	}
+	if result.nmc.hasNextLink() && result.nmc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -351,7 +351,6 @@ func (client ReplicationNetworkMappingsClient) ListSender(req *http.Request) (*h
 func (client ReplicationNetworkMappingsClient) ListResponder(resp *http.Response) (result NetworkMappingCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -429,6 +428,9 @@ func (client ReplicationNetworkMappingsClient) ListByReplicationNetworks(ctx con
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationNetworkMappingsClient", "ListByReplicationNetworks", resp, "Failure responding to request")
 	}
+	if result.nmc.hasNextLink() && result.nmc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -467,7 +469,6 @@ func (client ReplicationNetworkMappingsClient) ListByReplicationNetworksSender(r
 func (client ReplicationNetworkMappingsClient) ListByReplicationNetworksResponder(resp *http.Response) (result NetworkMappingCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -587,7 +588,6 @@ func (client ReplicationNetworkMappingsClient) UpdateSender(req *http.Request) (
 func (client ReplicationNetworkMappingsClient) UpdateResponder(resp *http.Response) (result NetworkMapping, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

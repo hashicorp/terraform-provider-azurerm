@@ -59,8 +59,7 @@ func (client AppsClient) CheckNameAvailability(ctx context.Context, operationInp
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: operationInputs,
-			Constraints: []validation.Constraint{{Target: "operationInputs.Name", Name: validation.Null, Rule: true,
-				Chain: []validation.Constraint{{Target: "operationInputs.Name", Name: validation.Pattern, Rule: `^[a-z0-9-]{1,63}$`, Chain: nil}}}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "operationInputs.Name", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("iotcentral.AppsClient", "CheckNameAvailability", err.Error())
 	}
 
@@ -117,7 +116,6 @@ func (client AppsClient) CheckNameAvailabilitySender(req *http.Request) (*http.R
 func (client AppsClient) CheckNameAvailabilityResponder(resp *http.Response) (result AppAvailabilityInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -142,8 +140,7 @@ func (client AppsClient) CheckSubdomainAvailability(ctx context.Context, operati
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: operationInputs,
-			Constraints: []validation.Constraint{{Target: "operationInputs.Name", Name: validation.Null, Rule: true,
-				Chain: []validation.Constraint{{Target: "operationInputs.Name", Name: validation.Pattern, Rule: `^[a-z0-9-]{1,63}$`, Chain: nil}}}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "operationInputs.Name", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("iotcentral.AppsClient", "CheckSubdomainAvailability", err.Error())
 	}
 
@@ -200,7 +197,6 @@ func (client AppsClient) CheckSubdomainAvailabilitySender(req *http.Request) (*h
 func (client AppsClient) CheckSubdomainAvailabilityResponder(resp *http.Response) (result AppAvailabilityInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -228,13 +224,7 @@ func (client AppsClient) CreateOrUpdate(ctx context.Context, resourceGroupName s
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: app,
-			Constraints: []validation.Constraint{{Target: "app.AppProperties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "app.AppProperties.DisplayName", Name: validation.Null, Rule: false,
-					Chain: []validation.Constraint{{Target: "app.AppProperties.DisplayName", Name: validation.Pattern, Rule: `^.{1,200}$`, Chain: nil}}},
-					{Target: "app.AppProperties.Subdomain", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "app.AppProperties.Subdomain", Name: validation.Pattern, Rule: `^[a-z0-9-]{1,63}$`, Chain: nil}}},
-				}},
-				{Target: "app.Sku", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "app.Sku", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("iotcentral.AppsClient", "CreateOrUpdate", err.Error())
 	}
 
@@ -293,7 +283,6 @@ func (client AppsClient) CreateOrUpdateSender(req *http.Request) (future AppsCre
 func (client AppsClient) CreateOrUpdateResponder(resp *http.Response) (result App, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -369,7 +358,6 @@ func (client AppsClient) DeleteSender(req *http.Request) (future AppsDeleteFutur
 func (client AppsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -444,7 +432,6 @@ func (client AppsClient) GetSender(req *http.Request) (*http.Response, error) {
 func (client AppsClient) GetResponder(resp *http.Response) (result App, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -484,6 +471,9 @@ func (client AppsClient) ListByResourceGroup(ctx context.Context, resourceGroupN
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iotcentral.AppsClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.alr.hasNextLink() && result.alr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -519,7 +509,6 @@ func (client AppsClient) ListByResourceGroupSender(req *http.Request) (*http.Res
 func (client AppsClient) ListByResourceGroupResponder(resp *http.Response) (result AppListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -594,6 +583,9 @@ func (client AppsClient) ListBySubscription(ctx context.Context) (result AppList
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iotcentral.AppsClient", "ListBySubscription", resp, "Failure responding to request")
 	}
+	if result.alr.hasNextLink() && result.alr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -628,7 +620,6 @@ func (client AppsClient) ListBySubscriptionSender(req *http.Request) (*http.Resp
 func (client AppsClient) ListBySubscriptionResponder(resp *http.Response) (result AppListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -703,6 +694,9 @@ func (client AppsClient) ListTemplates(ctx context.Context) (result AppTemplates
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iotcentral.AppsClient", "ListTemplates", resp, "Failure responding to request")
 	}
+	if result.atr.hasNextLink() && result.atr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -737,7 +731,6 @@ func (client AppsClient) ListTemplatesSender(req *http.Request) (*http.Response,
 func (client AppsClient) ListTemplatesResponder(resp *http.Response) (result AppTemplatesResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -853,7 +846,6 @@ func (client AppsClient) UpdateSender(req *http.Request) (future AppsUpdateFutur
 func (client AppsClient) UpdateResponder(resp *http.Response) (result App, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

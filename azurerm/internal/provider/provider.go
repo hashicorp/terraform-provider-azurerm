@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceproviders"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/sdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -24,7 +26,7 @@ func TestAzureProvider() terraform.ResourceProvider {
 
 func azureProvider(supportLegacyTestSuite bool) terraform.ResourceProvider {
 	// avoids this showing up in test output
-	var debugLog = func(f string, v ...interface{}) {
+	debugLog := func(f string, v ...interface{}) {
 		if os.Getenv("TF_LOG") == "" {
 			return
 		}
@@ -38,7 +40,43 @@ func azureProvider(supportLegacyTestSuite bool) terraform.ResourceProvider {
 
 	dataSources := make(map[string]*schema.Resource)
 	resources := make(map[string]*schema.Resource)
-	for _, service := range SupportedServices() {
+
+	// first handle the typed services
+	for _, service := range SupportedTypedServices() {
+		debugLog("[DEBUG] Registering Data Sources for %q..", service.Name())
+		for _, ds := range service.DataSources() {
+			key := ds.ResourceType()
+			if existing := dataSources[key]; existing != nil {
+				panic(fmt.Sprintf("An existing Data Source exists for %q", key))
+			}
+
+			wrapper := sdk.NewDataSourceWrapper(ds)
+			dataSource, err := wrapper.DataSource()
+			if err != nil {
+				panic(fmt.Errorf("creating Wrapper for Data Source %q: %+v", key, err))
+			}
+
+			dataSources[key] = dataSource
+		}
+
+		debugLog("[DEBUG] Registering Resources for %q..", service.Name())
+		for _, r := range service.Resources() {
+			key := r.ResourceType()
+			if existing := resources[key]; existing != nil {
+				panic(fmt.Sprintf("An existing Resource exists for %q", key))
+			}
+
+			wrapper := sdk.NewResourceWrapper(r)
+			resource, err := wrapper.Resource()
+			if err != nil {
+				panic(fmt.Errorf("creating Wrapper for Resource %q: %+v", key, err))
+			}
+			resources[key] = resource
+		}
+	}
+
+	// then handle the untyped services
+	for _, service := range SupportedUntypedServices() {
 		debugLog("[DEBUG] Registering Data Sources for %q..", service.Name())
 		for k, v := range service.SupportedDataSources() {
 			if existing := dataSources[k]; existing != nil {
@@ -95,6 +133,21 @@ func azureProvider(supportLegacyTestSuite bool) terraform.ResourceProvider {
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_ENVIRONMENT", "public"),
 				Description: "The Cloud Environment which should be used. Possible values are public, usgovernment, german, and china. Defaults to public.",
+			},
+
+			"metadata_host": {
+				Type:        schema.TypeString,
+				Required:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_METADATA_HOSTNAME", ""),
+				Description: "The Hostname which should be used for the Azure Metadata Service.",
+			},
+
+			"metadata_url": {
+				Type:     schema.TypeString,
+				Optional: true,
+				// TODO: remove in 3.0
+				Deprecated:  "use `metadata_host` instead",
+				Description: "Deprecated - replaced by `metadata_host`.",
 			},
 
 			// Client Certificate specific fields
@@ -196,14 +249,21 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 		var auxTenants []string
 		if v, ok := d.Get("auxiliary_tenant_ids").([]interface{}); ok && len(v) > 0 {
 			auxTenants = *utils.ExpandStringSlice(v)
-		} else {
-			if v := os.Getenv("ARM_AUXILIARY_TENANT_IDS"); v != "" {
-				auxTenants = strings.Split(v, ";")
-			}
+		} else if v := os.Getenv("ARM_AUXILIARY_TENANT_IDS"); v != "" {
+			auxTenants = strings.Split(v, ";")
 		}
 
 		if len(auxTenants) > 3 {
 			return nil, fmt.Errorf("The provider only supports 3 auxiliary tenant IDs")
+		}
+
+		metadataHost := d.Get("metadata_host").(string)
+		// TODO: remove in 3.0
+		// note: this is inline to avoid calling out deprecations for users not setting this
+		if v := d.Get("metadata_url").(string); v != "" {
+			metadataHost = v
+		} else if v := os.Getenv("ARM_METADATA_URL"); v != "" {
+			metadataHost = v
 		}
 
 		builder := &authentication.Builder{
@@ -213,6 +273,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			TenantID:           d.Get("tenant_id").(string),
 			AuxiliaryTenantIDs: auxTenants,
 			Environment:        d.Get("environment").(string),
+			MetadataHost:       metadataHost,
 			MsiEndpoint:        d.Get("msi_endpoint").(string),
 			ClientCertPassword: d.Get("client_certificate_password").(string),
 			ClientCertPath:     d.Get("client_certificate_path").(string),
@@ -225,7 +286,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			SupportsAuxiliaryTenants:       len(auxTenants) > 0,
 
 			// Doc Links
-			ClientSecretDocsLink: "https://www.terraform.io/docs/providers/azurerm/guides/service_principal_client_secret.html",
+			ClientSecretDocsLink: "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/service_principal_client_secret",
 		}
 
 		config, err := builder.Build()
@@ -278,9 +339,9 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 
 			if !skipProviderRegistration {
 				availableResourceProviders := providerList.Values()
-				requiredResourceProviders := RequiredResourceProviders()
+				requiredResourceProviders := resourceproviders.Required()
 
-				err := EnsureResourceProvidersAreRegistered(ctx, *client.Resource.ProvidersClient, availableResourceProviders, requiredResourceProviders)
+				err := resourceproviders.EnsureRegistered(ctx, *client.Resource.ProvidersClient, availableResourceProviders, requiredResourceProviders)
 				if err != nil {
 					return nil, fmt.Errorf(resourceProviderRegistrationErrorFmt, err)
 				}

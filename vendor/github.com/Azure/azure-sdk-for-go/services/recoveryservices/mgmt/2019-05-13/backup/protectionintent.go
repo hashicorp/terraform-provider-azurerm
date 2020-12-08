@@ -117,7 +117,6 @@ func (client ProtectionIntentClient) CreateOrUpdateSender(req *http.Request) (*h
 func (client ProtectionIntentClient) CreateOrUpdateResponder(resp *http.Response) (result ProtectionIntentResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -197,7 +196,6 @@ func (client ProtectionIntentClient) DeleteSender(req *http.Request) (*http.Resp
 func (client ProtectionIntentClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -278,7 +276,6 @@ func (client ProtectionIntentClient) GetSender(req *http.Request) (*http.Respons
 func (client ProtectionIntentClient) GetResponder(resp *http.Response) (result ProtectionIntentResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -355,7 +352,6 @@ func (client ProtectionIntentClient) ValidateSender(req *http.Request) (*http.Re
 func (client ProtectionIntentClient) ValidateResponder(resp *http.Response) (result PreValidateEnableBackupResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

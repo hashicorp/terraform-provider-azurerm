@@ -176,7 +176,6 @@ func (client PoolClient) CreateSender(req *http.Request) (future PoolCreateFutur
 func (client PoolClient) CreateResponder(resp *http.Response) (result Pool, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -266,7 +265,6 @@ func (client PoolClient) DeleteSender(req *http.Request) (future PoolDeleteFutur
 func (client PoolClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -355,7 +353,6 @@ func (client PoolClient) DisableAutoScaleSender(req *http.Request) (*http.Respon
 func (client PoolClient) DisableAutoScaleResponder(resp *http.Response) (result Pool, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -445,7 +442,6 @@ func (client PoolClient) GetSender(req *http.Request) (*http.Response, error) {
 func (client PoolClient) GetResponder(resp *http.Response) (result Pool, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -510,6 +506,9 @@ func (client PoolClient) ListByBatchAccount(ctx context.Context, resourceGroupNa
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.PoolClient", "ListByBatchAccount", resp, "Failure responding to request")
 	}
+	if result.lpr.hasNextLink() && result.lpr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -555,7 +554,6 @@ func (client PoolClient) ListByBatchAccountSender(req *http.Request) (*http.Resp
 func (client PoolClient) ListByBatchAccountResponder(resp *http.Response) (result ListPoolsResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -686,7 +684,6 @@ func (client PoolClient) StopResizeSender(req *http.Request) (*http.Response, er
 func (client PoolClient) StopResizeResponder(resp *http.Response) (result Pool, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -786,7 +783,6 @@ func (client PoolClient) UpdateSender(req *http.Request) (*http.Response, error)
 func (client PoolClient) UpdateResponder(resp *http.Response) (result Pool, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

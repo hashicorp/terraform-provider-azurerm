@@ -145,7 +145,6 @@ func (client LinkedServicesClient) CreateOrUpdateSender(req *http.Request) (*htt
 func (client LinkedServicesClient) CreateOrUpdateResponder(resp *http.Response) (result LinkedServiceResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -239,7 +238,6 @@ func (client LinkedServicesClient) DeleteSender(req *http.Request) (*http.Respon
 func (client LinkedServicesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -338,7 +336,6 @@ func (client LinkedServicesClient) GetSender(req *http.Request) (*http.Response,
 func (client LinkedServicesClient) GetResponder(resp *http.Response) (result LinkedServiceResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotModified),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -391,6 +388,9 @@ func (client LinkedServicesClient) ListByFactory(ctx context.Context, resourceGr
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.LinkedServicesClient", "ListByFactory", resp, "Failure responding to request")
 	}
+	if result.lslr.hasNextLink() && result.lslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -427,7 +427,6 @@ func (client LinkedServicesClient) ListByFactorySender(req *http.Request) (*http
 func (client LinkedServicesClient) ListByFactoryResponder(resp *http.Response) (result LinkedServiceListResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

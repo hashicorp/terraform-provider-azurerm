@@ -114,7 +114,6 @@ func (client ReplicationStorageClassificationsClient) GetSender(req *http.Reques
 func (client ReplicationStorageClassificationsClient) GetResponder(resp *http.Response) (result StorageClassification, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -152,6 +151,9 @@ func (client ReplicationStorageClassificationsClient) List(ctx context.Context) 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationStorageClassificationsClient", "List", resp, "Failure responding to request")
 	}
+	if result.scc.hasNextLink() && result.scc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -188,7 +190,6 @@ func (client ReplicationStorageClassificationsClient) ListSender(req *http.Reque
 func (client ReplicationStorageClassificationsClient) ListResponder(resp *http.Response) (result StorageClassificationCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -265,6 +266,9 @@ func (client ReplicationStorageClassificationsClient) ListByReplicationFabrics(c
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationStorageClassificationsClient", "ListByReplicationFabrics", resp, "Failure responding to request")
 	}
+	if result.scc.hasNextLink() && result.scc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -302,7 +306,6 @@ func (client ReplicationStorageClassificationsClient) ListByReplicationFabricsSe
 func (client ReplicationStorageClassificationsClient) ListByReplicationFabricsResponder(resp *http.Response) (result StorageClassificationCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

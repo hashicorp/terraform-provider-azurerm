@@ -115,7 +115,6 @@ func (client DatabaseAutomaticTuningClient) GetSender(req *http.Request) (*http.
 func (client DatabaseAutomaticTuningClient) GetResponder(resp *http.Response) (result DatabaseAutomaticTuning, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -197,7 +196,6 @@ func (client DatabaseAutomaticTuningClient) UpdateSender(req *http.Request) (*ht
 func (client DatabaseAutomaticTuningClient) UpdateResponder(resp *http.Response) (result DatabaseAutomaticTuning, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

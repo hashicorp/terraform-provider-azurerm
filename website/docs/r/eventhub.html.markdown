@@ -43,7 +43,7 @@ resource "azurerm_eventhub" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the EventHub Namespace resource. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the EventHub resource. Changing this forces a new resource to be created.
 
 * `namespace_name` - (Required) Specifies the name of the EventHub Namespace. Changing this forces a new resource to be created.
 
@@ -51,7 +51,11 @@ The following arguments are supported:
 
 * `partition_count` - (Required) Specifies the current number of shards on the Event Hub. Changing this forces a new resource to be created.
 
-* `message_retention` - (Required) Specifies the number of days to retain the events for this Event Hub. Needs to be between 1 and 7 days; or 1 day when using a Basic SKU for the parent EventHub Namespace.
+~> **Note:** When using a dedicated Event Hubs cluster, maximum value of `partition_count` is 1024. When using a shared parent EventHub Namespace, maximum value is 32.
+
+* `message_retention` - (Required) Specifies the number of days to retain the events for this Event Hub.
+
+~> **Note:** When using a dedicated Event Hubs cluster, maximum value of `message_retention` is 90 days. When using a shared parent EventHub Namespace, maximum value is 7 days; or 1 day when using a Basic SKU for the shared parent EventHub Namespace.
 
 * `capture_description` - (Optional) A `capture_description` block as defined below.
 

@@ -122,7 +122,6 @@ func (client ReplicasClient) ListByServerSender(req *http.Request) (*http.Respon
 func (client ReplicasClient) ListByServerResponder(resp *http.Response) (result ServerListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

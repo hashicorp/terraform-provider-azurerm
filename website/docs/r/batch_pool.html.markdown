@@ -239,6 +239,8 @@ A `container_configuration` block supports the following:
 
 * `type` - (Optional) The type of container configuration. Possible value is `DockerCompatible`.
 
+* `container_image_names` - (Optional) A list of container image names to use, as would be specified by `docker pull`.
+
 * `container_registries` - (Optional) Additional container registries from which container images can be pulled by the pool's VMs.
 
 ---

@@ -30,7 +30,7 @@ resource "azurerm_subnet" "example" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_security_group" "example" {
@@ -85,7 +85,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Associations between Network Interfaces and Network Security Group can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_network_interface_security_group_association.association1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.network/networkInterfaces/nic1/ipConfigurations/example|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/networkSecurityGroups/group1
+terraform import azurerm_network_interface_security_group_association.association1 "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.network/networkInterfaces/example|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/networkSecurityGroups/group1"
 ```
 
--> **NOTE:** This ID is specific to Terraform - and is of the format `{networkInterfaceId}/|{networkSecurityGroupId}`.
+-> **NOTE:** This ID is specific to Terraform - and is of the format `{networkInterfaceId}|{networkSecurityGroupId}`.

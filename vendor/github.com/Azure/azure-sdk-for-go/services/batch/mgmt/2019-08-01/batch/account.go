@@ -135,7 +135,6 @@ func (client AccountClient) CreateSender(req *http.Request) (future AccountCreat
 func (client AccountClient) CreateResponder(resp *http.Response) (result Account, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -219,7 +218,6 @@ func (client AccountClient) DeleteSender(req *http.Request) (future AccountDelet
 func (client AccountClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -302,7 +300,6 @@ func (client AccountClient) GetSender(req *http.Request) (*http.Response, error)
 func (client AccountClient) GetResponder(resp *http.Response) (result Account, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -388,7 +385,6 @@ func (client AccountClient) GetKeysSender(req *http.Request) (*http.Response, er
 func (client AccountClient) GetKeysResponder(resp *http.Response) (result AccountKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -426,6 +422,9 @@ func (client AccountClient) List(ctx context.Context) (result AccountListResultP
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.AccountClient", "List", resp, "Failure responding to request")
 	}
+	if result.alr.hasNextLink() && result.alr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -460,7 +459,6 @@ func (client AccountClient) ListSender(req *http.Request) (*http.Response, error
 func (client AccountClient) ListResponder(resp *http.Response) (result AccountListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -537,6 +535,9 @@ func (client AccountClient) ListByResourceGroup(ctx context.Context, resourceGro
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.AccountClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.alr.hasNextLink() && result.alr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -572,7 +573,6 @@ func (client AccountClient) ListByResourceGroupSender(req *http.Request) (*http.
 func (client AccountClient) ListByResourceGroupResponder(resp *http.Response) (result AccountListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -696,7 +696,6 @@ func (client AccountClient) RegenerateKeySender(req *http.Request) (*http.Respon
 func (client AccountClient) RegenerateKeyResponder(resp *http.Response) (result AccountKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -781,7 +780,6 @@ func (client AccountClient) SynchronizeAutoStorageKeysSender(req *http.Request) 
 func (client AccountClient) SynchronizeAutoStorageKeysResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -867,7 +865,6 @@ func (client AccountClient) UpdateSender(req *http.Request) (*http.Response, err
 func (client AccountClient) UpdateResponder(resp *http.Response) (result Account, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

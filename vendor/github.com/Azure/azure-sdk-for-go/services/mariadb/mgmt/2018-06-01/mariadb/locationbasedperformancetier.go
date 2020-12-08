@@ -117,7 +117,6 @@ func (client LocationBasedPerformanceTierClient) ListSender(req *http.Request) (
 func (client LocationBasedPerformanceTierClient) ListResponder(resp *http.Response) (result PerformanceTierListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

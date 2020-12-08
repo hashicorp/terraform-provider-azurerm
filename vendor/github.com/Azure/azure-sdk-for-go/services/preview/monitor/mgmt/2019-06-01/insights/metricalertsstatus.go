@@ -110,7 +110,6 @@ func (client MetricAlertsStatusClient) ListSender(req *http.Request) (*http.Resp
 func (client MetricAlertsStatusClient) ListResponder(resp *http.Response) (result MetricAlertStatusCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -188,7 +187,6 @@ func (client MetricAlertsStatusClient) ListByNameSender(req *http.Request) (*htt
 func (client MetricAlertsStatusClient) ListByNameResponder(resp *http.Response) (result MetricAlertStatusCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

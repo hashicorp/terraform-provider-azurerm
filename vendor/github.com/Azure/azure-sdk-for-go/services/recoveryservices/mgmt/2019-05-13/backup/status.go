@@ -110,7 +110,6 @@ func (client StatusClient) GetSender(req *http.Request) (*http.Response, error) 
 func (client StatusClient) GetResponder(resp *http.Response) (result StatusResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

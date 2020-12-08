@@ -3,13 +3,13 @@ package tests
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMRedisCache_basic(t *testing.T) {
@@ -21,12 +21,14 @@ func TestAccAzureRMRedisCache_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRedisCache_basic(data),
+				Config: testAccAzureRMRedisCache_basic(data, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRedisCacheExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "minimum_tls_version"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
+					testCheckSSLInConnectionString(data.ResourceName, "primary_connection_string", true),
+					testCheckSSLInConnectionString(data.ResourceName, "secondary_connection_string", true),
 				),
 			},
 			data.ImportStep(),
@@ -34,12 +36,7 @@ func TestAccAzureRMRedisCache_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMRedisCache_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
+func TestAccAzureRMRedisCache_withoutSSL(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -48,7 +45,28 @@ func TestAccAzureRMRedisCache_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRedisCache_basic(data),
+				Config: testAccAzureRMRedisCache_basic(data, false),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRedisCacheExists(data.ResourceName),
+					testCheckSSLInConnectionString(data.ResourceName, "primary_connection_string", false),
+					testCheckSSLInConnectionString(data.ResourceName, "secondary_connection_string", false),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMRedisCache_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRedisCache_basic(data, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRedisCacheExists(data.ResourceName),
 				),
@@ -284,6 +302,7 @@ func TestAccAzureRMRedisCache_AOFBackupEnabledDisabled(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMRedisCache_PatchSchedule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
 
@@ -422,6 +441,7 @@ func TestAccAzureRMRedisCache_WithoutAuth(t *testing.T) {
 		},
 	})
 }
+
 func testCheckAzureRMRedisCacheExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := acceptance.AzureProvider.Meta().(*clients.Client).Redis.Client
@@ -465,7 +485,6 @@ func testCheckAzureRMRedisCacheDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
-
 		if err != nil {
 			return nil
 		}
@@ -478,7 +497,7 @@ func testCheckAzureRMRedisCacheDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMRedisCache_basic(data acceptance.TestData) string {
+func testAccAzureRMRedisCache_basic(data acceptance.TestData, requireSSL bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -496,17 +515,17 @@ resource "azurerm_redis_cache" "test" {
   capacity            = 1
   family              = "C"
   sku_name            = "Basic"
-  enable_non_ssl_port = false
+  enable_non_ssl_port = %t
   minimum_tls_version = "1.2"
 
   redis_configuration {
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, !requireSSL)
 }
 
 func testAccAzureRMRedisCache_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMRedisCache_basic(data)
+	template := testAccAzureRMRedisCache_basic(data, true)
 	return fmt.Sprintf(`
 %s
 
@@ -1042,4 +1061,24 @@ resource "azurerm_redis_cache" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testCheckSSLInConnectionString(resourceName string, propertyName string, requireSSL bool) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		connectionString := rs.Primary.Attributes[propertyName]
+		if strings.Contains(connectionString, fmt.Sprintf("ssl=%t", requireSSL)) {
+			return nil
+		}
+		if strings.Contains(connectionString, fmt.Sprintf("ssl=%t", !requireSSL)) {
+			return fmt.Errorf("Bad: wrong SSL setting in connection string: %s", propertyName)
+		}
+
+		return fmt.Errorf("Bad: missing SSL setting in connection string: %s", propertyName)
+	}
 }

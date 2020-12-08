@@ -116,7 +116,6 @@ func (client RestorableDroppedDatabasesClient) GetSender(req *http.Request) (*ht
 func (client RestorableDroppedDatabasesClient) GetResponder(resp *http.Response) (result RestorableDroppedDatabase, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -193,7 +192,6 @@ func (client RestorableDroppedDatabasesClient) ListByServerSender(req *http.Requ
 func (client RestorableDroppedDatabasesClient) ListByServerResponder(resp *http.Response) (result RestorableDroppedDatabaseListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

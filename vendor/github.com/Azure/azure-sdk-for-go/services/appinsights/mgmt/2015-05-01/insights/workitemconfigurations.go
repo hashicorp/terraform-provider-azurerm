@@ -125,7 +125,6 @@ func (client WorkItemConfigurationsClient) CreateSender(req *http.Request) (*htt
 func (client WorkItemConfigurationsClient) CreateResponder(resp *http.Response) (result WorkItemConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -214,7 +213,6 @@ func (client WorkItemConfigurationsClient) DeleteSender(req *http.Request) (*htt
 func (client WorkItemConfigurationsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -299,7 +297,6 @@ func (client WorkItemConfigurationsClient) GetDefaultSender(req *http.Request) (
 func (client WorkItemConfigurationsClient) GetDefaultResponder(resp *http.Response) (result WorkItemConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -388,7 +385,6 @@ func (client WorkItemConfigurationsClient) GetItemSender(req *http.Request) (*ht
 func (client WorkItemConfigurationsClient) GetItemResponder(resp *http.Response) (result WorkItemConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -474,7 +470,6 @@ func (client WorkItemConfigurationsClient) ListSender(req *http.Request) (*http.
 func (client WorkItemConfigurationsClient) ListResponder(resp *http.Response) (result WorkItemConfigurationsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -567,7 +562,6 @@ func (client WorkItemConfigurationsClient) UpdateItemSender(req *http.Request) (
 func (client WorkItemConfigurationsClient) UpdateItemResponder(resp *http.Response) (result WorkItemConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -130,7 +130,6 @@ func (client WebTestsClient) CreateOrUpdateSender(req *http.Request) (*http.Resp
 func (client WebTestsClient) CreateOrUpdateResponder(resp *http.Response) (result WebTest, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -216,7 +215,6 @@ func (client WebTestsClient) DeleteSender(req *http.Request) (*http.Response, er
 func (client WebTestsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -301,7 +299,6 @@ func (client WebTestsClient) GetSender(req *http.Request) (*http.Response, error
 func (client WebTestsClient) GetResponder(resp *http.Response) (result WebTest, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -345,6 +342,9 @@ func (client WebTestsClient) List(ctx context.Context) (result WebTestListResult
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WebTestsClient", "List", resp, "Failure responding to request")
 	}
+	if result.wtlr.hasNextLink() && result.wtlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -379,7 +379,6 @@ func (client WebTestsClient) ListSender(req *http.Request) (*http.Response, erro
 func (client WebTestsClient) ListResponder(resp *http.Response) (result WebTestListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -467,6 +466,9 @@ func (client WebTestsClient) ListByComponent(ctx context.Context, componentName 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WebTestsClient", "ListByComponent", resp, "Failure responding to request")
 	}
+	if result.wtlr.hasNextLink() && result.wtlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -503,7 +505,6 @@ func (client WebTestsClient) ListByComponentSender(req *http.Request) (*http.Res
 func (client WebTestsClient) ListByComponentResponder(resp *http.Response) (result WebTestListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -590,6 +591,9 @@ func (client WebTestsClient) ListByResourceGroup(ctx context.Context, resourceGr
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WebTestsClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.wtlr.hasNextLink() && result.wtlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -625,7 +629,6 @@ func (client WebTestsClient) ListByResourceGroupSender(req *http.Request) (*http
 func (client WebTestsClient) ListByResourceGroupResponder(resp *http.Response) (result WebTestListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -751,7 +754,6 @@ func (client WebTestsClient) UpdateTagsSender(req *http.Request) (*http.Response
 func (client WebTestsClient) UpdateTagsResponder(resp *http.Response) (result WebTest, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

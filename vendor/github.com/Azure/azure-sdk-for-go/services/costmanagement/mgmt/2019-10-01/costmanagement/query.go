@@ -159,7 +159,6 @@ func (client QueryClient) UsageSender(req *http.Request) (*http.Response, error)
 func (client QueryClient) UsageResponder(resp *http.Response) (result QueryResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

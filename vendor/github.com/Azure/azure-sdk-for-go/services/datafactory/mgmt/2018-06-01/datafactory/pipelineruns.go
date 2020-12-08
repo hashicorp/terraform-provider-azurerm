@@ -129,7 +129,6 @@ func (client PipelineRunsClient) CancelSender(req *http.Request) (*http.Response
 func (client PipelineRunsClient) CancelResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -218,7 +217,6 @@ func (client PipelineRunsClient) GetSender(req *http.Request) (*http.Response, e
 func (client PipelineRunsClient) GetResponder(resp *http.Response) (result PipelineRun, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -312,7 +310,6 @@ func (client PipelineRunsClient) QueryByFactorySender(req *http.Request) (*http.
 func (client PipelineRunsClient) QueryByFactoryResponder(resp *http.Response) (result PipelineRunsQueryResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

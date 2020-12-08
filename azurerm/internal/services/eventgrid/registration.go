@@ -21,15 +21,17 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_eventgrid_topic": dataSourceArmEventGridTopic(),
+		"azurerm_eventgrid_topic": dataSourceEventGridTopic(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_eventgrid_domain":             resourceArmEventGridDomain(),
-		"azurerm_eventgrid_event_subscription": resourceArmEventGridEventSubscription(),
-		"azurerm_eventgrid_topic":              resourceArmEventGridTopic(),
+		"azurerm_eventgrid_domain":             resourceEventGridDomain(),
+		"azurerm_eventgrid_domain_topic":       resourceEventGridDomainTopic(),
+		"azurerm_eventgrid_event_subscription": resourceEventGridEventSubscription(),
+		"azurerm_eventgrid_topic":              resourceEventGridTopic(),
+		"azurerm_eventgrid_system_topic":       resourceEventGridSystemTopic(),
 	}
 }

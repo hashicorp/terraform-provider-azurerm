@@ -125,7 +125,6 @@ func (client LogProfilesClient) CreateOrUpdateSender(req *http.Request) (*http.R
 func (client LogProfilesClient) CreateOrUpdateResponder(resp *http.Response) (result LogProfileResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -199,7 +198,6 @@ func (client LogProfilesClient) DeleteSender(req *http.Request) (*http.Response,
 func (client LogProfilesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -272,7 +270,6 @@ func (client LogProfilesClient) GetSender(req *http.Request) (*http.Response, er
 func (client LogProfilesClient) GetResponder(resp *http.Response) (result LogProfileResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -343,7 +340,6 @@ func (client LogProfilesClient) ListSender(req *http.Request) (*http.Response, e
 func (client LogProfilesClient) ListResponder(resp *http.Response) (result LogProfileCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -420,7 +416,6 @@ func (client LogProfilesClient) UpdateSender(req *http.Request) (*http.Response,
 func (client LogProfilesClient) UpdateResponder(resp *http.Response) (result LogProfileResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

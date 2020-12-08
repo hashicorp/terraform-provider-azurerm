@@ -1,47 +1,25 @@
 package network
 
 import (
+	"context"
 	"fmt"
-	"regexp"
-	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // TODO: refactor this
 
-func resourceGroupAndLBNameFromId(loadBalancerId string) (string, string, error) {
-	id, err := azure.ParseAzureResourceID(loadBalancerId)
-	if err != nil {
-		return "", "", err
-	}
-	name := id.Path["loadBalancers"]
-	resGroup := id.ResourceGroup
-
-	return resGroup, name, nil
-}
-
-func retrieveLoadBalancerById(d *schema.ResourceData, loadBalancerId string, meta interface{}) (*network.LoadBalancer, bool, error) {
-	client := meta.(*clients.Client).Network.LoadBalancersClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	resGroup, name, err := resourceGroupAndLBNameFromId(loadBalancerId)
-	if err != nil {
-		return nil, false, fmt.Errorf("Error Getting Load Balancer Name and Group:: %+v", err)
-	}
-
-	resp, err := client.Get(ctx, resGroup, name, "")
+func retrieveLoadBalancerById(ctx context.Context, client *network.LoadBalancersClient, loadBalancerId parse.LoadBalancerId) (*network.LoadBalancer, bool, error) {
+	resp, err := client.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil, false, nil
 		}
-		return nil, false, fmt.Errorf("Error making Read request on Azure Load Balancer %s: %s", name, err)
+		return nil, false, fmt.Errorf("retrieving Load Balancer %q (Resource Group %q): %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, err)
 	}
 
 	return &resp, true, nil
@@ -145,23 +123,17 @@ func FindLoadBalancerProbeByName(lb *network.LoadBalancer, name string) (*networ
 	return nil, -1, false
 }
 
-// sets the loadbalancer_id in the ResourceData from the sub resources full id
-func loadBalancerSubResourceStateImporter(d *schema.ResourceData, _ interface{}) ([]*schema.ResourceData, error) {
-	r, err := regexp.Compile(`.+\/loadBalancers\/.+?\/`)
-	if err != nil {
-		return nil, err
-	}
+func loadBalancerSubResourceImporter(parser func(input string) (*parse.LoadBalancerId, error)) *schema.ResourceImporter {
+	return &schema.ResourceImporter{
+		State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+			subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+			lbId, err := parser(d.Id())
+			if err != nil {
+				return nil, err
+			}
 
-	lbID := strings.TrimSuffix(r.FindString(d.Id()), "/")
-	parsed, err := azure.ParseAzureResourceID(lbID)
-	if err != nil {
-		return nil, fmt.Errorf("unable to parse loadbalancer id from %s", d.Id())
+			d.Set("loadbalancer_id", lbId.ID(subscriptionId))
+			return []*schema.ResourceData{d}, nil
+		},
 	}
-
-	if parsed.Path["loadBalancers"] == "" {
-		return nil, fmt.Errorf("parsed ID is invalid")
-	}
-
-	d.Set("loadbalancer_id", lbID)
-	return []*schema.ResourceData{d}, nil
 }

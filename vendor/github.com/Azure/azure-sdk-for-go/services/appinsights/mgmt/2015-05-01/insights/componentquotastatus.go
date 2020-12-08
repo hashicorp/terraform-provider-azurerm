@@ -121,7 +121,6 @@ func (client ComponentQuotaStatusClient) GetSender(req *http.Request) (*http.Res
 func (client ComponentQuotaStatusClient) GetResponder(resp *http.Response) (result ApplicationInsightsComponentQuotaStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
