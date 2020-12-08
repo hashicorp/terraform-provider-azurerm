@@ -9,41 +9,41 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type HciClusterId struct {
+type ClusterId struct {
 	SubscriptionId string
 	ResourceGroup  string
-	ClusterName    string
+	Name           string
 }
 
-func NewHciClusterID(subscriptionId, resourceGroup, clusterName string) HciClusterId {
-	return HciClusterId{
+func NewClusterID(subscriptionId, resourceGroup, name string) ClusterId {
+	return ClusterId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
-		ClusterName:    clusterName,
+		Name:           name,
 	}
 }
 
-func (id HciClusterId) String() string {
+func (id ClusterId) String() string {
 	segments := []string{
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Cluster Name %q", id.ClusterName),
+		fmt.Sprintf("Name %q", id.Name),
 	}
 	return strings.Join(segments, " / ")
 }
 
-func (id HciClusterId) ID(_ string) string {
+func (id ClusterId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.AzureStackHCI/clusters/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ClusterName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
-// HciClusterID parses a HciCluster ID into an HciClusterId struct
-func HciClusterID(input string) (*HciClusterId, error) {
+// ClusterID parses a Cluster ID into an ClusterId struct
+func ClusterID(input string) (*ClusterId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := HciClusterId{
+	resourceId := ClusterId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -56,7 +56,7 @@ func HciClusterID(input string) (*HciClusterId, error) {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.ClusterName, err = id.PopSegment("clusters"); err != nil {
+	if resourceId.Name, err = id.PopSegment("clusters"); err != nil {
 		return nil, err
 	}
 

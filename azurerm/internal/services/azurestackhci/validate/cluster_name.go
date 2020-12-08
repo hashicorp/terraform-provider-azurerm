@@ -2,7 +2,7 @@ package validate
 
 import "fmt"
 
-func HciClusterName(i interface{}, k string) (warnings []string, errors []error) {
+func ClusterName(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))

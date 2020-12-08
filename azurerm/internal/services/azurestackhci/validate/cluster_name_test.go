@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestHciClusterName(t *testing.T) {
+func TestClusterName(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
@@ -39,7 +39,7 @@ func TestHciClusterName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := HciClusterName(v.input, "name")
+		_, errors := ClusterName(v.input, "name")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)

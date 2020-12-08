@@ -85,12 +85,12 @@ func TestAccHCICluster_update(t *testing.T) {
 
 func (r HCIClusterResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	clusterClient := client.AzureStackHCI.ClusterClient
-	id, err := parse.HciClusterID(state.ID)
+	id, err := parse.ClusterID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clusterClient.Get(ctx, id.ResourceGroup, id.ClusterName)
+	resp, err := clusterClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
