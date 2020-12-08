@@ -3,7 +3,6 @@ package eventgrid
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/profiles/latest/compute/mgmt/compute"
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-04-01-preview/eventgrid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -50,8 +49,8 @@ func EventGridTopicIdentitySchema() *schema.Schema {
 func expandEventGridTopicIdentity(input []interface{}) (*eventgrid.IdentityInfo, error) {
 	if len(input) == 0 {
 		// TODO: Does this want to be this, or nil?
-		return &compute.VirtualMachineIdentity{
-			Type: compute.ResourceIdentityTypeNone,
+		return &eventgrid.IdentityInfo{
+			Type: eventgrid.IdentityTypeNone,
 		}, nil
 	}
 
