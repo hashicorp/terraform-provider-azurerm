@@ -11,6 +11,18 @@ type HCIClusterId struct {
 	Name          string
 }
 
+func (id HCIClusterId) ID(subscriptionId string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.AzureStackHCI/clusters/%s"
+	return fmt.Sprintf(fmtString, subscriptionId, id.ResourceGroup, id.Name)
+}
+
+func NewHCIClusterId(resourceGroup, name string) HCIClusterId {
+	return HCIClusterId{
+		ResourceGroup: resourceGroup,
+		Name:          name,
+	}
+}
+
 func HCIClusterID(input string) (*HCIClusterId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

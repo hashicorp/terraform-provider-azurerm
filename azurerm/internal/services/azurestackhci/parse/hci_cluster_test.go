@@ -2,7 +2,21 @@ package parse
 
 import (
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
+
+var _ resourceid.Formatter = HCIClusterId{}
+
+func TestCdnProfileIDFormatter(t *testing.T) {
+	subscriptionId := "12345678-1234-5678-1234-123456789012"
+	actual := NewHCIClusterId("group1", "cluster1").ID(subscriptionId)
+	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.AzureStackHCI/clusters/cluster1"
+
+	if actual != expected {
+		t.Fatalf("Expected %q but got %q", expected, actual)
+	}
+}
 
 func TestHCIClusterID(t *testing.T) {
 	testData := []struct {

@@ -71,11 +71,14 @@ func resourceArmHCICluster() *schema.Resource {
 }
 func resourceArmHCIClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AzureStackHCI.ClusterClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+
+	id := parse.NewHCIClusterId(resourceGroup, name)
 
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -101,16 +104,7 @@ func resourceArmHCIClusterCreate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("creating HCI Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving HCI Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for HCI Cluster %q (Resource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID(subscriptionId))
 
 	return resourceArmHCIClusterRead(d, meta)
 }
