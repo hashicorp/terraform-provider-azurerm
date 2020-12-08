@@ -33,7 +33,7 @@ func dataSourceArmMsSqlDatabase() *schema.Resource {
 			"server_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.MsSqlServerID,
+				ValidateFunc: validate.ServerID,
 			},
 
 			"collation": {
@@ -88,7 +88,7 @@ func dataSourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) er
 
 	name := d.Get("name").(string)
 	mssqlServerId := d.Get("server_id").(string)
-	serverId, err := parse.MsSqlServerID(mssqlServerId)
+	serverId, err := parse.ServerID(mssqlServerId)
 	if err != nil {
 		return err
 	}

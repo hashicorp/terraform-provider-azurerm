@@ -12,19 +12,24 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmVirtualDesktopApplicationGroup() *schema.Resource {
+var applicationGroupType = "azurerm_virtual_desktop_application_group"
+
+func resourceVirtualDesktopApplicationGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualDesktopApplicationGroupCreateUpdate,
-		Read:   resourceArmVirtualDesktopApplicationGroupRead,
-		Update: resourceArmVirtualDesktopApplicationGroupCreateUpdate,
-		Delete: resourceArmVirtualDesktopApplicationGroupDelete,
+		Create: resourceVirtualDesktopApplicationGroupCreateUpdate,
+		Read:   resourceVirtualDesktopApplicationGroupRead,
+		Update: resourceVirtualDesktopApplicationGroupCreateUpdate,
+		Delete: resourceVirtualDesktopApplicationGroupDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -34,9 +39,18 @@ func resourceArmVirtualDesktopApplicationGroup() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.VirtualDesktopApplicationGroupID(id)
+			_, err := parse.ApplicationGroupID(id)
 			return err
 		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    migration.ApplicationGroupUpgradeV0Schema().CoreConfigSchema().ImpliedType(),
+				Upgrade: migration.ApplicationGroupUpgradeV0ToV1,
+				Version: 0,
+			},
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -67,8 +81,9 @@ func resourceArmVirtualDesktopApplicationGroup() *schema.Resource {
 			},
 
 			"host_pool_id": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validate.HostPoolID,
 			},
 
 			"friendly_name": {
@@ -88,26 +103,32 @@ func resourceArmVirtualDesktopApplicationGroup() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualDesktopApplicationGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopApplicationGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.ApplicationGroupsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 
-	log.Printf("[INFO] preparing arguments for Virtual Desktop Host Pool creation")
+	log.Printf("[INFO] preparing arguments for Virtual Desktop Application Group creation")
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	locks.ByName(name, applicationGroupType)
+	defer locks.UnlockByName(name, applicationGroupType)
+
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	resourceId := parse.NewApplicationGroupID(subscriptionId, resourceGroup, name).ID("")
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Checking for presence of existing Virtual Desktop Host Pool %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Virtual Desktop Application Group %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_virtual_desktop_application_group", *existing.ID)
+		if existing.ApplicationGroupProperties != nil {
+			return tf.ImportAsExistsError("azurerm_virtual_desktop_application_group", resourceId)
 		}
 	}
 
@@ -126,29 +147,19 @@ func resourceArmVirtualDesktopApplicationGroupCreateUpdate(d *schema.ResourceDat
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, context); err != nil {
-		return fmt.Errorf("Creating Virtual Desktop Host Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Virtual Desktop Application Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	result, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("Retrieving Virtual Desktop Host Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if result.ID == nil {
-		return fmt.Errorf("Cannot read Virtual Desktop Host Pool %q (Resource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*result.ID)
-
-	return resourceArmVirtualDesktopApplicationGroupRead(d, meta)
+	d.SetId(resourceId)
+	return resourceVirtualDesktopApplicationGroupRead(d, meta)
 }
 
-func resourceArmVirtualDesktopApplicationGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopApplicationGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.ApplicationGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualDesktopApplicationGroupID(d.Id())
+	id, err := parse.ApplicationGroupID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -156,12 +167,12 @@ func resourceArmVirtualDesktopApplicationGroupRead(d *schema.ResourceData, meta 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Virtual Desktop Host Pool %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] Virtual Desktop Application Group %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Making Read request on Virtual Desktop Host Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Virtual Desktop Application Group %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -172,36 +183,41 @@ func resourceArmVirtualDesktopApplicationGroupRead(d *schema.ResourceData, meta 
 	}
 
 	if props := resp.ApplicationGroupProperties; props != nil {
+		d.Set("friendly_name", props.FriendlyName)
+		d.Set("description", props.Description)
 		d.Set("type", string(props.ApplicationGroupType))
 
-		if fn := props.FriendlyName; fn != nil {
-			d.Set("friendly_name", fn)
-		}
+		hostPoolIdStr := ""
+		if props.HostPoolArmPath != nil {
+			// TODO: raise an API bug
+			hostPoolId, err := parse.HostPoolIDInsensitively(*props.HostPoolArmPath)
+			if err != nil {
+				return fmt.Errorf("parsing Host Pool ID %q: %+v", *props.HostPoolArmPath, err)
+			}
 
-		if desc := props.Description; desc != nil {
-			d.Set("description", desc)
+			hostPoolIdStr = hostPoolId.ID("")
 		}
-
-		if hstpl := props.HostPoolArmPath; hstpl != nil {
-			d.Set("host_pool_id", hstpl)
-		}
+		d.Set("host_pool_id", hostPoolIdStr)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmVirtualDesktopApplicationGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopApplicationGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.ApplicationGroupsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
 
-	id, err := parse.VirtualDesktopApplicationGroupID(d.Id())
+	id, err := parse.ApplicationGroupID(d.Id())
 	if err != nil {
 		return err
 	}
 
+	locks.ByName(id.Name, applicationGroupType)
+	defer locks.UnlockByName(id.Name, applicationGroupType)
+
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
 	if _, err = client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-		return fmt.Errorf("Deleting Virtual Desktop Host Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Virtual Desktop Application Group %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil

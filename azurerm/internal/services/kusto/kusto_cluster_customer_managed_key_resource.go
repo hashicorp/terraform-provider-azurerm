@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-02-15/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -74,7 +74,7 @@ func resourceArmKustoClusterCustomerManagedKeyCreateUpdate(d *schema.ResourceDat
 	defer cancel()
 
 	clusterIDRaw := d.Get("cluster_id").(string)
-	clusterID, err := parse.KustoClusterID(clusterIDRaw)
+	clusterID, err := parse.ClusterID(clusterIDRaw)
 	if err != nil {
 		return err
 	}
@@ -102,7 +102,7 @@ func resourceArmKustoClusterCustomerManagedKeyCreateUpdate(d *schema.ResourceDat
 	}
 
 	keyVaultIDRaw := d.Get("key_vault_id").(string)
-	keyVaultID, err := keyVaultParse.KeyVaultID(keyVaultIDRaw)
+	keyVaultID, err := keyVaultParse.VaultID(keyVaultIDRaw)
 	if err != nil {
 		return err
 	}
@@ -162,7 +162,7 @@ func resourceArmKustoClusterCustomerManagedKeyRead(d *schema.ResourceData, meta 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	clusterID, err := parse.KustoClusterID(d.Id())
+	clusterID, err := parse.ClusterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -226,7 +226,7 @@ func resourceArmKustoClusterCustomerManagedKeyDelete(d *schema.ResourceData, met
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	clusterID, err := parse.KustoClusterID(d.Id())
+	clusterID, err := parse.ClusterID(d.Id())
 	if err != nil {
 		return err
 	}

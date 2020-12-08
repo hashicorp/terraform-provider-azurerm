@@ -41,9 +41,17 @@ The following arguments are supported:
 
 ~> **NOTE:** A new pricing model took effect on `2018-04-03`, which requires the SKU `PerGB2018`. If you're provisioned resources before this date you have the option of remaining with the previous Pricing SKU and using the other SKU's defined above. More information about [the Pricing SKU's is available at the following URI](http://aka.ms/PricingTierWarning).
 
+~> **NOTE:** The `Free` SKU has a default `daily_quota_gb` value of `0.5` (GB).
+
 * `retention_in_days` - (Optional) The workspace data retention in days. Possible values are either 7 (Free Tier only) or range between 30 and 730.
 
-* `daily_quota_gb` - (Optional) The workspace daily quota for ingestion in GB.  Defaults to -1 (unlimited).
+* `daily_quota_gb` - (Optional) The workspace daily quota for ingestion in GB.  Defaults to -1 (unlimited) if omitted.
+
+~> **NOTE:** When `sku_name` is set to `Free` this field can be set to a maximum of `0.5` (GB), and has a default value of `0.5`. 
+
+* `internet_ingestion_enabled ` - (Optional) Should the Log Analytics Workflow support ingestion over the Public Internet? Defaults to `true`.
+
+* `internet_query_enabled` - (Optional) Should the Log Analytics Workflow support querying over the Public Internet? Defaults to `true`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

@@ -658,7 +658,6 @@ func testCheckAzureRMContainerRegistryWebhookDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 
 		resp, err := client.Get(ctx, resourceGroup, registryName, name)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil

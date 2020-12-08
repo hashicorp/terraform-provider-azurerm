@@ -1,38 +1,62 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 type AvailabilitySetId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func NewAvailabilitySetId(resourceGroup, name string) AvailabilitySetId {
+func NewAvailabilitySetID(subscriptionId, resourceGroup, name string) AvailabilitySetId {
 	return AvailabilitySetId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
 }
 
-func (id AvailabilitySetId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/availabilitySets/%s", subscriptionId, id.ResourceGroup, id.Name)
+func (id AvailabilitySetId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Name %q", id.Name),
+	}
+	return strings.Join(segments, " / ")
 }
 
+func (id AvailabilitySetId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/availabilitySets/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+}
+
+// AvailabilitySetID parses a AvailabilitySet ID into an AvailabilitySetId struct
 func AvailabilitySetID(input string) (*AvailabilitySetId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse Availability Set ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	set := AvailabilitySetId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := AvailabilitySetId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if set.Name, err = id.PopSegment("availabilitySets"); err != nil {
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.Name, err = id.PopSegment("availabilitySets"); err != nil {
 		return nil, err
 	}
 
@@ -40,5 +64,5 @@ func AvailabilitySetID(input string) (*AvailabilitySetId, error) {
 		return nil, err
 	}
 
-	return &set, nil
+	return &resourceId, nil
 }
