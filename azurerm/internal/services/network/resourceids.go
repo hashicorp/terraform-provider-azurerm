@@ -51,3 +51,6 @@ package network
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=VpnConnection -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/vpnGateways/vpnGateway1/vpnConnections/vpnConnection1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=VpnSite -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/vpnSites/vpnSite1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=VpnSiteLink -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/vpnSites/vpnSite1/vpnSiteLinks/vpnSiteLink1
+
+// Subnet Service Endpoint Policy
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=SubnetServiceEndpointPolicy -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/serviceEndpointPolicies/policy1

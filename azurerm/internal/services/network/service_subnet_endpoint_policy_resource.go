@@ -161,18 +161,18 @@ func resourceArmSubnetServiceEndpointPolicyRead(d *schema.ResourceData, meta int
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceEndpointPolicyName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Subnet Service Endpoint Policy %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] Subnet Service Endpoint Policy %q was not found in Resource Group %q - removing from state!", id.ServiceEndpointPolicyName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Subnet Service Endpoint Policy %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Subnet Service Endpoint Policy %q (Resource Group %q): %+v", id.ServiceEndpointPolicyName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.ServiceEndpointPolicyName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -196,8 +196,8 @@ func resourceArmSubnetServiceEndpointPolicyDelete(d *schema.ResourceData, meta i
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-		return fmt.Errorf("deleting Subnet Service Endpoint Policy %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.ServiceEndpointPolicyName); err != nil {
+		return fmt.Errorf("deleting Subnet Service Endpoint Policy %q (Resource Group %q): %+v", id.ServiceEndpointPolicyName, id.ResourceGroup, err)
 	}
 
 	return nil

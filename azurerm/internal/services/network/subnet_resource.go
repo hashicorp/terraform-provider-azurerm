@@ -85,7 +85,7 @@ func resourceArmSubnet() *schema.Resource {
 				MinItems: 1,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validate.ServiceEndpointPolicyID,
+					ValidateFunc: validate.SubnetServiceEndpointPolicyID,
 				},
 			},
 
