@@ -1,126 +1,81 @@
-package servicefabricmesh
+package servicefabricmesh_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabricmesh/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMServiceFabricMeshApplication_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_service_fabric_mesh_application", "test")
+type ServiceFabricMeshApplicationResource struct{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricMeshApplicationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceFabricMeshApplication_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricMeshApplicationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccServiceFabricMeshApplication_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_fabric_mesh_application", "test")
+	r := ServiceFabricMeshApplicationResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMServiceFabricMeshApplication_update(t *testing.T) {
+func TestAccServiceFabricMeshApplication_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_mesh_application", "test")
+	r := ServiceFabricMeshApplicationResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricMeshApplicationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceFabricMeshApplication_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricMeshApplicationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMServiceFabricMeshApplication_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricMeshApplicationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMServiceFabricMeshApplication_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricMeshApplicationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMServiceFabricMeshApplicationDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceFabricMesh.ApplicationClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_service_fabric_mesh_application" {
-			continue
-		}
-
-		id, err := parse.ApplicationID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Service Fabric Mesh Application still exists:\n%+v", resp)
-		}
+func (r ServiceFabricMeshApplicationResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ApplicationID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-
-	return nil
+	resp, err := client.ServiceFabricMesh.ApplicationClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
+		}
+		return nil, fmt.Errorf("retrieving Service Fabric Mesh Application %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+	return utils.Bool(true), nil
 }
 
-func testCheckAzureRMServiceFabricMeshApplicationExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceFabricMesh.ApplicationClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		id, err := parse.ApplicationID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on serviceFabricMeshApplicationsClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Service Fabric Mesh Application %q (Resource Group: %q) does not exist", id.Name, id.ResourceGroup)
-		}
-
-		return nil
-	}
-}
-
-func testAccAzureRMServiceFabricMeshApplication_basic(data acceptance.TestData) string {
+func (r ServiceFabricMeshApplicationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -156,7 +111,7 @@ resource "azurerm_service_fabric_mesh_application" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMServiceFabricMeshApplication_update(data acceptance.TestData) string {
+func (r ServiceFabricMeshApplicationResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

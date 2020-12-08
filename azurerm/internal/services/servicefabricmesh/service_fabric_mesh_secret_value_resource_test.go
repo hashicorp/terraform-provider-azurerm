@@ -1,112 +1,67 @@
-package servicefabricmesh
+package servicefabricmesh_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabricmesh/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMServiceFabricMeshSecretValue_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_service_fabric_mesh_secret_value", "test")
+type ServiceFabricMeshSecretValueResource struct{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricMeshSecretValueDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceFabricMeshSecretValue_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricMeshSecretValueExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("value"),
+func TestAccServiceFabricMeshSecretValue_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_fabric_mesh_secret_value", "test")
+	r := ServiceFabricMeshSecretValueResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("value"),
 	})
 }
 
-func TestAccAzureRMServiceFabricMeshSecretValue_multiple(t *testing.T) {
+func TestAccServiceFabricMeshSecretValue_multiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_mesh_secret_value", "test")
+	r := ServiceFabricMeshSecretValueResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricMeshSecretValueDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceFabricMeshSecretValue_multiple(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceFabricMeshSecretValueExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("value"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.multiple(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("value"),
 	})
 }
 
-func testCheckAzureRMServiceFabricMeshSecretValueDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceFabricMesh.SecretValueClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_service_fabric_mesh_secret_value" {
-			continue
-		}
-
-		id, err := parse.SecretValueID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.SecretName, id.ValueName)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Service Fabric Mesh Secret Value still exists:\n%+v", resp)
-		}
+func (r ServiceFabricMeshSecretValueResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.SecretValueID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-
-	return nil
+	resp, err := client.ServiceFabricMesh.SecretValueClient.Get(ctx, id.ResourceGroup, id.SecretName, id.ValueName)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
+		}
+		return nil, fmt.Errorf("retrieving Service Fabric Mesh Secret Value %q (Secret %q / Resource Group %q): %+v", id.ValueName, id.SecretName, id.ResourceGroup, err)
+	}
+	return utils.Bool(true), nil
 }
 
-func testCheckAzureRMServiceFabricMeshSecretValueExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceFabricMesh.SecretValueClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		id, err := parse.SecretValueID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.SecretName, id.ValueName)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on serviceFabricMeshSecretValuesClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Service Fabric Mesh Secret Value %q (Resource Group: %q) does not exist", id.ValueName, id.ResourceGroup)
-		}
-
-		return nil
-	}
-}
-
-func testAccAzureRMServiceFabricMeshSecretValue_basic(data acceptance.TestData) string {
+func (r ServiceFabricMeshSecretValueResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -133,7 +88,7 @@ resource "azurerm_service_fabric_mesh_secret_value" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMServiceFabricMeshSecretValue_multiple(data acceptance.TestData) string {
+func (r ServiceFabricMeshSecretValueResource) multiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
