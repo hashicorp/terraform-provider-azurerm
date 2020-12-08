@@ -80,21 +80,12 @@ func resourceMediaTransform() *schema.Resource {
 								string(media.ContinueJob), string(media.StopProcessingJob),
 							}, true),
 						},
-						"preset": {
+						"builtin_preset": {
 							Type:     schema.TypeSet,
 							Optional: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"type": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											"BuiltInStandardEncoderPreset", "AudioAnalyzerPreset",
-											"VideoAnalyzerPreset", "FaceDetectorPreset",
-										}, true),
-									},
-
 									"preset_name": {
 										Type:     schema.TypeString,
 										Optional: true,
@@ -107,7 +98,15 @@ func resourceMediaTransform() *schema.Resource {
 											string(media.H264MultipleBitrateSD),
 										}, true),
 									},
-
+								},
+							},
+						},
+						"audio_analyzer_preset": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
 									"audio_language": {
 										Type:     schema.TypeString,
 										Optional: true,
@@ -116,7 +115,30 @@ func resourceMediaTransform() *schema.Resource {
 											"fr-FR", "hi-IN", "it-IT", "ja-JP", "ko-KR", "pt-BR", "ru-RU", "zh-CN",
 										}, true),
 									},
-
+									"audio_analysis_mode": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(media.Basic), string(media.Standard),
+										}, true),
+									},
+								},
+							},
+						},
+						"video_analyzer_preset": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"audio_language": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"ar-EG", "ar-SY", "de-DE", "en-AU", "en-GB", "en-US", "es-ES", "es-MX",
+											"fr-FR", "hi-IN", "it-IT", "ja-JP", "ko-KR", "pt-BR", "ru-RU", "zh-CN",
+										}, true),
+									},
 									"audio_analysis_mode": {
 										Type:     schema.TypeString,
 										Optional: true,
@@ -131,6 +153,15 @@ func resourceMediaTransform() *schema.Resource {
 											string(media.AllInsights), string(media.AudioInsightsOnly), string(media.VideoInsightsOnly),
 										}, true),
 									},
+								},
+							},
+						},
+						"face_detector_preset": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
 									"analysis_resolution": {
 										Type:     schema.TypeString,
 										Optional: true,
@@ -260,14 +291,7 @@ func expandTransformOuputs(input []interface{}) (*[]media.TransformOutput, error
 	for _, transformOuputRaw := range input {
 		transform := transformOuputRaw.(map[string]interface{})
 
-		if transform["preset"] == nil {
-			return nil, fmt.Errorf("output must contain a preset property")
-		}
-
-		if len(transform["preset"].(*schema.Set).List()) == 0 {
-			return nil, fmt.Errorf("output must contain a preset property")
-		}
-		preset, err := expandPreset(transform["preset"].(*schema.Set).List())
+		preset, err := expandPreset(transform)
 		if err != nil {
 			return nil, err
 		}
@@ -300,18 +324,48 @@ func flattenTransformOutputs(input *[]media.TransformOutput) []interface{} {
 		output := make(map[string]interface{})
 		output["on_error_action"] = string(transformOuput.OnError)
 		output["relative_priority"] = string(transformOuput.RelativePriority)
-		output["preset"] = flattenPreset(transformOuput.Preset)
+		attribute, preset := flattenPreset(transformOuput.Preset)
+		if attribute != "" {
+			output[attribute] = preset
+		}
 		results = append(results, output)
 	}
 
 	return results
 }
 
-func expandPreset(presets []interface{}) (media.BasicPreset, error) {
-	preset := presets[0].(map[string]interface{})
-	presetType := preset["type"].(string)
+func expandPreset(transform map[string]interface{}) (media.BasicPreset, error) {
+	presetsCount := 0
+	presetType := ""
+	if transform["builtin_preset"] != nil && len(transform["builtin_preset"].(*schema.Set).List()) > 0 {
+		presetsCount++
+		presetType = string(media.OdataTypeMicrosoftMediaBuiltInStandardEncoderPreset)
+	}
+	if transform["audio_analyzer_preset"] != nil && len(transform["audio_analyzer_preset"].(*schema.Set).List()) > 0 {
+		presetsCount++
+		presetType = string(media.OdataTypeMicrosoftMediaAudioAnalyzerPreset)
+	}
+	if transform["video_analyzer_preset"] != nil && len(transform["video_analyzer_preset"].(*schema.Set).List()) > 0 {
+		presetsCount++
+		presetType = string(media.OdataTypeMicrosoftMediaVideoAnalyzerPreset)
+	}
+	if transform["face_detector_preset"] != nil && len(transform["face_detector_preset"].(*schema.Set).List()) > 0 {
+		presetsCount++
+		presetType = string(media.OdataTypeMicrosoftMediaFaceDetectorPreset)
+	}
+
+	if presetsCount == 0 {
+		return nil, fmt.Errorf("output must contain at least one type of preset: builtin_preset,face_detector_preset,video_analyzer_preset or audio_analyzer_preset.")
+	}
+
+	if presetsCount > 1 {
+		return nil, fmt.Errorf("more than one type of preset in the same output is not allowed.")
+	}
+
 	switch presetType {
-	case "BuiltInStandardEncoderPreset":
+	case string(media.OdataTypeMicrosoftMediaBuiltInStandardEncoderPreset):
+		presets := transform["builtin_preset"].(*schema.Set).List()
+		preset := presets[0].(map[string]interface{})
 		if preset["preset_name"] == nil {
 			return nil, fmt.Errorf("preset_name is required for BuiltInStandardEncoderPreset")
 		}
@@ -321,7 +375,9 @@ func expandPreset(presets []interface{}) (media.BasicPreset, error) {
 			OdataType:  media.OdataTypeMicrosoftMediaBuiltInStandardEncoderPreset,
 		}
 		return builtInPreset, nil
-	case "AudioAnalyzerPreset":
+	case string(media.OdataTypeMicrosoftMediaAudioAnalyzerPreset):
+		presets := transform["audio_analyzer_preset"].(*schema.Set).List()
+		preset := presets[0].(map[string]interface{})
 		audioAnalyzerPreset := &media.AudioAnalyzerPreset{
 			OdataType: media.OdataTypeMicrosoftMediaAudioAnalyzerPreset,
 		}
@@ -332,7 +388,9 @@ func expandPreset(presets []interface{}) (media.BasicPreset, error) {
 			audioAnalyzerPreset.Mode = media.AudioAnalysisMode(preset["audio_analysis_mode"].(string))
 		}
 		return audioAnalyzerPreset, nil
-	case "FaceDetectorPreset":
+	case string(media.OdataTypeMicrosoftMediaFaceDetectorPreset):
+		presets := transform["face_detector_preset"].(*schema.Set).List()
+		preset := presets[0].(map[string]interface{})
 		faceDetectorPreset := &media.FaceDetectorPreset{
 			OdataType: media.OdataTypeMicrosoftMediaFaceDetectorPreset,
 		}
@@ -340,7 +398,9 @@ func expandPreset(presets []interface{}) (media.BasicPreset, error) {
 			faceDetectorPreset.Resolution = media.AnalysisResolution(preset["analysis_resolution"].(string))
 		}
 		return faceDetectorPreset, nil
-	case "VideoAnalyzerPreset":
+	case string(media.OdataTypeMicrosoftMediaVideoAnalyzerPreset):
+		presets := transform["video_analyzer_preset"].(*schema.Set).List()
+		preset := presets[0].(map[string]interface{})
 		videoAnalyzerPreset := &media.VideoAnalyzerPreset{
 			OdataType: media.OdataTypeMicrosoftMediaVideoAnalyzerPreset,
 		}
@@ -354,13 +414,14 @@ func expandPreset(presets []interface{}) (media.BasicPreset, error) {
 			videoAnalyzerPreset.InsightsToExtract = media.InsightsType(preset["insights_type"].(string))
 		}
 		return videoAnalyzerPreset, nil
+	default:
+		return nil, fmt.Errorf("output must contain at least one type of preset: builtin_preset,face_detector_preset,video_analyzer_preset or audio_analyzer_preset")
 	}
-	return nil, fmt.Errorf("type property of preset is invalid")
 }
 
-func flattenPreset(preset media.BasicPreset) []interface{} {
+func flattenPreset(preset media.BasicPreset) (string, []interface{}) {
 	if preset == nil {
-		return []interface{}{}
+		return "", []interface{}{}
 	}
 
 	results := make([]interface{}, 0)
@@ -369,35 +430,31 @@ func flattenPreset(preset media.BasicPreset) []interface{} {
 	case media.AudioAnalyzerPreset:
 		mediaAudioAnalyzerPreset, _ := preset.AsAudioAnalyzerPreset()
 		result["audio_analysis_mode"] = string(mediaAudioAnalyzerPreset.Mode)
-		result["type"] = "AudioAnalyzerPreset"
 		if mediaAudioAnalyzerPreset.AudioLanguage != nil {
 			result["audio_language"] = mediaAudioAnalyzerPreset.AudioLanguage
 		}
 		results = append(results, result)
-		return results
+		return "audio_analyzer_preset", results
 	case media.BuiltInStandardEncoderPreset:
 		builtInStandardEncoderPreset, _ := preset.AsBuiltInStandardEncoderPreset()
 		result["preset_name"] = string(builtInStandardEncoderPreset.PresetName)
-		result["type"] = "BuiltInStandardEncoderPreset"
 		results = append(results, result)
-		return results
+		return "builtin_preset", results
 	case media.FaceDetectorPreset:
 		faceDetectorPreset, _ := preset.AsFaceDetectorPreset()
 		result["analysis_resolution"] = string(faceDetectorPreset.Resolution)
-		result["type"] = "FaceDetectorPreset"
 		results = append(results, result)
-		return results
+		return "face_detector_preset", results
 	case media.VideoAnalyzerPreset:
 		videoAnalyzerPreset, _ := preset.AsVideoAnalyzerPreset()
 		result["audio_analysis_mode"] = string(videoAnalyzerPreset.Mode)
 		result["insights_type"] = string(videoAnalyzerPreset.InsightsToExtract)
-		result["type"] = "VideoAnalyzerPreset"
 		if videoAnalyzerPreset.AudioLanguage != nil {
 			result["audio_language"] = videoAnalyzerPreset.AudioLanguage
 		}
 		results = append(results, result)
-		return results
+		return "video_analyzer_preset", results
 	}
 
-	return results
+	return "", results
 }

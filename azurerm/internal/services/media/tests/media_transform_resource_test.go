@@ -108,9 +108,8 @@ resource "azurerm_media_transform" "test" {
   media_services_account_name = azurerm_media_services_account.test.name
   output {
     relative_priority = "High"
-    on_error_action     = "ContinueJob"
-    preset {
-      type        = "BuiltInStandardEncoderPreset"
+    on_error_action   = "ContinueJob"
+    builtin_preset {
       preset_name = "AACGoodQualityAudio"
     }
   }
@@ -130,18 +129,16 @@ resource "azurerm_media_transform" "test" {
   description                 = "Transform description"
   output {
     relative_priority = "High"
-    on_error_action     = "ContinueJob"
-    preset {
-      type        = "BuiltInStandardEncoderPreset"
+    on_error_action   = "ContinueJob"
+    builtin_preset {
       preset_name = "AACGoodQualityAudio"
     }
   }
 
   output {
     relative_priority = "High"
-    on_error_action     = "StopProcessingJob"
-    preset {
-      type                = "AudioAnalyzerPreset"
+    on_error_action   = "StopProcessingJob"
+    audio_analyzer_preset {
       audio_language      = "en-US"
       audio_analysis_mode = "Basic"
     }
@@ -149,18 +146,16 @@ resource "azurerm_media_transform" "test" {
 
   output {
     relative_priority = "Low"
-    on_error_action     = "StopProcessingJob"
-    preset {
-      type                = "FaceDetectorPreset"
+    on_error_action   = "StopProcessingJob"
+    face_detector_preset {
       analysis_resolution = "StandardDefinition"
     }
   }
 
   output {
     relative_priority = "Normal"
-    on_error_action     = "StopProcessingJob"
-    preset {
-      type                = "VideoAnalyzerPreset"
+    on_error_action   = "StopProcessingJob"
+    video_analyzer_preset {
       audio_language      = "en-US"
       audio_analysis_mode = "Basic"
       insights_type       = "AllInsights"
