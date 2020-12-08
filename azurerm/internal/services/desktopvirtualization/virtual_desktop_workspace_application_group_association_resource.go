@@ -66,7 +66,6 @@ func resourceVirtualDesktopWorkspaceApplicationGroupAssociation() *schema.Resour
 
 func resourceVirtualDesktopWorkspaceApplicationGroupAssociationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.WorkspacesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -101,7 +100,7 @@ func resourceVirtualDesktopWorkspaceApplicationGroupAssociationCreate(d *schema.
 		applicationGroupAssociations = *props.ApplicationGroupReferences
 	}
 
-	applicationGroupIdStr := applicationGroupId.ID(subscriptionId)
+	applicationGroupIdStr := applicationGroupId.ID("")
 	if associationExists(workspace.WorkspaceProperties, applicationGroupIdStr) {
 		return tf.ImportAsExistsError("azurerm_virtual_desktop_workspace_application_group_association", associationId)
 	}
@@ -154,7 +153,6 @@ func resourceVirtualDesktopWorkspaceApplicationGroupAssociationRead(d *schema.Re
 
 func resourceVirtualDesktopWorkspaceApplicationGroupAssociationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.WorkspacesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -179,7 +177,7 @@ func resourceVirtualDesktopWorkspaceApplicationGroupAssociationDelete(d *schema.
 	}
 
 	applicationGroupReferences := []string{}
-	applicationGroupId := id.ApplicationGroup.ID(subscriptionId)
+	applicationGroupId := id.ApplicationGroup.ID("")
 	if workspace.WorkspaceProperties != nil && workspace.WorkspaceProperties.ApplicationGroupReferences != nil {
 		for _, referenceId := range *workspace.WorkspaceProperties.ApplicationGroupReferences {
 			if strings.EqualFold(referenceId, applicationGroupId) {

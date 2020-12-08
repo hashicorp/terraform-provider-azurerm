@@ -7,7 +7,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appplatform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/attestation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
@@ -77,6 +76,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabricmesh"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics"
@@ -89,7 +89,10 @@ import (
 //go:generate go run ../tools/generator-services/main.go -path=../../../
 
 func SupportedTypedServices() []sdk.TypedServiceRegistration {
-	return []sdk.TypedServiceRegistration{}
+	return []sdk.TypedServiceRegistration{
+		eventhub.Registration{},
+		resource.Registration{},
+	}
 }
 
 func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
@@ -98,7 +101,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		analysisservices.Registration{},
 		apimanagement.Registration{},
 		appconfiguration.Registration{},
-		appplatform.Registration{},
+		springcloud.Registration{},
 		applicationinsights.Registration{},
 		attestation.Registration{},
 		authorization.Registration{},

@@ -18,11 +18,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMariaDbDatabase() *schema.Resource {
+func resourceMariaDbDatabase() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMariaDbDatabaseCreateUpdate,
-		Read:   resourceArmMariaDbDatabaseRead,
-		Delete: resourceArmMariaDbDatabaseDelete,
+		Create: resourceMariaDbDatabaseCreateUpdate,
+		Read:   resourceMariaDbDatabaseRead,
+		Delete: resourceMariaDbDatabaseDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -77,7 +77,7 @@ func resourceArmMariaDbDatabase() *schema.Resource {
 	}
 }
 
-func resourceArmMariaDbDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMariaDbDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.DatabasesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -130,10 +130,10 @@ func resourceArmMariaDbDatabaseCreateUpdate(d *schema.ResourceData, meta interfa
 
 	d.SetId(*read.ID)
 
-	return resourceArmMariaDbDatabaseRead(d, meta)
+	return resourceMariaDbDatabaseRead(d, meta)
 }
 
-func resourceArmMariaDbDatabaseRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMariaDbDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.DatabasesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -169,7 +169,7 @@ func resourceArmMariaDbDatabaseRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceArmMariaDbDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMariaDbDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.DatabasesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -20,6 +21,14 @@ func NewManagedDiskID(subscriptionId, resourceGroup, diskName string) ManagedDis
 		ResourceGroup:  resourceGroup,
 		DiskName:       diskName,
 	}
+}
+
+func (id ManagedDiskId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Disk Name %q", id.DiskName),
+	}
+	return strings.Join(segments, " / ")
 }
 
 func (id ManagedDiskId) ID(_ string) string {

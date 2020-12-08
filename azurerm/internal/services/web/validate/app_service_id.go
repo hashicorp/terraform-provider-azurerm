@@ -1,23 +1,23 @@
 package validate
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 )
 
-// AppServiceID validates that the specified ID is a valid App Service ID
-func AppServiceID(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
+func AppServiceID(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
 	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
 
 	if _, err := parse.AppServiceID(v); err != nil {
-		errors = append(errors, fmt.Errorf("Can not parse %q as a resource id: %v", k, err))
-		return
+		errors = append(errors, err)
 	}
 
-	return warnings, errors
+	return
 }

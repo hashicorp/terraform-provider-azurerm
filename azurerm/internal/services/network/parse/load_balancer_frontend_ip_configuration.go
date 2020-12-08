@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -22,6 +23,15 @@ func NewLoadBalancerFrontendIpConfigurationID(subscriptionId, resourceGroup, loa
 		LoadBalancerName:            loadBalancerName,
 		FrontendIPConfigurationName: frontendIPConfigurationName,
 	}
+}
+
+func (id LoadBalancerFrontendIpConfigurationId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Load Balancer Name %q", id.LoadBalancerName),
+		fmt.Sprintf("Frontend I P Configuration Name %q", id.FrontendIPConfigurationName),
+	}
+	return strings.Join(segments, " / ")
 }
 
 func (id LoadBalancerFrontendIpConfigurationId) ID(_ string) string {

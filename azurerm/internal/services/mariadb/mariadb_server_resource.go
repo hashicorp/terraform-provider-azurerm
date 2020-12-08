@@ -23,12 +23,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMariaDbServer() *schema.Resource {
+func resourceMariaDbServer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMariaDbServerCreate,
-		Read:   resourceArmMariaDbServerRead,
-		Update: resourceArmMariaDbServerUpdate,
-		Delete: resourceArmMariaDbServerDelete,
+		Create: resourceMariaDbServerCreate,
+		Read:   resourceMariaDbServerRead,
+		Update: resourceMariaDbServerUpdate,
+		Delete: resourceMariaDbServerDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
@@ -255,7 +255,7 @@ func resourceArmMariaDbServer() *schema.Resource {
 	}
 }
 
-func resourceArmMariaDbServerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMariaDbServerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.ServersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -390,10 +390,10 @@ func resourceArmMariaDbServerCreate(d *schema.ResourceData, meta interface{}) er
 
 	d.SetId(*read.ID)
 
-	return resourceArmMariaDbServerRead(d, meta)
+	return resourceMariaDbServerRead(d, meta)
 }
 
-func resourceArmMariaDbServerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMariaDbServerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.ServersClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -454,10 +454,10 @@ func resourceArmMariaDbServerUpdate(d *schema.ResourceData, meta interface{}) er
 
 	d.SetId(*read.ID)
 
-	return resourceArmMariaDbServerRead(d, meta)
+	return resourceMariaDbServerRead(d, meta)
 }
 
-func resourceArmMariaDbServerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMariaDbServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.ServersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -514,7 +514,7 @@ func resourceArmMariaDbServerRead(d *schema.ResourceData, meta interface{}) erro
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmMariaDbServerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMariaDbServerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.ServersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

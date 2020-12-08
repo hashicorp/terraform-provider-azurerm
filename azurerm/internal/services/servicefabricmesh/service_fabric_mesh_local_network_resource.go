@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmServiceFabricMeshLocalNetwork() *schema.Resource {
+func resourceServiceFabricMeshLocalNetwork() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceFabricMeshLocalNetworkCreateUpdate,
-		Read:   resourceArmServiceFabricMeshLocalNetworkRead,
-		Update: resourceArmServiceFabricMeshLocalNetworkCreateUpdate,
-		Delete: resourceArmServiceFabricMeshLocalNetworkDelete,
+		Create: resourceServiceFabricMeshLocalNetworkCreateUpdate,
+		Read:   resourceServiceFabricMeshLocalNetworkRead,
+		Update: resourceServiceFabricMeshLocalNetworkCreateUpdate,
+		Delete: resourceServiceFabricMeshLocalNetworkDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.NetworkID(id)
 			return err
@@ -68,7 +68,7 @@ func resourceArmServiceFabricMeshLocalNetwork() *schema.Resource {
 	}
 }
 
-func resourceArmServiceFabricMeshLocalNetworkCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceFabricMeshLocalNetworkCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabricMesh.NetworkClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -116,10 +116,10 @@ func resourceArmServiceFabricMeshLocalNetworkCreateUpdate(d *schema.ResourceData
 
 	d.SetId(*resp.ID)
 
-	return resourceArmServiceFabricMeshLocalNetworkRead(d, meta)
+	return resourceServiceFabricMeshLocalNetworkRead(d, meta)
 }
 
-func resourceArmServiceFabricMeshLocalNetworkRead(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceFabricMeshLocalNetworkRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabricMesh.NetworkClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -154,7 +154,7 @@ func resourceArmServiceFabricMeshLocalNetworkRead(d *schema.ResourceData, meta i
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmServiceFabricMeshLocalNetworkDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceFabricMeshLocalNetworkDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabricMesh.NetworkClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

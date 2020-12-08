@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -22,6 +23,15 @@ func NewVirtualMachineExtensionID(subscriptionId, resourceGroup, virtualMachineN
 		VirtualMachineName: virtualMachineName,
 		ExtensionName:      extensionName,
 	}
+}
+
+func (id VirtualMachineExtensionId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Virtual Machine Name %q", id.VirtualMachineName),
+		fmt.Sprintf("Extension Name %q", id.ExtensionName),
+	}
+	return strings.Join(segments, " / ")
 }
 
 func (id VirtualMachineExtensionId) ID(_ string) string {
