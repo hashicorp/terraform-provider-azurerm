@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -38,7 +39,7 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 			return err
 		}),
 
-		MigrateState:  ResourceAzureRMServiceBusNamespaceMigrateState,
+		MigrateState:  migration.ServiceBusNamespaceResourceMigrateState,
 		SchemaVersion: 1,
 
 		Timeouts: &schema.ResourceTimeout{
