@@ -1,4 +1,4 @@
-package tests
+package securitycenter_test
 
 import (
 	"fmt"
