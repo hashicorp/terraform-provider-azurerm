@@ -1,4 +1,4 @@
-package tests
+package recoveryservices_test
 
 import (
 	"fmt"
