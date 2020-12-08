@@ -55,6 +55,8 @@ func resourceEventGridTopic() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			"identity": EventGridTopicIdentitySchema(),
+
 			"input_schema": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -193,8 +195,15 @@ func resourceEventGridTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		InboundIPRules:      expandInboundIPRules(d),
 	}
 
+	identityRaw := d.Get("identity").([]interface{})
+	identity, err := expandEventGridTopicIdentity(identityRaw)
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	properties := eventgrid.Topic{
 		Location:        &location,
+		Identity:        &identity,
 		TopicProperties: topicProperties,
 		Tags:            tags.Expand(t),
 	}
@@ -288,6 +297,10 @@ func resourceEventGridTopicRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if props := resp.TopicProperties; props != nil {
 		d.Set("endpoint", props.Endpoint)
+	}
+
+	if err := d.Set("identity", flattenEventGridTopicIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	d.Set("primary_access_key", keys.Key1)
