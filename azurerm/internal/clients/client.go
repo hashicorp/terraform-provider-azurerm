@@ -11,7 +11,6 @@ import (
 	apiManagement "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/client"
 	appConfiguration "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration/client"
 	applicationInsights "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights/client"
-	appPlatform "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appplatform/client"
 	attestation "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/attestation/client"
 	authorization "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization/client"
 	automation "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation/client"
@@ -33,6 +32,7 @@ import (
 	desktopvirtualization "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/client"
 	devspace "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace/client"
 	devtestlabs "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs/client"
+	digitaltwins "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/digitaltwins/client"
 	dns "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/client"
 	eventgrid "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/client"
 	eventhub "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/client"
@@ -80,6 +80,7 @@ import (
 	serviceFabric "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric/client"
 	serviceFabricMesh "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabricmesh/client"
 	signalr "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr/client"
+	appPlatform "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/client"
 	sql "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/client"
 	storage "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/client"
 	streamAnalytics "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics/client"
@@ -123,6 +124,7 @@ type Client struct {
 	DesktopVirtualization *desktopvirtualization.Client
 	DevSpace              *devspace.Client
 	DevTestLabs           *devtestlabs.Client
+	DigitalTwins          *digitaltwins.Client
 	Dns                   *dns.Client
 	EventGrid             *eventgrid.Client
 	Eventhub              *eventhub.Client
@@ -214,6 +216,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.DesktopVirtualization = desktopvirtualization.NewClient(o)
 	client.DevSpace = devspace.NewClient(o)
 	client.DevTestLabs = devtestlabs.NewClient(o)
+	client.DigitalTwins = digitaltwins.NewClient(o)
 	client.Dns = dns.NewClient(o)
 	client.EventGrid = eventgrid.NewClient(o)
 	client.Eventhub = eventhub.NewClient(o)

@@ -48,6 +48,11 @@ func dataSourceArmVirtualNetworkGateway() *schema.Resource {
 				Computed: true,
 			},
 
+			"private_ip_address_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
 			"active_active": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -199,6 +204,22 @@ func dataSourceArmVirtualNetworkGateway() *schema.Resource {
 				},
 			},
 
+			"custom_route": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"address_prefixes": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+					},
+				},
+			},
+
 			"default_local_network_gateway_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -239,6 +260,7 @@ func dataSourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interfa
 
 		d.Set("type", string(gw.GatewayType))
 		d.Set("enable_bgp", gw.EnableBgp)
+		d.Set("private_ip_address_enabled", gw.EnablePrivateIPAddress)
 		d.Set("active_active", gw.ActiveActive)
 		d.Set("generation", string(gw.VpnGatewayGeneration))
 
@@ -266,6 +288,10 @@ func dataSourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interfa
 		bgpSettingsFlat := flattenArmVirtualNetworkGatewayDataSourceBgpSettings(gw.BgpSettings)
 		if err := d.Set("bgp_settings", bgpSettingsFlat); err != nil {
 			return fmt.Errorf("Error setting `bgp_settings`: %+v", err)
+		}
+
+		if err := d.Set("custom_route", flattenArmVirtualNetworkGatewayAddressSpace(gw.CustomRoutes)); err != nil {
+			return fmt.Errorf("setting `custom_route`: %+v", err)
 		}
 	}
 

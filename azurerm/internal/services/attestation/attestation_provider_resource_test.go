@@ -28,7 +28,7 @@ import (
 type AttestationProviderResource struct {
 }
 
-func TestAccAzureRMAttestationProvider_basic(t *testing.T) {
+func TestAccAttestationProvider_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
 	r := AttestationProviderResource{}
 	randStr := strings.ToLower(acctest.RandString(10))
@@ -44,7 +44,7 @@ func TestAccAzureRMAttestationProvider_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAttestationProvider_requiresImport(t *testing.T) {
+func TestAccAttestationProvider_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
 	r := AttestationProviderResource{}
 	randStr := strings.ToLower(acctest.RandString(10))
@@ -60,11 +60,11 @@ func TestAccAzureRMAttestationProvider_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAttestationProvider_completeString(t *testing.T) {
+func TestAccAttestationProvider_completeString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
 	r := AttestationProviderResource{}
 	randStr := strings.ToLower(acctest.RandString(10))
-	testCertificate, err := testAzureRMGenerateTestCertificate("ENCOM")
+	testCertificate, err := testGenerateTestCertificate("ENCOM")
 	if err != nil {
 		t.Fatalf("Test case failed: '%+v'", err)
 	}
@@ -81,7 +81,7 @@ func TestAccAzureRMAttestationProvider_completeString(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAttestationProvider_completeFile(t *testing.T) {
+func TestAccAttestationProvider_completeFile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
 	r := AttestationProviderResource{}
 	randStr := strings.ToLower(acctest.RandString(10))
@@ -98,7 +98,7 @@ func TestAccAzureRMAttestationProvider_completeFile(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAttestationProvider_update(t *testing.T) {
+func TestAccAttestationProvider_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
 	r := AttestationProviderResource{}
 	randStr := strings.ToLower(acctest.RandString(10))
@@ -129,20 +129,20 @@ func TestAccAzureRMAttestationProvider_update(t *testing.T) {
 }
 
 func (t AttestationProviderResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.AttestationId(state.ID)
+	id, err := parse.ProviderID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Attestation.ProviderClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Attestation.ProviderClient.Get(ctx, id.ResourceGroup, id.AttestationProviderName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Attestation Provider %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Attestation Provider %q (resource group: %q): %+v", id.AttestationProviderName, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.StatusResult != nil), nil
 }
 
-func testAzureRMGenerateTestCertificate(organization string) (string, error) {
+func testGenerateTestCertificate(organization string) (string, error) {
 	privateKey, err := ecdsa.GenerateKey(elliptic.P521(), rand.Reader)
 	if err != nil {
 		return "", err

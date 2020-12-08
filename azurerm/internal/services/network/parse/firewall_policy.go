@@ -1,39 +1,62 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 type FirewallPolicyId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func (id FirewallPolicyId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/firewallPolicies/%s",
-		subscriptionId, id.ResourceGroup, id.Name)
-}
-
-func NewFirewallPolicyID(resourceGroup, name string) FirewallPolicyId {
+func NewFirewallPolicyID(subscriptionId, resourceGroup, name string) FirewallPolicyId {
 	return FirewallPolicyId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
 }
 
+func (id FirewallPolicyId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Name %q", id.Name),
+	}
+	return strings.Join(segments, " / ")
+}
+
+func (id FirewallPolicyId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/firewallPolicies/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+}
+
+// FirewallPolicyID parses a FirewallPolicy ID into an FirewallPolicyId struct
 func FirewallPolicyID(input string) (*FirewallPolicyId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing Firewall Policy ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	policy := FirewallPolicyId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := FirewallPolicyId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if policy.Name, err = id.PopSegment("firewallPolicies"); err != nil {
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.Name, err = id.PopSegment("firewallPolicies"); err != nil {
 		return nil, err
 	}
 
@@ -41,49 +64,5 @@ func FirewallPolicyID(input string) (*FirewallPolicyId, error) {
 		return nil, err
 	}
 
-	return &policy, nil
-}
-
-type FirewallPolicyRuleCollectionGroupId struct {
-	ResourceGroup string
-	PolicyName    string
-	Name          string
-}
-
-func (id FirewallPolicyRuleCollectionGroupId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/firewallPolicies/%s/ruleCollectionGroups/%s",
-		subscriptionId, id.ResourceGroup, id.PolicyName, id.Name)
-}
-
-func NewFirewallPolicyRuleCollectionGroupID(policyId FirewallPolicyId, name string) FirewallPolicyRuleCollectionGroupId {
-	return FirewallPolicyRuleCollectionGroupId{
-		ResourceGroup: policyId.ResourceGroup,
-		PolicyName:    policyId.Name,
-		Name:          name,
-	}
-}
-
-func FirewallPolicyRuleCollectionGroupID(input string) (*FirewallPolicyRuleCollectionGroupId, error) {
-	id, err := azure.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, fmt.Errorf("parsing Firewall Policy ID %q: %+v", input, err)
-	}
-
-	group := FirewallPolicyRuleCollectionGroupId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if group.PolicyName, err = id.PopSegment("firewallPolicies"); err != nil {
-		return nil, err
-	}
-
-	if group.Name, err = id.PopSegment("ruleCollectionGroups"); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &group, nil
+	return &resourceId, nil
 }

@@ -1,27 +1,62 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 type DedicatedHardwareSecurityModuleId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId   string
+	ResourceGroup    string
+	DedicatedHSMName string
 }
 
+func NewDedicatedHardwareSecurityModuleID(subscriptionId, resourceGroup, dedicatedHSMName string) DedicatedHardwareSecurityModuleId {
+	return DedicatedHardwareSecurityModuleId{
+		SubscriptionId:   subscriptionId,
+		ResourceGroup:    resourceGroup,
+		DedicatedHSMName: dedicatedHSMName,
+	}
+}
+
+func (id DedicatedHardwareSecurityModuleId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Dedicated H S M Name %q", id.DedicatedHSMName),
+	}
+	return strings.Join(segments, " / ")
+}
+
+func (id DedicatedHardwareSecurityModuleId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.HardwareSecurityModules/dedicatedHSMs/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DedicatedHSMName)
+}
+
+// DedicatedHardwareSecurityModuleID parses a DedicatedHardwareSecurityModule ID into an DedicatedHardwareSecurityModuleId struct
 func DedicatedHardwareSecurityModuleID(input string) (*DedicatedHardwareSecurityModuleId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing DedicatedHardwareSecurityModule ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	dedicatedHardwareSecurityModule := DedicatedHardwareSecurityModuleId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := DedicatedHardwareSecurityModuleId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if dedicatedHardwareSecurityModule.Name, err = id.PopSegment("dedicatedHSMs"); err != nil {
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.DedicatedHSMName, err = id.PopSegment("dedicatedHSMs"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +64,5 @@ func DedicatedHardwareSecurityModuleID(input string) (*DedicatedHardwareSecurity
 		return nil, err
 	}
 
-	return &dedicatedHardwareSecurityModule, nil
+	return &resourceId, nil
 }

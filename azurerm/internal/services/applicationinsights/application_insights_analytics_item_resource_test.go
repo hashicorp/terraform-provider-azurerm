@@ -18,7 +18,7 @@ import (
 type AppInsightsAnalyticsItemResource struct {
 }
 
-func TestAccAzureRMApplicationInsightsAnalyticsItem_basic(t *testing.T) {
+func TestAccApplicationInsightsAnalyticsItem_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_analytics_item", "test")
 	r := AppInsightsAnalyticsItemResource{}
 
@@ -37,7 +37,7 @@ func TestAccAzureRMApplicationInsightsAnalyticsItem_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMApplicationInsightsAnalyticsItem_update(t *testing.T) {
+func TestAccApplicationInsightsAnalyticsItem_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_analytics_item", "test")
 	r := AppInsightsAnalyticsItemResource{}
 
@@ -67,7 +67,7 @@ func TestAccAzureRMApplicationInsightsAnalyticsItem_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMApplicationInsightsAnalyticsItem_multiple(t *testing.T) {
+func TestAccApplicationInsightsAnalyticsItem_multiple(t *testing.T) {
 	r1 := acceptance.BuildTestData(t, "azurerm_application_insights_analytics_item", "test1")
 	r2 := acceptance.BuildTestData(t, "azurerm_application_insights_analytics_item", "test2")
 	r3 := acceptance.BuildTestData(t, "azurerm_application_insights_analytics_item", "test3")

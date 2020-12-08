@@ -1,143 +1,93 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = VPNGatewayId{}
+var _ resourceid.Formatter = VpnGatewayId{}
 
-func TestVPNGatewayIDFormatter(t *testing.T) {
-	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	actual := NewVPNGatewayID("group1", "gateway1").ID(subscriptionId)
-	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/vpnGateways/gateway1"
+func TestVpnGatewayIDFormatter(t *testing.T) {
+	actual := NewVpnGatewayID("12345678-1234-9876-4563-123456789012", "resGroup1", "vpnGateway1").ID("")
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/vpnGateways/vpnGateway1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestParseVPNGateway(t *testing.T) {
+func TestVpnGatewayID(t *testing.T) {
 	testData := []struct {
-		Name     string
 		Input    string
-		Expected *VPNGatewayId
+		Error    bool
+		Expected *VpnGatewayId
 	}{
+
 		{
-			Name:     "Empty",
-			Input:    "",
-			Expected: nil,
-		},
-		{
-			Name:     "No VPN Gateways Segment",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo",
-			Expected: nil,
-		},
-		{
-			Name:     "No VPN Gateways Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/vpnGateways/",
-			Expected: nil,
-		},
-		{
-			Name:  "Completed",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/vpnGateways/example",
-			Expected: &VPNGatewayId{
-				Name:          "example",
-				ResourceGroup: "foo",
-			},
-		},
-	}
-
-	for _, v := range testData {
-		t.Logf("[DEBUG] Testing %q", v.Name)
-
-		actual, err := VPNGatewayID(v.Input)
-		if err != nil {
-			if v.Expected == nil {
-				continue
-			}
-
-			t.Fatalf("Expected a value but got an error: %s", err)
-		}
-
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
-		}
-
-		if actual.ResourceGroup != v.Expected.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
-		}
-	}
-}
-
-var _ resourceid.Formatter = VPNGatewayConnectionId{}
-
-func TestVPNGatewayConnectionIDFormatter(t *testing.T) {
-	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	actual := NewVPNGatewayConnectionID("group1", "gateway1", "conn1").ID(subscriptionId)
-	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/vpnGateways/gateway1/vpnConnections/conn1"
-	if actual != expected {
-		t.Fatalf("Expected %q but got %q", expected, actual)
-	}
-}
-
-func TestVPNGatewayConnectionID(t *testing.T) {
-	testData := []struct {
-		Name   string
-		Input  string
-		Error  bool
-		Expect *VPNGatewayConnectionId
-	}{
-		{
-			Name:  "Empty",
+			// empty
 			Input: "",
 			Error: true,
 		},
+
 		{
-			Name:  "No Resource Groups Segment",
-			Input: "/subscriptions/11111111-1111-1111-1111-111111111111",
+			// missing SubscriptionId
+			Input: "/",
 			Error: true,
 		},
+
 		{
-			Name:  "No Resource Groups Value",
-			Input: "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/",
+			// missing value for SubscriptionId
+			Input: "/subscriptions/",
 			Error: true,
 		},
+
 		{
-			Name:  "Missing leading slash",
-			Input: "subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/group1",
+			// missing ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/",
 			Error: true,
 		},
+
 		{
-			Name:  "Malformed segments",
-			Input: "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/group1/foo/bar",
+			// missing value for ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
 			Error: true,
 		},
+
 		{
-			Name:  "No vpn gateway segment",
-			Input: "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/group1/providers/Microsoft.Network",
+			// missing Name
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/",
 			Error: true,
 		},
+
 		{
-			Name:  "No vpn connection segment",
-			Input: "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/group1/providers/Microsoft.Network/vpnGateways/gateway1",
+			// missing value for Name
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/vpnGateways/",
 			Error: true,
 		},
+
 		{
-			Name:  "Correct",
-			Input: "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/group1/providers/Microsoft.Network/vpnGateways/gateway1/vpnConnections/conn1",
-			Expect: &VPNGatewayConnectionId{
-				ResourceGroup: "group1",
-				Gateway:       "gateway1",
-				Name:          "conn1",
+			// valid
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/vpnGateways/vpnGateway1",
+			Expected: &VpnGatewayId{
+				SubscriptionId: "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:  "resGroup1",
+				Name:           "vpnGateway1",
 			},
+		},
+
+		{
+			// upper-cased
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NETWORK/VPNGATEWAYS/VPNGATEWAY1",
+			Error: true,
 		},
 	}
 
 	for _, v := range testData {
-		t.Logf("[DEBUG] Testing %q", v.Name)
+		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := VPNGatewayConnectionID(v.Input)
+		actual, err := VpnGatewayID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -146,19 +96,17 @@ func TestVPNGatewayConnectionID(t *testing.T) {
 			t.Fatalf("Expect a value but got an error: %s", err)
 		}
 		if v.Error {
-			t.Fatal("Expect an error but didn't get")
+			t.Fatal("Expect an error but didn't get one")
 		}
 
-		if actual.ResourceGroup != v.Expect.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for Resource Group", v.Expect.ResourceGroup, actual.ResourceGroup)
+		if actual.SubscriptionId != v.Expected.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
 		}
-
-		if actual.Gateway != v.Expect.Gateway {
-			t.Fatalf("Expected %q but got %q for Gateway", v.Expect.Gateway, actual.Gateway)
+		if actual.ResourceGroup != v.Expected.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
-
-		if actual.Name != v.Expect.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expect.Name, actual.Name)
+		if actual.Name != v.Expected.Name {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 	}
 }

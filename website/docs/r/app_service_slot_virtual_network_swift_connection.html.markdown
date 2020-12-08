@@ -105,5 +105,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 App Service Slot Virtual Network Associations can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_app_service_slot_virtual_network_swift_connection.myassociation /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/instance1/slots/stageing/networkconfig/virtualNetwork
+terraform import azurerm_app_service_slot_virtual_network_swift_connection.myassociation /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/instance1/slots/stageing/config/virtualNetwork
 ```

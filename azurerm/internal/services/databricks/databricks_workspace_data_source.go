@@ -11,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmDatabricksWorkspace() *schema.Resource {
+func dataSourceDatabricksWorkspace() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceDatabricksWorkspaceRead,
 

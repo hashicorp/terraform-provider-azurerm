@@ -375,7 +375,6 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 }
 
 func resourceArmFirewallPolicyRuleCollectionGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.FirewallPolicyRuleGroupClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -432,7 +431,7 @@ func resourceArmFirewallPolicyRuleCollectionGroupCreateUpdate(d *schema.Resource
 	if err != nil {
 		return err
 	}
-	d.SetId(id.ID(subscriptionId))
+	d.SetId(id.ID(""))
 
 	return resourceArmFirewallPolicyRuleCollectionGroupRead(d, meta)
 }
@@ -448,20 +447,20 @@ func resourceArmFirewallPolicyRuleCollectionGroupRead(d *schema.ResourceData, me
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.PolicyName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.FirewallPolicyName, id.RuleCollectionGroupName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Firewall Policy Rule Collection Group %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] Firewall Policy Rule Collection Group %q was not found in Resource Group %q - removing from state!", id.RuleCollectionGroupName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Firewall Policy Rule Collection Group %q (Resource Group %q / Policy: %q): %+v", id.Name, id.ResourceGroup, id.PolicyName, err)
+		return fmt.Errorf("retrieving Firewall Policy Rule Collection Group %q (Resource Group %q / Policy: %q): %+v", id.RuleCollectionGroupName, id.ResourceGroup, id.FirewallPolicyName, err)
 	}
 
 	d.Set("name", resp.Name)
 	d.Set("priority", resp.Priority)
-	d.Set("firewall_policy_id", parse.NewFirewallPolicyID(id.ResourceGroup, id.PolicyName).ID(subscriptionId))
+	d.Set("firewall_policy_id", parse.NewFirewallPolicyID(subscriptionId, id.ResourceGroup, id.FirewallPolicyName).ID(""))
 
 	applicationRuleCollections, networkRuleCollections, natRuleCollections, err := flattenAzureRmFirewallPolicyRuleCollection(resp.RuleCollections)
 	if err != nil {
@@ -491,16 +490,16 @@ func resourceArmFirewallPolicyRuleCollectionGroupDelete(d *schema.ResourceData, 
 		return err
 	}
 
-	locks.ByName(id.PolicyName, azureFirewallPolicyResourceName)
-	defer locks.UnlockByName(id.PolicyName, azureFirewallPolicyResourceName)
+	locks.ByName(id.FirewallPolicyName, azureFirewallPolicyResourceName)
+	defer locks.UnlockByName(id.FirewallPolicyName, azureFirewallPolicyResourceName)
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.PolicyName, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.FirewallPolicyName, id.RuleCollectionGroupName)
 	if err != nil {
-		return fmt.Errorf("deleting Firewall Policy Rule Collection Group %q (Resource Group %q / Policy: %q): %+v", id.Name, id.ResourceGroup, id.PolicyName, err)
+		return fmt.Errorf("deleting Firewall Policy Rule Collection Group %q (Resource Group %q / Policy: %q): %+v", id.RuleCollectionGroupName, id.ResourceGroup, id.FirewallPolicyName, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deleting %q (Resource Group %q / Policy: %q): %+v", id.Name, id.ResourceGroup, id.PolicyName, err)
+			return fmt.Errorf("waiting for deleting %q (Resource Group %q / Policy: %q): %+v", id.RuleCollectionGroupName, id.ResourceGroup, id.FirewallPolicyName, err)
 		}
 	}
 

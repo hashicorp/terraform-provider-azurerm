@@ -192,7 +192,7 @@ func resourceArmStorageAccount() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: validate.StorageAccountIPRule,
+								ValidateFunc: validate.StorageAccountIpRule,
 							},
 							Set: schema.HashString,
 						},
