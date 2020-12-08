@@ -1,4 +1,4 @@
-package securitycenter
+package parse
 
 import (
 	"fmt"
@@ -24,7 +24,7 @@ func (id AdvancedThreatProtectionId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.TargetResourceID, id.SettingName)
 }
 
-func ParseAdvancedThreatProtectionID(input string) (*AdvancedThreatProtectionId, error) {
+func AdvancedThreatProtectionID(input string) (*AdvancedThreatProtectionId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Advanced Threat Protection Set ID %q: %+v", input, err)

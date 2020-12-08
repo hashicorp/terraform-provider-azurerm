@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -53,7 +54,7 @@ func resourceArmAdvancedThreatProtectionCreateUpdate(d *schema.ResourceData, met
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := NewAdvancedThreatProtectionId(d.Get("target_resource_id").(string))
+	id := parse.NewAdvancedThreatProtectionId(d.Get("target_resource_id").(string))
 	if d.IsNewResource() {
 		server, err := client.Get(ctx, id.TargetResourceID)
 		if err != nil {
@@ -86,7 +87,7 @@ func resourceArmAdvancedThreatProtectionRead(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseAdvancedThreatProtectionID(d.Id())
+	id, err := parse.AdvancedThreatProtectionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -115,7 +116,7 @@ func resourceArmAdvancedThreatProtectionDelete(d *schema.ResourceData, meta inte
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseAdvancedThreatProtectionID(d.Id())
+	id, err := parse.AdvancedThreatProtectionID(d.Id())
 	if err != nil {
 		return err
 	}
