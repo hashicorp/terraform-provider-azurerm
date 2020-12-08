@@ -1,4 +1,4 @@
-package tests
+package servicebus_test
 
 import (
 	"fmt"

@@ -1,4 +1,4 @@
-package tests
+package servicebus_test
 
 import (
 	"fmt"
@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -152,7 +151,7 @@ func testCheckAzureRMServiceBusNamespaceNetworkRuleDestroy(s *terraform.State) e
 			return nil
 		}
 
-		if !servicebus.CheckNetworkRuleNullified(resp) {
+		if !CheckNetworkRuleNullified(resp) {
 			return fmt.Errorf("the Service Bus Namespace Network Rule Set (Namespace %q / Resource Group %q) still exists", id.NamespaceName, id.ResourceGroup)
 		}
 	}
