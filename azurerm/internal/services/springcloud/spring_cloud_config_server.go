@@ -1,4 +1,4 @@
-package appplatform
+package springcloud
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"

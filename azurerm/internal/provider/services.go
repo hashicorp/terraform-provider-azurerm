@@ -7,7 +7,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appplatform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/attestation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
@@ -101,7 +101,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		analysisservices.Registration{},
 		apimanagement.Registration{},
 		appconfiguration.Registration{},
-		appplatform.Registration{},
+		springcloud.Registration{},
 		applicationinsights.Registration{},
 		attestation.Registration{},
 		authorization.Registration{},

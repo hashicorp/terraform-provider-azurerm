@@ -1,4 +1,4 @@
-package appplatform
+package springcloud
 
 import (
 	"fmt"
@@ -7,8 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appplatform/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appplatform/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"

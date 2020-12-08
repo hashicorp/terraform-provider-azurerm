@@ -5,17 +5,17 @@ package validate
 import (
 	"fmt"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appplatform/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/parse"
 )
 
-func SpringCloudServiceID(input interface{}, key string) (warnings []string, errors []error) {
+func SpringCloudAppID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
 
-	if _, err := parse.SpringCloudServiceID(v); err != nil {
+	if _, err := parse.SpringCloudAppID(v); err != nil {
 		errors = append(errors, err)
 	}
 

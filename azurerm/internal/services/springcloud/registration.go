@@ -1,4 +1,4 @@
-package appplatform
+package springcloud
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -8,7 +8,7 @@ type Registration struct{}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
-	return "App Platform"
+	return "Spring Cloud"
 }
 
 // WebsiteCategories returns a list of categories which can be used for the sidebar
