@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmStorageEncryptionScope() *schema.Resource {
+func resourceStorageEncryptionScope() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStorageEncryptionScopeCreate,
-		Read:   resourceArmStorageEncryptionScopeRead,
-		Update: resourceArmStorageEncryptionScopeUpdate,
-		Delete: resourceArmStorageEncryptionScopeDelete,
+		Create: resourceStorageEncryptionScopeCreate,
+		Read:   resourceStorageEncryptionScopeRead,
+		Update: resourceStorageEncryptionScopeUpdate,
+		Delete: resourceStorageEncryptionScopeDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.EncryptionScopeID(id)
@@ -71,7 +71,7 @@ func resourceArmStorageEncryptionScope() *schema.Resource {
 	}
 }
 
-func resourceArmStorageEncryptionScopeCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageEncryptionScopeCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.EncryptionScopesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -113,10 +113,10 @@ func resourceArmStorageEncryptionScopeCreate(d *schema.ResourceData, meta interf
 	}
 
 	d.SetId(resourceId)
-	return resourceArmStorageEncryptionScopeRead(d, meta)
+	return resourceStorageEncryptionScopeRead(d, meta)
 }
 
-func resourceArmStorageEncryptionScopeUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageEncryptionScopeUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.EncryptionScopesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -145,10 +145,10 @@ func resourceArmStorageEncryptionScopeUpdate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("updating Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q): %+v", id.Name, id.StorageAccountName, id.ResourceGroup, err)
 	}
 
-	return resourceArmStorageEncryptionScopeRead(d, meta)
+	return resourceStorageEncryptionScopeRead(d, meta)
 }
 
-func resourceArmStorageEncryptionScopeRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageEncryptionScopeRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.EncryptionScopesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -197,7 +197,7 @@ func resourceArmStorageEncryptionScopeRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceArmStorageEncryptionScopeDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageEncryptionScopeDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.EncryptionScopesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

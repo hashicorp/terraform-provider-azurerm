@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmStorageSync() *schema.Resource {
+func resourceStorageSync() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStorageSyncCreate,
-		Read:   resourceArmStorageSyncRead,
-		Update: resourceArmStorageSyncUpdate,
-		Delete: resourceArmStorageSyncDelete,
+		Create: resourceStorageSyncCreate,
+		Read:   resourceStorageSyncRead,
+		Update: resourceStorageSyncUpdate,
+		Delete: resourceStorageSyncDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.StorageSyncServiceID(id)
@@ -66,7 +66,7 @@ func resourceArmStorageSync() *schema.Resource {
 	}
 }
 
-func resourceArmStorageSyncCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageSyncCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.SyncServiceClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -110,10 +110,10 @@ func resourceArmStorageSyncCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmStorageSyncRead(d, meta)
+	return resourceStorageSyncRead(d, meta)
 }
 
-func resourceArmStorageSyncRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageSyncRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.SyncServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -141,7 +141,7 @@ func resourceArmStorageSyncRead(d *schema.ResourceData, meta interface{}) error 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmStorageSyncUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageSyncUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.SyncServiceClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -172,10 +172,10 @@ func resourceArmStorageSyncUpdate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("waiting for update of Storage Sync(Storage Sync Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return resourceArmStorageSyncRead(d, meta)
+	return resourceStorageSyncRead(d, meta)
 }
 
-func resourceArmStorageSyncDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageSyncDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.SyncServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

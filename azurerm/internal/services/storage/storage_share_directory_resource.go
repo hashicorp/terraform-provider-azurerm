@@ -18,12 +18,12 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/directories"
 )
 
-func resourceArmStorageShareDirectory() *schema.Resource {
+func resourceStorageShareDirectory() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStorageShareDirectoryCreate,
-		Read:   resourceArmStorageShareDirectoryRead,
-		Update: resourceArmStorageShareDirectoryUpdate,
-		Delete: resourceArmStorageShareDirectoryDelete,
+		Create: resourceStorageShareDirectoryCreate,
+		Read:   resourceStorageShareDirectoryRead,
+		Update: resourceStorageShareDirectoryUpdate,
+		Delete: resourceStorageShareDirectoryDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -60,7 +60,7 @@ func resourceArmStorageShareDirectory() *schema.Resource {
 	}
 }
 
-func resourceArmStorageShareDirectoryCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageShareDirectoryCreate(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
@@ -122,10 +122,10 @@ func resourceArmStorageShareDirectoryCreate(d *schema.ResourceData, meta interfa
 	resourceID := client.GetResourceID(accountName, shareName, directoryName)
 	d.SetId(resourceID)
 
-	return resourceArmStorageShareDirectoryRead(d, meta)
+	return resourceStorageShareDirectoryRead(d, meta)
 }
 
-func resourceArmStorageShareDirectoryUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageShareDirectoryUpdate(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
@@ -155,10 +155,10 @@ func resourceArmStorageShareDirectoryUpdate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error updating MetaData for Directory %q (File Share %q / Account %q): %+v", id.DirectoryName, id.ShareName, id.AccountName, err)
 	}
 
-	return resourceArmStorageShareDirectoryRead(d, meta)
+	return resourceStorageShareDirectoryRead(d, meta)
 }
 
-func resourceArmStorageShareDirectoryRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageShareDirectoryRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
@@ -199,7 +199,7 @@ func resourceArmStorageShareDirectoryRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func resourceArmStorageShareDirectoryDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageShareDirectoryDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage

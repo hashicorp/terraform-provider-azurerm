@@ -15,12 +15,12 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/table/entities"
 )
 
-func resourceArmStorageTableEntity() *schema.Resource {
+func resourceStorageTableEntity() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStorageTableEntityCreateUpdate,
-		Read:   resourceArmStorageTableEntityRead,
-		Update: resourceArmStorageTableEntityCreateUpdate,
-		Delete: resourceArmStorageTableEntityDelete,
+		Create: resourceStorageTableEntityCreateUpdate,
+		Read:   resourceStorageTableEntityRead,
+		Update: resourceStorageTableEntityCreateUpdate,
+		Delete: resourceStorageTableEntityDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -43,7 +43,7 @@ func resourceArmStorageTableEntity() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateArmStorageAccountName,
+				ValidateFunc: ValidateStorageAccountName,
 			},
 			"partition_key": {
 				Type:         schema.TypeString,
@@ -68,7 +68,7 @@ func resourceArmStorageTableEntity() *schema.Resource {
 	}
 }
 
-func resourceArmStorageTableEntityCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageTableEntityCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
@@ -130,10 +130,10 @@ func resourceArmStorageTableEntityCreateUpdate(d *schema.ResourceData, meta inte
 	resourceID := client.GetResourceID(accountName, tableName, partitionKey, rowKey)
 	d.SetId(resourceID)
 
-	return resourceArmStorageTableEntityRead(d, meta)
+	return resourceStorageTableEntityRead(d, meta)
 }
 
-func resourceArmStorageTableEntityRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageTableEntityRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
@@ -180,7 +180,7 @@ func resourceArmStorageTableEntityRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceArmStorageTableEntityDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageTableEntityDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage

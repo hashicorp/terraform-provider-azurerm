@@ -31,12 +31,12 @@ import (
 
 var storageAccountResourceName = "azurerm_storage_account"
 
-func resourceArmStorageAccount() *schema.Resource {
+func resourceStorageAccount() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStorageAccountCreate,
-		Read:   resourceArmStorageAccountRead,
-		Update: resourceArmStorageAccountUpdate,
-		Delete: resourceArmStorageAccountDelete,
+		Create: resourceStorageAccountCreate,
+		Read:   resourceStorageAccountRead,
+		Update: resourceStorageAccountUpdate,
+		Delete: resourceStorageAccountDelete,
 
 		MigrateState:  ResourceStorageAccountMigrateState,
 		SchemaVersion: 2,
@@ -57,7 +57,7 @@ func resourceArmStorageAccount() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateArmStorageAccountName,
+				ValidateFunc: ValidateStorageAccountName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -616,7 +616,7 @@ func validateAzureRMStorageAccountTags(v interface{}, _ string) (warnings []stri
 	return warnings, errors
 }
 
-func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
 	envName := meta.(*clients.Client).Account.Environment.Name
 	client := meta.(*clients.Client).Storage.AccountsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -812,10 +812,10 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	return resourceArmStorageAccountRead(d, meta)
+	return resourceStorageAccountRead(d, meta)
 }
 
-func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageAccountUpdate(d *schema.ResourceData, meta interface{}) error {
 	envName := meta.(*clients.Client).Account.Environment.Name
 	client := meta.(*clients.Client).Storage.AccountsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -1070,10 +1070,10 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	return resourceArmStorageAccountRead(d, meta)
+	return resourceStorageAccountRead(d, meta)
 }
 
-func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.AccountsClient
 	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -1304,7 +1304,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	client := storageClient.AccountsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -1958,7 +1958,7 @@ func flattenStorageAccountBypass(input storage.Bypass) []interface{} {
 	return bypass
 }
 
-func ValidateArmStorageAccountName(v interface{}, _ string) (warnings []string, errors []error) {
+func ValidateStorageAccountName(v interface{}, _ string) (warnings []string, errors []error) {
 	input := v.(string)
 
 	if !regexp.MustCompile(`\A([a-z0-9]{3,24})\z`).MatchString(input) {

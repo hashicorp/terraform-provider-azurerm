@@ -11,9 +11,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 )
 
-func dataSourceArmStorageAccountBlobContainerSharedAccessSignature() *schema.Resource {
+func dataSourceStorageAccountBlobContainerSharedAccessSignature() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmStorageContainerSasRead,
+		Read: dataSourceStorageContainerSasRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -130,7 +130,7 @@ func dataSourceArmStorageAccountBlobContainerSharedAccessSignature() *schema.Res
 	}
 }
 
-func dataSourceArmStorageContainerSasRead(d *schema.ResourceData, _ interface{}) error {
+func dataSourceStorageContainerSasRead(d *schema.ResourceData, _ interface{}) error {
 	connString := d.Get("connection_string").(string)
 	containerName := d.Get("container_name").(string)
 	httpsOnly := d.Get("https_only").(bool)

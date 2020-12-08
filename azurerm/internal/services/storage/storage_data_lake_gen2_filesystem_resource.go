@@ -17,12 +17,12 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/datalakestore/filesystems"
 )
 
-func resourceArmStorageDataLakeGen2FileSystem() *schema.Resource {
+func resourceStorageDataLakeGen2FileSystem() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStorageDataLakeGen2FileSystemCreate,
-		Read:   resourceArmStorageDataLakeGen2FileSystemRead,
-		Update: resourceArmStorageDataLakeGen2FileSystemUpdate,
-		Delete: resourceArmStorageDataLakeGen2FileSystemDelete,
+		Create: resourceStorageDataLakeGen2FileSystemCreate,
+		Read:   resourceStorageDataLakeGen2FileSystemRead,
+		Update: resourceStorageDataLakeGen2FileSystemUpdate,
+		Delete: resourceStorageDataLakeGen2FileSystemDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
@@ -62,7 +62,7 @@ func resourceArmStorageDataLakeGen2FileSystem() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateArmStorageDataLakeGen2FileSystemName,
+				ValidateFunc: validateStorageDataLakeGen2FileSystemName,
 			},
 
 			"storage_account_id": {
@@ -77,7 +77,7 @@ func resourceArmStorageDataLakeGen2FileSystem() *schema.Resource {
 	}
 }
 
-func resourceArmStorageDataLakeGen2FileSystemCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageDataLakeGen2FileSystemCreate(d *schema.ResourceData, meta interface{}) error {
 	accountsClient := meta.(*clients.Client).Storage.AccountsClient
 	client := meta.(*clients.Client).Storage.FileSystemsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -124,10 +124,10 @@ func resourceArmStorageDataLakeGen2FileSystemCreate(d *schema.ResourceData, meta
 	}
 
 	d.SetId(id)
-	return resourceArmStorageDataLakeGen2FileSystemRead(d, meta)
+	return resourceStorageDataLakeGen2FileSystemRead(d, meta)
 }
 
-func resourceArmStorageDataLakeGen2FileSystemUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageDataLakeGen2FileSystemUpdate(d *schema.ResourceData, meta interface{}) error {
 	accountsClient := meta.(*clients.Client).Storage.AccountsClient
 	client := meta.(*clients.Client).Storage.FileSystemsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -164,10 +164,10 @@ func resourceArmStorageDataLakeGen2FileSystemUpdate(d *schema.ResourceData, meta
 		return fmt.Errorf("Error updating Properties for File System %q in Storage Account %q: %s", id.DirectoryName, id.AccountName, err)
 	}
 
-	return resourceArmStorageDataLakeGen2FileSystemRead(d, meta)
+	return resourceStorageDataLakeGen2FileSystemRead(d, meta)
 }
 
-func resourceArmStorageDataLakeGen2FileSystemRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageDataLakeGen2FileSystemRead(d *schema.ResourceData, meta interface{}) error {
 	accountsClient := meta.(*clients.Client).Storage.AccountsClient
 	client := meta.(*clients.Client).Storage.FileSystemsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -216,7 +216,7 @@ func resourceArmStorageDataLakeGen2FileSystemRead(d *schema.ResourceData, meta i
 	return nil
 }
 
-func resourceArmStorageDataLakeGen2FileSystemDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageDataLakeGen2FileSystemDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.FileSystemsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -236,7 +236,7 @@ func resourceArmStorageDataLakeGen2FileSystemDelete(d *schema.ResourceData, meta
 	return nil
 }
 
-func validateArmStorageDataLakeGen2FileSystemName(v interface{}, k string) (warnings []string, errors []error) {
+func validateStorageDataLakeGen2FileSystemName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`^\$root$|^[0-9a-z-]+$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(

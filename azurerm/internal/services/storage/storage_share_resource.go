@@ -15,12 +15,12 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/shares"
 )
 
-func resourceArmStorageShare() *schema.Resource {
+func resourceStorageShare() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStorageShareCreate,
-		Read:   resourceArmStorageShareRead,
-		Update: resourceArmStorageShareUpdate,
-		Delete: resourceArmStorageShareDelete,
+		Create: resourceStorageShareCreate,
+		Read:   resourceStorageShareRead,
+		Update: resourceStorageShareUpdate,
+		Delete: resourceStorageShareDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -119,7 +119,7 @@ func resourceArmStorageShare() *schema.Resource {
 	}
 }
 
-func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageShareCreate(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
@@ -172,10 +172,10 @@ func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("setting ACL's for Share %q (Account %q / Resource Group %q): %+v", shareName, accountName, account.ResourceGroup, err)
 	}
 
-	return resourceArmStorageShareRead(d, meta)
+	return resourceStorageShareRead(d, meta)
 }
 
-func resourceArmStorageShareRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageShareRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
@@ -229,7 +229,7 @@ func resourceArmStorageShareRead(d *schema.ResourceData, meta interface{}) error
 	return nil
 }
 
-func resourceArmStorageShareUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageShareUpdate(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
@@ -289,10 +289,10 @@ func resourceArmStorageShareUpdate(d *schema.ResourceData, meta interface{}) err
 		log.Printf("[DEBUG] Updated the ACL's for File Share %q (Storage Account %q)", id.Name, id.AccountName)
 	}
 
-	return resourceArmStorageShareRead(d, meta)
+	return resourceStorageShareRead(d, meta)
 }
 
-func resourceArmStorageShareDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageShareDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage

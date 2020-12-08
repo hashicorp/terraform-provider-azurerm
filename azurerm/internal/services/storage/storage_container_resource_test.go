@@ -402,7 +402,7 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func TestValidateArmStorageContainerName(t *testing.T) {
+func TestValidateStorageContainerName(t *testing.T) {
 	validNames := []string{
 		"valid-name",
 		"valid02-name",

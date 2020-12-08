@@ -18,11 +18,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmStorageSyncCloudEndpoint() *schema.Resource {
+func resourceStorageSyncCloudEndpoint() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStorageSyncCloudEndpointCreate,
-		Read:   resourceArmStorageSyncCloudEndpointRead,
-		Delete: resourceArmStorageSyncCloudEndpointDelete,
+		Create: resourceStorageSyncCloudEndpointCreate,
+		Read:   resourceStorageSyncCloudEndpointRead,
+		Delete: resourceStorageSyncCloudEndpointDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.StorageSyncCloudEndpointID(id)
@@ -75,7 +75,7 @@ func resourceArmStorageSyncCloudEndpoint() *schema.Resource {
 	}
 }
 
-func resourceArmStorageSyncCloudEndpointCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageSyncCloudEndpointCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.CloudEndpointsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -126,10 +126,10 @@ func resourceArmStorageSyncCloudEndpointCreate(d *schema.ResourceData, meta inte
 
 	d.SetId(*resp.ID)
 
-	return resourceArmStorageSyncCloudEndpointRead(d, meta)
+	return resourceStorageSyncCloudEndpointRead(d, meta)
 }
 
-func resourceArmStorageSyncCloudEndpointRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageSyncCloudEndpointRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.CloudEndpointsClient
 	gpClient := meta.(*clients.Client).Storage.SyncGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -170,7 +170,7 @@ func resourceArmStorageSyncCloudEndpointRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceArmStorageSyncCloudEndpointDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageSyncCloudEndpointDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.CloudEndpointsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

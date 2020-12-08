@@ -10,9 +10,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-func dataSourceArmStorageManagementPolicy() *schema.Resource {
+func dataSourceStorageManagementPolicy() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmStorageManagementPolicyRead,
+		Read: dataSourceStorageManagementPolicyRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -103,7 +103,7 @@ func dataSourceArmStorageManagementPolicy() *schema.Resource {
 	}
 }
 
-func dataSourceArmStorageManagementPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceStorageManagementPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.ManagementPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

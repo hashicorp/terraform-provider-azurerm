@@ -18,12 +18,12 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/files"
 )
 
-func resourceArmStorageShareFile() *schema.Resource {
+func resourceStorageShareFile() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStorageShareFileCreate,
-		Read:   resourceArmStorageShareFileRead,
-		Update: resourceArmStorageShareFileUpdate,
-		Delete: resourceArmStorageShareFileDelete,
+		Create: resourceStorageShareFileCreate,
+		Read:   resourceStorageShareFileRead,
+		Update: resourceStorageShareFileUpdate,
+		Delete: resourceStorageShareFileDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -91,7 +91,7 @@ func resourceArmStorageShareFile() *schema.Resource {
 	}
 }
 
-func resourceArmStorageShareFileCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageShareFileCreate(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
@@ -181,10 +181,10 @@ func resourceArmStorageShareFileCreate(d *schema.ResourceData, meta interface{})
 	resourceID := client.GetResourceID(storageShareID.AccountName, storageShareID.Name, path, fileName)
 	d.SetId(resourceID)
 
-	return resourceArmStorageShareFileRead(d, meta)
+	return resourceStorageShareFileRead(d, meta)
 }
 
-func resourceArmStorageShareFileUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageShareFileUpdate(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
@@ -244,10 +244,10 @@ func resourceArmStorageShareFileUpdate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	return resourceArmStorageShareFileRead(d, meta)
+	return resourceStorageShareFileRead(d, meta)
 }
 
-func resourceArmStorageShareFileRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageShareFileRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
@@ -307,7 +307,7 @@ func resourceArmStorageShareFileRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceArmStorageShareFileDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageShareFileDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage

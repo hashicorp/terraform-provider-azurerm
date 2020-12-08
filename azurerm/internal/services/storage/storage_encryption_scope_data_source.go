@@ -12,9 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmStorageEncryptionScope() *schema.Resource {
+func dataSourceStorageEncryptionScope() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmStorageEncryptionScopeRead,
+		Read: dataSourceStorageEncryptionScopeRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -46,7 +46,7 @@ func dataSourceArmStorageEncryptionScope() *schema.Resource {
 	}
 }
 
-func dataSourceArmStorageEncryptionScopeRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceStorageEncryptionScopeRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.EncryptionScopesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

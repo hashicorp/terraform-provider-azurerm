@@ -16,9 +16,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmStorageAccount() *schema.Resource {
+func dataSourceStorageAccount() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmStorageAccountRead,
+		Read: dataSourceStorageAccountRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -258,7 +258,7 @@ func dataSourceArmStorageAccount() *schema.Resource {
 	}
 }
 
-func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.AccountsClient
 	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

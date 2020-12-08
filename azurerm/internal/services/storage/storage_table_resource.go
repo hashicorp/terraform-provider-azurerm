@@ -15,12 +15,12 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/table/tables"
 )
 
-func resourceArmStorageTable() *schema.Resource {
+func resourceStorageTable() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStorageTableCreate,
-		Read:   resourceArmStorageTableRead,
-		Delete: resourceArmStorageTableDelete,
-		Update: resourceArmStorageTableUpdate,
+		Create: resourceStorageTableCreate,
+		Read:   resourceStorageTableRead,
+		Delete: resourceStorageTableDelete,
+		Update: resourceStorageTableUpdate,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -58,7 +58,7 @@ func resourceArmStorageTable() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateArmStorageAccountName,
+				ValidateFunc: ValidateStorageAccountName,
 			},
 
 			"acl": {
@@ -101,7 +101,7 @@ func resourceArmStorageTable() *schema.Resource {
 	}
 }
 
-func resourceArmStorageTableCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageTableCreate(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
@@ -144,10 +144,10 @@ func resourceArmStorageTableCreate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("setting ACL's for Storage Table %q (Account %q / Resource Group %q): %+v", tableName, accountName, account.ResourceGroup, err)
 	}
 
-	return resourceArmStorageTableRead(d, meta)
+	return resourceStorageTableRead(d, meta)
 }
 
-func resourceArmStorageTableRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageTableRead(d *schema.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -197,7 +197,7 @@ func resourceArmStorageTableRead(d *schema.ResourceData, meta interface{}) error
 	return nil
 }
 
-func resourceArmStorageTableDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageTableDelete(d *schema.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -228,7 +228,7 @@ func resourceArmStorageTableDelete(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceArmStorageTableUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageTableUpdate(d *schema.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -264,7 +264,7 @@ func resourceArmStorageTableUpdate(d *schema.ResourceData, meta interface{}) err
 		log.Printf("[DEBUG] Updated the ACL's for Storage Table %q (Storage Account %q)", id.Name, id.AccountName)
 	}
 
-	return resourceArmStorageTableRead(d, meta)
+	return resourceStorageTableRead(d, meta)
 }
 
 func expandStorageTableACLs(input []interface{}) []tables.SignedIdentifier {

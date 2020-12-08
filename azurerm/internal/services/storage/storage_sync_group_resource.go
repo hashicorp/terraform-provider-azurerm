@@ -16,11 +16,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmStorageSyncGroup() *schema.Resource {
+func resourceStorageSyncGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStorageSyncGroupCreate,
-		Read:   resourceArmStorageSyncGroupRead,
-		Delete: resourceArmStorageSyncGroupDelete,
+		Create: resourceStorageSyncGroupCreate,
+		Read:   resourceStorageSyncGroupRead,
+		Delete: resourceStorageSyncGroupDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.StorageSyncGroupID(id)
@@ -51,7 +51,7 @@ func resourceArmStorageSyncGroup() *schema.Resource {
 	}
 }
 
-func resourceArmStorageSyncGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageSyncGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.SyncGroupsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -84,10 +84,10 @@ func resourceArmStorageSyncGroupCreate(d *schema.ResourceData, meta interface{})
 
 	d.SetId(*resp.ID)
 
-	return resourceArmStorageSyncGroupRead(d, meta)
+	return resourceStorageSyncGroupRead(d, meta)
 }
 
-func resourceArmStorageSyncGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageSyncGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.SyncGroupsClient
 	ssClient := meta.(*clients.Client).Storage.SyncServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -124,7 +124,7 @@ func resourceArmStorageSyncGroupRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceArmStorageSyncGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageSyncGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.SyncGroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

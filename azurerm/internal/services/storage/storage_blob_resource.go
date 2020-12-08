@@ -16,12 +16,12 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs"
 )
 
-func resourceArmStorageBlob() *schema.Resource {
+func resourceStorageBlob() *schema.Resource {
 	return &schema.Resource{
-		Create:        resourceArmStorageBlobCreate,
-		Read:          resourceArmStorageBlobRead,
-		Update:        resourceArmStorageBlobUpdate,
-		Delete:        resourceArmStorageBlobDelete,
+		Create:        resourceStorageBlobCreate,
+		Read:          resourceStorageBlobRead,
+		Update:        resourceStorageBlobUpdate,
+		Delete:        resourceStorageBlobDelete,
 		MigrateState:  ResourceStorageBlobMigrateState,
 		SchemaVersion: 1,
 		Importer: &schema.ResourceImporter{
@@ -47,7 +47,7 @@ func resourceArmStorageBlob() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateArmStorageAccountName,
+				ValidateFunc: ValidateStorageAccountName,
 			},
 
 			"storage_container_name": {
@@ -140,7 +140,7 @@ func resourceArmStorageBlob() *schema.Resource {
 	}
 }
 
-func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageBlobCreate(d *schema.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -211,10 +211,10 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 
 	d.SetId(id)
 
-	return resourceArmStorageBlobUpdate(d, meta)
+	return resourceStorageBlobUpdate(d, meta)
 }
 
-func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageBlobUpdate(d *schema.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -283,10 +283,10 @@ func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) erro
 		log.Printf("[DEBUG] Updated MetaData for Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountName)
 	}
 
-	return resourceArmStorageBlobRead(d, meta)
+	return resourceStorageBlobRead(d, meta)
 }
 
-func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageBlobRead(d *schema.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -356,7 +356,7 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func resourceArmStorageBlobDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageBlobDelete(d *schema.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

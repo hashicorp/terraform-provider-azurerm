@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmStorageAccountCustomerManagedKey() *schema.Resource {
+func resourceStorageAccountCustomerManagedKey() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStorageAccountCustomerManagedKeyCreateUpdate,
-		Read:   resourceArmStorageAccountCustomerManagedKeyRead,
-		Update: resourceArmStorageAccountCustomerManagedKeyCreateUpdate,
-		Delete: resourceArmStorageAccountCustomerManagedKeyDelete,
+		Create: resourceStorageAccountCustomerManagedKeyCreateUpdate,
+		Read:   resourceStorageAccountCustomerManagedKeyRead,
+		Update: resourceStorageAccountCustomerManagedKeyCreateUpdate,
+		Delete: resourceStorageAccountCustomerManagedKeyDelete,
 
 		// TODO: this needs a custom ID validating importer
 		Importer: &schema.ResourceImporter{
@@ -68,7 +68,7 @@ func resourceArmStorageAccountCustomerManagedKey() *schema.Resource {
 	}
 }
 
-func resourceArmStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage.AccountsClient
 	vaultsClient := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -163,10 +163,10 @@ func resourceArmStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceD
 	}
 
 	d.SetId(resourceID)
-	return resourceArmStorageAccountCustomerManagedKeyRead(d, meta)
+	return resourceStorageAccountCustomerManagedKeyRead(d, meta)
 }
 
-func resourceArmStorageAccountCustomerManagedKeyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageAccountCustomerManagedKeyRead(d *schema.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage.AccountsClient
 	vaultsClient := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -232,7 +232,7 @@ func resourceArmStorageAccountCustomerManagedKeyRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceArmStorageAccountCustomerManagedKeyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageAccountCustomerManagedKeyDelete(d *schema.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage.AccountsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
