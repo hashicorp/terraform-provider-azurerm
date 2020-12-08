@@ -124,7 +124,6 @@ func (client APIKeysClient) CreateSender(req *http.Request) (*http.Response, err
 func (client APIKeysClient) CreateResponder(resp *http.Response) (result ApplicationInsightsComponentAPIKey, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -212,7 +211,6 @@ func (client APIKeysClient) DeleteSender(req *http.Request) (*http.Response, err
 func (client APIKeysClient) DeleteResponder(resp *http.Response) (result ApplicationInsightsComponentAPIKey, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -300,7 +298,6 @@ func (client APIKeysClient) GetSender(req *http.Request) (*http.Response, error)
 func (client APIKeysClient) GetResponder(resp *http.Response) (result ApplicationInsightsComponentAPIKey, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -386,7 +383,6 @@ func (client APIKeysClient) ListSender(req *http.Request) (*http.Response, error
 func (client APIKeysClient) ListResponder(resp *http.Response) (result ApplicationInsightsComponentAPIKeyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

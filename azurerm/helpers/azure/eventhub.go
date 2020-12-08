@@ -5,10 +5,9 @@ import (
 	"log"
 	"regexp"
 
+	"github.com/Azure/azure-sdk-for-go/services/preview/eventhub/mgmt/2018-01-01-preview/eventhub"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-
-	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 )
 
 // validation
@@ -49,7 +48,7 @@ func ExpandEventHubAuthorizationRuleRights(d *schema.ResourceData) *[]eventhub.A
 	}
 
 	if d.Get("send").(bool) {
-		rights = append(rights, eventhub.Send)
+		rights = append(rights, eventhub.SendEnumValue)
 	}
 
 	if d.Get("manage").(bool) {
@@ -67,7 +66,7 @@ func FlattenEventHubAuthorizationRuleRights(rights *[]eventhub.AccessRights) (li
 			switch right {
 			case eventhub.Listen:
 				listen = true
-			case eventhub.Send:
+			case eventhub.SendEnumValue:
 				send = true
 			case eventhub.Manage:
 				manage = true
@@ -88,16 +87,22 @@ func EventHubAuthorizationRuleSchemaFrom(s map[string]*schema.Schema) map[string
 			Default:  false,
 		},
 
-		"send": {
+		"manage": {
 			Type:     schema.TypeBool,
 			Optional: true,
 			Default:  false,
 		},
 
-		"manage": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			Default:  false,
+		"primary_connection_string": {
+			Type:      schema.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
+		"primary_connection_string_alias": {
+			Type:      schema.TypeString,
+			Computed:  true,
+			Sensitive: true,
 		},
 
 		"primary_key": {
@@ -106,7 +111,13 @@ func EventHubAuthorizationRuleSchemaFrom(s map[string]*schema.Schema) map[string
 			Sensitive: true,
 		},
 
-		"primary_connection_string": {
+		"secondary_connection_string": {
+			Type:      schema.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
+		"secondary_connection_string_alias": {
 			Type:      schema.TypeString,
 			Computed:  true,
 			Sensitive: true,
@@ -118,10 +129,10 @@ func EventHubAuthorizationRuleSchemaFrom(s map[string]*schema.Schema) map[string
 			Sensitive: true,
 		},
 
-		"secondary_connection_string": {
-			Type:      schema.TypeString,
-			Computed:  true,
-			Sensitive: true,
+		"send": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 	}
 	return MergeSchema(s, authSchema)

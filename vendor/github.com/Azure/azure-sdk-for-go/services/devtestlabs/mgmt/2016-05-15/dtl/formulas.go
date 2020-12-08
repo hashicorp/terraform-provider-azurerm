@@ -134,7 +134,6 @@ func (client FormulasClient) CreateOrUpdateSender(req *http.Request) (future For
 func (client FormulasClient) CreateOrUpdateResponder(resp *http.Response) (result Formula, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -212,7 +211,6 @@ func (client FormulasClient) DeleteSender(req *http.Request) (*http.Response, er
 func (client FormulasClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -293,7 +291,6 @@ func (client FormulasClient) GetSender(req *http.Request) (*http.Response, error
 func (client FormulasClient) GetResponder(resp *http.Response) (result Formula, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -337,6 +334,9 @@ func (client FormulasClient) List(ctx context.Context, resourceGroupName string,
 	result.rwcf, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.FormulasClient", "List", resp, "Failure responding to request")
+	}
+	if result.rwcf.hasNextLink() && result.rwcf.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -386,7 +386,6 @@ func (client FormulasClient) ListSender(req *http.Request) (*http.Response, erro
 func (client FormulasClient) ListResponder(resp *http.Response) (result ResponseWithContinuationFormula, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

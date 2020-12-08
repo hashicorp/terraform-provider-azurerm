@@ -9,10 +9,10 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -53,11 +53,19 @@ func resourceArmRedisFirewallRule() *schema.Resource {
 			"start_ip": {
 				Type:     schema.TypeString,
 				Required: true,
+				ValidateFunc: validation.All(
+					validation.IsIPAddress,
+					validation.StringIsNotEmpty,
+				),
 			},
 
 			"end_ip": {
 				Type:     schema.TypeString,
 				Required: true,
+				ValidateFunc: validation.All(
+					validation.IsIPAddress,
+					validation.StringIsNotEmpty,
+				),
 			},
 		},
 	}
@@ -75,7 +83,7 @@ func resourceArmRedisFirewallRuleCreateUpdate(d *schema.ResourceData, meta inter
 	startIP := d.Get("start_ip").(string)
 	endIP := d.Get("end_ip").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, cacheName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -128,7 +136,6 @@ func resourceArmRedisFirewallRuleRead(d *schema.ResourceData, meta interface{}) 
 	name := id.Path["firewallRules"]
 
 	resp, err := client.Get(ctx, resourceGroup, cacheName, name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Redis Firewall Rule %q was not found in Cache %q / Resource Group %q - removing from state", name, cacheName, resourceGroup)
@@ -164,7 +171,6 @@ func resourceArmRedisFirewallRuleDelete(d *schema.ResourceData, meta interface{}
 	name := id.Path["firewallRules"]
 
 	resp, err := client.Delete(ctx, resourceGroup, cacheName, name)
-
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return fmt.Errorf("Error issuing AzureRM delete request of Redis Firewall Rule %q (cache %q / resource group %q): %+v", name, cacheName, resourceGroup, err)

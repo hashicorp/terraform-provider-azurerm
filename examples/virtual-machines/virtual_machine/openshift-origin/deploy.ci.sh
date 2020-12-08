@@ -31,7 +31,7 @@ docker run --rm -it \
         -var openshift_script_path=$LOCAL_SCRIPT_PATH \
         -var ssh_public_key=\"$OS_PUBLIC_KEY\" \
         -var connection_private_ssh_key_path=$CONTAINER_PRIVATE_KEY_PATH \
-        -var master_instance_count=$MASTER_COUNT \
+        -var primary_instance_count=$PRIMARY_COUNT \
         -var infra_instance_count=$INFRA_COUNT \
         -var node_instance_count=$NODE_COUNT; \
       /bin/terraform apply out.tfplan;"

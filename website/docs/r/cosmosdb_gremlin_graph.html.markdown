@@ -50,6 +50,8 @@ resource "azurerm_cosmosdb_gremlin_graph" "example" {
 }
 ```
 
+-> **NOTE:** The CosmosDB Account needs to have the `EnableGremlin` capability enabled to use this resource - which can be done by adding this to the `capabilities` list within the `azurerm_cosmosdb_account` resource.
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -64,13 +66,23 @@ The following arguments are supported:
 
 * `partition_key_path` - (Optional) Define a partition key. Changing this forces a new resource to be created.
 
-* `throughput` - (Optional) The throughput of the Gremlin database (RU/s). Must be set in increments of `100`. The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.
+* `throughput` - (Optional) The throughput of the Gremlin graph (RU/s). Must be set in increments of `100`. The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.
+
+* `autoscale_settings` - (Optional) An `autoscale_settings` block as defined below. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply. Requires `partition_key_path` to be set.
+
+~> **Note:** Switching between autoscale and manual throughput is not supported via Terraform and must be completed via the Azure Portal and refreshed. 
 
 * `index_policy` - (Required) The configuration of the indexing policy. One or more `index_policy` blocks as defined below. Changing this forces a new resource to be created.
 
 * `conflict_resolution_policy` - (Required) The conflict resolution policy for the graph. One or more `conflict_resolution_policy` blocks as defined below. Changing this forces a new resource to be created.
 
 * `unique_key` (Optional) One or more `unique_key` blocks as defined below. Changing this forces a new resource to be created.
+
+---
+
+An `autoscale_settings` block supports the following:
+
+* `max_throughput` - (Optional) The maximum throughput of the Gremlin graph (RU/s). Must be between `4,000` and `1,000,000`. Must be set in increments of `1,000`. Conflicts with `throughput`.
 
 ---
 
@@ -101,7 +113,7 @@ An `unique_key` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the CosmosDB Gremlin Graph.
-``
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
@@ -116,5 +128,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Cosmos Gremlin Graphs can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_cosmosdb_gremlin_graph.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.DocumentDB/databaseAccounts/account1/apis/gremlin/databases/db1/graphs/graphs1
+terraform import azurerm_cosmosdb_gremlin_graph.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.DocumentDB/databaseAccounts/account1/gremlinDatabases/db1/graphs/graphs1
 ```

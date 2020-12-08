@@ -117,7 +117,6 @@ func (client UsageSummariesClient) ListSender(req *http.Request) (*http.Response
 func (client UsageSummariesClient) ListResponder(resp *http.Response) (result ManagementUsageList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

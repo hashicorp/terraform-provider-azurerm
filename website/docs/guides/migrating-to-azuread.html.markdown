@@ -32,7 +32,7 @@ can become:
 
 ```hcl
 provider "azuread" {
-  version = "=0.1.0"
+  version = "=0.10.0"
 }
 ```
 
@@ -73,7 +73,7 @@ resource "azurerm_azuread_service_principal_password" "example" {
 }
 ```
 
-we can remove the `azurerm_` prefix from each of the resource names and interpolations to use the `AzureAD` provider instead by making this:
+we can remove the `azurerm_` prefix from each of the resource names and interpolations to use the `AzureAD` provider instead of by making this:
 
 ```hcl
 resource "azuread_application" "example" {
@@ -91,15 +91,22 @@ resource "azuread_service_principal_password" "example" {
 }
 ```
 
-At this point it should be possible to run `terraform init`, which will download the new AzureAD Provider.
+At this point, it should be possible to run `terraform init`, which will download the new AzureAD Provider.
+
 
 ## Migrating Resources in the State
 
 Now that we've updated the Provider Block and the Terraform Configuration we need to update the names of the resources in the state.
 
-Firstly, let's list the existing items in the state - we can do this by running `terraform state list`, for example:
+The method for performing this differs between Terraform v0.11 and Terraform v0.12, due to improved state handling in v0.12 which protects against moving resources between providers.
 
-```bash
+### Terraform v0.11
+
+Firstly, it's a good idea to create a backup of your statefile. For a local statefile, simply create a copy. If you are using a Remote State Backend, ensure your backend platform is creating snapshots or backups for rollback purposes.
+
+Let's list the existing items in the state - we can do this by running `terraform state list`, for example:
+
+```shell
 $ terraform state list
 azurerm_azuread_application.example
 azurerm_azuread_service_principal.example
@@ -110,11 +117,71 @@ azurerm_azuread_service_principal_password.example
 As the Terraform Configuration has been updated - we can move each of the resources in the state using the `terraform state mv` command, for example:
 
 ```shell
-$ terraform state mv azurerm_azuread_application.exampleazuread_application.example
+$ terraform state mv azurerm_azuread_application.example azuread_application.example
 Moved azurerm_azuread_application.example to azuread_application.example
 ```
 
 This needs to be repeated for each of the Azure Active Directory resources which exist in the state.
+
+Note that if you encounter any problems with the built-in state management commands, you can also follow the instructions below for Terraform v0.12.
+
+### Terraform v0.12
+
+With Terraform v0.12 (or later), this operation needs to be performed manually. To do this, you will need a local copy of your statefile. If you are using a Remote State Backend, you will first need to download a copy of your statefile.
+
+```shell
+$ terraform state pull >current.tfstate
+```
+
+Once you have a local copy of your statefile, you can run the following command to replace the necessary values for your resources. This will work on all matching resources in your state, and you will need the [jq](https://stedolan.github.io/jq/download/) tool (version 1.5 or later).
+
+```shell
+$ jq '
+  def migrateName: sub("^azurerm_azuread_";"azuread_");
+  .resources[].type |= migrateName |
+  .resources[].instances[].dependencies[]? |= migrateName' \
+  <current.tfstate \
+  >new.tfstate
+```
+
+Inspect the `new.tfstate` file and compare it against your `current.tfstate` file to verify the correct attributes were changed.
+
+```shell
+$ diff current.tfstate new.tfstate
+10c10
+<       "type": "azurerm_azuread_application",
+---
+>       "type": "azuread_application",
+32c32
+<       "type": "azurerm_azuread_service_principal",
+---
+>       "type": "azuread_service_principal",
+45c45
+<             "azurerm_azuread_application.test"
+---
+>             "azuread_application.test"
+52c52
+<       "type": "azurerm_azuread_service_principal_password",
+---
+>       "type": "azuread_service_principal_password",
+68,69c68,69
+<             "azurerm_azuread_application.test",
+<             "azurerm_azuread_service_principal.test"
+---
+>             "azuread_application.test",
+>             "azuread_service_principal.test"
+```
+
+There should be no unexpected or unrelated changes in your diff output.
+
+For a remote state, you will need to push the new statefile to your backend.
+
+```shell
+$ terraform state push new.tfstate
+```
+
+
+## Verifying the new State
 
 Once this has been done, running `terraform plan` should show no changes:
 
@@ -134,4 +201,4 @@ configuration and real physical resources that exist. As a result, no
 actions need to be performed.
 ```
 
-At this point you've switched over to using [the new Azure Active Directory provider](http://terraform.io/docs/providers/azuread/index.html)! You can stay up to date with Releases (and file Feature Requests/Bugs) [on the Github repository](https://github.com/terraform-providers/terraform-provider-azuread).
+At this point, you've switched over to using [the new Azure Active Directory provider](http://terraform.io/docs/providers/azuread/index.html)! You can stay up to date with Releases (and file Feature Requests/Bugs) [on the Github repository](https://github.com/terraform-providers/terraform-provider-azuread).

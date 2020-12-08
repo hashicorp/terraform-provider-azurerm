@@ -3,6 +3,7 @@ package provider
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -73,6 +74,8 @@ func TestResourcesSupportCustomTimeouts(t *testing.T) {
 			}
 			if resource.Timeouts.Read == nil {
 				t.Fatalf("Resource %q doesn't define a Read timeout", resourceName)
+			} else if *resource.Timeouts.Read > 5*time.Minute {
+				t.Fatalf("Read timeouts shouldn't be more than 5 minutes, this indicates a bug which needs to be fixed")
 			}
 
 			// Optional
@@ -84,5 +87,5 @@ func TestResourcesSupportCustomTimeouts(t *testing.T) {
 }
 
 func TestProvider_impl(t *testing.T) {
-	var _ = AzureProvider()
+	_ = AzureProvider()
 }

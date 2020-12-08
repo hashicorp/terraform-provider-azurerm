@@ -120,7 +120,6 @@ func (client MetricBaselineClient) CalculateBaselineSender(req *http.Request) (*
 func (client MetricBaselineClient) CalculateBaselineResponder(resp *http.Response) (result CalculateBaselineResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -219,7 +218,6 @@ func (client MetricBaselineClient) GetSender(req *http.Request) (*http.Response,
 func (client MetricBaselineClient) GetResponder(resp *http.Response) (result BaselineResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -6,13 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/azuresdkhacks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -98,10 +97,8 @@ func resourceArmNetworkInterfaceSecurityGroupAssociationCreate(d *schema.Resourc
 
 	// first double-check it doesn't exist
 	resourceId := fmt.Sprintf("%s|%s", networkInterfaceId, networkSecurityGroupId)
-	if features.ShouldResourcesBeImported() {
-		if props.NetworkSecurityGroup != nil {
-			return tf.ImportAsExistsError("azurerm_network_interface_security_group_association", resourceGroup)
-		}
+	if props.NetworkSecurityGroup != nil {
+		return tf.ImportAsExistsError("azurerm_network_interface_security_group_association", resourceId)
 	}
 
 	props.NetworkSecurityGroup = &network.SecurityGroup{
@@ -143,7 +140,9 @@ func resourceArmNetworkInterfaceSecurityGroupAssociationRead(d *schema.ResourceD
 	read, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
-			return fmt.Errorf("Network Interface %q (Resource Group %q) was not found!", name, resourceGroup)
+			log.Printf("Network Interface %q (Resource Group %q) was not found - removing from state!", name, resourceGroup)
+			d.SetId("")
+			return nil
 		}
 
 		return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", name, resourceGroup, err)

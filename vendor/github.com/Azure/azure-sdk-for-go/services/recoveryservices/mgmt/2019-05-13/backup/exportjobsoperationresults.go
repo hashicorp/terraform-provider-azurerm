@@ -114,7 +114,6 @@ func (client ExportJobsOperationResultsClient) GetSender(req *http.Request) (*ht
 func (client ExportJobsOperationResultsClient) GetResponder(resp *http.Response) (result OperationResultInfoBaseResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

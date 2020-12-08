@@ -124,7 +124,6 @@ func (client WaitStatisticsClient) GetSender(req *http.Request) (*http.Response,
 func (client WaitStatisticsClient) GetResponder(resp *http.Response) (result WaitStatistic, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -182,6 +181,9 @@ func (client WaitStatisticsClient) ListByServer(ctx context.Context, resourceGro
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.WaitStatisticsClient", "ListByServer", resp, "Failure responding to request")
 	}
+	if result.wsrl.hasNextLink() && result.wsrl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -220,7 +222,6 @@ func (client WaitStatisticsClient) ListByServerSender(req *http.Request) (*http.
 func (client WaitStatisticsClient) ListByServerResponder(resp *http.Response) (result WaitStatisticsResultList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

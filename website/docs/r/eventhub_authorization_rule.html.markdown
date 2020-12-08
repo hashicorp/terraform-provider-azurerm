@@ -75,13 +75,17 @@ The following attributes are exported:
 
 * `id` - The EventHub ID.
 
-* `primary_key` - The Primary Key for the Event Hubs authorization Rule.
+* `primary_connection_string_alias` - The alias of the Primary Connection String for the Event Hubs authorization Rule, which is generated when disaster recovery is enabled.
+
+* `secondary_connection_string_alias` - The alias of the Secondary Connection String for the Event Hubs Authorization Rule, which is generated when disaster recovery is enabled.
 
 * `primary_connection_string` - The Primary Connection String for the Event Hubs authorization Rule.
 
-* `secondary_key` - The Secondary Key for the Event Hubs Authorization Rule.
+* `primary_key` - The Primary Key for the Event Hubs authorization Rule.
 
 * `secondary_connection_string` - The Secondary Connection String for the Event Hubs Authorization Rule.
+
+* `secondary_key` - The Secondary Key for the Event Hubs Authorization Rule.
 
 ## Timeouts
 

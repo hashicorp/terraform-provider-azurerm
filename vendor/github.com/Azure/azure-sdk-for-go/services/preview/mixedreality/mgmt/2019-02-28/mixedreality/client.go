@@ -136,7 +136,6 @@ func (client BaseClient) CheckNameAvailabilityLocalSender(req *http.Request) (*h
 func (client BaseClient) CheckNameAvailabilityLocalResponder(resp *http.Response) (result CheckNameAvailabilityResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -7,7 +7,7 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-06-01/storage"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -73,8 +73,11 @@ func resourceArmStorageManagementPolicy() *schema.Resource {
 										Type:     schema.TypeSet,
 										Optional: true,
 										Elem: &schema.Schema{
-											Type:         schema.TypeString,
-											ValidateFunc: validation.StringInSlice([]string{"blockBlob"}, false),
+											Type: schema.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{
+												"blockBlob",
+												"appendBlob",
+											}, false),
 										},
 										Set: schema.HashString,
 									},
@@ -240,6 +243,7 @@ func resourceArmStorageManagementPolicyDelete(d *schema.ResourceData, meta inter
 	return nil
 }
 
+// nolint unparam
 func expandStorageManagementPolicyRules(d *schema.ResourceData) (*[]storage.ManagementPolicyRule, error) {
 	var result []storage.ManagementPolicyRule
 
@@ -247,17 +251,13 @@ func expandStorageManagementPolicyRules(d *schema.ResourceData) (*[]storage.Mana
 
 	for k, v := range rules {
 		if v != nil {
-			policyRule, err := expandStorageManagementPolicyRule(d, k)
-			if err != nil {
-				return nil, err
-			}
-			result = append(result, policyRule)
+			result = append(result, expandStorageManagementPolicyRule(d, k))
 		}
 	}
 	return &result, nil
 }
 
-func expandStorageManagementPolicyRule(d *schema.ResourceData, ruleIndex int) (storage.ManagementPolicyRule, error) {
+func expandStorageManagementPolicyRule(d *schema.ResourceData, ruleIndex int) storage.ManagementPolicyRule {
 	name := d.Get(fmt.Sprintf("rule.%d.name", ruleIndex)).(string)
 	enabled := d.Get(fmt.Sprintf("rule.%d.enabled", ruleIndex)).(bool)
 	typeVal := "Lifecycle"
@@ -333,7 +333,7 @@ func expandStorageManagementPolicyRule(d *schema.ResourceData, ruleIndex int) (s
 		Type:       &typeVal,
 		Definition: &definition,
 	}
-	return rule, nil
+	return rule
 }
 
 func flattenStorageManagementPolicyRules(armRules *[]storage.ManagementPolicyRule) []interface{} {

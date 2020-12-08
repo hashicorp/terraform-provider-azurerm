@@ -2,12 +2,114 @@ package tests
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
+
+func TestAccWindowsVirtualMachine_otherPatchModeManual(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testWindowsVirtualMachine_otherPatchModeManual(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+		},
+	})
+}
+
+func TestAccWindowsVirtualMachine_otherPatchModeAutomaticByOS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testWindowsVirtualMachine_otherPatchModeAutomaticByOS(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+		},
+	})
+}
+
+func TestAccWindowsVirtualMachine_otherPatchModeAutomaticByPlatform(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testWindowsVirtualMachine_otherPatchModeAutomaticByPlatform(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+		},
+	})
+}
+
+func TestAccWindowsVirtualMachine_otherPatchModeUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testWindowsVirtualMachine_otherPatchModeAutomaticByOS(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+			{
+				Config: testWindowsVirtualMachine_otherPatchModeAutomaticByPlatform(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+			{
+				Config: testWindowsVirtualMachine_otherPatchModeManual(data), // this update requires force replacement actually
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+		},
+	})
+}
 
 func TestAccWindowsVirtualMachine_otherAdditionalUnattendContent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
@@ -75,6 +177,134 @@ func TestAccWindowsVirtualMachine_otherAllowExtensionOperationsDisabled(t *testi
 	})
 }
 
+func TestAccWindowsVirtualMachine_otherAllowExtensionOperationsUpdated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testWindowsVirtualMachine_otherAllowExtensionOperationsDefault(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "allow_extension_operations", "true"),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+			{
+				Config: testWindowsVirtualMachine_otherAllowExtensionOperationsDisabled(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "allow_extension_operations", "false"),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+		},
+	})
+}
+
+func TestAccWindowsVirtualMachine_otherAllowExtensionOperationsUpdatedWithoutVmAgent(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testWindowsVirtualMachine_otherAllowExtensionOperationsDisabledWithoutVmAgent(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "allow_extension_operations", "false"),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+			{
+				Config: testWindowsVirtualMachine_otherAllowExtensionOperationsEnabledWithoutVmAgent(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "allow_extension_operations", "true"),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+		},
+	})
+}
+
+func TestAccWindowsVirtualMachine_otherExtensionsTimeBudget(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testWindowsVirtualMachine_otherExtensionsTimeBudget(data, "PT30M"),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "extensions_time_budget", "PT30M"),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+		},
+	})
+}
+
+func TestAccWindowsVirtualMachine_otherExtensionsTimeBudgetUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testWindowsVirtualMachine_otherExtensionsTimeBudget(data, "PT30M"),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "extensions_time_budget", "PT30M"),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+			{
+				Config: testWindowsVirtualMachine_otherExtensionsTimeBudget(data, "PT50M"),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "extensions_time_budget", "PT50M"),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+			{
+				Config: testWindowsVirtualMachine_otherExtensionsTimeBudget(data, "PT30M"),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "extensions_time_budget", "PT30M"),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+		},
+	})
+}
+
 func TestAccWindowsVirtualMachine_otherBootDiagnostics(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 
@@ -117,6 +347,48 @@ func TestAccWindowsVirtualMachine_otherBootDiagnostics(t *testing.T) {
 	})
 }
 
+func TestAccWindowsVirtualMachine_otherBootDiagnosticsManaged(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				// Enabled
+				Config: testWindowsVirtualMachine_otherBootDiagnosticsManaged(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+			{
+				// Disabled
+				Config: testWindowsVirtualMachine_otherBootDiagnosticsDisabled(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+			{
+				// Enabled
+				Config: testWindowsVirtualMachine_otherBootDiagnosticsManaged(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+		},
+	})
+}
+
 func TestAccWindowsVirtualMachine_otherComputerNameDefault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 
@@ -135,6 +407,22 @@ func TestAccWindowsVirtualMachine_otherComputerNameDefault(t *testing.T) {
 			data.ImportStep(
 				"admin_password",
 			),
+		},
+	})
+}
+
+func TestAccWindowsVirtualMachine_otherComputerNameDefaultInvalid(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config:      testWindowsVirtualMachine_otherComputerNameDefaultInvalid(data),
+				ExpectError: regexp.MustCompile("unable to assume default computer name"),
+			},
 		},
 	})
 }
@@ -287,6 +575,46 @@ func TestAccWindowsVirtualMachine_otherLicenseTypeWindowsServer(t *testing.T) {
 	})
 }
 
+func TestAccWindowsVirtualMachine_otherLicenseTypeUpdated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testWindowsVirtualMachine_otherLicenseTypeDefault(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+			{
+				Config: testWindowsVirtualMachine_otherLicenseTypeWindowsClient(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "license_type", "Windows_Client"),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+			{
+				Config: testWindowsVirtualMachine_otherLicenseTypeDefault(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+		},
+	})
+}
+
 func TestAccWindowsVirtualMachine_otherPrioritySpot(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 
@@ -385,11 +713,6 @@ func TestAccWindowsVirtualMachine_otherProvisionVMAgentDisabled(t *testing.T) {
 }
 
 func TestAccWindowsVirtualMachine_otherRequiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -499,6 +822,82 @@ func TestAccWindowsVirtualMachine_otherTimeZone(t *testing.T) {
 	})
 }
 
+func TestAccWindowsVirtualMachine_otherUltraSsdDefault(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testWindowsVirtualMachine_otherUltraSsdDefault(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "additional_capabilities.0.ultra_ssd_enabled", "false"),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+		},
+	})
+}
+
+func TestAccWindowsVirtualMachine_otherUltraSsdEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testWindowsVirtualMachine_otherUltraSsdEnabled(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "additional_capabilities.0.ultra_ssd_enabled", "true"),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+		},
+	})
+}
+
+func TestAccWindowsVirtualMachine_otherUltraSsdUpdated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testWindowsVirtualMachine_otherUltraSsdDefault(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "additional_capabilities.0.ultra_ssd_enabled", "false"),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+			{
+				Config: testWindowsVirtualMachine_otherUltraSsdEnabled(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "additional_capabilities.0.ultra_ssd_enabled", "true"),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+		},
+	})
+}
+
 func TestAccWindowsVirtualMachine_otherWinRMHTTP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 
@@ -530,6 +929,232 @@ func TestAccWindowsVirtualMachine_otherWinRMHTTPS(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testWindowsVirtualMachine_otherWinRMHTTPS(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+		},
+	})
+}
+
+func TestAccWindowsVirtualMachine_otherEncryptionAtHostEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccWindowsVirtualMachine_otherEncryptionAtHostEnabled(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+		},
+	})
+}
+
+func TestAccWindowsVirtualMachine_otherEncryptionAtHostEnabledUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccWindowsVirtualMachine_otherEncryptionAtHostEnabled(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+			{
+				Config: testAccWindowsVirtualMachine_otherEncryptionAtHostEnabled(data, false),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+			{
+				Config: testAccWindowsVirtualMachine_otherEncryptionAtHostEnabled(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+		},
+	})
+}
+
+func TestAccWindowsVirtualMachine_otherEncryptionAtHostEnabledWithCMK(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccWindowsVirtualMachine_otherEncryptionAtHostEnabledWithCMK(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+		},
+	})
+}
+
+func testWindowsVirtualMachine_otherPatchModeManual(data acceptance.TestData) string {
+	template := testWindowsVirtualMachine_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+
+  enable_automatic_updates = false
+  patch_mode               = "Manual"
+}
+`, template)
+}
+
+func testWindowsVirtualMachine_otherPatchModeAutomaticByOS(data acceptance.TestData) string {
+	template := testWindowsVirtualMachine_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+
+  patch_mode = "AutomaticByOS"
+}
+`, template)
+}
+
+func testWindowsVirtualMachine_otherPatchModeAutomaticByPlatform(data acceptance.TestData) string {
+	template := testWindowsVirtualMachine_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+
+  patch_mode = "AutomaticByPlatform"
+}
+`, template)
+}
+
+func TestAccWindowsVirtualMachine_otherGracefulShutdownDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testWindowsVirtualMachine_otherGracefulShutdown(data, false),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+		},
+	})
+}
+
+func TestAccWindowsVirtualMachine_otherGracefulShutdownEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testWindowsVirtualMachine_otherGracefulShutdown(data, true),
 				Check: resource.ComposeTestCheckFunc(
 					checkWindowsVirtualMachineExists(data.ResourceName),
 				),
@@ -640,6 +1265,105 @@ resource "azurerm_windows_virtual_machine" "test" {
 `, template)
 }
 
+func testWindowsVirtualMachine_otherAllowExtensionOperationsDisabledWithoutVmAgent(data acceptance.TestData) string {
+	template := testWindowsVirtualMachine_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                       = local.vm_name
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  size                       = "Standard_F2"
+  admin_username             = "adminuser"
+  admin_password             = "P@$$w0rd1234!"
+  allow_extension_operations = false
+  provision_vm_agent         = false
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+}
+`, template)
+}
+
+func testWindowsVirtualMachine_otherAllowExtensionOperationsEnabledWithoutVmAgent(data acceptance.TestData) string {
+	template := testWindowsVirtualMachine_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                       = local.vm_name
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  size                       = "Standard_F2"
+  admin_username             = "adminuser"
+  admin_password             = "P@$$w0rd1234!"
+  allow_extension_operations = true
+  provision_vm_agent         = false
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+}
+`, template)
+}
+
+func testWindowsVirtualMachine_otherExtensionsTimeBudget(data acceptance.TestData, duration string) string {
+	template := testWindowsVirtualMachine_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+
+  extensions_time_budget = "%s"
+}
+`, template, duration)
+}
+
 func testWindowsVirtualMachine_otherBootDiagnostics(data acceptance.TestData) string {
 	template := testWindowsVirtualMachine_otherBootDiagnosticsTemplate(data)
 	return fmt.Sprintf(`
@@ -659,6 +1383,39 @@ resource "azurerm_windows_virtual_machine" "test" {
   boot_diagnostics {
     storage_account_uri = azurerm_storage_account.test.primary_blob_endpoint
   }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+}
+`, template)
+}
+
+func testWindowsVirtualMachine_otherBootDiagnosticsManaged(data acceptance.TestData) string {
+	template := testWindowsVirtualMachine_otherBootDiagnosticsTemplate(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  boot_diagnostics {}
 
   os_disk {
     caching              = "ReadWrite"
@@ -728,6 +1485,37 @@ func testWindowsVirtualMachine_otherComputerNameDefault(data acceptance.TestData
 
 resource "azurerm_windows_virtual_machine" "test" {
   name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+}
+`, template)
+}
+
+func testWindowsVirtualMachine_otherComputerNameDefaultInvalid(data acceptance.TestData) string {
+	template := testWindowsVirtualMachine_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = "${local.vm_name}-this-too-long-to-be-a-computer-name"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   size                = "Standard_F2"
@@ -873,6 +1661,37 @@ resource "azurerm_windows_virtual_machine" "test" {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
     sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+}
+`, template)
+}
+
+func testWindowsVirtualMachine_otherLicenseTypeDefault(data acceptance.TestData) string {
+	template := testWindowsVirtualMachine_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsDesktop"
+    offer     = "Windows-10"
+    sku       = "rs5-pro"
     version   = "latest"
   }
 }
@@ -1458,6 +2277,74 @@ resource "azurerm_windows_virtual_machine" "test" {
 `, template)
 }
 
+func testWindowsVirtualMachine_otherUltraSsdDefault(data acceptance.TestData) string {
+	template := testWindowsVirtualMachine_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+  zone = 1
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+}
+`, template)
+}
+
+func testWindowsVirtualMachine_otherUltraSsdEnabled(data acceptance.TestData) string {
+	template := testWindowsVirtualMachine_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+  zone = 1
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+
+  additional_capabilities {
+    ultra_ssd_enabled = true
+  }
+}
+`, template)
+}
+
 func testWindowsVirtualMachine_otherWinRMHTTP(data acceptance.TestData) string {
 	template := testWindowsVirtualMachine_template(data)
 	return fmt.Sprintf(`
@@ -1649,4 +2536,147 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 }
 `, template, data.RandomString)
+}
+
+func testAccWindowsVirtualMachine_otherEncryptionAtHostEnabled(data acceptance.TestData, enabled bool) string {
+	template := testWindowsVirtualMachine_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_DS3_V2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+
+  encryption_at_host_enabled = %t
+}
+`, template, enabled)
+}
+
+func testAccWindowsVirtualMachine_otherEncryptionAtHostEnabledWithCMK(data acceptance.TestData, enabled bool) string {
+	template := testWindowsVirtualMachine_diskOSDiskDiskEncryptionSetResource(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_DS3_V2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching                = "ReadWrite"
+    storage_account_type   = "Standard_LRS"
+    disk_encryption_set_id = azurerm_disk_encryption_set.test.id
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+
+  encryption_at_host_enabled = %t
+
+  depends_on = [
+    azurerm_role_assignment.disk-encryption-read-keyvault,
+    azurerm_key_vault_access_policy.disk-encryption,
+  ]
+}
+`, template, enabled)
+}
+
+func testWindowsVirtualMachine_otherGracefulShutdown(data acceptance.TestData, gracefulShutdown bool) string {
+	return fmt.Sprintf(`
+locals {
+  vm_name = "acctestvm%s"
+}
+
+provider "azurerm" {
+  features {
+    virtual_machine {
+      graceful_shutdown = %t
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestnw-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctestnic-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+}
+`, data.RandomString, gracefulShutdown, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

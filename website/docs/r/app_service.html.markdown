@@ -73,8 +73,6 @@ The following arguments are supported:
 
 * `auth_settings` - (Optional) A `auth_settings` block as defined below.
 
-* `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
-
 * `backup` - (Optional) A `backup` block as defined below.
 
 * `connection_string` - (Optional) One or more `connection_string` blocks as defined below.
@@ -85,15 +83,19 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Is the App Service Enabled?
 
+* `identity` - (Optional) A Managed Service Identity block as defined below.
+
 * `https_only` - (Optional) Can the App Service only be accessed via HTTPS? Defaults to `false`.
 
 * `logs` - (Optional) A `logs` block as defined below.
 
+* `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
+
 * `site_config` - (Optional) A `site_config` block as defined below.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `source_control` - (Optional) A Source Control block as defined below
 
-* `identity` - (Optional) A Managed Service Identity block as defined below.
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
@@ -159,7 +161,7 @@ An `azure_blob_storage` block supports the following:
 
 * `level` - (Required) The level at which to log. Possible values include `Error`, `Warning`, `Information`, `Verbose` and `Off`. **NOTE:** this field is not available for `http_logs`
 
-* `sas_url` - (Required) The URL to the storage container, with a Service SAS token appended. **NOTE:** there is currently no means of generating Service SAS tokens with the `azurerm` provider.
+* `sas_url` - (Required) The URL to the storage container with a shared access signature token appended. 
 
 * `retention_in_days` - (Required) The number of days to retain logs for.
 
@@ -183,13 +185,27 @@ A `site_config` block supports the following:
 
 * `default_documents` - (Optional) The ordering of default documents to load, if an address isn't specified.
 
-* `dotnet_framework_version` - (Optional) The version of the .net framework's CLR used in this App Service. Possible values are `v2.0` (which will use the latest version of the .net framework for the .net CLR v2 - currently `.net 3.5`) and `v4.0` (which corresponds to the latest version of the .net CLR v4 - which at the time of writing is `.net 4.7.1`). [For more information on which .net CLR version to use based on the .net framework you're targeting - please see this table](https://en.wikipedia.org/wiki/.NET_Framework_version_history#Overview). Defaults to `v4.0`.
+* `dotnet_framework_version` - (Optional) The version of the .net framework's CLR used in this App Service. Possible values are `v2.0` (which will use the latest version of the .net framework for the .net CLR v2 - currently `.net 3.5`), `v4.0` (which corresponds to the latest version of the .net CLR v4 - which at the time of writing is `.net 4.7.1`) and `v5.0`. [For more information on which .net CLR version to use based on the .net framework you're targeting - please see this table](https://en.wikipedia.org/wiki/.NET_Framework_version_history#Overview). Defaults to `v4.0`.
 
 * `ftps_state` - (Optional) State of FTP / FTPS service for this App Service. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`.
+
+* `health_check_path` - (Optional) The health check path to be pinged by App Service. [For more information - please see the corresponding Kudu Wiki page](https://github.com/projectkudu/kudu/wiki/Health-Check-(Preview)).
+
+~> **Note:** This functionality is in Preview and is subject to changes (including breaking changes) on Azure's end
 
 * `http2_enabled` - (Optional) Is HTTP2 Enabled on this App Service? Defaults to `false`.
 
 * `ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing ip restrictions as defined below.
+
+-> **NOTE** User has to explicitly set `ip_restriction` to empty slice (`[]`) to remove it.
+
+* `scm_use_main_ip_restriction` - (Optional)  IP security restrictions for scm to use main. Defaults to false.  
+
+-> **NOTE** Any `scm_ip_restriction` blocks configured are ignored by the service when `scm_use_main_ip_restriction` is set to `true`. Any scm restrictions will become active if this is subsequently set to `false` or removed.  
+
+* `scm_ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing ip restrictions as defined below.
+
+-> **NOTE** User has to explicitly set `scm_ip_restriction` to empty slice (`[]`) to remove it.
 
 * `java_version` - (Optional) The version of Java to use. If specified `java_container` and `java_container_version` must also be specified. Possible values are `1.7`, `1.8` and `11` and their specific versions - except for Java 11 (e.g. `1.7.0_80`, `1.8.0_181`, `11`)
 
@@ -203,6 +219,8 @@ A `site_config` block supports the following:
 
 * `linux_fx_version` - (Optional) Linux App Framework and version for the App Service. Possible options are a Docker container (`DOCKER|<user/image:tag>`), a base-64 encoded Docker Compose file (`COMPOSE|${filebase64("compose.yml")}`) or a base-64 encoded Kubernetes Manifest (`KUBE|${filebase64("kubernetes.yml")}`).
 
+~> **NOTE:** To set this property the App Service Plan to which the App belongs must be configured with `kind = "Linux"`, and `reserved = true` or the API will reject any value supplied.
+
 * `windows_fx_version` - (Optional) The Windows Docker container image (`DOCKER|<user/image:tag>`)
 
 Additional examples of how to run Containers via the `azurerm_app_service` resource can be found in [the `./examples/app-service` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/app-service).
@@ -211,7 +229,7 @@ Additional examples of how to run Containers via the `azurerm_app_service` resou
 
 * `min_tls_version` - (Optional) The minimum supported TLS version for the app service. Possible values are `1.0`, `1.1`, and `1.2`. Defaults to `1.2` for new app services.
 
-* `php_version` - (Optional) The version of PHP to use in this App Service. Possible values are `5.5`, `5.6`, `7.0`, `7.1`, `7.2`, and `7.3`.
+* `php_version` - (Optional) The version of PHP to use in this App Service. Possible values are `5.5`, `5.6`, `7.0`, `7.1`, `7.2`, `7.3` and `7.4`.
 
 * `python_version` - (Optional) The version of Python to use in this App Service. Possible values are `2.7` and `3.4`.
 
@@ -309,6 +327,28 @@ A `ip_restriction` block supports the following:
 
 -> **NOTE:** One of either `ip_address` or `virtual_network_subnet_id` must be specified
 
+* `name` - (Optional) The name for this IP Restriction.
+
+* `priority` - (Optional) The priority for this IP Restriction. Restrictions are enforced in priority order. By default, priority is set to 65000 if not specified.
+
+* `action` - (Optional) Does this restriction `Allow` or `Deny` access for this IP range. Defaults to `Allow`.  
+
+---
+
+A `scm_ip_restriction` block supports the following:
+
+* `ip_address` - (Optional) The IP Address used for this IP Restriction in CIDR notation.
+
+* `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.
+
+-> **NOTE:** One of either `ip_address` or `virtual_network_subnet_id` must be specified
+
+* `name` - (Optional) The name for this IP Restriction.
+
+* `priority` - (Optional) The priority for this IP Restriction. Restrictions are enforced in priority order. By default, priority is set to 65000 if not specified.  
+
+* `action` - (Optional) Allow or Deny access for this IP range. Defaults to Allow.  
+
 ---
 
 A `microsoft` block supports the following:
@@ -345,11 +385,27 @@ A `schedule` block supports the following:
 
 * `start_time` - (Optional) Sets when the schedule should start working.
 
+---
+
+A `source_control` block supports the following:
+
+* `repo_url` - (Required) The URL of the source code repository.
+
+* `branch` - (Optional) The branch of the remote repository to use. Defaults to 'master'. 
+
+* `manual_integration` - (Optional) Limits to manual integration. Defaults to `false` if not specified. 
+
+* `rollback_enabled` - (Optional) Enable roll-back for the repository. Defaults to `false` if not specified.
+
+* `use_mercurial` - (Optional) Use Mercurial if `true`, otherwise uses Git. 
+
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of the App Service.
+
+* `custom_domain_verification_id` - An identifier used by App Service to perform domain ownership verification via DNS TXT record.
 
 * `default_site_hostname` - The Default Hostname associated with the App Service - such as `mysite.azurewebsites.net`
 
@@ -378,6 +434,7 @@ A `identity` block exports the following:
 A `site_credential` block exports the following:
 
 * `username` - The username which can be used to publish to this App Service
+
 * `password` - The password associated with the username, which can be used to publish to this App Service.
 
 ~> **NOTE:** both `username` and `password` for the `site_credential` block are only exported when `scm_type` is set to `LocalGit`

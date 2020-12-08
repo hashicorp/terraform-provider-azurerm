@@ -112,7 +112,6 @@ func (client AlertRuleIncidentsClient) GetSender(req *http.Request) (*http.Respo
 func (client AlertRuleIncidentsClient) GetResponder(resp *http.Response) (result Incident, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -188,7 +187,6 @@ func (client AlertRuleIncidentsClient) ListByAlertRuleSender(req *http.Request) 
 func (client AlertRuleIncidentsClient) ListByAlertRuleResponder(resp *http.Response) (result IncidentListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

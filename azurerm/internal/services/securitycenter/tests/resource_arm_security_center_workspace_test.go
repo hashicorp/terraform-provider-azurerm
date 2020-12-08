@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -33,18 +32,13 @@ func testAccAzureRMSecurityCenterWorkspace_basic(t *testing.T) {
 			data.ImportStep(),
 			{
 				// reset pricing to free
-				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Free"),
+				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Free", "VirtualMachines"),
 			},
 		},
 	})
 }
 
 func testAccAzureRMSecurityCenterWorkspace_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
 
@@ -66,7 +60,7 @@ func testAccAzureRMSecurityCenterWorkspace_requiresImport(t *testing.T) {
 			},
 			{
 				// reset pricing to free
-				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Free"),
+				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Free", "VirtualMachines"),
 			},
 		},
 	})
@@ -98,7 +92,7 @@ func testAccAzureRMSecurityCenterWorkspace_update(t *testing.T) {
 			data.ImportStep(),
 			{
 				// reset pricing to free
-				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Free"),
+				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Free", "VirtualMachines"),
 			},
 		},
 	})
@@ -155,7 +149,8 @@ provider "azurerm" {
 }
 
 resource "azurerm_security_center_subscription_pricing" "test" {
-  tier = "Standard"
+  tier          = "Standard"
+  resource_type = "VirtualMachines"
 }
 
 resource "azurerm_resource_group" "test" {

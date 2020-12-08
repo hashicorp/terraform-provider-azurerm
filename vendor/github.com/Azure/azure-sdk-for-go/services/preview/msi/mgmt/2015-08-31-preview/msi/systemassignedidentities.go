@@ -107,7 +107,6 @@ func (client SystemAssignedIdentitiesClient) GetByScopeSender(req *http.Request)
 func (client SystemAssignedIdentitiesClient) GetByScopeResponder(resp *http.Response) (result SystemAssignedIdentity, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

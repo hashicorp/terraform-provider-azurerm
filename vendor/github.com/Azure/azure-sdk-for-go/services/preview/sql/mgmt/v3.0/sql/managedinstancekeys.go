@@ -119,7 +119,6 @@ func (client ManagedInstanceKeysClient) CreateOrUpdateSender(req *http.Request) 
 func (client ManagedInstanceKeysClient) CreateOrUpdateResponder(resp *http.Response) (result ManagedInstanceKey, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -198,7 +197,6 @@ func (client ManagedInstanceKeysClient) DeleteSender(req *http.Request) (future 
 func (client ManagedInstanceKeysClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -276,7 +274,6 @@ func (client ManagedInstanceKeysClient) GetSender(req *http.Request) (*http.Resp
 func (client ManagedInstanceKeysClient) GetResponder(resp *http.Response) (result ManagedInstanceKey, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -319,6 +316,9 @@ func (client ManagedInstanceKeysClient) ListByInstance(ctx context.Context, reso
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceKeysClient", "ListByInstance", resp, "Failure responding to request")
 	}
+	if result.miklr.hasNextLink() && result.miklr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -358,7 +358,6 @@ func (client ManagedInstanceKeysClient) ListByInstanceSender(req *http.Request) 
 func (client ManagedInstanceKeysClient) ListByInstanceResponder(resp *http.Response) (result ManagedInstanceKeyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

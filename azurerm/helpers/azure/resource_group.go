@@ -18,6 +18,15 @@ func SchemaResourceGroupName() *schema.Schema {
 	}
 }
 
+func SchemaResourceGroupNameDeprecated() *schema.Schema {
+	return &schema.Schema{
+		Type:         schema.TypeString,
+		Optional:     true,
+		ValidateFunc: validateResourceGroupName,
+		Deprecated:   "This field is no longer used and will be removed in the next major version of the Azure Provider",
+	}
+}
+
 func SchemaResourceGroupNameDiffSuppress() *schema.Schema {
 	return &schema.Schema{
 		Type:             schema.TypeString,
@@ -30,8 +39,38 @@ func SchemaResourceGroupNameDiffSuppress() *schema.Schema {
 
 func SchemaResourceGroupNameForDataSource() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeString,
-		Required: true,
+		Type:         schema.TypeString,
+		Required:     true,
+		ValidateFunc: validateResourceGroupName,
+	}
+}
+
+func SchemaResourceGroupNameOptionalComputed() *schema.Schema {
+	return &schema.Schema{
+		Type:         schema.TypeString,
+		ForceNew:     true,
+		Optional:     true,
+		Computed:     true,
+		ValidateFunc: validateResourceGroupName,
+	}
+}
+
+func SchemaResourceGroupNameOptional() *schema.Schema {
+	return &schema.Schema{
+		Type:         schema.TypeString,
+		Optional:     true,
+		ValidateFunc: validateResourceGroupName,
+	}
+}
+
+func SchemaResourceGroupNameSetOptional() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeSet,
+		Optional: true,
+		Elem: &schema.Schema{
+			Type:         schema.TypeString,
+			ValidateFunc: validateResourceGroupName,
+		},
 	}
 }
 
@@ -47,7 +86,7 @@ func validateResourceGroupName(v interface{}, k string) (warnings []string, erro
 	}
 
 	// regex pulled from https://docs.microsoft.com/en-us/rest/api/resources/resourcegroups/createorupdate
-	if matched := regexp.MustCompile(`^[-\w\._\(\)]+$`).Match([]byte(value)); !matched {
+	if matched := regexp.MustCompile(`^[-\w._()]+$`).Match([]byte(value)); !matched {
 		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters, dash, underscores, parentheses and periods", k))
 	}
 

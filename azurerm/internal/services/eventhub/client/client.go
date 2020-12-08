@@ -1,11 +1,12 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
+	"github.com/Azure/azure-sdk-for-go/services/preview/eventhub/mgmt/2018-01-01-preview/eventhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
 type Client struct {
+	ClusterClient                 *eventhub.ClustersClient
 	ConsumerGroupClient           *eventhub.ConsumerGroupsClient
 	DisasterRecoveryConfigsClient *eventhub.DisasterRecoveryConfigsClient
 	EventHubsClient               *eventhub.EventHubsClient
@@ -13,6 +14,9 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) *Client {
+	ClustersClient := eventhub.NewClustersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ClustersClient.Client, o.ResourceManagerAuthorizer)
+
 	EventHubsClient := eventhub.NewEventHubsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&EventHubsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -26,6 +30,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&NamespacesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
+		ClusterClient:                 &ClustersClient,
 		ConsumerGroupClient:           &ConsumerGroupClient,
 		DisasterRecoveryConfigsClient: &DisasterRecoveryConfigsClient,
 		EventHubsClient:               &EventHubsClient,

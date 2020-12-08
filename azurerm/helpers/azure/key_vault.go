@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2019-09-01/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -27,9 +27,9 @@ func GetKeyVaultBaseUrlFromID(ctx context.Context, client *keyvault.VaultsClient
 	resp, err := client.Get(ctx, resourceGroup, vaultName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return "", fmt.Errorf("Error unable to find KeyVault %q (Resource Group %q): %+v", vaultName, resourceGroup, err)
+			return "", fmt.Errorf("failed to find KeyVault %q (Resource Group %q): %+v", vaultName, resourceGroup, err)
 		}
-		return "", fmt.Errorf("Error making Read request on KeyVault %q (Resource Group %q): %+v", vaultName, resourceGroup, err)
+		return "", fmt.Errorf("failed to make Read request on KeyVault %q (Resource Group %q): %+v", vaultName, resourceGroup, err)
 	}
 
 	if resp.Properties == nil || resp.Properties.VaultURI == nil {
@@ -42,7 +42,7 @@ func GetKeyVaultBaseUrlFromID(ctx context.Context, client *keyvault.VaultsClient
 func GetKeyVaultIDFromBaseUrl(ctx context.Context, client *keyvault.VaultsClient, keyVaultUrl string) (*string, error) {
 	list, err := client.ListComplete(ctx, utils.Int32(1000))
 	if err != nil {
-		return nil, fmt.Errorf("Error GetKeyVaultId unable to list Key Vaults %v", err)
+		return nil, fmt.Errorf("failed to list Key Vaults %v", err)
 	}
 
 	for list.NotDone() {
@@ -54,7 +54,7 @@ func GetKeyVaultIDFromBaseUrl(ctx context.Context, client *keyvault.VaultsClient
 
 		vid, err := ParseAzureResourceID(*v.ID)
 		if err != nil {
-			return nil, fmt.Errorf("Error parsing ID for Key Vault URI %q: %s", *v.ID, err)
+			return nil, fmt.Errorf("failed to parse ID for Key Vault URI %q: %s", *v.ID, err)
 		}
 		resourceGroup := vid.ResourceGroup
 		name := vid.Path["vaults"]
@@ -64,11 +64,11 @@ func GetKeyVaultIDFromBaseUrl(ctx context.Context, client *keyvault.VaultsClient
 		if err != nil {
 			if utils.ResponseWasNotFound(get.Response) {
 				if e := list.NextWithContext(ctx); e != nil {
-					return nil, fmt.Errorf("Error getting next vault on KeyVault url %q : %+v", keyVaultUrl, err)
+					return nil, fmt.Errorf("failed to get next vault on KeyVault url %q : %+v", keyVaultUrl, err)
 				}
 				continue
 			}
-			return nil, fmt.Errorf("Error making Read request on KeyVault %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return nil, fmt.Errorf("failed to make Read request on KeyVault %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
 		if get.ID == nil || get.Properties == nil || get.Properties.VaultURI == nil {
@@ -80,7 +80,7 @@ func GetKeyVaultIDFromBaseUrl(ctx context.Context, client *keyvault.VaultsClient
 		}
 
 		if e := list.NextWithContext(ctx); e != nil {
-			return nil, fmt.Errorf("Error getting next vault on KeyVault url %q : %+v", keyVaultUrl, err)
+			return nil, fmt.Errorf("failed to get next vault on KeyVault url %q : %+v", keyVaultUrl, err)
 		}
 	}
 
@@ -109,7 +109,7 @@ func KeyVaultExists(ctx context.Context, client *keyvault.VaultsClient, keyVault
 		if utils.ResponseWasNotFound(resp.Response) {
 			return false, nil
 		}
-		return false, fmt.Errorf("Error making Read request on KeyVault %q (Resource Group %q): %+v", vaultName, resourceGroup, err)
+		return false, fmt.Errorf("failed to make Read request on KeyVault %q (Resource Group %q): %+v", vaultName, resourceGroup, err)
 	}
 
 	if resp.Properties == nil || resp.Properties.VaultURI == nil {

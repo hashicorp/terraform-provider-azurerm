@@ -20,7 +20,7 @@ func testAccAzureRMSecurityCenterSubscriptionPricing_update(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Standard"),
+				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Standard", "AppServices"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSecurityCenterSubscriptionPricingExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tier", "Standard"),
@@ -28,7 +28,7 @@ func testAccAzureRMSecurityCenterSubscriptionPricing_update(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Free"),
+				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Free", "AppServices"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSecurityCenterSubscriptionPricingExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tier", "Free"),
@@ -51,27 +51,28 @@ func testCheckAzureRMSecurityCenterSubscriptionPricingExists(resourceName string
 
 		pricingName := rs.Primary.Attributes["pricings"]
 
-		resp, err := client.GetSubscriptionPricing(ctx, pricingName)
+		resp, err := client.Get(ctx, pricingName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Security Center Subscription Pricing %q was not found: %+v", pricingName, err)
 			}
 
-			return fmt.Errorf("Bad: GetSubscriptionPricing: %+v", err)
+			return fmt.Errorf("Bad: Get: %+v", err)
 		}
 
 		return nil
 	}
 }
 
-func testAccAzureRMSecurityCenterSubscriptionPricing_tier(tier string) string {
+func testAccAzureRMSecurityCenterSubscriptionPricing_tier(tier string, resource_type string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_security_center_subscription_pricing" "test" {
-  tier = "%s"
+  tier          = "%s"
+  resource_type = "%s"
 }
-`, tier)
+`, tier, resource_type)
 }

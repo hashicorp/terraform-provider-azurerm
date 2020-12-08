@@ -113,7 +113,6 @@ func (client JobCancellationsClient) TriggerSender(req *http.Request) (*http.Res
 func (client JobCancellationsClient) TriggerResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp

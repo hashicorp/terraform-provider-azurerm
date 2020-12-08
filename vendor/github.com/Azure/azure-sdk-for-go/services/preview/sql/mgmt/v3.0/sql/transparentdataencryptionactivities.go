@@ -117,7 +117,6 @@ func (client TransparentDataEncryptionActivitiesClient) ListByConfigurationSende
 func (client TransparentDataEncryptionActivitiesClient) ListByConfigurationResponder(resp *http.Response) (result TransparentDataEncryptionActivityListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

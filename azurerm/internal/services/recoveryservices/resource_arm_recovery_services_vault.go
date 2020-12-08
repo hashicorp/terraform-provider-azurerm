@@ -15,7 +15,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -51,6 +50,33 @@ func resourceArmRecoveryServicesVault() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(recoveryservices.SystemAssigned),
+							}, false),
+						},
+
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 
 			"sku": {
@@ -85,7 +111,7 @@ func resourceArmRecoveryServicesVaultCreateUpdate(d *schema.ResourceData, meta i
 
 	log.Printf("[DEBUG] Creating/updating Recovery Service Vault %q (resource group %q)", name, resourceGroup)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -101,6 +127,7 @@ func resourceArmRecoveryServicesVaultCreateUpdate(d *schema.ResourceData, meta i
 	vault := recoveryservices.Vault{
 		Location: utils.String(location),
 		Tags:     tags.Expand(t),
+		Identity: expandValutIdentity(d.Get("identity").([]interface{})),
 		Sku: &recoveryservices.Sku{
 			Name: recoveryservices.SkuName(d.Get("sku").(string)),
 		},
@@ -209,6 +236,10 @@ func resourceArmRecoveryServicesVaultRead(d *schema.ResourceData, meta interface
 		d.Set("soft_delete_enabled", props.SoftDeleteFeatureState == backup.SoftDeleteFeatureStateEnabled)
 	}
 
+	if err := d.Set("identity", flattenVaultIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("Error setting `identity`: %+v", err)
+	}
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
@@ -235,4 +266,39 @@ func resourceArmRecoveryServicesVaultDelete(d *schema.ResourceData, meta interfa
 	}
 
 	return nil
+}
+
+func expandValutIdentity(input []interface{}) *recoveryservices.IdentityData {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	return &recoveryservices.IdentityData{
+		Type: recoveryservices.ResourceIdentityType(v["type"].(string)),
+	}
+}
+
+func flattenVaultIdentity(input *recoveryservices.IdentityData) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	principalID := ""
+	if input.PrincipalID != nil {
+		principalID = *input.PrincipalID
+	}
+
+	tenantID := ""
+	if input.TenantID != nil {
+		tenantID = *input.TenantID
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"type":         string(input.Type),
+			"principal_id": principalID,
+			"tenant_id":    tenantID,
+		},
+	}
 }

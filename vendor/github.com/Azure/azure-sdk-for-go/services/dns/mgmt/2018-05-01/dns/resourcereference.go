@@ -109,7 +109,6 @@ func (client ResourceReferenceClient) GetByTargetResourcesSender(req *http.Reque
 func (client ResourceReferenceClient) GetByTargetResourcesResponder(resp *http.Response) (result ResourceReferenceResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

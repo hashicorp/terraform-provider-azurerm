@@ -149,24 +149,38 @@ func TestAccWindowsVirtualMachine_diskOSDiskEncryptionSet(t *testing.T) {
 		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
-				// TODO: After applying soft-delete and purge-protection in keyVault, this extra step can be removed.
-				Config: testWindowsVirtualMachine_diskOSDiskDiskEncryptionSetDependencies(data),
-				Check: resource.ComposeTestCheckFunc(
-					enableSoftDeleteAndPurgeProtectionForKeyVault("azurerm_key_vault.test"),
-				),
-			},
-			{
-				Config: testWindowsVirtualMachine_diskOSDiskDiskEncryptionSetResource(data),
-			},
-			{
-				Config: testWindowsVirtualMachine_diskOSDiskDiskEncryptionSet(data),
+				Config: testWindowsVirtualMachine_diskOSDiskDiskEncryptionSetEncrypted(data),
 				Check: resource.ComposeTestCheckFunc(
 					checkWindowsVirtualMachineExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(
-				"admin_password",
-			),
+			data.ImportStep("admin_password"),
+		},
+	})
+}
+
+func TestAccWindowsVirtualMachine_diskOSDiskEncryptionSetUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testWindowsVirtualMachine_diskOSDiskDiskEncryptionSetUnencrypted(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("admin_password"),
+			{
+				Config: testWindowsVirtualMachine_diskOSDiskDiskEncryptionSetEncrypted(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("admin_password"),
 		},
 	})
 }
@@ -473,12 +487,11 @@ resource "azurerm_windows_virtual_machine" "test" {
 }
 
 func testWindowsVirtualMachine_diskOSDiskDiskEncryptionSetDependencies(data acceptance.TestData) string {
-	// whilst this is in Preview it's only supported in: West Central US, Canada Central, North Europe
-	// TODO: switch back to default location
-	// once that's done this can also use the same template as everything else too
-	location := "westus2"
-
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 # note: whilst these aren't used in all tests, it saves us redefining these everywhere
 locals {
   vm_name = "acctestvm%s"
@@ -497,6 +510,8 @@ resource "azurerm_key_vault" "test" {
   resource_group_name         = azurerm_resource_group.test.name
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "premium"
+  soft_delete_enabled         = true
+  purge_protection_enabled    = true
   enabled_for_disk_encryption = true
 }
 
@@ -562,7 +577,7 @@ resource "azurerm_network_interface" "test" {
     private_ip_address_allocation = "Dynamic"
   }
 }
-`, data.RandomString, data.RandomInteger, location, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, data.RandomString, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
 func testWindowsVirtualMachine_diskOSDiskDiskEncryptionSetResource(data acceptance.TestData) string {
@@ -602,7 +617,43 @@ resource "azurerm_role_assignment" "disk-encryption-read-keyvault" {
 `, template, data.RandomInteger)
 }
 
-func testWindowsVirtualMachine_diskOSDiskDiskEncryptionSet(data acceptance.TestData) string {
+func testWindowsVirtualMachine_diskOSDiskDiskEncryptionSetUnencrypted(data acceptance.TestData) string {
+	template := testWindowsVirtualMachine_diskOSDiskDiskEncryptionSetResource(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+
+  depends_on = [
+    "azurerm_role_assignment.disk-encryption-read-keyvault",
+    "azurerm_key_vault_access_policy.disk-encryption",
+  ]
+}
+`, template)
+}
+
+func testWindowsVirtualMachine_diskOSDiskDiskEncryptionSetEncrypted(data acceptance.TestData) string {
 	template := testWindowsVirtualMachine_diskOSDiskDiskEncryptionSetResource(data)
 	return fmt.Sprintf(`
 %s
@@ -620,8 +671,8 @@ resource "azurerm_windows_virtual_machine" "test" {
 
   os_disk {
     caching                = "ReadWrite"
-    disk_encryption_set_id = azurerm_disk_encryption_set.test.id
     storage_account_type   = "Standard_LRS"
+    disk_encryption_set_id = azurerm_disk_encryption_set.test.id
   }
 
   source_image_reference {

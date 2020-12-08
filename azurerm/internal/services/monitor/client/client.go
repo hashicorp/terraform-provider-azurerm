@@ -1,6 +1,7 @@
 package client
 
 import (
+	"github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
@@ -8,6 +9,10 @@ import (
 type Client struct {
 	// Autoscale Settings
 	AutoscaleSettingsClient *insights.AutoscaleSettingsClient
+
+	// alerts management
+	ActionRulesClient             *alertsmanagement.ActionRulesClient
+	SmartDetectorAlertRulesClient *alertsmanagement.SmartDetectorAlertRulesClient
 
 	// Monitor
 	ActionGroupsClient               *insights.ActionGroupsClient
@@ -23,6 +28,12 @@ type Client struct {
 func NewClient(o *common.ClientOptions) *Client {
 	AutoscaleSettingsClient := insights.NewAutoscaleSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&AutoscaleSettingsClient.Client, o.ResourceManagerAuthorizer)
+
+	ActionRulesClient := alertsmanagement.NewActionRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ActionRulesClient.Client, o.ResourceManagerAuthorizer)
+
+	SmartDetectorAlertRulesClient := alertsmanagement.NewSmartDetectorAlertRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&SmartDetectorAlertRulesClient.Client, o.ResourceManagerAuthorizer)
 
 	ActionGroupsClient := insights.NewActionGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ActionGroupsClient.Client, o.ResourceManagerAuthorizer)
@@ -50,6 +61,8 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	return &Client{
 		AutoscaleSettingsClient:          &AutoscaleSettingsClient,
+		ActionRulesClient:                &ActionRulesClient,
+		SmartDetectorAlertRulesClient:    &SmartDetectorAlertRulesClient,
 		ActionGroupsClient:               &ActionGroupsClient,
 		ActivityLogAlertsClient:          &ActivityLogAlertsClient,
 		AlertRulesClient:                 &AlertRulesClient,

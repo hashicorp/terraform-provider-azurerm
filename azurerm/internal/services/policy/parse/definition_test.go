@@ -18,6 +18,13 @@ func TestValidatePolicyDefinitionID(t *testing.T) {
 			Error: true,
 		},
 		{
+			Name:  "built-in policy definition ID",
+			Input: "/providers/Microsoft.Authorization/policyDefinitions/00000000-0000-0000-0000-000000000000",
+			Expected: &PolicyDefinitionId{
+				Name: "00000000-0000-0000-0000-000000000000",
+			},
+		},
+		{
 			Name:  "regular policy definition",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/policyDefinitions/def1",
 			Expected: &PolicyDefinitionId{
@@ -39,8 +46,8 @@ func TestValidatePolicyDefinitionID(t *testing.T) {
 			Expected: &PolicyDefinitionId{
 				Name: "def1",
 				PolicyScopeId: ScopeAtManagementGroup{
-					scopeId:           "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000",
-					ManagementGroupId: "00000000-0000-0000-0000-000000000000",
+					scopeId:             "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000",
+					ManagementGroupName: "00000000-0000-0000-0000-000000000000",
 				},
 			},
 		},
@@ -50,8 +57,8 @@ func TestValidatePolicyDefinitionID(t *testing.T) {
 			Expected: &PolicyDefinitionId{
 				Name: "def1",
 				PolicyScopeId: ScopeAtManagementGroup{
-					scopeId:           "/providers/Microsoft.Management/managementgroups/00000000-0000-0000-0000-000000000000",
-					ManagementGroupId: "00000000-0000-0000-0000-000000000000",
+					scopeId:             "/providers/Microsoft.Management/managementgroups/00000000-0000-0000-0000-000000000000",
+					ManagementGroupName: "00000000-0000-0000-0000-000000000000",
 				},
 			},
 		},

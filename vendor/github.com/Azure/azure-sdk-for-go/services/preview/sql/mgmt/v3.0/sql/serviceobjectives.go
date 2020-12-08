@@ -115,7 +115,6 @@ func (client ServiceObjectivesClient) GetSender(req *http.Request) (*http.Respon
 func (client ServiceObjectivesClient) GetResponder(resp *http.Response) (result ServiceObjective, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -192,7 +191,6 @@ func (client ServiceObjectivesClient) ListByServerSender(req *http.Request) (*ht
 func (client ServiceObjectivesClient) ListByServerResponder(resp *http.Response) (result ServiceObjectiveListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

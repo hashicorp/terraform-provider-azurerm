@@ -108,7 +108,6 @@ func (client DenyAssignmentsClient) GetSender(req *http.Request) (*http.Response
 func (client DenyAssignmentsClient) GetResponder(resp *http.Response) (result DenyAssignment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -184,7 +183,6 @@ func (client DenyAssignmentsClient) GetByIDSender(req *http.Request) (*http.Resp
 func (client DenyAssignmentsClient) GetByIDResponder(resp *http.Response) (result DenyAssignment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -232,6 +230,9 @@ func (client DenyAssignmentsClient) List(ctx context.Context, filter string) (re
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.DenyAssignmentsClient", "List", resp, "Failure responding to request")
 	}
+	if result.dalr.hasNextLink() && result.dalr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -269,7 +270,6 @@ func (client DenyAssignmentsClient) ListSender(req *http.Request) (*http.Respons
 func (client DenyAssignmentsClient) ListResponder(resp *http.Response) (result DenyAssignmentListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -359,6 +359,9 @@ func (client DenyAssignmentsClient) ListForResource(ctx context.Context, resourc
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.DenyAssignmentsClient", "ListForResource", resp, "Failure responding to request")
 	}
+	if result.dalr.hasNextLink() && result.dalr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -401,7 +404,6 @@ func (client DenyAssignmentsClient) ListForResourceSender(req *http.Request) (*h
 func (client DenyAssignmentsClient) ListForResourceResponder(resp *http.Response) (result DenyAssignmentListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -487,6 +489,9 @@ func (client DenyAssignmentsClient) ListForResourceGroup(ctx context.Context, re
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.DenyAssignmentsClient", "ListForResourceGroup", resp, "Failure responding to request")
 	}
+	if result.dalr.hasNextLink() && result.dalr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -525,7 +530,6 @@ func (client DenyAssignmentsClient) ListForResourceGroupSender(req *http.Request
 func (client DenyAssignmentsClient) ListForResourceGroupResponder(resp *http.Response) (result DenyAssignmentListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -611,6 +615,9 @@ func (client DenyAssignmentsClient) ListForScope(ctx context.Context, scope stri
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.DenyAssignmentsClient", "ListForScope", resp, "Failure responding to request")
 	}
+	if result.dalr.hasNextLink() && result.dalr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -648,7 +655,6 @@ func (client DenyAssignmentsClient) ListForScopeSender(req *http.Request) (*http
 func (client DenyAssignmentsClient) ListForScopeResponder(resp *http.Response) (result DenyAssignmentListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

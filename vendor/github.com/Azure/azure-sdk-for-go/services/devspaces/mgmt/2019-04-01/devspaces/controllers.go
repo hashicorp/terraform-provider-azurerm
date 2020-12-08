@@ -131,7 +131,6 @@ func (client ControllersClient) CreateSender(req *http.Request) (future Controll
 func (client ControllersClient) CreateResponder(resp *http.Response) (result Controller, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -218,7 +217,6 @@ func (client ControllersClient) DeleteSender(req *http.Request) (future Controll
 func (client ControllersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -304,7 +302,6 @@ func (client ControllersClient) GetSender(req *http.Request) (*http.Response, er
 func (client ControllersClient) GetResponder(resp *http.Response) (result Controller, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -342,6 +339,9 @@ func (client ControllersClient) List(ctx context.Context) (result ControllerList
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "devspaces.ControllersClient", "List", resp, "Failure responding to request")
 	}
+	if result.cl.hasNextLink() && result.cl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -376,7 +376,6 @@ func (client ControllersClient) ListSender(req *http.Request) (*http.Response, e
 func (client ControllersClient) ListResponder(resp *http.Response) (result ControllerList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -461,6 +460,9 @@ func (client ControllersClient) ListByResourceGroup(ctx context.Context, resourc
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "devspaces.ControllersClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.cl.hasNextLink() && result.cl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -496,7 +498,6 @@ func (client ControllersClient) ListByResourceGroupSender(req *http.Request) (*h
 func (client ControllersClient) ListByResourceGroupResponder(resp *http.Response) (result ControllerList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -626,7 +627,6 @@ func (client ControllersClient) ListConnectionDetailsSender(req *http.Request) (
 func (client ControllersClient) ListConnectionDetailsResponder(resp *http.Response) (result ControllerConnectionDetailsList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -716,7 +716,6 @@ func (client ControllersClient) UpdateSender(req *http.Request) (*http.Response,
 func (client ControllersClient) UpdateResponder(resp *http.Response) (result Controller, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

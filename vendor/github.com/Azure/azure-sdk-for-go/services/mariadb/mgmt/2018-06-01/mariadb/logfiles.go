@@ -122,7 +122,6 @@ func (client LogFilesClient) ListByServerSender(req *http.Request) (*http.Respon
 func (client LogFilesClient) ListByServerResponder(resp *http.Response) (result LogFileListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

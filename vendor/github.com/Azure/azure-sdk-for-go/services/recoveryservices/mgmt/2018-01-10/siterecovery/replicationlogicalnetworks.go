@@ -113,7 +113,6 @@ func (client ReplicationLogicalNetworksClient) GetSender(req *http.Request) (*ht
 func (client ReplicationLogicalNetworksClient) GetResponder(resp *http.Response) (result LogicalNetwork, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -153,6 +152,9 @@ func (client ReplicationLogicalNetworksClient) ListByReplicationFabrics(ctx cont
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationLogicalNetworksClient", "ListByReplicationFabrics", resp, "Failure responding to request")
 	}
+	if result.lnc.hasNextLink() && result.lnc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -190,7 +192,6 @@ func (client ReplicationLogicalNetworksClient) ListByReplicationFabricsSender(re
 func (client ReplicationLogicalNetworksClient) ListByReplicationFabricsResponder(resp *http.Response) (result LogicalNetworkCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

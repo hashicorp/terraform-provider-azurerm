@@ -93,7 +93,6 @@ func (client UserAssignedIdentitiesClient) CreateOrUpdatePreparer(ctx context.Co
 	}
 
 	parameters.IdentityProperties = nil
-	parameters.Type = ""
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -115,7 +114,6 @@ func (client UserAssignedIdentitiesClient) CreateOrUpdateSender(req *http.Reques
 func (client UserAssignedIdentitiesClient) CreateOrUpdateResponder(resp *http.Response) (result Identity, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -191,7 +189,6 @@ func (client UserAssignedIdentitiesClient) DeleteSender(req *http.Request) (*htt
 func (client UserAssignedIdentitiesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -266,7 +263,6 @@ func (client UserAssignedIdentitiesClient) GetSender(req *http.Request) (*http.R
 func (client UserAssignedIdentitiesClient) GetResponder(resp *http.Response) (result Identity, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -306,6 +302,9 @@ func (client UserAssignedIdentitiesClient) ListByResourceGroup(ctx context.Conte
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "msi.UserAssignedIdentitiesClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.uailr.hasNextLink() && result.uailr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -341,7 +340,6 @@ func (client UserAssignedIdentitiesClient) ListByResourceGroupSender(req *http.R
 func (client UserAssignedIdentitiesClient) ListByResourceGroupResponder(resp *http.Response) (result UserAssignedIdentitiesListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -416,6 +414,9 @@ func (client UserAssignedIdentitiesClient) ListBySubscription(ctx context.Contex
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "msi.UserAssignedIdentitiesClient", "ListBySubscription", resp, "Failure responding to request")
 	}
+	if result.uailr.hasNextLink() && result.uailr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -450,7 +451,6 @@ func (client UserAssignedIdentitiesClient) ListBySubscriptionSender(req *http.Re
 func (client UserAssignedIdentitiesClient) ListBySubscriptionResponder(resp *http.Response) (result UserAssignedIdentitiesListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -546,7 +546,6 @@ func (client UserAssignedIdentitiesClient) UpdatePreparer(ctx context.Context, r
 	}
 
 	parameters.IdentityProperties = nil
-	parameters.Type = ""
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
@@ -568,7 +567,6 @@ func (client UserAssignedIdentitiesClient) UpdateSender(req *http.Request) (*htt
 func (client UserAssignedIdentitiesClient) UpdateResponder(resp *http.Response) (result Identity, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

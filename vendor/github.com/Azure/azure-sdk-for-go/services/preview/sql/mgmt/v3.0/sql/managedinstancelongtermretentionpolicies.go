@@ -120,7 +120,6 @@ func (client ManagedInstanceLongTermRetentionPoliciesClient) CreateOrUpdateSende
 func (client ManagedInstanceLongTermRetentionPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result ManagedInstanceLongTermRetentionPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -200,7 +199,6 @@ func (client ManagedInstanceLongTermRetentionPoliciesClient) GetSender(req *http
 func (client ManagedInstanceLongTermRetentionPoliciesClient) GetResponder(resp *http.Response) (result ManagedInstanceLongTermRetentionPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -243,6 +241,9 @@ func (client ManagedInstanceLongTermRetentionPoliciesClient) ListByDatabase(ctx 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceLongTermRetentionPoliciesClient", "ListByDatabase", resp, "Failure responding to request")
 	}
+	if result.miltrplr.hasNextLink() && result.miltrplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -280,7 +281,6 @@ func (client ManagedInstanceLongTermRetentionPoliciesClient) ListByDatabaseSende
 func (client ManagedInstanceLongTermRetentionPoliciesClient) ListByDatabaseResponder(resp *http.Response) (result ManagedInstanceLongTermRetentionPolicyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

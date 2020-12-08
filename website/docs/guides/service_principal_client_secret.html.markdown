@@ -25,7 +25,7 @@ A Service Principal is an application within Azure Active Directory whose authen
 
 It's possible to complete this task in either the [Azure CLI](#creating-a-service-principal-using-the-azure-cli) or in the [Azure Portal](#creating-a-service-principal-in-the-azure-portal) - in both we'll create a Service Principal which has `Contributor` rights to the subscription. [It's also possible to assign other rights](https://azure.microsoft.com/en-gb/documentation/articles/role-based-access-built-in-roles/) depending on your configuration.
 
-### Creating a Service Principal using the Azure CLI
+### Creating a Service Principal using the Azure CLI
 
 ~> **Note**: If you're using the **China**, **German** or **Government** Azure Clouds - you'll need to first configure the Azure CLI to work with that Cloud.  You can do this by running:
 
@@ -130,35 +130,35 @@ Information on how to configure the Provider block using the newly created Servi
 
 There are three tasks necessary to create a Service Principal using [the Azure Portal](https://portal.azure.com):
 
- 1. Create an Application in Azure Active Directory (which acts as a Service Principal)
- 2. Generating a Client Secret for the Azure Active Directory Application (which can be used for authentication)
- 3. Grant the Application access to manage resources in your Azure Subscription
+ 1. Create an Application in Azure Active Directory, which will create an associated Service Principal
+ 2. Generating a Client Secret for the Azure Active Directory Application, which you'll to authenticate
+ 3. Grant the Service Principal access to manage resources in your Azure subscriptions
 
 ### 1. Creating an Application in Azure Active Directory
 
-Firstly navigate to [the **Azure Active Directory** overview](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/Overview) within the Azure Portal - [then select the **App Registration** blade](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredApps/RegisteredApps/Overview) and click **Endpoints** at the top of the **App Registration** blade. A list of URIs will be displayed and you need to locate the URI for **OAUTH 2.0 AUTHORIZATION ENDPOINT** which contains a GUID. This GUID is your Tenant ID (the `tenant_id` field mentioned above).
-
-Next, navigate back to [the **App Registration** blade](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredApps/RegisteredApps/Overview) - from here we'll create the Application in Azure Active Directory. To do this click **New application registration** at the top to add a new Application within Azure Active Directory. On this page, set the following values then press **Create**:
+Firstly navigate to [the **Azure Active Directory** overview](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/Overview) within the Azure Portal - [then select the **App Registration** blade](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredApps/RegisteredApps/Overview). Click the **New registration** button at the top to add a new Application within Azure Active Directory. On this page, set the following values then press **Create**:
 
 - **Name** - this is a friendly identifier and can be anything (e.g. "Terraform")
-- **Application Type** - this should be set to "Web app / API"
-- **Sign-on URL** - this can be anything, providing it's a valid URI (e.g. https://terra.form)
+- **Supported Account Types** - this should be set to "Accounts in this organizational directory only (single-tenant)"
+- **Redirect URI** - you should choose "Web" for the URI type. the actual value can be left blank
 
-At this point the newly created Azure Active Directory application should be visible on-screen - if it's not, navigate to the [the **App Registration** blade](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredApps/RegisteredApps/Overview) and select the Azure Active Directory application. At the top of this page, the "Application ID" GUID is the `client_id` you'll need.
+At this point the newly created Azure Active Directory application should be visible on-screen - if it's not, navigate to the [the **App Registration** blade](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredApps/RegisteredApps/Overview) and select the Azure Active Directory application.
+
+At the top of this page, you'll need to take note of the "Application (client) ID" and the "Directory (tenant) ID", which you can use for the values of `client_id` and `tenant_id` respectively.
 
 ### 2. Generating a Client Secret for the Azure Active Directory Application
 
-Now that the Azure Active Directory Application exists we can create a Client Secret which can be used for authentication - to do this select **Settings** and then **Keys**. This screen displays the Passwords (Client Secrets) and Public Keys (Client Certificates) which are associated with this Azure Active Directory Application.
+Now that the Azure Active Directory Application exists we can create a Client Secret which can be used for authentication - to do this select **Certificates & secrets**. This screen displays the Certificates and Client Secrets (i.e. passwords) which are associated with this Azure Active Directory Application.
 
-On this screen we can generate a new Password by entering a Description and selecting an Expiry Date, and then pressing **Save**. Once the Password has been generated it will be displayed on screen - _the Password is only displayed once_ so **be sure to copy it now** (otherwise you will need to regenerate a new key). This newly generated Password is the `client_secret` you will need.
+On this screen, we can generate a new Client Secret by clicking the **New client secret** button, then entering a Description and selecting an Expiry Date, and then pressing **Add**. Once the Client Secret has been generated it will be displayed on screen - _this is only displayed once_ so **be sure to copy it now** (otherwise you will need to regenerate a new secret). This value is the `client_secret` you will need it.
 
 ### 3. Granting the Application access to manage resources in your Azure Subscription
 
-Once the Application exists in Azure Active Directory - we can grant it permissions to modify resources in the Subscription. To do this, [navigate to the **Subscriptions** blade within the Azure Portal](https://portal.azure.com/#blade/Microsoft_Azure_Billing/SubscriptionsBlade), then select the Subscription you wish to use, then click **Access Control (IAM)**, and finally **Add role assignment**.
+Once the Application exists in Azure Active Directory - we can grant it permissions to modify resources in the Subscription. To do this, [navigate to the **Subscriptions** blade within the Azure Portal](https://portal.azure.com/#blade/Microsoft_Azure_Billing/SubscriptionsBlade), then select the Subscription you wish to use, then click **Access Control (IAM)**, and finally **Add** > **Add role assignment**.
 
 Firstly, specify a Role which grants the appropriate permissions needed for the Service Principal (for example, `Contributor` will grant Read/Write on all resources in the Subscription). There's more information about [the built in roles available here](https://azure.microsoft.com/en-gb/documentation/articles/role-based-access-built-in-roles/).
 
-Secondly, search for and select the name of the Application created in Azure Active Directory to assign it this role - then press **Save**.
+Secondly, search for and select the name of the Service Principal created in Azure Active Directory to assign it this role - then press **Save**.
 
 ---
 
@@ -175,12 +175,13 @@ $ export ARM_SUBSCRIPTION_ID="00000000-0000-0000-0000-000000000000"
 $ export ARM_TENANT_ID="00000000-0000-0000-0000-000000000000"
 ```
 
-The following Provider block can be specified - where `1.34.0` is the version of the Azure Provider that you'd like to use:
+The following Provider block can be specified - where `2.5.0` is the version of the Azure Provider that you'd like to use:
 
 ```hcl
 provider "azurerm" {
   # Whilst version is optional, we /strongly recommend/ using it to pin the version of the Provider being used
-  version = "=1.44.0"
+  version = "=2.5.0"
+  features {}
 }
 ```
 
@@ -200,12 +201,14 @@ variable "client_secret" {
 
 provider "azurerm" {
   # Whilst version is optional, we /strongly recommend/ using it to pin the version of the Provider being used
-  version = "=1.44.0"
+  version = "=2.4.0"
 
   subscription_id = "00000000-0000-0000-0000-000000000000"
   client_id       = "00000000-0000-0000-0000-000000000000"
   client_secret   = var.client_secret
   tenant_id       = "00000000-0000-0000-0000-000000000000"
+
+  features {}
 }
 ```
 

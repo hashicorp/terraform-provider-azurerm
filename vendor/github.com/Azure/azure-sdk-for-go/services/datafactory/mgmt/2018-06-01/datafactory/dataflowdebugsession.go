@@ -136,7 +136,6 @@ func (client DataFlowDebugSessionClient) AddDataFlowSender(req *http.Request) (*
 func (client DataFlowDebugSessionClient) AddDataFlowResponder(resp *http.Response) (result AddDataFlowToDebugSessionResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -230,7 +229,6 @@ func (client DataFlowDebugSessionClient) CreateSender(req *http.Request) (future
 func (client DataFlowDebugSessionClient) CreateResponder(resp *http.Response) (result CreateDataFlowDebugSessionResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -321,7 +319,6 @@ func (client DataFlowDebugSessionClient) DeleteSender(req *http.Request) (*http.
 func (client DataFlowDebugSessionClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -414,7 +411,6 @@ func (client DataFlowDebugSessionClient) ExecuteCommandSender(req *http.Request)
 func (client DataFlowDebugSessionClient) ExecuteCommandResponder(resp *http.Response) (result DataFlowDebugCommandResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -467,6 +463,9 @@ func (client DataFlowDebugSessionClient) QueryByFactory(ctx context.Context, res
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.DataFlowDebugSessionClient", "QueryByFactory", resp, "Failure responding to request")
 	}
+	if result.qdfdsr.hasNextLink() && result.qdfdsr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -503,7 +502,6 @@ func (client DataFlowDebugSessionClient) QueryByFactorySender(req *http.Request)
 func (client DataFlowDebugSessionClient) QueryByFactoryResponder(resp *http.Response) (result QueryDataFlowDebugSessionsResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

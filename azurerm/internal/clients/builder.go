@@ -3,11 +3,17 @@ package clients
 import (
 	"context"
 	"fmt"
+	"log"
+	"strings"
 
+	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/go-azure-helpers/sender"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceproviders"
 )
 
 type ClientBuilder struct {
@@ -21,14 +27,36 @@ type ClientBuilder struct {
 	Features                    features.UserFeatures
 }
 
+const azureStackEnvironmentError = `
+The AzureRM Provider supports the different Azure Public Clouds - including China, Germany,
+Public and US Government - however it does not support Azure Stack due to differences in
+API and feature availability.
+
+Terraform instead offers a separate "azurestack" provider which supports the functionality
+and API's available in Azure Stack via Azure Stack Profiles.
+`
+
 func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
-	env, err := authentication.DetermineEnvironment(builder.AuthConfig.Environment)
+	// point folks towards the separate Azure Stack Provider when using Azure Stack
+	if strings.EqualFold(builder.AuthConfig.Environment, "AZURESTACKCLOUD") {
+		return nil, fmt.Errorf(azureStackEnvironmentError)
+	}
+
+	isAzureStack, err := authentication.IsEnvironmentAzureStack(ctx, builder.AuthConfig.MetadataHost, builder.AuthConfig.Environment)
+	if err != nil {
+		return nil, err
+	}
+	if isAzureStack {
+		return nil, fmt.Errorf(azureStackEnvironmentError)
+	}
+
+	env, err := authentication.AzureEnvironmentByNameFromEndpoint(ctx, builder.AuthConfig.MetadataHost, builder.AuthConfig.Environment)
 	if err != nil {
 		return nil, err
 	}
 
 	// client declarations:
-	account, err := NewResourceManagerAccount(ctx, *builder.AuthConfig, *env)
+	account, err := NewResourceManagerAccount(ctx, *builder.AuthConfig, *env, builder.SkipProviderRegistration)
 	if err != nil {
 		return nil, fmt.Errorf("Error building account: %+v", err)
 	}
@@ -69,6 +97,17 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		return nil, err
 	}
 
+	// Synapse Endpoints
+	var synapseAuth autorest.Authorizer = nil
+	if env.ResourceIdentifiers.Synapse != azure.NotAvailable {
+		synapseAuth, err = builder.AuthConfig.GetAuthorizationToken(sender, oauthConfig, env.ResourceIdentifiers.Synapse)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		log.Printf("[DEBUG] Skipping building the Synapse Authorizer since this is not supported in the current Azure Environment")
+	}
+
 	// Key Vault Endpoints
 	keyVaultAuth := builder.AuthConfig.BearerAuthorizerCallback(sender, oauthConfig)
 
@@ -83,6 +122,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		ResourceManagerAuthorizer:   auth,
 		ResourceManagerEndpoint:     endpoint,
 		StorageAuthorizer:           storageAuth,
+		SynapseAuthorizer:           synapseAuth,
 		SkipProviderReg:             builder.SkipProviderRegistration,
 		DisableCorrelationRequestID: builder.DisableCorrelationRequestID,
 		DisableTerraformPartnerID:   builder.DisableTerraformPartnerID,
@@ -93,6 +133,11 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 
 	if err := client.Build(ctx, o); err != nil {
 		return nil, fmt.Errorf("Error building Client: %+v", err)
+	}
+
+	if features.EnhancedValidationEnabled() {
+		location.CacheSupportedLocations(ctx, env)
+		resourceproviders.CacheSupportedProviders(ctx, client.Resource.ProvidersClient)
 	}
 
 	return &client, nil

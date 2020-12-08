@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -29,11 +28,8 @@ func TestAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMServiceBusSubscriptionRule_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -327,6 +323,9 @@ resource "azurerm_servicebus_subscription_rule" "test" {
   correlation_filter {
     correlation_id = "test_correlation_id"
     message_id     = "test_message_id"
+    properties = {
+      test_key = "test_value"
+    }
   }
 }
 `, template, data.RandomInteger)
@@ -349,6 +348,9 @@ resource "azurerm_servicebus_subscription_rule" "test" {
     correlation_id = "test_correlation_id"
     message_id     = "test_message_id_updated"
     reply_to       = "test_reply_to_added"
+    properties = {
+      test_key = "test_value_updated"
+    }
   }
 }
 `, template, data.RandomInteger)

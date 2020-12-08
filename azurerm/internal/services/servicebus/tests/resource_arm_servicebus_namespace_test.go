@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMServiceBusNamespace_basic(t *testing.T) {
@@ -30,11 +29,8 @@ func TestAccAzureRMServiceBusNamespace_basic(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMServiceBusNamespace_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -182,7 +178,6 @@ func testCheckAzureRMServiceBusNamespaceDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := client.Get(ctx, resourceGroup, name)
-
 		if err != nil {
 			return nil
 		}

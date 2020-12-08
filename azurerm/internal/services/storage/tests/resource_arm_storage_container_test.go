@@ -10,8 +10,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMStorageContainer_basic(t *testing.T) {
@@ -22,6 +20,35 @@ func TestAccAzureRMStorageContainer_basic(t *testing.T) {
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageContainer_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageContainerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMStorageContainer_deleteAndRecreate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageContainer_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageContainerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMStorageContainer_template(data),
+			},
 			{
 				Config: testAccAzureRMStorageContainer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -53,10 +80,6 @@ func TestAccAzureRMStorageContainer_basicAzureADAuth(t *testing.T) {
 }
 
 func TestAccAzureRMStorageContainer_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -221,13 +244,12 @@ func testCheckAzureRMStorageContainerExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Error building Containers Client: %s", err)
 		}
 
-		resp, err := client.GetProperties(ctx, accountName, containerName)
+		resp, err := client.Get(ctx, account.ResourceGroup, accountName, containerName)
 		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Container %q (Account %q / Resource Group %q) does not exist", containerName, accountName, account.ResourceGroup)
-			}
-
 			return fmt.Errorf("Bad: Get on ContainersClient: %+v", err)
+		}
+		if resp == nil {
+			return fmt.Errorf("Bad: Container %q (Account %q / Resource Group %q) does not exist", containerName, accountName, account.ResourceGroup)
 		}
 
 		return nil
@@ -260,8 +282,8 @@ func testAccARMStorageContainerDisappears(resourceName string) resource.TestChec
 			return fmt.Errorf("Error building Containers Client: %s", err)
 		}
 
-		if _, err := client.Delete(ctx, accountName, containerName); err != nil {
-			return fmt.Errorf("Error deleting Container %q (Account %q): %s", containerName, accountName, err)
+		if err := client.Delete(ctx, account.ResourceGroup, accountName, containerName); err != nil {
+			return fmt.Errorf("deleting Container %q (Account %q): %s", containerName, accountName, err)
 		}
 
 		return nil
@@ -293,8 +315,11 @@ func testCheckAzureRMStorageContainerDestroy(s *terraform.State) error {
 			return fmt.Errorf("Error building Containers Client: %s", err)
 		}
 
-		props, err := client.GetProperties(ctx, accountName, containerName)
+		props, err := client.Get(ctx, account.ResourceGroup, accountName, containerName)
 		if err != nil {
+			return nil
+		}
+		if props == nil {
 			return nil
 		}
 
@@ -318,14 +343,35 @@ resource "azurerm_storage_container" "test" {
 }
 
 func testAccAzureRMStorageContainer_basicAzureADAuth(data acceptance.TestData) string {
-	template := testAccAzureRMStorageContainer_basic(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   storage_use_azuread = true
+  features {}
 }
 
-%s
-`, template)
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func testAccAzureRMStorageContainer_requiresImport(data acceptance.TestData) string {

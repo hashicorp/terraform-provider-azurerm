@@ -117,7 +117,6 @@ func (client ProtectionPoliciesClient) CreateOrUpdateSender(req *http.Request) (
 func (client ProtectionPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result ProtectionPolicyResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -197,7 +196,6 @@ func (client ProtectionPoliciesClient) DeleteSender(req *http.Request) (*http.Re
 func (client ProtectionPoliciesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -275,7 +273,6 @@ func (client ProtectionPoliciesClient) GetSender(req *http.Request) (*http.Respo
 func (client ProtectionPoliciesClient) GetResponder(resp *http.Response) (result ProtectionPolicyResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

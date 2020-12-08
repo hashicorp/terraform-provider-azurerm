@@ -31,6 +31,33 @@ resource "azurerm_data_factory_pipeline" "example" {
 }
 ```
 
+## Example Usage with Activities
+
+```hcl
+resource "azurerm_data_factory_pipeline" "test" {
+  name                = "acctest%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
+  variables = {
+    "bob" = "item1"
+  }
+  activities_json = <<JSON
+[
+	{
+		"name": "Append variable1",
+		"type": "AppendVariable",
+		"dependsOn": [],
+		"userProperties": [],
+		"typeProperties": {
+			"variableName": "bob",
+			"value": "something"
+		}
+	}
+]
+  JSON
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -48,6 +75,8 @@ The following arguments are supported:
 * `parameters` - (Optional) A map of parameters to associate with the Data Factory Pipeline.
 
 * `variables` - (Optional) A map of variables to associate with the Data Factory Pipeline.
+
+* `activities_json` - (Optional) A JSON object that contains the activities that will be associated with the Data Factory Pipeline.
 
 ## Attributes Reference
 

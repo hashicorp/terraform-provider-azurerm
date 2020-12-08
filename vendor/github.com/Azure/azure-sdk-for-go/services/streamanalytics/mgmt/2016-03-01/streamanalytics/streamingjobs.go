@@ -126,7 +126,6 @@ func (client StreamingJobsClient) CreateOrReplaceSender(req *http.Request) (futu
 func (client StreamingJobsClient) CreateOrReplaceResponder(resp *http.Response) (result StreamingJob, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -203,7 +202,6 @@ func (client StreamingJobsClient) DeleteSender(req *http.Request) (future Stream
 func (client StreamingJobsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -286,7 +284,6 @@ func (client StreamingJobsClient) GetSender(req *http.Request) (*http.Response, 
 func (client StreamingJobsClient) GetResponder(resp *http.Response) (result StreamingJob, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -329,6 +326,9 @@ func (client StreamingJobsClient) List(ctx context.Context, expand string) (resu
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsClient", "List", resp, "Failure responding to request")
 	}
+	if result.sjlr.hasNextLink() && result.sjlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -366,7 +366,6 @@ func (client StreamingJobsClient) ListSender(req *http.Request) (*http.Response,
 func (client StreamingJobsClient) ListResponder(resp *http.Response) (result StreamingJobListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -448,6 +447,9 @@ func (client StreamingJobsClient) ListByResourceGroup(ctx context.Context, resou
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.sjlr.hasNextLink() && result.sjlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -486,7 +488,6 @@ func (client StreamingJobsClient) ListByResourceGroupSender(req *http.Request) (
 func (client StreamingJobsClient) ListByResourceGroupResponder(resp *http.Response) (result StreamingJobListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -606,7 +607,6 @@ func (client StreamingJobsClient) StartSender(req *http.Request) (future Streami
 func (client StreamingJobsClient) StartResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -683,7 +683,6 @@ func (client StreamingJobsClient) StopSender(req *http.Request) (future Streamin
 func (client StreamingJobsClient) StopResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -772,7 +771,6 @@ func (client StreamingJobsClient) UpdateSender(req *http.Request) (*http.Respons
 func (client StreamingJobsClient) UpdateResponder(resp *http.Response) (result StreamingJob, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

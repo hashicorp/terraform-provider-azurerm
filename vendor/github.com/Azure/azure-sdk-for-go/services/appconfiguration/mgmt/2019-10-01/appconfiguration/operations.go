@@ -116,7 +116,6 @@ func (client OperationsClient) CheckNameAvailabilitySender(req *http.Request) (*
 func (client OperationsClient) CheckNameAvailabilityResponder(resp *http.Response) (result NameAvailabilityStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -158,6 +157,9 @@ func (client OperationsClient) List(ctx context.Context, skipToken string) (resu
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appconfiguration.OperationsClient", "List", resp, "Failure responding to request")
 	}
+	if result.odlr.hasNextLink() && result.odlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -191,7 +193,6 @@ func (client OperationsClient) ListSender(req *http.Request) (*http.Response, er
 func (client OperationsClient) ListResponder(resp *http.Response) (result OperationDefinitionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

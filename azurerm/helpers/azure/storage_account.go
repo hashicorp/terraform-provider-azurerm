@@ -5,7 +5,22 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func SchemaStorageAccountCorsRule() *schema.Schema {
+func SchemaStorageAccountCorsRule(patchEnabled bool) *schema.Schema {
+	// CorsRule "PATCH" method is only supported by blob
+	allowedMethods := []string{
+		"DELETE",
+		"GET",
+		"HEAD",
+		"MERGE",
+		"POST",
+		"OPTIONS",
+		"PUT",
+	}
+
+	if patchEnabled {
+		allowedMethods = append(allowedMethods, "PATCH")
+	}
+
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -44,15 +59,8 @@ func SchemaStorageAccountCorsRule() *schema.Schema {
 					Required: true,
 					MaxItems: 64,
 					Elem: &schema.Schema{
-						Type: schema.TypeString,
-						ValidateFunc: validation.StringInSlice([]string{
-							"DELETE",
-							"GET",
-							"HEAD",
-							"MERGE",
-							"POST",
-							"OPTIONS",
-							"PUT"}, false),
+						Type:         schema.TypeString,
+						ValidateFunc: validation.StringInSlice(allowedMethods, false),
 					},
 				},
 				"max_age_in_seconds": {

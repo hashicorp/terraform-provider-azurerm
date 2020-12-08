@@ -121,7 +121,6 @@ func (client ComponentFeatureCapabilitiesClient) GetSender(req *http.Request) (*
 func (client ComponentFeatureCapabilitiesClient) GetResponder(resp *http.Response) (result ApplicationInsightsComponentFeatureCapabilities, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

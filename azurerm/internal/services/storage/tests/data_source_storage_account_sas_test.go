@@ -25,6 +25,7 @@ func TestAccDataSourceArmStorageAccountSas_basic(t *testing.T) {
 				Config: testAccDataSourceAzureRMStorageAccountSas_basic(data, startDate, endDate),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "https_only", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "signed_version", "2019-10-10"),
 					resource.TestCheckResourceAttr(data.ResourceName, "start", startDate),
 					resource.TestCheckResourceAttr(data.ResourceName, "expiry", endDate),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "sas"),
@@ -61,6 +62,7 @@ resource "azurerm_storage_account" "test" {
 data "azurerm_storage_account_sas" "test" {
   connection_string = azurerm_storage_account.test.primary_connection_string
   https_only        = true
+  signed_version    = "2019-10-10"
 
   resource_types {
     service   = true

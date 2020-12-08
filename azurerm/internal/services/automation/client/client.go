@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
@@ -9,6 +9,8 @@ type Client struct {
 	AccountClient               *automation.AccountClient
 	AgentRegistrationInfoClient *automation.AgentRegistrationInformationClient
 	CertificateClient           *automation.CertificateClient
+	ConnectionClient            *automation.ConnectionClient
+	ConnectionTypeClient        *automation.ConnectionTypeClient
 	CredentialClient            *automation.CredentialClient
 	DscConfigurationClient      *automation.DscConfigurationClient
 	DscNodeConfigurationClient  *automation.DscNodeConfigurationClient
@@ -29,6 +31,12 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	certificateClient := automation.NewCertificateClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&certificateClient.Client, o.ResourceManagerAuthorizer)
+
+	connectionClient := automation.NewConnectionClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&connectionClient.Client, o.ResourceManagerAuthorizer)
+
+	connectionTypeClient := automation.NewConnectionTypeClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&connectionTypeClient.Client, o.ResourceManagerAuthorizer)
 
 	credentialClient := automation.NewCredentialClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&credentialClient.Client, o.ResourceManagerAuthorizer)
@@ -61,6 +69,8 @@ func NewClient(o *common.ClientOptions) *Client {
 		AccountClient:               &accountClient,
 		AgentRegistrationInfoClient: &agentRegistrationInfoClient,
 		CertificateClient:           &certificateClient,
+		ConnectionClient:            &connectionClient,
+		ConnectionTypeClient:        &connectionTypeClient,
 		CredentialClient:            &credentialClient,
 		DscConfigurationClient:      &dscConfigurationClient,
 		DscNodeConfigurationClient:  &dscNodeConfigurationClient,

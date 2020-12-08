@@ -5,20 +5,21 @@ import (
 	"math"
 	"os"
 	"strconv"
-	"sync"
 	"testing"
 
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azuread/azuread"
-	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/provider"
 )
 
-var once sync.Once
+func init() {
+	// unit testing
+	if os.Getenv("TF_ACC") == "" {
+		return
+	}
+
+	EnsureProvidersAreInitialised()
+}
 
 type TestData struct {
 	// Locations is a set of Azure Regions which should be used for this Test
@@ -45,21 +46,16 @@ type TestData struct {
 	// EnvironmentName is the name of the Azure Environment where we're running
 	EnvironmentName string
 
+	// MetadataURL is the url of the endpoint where the environment is obtained
+	MetadataURL string
+
 	// resourceLabel is the local used for the resource - generally "test""
 	resourceLabel string
 }
 
 // BuildTestData generates some test data for the given resource
 func BuildTestData(t *testing.T, resourceType string, resourceLabel string) TestData {
-	once.Do(func() {
-		azureProvider := provider.TestAzureProvider().(*schema.Provider)
-
-		AzureProvider = azureProvider
-		SupportedProviders = map[string]terraform.ResourceProvider{
-			"azurerm": azureProvider,
-			"azuread": azuread.Provider().(*schema.Provider),
-		}
-	})
+	EnsureProvidersAreInitialised()
 
 	env, err := Environment()
 	if err != nil {
@@ -67,11 +63,12 @@ func BuildTestData(t *testing.T, resourceType string, resourceLabel string) Test
 	}
 
 	testData := TestData{
-		RandomInteger:   tf.AccRandTimeInt(),
+		RandomInteger:   RandTimeInt(),
 		RandomString:    acctest.RandString(5),
 		ResourceName:    fmt.Sprintf("%s.%s", resourceType, resourceLabel),
 		Environment:     *env,
 		EnvironmentName: EnvironmentName(),
+		MetadataURL:     os.Getenv("ARM_METADATA_HOST"),
 
 		ResourceType:  resourceType,
 		resourceLabel: resourceLabel,

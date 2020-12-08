@@ -1,7 +1,7 @@
 package network
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,7 +19,7 @@ func parseFieldsFromNetworkInterface(input network.InterfacePropertiesFormat) ne
 		networkSecurityGroupId = *input.NetworkSecurityGroup.ID
 	}
 
-	var mapToSlice = func(input map[string]struct{}) []string {
+	mapToSlice := func(input map[string]struct{}) []string {
 		output := make([]string, 0)
 
 		for id := range input {

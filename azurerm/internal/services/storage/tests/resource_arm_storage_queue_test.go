@@ -4,56 +4,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
-
-func TestResourceAzureRMStorageQueueName_Validation(t *testing.T) {
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{
-			Value:    "testing_123",
-			ErrCount: 1,
-		},
-		{
-			Value:    "testing123-",
-			ErrCount: 1,
-		},
-		{
-			Value:    "-testing123",
-			ErrCount: 1,
-		},
-		{
-			Value:    "TestingSG",
-			ErrCount: 1,
-		},
-		{
-			Value:    acctest.RandString(256),
-			ErrCount: 1,
-		},
-		{
-			Value:    acctest.RandString(1),
-			ErrCount: 1,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := storage.ValidateArmStorageQueueName(tc.Value, "azurerm_storage_queue")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the ARM Storage Queue Name to trigger a validation error")
-		}
-	}
-}
 
 func TestAccAzureRMStorageQueue_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_queue", "test")
@@ -94,10 +49,6 @@ func TestAccAzureRMStorageQueue_basicAzureADAuth(t *testing.T) {
 }
 
 func TestAccAzureRMStorageQueue_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_queue", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -168,13 +119,12 @@ func testCheckAzureRMStorageQueueExists(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Error building Queues Client: %s", err)
 		}
 
-		metaData, err := queuesClient.GetMetaData(ctx, accountName, name)
+		metaData, err := queuesClient.Get(ctx, account.ResourceGroup, accountName, name)
 		if err != nil {
-			if utils.ResponseWasNotFound(metaData.Response) {
-				return fmt.Errorf("Bad: Storage Queue %q (storage account: %q) does not exist", name, accountName)
-			}
-
 			return fmt.Errorf("Bad: error retrieving Storage Queue %q (storage account: %q): %s", name, accountName, err)
+		}
+		if metaData == nil {
+			return fmt.Errorf("Bad: Storage Queue %q (storage account: %q) does not exist", name, accountName)
 		}
 
 		return nil
@@ -207,8 +157,8 @@ func testCheckAzureRMStorageQueueDestroy(s *terraform.State) error {
 			return fmt.Errorf("Error building Queues Client: %s", err)
 		}
 
-		props, err := queuesClient.GetMetaData(ctx, accountName, name)
-		if err != nil {
+		props, err := queuesClient.Get(ctx, account.ResourceGroup, accountName, name)
+		if err != nil || props == nil {
 			return nil
 		}
 
@@ -231,14 +181,34 @@ resource "azurerm_storage_queue" "test" {
 }
 
 func testAccAzureRMStorageQueue_basicAzureADAuth(data acceptance.TestData) string {
-	template := testAccAzureRMStorageQueue_basic(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   storage_use_azuread = true
+  features {}
 }
 
-%s
-`, template)
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_queue" "test" {
+  name                 = "mysamplequeue-%d"
+  storage_account_name = azurerm_storage_account.test.name
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
 func testAccAzureRMStorageQueue_requiresImport(data acceptance.TestData) string {

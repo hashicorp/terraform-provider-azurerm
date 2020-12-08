@@ -112,7 +112,6 @@ func (client RegisteredIdentitiesClient) DeleteSender(req *http.Request) (*http.
 func (client RegisteredIdentitiesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

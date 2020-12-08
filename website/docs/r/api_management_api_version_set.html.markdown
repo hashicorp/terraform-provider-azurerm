@@ -84,5 +84,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 API Version Set can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_api_management_api_version_set.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Microsoft.ApiManagement/service/example-apim/api-version-sets/example-apimp
+terraform import azurerm_api_management_api_version_set.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ApiManagement/service/service1/apiVersionSets/set1
 ```

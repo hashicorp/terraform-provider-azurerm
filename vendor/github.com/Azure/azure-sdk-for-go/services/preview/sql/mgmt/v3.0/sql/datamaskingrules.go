@@ -134,7 +134,6 @@ func (client DataMaskingRulesClient) CreateOrUpdateSender(req *http.Request) (*h
 func (client DataMaskingRulesClient) CreateOrUpdateResponder(resp *http.Response) (result DataMaskingRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -214,7 +213,6 @@ func (client DataMaskingRulesClient) ListByDatabaseSender(req *http.Request) (*h
 func (client DataMaskingRulesClient) ListByDatabaseResponder(resp *http.Response) (result DataMaskingRuleListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

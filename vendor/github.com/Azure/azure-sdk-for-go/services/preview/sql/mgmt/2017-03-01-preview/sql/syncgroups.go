@@ -116,7 +116,6 @@ func (client SyncGroupsClient) CancelSyncSender(req *http.Request) (*http.Respon
 func (client SyncGroupsClient) CancelSyncResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -199,7 +198,6 @@ func (client SyncGroupsClient) CreateOrUpdateSender(req *http.Request) (future S
 func (client SyncGroupsClient) CreateOrUpdateResponder(resp *http.Response) (result SyncGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -280,7 +278,6 @@ func (client SyncGroupsClient) DeleteSender(req *http.Request) (future SyncGroup
 func (client SyncGroupsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -360,7 +357,6 @@ func (client SyncGroupsClient) GetSender(req *http.Request) (*http.Response, err
 func (client SyncGroupsClient) GetResponder(resp *http.Response) (result SyncGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -403,6 +399,9 @@ func (client SyncGroupsClient) ListByDatabase(ctx context.Context, resourceGroup
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "ListByDatabase", resp, "Failure responding to request")
 	}
+	if result.sglr.hasNextLink() && result.sglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -440,7 +439,6 @@ func (client SyncGroupsClient) ListByDatabaseSender(req *http.Request) (*http.Re
 func (client SyncGroupsClient) ListByDatabaseResponder(resp *http.Response) (result SyncGroupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -521,6 +519,9 @@ func (client SyncGroupsClient) ListHubSchemas(ctx context.Context, resourceGroup
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "ListHubSchemas", resp, "Failure responding to request")
 	}
+	if result.sfsplr.hasNextLink() && result.sfsplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -559,7 +560,6 @@ func (client SyncGroupsClient) ListHubSchemasSender(req *http.Request) (*http.Re
 func (client SyncGroupsClient) ListHubSchemasResponder(resp *http.Response) (result SyncFullSchemaPropertiesListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -644,6 +644,9 @@ func (client SyncGroupsClient) ListLogs(ctx context.Context, resourceGroupName s
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "ListLogs", resp, "Failure responding to request")
 	}
+	if result.sgllr.hasNextLink() && result.sgllr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -688,7 +691,6 @@ func (client SyncGroupsClient) ListLogsSender(req *http.Request) (*http.Response
 func (client SyncGroupsClient) ListLogsResponder(resp *http.Response) (result SyncGroupLogListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -765,6 +767,9 @@ func (client SyncGroupsClient) ListSyncDatabaseIds(ctx context.Context, location
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "ListSyncDatabaseIds", resp, "Failure responding to request")
 	}
+	if result.sdilr.hasNextLink() && result.sdilr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -800,7 +805,6 @@ func (client SyncGroupsClient) ListSyncDatabaseIdsSender(req *http.Request) (*ht
 func (client SyncGroupsClient) ListSyncDatabaseIdsResponder(resp *http.Response) (result SyncDatabaseIDListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -918,7 +922,6 @@ func (client SyncGroupsClient) RefreshHubSchemaSender(req *http.Request) (future
 func (client SyncGroupsClient) RefreshHubSchemaResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -998,7 +1001,6 @@ func (client SyncGroupsClient) TriggerSyncSender(req *http.Request) (*http.Respo
 func (client SyncGroupsClient) TriggerSyncResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1081,7 +1083,6 @@ func (client SyncGroupsClient) UpdateSender(req *http.Request) (future SyncGroup
 func (client SyncGroupsClient) UpdateResponder(resp *http.Response) (result SyncGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

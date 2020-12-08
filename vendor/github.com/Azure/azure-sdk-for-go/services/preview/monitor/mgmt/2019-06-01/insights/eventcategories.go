@@ -101,7 +101,6 @@ func (client EventCategoriesClient) ListSender(req *http.Request) (*http.Respons
 func (client EventCategoriesClient) ListResponder(resp *http.Response) (result EventCategoryCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

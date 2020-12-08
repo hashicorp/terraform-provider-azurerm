@@ -110,7 +110,6 @@ func (client FeatureSupportClient) ValidateSender(req *http.Request) (*http.Resp
 func (client FeatureSupportClient) ValidateResponder(resp *http.Response) (result AzureVMResourceFeatureSupportResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

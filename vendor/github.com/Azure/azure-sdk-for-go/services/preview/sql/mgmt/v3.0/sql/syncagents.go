@@ -117,7 +117,6 @@ func (client SyncAgentsClient) CreateOrUpdateSender(req *http.Request) (future S
 func (client SyncAgentsClient) CreateOrUpdateResponder(resp *http.Response) (result SyncAgent, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -196,7 +195,6 @@ func (client SyncAgentsClient) DeleteSender(req *http.Request) (future SyncAgent
 func (client SyncAgentsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -274,7 +272,6 @@ func (client SyncAgentsClient) GenerateKeySender(req *http.Request) (*http.Respo
 func (client SyncAgentsClient) GenerateKeyResponder(resp *http.Response) (result SyncAgentKeyProperties, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -353,7 +350,6 @@ func (client SyncAgentsClient) GetSender(req *http.Request) (*http.Response, err
 func (client SyncAgentsClient) GetResponder(resp *http.Response) (result SyncAgent, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -395,6 +391,9 @@ func (client SyncAgentsClient) ListByServer(ctx context.Context, resourceGroupNa
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncAgentsClient", "ListByServer", resp, "Failure responding to request")
 	}
+	if result.salr.hasNextLink() && result.salr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -431,7 +430,6 @@ func (client SyncAgentsClient) ListByServerSender(req *http.Request) (*http.Resp
 func (client SyncAgentsClient) ListByServerResponder(resp *http.Response) (result SyncAgentListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -511,6 +509,9 @@ func (client SyncAgentsClient) ListLinkedDatabases(ctx context.Context, resource
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncAgentsClient", "ListLinkedDatabases", resp, "Failure responding to request")
 	}
+	if result.saldlr.hasNextLink() && result.saldlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -548,7 +549,6 @@ func (client SyncAgentsClient) ListLinkedDatabasesSender(req *http.Request) (*ht
 func (client SyncAgentsClient) ListLinkedDatabasesResponder(resp *http.Response) (result SyncAgentLinkedDatabaseListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

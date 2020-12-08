@@ -10,7 +10,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -72,7 +71,7 @@ func resourceArmSiteRecoveryReplicationPolicyCreate(d *schema.ResourceData, meta
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -87,7 +86,7 @@ func resourceArmSiteRecoveryReplicationPolicyCreate(d *schema.ResourceData, meta
 
 	recoveryPoint := int32(d.Get("recovery_point_retention_in_minutes").(int))
 	appConsitency := int32(d.Get("application_consistent_snapshot_frequency_in_minutes").(int))
-	var parameters = siterecovery.CreatePolicyInput{
+	parameters := siterecovery.CreatePolicyInput{
 		Properties: &siterecovery.CreatePolicyInputProperties{
 			ProviderSpecificInput: &siterecovery.A2APolicyCreationInput{
 				RecoveryPointHistory:            &recoveryPoint,
@@ -126,7 +125,7 @@ func resourceArmSiteRecoveryReplicationPolicyUpdate(d *schema.ResourceData, meta
 
 	recoveryPoint := int32(d.Get("recovery_point_retention_in_minutes").(int))
 	appConsitency := int32(d.Get("application_consistent_snapshot_frequency_in_minutes").(int))
-	var parameters = siterecovery.UpdatePolicyInput{
+	parameters := siterecovery.UpdatePolicyInput{
 		Properties: &siterecovery.UpdatePolicyInputProperties{
 			ReplicationProviderSettings: &siterecovery.A2APolicyCreationInput{
 				RecoveryPointHistory:            &recoveryPoint,

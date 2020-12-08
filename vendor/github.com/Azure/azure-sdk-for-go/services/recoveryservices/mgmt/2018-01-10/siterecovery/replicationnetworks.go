@@ -112,7 +112,6 @@ func (client ReplicationNetworksClient) GetSender(req *http.Request) (*http.Resp
 func (client ReplicationNetworksClient) GetResponder(resp *http.Response) (result Network, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -150,6 +149,9 @@ func (client ReplicationNetworksClient) List(ctx context.Context) (result Networ
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationNetworksClient", "List", resp, "Failure responding to request")
 	}
+	if result.nc.hasNextLink() && result.nc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -186,7 +188,6 @@ func (client ReplicationNetworksClient) ListSender(req *http.Request) (*http.Res
 func (client ReplicationNetworksClient) ListResponder(resp *http.Response) (result NetworkCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -263,6 +264,9 @@ func (client ReplicationNetworksClient) ListByReplicationFabrics(ctx context.Con
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationNetworksClient", "ListByReplicationFabrics", resp, "Failure responding to request")
 	}
+	if result.nc.hasNextLink() && result.nc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -300,7 +304,6 @@ func (client ReplicationNetworksClient) ListByReplicationFabricsSender(req *http
 func (client ReplicationNetworksClient) ListByReplicationFabricsResponder(resp *http.Response) (result NetworkCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

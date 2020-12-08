@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -46,6 +46,17 @@ func SchemaApiManagementChildName() *schema.Schema {
 		Required:     true,
 		ForceNew:     true,
 		ValidateFunc: validate.ApiManagementChildName,
+	}
+}
+
+// SchemaApiManagementChildName returns the Schema for the identifier
+// used by resources within nested under the API Management Service resource
+func SchemaApiManagementApiName() *schema.Schema {
+	return &schema.Schema{
+		Type:         schema.TypeString,
+		Required:     true,
+		ForceNew:     true,
+		ValidateFunc: validate.ApiManagementApiName,
 	}
 }
 
@@ -141,6 +152,7 @@ func ExpandApiManagementOperationRepresentation(input []interface{}) (*[]apimana
 
 		// Representation schemaId can only be specified for non form data content types (multipart/form-data, application/x-www-form-urlencoded).
 		// Representation typeName can only be specified for non form data content types (multipart/form-data, application/x-www-form-urlencoded).
+		// nolint gocritic
 		if !contentTypeIsFormData {
 			output.SchemaID = utils.String(schemaId)
 			output.TypeName = utils.String(typeName)
@@ -296,4 +308,21 @@ func FlattenApiManagementOperationParameterContract(input *[]apimanagement.Param
 	}
 
 	return outputs
+}
+
+// CopyCertificateAndPassword copies any certificate and password attributes
+// from the old config to the current to avoid state diffs.
+// Iterate through old state to find sensitive props not returned by API.
+// This must be done in order to avoid state diffs.
+// NOTE: this information won't be available during times like Import, so this is a best-effort.
+func CopyCertificateAndPassword(vals []interface{}, hostName string, output map[string]interface{}) {
+	for _, val := range vals {
+		oldConfig := val.(map[string]interface{})
+
+		if oldConfig["host_name"] == hostName {
+			output["certificate_password"] = oldConfig["certificate_password"]
+			output["certificate"] = oldConfig["certificate"]
+			break
+		}
+	}
 }

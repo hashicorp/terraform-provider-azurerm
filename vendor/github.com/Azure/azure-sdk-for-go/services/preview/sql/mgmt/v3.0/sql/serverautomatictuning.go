@@ -113,7 +113,6 @@ func (client ServerAutomaticTuningClient) GetSender(req *http.Request) (*http.Re
 func (client ServerAutomaticTuningClient) GetResponder(resp *http.Response) (result ServerAutomaticTuning, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -193,7 +192,6 @@ func (client ServerAutomaticTuningClient) UpdateSender(req *http.Request) (*http
 func (client ServerAutomaticTuningClient) UpdateResponder(resp *http.Response) (result ServerAutomaticTuning, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

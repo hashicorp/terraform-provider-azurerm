@@ -120,7 +120,6 @@ func (client LocationBasedRecommendedActionSessionsOperationStatusClient) GetSen
 func (client LocationBasedRecommendedActionSessionsOperationStatusClient) GetResponder(resp *http.Response) (result RecommendedActionSessionsOperationStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

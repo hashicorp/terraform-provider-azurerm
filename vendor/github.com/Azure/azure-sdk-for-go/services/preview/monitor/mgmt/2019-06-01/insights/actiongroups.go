@@ -123,7 +123,6 @@ func (client ActionGroupsClient) CreateOrUpdateSender(req *http.Request) (*http.
 func (client ActionGroupsClient) CreateOrUpdateResponder(resp *http.Response) (result ActionGroupResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -199,7 +198,6 @@ func (client ActionGroupsClient) DeleteSender(req *http.Request) (*http.Response
 func (client ActionGroupsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -284,7 +282,6 @@ func (client ActionGroupsClient) EnableReceiverSender(req *http.Request) (*http.
 func (client ActionGroupsClient) EnableReceiverResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusConflict),
 		autorest.ByClosing())
 	result.Response = resp
@@ -359,7 +356,6 @@ func (client ActionGroupsClient) GetSender(req *http.Request) (*http.Response, e
 func (client ActionGroupsClient) GetResponder(resp *http.Response) (result ActionGroupResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -433,7 +429,6 @@ func (client ActionGroupsClient) ListByResourceGroupSender(req *http.Request) (*
 func (client ActionGroupsClient) ListByResourceGroupResponder(resp *http.Response) (result ActionGroupList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -504,7 +499,6 @@ func (client ActionGroupsClient) ListBySubscriptionIDSender(req *http.Request) (
 func (client ActionGroupsClient) ListBySubscriptionIDResponder(resp *http.Response) (result ActionGroupList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -583,7 +577,6 @@ func (client ActionGroupsClient) UpdateSender(req *http.Request) (*http.Response
 func (client ActionGroupsClient) UpdateResponder(resp *http.Response) (result ActionGroupResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

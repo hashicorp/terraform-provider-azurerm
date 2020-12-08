@@ -43,6 +43,8 @@ The following attributes are exported:
 
 * `location` - The Azure Region where the NetApp Volume exists.
 
+* `mount_ip_addresses` - A list of IPv4 Addresses which should be used to mount the volume.
+
 * `volume_path` - The unique file path of the volume.
 
 * `service_level` - The service level of the file system.

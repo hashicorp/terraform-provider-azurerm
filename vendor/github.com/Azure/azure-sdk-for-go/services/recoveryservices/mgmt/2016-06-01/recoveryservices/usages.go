@@ -109,7 +109,6 @@ func (client UsagesClient) ListByVaultsSender(req *http.Request) (*http.Response
 func (client UsagesClient) ListByVaultsResponder(resp *http.Response) (result VaultUsageList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -5,13 +5,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
+	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2020-03-13/search"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -59,6 +59,8 @@ func resourceArmSearchService() *schema.Resource {
 					string(search.Standard),
 					string(search.Standard2),
 					string(search.Standard3),
+					string(search.StorageOptimizedL1),
+					string(search.StorageOptimizedL2),
 				}, false),
 			},
 
@@ -103,6 +105,51 @@ func resourceArmSearchService() *schema.Resource {
 				},
 			},
 
+			"public_network_access_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"allowed_ips": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+					ValidateFunc: validation.Any(
+						validate.IPv4Address,
+						validate.CIDR,
+					),
+				},
+			},
+
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(search.SystemAssigned),
+							}, false),
+						},
+
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -117,9 +164,15 @@ func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 	skuName := d.Get("sku").(string)
+
+	publicNetworkAccess := search.Enabled
+	if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
+		publicNetworkAccess = search.Disabled
+	}
+
 	t := d.Get("tags").(map[string]interface{})
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name, nil)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -137,8 +190,14 @@ func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface
 		Sku: &search.Sku{
 			Name: search.SkuName(skuName),
 		},
-		ServiceProperties: &search.ServiceProperties{},
-		Tags:              tags.Expand(t),
+		ServiceProperties: &search.ServiceProperties{
+			PublicNetworkAccess: publicNetworkAccess,
+			NetworkRuleSet: &search.NetworkRuleSet{
+				IPRules: expandSearchServiceIPRules(d.Get("allowed_ips").([]interface{})),
+			},
+		},
+		Identity: expandSearchServiceIdentity(d.Get("identity").([]interface{})),
+		Tags:     tags.Expand(t),
 	}
 
 	if v, ok := d.GetOk("replica_count"); ok {
@@ -151,8 +210,13 @@ func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface
 		properties.ServiceProperties.PartitionCount = utils.Int32(partitionCount)
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties, nil); err != nil {
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties, nil)
+	if err != nil {
 		return fmt.Errorf("Error issuing create/update request for Search Service %q (ResourceGroup %q): %s", name, resourceGroup, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("error waiting for the completion of the creating/updating of Search Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name, nil)
@@ -204,6 +268,10 @@ func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) erro
 		if count := props.ReplicaCount; count != nil {
 			d.Set("replica_count", int(*count))
 		}
+
+		d.Set("public_network_access_enabled", props.PublicNetworkAccess != "Disabled")
+
+		d.Set("allowed_ips", flattenSearchServiceIPRules(props.NetworkRuleSet))
 	}
 
 	adminKeysClient := meta.(*clients.Client).Search.AdminKeysClient
@@ -216,7 +284,11 @@ func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) erro
 	queryKeysClient := meta.(*clients.Client).Search.QueryKeysClient
 	queryKeysResp, err := queryKeysClient.ListBySearchService(ctx, id.ResourceGroup, id.Name, nil)
 	if err == nil {
-		d.Set("query_keys", flattenSearchQueryKeys(queryKeysResp.Value))
+		d.Set("query_keys", flattenSearchQueryKeys(queryKeysResp.Values()))
+	}
+
+	if err := d.Set("identity", flattenSearchServiceIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("setting `identity`: %s", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -233,7 +305,6 @@ func resourceArmSearchServiceDelete(d *schema.ResourceData, meta interface{}) er
 	}
 
 	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name, nil)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil
@@ -245,10 +316,10 @@ func resourceArmSearchServiceDelete(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func flattenSearchQueryKeys(input *[]search.QueryKey) []interface{} {
+func flattenSearchQueryKeys(input []search.QueryKey) []interface{} {
 	results := make([]interface{}, 0)
 
-	for _, v := range *input {
+	for _, v := range input {
 		result := make(map[string]interface{})
 
 		if v.Name != nil {
@@ -260,4 +331,68 @@ func flattenSearchQueryKeys(input *[]search.QueryKey) []interface{} {
 	}
 
 	return results
+}
+
+func expandSearchServiceIPRules(input []interface{}) *[]search.IPRule {
+	output := make([]search.IPRule, 0)
+	if input == nil {
+		return &output
+	}
+
+	for _, rule := range input {
+		if rule != nil {
+			output = append(output, search.IPRule{
+				Value: utils.String(rule.(string)),
+			})
+		}
+	}
+
+	return &output
+}
+
+func flattenSearchServiceIPRules(input *search.NetworkRuleSet) []interface{} {
+	if input == nil || *input.IPRules == nil || len(*input.IPRules) == 0 {
+		return nil
+	}
+	result := make([]interface{}, 0)
+	for _, rule := range *input.IPRules {
+		result = append(result, rule.Value)
+	}
+	return result
+}
+
+func expandSearchServiceIdentity(input []interface{}) *search.Identity {
+	if len(input) == 0 || input[0] == nil {
+		return &search.Identity{
+			Type: search.None,
+		}
+	}
+	identity := input[0].(map[string]interface{})
+	return &search.Identity{
+		Type: search.IdentityType(identity["type"].(string)),
+	}
+}
+
+func flattenSearchServiceIdentity(identity *search.Identity) []interface{} {
+	if identity == nil || identity.Type == search.None {
+		return make([]interface{}, 0)
+	}
+
+	principalId := ""
+	if identity.PrincipalID != nil {
+		principalId = *identity.PrincipalID
+	}
+
+	tenantId := ""
+	if identity.TenantID != nil {
+		tenantId = *identity.TenantID
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"principal_id": principalId,
+			"tenant_id":    tenantId,
+			"type":         string(identity.Type),
+		},
+	}
 }

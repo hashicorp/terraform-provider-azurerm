@@ -123,7 +123,6 @@ func (client JobStepExecutionsClient) GetSender(req *http.Request) (*http.Respon
 func (client JobStepExecutionsClient) GetResponder(resp *http.Response) (result JobExecution, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -174,6 +173,9 @@ func (client JobStepExecutionsClient) ListByJobExecution(ctx context.Context, re
 	result.jelr, err = client.ListByJobExecutionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobStepExecutionsClient", "ListByJobExecution", resp, "Failure responding to request")
+	}
+	if result.jelr.hasNextLink() && result.jelr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -235,7 +237,6 @@ func (client JobStepExecutionsClient) ListByJobExecutionSender(req *http.Request
 func (client JobStepExecutionsClient) ListByJobExecutionResponder(resp *http.Response) (result JobExecutionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

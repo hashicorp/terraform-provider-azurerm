@@ -1,12 +1,15 @@
 API Management
+Advisor
 Analysis Services
 App Configuration
 App Service (Web Apps)
 Application Insights
+Attestation
 Authorization
 Automation
 Base
 Batch
+Blueprints
 Bot
 CDN
 Cognitive Services
@@ -16,24 +19,30 @@ CosmosDB (DocumentDB)
 Cost Management
 Custom Providers
 DNS
+DataBox
 Data Explorer
 Data Factory
 Data Lake
-DataBox
+Data Share
 Database
 Database Migration
 Databricks
+Desktop Virtualization
 Dev Test
 DevSpace
+Digital Twins
 HDInsight
+Hardware Security Module
 Healthcare
 IoT Central
 IoT Hub
 Key Vault
+Lighthouse
 Load Balancer
 Log Analytics
 Logic App
 Machine Learning
+Maintenance
 Managed Applications
 Management
 Maps
@@ -51,7 +60,12 @@ Recovery Services
 Redis
 Search
 Security Center
+Sentinel
 Service Fabric
+Service Fabric Mesh
+Spring Cloud
 Storage
 Stream Analytics
+Synapse
 Template
+Time Series Insights

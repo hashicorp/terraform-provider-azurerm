@@ -118,7 +118,6 @@ func (client ResourceClient) CheckFilePathAvailabilitySender(req *http.Request) 
 func (client ResourceClient) CheckFilePathAvailabilityResponder(resp *http.Response) (result ResourceNameAvailability, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -202,7 +201,6 @@ func (client ResourceClient) CheckNameAvailabilitySender(req *http.Request) (*ht
 func (client ResourceClient) CheckNameAvailabilityResponder(resp *http.Response) (result ResourceNameAvailability, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

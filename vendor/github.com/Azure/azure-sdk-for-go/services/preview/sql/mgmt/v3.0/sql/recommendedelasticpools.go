@@ -115,7 +115,6 @@ func (client RecommendedElasticPoolsClient) GetSender(req *http.Request) (*http.
 func (client RecommendedElasticPoolsClient) GetResponder(resp *http.Response) (result RecommendedElasticPool, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -192,7 +191,6 @@ func (client RecommendedElasticPoolsClient) ListByServerSender(req *http.Request
 func (client RecommendedElasticPoolsClient) ListByServerResponder(resp *http.Response) (result RecommendedElasticPoolListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -271,7 +269,6 @@ func (client RecommendedElasticPoolsClient) ListMetricsSender(req *http.Request)
 func (client RecommendedElasticPoolsClient) ListMetricsResponder(resp *http.Response) (result RecommendedElasticPoolListMetricsResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

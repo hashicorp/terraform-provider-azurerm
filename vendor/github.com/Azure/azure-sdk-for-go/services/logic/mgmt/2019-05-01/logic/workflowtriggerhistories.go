@@ -115,7 +115,6 @@ func (client WorkflowTriggerHistoriesClient) GetSender(req *http.Request) (*http
 func (client WorkflowTriggerHistoriesClient) GetResponder(resp *http.Response) (result WorkflowTriggerHistory, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -160,6 +159,9 @@ func (client WorkflowTriggerHistoriesClient) List(ctx context.Context, resourceG
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowTriggerHistoriesClient", "List", resp, "Failure responding to request")
 	}
+	if result.wthlr.hasNextLink() && result.wthlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -203,7 +205,6 @@ func (client WorkflowTriggerHistoriesClient) ListSender(req *http.Request) (*htt
 func (client WorkflowTriggerHistoriesClient) ListResponder(resp *http.Response) (result WorkflowTriggerHistoryListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -321,7 +322,6 @@ func (client WorkflowTriggerHistoriesClient) ResubmitSender(req *http.Request) (
 func (client WorkflowTriggerHistoriesClient) ResubmitResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp

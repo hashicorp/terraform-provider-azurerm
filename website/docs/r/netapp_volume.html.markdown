@@ -29,7 +29,7 @@ resource "azurerm_subnet" "example" {
   name                 = "example-subnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 
   delegation {
     name = "netapp"
@@ -131,6 +131,8 @@ An `export_policy_rule` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the NetApp Volume.
+
+* `mount_ip_addresses` - A list of IPv4 Addresses which should be used to mount the volume.
 
 ## Timeouts
 
