@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -121,7 +120,7 @@ func resourceArmStorageAccountNetworkRulesCreateUpdate(d *schema.ResourceData, m
 		}
 
 		if checkForNonDefaultStorageAccountNetworkRule(storageAccount.AccountProperties.NetworkRuleSet) {
-			return tf.ImportAsExistsError("azurerm_storage_account_network_rule", *storageAccount.ID)
+			return fmt.Errorf("Error the storage account already has networking rules configured. Remove these before attempting to manage rules with this resource. Storage Account %q (Resource Group %q)", storageAccountName, resourceGroup)
 		}
 	}
 
