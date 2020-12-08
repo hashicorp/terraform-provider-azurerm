@@ -1,4 +1,4 @@
-package tests
+package portal_test
 
 import (
 	"fmt"
