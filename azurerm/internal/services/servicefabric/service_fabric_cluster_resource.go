@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmServiceFabricCluster() *schema.Resource {
+func resourceServiceFabricCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceFabricClusterCreateUpdate,
-		Read:   resourceArmServiceFabricClusterRead,
-		Update: resourceArmServiceFabricClusterCreateUpdate,
-		Delete: resourceArmServiceFabricClusterDelete,
+		Create: resourceServiceFabricClusterCreateUpdate,
+		Read:   resourceServiceFabricClusterRead,
+		Update: resourceServiceFabricClusterCreateUpdate,
+		Delete: resourceServiceFabricClusterDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -397,7 +397,7 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 	}
 }
 
-func resourceArmServiceFabricClusterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceFabricClusterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabric.ClustersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -501,10 +501,10 @@ func resourceArmServiceFabricClusterCreateUpdate(d *schema.ResourceData, meta in
 
 	d.SetId(*read.ID)
 
-	return resourceArmServiceFabricClusterRead(d, meta)
+	return resourceServiceFabricClusterRead(d, meta)
 }
 
-func resourceArmServiceFabricClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceFabricClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabric.ClustersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -593,7 +593,7 @@ func resourceArmServiceFabricClusterRead(d *schema.ResourceData, meta interface{
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmServiceFabricClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceFabricClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabric.ClustersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
