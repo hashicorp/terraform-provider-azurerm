@@ -56,7 +56,7 @@ func resourceArmServiceBusSubscriptionRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateServiceBusTopicName(),
+				ValidateFunc: validate.TopicName(),
 			},
 
 			"subscription_name": {

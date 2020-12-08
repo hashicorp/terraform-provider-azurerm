@@ -1,11 +1,11 @@
-package azure
+package validate
 
 import (
 	"strings"
 	"testing"
 )
 
-func TestValidateServiceBusTopicName(t *testing.T) {
+func TestTopicName(t *testing.T) {
 	tests := []struct {
 		name  string
 		input string
@@ -63,7 +63,7 @@ func TestValidateServiceBusTopicName(t *testing.T) {
 		},
 	}
 
-	validationFunction := ValidateServiceBusTopicName()
+	validationFunction := TopicName()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := validationFunction(tt.input, "name")

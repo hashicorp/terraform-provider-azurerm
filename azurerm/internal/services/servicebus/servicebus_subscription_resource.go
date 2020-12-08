@@ -52,7 +52,7 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateServiceBusTopicName(),
+				ValidateFunc: validate.TopicName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),

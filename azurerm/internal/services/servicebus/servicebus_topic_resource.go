@@ -41,7 +41,7 @@ func resourceArmServiceBusTopic() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateServiceBusTopicName(),
+				ValidateFunc: azValidate.TopicName(),
 			},
 
 			"namespace_name": {
