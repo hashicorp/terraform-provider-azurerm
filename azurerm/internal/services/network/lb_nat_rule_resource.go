@@ -125,7 +125,6 @@ func resourceArmLoadBalancerNatRule() *schema.Resource {
 
 func resourceArmLoadBalancerNatRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.LoadBalancersClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -134,7 +133,7 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *schema.ResourceData, meta int
 	if err != nil {
 		return fmt.Errorf("retrieving Load Balancer Name and Group: %+v", err)
 	}
-	loadBalancerIdRaw := loadBalancerId.ID(subscriptionId)
+	loadBalancerIdRaw := loadBalancerId.ID("")
 	locks.ByID(loadBalancerIdRaw)
 	defer locks.UnlockByID(loadBalancerIdRaw)
 
