@@ -26,6 +26,6 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_powerbi_embedded": resourcePowerBIEmbedded(),
+		"azurerm_powerbi_embedded": resourcePowerBIEmbedded(), // todo should this be renamed to `azurerm_powerbi_embedded_capacity` ?
 	}
 }
