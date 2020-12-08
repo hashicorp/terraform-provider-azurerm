@@ -19,7 +19,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-var appServiceCertificateBindingResourceName = "azurerm_app_service_certificate_binding"
+var appServiceHostnameBindingResourceName = "azurerm_app_service_custom_hostname_binding"
 
 func resourceArmAppServiceCertificateBinding() *schema.Resource {
 	return &schema.Resource{
@@ -122,12 +122,12 @@ func resourceArmAppServiceCertificateBindingCreate(d *schema.ResourceData, meta 
 	props := binding.HostNameBindingProperties
 	if props != nil {
 		if props.Thumbprint != nil && *props.Thumbprint == *thumbprint {
-			return tf.ImportAsExistsError(appServiceCertificateBindingResourceName, id.ID(""))
+			return tf.ImportAsExistsError(appServiceHostnameBindingResourceName, id.ID(""))
 		}
 	}
 
-	locks.ByName(id.HostnameBindingId.SiteName, appServiceCertificateBindingResourceName)
-	defer locks.UnlockByName(id.HostnameBindingId.SiteName, appServiceCertificateBindingResourceName)
+	locks.ByName(id.HostnameBindingId.SiteName, appServiceHostnameBindingResourceName)
+	defer locks.UnlockByName(id.HostnameBindingId.SiteName, appServiceHostnameBindingResourceName)
 
 	binding.HostNameBindingProperties.SslState = web.SslState(d.Get("ssl_state").(string))
 	binding.HostNameBindingProperties.Thumbprint = thumbprint
@@ -206,8 +206,8 @@ func resourceArmAppServiceCertificateBindingDelete(d *schema.ResourceData, meta 
 		return nil
 	}
 
-	locks.ByName(id.HostnameBindingId.SiteName, appServiceCertificateBindingResourceName)
-	defer locks.UnlockByName(id.HostnameBindingId.SiteName, appServiceCertificateBindingResourceName)
+	locks.ByName(id.HostnameBindingId.SiteName, appServiceHostnameBindingResourceName)
+	defer locks.UnlockByName(id.HostnameBindingId.SiteName, appServiceHostnameBindingResourceName)
 
 	log.Printf("[DEBUG] Deleting App Service Hostname Binding %q (App Service %q / Resource Group %q)", id.HostnameBindingId.Name, id.HostnameBindingId.SiteName, id.HostnameBindingId.ResourceGroup)
 
