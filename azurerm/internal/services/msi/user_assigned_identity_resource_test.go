@@ -7,10 +7,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure`
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mixedreality/parse`
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -51,16 +53,19 @@ func TestAccAzureRMUserAssignedIdentity_requiresImport(t *testing.T) {
 }
 
 func (r UserAssignedIdentityResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	name := state.Attributes["name"]
-	resourceGroup := state.Attributes["resource_group_name"]
-	resp, err := client.MSI.UserAssignedIdentitiesClient.Get(ctx, resourceGroup, name)
+	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
-		}
+		return nil, err
+	}
+
+	name := id.Path["userAssignedIdentities"]
+
+	resp, err := client.MSI.UserAssignedIdentitiesClient.Get(ctx, id.ResourceGroup, name)
+	if err != nil {
 		return nil, fmt.Errorf("retrieving User Assigned Identity %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
-	return utils.Bool(true), nil
+
+	return utils.Bool(resp.IdentityProperties != nil), nil
 }
 
 func (r UserAssignedIdentityResource) basic(data acceptance.TestData) string {

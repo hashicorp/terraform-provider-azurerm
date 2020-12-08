@@ -1,138 +1,96 @@
 package notificationhub_test
 
 import (
+	`context`
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub/parse`
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils`
 )
+
+type NotificationHubNamespaceResource struct {
+}
 
 func TestAccNotificationHubNamespace_free(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_notification_hub_namespace", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckNotificationHubNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccNotificationHubNamespace_free(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckNotificationHubNamespaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := NotificationHubNamespaceResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.free(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccNotificationHubNamespace_updateTag(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_notification_hub_namespace", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckNotificationHubNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccNotificationHubNamespace_free(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckNotificationHubNamespaceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccNotificationHubNamespace_withoutTag(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckNotificationHubNamespaceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccNotificationHubNamespace_free(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckNotificationHubNamespaceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-				),
-			},
-			data.ImportStep(),
+	r := NotificationHubNamespaceResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.free(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.withoutTag(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.free(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccNotificationHubNamespace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_notification_hub_namespace", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckNotificationHubNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccNotificationHubNamespace_free(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckNotificationHubNamespaceExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccNotificationHubNamespace_requiresImport),
+	r := NotificationHubNamespaceResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.free(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckNotificationHubNamespaceExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).NotificationHubs.NamespacesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("not found: %s", resourceName)
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		namespaceName := rs.Primary.Attributes["name"]
-
-		resp, err := client.Get(ctx, resourceGroup, namespaceName)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on notificationNamespacesClient: %s", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Notification Hub Namespace does not exist: %s", namespaceName)
-		}
-
-		return nil
-	}
-}
-
-func testCheckNotificationHubNamespaceDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).NotificationHubs.NamespacesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_notification_hub_namespace" {
-			continue
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		namespaceName := rs.Primary.Attributes["name"]
-		resp, err := client.Get(ctx, resourceGroup, namespaceName)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Notification Hub Namespace still exists:%s", *resp.Name)
-		}
+func (NotificationHubNamespaceResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.NamespaceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.NotificationHubs.NamespacesClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Notification Hub Namespace Rule (%s): %v", id.String(), err)
+	}
+
+	return utils.Bool(resp.NamespaceProperties != nil), nil
 }
 
-func testAccNotificationHubNamespace_free(data acceptance.TestData) string {
+func (NotificationHubNamespaceResource) free(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -158,7 +116,7 @@ resource "azurerm_notification_hub_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccNotificationHubNamespace_withoutTag(data acceptance.TestData) string {
+func (NotificationHubNamespaceResource) withoutTag(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -180,8 +138,8 @@ resource "azurerm_notification_hub_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccNotificationHubNamespace_requiresImport(data acceptance.TestData) string {
-	template := testAccNotificationHubNamespace_free(data)
+func (NotificationHubNamespaceResource) requiresImport(data acceptance.TestData) string {
+	template := NotificationHubNamespaceResource{}.free(data)
 	return fmt.Sprintf(`
 %s
 

@@ -8,27 +8,25 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceNotificationHubNamespace_free(t *testing.T) {
+type NotificationHubNamespaceDataSource struct{}
+
+func TestAccNotificationHubNamespaceDataSource_free(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_notification_hub_namespace", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckNotificationHubNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceNotificationHubNamespaceFree(data),
-				Check: resource.ComposeTestCheckFunc(
+	d := NotificationHubNamespaceDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: d.free(data),
+			Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "namespace_type", "NotificationHub"),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Free"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 				),
 			},
-		},
 	})
 }
 
-func testAccDataSourceNotificationHubNamespaceFree(data acceptance.TestData) string {
-	template := testAccNotificationHubNamespace_free(data)
+func (d NotificationHubNamespaceDataSource) free(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -36,5 +34,5 @@ data "azurerm_notification_hub_namespace" "test" {
   name                = azurerm_notification_hub_namespace.test.name
   resource_group_name = azurerm_notification_hub_namespace.test.resource_group_name
 }
-`, template)
+`, NotificationHubNamespaceResource{}.free(data))
 }
