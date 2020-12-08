@@ -62,7 +62,7 @@ func TestAccAzureRMNotificationHubNamespace_updateTag(t *testing.T) {
 			data.ImportStep(),
 		},
 	})
-}
+}servicebus_namespace_migration_resource_test.go:106
 
 func TestAccAzureRMNotificationHubNamespace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_notification_hub_namespace", "test")

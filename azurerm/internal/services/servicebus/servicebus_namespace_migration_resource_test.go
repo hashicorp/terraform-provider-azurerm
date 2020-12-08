@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus`
 )
 
 func TestAccAzureRMServiceBusNamespaceMigrateState(t *testing.T) {
@@ -103,7 +104,7 @@ func TestAccAzureRMServiceBusNamespaceMigrateState(t *testing.T) {
 			ID:         tc.ID,
 			Attributes: tc.Attributes,
 		}
-		is, err := ResourceAzureRMServiceBusNamespaceMigrateState(tc.StateVersion, is, nil)
+		is, err := servicebus.ResourceAzureRMServiceBusNamespaceMigrateState(tc.StateVersion, is, nil)
 		if err != nil {
 			t.Fatalf("bad: %q, err: %#v", tn, err)
 		}
