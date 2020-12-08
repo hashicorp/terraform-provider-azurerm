@@ -9,7 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-func ExpandServiceBusAuthorizationRuleRights(d *schema.ResourceData) *[]servicebus.AccessRights {
+func expandAuthorizationRuleRights(d *schema.ResourceData) *[]servicebus.AccessRights {
 	rights := make([]servicebus.AccessRights, 0)
 
 	if d.Get("listen").(bool) {
@@ -27,7 +27,7 @@ func ExpandServiceBusAuthorizationRuleRights(d *schema.ResourceData) *[]serviceb
 	return &rights
 }
 
-func FlattenServiceBusAuthorizationRuleRights(rights *[]servicebus.AccessRights) (listen, send, manage bool) {
+func flattenAuthorizationRuleRights(rights *[]servicebus.AccessRights) (listen, send, manage bool) {
 	// zero (initial) value for a bool in go is false
 
 	if rights != nil {
@@ -48,7 +48,7 @@ func FlattenServiceBusAuthorizationRuleRights(rights *[]servicebus.AccessRights)
 	return listen, send, manage
 }
 
-func ServiceBusAuthorizationRuleSchemaFrom(s map[string]*schema.Schema) map[string]*schema.Schema {
+func authorizationRuleSchemaFrom(s map[string]*schema.Schema) map[string]*schema.Schema {
 	authSchema := map[string]*schema.Schema{
 		"listen": {
 			Type:     schema.TypeBool,
@@ -95,7 +95,7 @@ func ServiceBusAuthorizationRuleSchemaFrom(s map[string]*schema.Schema) map[stri
 	return azure.MergeSchema(s, authSchema)
 }
 
-func ServiceBusAuthorizationRuleCustomizeDiff(d *schema.ResourceDiff, _ interface{}) error {
+func authorizationRuleCustomizeDiff(d *schema.ResourceDiff, _ interface{}) error {
 	listen, hasListen := d.GetOk("listen")
 	send, hasSend := d.GetOk("send")
 	manage, hasManage := d.GetOk("manage")

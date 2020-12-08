@@ -34,7 +34,7 @@ func resourceArmServiceBusNamespaceAuthorizationRule() *schema.Resource {
 		},
 
 		// function takes a schema map and adds the authorization rule properties to it
-		Schema: ServiceBusAuthorizationRuleSchemaFrom(map[string]*schema.Schema{
+		Schema: authorizationRuleSchemaFrom(map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -52,7 +52,7 @@ func resourceArmServiceBusNamespaceAuthorizationRule() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 		}),
 
-		CustomizeDiff: ServiceBusAuthorizationRuleCustomizeDiff,
+		CustomizeDiff: authorizationRuleCustomizeDiff,
 	}
 }
 
@@ -83,7 +83,7 @@ func resourceArmServiceBusNamespaceAuthorizationRuleCreateUpdate(d *schema.Resou
 	parameters := servicebus.SBAuthorizationRule{
 		Name: &name,
 		SBAuthorizationRuleProperties: &servicebus.SBAuthorizationRuleProperties{
-			Rights: ExpandServiceBusAuthorizationRuleRights(d),
+			Rights: expandAuthorizationRuleRights(d),
 		},
 	}
 
@@ -133,7 +133,7 @@ func resourceArmServiceBusNamespaceAuthorizationRuleRead(d *schema.ResourceData,
 	d.Set("resource_group_name", resGroup)
 
 	if properties := resp.SBAuthorizationRuleProperties; properties != nil {
-		listen, send, manage := FlattenServiceBusAuthorizationRuleRights(properties.Rights)
+		listen, send, manage := flattenAuthorizationRuleRights(properties.Rights)
 		d.Set("manage", manage)
 		d.Set("listen", listen)
 		d.Set("send", send)

@@ -33,7 +33,7 @@ func resourceArmServiceBusTopicAuthorizationRule() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: ServiceBusAuthorizationRuleSchemaFrom(map[string]*schema.Schema{
+		Schema: authorizationRuleSchemaFrom(map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -58,7 +58,7 @@ func resourceArmServiceBusTopicAuthorizationRule() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 		}),
 
-		CustomizeDiff: ServiceBusAuthorizationRuleCustomizeDiff,
+		CustomizeDiff: authorizationRuleCustomizeDiff,
 	}
 }
 
@@ -89,7 +89,7 @@ func resourceArmServiceBusTopicAuthorizationRuleCreateUpdate(d *schema.ResourceD
 	parameters := servicebus.SBAuthorizationRule{
 		Name: &name,
 		SBAuthorizationRuleProperties: &servicebus.SBAuthorizationRuleProperties{
-			Rights: ExpandServiceBusAuthorizationRuleRights(d),
+			Rights: expandAuthorizationRuleRights(d),
 		},
 	}
 
@@ -141,7 +141,7 @@ func resourceArmServiceBusTopicAuthorizationRuleRead(d *schema.ResourceData, met
 	d.Set("resource_group_name", resourceGroup)
 
 	if properties := resp.SBAuthorizationRuleProperties; properties != nil {
-		listen, send, manage := FlattenServiceBusAuthorizationRuleRights(properties.Rights)
+		listen, send, manage := flattenAuthorizationRuleRights(properties.Rights)
 		d.Set("listen", listen)
 		d.Set("send", send)
 		d.Set("manage", manage)
