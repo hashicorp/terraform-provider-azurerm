@@ -1,4 +1,4 @@
-package tests
+package bot_test
 
 import (
 	"fmt"

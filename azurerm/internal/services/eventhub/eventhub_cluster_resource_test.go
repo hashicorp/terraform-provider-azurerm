@@ -1,4 +1,4 @@
-package tests
+package eventhub_test
 
 import (
 	"fmt"
