@@ -12,9 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmStorageSyncGroup() *schema.Resource {
+func dataSourceStorageSyncGroup() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmStorageSyncGroupRead,
+		Read: dataSourceStorageSyncGroupRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -36,7 +36,7 @@ func dataSourceArmStorageSyncGroup() *schema.Resource {
 	}
 }
 
-func dataSourceArmStorageSyncGroupRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceStorageSyncGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.SyncGroupsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

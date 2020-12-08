@@ -18,9 +18,9 @@ const (
 
 // This is an ACCOUNT SAS : https://docs.microsoft.com/en-us/rest/api/storageservices/Constructing-an-Account-SAS
 // not Service SAS
-func dataSourceArmStorageAccountSharedAccessSignature() *schema.Resource {
+func dataSourceStorageAccountSharedAccessSignature() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmStorageAccountSasRead,
+		Read: dataSourceStorageAccountSasRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -170,7 +170,7 @@ func dataSourceArmStorageAccountSharedAccessSignature() *schema.Resource {
 	}
 }
 
-func dataSourceArmStorageAccountSasRead(d *schema.ResourceData, _ interface{}) error {
+func dataSourceStorageAccountSasRead(d *schema.ResourceData, _ interface{}) error {
 	connString := d.Get("connection_string").(string)
 	httpsOnly := d.Get("https_only").(bool)
 	signedVersion := d.Get("signed_version").(string)

@@ -16,12 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmStorageAccountNetworkRules() *schema.Resource {
+func resourceStorageAccountNetworkRules() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStorageAccountNetworkRulesCreateUpdate,
-		Read:   resourceArmStorageAccountNetworkRulesRead,
-		Update: resourceArmStorageAccountNetworkRulesCreateUpdate,
-		Delete: resourceArmStorageAccountNetworkRulesDelete,
+		Create: resourceStorageAccountNetworkRulesCreateUpdate,
+		Read:   resourceStorageAccountNetworkRulesRead,
+		Update: resourceStorageAccountNetworkRulesCreateUpdate,
+		Delete: resourceStorageAccountNetworkRulesDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -40,7 +40,7 @@ func resourceArmStorageAccountNetworkRules() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateArmStorageAccountName,
+				ValidateFunc: ValidateStorageAccountName,
 			},
 
 			"bypass": {
@@ -95,7 +95,7 @@ func resourceArmStorageAccountNetworkRules() *schema.Resource {
 	}
 }
 
-func resourceArmStorageAccountNetworkRulesCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageAccountNetworkRulesCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.AccountsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -147,10 +147,10 @@ func resourceArmStorageAccountNetworkRulesCreateUpdate(d *schema.ResourceData, m
 
 	d.SetId(*storageAccount.ID)
 
-	return resourceArmStorageAccountNetworkRulesRead(d, meta)
+	return resourceStorageAccountNetworkRulesRead(d, meta)
 }
 
-func resourceArmStorageAccountNetworkRulesRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageAccountNetworkRulesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.AccountsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -187,7 +187,7 @@ func resourceArmStorageAccountNetworkRulesRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceArmStorageAccountNetworkRulesDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageAccountNetworkRulesDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.AccountsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

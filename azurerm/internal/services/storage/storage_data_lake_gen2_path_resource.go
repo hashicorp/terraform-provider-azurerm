@@ -19,12 +19,12 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/accesscontrol"
 )
 
-func resourceArmStorageDataLakeGen2Path() *schema.Resource {
+func resourceStorageDataLakeGen2Path() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStorageDataLakeGen2PathCreate,
-		Read:   resourceArmStorageDataLakeGen2PathRead,
-		Update: resourceArmStorageDataLakeGen2PathUpdate,
-		Delete: resourceArmStorageDataLakeGen2PathDelete,
+		Create: resourceStorageDataLakeGen2PathCreate,
+		Read:   resourceStorageDataLakeGen2PathRead,
+		Update: resourceStorageDataLakeGen2PathUpdate,
+		Delete: resourceStorageDataLakeGen2PathDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
@@ -77,7 +77,7 @@ func resourceArmStorageDataLakeGen2Path() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateArmStorageDataLakeGen2FileSystemName,
+				ValidateFunc: validateStorageDataLakeGen2FileSystemName,
 			},
 
 			"path": {
@@ -141,7 +141,7 @@ func resourceArmStorageDataLakeGen2Path() *schema.Resource {
 	}
 }
 
-func resourceArmStorageDataLakeGen2PathCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageDataLakeGen2PathCreate(d *schema.ResourceData, meta interface{}) error {
 	accountsClient := meta.(*clients.Client).Storage.AccountsClient
 	client := meta.(*clients.Client).Storage.ADLSGen2PathsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -185,7 +185,7 @@ func resourceArmStorageDataLakeGen2PathCreate(d *schema.ResourceData, meta inter
 		return fmt.Errorf("Unhandled resource type %q", resourceString)
 	}
 	aceRaw := d.Get("ace").([]interface{})
-	acl, err := expandArmDataLakeGen2PathAceList(aceRaw)
+	acl, err := expandDataLakeGen2PathAceList(aceRaw)
 	if err != nil {
 		return fmt.Errorf("Error parsing ace list: %s", err)
 	}
@@ -227,10 +227,10 @@ func resourceArmStorageDataLakeGen2PathCreate(d *schema.ResourceData, meta inter
 	}
 
 	d.SetId(id)
-	return resourceArmStorageDataLakeGen2PathRead(d, meta)
+	return resourceStorageDataLakeGen2PathRead(d, meta)
 }
 
-func resourceArmStorageDataLakeGen2PathUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageDataLakeGen2PathUpdate(d *schema.ResourceData, meta interface{}) error {
 	accountsClient := meta.(*clients.Client).Storage.AccountsClient
 	client := meta.(*clients.Client).Storage.ADLSGen2PathsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -249,7 +249,7 @@ func resourceArmStorageDataLakeGen2PathUpdate(d *schema.ResourceData, meta inter
 	path := d.Get("path").(string)
 
 	aceRaw := d.Get("ace").([]interface{})
-	acl, err := expandArmDataLakeGen2PathAceList(aceRaw)
+	acl, err := expandDataLakeGen2PathAceList(aceRaw)
 	if err != nil {
 		return fmt.Errorf("Error parsing ace list: %s", err)
 	}
@@ -291,10 +291,10 @@ func resourceArmStorageDataLakeGen2PathUpdate(d *schema.ResourceData, meta inter
 		}
 	}
 
-	return resourceArmStorageDataLakeGen2PathRead(d, meta)
+	return resourceStorageDataLakeGen2PathRead(d, meta)
 }
 
-func resourceArmStorageDataLakeGen2PathRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageDataLakeGen2PathRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.ADLSGen2PathsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -337,12 +337,12 @@ func resourceArmStorageDataLakeGen2PathRead(d *schema.ResourceData, meta interfa
 	if err != nil {
 		return fmt.Errorf("Error parsing response ACL %q: %s", resp.ACL, err)
 	}
-	d.Set("ace", flattenArmDataLakeGen2PathAceList(acl))
+	d.Set("ace", flattenDataLakeGen2PathAceList(acl))
 
 	return nil
 }
 
-func resourceArmStorageDataLakeGen2PathDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageDataLakeGen2PathDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.ADLSGen2PathsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -362,7 +362,7 @@ func resourceArmStorageDataLakeGen2PathDelete(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func expandArmDataLakeGen2PathAceList(input []interface{}) (*accesscontrol.ACL, error) {
+func expandDataLakeGen2PathAceList(input []interface{}) (*accesscontrol.ACL, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -403,7 +403,7 @@ func expandArmDataLakeGen2PathAceList(input []interface{}) (*accesscontrol.ACL, 
 	return &accesscontrol.ACL{Entries: aceList}, nil
 }
 
-func flattenArmDataLakeGen2PathAceList(acl accesscontrol.ACL) []interface{} {
+func flattenDataLakeGen2PathAceList(acl accesscontrol.ACL) []interface{} {
 	output := make([]interface{}, len(acl.Entries))
 
 	for i, v := range acl.Entries {

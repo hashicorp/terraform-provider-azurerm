@@ -13,12 +13,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-func resourceArmStorageQueue() *schema.Resource {
+func resourceStorageQueue() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStorageQueueCreate,
-		Read:   resourceArmStorageQueueRead,
-		Update: resourceArmStorageQueueUpdate,
-		Delete: resourceArmStorageQueueDelete,
+		Create: resourceStorageQueueCreate,
+		Read:   resourceStorageQueueRead,
+		Update: resourceStorageQueueUpdate,
+		Delete: resourceStorageQueueDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -44,7 +44,7 @@ func resourceArmStorageQueue() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateArmStorageAccountName,
+				ValidateFunc: ValidateStorageAccountName,
 			},
 
 			"metadata": MetaDataSchema(),
@@ -52,7 +52,7 @@ func resourceArmStorageQueue() *schema.Resource {
 	}
 }
 
-func resourceArmStorageQueueCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageQueueCreate(d *schema.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -91,10 +91,10 @@ func resourceArmStorageQueueCreate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	d.SetId(resourceId)
-	return resourceArmStorageQueueRead(d, meta)
+	return resourceStorageQueueRead(d, meta)
 }
 
-func resourceArmStorageQueueUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageQueueUpdate(d *schema.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -124,10 +124,10 @@ func resourceArmStorageQueueUpdate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("updating MetaData for Queue %q (Storage Account %q): %s", id.Name, id.AccountName, err)
 	}
 
-	return resourceArmStorageQueueRead(d, meta)
+	return resourceStorageQueueRead(d, meta)
 }
 
-func resourceArmStorageQueueRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageQueueRead(d *schema.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -172,7 +172,7 @@ func resourceArmStorageQueueRead(d *schema.ResourceData, meta interface{}) error
 	return nil
 }
 
-func resourceArmStorageQueueDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageQueueDelete(d *schema.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

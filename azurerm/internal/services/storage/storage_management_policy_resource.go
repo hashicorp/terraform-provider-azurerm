@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-func resourceArmStorageManagementPolicy() *schema.Resource {
+func resourceStorageManagementPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStorageManagementPolicyCreateOrUpdate,
-		Read:   resourceArmStorageManagementPolicyRead,
-		Update: resourceArmStorageManagementPolicyCreateOrUpdate,
-		Delete: resourceArmStorageManagementPolicyDelete,
+		Create: resourceStorageManagementPolicyCreateOrUpdate,
+		Read:   resourceStorageManagementPolicyRead,
+		Update: resourceStorageManagementPolicyCreateOrUpdate,
+		Delete: resourceStorageManagementPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -141,7 +141,7 @@ func resourceArmStorageManagementPolicy() *schema.Resource {
 	}
 }
 
-func resourceArmStorageManagementPolicyCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageManagementPolicyCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.ManagementPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -184,10 +184,10 @@ func resourceArmStorageManagementPolicyCreateOrUpdate(d *schema.ResourceData, me
 
 	d.SetId(*result.ID)
 
-	return resourceArmStorageManagementPolicyRead(d, meta)
+	return resourceStorageManagementPolicyRead(d, meta)
 }
 
-func resourceArmStorageManagementPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageManagementPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.ManagementPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -222,7 +222,7 @@ func resourceArmStorageManagementPolicyRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceArmStorageManagementPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageManagementPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.ManagementPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

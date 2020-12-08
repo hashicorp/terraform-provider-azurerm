@@ -21,35 +21,35 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_storage_account_blob_container_sas": dataSourceArmStorageAccountBlobContainerSharedAccessSignature(),
-		"azurerm_storage_account_sas":                dataSourceArmStorageAccountSharedAccessSignature(),
-		"azurerm_storage_account":                    dataSourceArmStorageAccount(),
-		"azurerm_storage_container":                  dataSourceArmStorageContainer(),
-		"azurerm_storage_encryption_scope":           dataSourceArmStorageEncryptionScope(),
-		"azurerm_storage_management_policy":          dataSourceArmStorageManagementPolicy(),
-		"azurerm_storage_sync":                       dataSourceArmStorageSync(),
-		"azurerm_storage_sync_group":                 dataSourceArmStorageSyncGroup(),
+		"azurerm_storage_account_blob_container_sas": dataSourceStorageAccountBlobContainerSharedAccessSignature(),
+		"azurerm_storage_account_sas":                dataSourceStorageAccountSharedAccessSignature(),
+		"azurerm_storage_account":                    dataSourceStorageAccount(),
+		"azurerm_storage_container":                  dataSourceStorageContainer(),
+		"azurerm_storage_encryption_scope":           dataSourceStorageEncryptionScope(),
+		"azurerm_storage_management_policy":          dataSourceStorageManagementPolicy(),
+		"azurerm_storage_sync":                       dataSourceStorageSync(),
+		"azurerm_storage_sync_group":                 dataSourceStorageSyncGroup(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_storage_account":                      resourceArmStorageAccount(),
-		"azurerm_storage_account_customer_managed_key": resourceArmStorageAccountCustomerManagedKey(),
-		"azurerm_storage_account_network_rules":        resourceArmStorageAccountNetworkRules(),
-		"azurerm_storage_blob":                         resourceArmStorageBlob(),
-		"azurerm_storage_container":                    resourceArmStorageContainer(),
-		"azurerm_storage_encryption_scope":             resourceArmStorageEncryptionScope(),
-		"azurerm_storage_data_lake_gen2_filesystem":    resourceArmStorageDataLakeGen2FileSystem(),
-		"azurerm_storage_data_lake_gen2_path":          resourceArmStorageDataLakeGen2Path(),
-		"azurerm_storage_management_policy":            resourceArmStorageManagementPolicy(),
-		"azurerm_storage_queue":                        resourceArmStorageQueue(),
-		"azurerm_storage_share":                        resourceArmStorageShare(),
-		"azurerm_storage_share_directory":              resourceArmStorageShareDirectory(),
-		"azurerm_storage_table":                        resourceArmStorageTable(),
-		"azurerm_storage_table_entity":                 resourceArmStorageTableEntity(),
-		"azurerm_storage_sync":                         resourceArmStorageSync(),
-		"azurerm_storage_sync_group":                   resourceArmStorageSyncGroup(),
+		"azurerm_storage_account":                      resourceStorageAccount(),
+		"azurerm_storage_account_customer_managed_key": resourceStorageAccountCustomerManagedKey(),
+		"azurerm_storage_account_network_rules":        resourceStorageAccountNetworkRules(),
+		"azurerm_storage_blob":                         resourceStorageBlob(),
+		"azurerm_storage_container":                    resourceStorageContainer(),
+		"azurerm_storage_encryption_scope":             resourceStorageEncryptionScope(),
+		"azurerm_storage_data_lake_gen2_filesystem":    resourceStorageDataLakeGen2FileSystem(),
+		"azurerm_storage_data_lake_gen2_path":          resourceStorageDataLakeGen2Path(),
+		"azurerm_storage_management_policy":            resourceStorageManagementPolicy(),
+		"azurerm_storage_queue":                        resourceStorageQueue(),
+		"azurerm_storage_share":                        resourceStorageShare(),
+		"azurerm_storage_share_directory":              resourceStorageShareDirectory(),
+		"azurerm_storage_table":                        resourceStorageTable(),
+		"azurerm_storage_table_entity":                 resourceStorageTableEntity(),
+		"azurerm_storage_sync":                         resourceStorageSync(),
+		"azurerm_storage_sync_group":                   resourceStorageSyncGroup(),
 	}
 }

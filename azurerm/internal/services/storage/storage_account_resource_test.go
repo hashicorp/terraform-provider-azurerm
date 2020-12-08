@@ -17,7 +17,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestValidateArmStorageAccountName(t *testing.T) {
+func TestValidateStorageAccountName(t *testing.T) {
 	testCases := []struct {
 		input       string
 		shouldError bool
@@ -31,7 +31,7 @@ func TestValidateArmStorageAccountName(t *testing.T) {
 	}
 
 	for _, test := range testCases {
-		_, es := storage.ValidateArmStorageAccountName(test.input, "name")
+		_, es := storage.ValidateStorageAccountName(test.input, "name")
 
 		if test.shouldError && len(es) == 0 {
 			t.Fatalf("Expected validating name %q to fail", test.input)

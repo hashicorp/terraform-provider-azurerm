@@ -15,12 +15,12 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/containers"
 )
 
-func resourceArmStorageContainer() *schema.Resource {
+func resourceStorageContainer() *schema.Resource {
 	return &schema.Resource{
-		Create:        resourceArmStorageContainerCreate,
-		Read:          resourceArmStorageContainerRead,
-		Delete:        resourceArmStorageContainerDelete,
-		Update:        resourceArmStorageContainerUpdate,
+		Create:        resourceStorageContainerCreate,
+		Read:          resourceStorageContainerRead,
+		Delete:        resourceStorageContainerDelete,
+		Update:        resourceStorageContainerUpdate,
 		MigrateState:  ResourceStorageContainerMigrateState,
 		SchemaVersion: 1,
 
@@ -47,7 +47,7 @@ func resourceArmStorageContainer() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateArmStorageAccountName,
+				ValidateFunc: ValidateStorageAccountName,
 			},
 
 			"container_access_type": {
@@ -82,7 +82,7 @@ func resourceArmStorageContainer() *schema.Resource {
 	}
 }
 
-func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageContainerCreate(d *schema.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -128,10 +128,10 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	d.SetId(id)
-	return resourceArmStorageContainerRead(d, meta)
+	return resourceStorageContainerRead(d, meta)
 }
 
-func resourceArmStorageContainerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageContainerUpdate(d *schema.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -177,10 +177,10 @@ func resourceArmStorageContainerUpdate(d *schema.ResourceData, meta interface{})
 		log.Printf("[DEBUG] Updated the MetaData for Container %q (Storage Account %q / Resource Group %q)", id.Name, id.AccountName, account.ResourceGroup)
 	}
 
-	return resourceArmStorageContainerRead(d, meta)
+	return resourceStorageContainerRead(d, meta)
 }
 
-func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageContainerRead(d *schema.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -233,7 +233,7 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceArmStorageContainerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceStorageContainerDelete(d *schema.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
