@@ -1,4 +1,4 @@
-package tests
+package search_test
 
 import (
 	"fmt"
