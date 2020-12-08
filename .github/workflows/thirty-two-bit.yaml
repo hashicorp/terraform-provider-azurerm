@@ -1,0 +1,23 @@
+---
+name: 32 Bit Build
+on:
+  pull_request:
+    types: ['opened', 'synchronize']
+    paths:
+      - '**.go'
+      - 'vendor/**'
+      - '.github/workflows/**'
+
+jobs:
+  compatability-32bit-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.14.5'
+      - run: bash scripts/gogetcookie.sh
+      - run: make tools
+      - run: GOARCH=386 GOOS=linux go build -o 32bitbuild .

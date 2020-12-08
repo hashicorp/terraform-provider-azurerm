@@ -147,7 +147,6 @@ func testCheckSubscriptionTemplateDeploymentDestroyed(s *terraform.State) error 
 		name := rs.Primary.Attributes["name"]
 
 		resp, err := client.GetAtSubscriptionScope(ctx, name)
-
 		if err != nil {
 			return nil
 		}

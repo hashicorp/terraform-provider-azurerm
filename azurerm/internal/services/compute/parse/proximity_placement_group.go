@@ -1,38 +1,62 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 type ProximityPlacementGroupId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func NewProximityPlacementGroupId(resourceGroup, name string) ProximityPlacementGroupId {
+func NewProximityPlacementGroupID(subscriptionId, resourceGroup, name string) ProximityPlacementGroupId {
 	return ProximityPlacementGroupId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
 }
 
-func (id ProximityPlacementGroupId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/proximityPlacementGroups/%s", subscriptionId, id.ResourceGroup, id.Name)
+func (id ProximityPlacementGroupId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Name %q", id.Name),
+	}
+	return strings.Join(segments, " / ")
 }
 
+func (id ProximityPlacementGroupId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/proximityPlacementGroups/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+}
+
+// ProximityPlacementGroupID parses a ProximityPlacementGroup ID into an ProximityPlacementGroupId struct
 func ProximityPlacementGroupID(input string) (*ProximityPlacementGroupId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse Proximity Placement Group ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	server := ProximityPlacementGroupId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := ProximityPlacementGroupId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if server.Name, err = id.PopSegment("proximityPlacementGroups"); err != nil {
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.Name, err = id.PopSegment("proximityPlacementGroups"); err != nil {
 		return nil, err
 	}
 
@@ -40,5 +64,5 @@ func ProximityPlacementGroupID(input string) (*ProximityPlacementGroupId, error)
 		return nil, err
 	}
 
-	return &server, nil
+	return &resourceId, nil
 }

@@ -1,32 +1,68 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 type SpringCloudAppId struct {
-	ResourceGroup string
-	ServiceName   string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	SpringName     string
+	AppName        string
 }
 
+func NewSpringCloudAppID(subscriptionId, resourceGroup, springName, appName string) SpringCloudAppId {
+	return SpringCloudAppId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		SpringName:     springName,
+		AppName:        appName,
+	}
+}
+
+func (id SpringCloudAppId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Spring Name %q", id.SpringName),
+		fmt.Sprintf("App Name %q", id.AppName),
+	}
+	return strings.Join(segments, " / ")
+}
+
+func (id SpringCloudAppId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.AppPlatform/Spring/%s/apps/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SpringName, id.AppName)
+}
+
+// SpringCloudAppID parses a SpringCloudApp ID into an SpringCloudAppId struct
 func SpringCloudAppID(input string) (*SpringCloudAppId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing Spring Cloud App ID %q: %+v", input, err)
-	}
-
-	app := SpringCloudAppId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if app.ServiceName, err = id.PopSegment("Spring"); err != nil {
 		return nil, err
 	}
 
-	if app.Name, err = id.PopSegment("apps"); err != nil {
+	resourceId := SpringCloudAppId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.SpringName, err = id.PopSegment("Spring"); err != nil {
+		return nil, err
+	}
+	if resourceId.AppName, err = id.PopSegment("apps"); err != nil {
 		return nil, err
 	}
 
@@ -34,5 +70,5 @@ func SpringCloudAppID(input string) (*SpringCloudAppId, error) {
 		return nil, err
 	}
 
-	return &app, nil
+	return &resourceId, nil
 }

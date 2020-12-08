@@ -47,7 +47,7 @@ func resourceArmMySqlFirewallRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.MySQLServerName,
+				ValidateFunc: validate.ServerName,
 			},
 
 			"start_ip_address": {

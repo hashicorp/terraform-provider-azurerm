@@ -778,13 +778,12 @@ func testCheckAzureRMServiceFabricClusterDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.ServiceFabricClusterID(rs.Primary.ID)
+		id, err := parse.ClusterID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
 		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-
 		if err != nil {
 			return nil
 		}
@@ -808,7 +807,7 @@ func testCheckAzureRMServiceFabricClusterExists(resourceName string) resource.Te
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.ServiceFabricClusterID(rs.Primary.ID)
+		id, err := parse.ClusterID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

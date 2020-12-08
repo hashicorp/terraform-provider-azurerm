@@ -63,7 +63,7 @@ func TestValidateServiceBusTopicName(t *testing.T) {
 		},
 	}
 
-	var validationFunction = ValidateServiceBusTopicName()
+	validationFunction := ValidateServiceBusTopicName()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := validationFunction(tt.input, "name")

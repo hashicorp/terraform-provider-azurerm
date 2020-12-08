@@ -3,15 +3,15 @@ package tests
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"testing"
 
-	"strconv"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/validate"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub"
 )
 
 func TestAccAzureRMEventHubPartitionCount_validation(t *testing.T) {
@@ -50,7 +50,7 @@ func TestAccAzureRMEventHubPartitionCount_validation(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := eventhub.ValidateEventHubPartitionCount(tc.Value, "azurerm_eventhub")
+		_, errors := validate.ValidateEventHubPartitionCount(tc.Value, "azurerm_eventhub")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected the Azure RM EventHub Partition Count to trigger a validation error")
@@ -94,7 +94,7 @@ func TestAccAzureRMEventHubMessageRetentionCount_validation(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := eventhub.ValidateEventHubMessageRetentionCount(tc.Value, "azurerm_eventhub")
+		_, errors := validate.ValidateEventHubMessageRetentionCount(tc.Value, "azurerm_eventhub")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected the Azure RM EventHub Message Retention Count to trigger a validation error")
@@ -162,7 +162,7 @@ func TestAccAzureRMEventHubArchiveNameFormat_validation(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := eventhub.ValidateEventHubArchiveNameFormat(tc.Value, "azurerm_eventhub")
+		_, errors := validate.ValidateEventHubArchiveNameFormat(tc.Value, "azurerm_eventhub")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected %q to trigger a validation error", tc.Value)
@@ -363,7 +363,6 @@ func testCheckAzureRMEventHubDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := conn.Get(ctx, resourceGroup, namespaceName, name)
-
 		if err != nil {
 			return nil
 		}

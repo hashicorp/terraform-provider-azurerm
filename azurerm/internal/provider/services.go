@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/sdk"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/advisor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement"
@@ -16,7 +17,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos"
@@ -30,6 +30,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/digitaltwins"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub"
@@ -88,8 +89,15 @@ import (
 
 //go:generate go run ../tools/generator-services/main.go -path=../../../
 
-func SupportedServices() []common.ServiceRegistration {
-	return []common.ServiceRegistration{
+func SupportedTypedServices() []sdk.TypedServiceRegistration {
+	return []sdk.TypedServiceRegistration{
+		eventhub.Registration{},
+		resource.Registration{},
+	}
+}
+
+func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
+	return []sdk.UntypedServiceRegistration{
 		advisor.Registration{},
 		analysisservices.Registration{},
 		apimanagement.Registration{},
@@ -118,6 +126,7 @@ func SupportedServices() []common.ServiceRegistration {
 		desktopvirtualization.Registration{},
 		devspace.Registration{},
 		devtestlabs.Registration{},
+		digitaltwins.Registration{},
 		dns.Registration{},
 		eventgrid.Registration{},
 		eventhub.Registration{},

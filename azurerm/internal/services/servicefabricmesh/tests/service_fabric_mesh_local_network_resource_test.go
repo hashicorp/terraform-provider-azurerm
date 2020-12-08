@@ -73,13 +73,12 @@ func testCheckAzureRMServiceFabricMeshLocalNetworkDestroy(s *terraform.State) er
 			continue
 		}
 
-		id, err := parse.ServiceFabricMeshNetworkID(rs.Primary.ID)
+		id, err := parse.NetworkID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
 		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-
 		if err != nil {
 			return nil
 		}
@@ -103,7 +102,7 @@ func testCheckAzureRMServiceFabricMeshLocalNetworkExists(resourceName string) re
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.ServiceFabricMeshNetworkID(rs.Primary.ID)
+		id, err := parse.NetworkID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

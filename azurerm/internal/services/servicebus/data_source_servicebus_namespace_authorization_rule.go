@@ -29,7 +29,7 @@ func dataSourceArmServiceBusNamespaceAuthorizationRule() *schema.Resource {
 			"namespace_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ServiceBusNamespaceName,
+				ValidateFunc: validate.NamespaceName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),

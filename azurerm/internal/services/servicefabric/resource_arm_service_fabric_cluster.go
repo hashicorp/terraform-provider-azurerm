@@ -35,7 +35,7 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.ServiceFabricClusterID(id)
+			_, err := parse.ClusterID(id)
 			return err
 		}),
 
@@ -509,7 +509,7 @@ func resourceArmServiceFabricClusterRead(d *schema.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServiceFabricClusterID(d.Id())
+	id, err := parse.ClusterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -598,7 +598,7 @@ func resourceArmServiceFabricClusterDelete(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServiceFabricClusterID(d.Id())
+	id, err := parse.ClusterID(d.Id())
 	if err != nil {
 		return err
 	}

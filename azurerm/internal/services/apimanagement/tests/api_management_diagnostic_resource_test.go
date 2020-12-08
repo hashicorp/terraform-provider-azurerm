@@ -85,12 +85,11 @@ func testCheckAzureRMApiManagementDiagnosticDestroy(s *terraform.State) error {
 			continue
 		}
 
-		diagnosticId, err := parse.ApiManagementDiagnosticID(rs.Primary.ID)
+		diagnosticId, err := parse.DiagnosticID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 		resp, err := client.Get(ctx, diagnosticId.ResourceGroup, diagnosticId.ServiceName, diagnosticId.Name)
-
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err
@@ -112,7 +111,7 @@ func testCheckAzureRMApiManagementDiagnosticExists(resourceName string) resource
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		diagnosticId, err := parse.ApiManagementDiagnosticID(rs.Primary.ID)
+		diagnosticId, err := parse.DiagnosticID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

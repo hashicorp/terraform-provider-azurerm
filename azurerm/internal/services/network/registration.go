@@ -50,6 +50,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_virtual_network_gateway_connection":        dataSourceArmVirtualNetworkGatewayConnection(),
 		"azurerm_virtual_network":                           dataSourceArmVirtualNetwork(),
 		"azurerm_web_application_firewall_policy":           dataArmWebApplicationFirewallPolicy(),
+		"azurerm_virtual_wan":                               dataSourceArmVirtualWan(),
 	}
 }
 
@@ -109,6 +110,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_subnet_nat_gateway_association":                                         resourceArmSubnetNatGatewayAssociation(),
 		"azurerm_subnet":                                                                 resourceArmSubnet(),
 		"azurerm_virtual_hub":                                                            resourceArmVirtualHub(),
+		"azurerm_virtual_hub_bgp_connection":                                             resourceArmVirtualHubBgpConnection(),
 		"azurerm_virtual_hub_connection":                                                 resourceArmVirtualHubConnection(),
 		"azurerm_virtual_hub_ip":                                                         resourceArmVirtualHubIP(),
 		"azurerm_virtual_hub_route_table":                                                resourceArmVirtualHubRouteTable(),
@@ -118,6 +120,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_virtual_network":                                                        resourceArmVirtualNetwork(),
 		"azurerm_virtual_wan":                                                            resourceArmVirtualWan(),
 		"azurerm_vpn_gateway":                                                            resourceArmVPNGateway(),
+		"azurerm_vpn_gateway_connection":                                                 resourceArmVPNGatewayConnection(),
 		"azurerm_vpn_server_configuration":                                               resourceArmVPNServerConfiguration(),
 		"azurerm_vpn_site":                                                               resourceArmVpnSite(),
 		"azurerm_web_application_firewall_policy":                                        resourceArmWebApplicationFirewallPolicy(),

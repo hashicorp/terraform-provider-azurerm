@@ -281,7 +281,7 @@ The following arguments are supported:
 `key_properties` supports the following:
 
 * `exportable` - (Required) Is this Certificate Exportable? Changing this forces a new resource to be created.
-* `key_size` - (Required) The size of the Key used in the Certificate. Possible values include `2048` and `4096`. Changing this forces a new resource to be created.
+* `key_size` - (Required) The size of the Key used in the Certificate. Possible values include `2048`, `3072`, and `4096`. Changing this forces a new resource to be created.
 * `key_type` - (Required) Specifies the Type of Key, such as `RSA`. Changing this forces a new resource to be created.
 * `reuse_key` - (Required) Is the key reusable? Changing this forces a new resource to be created.
 

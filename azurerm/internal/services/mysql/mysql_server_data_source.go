@@ -26,7 +26,7 @@ func dataSourceArmMySqlServer() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.MySQLServerName,
+				ValidateFunc: validate.ServerName,
 			},
 
 			"administrator_login": {

@@ -112,6 +112,7 @@ func TestAccAzureRMSpringCloudService_virtualNetwork(t *testing.T) {
 					testCheckAzureRMSpringCloudServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "network.0.service_runtime_network_resource_group"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "network.0.app_network_resource_group"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "outbound_public_ip_addresses.0"),
 				),
 			},
 			data.ImportStep(

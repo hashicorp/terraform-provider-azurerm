@@ -1,27 +1,62 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 type SpringCloudServiceId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	SpringName     string
 }
 
+func NewSpringCloudServiceID(subscriptionId, resourceGroup, springName string) SpringCloudServiceId {
+	return SpringCloudServiceId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		SpringName:     springName,
+	}
+}
+
+func (id SpringCloudServiceId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Spring Name %q", id.SpringName),
+	}
+	return strings.Join(segments, " / ")
+}
+
+func (id SpringCloudServiceId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.AppPlatform/Spring/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SpringName)
+}
+
+// SpringCloudServiceID parses a SpringCloudService ID into an SpringCloudServiceId struct
 func SpringCloudServiceID(input string) (*SpringCloudServiceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse Spring Cloud Service ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	server := SpringCloudServiceId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := SpringCloudServiceId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if server.Name, err = id.PopSegment("Spring"); err != nil {
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.SpringName, err = id.PopSegment("Spring"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +64,5 @@ func SpringCloudServiceID(input string) (*SpringCloudServiceId, error) {
 		return nil, err
 	}
 
-	return &server, nil
+	return &resourceId, nil
 }

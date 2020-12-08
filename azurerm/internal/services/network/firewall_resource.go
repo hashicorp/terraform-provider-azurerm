@@ -51,9 +51,39 @@ func resourceArmFirewall() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			// TODO 3.0: change this to required
+			"sku_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.AZFWHub),
+					string(network.AZFWVNet),
+				}, false),
+			},
+
+			// TODO 3.0: change this to required
+			"sku_tier": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.Premium),
+					string(network.Standard),
+				}, false),
+			},
+
+			"firewall_policy_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.FirewallPolicyID,
+			},
+
 			"ip_configuration": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -70,7 +100,7 @@ func resourceArmFirewall() *schema.Resource {
 						"public_ip_address_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.PublicIPAddressID,
+							ValidateFunc: validate.PublicIpAddressID,
 						},
 						"private_ip_address": {
 							Type:     schema.TypeString,
@@ -101,7 +131,7 @@ func resourceArmFirewall() *schema.Resource {
 						"public_ip_address_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.PublicIPAddressID,
+							ValidateFunc: validate.PublicIpAddressID,
 						},
 						"private_ip_address": {
 							Type:     schema.TypeString,
@@ -116,6 +146,9 @@ func resourceArmFirewall() *schema.Resource {
 				Optional: true,
 				Default:  string(network.AzureFirewallThreatIntelModeAlert),
 				ValidateFunc: validation.StringInSlice([]string{
+					// TODO 3.0: remove the default value and the `""` below. So if it is not specified
+					// in config, it will not be send in request, which is required in case of vhub.
+					"",
 					string(network.AzureFirewallThreatIntelModeOff),
 					string(network.AzureFirewallThreatIntelModeAlert),
 					string(network.AzureFirewallThreatIntelModeDeny),
@@ -129,6 +162,36 @@ func resourceArmFirewall() *schema.Resource {
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: validation.IsIPAddress,
+				},
+			},
+
+			"virtual_hub": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"virtual_hub_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.VirtualHubID,
+						},
+						"public_ip_count": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+							Default:      1,
+						},
+						"public_ip_addresses": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"private_ip_address": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
 				},
 			},
 
@@ -149,20 +212,20 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Firewall %q (Resource Group %q): %s", name, resourceGroup, err)
-			}
+	existing, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of existing Firewall %q (Resource Group %q): %s", name, resourceGroup, err)
 		}
+	}
 
+	if d.IsNewResource() {
 		if existing.ID != nil && *existing.ID != "" {
 			return tf.ImportAsExistsError("azurerm_firewall", *existing.ID)
 		}
 	}
 
-	if err := validateFirewallConfigurationSettings(d); err != nil {
+	if err := validateFirewallIPConfigurationSettings(d.Get("ip_configuration").([]interface{})); err != nil {
 		return fmt.Errorf("Error validating Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -185,6 +248,7 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		},
 		Zones: zones,
 	}
+
 	m := d.Get("management_ip_configuration").([]interface{})
 	if len(m) == 1 {
 		mgmtIPConfig, mgmtSubnetName, mgmtVirtualNetworkName, err := expandArmFirewallIPConfigurations(m)
@@ -202,6 +266,36 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		if *mgmtIPConfig != nil {
 			parameters.ManagementIPConfiguration = &(*mgmtIPConfig)[0]
 		}
+	}
+
+	if threatIntelMode := d.Get("threat_intel_mode").(string); threatIntelMode != "" {
+		parameters.AzureFirewallPropertiesFormat.ThreatIntelMode = network.AzureFirewallThreatIntelMode(threatIntelMode)
+	}
+
+	if policyId := d.Get("firewall_policy_id").(string); policyId != "" {
+		parameters.AzureFirewallPropertiesFormat.FirewallPolicy = &network.SubResource{ID: &policyId}
+	}
+
+	vhub, hubIpAddresses, ok := expandArmFirewallVirtualHubSetting(existing, d.Get("virtual_hub").([]interface{}))
+	if ok {
+		parameters.AzureFirewallPropertiesFormat.VirtualHub = vhub
+		parameters.AzureFirewallPropertiesFormat.HubIPAddresses = hubIpAddresses
+	}
+
+	// TODO 3.0: no need to test since sku_name is required
+	if skuName := d.Get("sku_name").(string); skuName != "" {
+		if parameters.Sku == nil {
+			parameters.Sku = &network.AzureFirewallSku{}
+		}
+		parameters.Sku.Name = network.AzureFirewallSkuName(skuName)
+	}
+
+	// TODO 3.0: no need to test since sku_tier is required
+	if skuTier := d.Get("sku_tier").(string); skuTier != "" {
+		if parameters.Sku == nil {
+			parameters.Sku = &network.AzureFirewallSku{}
+		}
+		parameters.Sku.Tier = network.AzureFirewallSkuTier(skuTier)
 	}
 
 	locks.ByName(name, azureFirewallResourceName)
@@ -300,6 +394,19 @@ func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 
 		if err := d.Set("dns_servers", flattenArmFirewallDNSServers(props.AdditionalProperties)); err != nil {
 			return fmt.Errorf("Error setting `dns_servers`: %+v", err)
+		}
+
+		if policy := props.FirewallPolicy; policy != nil {
+			d.Set("firewall_policy_id", policy.ID)
+		}
+
+		if sku := props.Sku; sku != nil {
+			d.Set("sku_name", string(sku.Name))
+			d.Set("sku_tier", string(sku.Tier))
+		}
+
+		if err := d.Set("virtual_hub", flattenArmFirewallVirtualHubSetting(props)); err != nil {
+			return fmt.Errorf("Error setting `virtual_hub`: %+v", err)
 		}
 	}
 
@@ -486,9 +593,7 @@ func flattenArmFirewallIPConfigurations(input *[]network.AzureFirewallIPConfigur
 
 func expandArmFirewallDNSServers(input []interface{}) map[string]*string {
 	if len(input) == 0 {
-		return map[string]*string{
-			"Network.DNS.EnableProxy": utils.String("false"),
-		}
+		return nil
 	}
 
 	var servers []string
@@ -522,6 +627,96 @@ func flattenArmFirewallDNSServers(input map[string]*string) []interface{} {
 		servers = strings.Split(*serversPtr, ",")
 	}
 	return utils.FlattenStringSlice(&servers)
+}
+
+func expandArmFirewallVirtualHubSetting(existing network.AzureFirewall, input []interface{}) (vhub *network.SubResource, ipAddresses *network.HubIPAddresses, ok bool) {
+	if len(input) == 0 {
+		return nil, nil, false
+	}
+
+	b := input[0].(map[string]interface{})
+
+	// The API requires both "Count" and "Addresses" for the "PublicIPs" setting.
+	// The "Count" means how many PIP to provision.
+	// The "Addresses" means differently in different cases:
+	// - Create: only "Count" is needed, "Addresses" is not necessary
+	// - Update: both "Count" and "Addresses" are needed:
+	//     Scale up: "Addresses" should remain same as before scaling up
+	//     Scale down: "Addresses" should indicate the addresses to be retained (in this case we retain the first new "Count" ones)
+	newCount := b["public_ip_count"].(int)
+	var addresses *[]network.AzureFirewallPublicIPAddress
+	if prop := existing.AzureFirewallPropertiesFormat; prop != nil {
+		if ipaddress := prop.HubIPAddresses; ipaddress != nil {
+			if pips := ipaddress.PublicIPs; pips != nil {
+				if count := pips.Count; count != nil {
+					oldCount := int(*count)
+					addresses = pips.Addresses
+
+					// In case of scale down, keep the first new "Count" addresses.
+					if oldCount > newCount {
+						keptAddresses := make([]network.AzureFirewallPublicIPAddress, newCount)
+						for i := 0; i < newCount; i++ {
+							keptAddresses[i] = (*addresses)[i]
+						}
+						addresses = &keptAddresses
+					}
+				}
+			}
+		}
+	}
+
+	vhub = &network.SubResource{ID: utils.String(b["virtual_hub_id"].(string))}
+	ipAddresses = &network.HubIPAddresses{
+		PublicIPs: &network.HubPublicIPAddresses{
+			Count:     utils.Int32(int32(b["public_ip_count"].(int))),
+			Addresses: addresses,
+		},
+	}
+
+	return vhub, ipAddresses, true
+}
+
+func flattenArmFirewallVirtualHubSetting(props *network.AzureFirewallPropertiesFormat) []interface{} {
+	if props.VirtualHub == nil {
+		return nil
+	}
+
+	var vhubId string
+	if props.VirtualHub.ID != nil {
+		vhubId = *props.VirtualHub.ID
+	}
+
+	var (
+		publicIpCount int
+		publicIps     []string
+		privateIp     string
+	)
+	if hubIP := props.HubIPAddresses; hubIP != nil {
+		if hubIP.PrivateIPAddress != nil {
+			privateIp = *hubIP.PrivateIPAddress
+		}
+		if pubIPs := hubIP.PublicIPs; pubIPs != nil {
+			if pubIPs.Count != nil {
+				publicIpCount = int(*pubIPs.Count)
+			}
+			if pubIPs.Addresses != nil {
+				for _, addr := range *pubIPs.Addresses {
+					if addr.Address != nil {
+						publicIps = append(publicIps, *addr.Address)
+					}
+				}
+			}
+		}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"virtual_hub_id":      vhubId,
+			"public_ip_count":     publicIpCount,
+			"public_ip_addresses": publicIps,
+			"private_ip_address":  privateIp,
+		},
+	}
 }
 
 func ValidateAzureFirewallName(v interface{}, k string) (warnings []string, errors []error) {
@@ -564,8 +759,11 @@ func validateAzureFirewallManagementSubnetName(v interface{}, k string) (warning
 	return warnings, errors
 }
 
-func validateFirewallConfigurationSettings(d *schema.ResourceData) error {
-	configs := d.Get("ip_configuration").([]interface{})
+func validateFirewallIPConfigurationSettings(configs []interface{}) error {
+	if len(configs) == 0 {
+		return nil
+	}
+
 	subnetNumber := 0
 
 	for _, configRaw := range configs {
