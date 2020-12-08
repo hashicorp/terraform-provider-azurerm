@@ -364,8 +364,9 @@ func resourceIotHub() *schema.Resource {
 							),
 						},
 						"value": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"endpoint_names": {
 							Type: schema.TypeList,
