@@ -197,7 +197,7 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 			continue
 		}
 
-		var segmentBuilder = func(key, value string) ResourceIdSegment {
+		var segmentBuilder = func(key, value string, hasSubscriptionId bool) ResourceIdSegment {
 			var toCamelCase = func(input string) string {
 				// lazy but it works
 				out := make([]rune, 0)
@@ -226,7 +226,7 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 				return segment
 			}
 
-			if key == "subscriptions" {
+			if key == "subscriptions" && !hasSubscriptionId {
 				segment.FieldName = "SubscriptionId"
 				segment.ArgumentName = "subscriptionId"
 				return segment
@@ -263,7 +263,17 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 			return segment
 		}
 
-		segments = append(segments, segmentBuilder(key, value))
+		// handle multiple 'subscriptions' segments, ala ServiceBus Subscription
+		hasSubscriptionId := false
+		for _, v := range segments {
+			if v.FieldName == "SubscriptionId" {
+				hasSubscriptionId = true
+				break
+			}
+		}
+
+		segment := segmentBuilder(key, value, hasSubscriptionId)
+		segments = append(segments, segment)
 	}
 
 	// finally build up the format string based on this information
