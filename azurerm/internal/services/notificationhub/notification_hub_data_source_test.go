@@ -18,11 +18,11 @@ func TestAccNotificationHubDataSource_basic(t *testing.T) {
 		{
 			Config: d.basic(data),
 			Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "apns_credential.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "gcm_credential.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-				),
-			},
+				resource.TestCheckResourceAttr(data.ResourceName, "apns_credential.#", "0"),
+				resource.TestCheckResourceAttr(data.ResourceName, "gcm_credential.#", "0"),
+				resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+			),
+		},
 	})
 }
 

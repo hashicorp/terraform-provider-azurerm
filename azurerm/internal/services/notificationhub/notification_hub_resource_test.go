@@ -1,7 +1,7 @@
 package notificationhub_test
 
 import (
-	`context`
+	"context"
 	"fmt"
 	"testing"
 
@@ -10,8 +10,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub/parse`
-	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils`
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 type NotificationHubResource struct {

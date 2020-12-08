@@ -18,11 +18,11 @@ func TestAccNotificationHubNamespaceDataSource_free(t *testing.T) {
 		{
 			Config: d.free(data),
 			Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "namespace_type", "NotificationHub"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Free"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-				),
-			},
+				resource.TestCheckResourceAttr(data.ResourceName, "namespace_type", "NotificationHub"),
+				resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Free"),
+				resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+			),
+		},
 	})
 }
 
