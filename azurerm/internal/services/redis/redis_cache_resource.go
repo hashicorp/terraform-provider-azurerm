@@ -69,7 +69,7 @@ func resourceArmRedisCache() *schema.Resource {
 			"family": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateFunc:     validateRedisFamily,
+				ValidateFunc:     validate.CacheFamily,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
@@ -164,7 +164,7 @@ func resourceArmRedisCache() *schema.Resource {
 						"rdb_backup_frequency": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validateRedisBackupFrequency,
+							ValidateFunc: validate.CacheBackupFrequency,
 						},
 
 						"rdb_backup_max_snapshot_count": {
@@ -865,37 +865,6 @@ func flattenRedisPatchSchedules(schedule redis.PatchSchedule) []interface{} {
 	}
 
 	return outputs
-}
-
-func validateRedisFamily(v interface{}, _ string) (warnings []string, errors []error) {
-	value := strings.ToLower(v.(string))
-	families := map[string]bool{
-		"c": true,
-		"p": true,
-	}
-
-	if !families[value] {
-		errors = append(errors, fmt.Errorf("Redis Family can only be C or P"))
-	}
-	return warnings, errors
-}
-
-func validateRedisBackupFrequency(v interface{}, _ string) (warnings []string, errors []error) {
-	value := v.(int)
-	families := map[int]bool{
-		15:   true,
-		30:   true,
-		60:   true,
-		360:  true,
-		720:  true,
-		1440: true,
-	}
-
-	if !families[value] {
-		errors = append(errors, fmt.Errorf("Redis Backup Frequency can only be '15', '30', '60', '360', '720' or '1440'"))
-	}
-
-	return warnings, errors
 }
 
 func getRedisConnectionString(redisHostName string, sslPort int32, accessKey string, enableSslPort bool) string {
