@@ -203,7 +203,7 @@ func resourceEventGridTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	properties := eventgrid.Topic{
 		Location:        &location,
-		Identity:        &identity,
+		Identity:        identity,
 		TopicProperties: topicProperties,
 		Tags:            tags.Expand(t),
 	}
