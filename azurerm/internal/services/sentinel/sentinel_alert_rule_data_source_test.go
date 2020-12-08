@@ -1,4 +1,4 @@
-package tests
+package sentinel_test
 
 import (
 	"fmt"
