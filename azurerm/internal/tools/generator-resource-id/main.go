@@ -424,8 +424,8 @@ func (id ResourceIdGenerator) codeForParser() string {
 
 	parserStatements := make([]string, 0)
 	for _, segment := range id.Segments {
-		isSubscription := strings.EqualFold(segment.SegmentKey, "subscriptions") && id.HasSubscriptionId
-		isResourceGroup := strings.EqualFold(segment.SegmentKey, "resourceGroups") && id.HasResourceGroup
+		isSubscription := strings.EqualFold(segment.FieldName, "SubscriptionId") && id.HasSubscriptionId
+		isResourceGroup := strings.EqualFold(segment.FieldName, "ResourceGroup") && id.HasResourceGroup
 		if isSubscription || isResourceGroup {
 			parserStatements = append(parserStatements, fmt.Sprintf(`
 	if resourceId.%[1]s == "" {
@@ -479,8 +479,8 @@ func (id ResourceIdGenerator) codeForParserInsensitive() string {
 
 	parserStatements := make([]string, 0)
 	for _, segment := range id.Segments {
-		isSubscription := strings.EqualFold(segment.SegmentKey, "subscriptions") && id.HasSubscriptionId
-		isResourceGroup := strings.EqualFold(segment.SegmentKey, "resourceGroups") && id.HasResourceGroup
+		isSubscription := strings.EqualFold(segment.FieldName, "SubscriptionId") && id.HasSubscriptionId
+		isResourceGroup := strings.EqualFold(segment.FieldName, "ResourceGroup") && id.HasResourceGroup
 		if isSubscription || isResourceGroup {
 			parserStatements = append(parserStatements, fmt.Sprintf(`
 	if resourceId.%[1]s == "" {

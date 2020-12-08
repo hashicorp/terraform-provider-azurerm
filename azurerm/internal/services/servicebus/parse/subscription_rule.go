@@ -71,11 +71,9 @@ func SubscriptionRuleID(input string) (*SubscriptionRuleId, error) {
 	if resourceId.TopicName, err = id.PopSegment("topics"); err != nil {
 		return nil, err
 	}
-
-	if resourceId.SubscriptionName == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	if resourceId.SubscriptionName, err = id.PopSegment("subscriptions"); err != nil {
+		return nil, err
 	}
-
 	if resourceId.RuleName, err = id.PopSegment("rules"); err != nil {
 		return nil, err
 	}

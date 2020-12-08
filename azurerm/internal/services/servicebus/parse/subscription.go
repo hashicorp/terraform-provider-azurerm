@@ -68,9 +68,8 @@ func SubscriptionID(input string) (*SubscriptionId, error) {
 	if resourceId.TopicName, err = id.PopSegment("topics"); err != nil {
 		return nil, err
 	}
-
-	if resourceId.Name == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	if resourceId.Name, err = id.PopSegment("subscriptions"); err != nil {
+		return nil, err
 	}
 
 	if err := id.ValidateNoEmptySegments(input); err != nil {
