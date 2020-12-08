@@ -24,7 +24,7 @@ func dataSourceArmServiceBusTopicAuthorizationRule() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateServiceBusAuthorizationRuleName(),
+				ValidateFunc: validate.AuthorizationRuleName(),
 			},
 
 			"namespace_name": {

@@ -38,7 +38,7 @@ func resourceArmServiceBusQueueAuthorizationRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateServiceBusAuthorizationRuleName(),
+				ValidateFunc: validate.AuthorizationRuleName(),
 			},
 
 			"namespace_name": {
