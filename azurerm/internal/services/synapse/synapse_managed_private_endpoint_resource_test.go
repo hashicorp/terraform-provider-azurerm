@@ -34,7 +34,7 @@ func TestAccSynapseManagedPrivateEndpoint_basic(t *testing.T) {
 
 func TestAccSynapseManagedPrivateEndpoint_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_managed_private_endpoint", "test")
-	r := SynapseRoleAssignmentResource{}
+	r := SynapseManagedPrivateEndpointResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
