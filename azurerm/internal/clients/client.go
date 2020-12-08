@@ -120,6 +120,7 @@ type Client struct {
 	DataBox               *databox.Client
 	DatabaseMigration     *datamigration.Client
 	DataBricks            *databricks.Client
+  DataBox               *databox.Client
 	DataFactory           *datafactory.Client
 	Datalake              *datalake.Client
 	DataShare             *datashare.Client
