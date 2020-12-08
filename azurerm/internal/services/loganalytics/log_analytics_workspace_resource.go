@@ -3,7 +3,6 @@ package loganalytics
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 	"time"
 
@@ -16,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -50,12 +50,24 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateAzureRmLogAnalyticsWorkspaceName,
+				ValidateFunc: validate.LogAnalyticsWorkspaceName,
 			},
 
 			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
+
+			"internet_ingestion_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"internet_query_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 
 			"sku": {
 				Type:     schema.TypeString,
@@ -147,6 +159,15 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 		Name: operationalinsights.WorkspaceSkuNameEnum(skuName),
 	}
 
+	internetIngestionEnabled := operationalinsights.Disabled
+	if d.Get("internet_ingestion_enabled").(bool) {
+		internetIngestionEnabled = operationalinsights.Enabled
+	}
+	internetQueryEnabled := operationalinsights.Disabled
+	if d.Get("internet_query_enabled").(bool) {
+		internetQueryEnabled = operationalinsights.Enabled
+	}
+
 	retentionInDays := int32(d.Get("retention_in_days").(int))
 
 	t := d.Get("tags").(map[string]interface{})
@@ -156,8 +177,10 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 		Location: &location,
 		Tags:     tags.Expand(t),
 		WorkspaceProperties: &operationalinsights.WorkspaceProperties{
-			Sku:             sku,
-			RetentionInDays: &retentionInDays,
+			Sku:                             sku,
+			PublicNetworkAccessForIngestion: internetIngestionEnabled,
+			PublicNetworkAccessForQuery:     internetQueryEnabled,
+			RetentionInDays:                 &retentionInDays,
 		},
 	}
 
@@ -209,6 +232,9 @@ func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
+	d.Set("internet_ingestion_enabled", resp.PublicNetworkAccessForIngestion == operationalinsights.Enabled)
+	d.Set("internet_query_enabled", resp.PublicNetworkAccessForQuery == operationalinsights.Enabled)
+
 	d.Set("workspace_id", resp.CustomerID)
 	d.Set("portal_url", "")
 	if sku := resp.Sku; sku != nil {
@@ -257,21 +283,6 @@ func resourceArmLogAnalyticsWorkspaceDelete(d *schema.ResourceData, meta interfa
 	}
 
 	return nil
-}
-
-func ValidateAzureRmLogAnalyticsWorkspaceName(v interface{}, _ string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if !regexp.MustCompile("^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$").MatchString(value) {
-		errors = append(errors, fmt.Errorf("Workspace Name can only contain alphabet, number, and '-' character. You can not use '-' as the start and end of the name"))
-	}
-
-	length := len(value)
-	if length > 63 || 4 > length {
-		errors = append(errors, fmt.Errorf("Workspace Name can only be between 4 and 63 letters"))
-	}
-
-	return warnings, errors
 }
 
 func dailyQuotaGbDiffSuppressFunc(_, _, _ string, d *schema.ResourceData) bool {

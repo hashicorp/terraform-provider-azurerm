@@ -115,8 +115,11 @@ func resourceArmSearchService() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: validate.IPv4Address,
+					Type: schema.TypeString,
+					ValidateFunc: validation.Any(
+						validate.IPv4Address,
+						validate.CIDR,
+					),
 				},
 			},
 
@@ -302,7 +305,6 @@ func resourceArmSearchServiceDelete(d *schema.ResourceData, meta interface{}) er
 	}
 
 	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name, nil)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil

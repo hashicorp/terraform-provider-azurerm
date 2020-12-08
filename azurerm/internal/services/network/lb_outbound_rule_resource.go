@@ -31,7 +31,7 @@ func resourceArmLoadBalancerOutboundRule() *schema.Resource {
 				return nil, err
 			}
 
-			lbId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName)
+			lbId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
 			return &lbId, nil
 		}),
 
@@ -212,7 +212,7 @@ func resourceArmLoadBalancerOutboundRuleRead(d *schema.ResourceData, meta interf
 		return err
 	}
 
-	loadBalancerId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName)
+	loadBalancerId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
 	loadBalancer, exists, err := retrieveLoadBalancerById(ctx, client, loadBalancerId)
 	if err != nil {
 		return fmt.Errorf("Error Getting Load Balancer By ID: %+v", err)
@@ -223,10 +223,10 @@ func resourceArmLoadBalancerOutboundRuleRead(d *schema.ResourceData, meta interf
 		return nil
 	}
 
-	config, _, exists := FindLoadBalancerOutboundRuleByName(loadBalancer, id.Name)
+	config, _, exists := FindLoadBalancerOutboundRuleByName(loadBalancer, id.OutboundRuleName)
 	if !exists {
 		d.SetId("")
-		log.Printf("[INFO] Load Balancer Outbound Rule %q not found. Removing from state", id.Name)
+		log.Printf("[INFO] Load Balancer Outbound Rule %q not found. Removing from state", id.OutboundRuleName)
 		return nil
 	}
 
@@ -257,14 +257,14 @@ func resourceArmLoadBalancerOutboundRuleRead(d *schema.ResourceData, meta interf
 			if feConfig.ID == nil {
 				continue
 			}
-			feid, err := parse.LoadBalancerFrontendIPConfigurationID(*feConfig.ID)
+			feid, err := parse.LoadBalancerFrontendIpConfigurationID(*feConfig.ID)
 			if err != nil {
 				return err
 			}
 
 			frontendIpConfigurations = append(frontendIpConfigurations, map[string]interface{}{
 				"id":   feid.ID(subscriptionId),
-				"name": feid.Name,
+				"name": feid.FrontendIPConfigurationName,
 			})
 		}
 		d.Set("frontend_ip_configuration", frontendIpConfigurations)
@@ -282,7 +282,6 @@ func resourceArmLoadBalancerOutboundRuleRead(d *schema.ResourceData, meta interf
 
 func resourceArmLoadBalancerOutboundRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.LoadBalancersClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -291,8 +290,8 @@ func resourceArmLoadBalancerOutboundRuleDelete(d *schema.ResourceData, meta inte
 		return err
 	}
 
-	loadBalancerId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName)
-	loadBalancerID := loadBalancerId.ID(subscriptionId)
+	loadBalancerId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
+	loadBalancerID := loadBalancerId.ID("")
 	locks.ByID(loadBalancerID)
 	defer locks.UnlockByID(loadBalancerID)
 
@@ -305,7 +304,7 @@ func resourceArmLoadBalancerOutboundRuleDelete(d *schema.ResourceData, meta inte
 		return nil
 	}
 
-	_, index, exists := FindLoadBalancerOutboundRuleByName(loadBalancer, id.Name)
+	_, index, exists := FindLoadBalancerOutboundRuleByName(loadBalancer, id.OutboundRuleName)
 	if !exists {
 		return nil
 	}

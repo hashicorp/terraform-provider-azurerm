@@ -73,13 +73,12 @@ func testCheckAzureRMServiceFabricMeshSecretDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.ServiceFabricMeshSecretID(rs.Primary.ID)
+		id, err := parse.SecretID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
 		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-
 		if err != nil {
 			return nil
 		}
@@ -103,7 +102,7 @@ func testCheckAzureRMServiceFabricMeshSecretExists(resourceName string) resource
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.ServiceFabricMeshSecretID(rs.Primary.ID)
+		id, err := parse.SecretID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

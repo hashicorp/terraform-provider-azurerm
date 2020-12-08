@@ -119,7 +119,7 @@ func resourceArmSiteRecoveryNetworkMappingCreate(d *schema.ResourceData, meta in
 		}
 	}
 
-	var parameters = siterecovery.CreateNetworkMappingInput{
+	parameters := siterecovery.CreateNetworkMappingInput{
 		Properties: &siterecovery.CreateNetworkMappingInputProperties{
 			RecoveryNetworkID:  &targetNetworkId,
 			RecoveryFabricName: &targetFabricName,

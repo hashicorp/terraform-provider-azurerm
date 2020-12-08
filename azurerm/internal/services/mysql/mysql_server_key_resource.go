@@ -29,7 +29,7 @@ func resourceArmMySQLServerKey() *schema.Resource {
 		Delete: resourceArmMySQLServerKeyDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.MySQLServerKeyID(id)
+			_, err := parse.KeyID(id)
 			return err
 		}),
 
@@ -45,7 +45,7 @@ func resourceArmMySQLServerKey() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.MySQLServerID,
+				ValidateFunc: validate.ServerID,
 			},
 
 			"key_vault_key_id": {
@@ -66,7 +66,7 @@ func getMySQLServerKeyName(ctx context.Context, vaultsClient *keyvault.VaultsCli
 	if err != nil {
 		return nil, err
 	}
-	keyVaultID, err := keyVaultParse.KeyVaultID(*keyVaultIDRaw)
+	keyVaultID, err := keyVaultParse.VaultID(*keyVaultIDRaw)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +79,7 @@ func resourceArmMySQLServerKeyCreateUpdate(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	serverID, err := parse.MySQLServerID(d.Get("server_id").(string))
+	serverID, err := parse.ServerID(d.Get("server_id").(string))
 	if err != nil {
 		return err
 	}
@@ -143,7 +143,7 @@ func resourceArmMySQLServerKeyRead(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MySQLServerKeyID(d.Id())
+	id, err := parse.KeyID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -177,7 +177,7 @@ func resourceArmMySQLServerKeyDelete(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MySQLServerKeyID(d.Id())
+	id, err := parse.KeyID(d.Id())
 	if err != nil {
 		return err
 	}

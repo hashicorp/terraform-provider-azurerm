@@ -51,6 +51,7 @@ func testAccAzureRMPacketCapture_requiresImport(t *testing.T) {
 		},
 	})
 }
+
 func testAccAzureRMPacketCapture_storageAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_packet_capture", "test")
 
@@ -149,7 +150,6 @@ func testCheckAzureRMPacketCaptureDestroy(s *terraform.State) error {
 		packetCaptureName := rs.Primary.Attributes["name"]
 
 		resp, err := client.Get(ctx, resourceGroup, watcherName, packetCaptureName)
-
 		if err != nil {
 			return nil
 		}

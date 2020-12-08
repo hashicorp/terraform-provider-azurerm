@@ -89,6 +89,14 @@ func dataSourceArmPolicySetDefinition() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+
+						"policy_group_names": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
 					},
 				},
 			},
@@ -96,6 +104,39 @@ func dataSourceArmPolicySetDefinition() *schema.Resource {
 			"policy_type": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+
+			"policy_definition_group": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"display_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"category": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"description": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"additional_metadata_resource_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 		},
 	}
@@ -137,7 +178,7 @@ func dataSourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface
 	d.Set("policy_type", setDefinition.PolicyType)
 	d.Set("metadata", flattenJSON(setDefinition.Metadata))
 
-	if paramsStr, err := flattenParameterDefintionsValueToString(setDefinition.Parameters); err != nil {
+	if paramsStr, err := flattenParameterDefinitionsValueToString(setDefinition.Parameters); err != nil {
 		return fmt.Errorf("flattening JSON for `parameters`: %+v", err)
 	} else {
 		d.Set("parameters", paramsStr)
@@ -155,6 +196,10 @@ func dataSourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface
 	}
 	if err := d.Set("policy_definition_reference", references); err != nil {
 		return fmt.Errorf("setting `policy_definition_reference`: %+v", err)
+	}
+
+	if err := d.Set("policy_definition_group", flattenAzureRMPolicySetDefinitionPolicyGroups(setDefinition.PolicyDefinitionGroups)); err != nil {
+		return fmt.Errorf("setting `policy_definition_group`: %+v", err)
 	}
 
 	return nil

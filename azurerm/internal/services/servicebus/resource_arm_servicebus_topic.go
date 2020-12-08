@@ -48,7 +48,7 @@ func resourceArmServiceBusTopic() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azValidate.ServiceBusNamespaceName,
+				ValidateFunc: azValidate.NamespaceName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),

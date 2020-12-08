@@ -31,7 +31,7 @@ func resourceArmVirtualHubBgpConnection() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.VirtualHubBgpConnectionID(id)
+			_, err := parse.BgpConnectionID(id)
 			return err
 		}),
 
@@ -47,14 +47,14 @@ func resourceArmVirtualHubBgpConnection() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ValidateVirtualHubID,
+				ValidateFunc: validate.VirtualHubID,
 			},
 
 			"peer_asn": {
 				Type:         schema.TypeInt,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.IntBetween(0, 4294967295),
+				ValidateFunc: validation.IntAtLeast(0),
 			},
 
 			"peer_ip": {
@@ -127,12 +127,11 @@ func resourceArmVirtualHubBgpConnectionCreate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmVirtualHubBgpConnectionRead(d *schema.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.VirtualHubBgpConnectionClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualHubBgpConnectionID(d.Id())
+	id, err := parse.BgpConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -149,7 +148,7 @@ func resourceArmVirtualHubBgpConnectionRead(d *schema.ResourceData, meta interfa
 	}
 
 	d.Set("name", id.Name)
-	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.ResourceGroup, id.VirtualHubName).ID(subscriptionId))
+	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName).ID(""))
 
 	if props := resp.BgpConnectionProperties; props != nil {
 		d.Set("peer_asn", props.PeerAsn)
@@ -164,7 +163,7 @@ func resourceArmVirtualHubBgpConnectionDelete(d *schema.ResourceData, meta inter
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualHubBgpConnectionID(d.Id())
+	id, err := parse.BgpConnectionID(d.Id())
 	if err != nil {
 		return err
 	}

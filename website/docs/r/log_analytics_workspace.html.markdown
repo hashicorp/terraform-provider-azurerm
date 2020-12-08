@@ -49,6 +49,10 @@ The following arguments are supported:
 
 ~> **NOTE:** When `sku_name` is set to `Free` this field can be set to a maximum of `0.5` (GB), and has a default value of `0.5`. 
 
+* `internet_ingestion_enabled ` - (Optional) Should the Log Analytics Workflow support ingestion over the Public Internet? Defaults to `true`.
+
+* `internet_query_enabled` - (Optional) Should the Log Analytics Workflow support querying over the Public Internet? Defaults to `true`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference

@@ -26,6 +26,6 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_spatial_anchors_account": resourceArmSpatialAnchorsAccount(),
+		"azurerm_spatial_anchors_account": resourceSpatialAnchorsAccount(),
 	}
 }
