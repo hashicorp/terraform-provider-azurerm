@@ -7,13 +7,24 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type AdvancedThreatProtectionResourceID struct {
-	Base azure.ResourceID
-
+type AdvancedThreatProtectionId struct {
 	TargetResourceID string
+	SettingName      string
 }
 
-func ParseAdvancedThreatProtectionID(input string) (*AdvancedThreatProtectionResourceID, error) {
+func NewAdvancedThreatProtectionId(targetResourceId string) AdvancedThreatProtectionId {
+	return AdvancedThreatProtectionId{
+		TargetResourceID: targetResourceId,
+		SettingName:      "current",
+	}
+}
+
+func (id AdvancedThreatProtectionId) ID(_ string) string {
+	fmtString := "%s/providers/Microsoft.Security/advancedThreatProtectionSettings/%s"
+	return fmt.Sprintf(fmtString, id.TargetResourceID, id.SettingName)
+}
+
+func ParseAdvancedThreatProtectionID(input string) (*AdvancedThreatProtectionId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Advanced Threat Protection Set ID %q: %+v", input, err)
@@ -24,8 +35,8 @@ func ParseAdvancedThreatProtectionID(input string) (*AdvancedThreatProtectionRes
 		return nil, fmt.Errorf("Determining target resource ID, resource ID in unexpected format: %q", id)
 	}
 
-	return &AdvancedThreatProtectionResourceID{
-		Base:             *id,
+	return &AdvancedThreatProtectionId{
 		TargetResourceID: parts[0],
+		SettingName:      parts[1],
 	}, nil
 }
