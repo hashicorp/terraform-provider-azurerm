@@ -48,7 +48,6 @@ func CertificateBindingID(input string) (*CertificateBindingId, error) {
 
 		certificateBindingId.HostnameBindingId = *hostnameBindingId
 		certificateBindingId.CertificateId = *certificateId
-
 	} else {
 		return nil, fmt.Errorf("could not parse Certificate Binding ID, expected two resource IDs joined by `|`")
 	}

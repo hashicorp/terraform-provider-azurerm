@@ -91,9 +91,9 @@ provider "azurerm" {
 }
 
 resource "azurerm_app_service_certificate_binding" "test" {
-	hostname_binding_id = azurerm_app_service_custom_hostname_binding.test.id
-	certificate_id      = azurerm_app_service_managed_certificate.test.id
-	ssl_state           = "IpBasedEnabled"
+  hostname_binding_id = azurerm_app_service_custom_hostname_binding.test.id
+  certificate_id      = azurerm_app_service_managed_certificate.test.id
+  ssl_state           = "IpBasedEnabled"
 }
 
 %s
@@ -106,9 +106,9 @@ func (t AppServiceCertificateBindingResource) requiresImport(data acceptance.Tes
 %s
 
 resource "azurerm_app_service_certificate_binding" "import" {
-	hostname_binding_id = azurerm_app_service_certificate_binding.test.hostname_binding_id
-	certificate_id      = azurerm_app_service_certificate_binding.test.certificate_id
-	ssl_state           = azurerm_app_service_certificate_binding.test.ssl_state
+  hostname_binding_id = azurerm_app_service_certificate_binding.test.hostname_binding_id
+  certificate_id      = azurerm_app_service_certificate_binding.test.certificate_id
+  ssl_state           = azurerm_app_service_certificate_binding.test.ssl_state
 }
 `, template)
 }
