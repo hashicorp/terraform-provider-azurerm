@@ -20,6 +20,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -146,7 +147,7 @@ func resourceArmRedisCache() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Default:      "volatile-lru",
-							ValidateFunc: validateRedisMaxMemoryPolicy,
+							ValidateFunc: validate.MaxMemoryPolicy,
 						},
 
 						"maxfragmentationmemory_reserved": {
@@ -876,26 +877,6 @@ func validateRedisFamily(v interface{}, _ string) (warnings []string, errors []e
 	if !families[value] {
 		errors = append(errors, fmt.Errorf("Redis Family can only be C or P"))
 	}
-	return warnings, errors
-}
-
-func validateRedisMaxMemoryPolicy(v interface{}, _ string) (warnings []string, errors []error) {
-	value := strings.ToLower(v.(string))
-	families := map[string]bool{
-		"noeviction":      true,
-		"allkeys-lru":     true,
-		"volatile-lru":    true,
-		"allkeys-random":  true,
-		"volatile-random": true,
-		"volatile-ttl":    true,
-		"allkeys-lfu":     true,
-		"volatile-lfu":    true,
-	}
-
-	if !families[value] {
-		errors = append(errors, fmt.Errorf("Redis Max Memory Policy can only be 'noeviction' / 'allkeys-lru' / 'volatile-lru' / 'allkeys-random' / 'volatile-random' / 'volatile-ttl' / 'allkeys-lfu' / 'volatile-lfu'"))
-	}
-
 	return warnings, errors
 }
 
