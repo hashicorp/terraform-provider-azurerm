@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestHCIClusterName(t *testing.T) {
+func TestHciClusterName(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
@@ -23,17 +23,14 @@ func TestHCIClusterName(t *testing.T) {
 			expected: true,
 		},
 		{
-			// 259 chars
 			input:    strings.Repeat("s", 259),
 			expected: true,
 		},
 		{
-			// 260 chars
 			input:    strings.Repeat("s", 260),
 			expected: true,
 		},
 		{
-			// 261 chars
 			input:    strings.Repeat("s", 261),
 			expected: false,
 		},

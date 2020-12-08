@@ -35,7 +35,7 @@ func resourceArmHCICluster() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.HCIClusterID(id)
+			_, err := parse.HciClusterID(id)
 			return err
 		}),
 
@@ -44,7 +44,7 @@ func resourceArmHCICluster() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.HCIClusterName,
+				ValidateFunc: validate.HciClusterName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -78,7 +78,7 @@ func resourceArmHCIClusterCreate(d *schema.ResourceData, meta interface{}) error
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := parse.NewHCIClusterId(resourceGroup, name)
+	id := parse.NewHciClusterID(subscriptionId, resourceGroup, name)
 
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -104,7 +104,7 @@ func resourceArmHCIClusterCreate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("creating HCI Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	d.SetId(id.ID(subscriptionId))
+	d.SetId(id.ID(""))
 
 	return resourceArmHCIClusterRead(d, meta)
 }
@@ -114,12 +114,12 @@ func resourceArmHCIClusterRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.HCIClusterID(d.Id())
+	id, err := parse.HciClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] HCI Cluster %q does not exist - removing from state", d.Id())
@@ -127,10 +127,10 @@ func resourceArmHCIClusterRead(d *schema.ResourceData, meta interface{}) error {
 			return nil
 		}
 
-		return fmt.Errorf("retrieving HCI Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving HCI Cluster %q (Resource Group %q): %+v", id.ClusterName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.ClusterName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
@@ -147,7 +147,7 @@ func resourceArmHCIClusterUpdate(d *schema.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.HCIClusterID(d.Id())
+	id, err := parse.HciClusterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -158,8 +158,8 @@ func resourceArmHCIClusterUpdate(d *schema.ResourceData, meta interface{}) error
 		cluster.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, cluster); err != nil {
-		return fmt.Errorf("updating HCI Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if _, err := client.Update(ctx, id.ResourceGroup, id.ClusterName, cluster); err != nil {
+		return fmt.Errorf("updating HCI Cluster %q (Resource Group %q): %+v", id.ClusterName, id.ResourceGroup, err)
 	}
 
 	return resourceArmHCIClusterRead(d, meta)
@@ -170,13 +170,13 @@ func resourceArmHCIClusterDelete(d *schema.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.HCIClusterID(d.Id())
+	id, err := parse.HciClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-		return fmt.Errorf("deleting HCI Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.ClusterName); err != nil {
+		return fmt.Errorf("deleting HCI Cluster %q (Resource Group %q): %+v", id.ClusterName, id.ResourceGroup, err)
 	}
 
 	return nil
