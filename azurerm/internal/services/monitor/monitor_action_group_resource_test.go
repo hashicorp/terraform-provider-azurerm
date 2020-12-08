@@ -412,6 +412,32 @@ func TestAccAzureRMMonitorActionGroup_multipleReceiversUpdate(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMonitorActionGroup_secureWebhookReceiver(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMonitorActionGroup_webhookReceiver(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMMonitorActionGroup_secureWebhookReceiver(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testAccAzureRMMonitorActionGroup_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1025,4 +1051,110 @@ func testCheckAzureRMMonitorActionGroupExists(resourceName string) resource.Test
 
 		return nil
 	}
+}
+
+func testAccAzureRMMonitorActionGroup_secureWebhookReceiver(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azuread_application" "test" {
+  name            = "acctestspa-%[1]d"
+  identifier_uris = ["https://uri"]
+}
+
+resource "azurerm_monitor_action_group" "test" {
+  name                = "acctestActionGroup-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag"
+
+  webhook_receiver {
+    name                    = "callmyapiaswell"
+    service_uri             = "http://example.com/alert"
+    use_common_alert_schema = true
+  }
+
+  webhook_receiver {
+    name                    = "secureWebhook"
+    service_uri             = "http://secureWebhook.com/alert"
+    use_common_alert_schema = false
+    use_aad_auth            = true
+    aad_auth_object_id      = azuread_application.test.object_id
+    aad_auth_identifier_uri = azuread_application.test.identifier_uris[0]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func testAccAzureRMMonitorActionGroup_secureWebhookReceiverUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azuread_application" "test" {
+  name            = "acctestspa-%[1]d"
+  identifier_uris = ["https://uri"]
+}
+
+resource "azuread_application" "test_alt" {
+  name            = "acctestspa-alt-%[1]d"
+  identifier_uris = ["https://uri2"]
+}
+
+resource "azurerm_monitor_action_group" "test" {
+  name                = "acctestActionGroup-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag"
+
+  webhook_receiver {
+    name                    = "secureWebhook"
+    service_uri             = "http://secureWebhook2.com/alert"
+    use_common_alert_schema = true
+    use_aad_auth            = true
+    aad_auth_object_id      = azuread_application.test_alt.object_id
+    aad_auth_identifier_uri = azuread_application.test_alt.identifier_uris[0]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func testAccAzureRMMonitorActionGroup_secureWebhookReceiverRestore(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azuread_application" "test" {
+  name            = "acctestspa-%[1]d"
+  identifier_uris = ["https://uri"]
+}
+
+resource "azuread_application" "test_alt" {
+  name            = "acctestspa-alt-%[1]d"
+  identifier_uris = ["https://uri2"]
+}
+
+resource "azurerm_monitor_action_group" "test" {
+  name                = "acctestActionGroup-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag"
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
