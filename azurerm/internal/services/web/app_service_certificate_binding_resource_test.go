@@ -177,5 +177,5 @@ resource "azurerm_app_service_custom_hostname_binding" "test" {
 resource "azurerm_app_service_managed_certificate" "test" {
   custom_hostname_binding_id = azurerm_app_service_custom_hostname_binding.test.id
 }
-`,data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, dnsZone, dataResourceGroup, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, dnsZone, dataResourceGroup, data.RandomString, data.RandomString)
 }

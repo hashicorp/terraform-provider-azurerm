@@ -2,9 +2,10 @@ package web
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"log"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -40,16 +41,16 @@ func resourceArmAppServiceCertificateBinding() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 
 			"hostname_binding_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validate.HostnameBindingID,
 			},
 
 			"certificate_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validate.CertificateID,
 			},
 
@@ -97,10 +98,9 @@ func resourceArmAppServiceCertificateBindingCreate(d *schema.ResourceData, meta 
 		return fmt.Errorf("could not parse ID: %+v", err)
 	}
 
-
 	certDetails, err := certClient.Get(ctx, id.CertificateId.ResourceGroup, id.CertificateId.Name)
 	if err != nil {
-		if utils.ResponseWasNotFound(certDetails.Response){
+		if utils.ResponseWasNotFound(certDetails.Response) {
 			return fmt.Errorf("retrieving App Service Certificate %q (Resource Group %q), not found", id.CertificateId.Name, id.CertificateId.ResourceGroup)
 		}
 		return fmt.Errorf("failed reading App Service Certificate %q (Resource Group %q): %+v", id.CertificateId.Name, id.CertificateId.ResourceGroup, err)
@@ -136,7 +136,6 @@ func resourceArmAppServiceCertificateBindingCreate(d *schema.ResourceData, meta 
 		return fmt.Errorf("creating/updating Custom Hostname Certificate Binding %q with certificate name %q (App Service %q / Resource Group %q): %+v", id.HostnameBindingId.Name, id.CertificateId.Name, id.HostnameBindingId.SiteName, id.HostnameBindingId.ResourceGroup, err)
 	}
 
-
 	d.SetId(id.ID(""))
 
 	return resourceArmAppServiceCertificateBindingRead(d, meta)
@@ -151,7 +150,6 @@ func resourceArmAppServiceCertificateBindingRead(d *schema.ResourceData, meta in
 	if err != nil {
 		return err
 	}
-
 
 	d.Set("hostname_binding_id", id.HostnameBindingId.ID(""))
 	d.Set("certificate_id", id.CertificateId.ID(""))

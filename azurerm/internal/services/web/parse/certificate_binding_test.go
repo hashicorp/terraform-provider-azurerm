@@ -23,8 +23,8 @@ func TestCertificateBindingIDFormatter(t *testing.T) {
 
 func TestCertificateBindingID(t *testing.T) {
 	testData := []struct {
-		Input string
-		Error bool
+		Input    string
+		Error    bool
 		Expected *CertificateBindingId
 	}{
 		{
@@ -69,18 +69,17 @@ func TestCertificateBindingID(t *testing.T) {
 			Expected: &CertificateBindingId{
 				HostnameBindingId: HostnameBindingId{
 					SubscriptionId: "12345678-1234-9876-4563-123456789012",
-					ResourceGroup: "mygroup1",
-					SiteName: "site1",
-					Name: "binding1",
+					ResourceGroup:  "mygroup1",
+					SiteName:       "site1",
+					Name:           "binding1",
 				},
-				CertificateId:     CertificateId{
+				CertificateId: CertificateId{
 					SubscriptionId: "12345678-1234-9876-4563-123456789012",
-					ResourceGroup: "resGroup1",
-					Name: "certificate1",
+					ResourceGroup:  "resGroup1",
+					Name:           "certificate1",
 				},
 			},
 		},
-
 	}
 
 	for _, v := range testData {
