@@ -34,6 +34,7 @@ BUG FIXES:
 * `azurerm_bot_channel_ms_teams` - the field `bot_name` is now ForceNew to match the documentation/API behaviour [GH-9690]
 * `azurerm_bot_channel_slack` - the field `bot_name` is now ForceNew to match the documentation/API behaviour [GH-9690]
 * `azurerm_bot_connection` - the field `bot_name` is now ForceNew to match the documentation/API behaviour [GH-9690]
+* `azurerm_frontdoor` - updating to use a generated Resource ID Formatter/Parser/Validator [GH-9750]
 * `azurerm_postgresql_server` - changing the `geo_redundant_backup_enabled` property now forces a new resource [GH-9694]
 * `azurerm_postgresql_server` - Fix issue when specifying empty threat detection list attributes [GH-9739]
 * `azurerm_signar_service` -  having an empty `allowed_origins` in the `cors` block will no longer cause a panic [GH-9671]
