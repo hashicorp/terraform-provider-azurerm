@@ -1,4 +1,4 @@
-package tests
+package relay_test
 
 import (
 	"fmt"
