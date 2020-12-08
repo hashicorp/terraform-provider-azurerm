@@ -3,6 +3,8 @@ package apimanagement_test
 import (
 	"log"
 	"testing"
+
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement`
 )
 
 func TestXmlWithDotNetInterpolationsDiffSuppress(t *testing.T) {
@@ -95,7 +97,7 @@ func TestXmlWithDotNetInterpolationsDiffSuppress(t *testing.T) {
 
 	for _, v := range testData {
 		log.Printf("[DEBUG] Testing %q vs %q..", v.old, v.new)
-		actual := XmlWithDotNetInterpolationsDiffSuppress("", v.old, v.new, nil)
+		actual := apimanagement.XmlWithDotNetInterpolationsDiffSuppress("", v.old, v.new, nil)
 		if actual != v.same {
 			t.Fatalf("Expected %t but got %t", v.same, actual)
 		}
