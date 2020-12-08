@@ -11,18 +11,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMPowerBIEmbedded_basic(t *testing.T) {
+func TestAccPowerBIEmbedded_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_powerbi_embedded", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPowerBIEmbeddedDestroy,
+		CheckDestroy: testCheckPowerBIEmbeddedDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPowerBIEmbedded_basic(data),
+				Config: testAccPowerBIEmbedded_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPowerBIEmbeddedExists(data.ResourceName),
+					testCheckPowerBIEmbeddedExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -30,40 +30,40 @@ func TestAccAzureRMPowerBIEmbedded_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPowerBIEmbedded_requiresImport(t *testing.T) {
+func TestAccPowerBIEmbedded_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_powerbi_embedded", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPowerBIEmbeddedDestroy,
+		CheckDestroy: testCheckPowerBIEmbeddedDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPowerBIEmbedded_basic(data),
+				Config: testAccPowerBIEmbedded_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPowerBIEmbeddedExists(data.ResourceName),
+					testCheckPowerBIEmbeddedExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMPowerBIEmbedded_requiresImport(data),
+				Config:      testAccPowerBIEmbedded_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_powerbi_embedded"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMPowerBIEmbedded_complete(t *testing.T) {
+func TestAccPowerBIEmbedded_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_powerbi_embedded", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPowerBIEmbeddedDestroy,
+		CheckDestroy: testCheckPowerBIEmbeddedDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPowerBIEmbedded_complete(data),
+				Config: testAccPowerBIEmbedded_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPowerBIEmbeddedExists(data.ResourceName),
+					testCheckPowerBIEmbeddedExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "A2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.ENV", "Test"),
 				),
@@ -73,34 +73,34 @@ func TestAccAzureRMPowerBIEmbedded_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPowerBIEmbedded_update(t *testing.T) {
+func TestAccPowerBIEmbedded_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_powerbi_embedded", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPowerBIEmbeddedDestroy,
+		CheckDestroy: testCheckPowerBIEmbeddedDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPowerBIEmbedded_basic(data),
+				Config: testAccPowerBIEmbedded_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPowerBIEmbeddedExists(data.ResourceName),
+					testCheckPowerBIEmbeddedExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "A1"),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMPowerBIEmbedded_complete(data),
+				Config: testAccPowerBIEmbedded_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPowerBIEmbeddedExists(data.ResourceName),
+					testCheckPowerBIEmbeddedExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "A2"),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMPowerBIEmbedded_basic(data),
+				Config: testAccPowerBIEmbedded_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPowerBIEmbeddedExists(data.ResourceName),
+					testCheckPowerBIEmbeddedExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "A1"),
 				),
 			},
@@ -109,7 +109,7 @@ func TestAccAzureRMPowerBIEmbedded_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMPowerBIEmbeddedExists(resourceName string) resource.TestCheckFunc {
+func testCheckPowerBIEmbeddedExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -133,7 +133,7 @@ func testCheckAzureRMPowerBIEmbeddedExists(resourceName string) resource.TestChe
 	}
 }
 
-func testCheckAzureRMPowerBIEmbeddedDestroy(s *terraform.State) error {
+func testCheckPowerBIEmbeddedDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).PowerBI.CapacityClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -157,8 +157,8 @@ func testCheckAzureRMPowerBIEmbeddedDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMPowerBIEmbedded_basic(data acceptance.TestData) string {
-	template := testAccAzureRMPowerBIEmbedded_template(data)
+func testAccPowerBIEmbedded_basic(data acceptance.TestData) string {
+	template := testAccPowerBIEmbedded_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -172,7 +172,7 @@ resource "azurerm_powerbi_embedded" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMPowerBIEmbedded_requiresImport(data acceptance.TestData) string {
+func testAccPowerBIEmbedded_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -183,11 +183,11 @@ resource "azurerm_powerbi_embedded" "import" {
   sku_name            = "A1"
   administrators      = ["${data.azurerm_client_config.test.object_id}"]
 }
-`, testAccAzureRMPowerBIEmbedded_basic(data))
+`, testAccPowerBIEmbedded_basic(data))
 }
 
-func testAccAzureRMPowerBIEmbedded_complete(data acceptance.TestData) string {
-	template := testAccAzureRMPowerBIEmbedded_template(data)
+func testAccPowerBIEmbedded_complete(data acceptance.TestData) string {
+	template := testAccPowerBIEmbedded_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -205,7 +205,7 @@ resource "azurerm_powerbi_embedded" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMPowerBIEmbedded_template(data acceptance.TestData) string {
+func testAccPowerBIEmbedded_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
