@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus`
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus"
 )
 
 func TestAccAzureRMServiceBusNamespaceMigrateState(t *testing.T) {
