@@ -23,6 +23,10 @@ IMPROVEMENTS:
 * `azurerm_iothub` - support for the `min_tls_version` property [GH-9670]
 * `azurerm_recovery_services_vault` - support for the `identity` block [GH-9689]
 * `azurerm_security_center_automation` - support for the `description` and `tags` properties [GH-9676]
+* `azurerm_stream_analytics_reference_input_blob` - support for enhanced import validation [GH-9735]
+* `azurerm_stream_analytics_stream_input_blob` - support for enhanced import validation [GH-9735]
+* `azurerm_stream_analytics_stream_input_iothub` - support for enhanced import validation [GH-9735]
+* `azurerm_stream_analytics_stream_input_eventhub` - support for enhanced import validation [GH-9735]
 
 BUG FIXES:
 
