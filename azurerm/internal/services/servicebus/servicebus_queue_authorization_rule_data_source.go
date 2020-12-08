@@ -107,7 +107,7 @@ func dataSourceArmServiceBusQueueAuthorizationRuleRead(d *schema.ResourceData, m
 	d.Set("resource_group_name", resourceGroup)
 
 	if properties := resp.SBAuthorizationRuleProperties; properties != nil {
-		listen, send, manage := azure.FlattenServiceBusAuthorizationRuleRights(properties.Rights)
+		listen, send, manage := FlattenServiceBusAuthorizationRuleRights(properties.Rights)
 		d.Set("listen", listen)
 		d.Set("send", send)
 		d.Set("manage", manage)
