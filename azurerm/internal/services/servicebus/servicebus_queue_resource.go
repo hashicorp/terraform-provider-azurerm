@@ -40,7 +40,7 @@ func resourceArmServiceBusQueue() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateServiceBusQueueName(),
+				ValidateFunc: azValidate.QueueName(),
 			},
 
 			"namespace_name": {
@@ -102,13 +102,13 @@ func resourceArmServiceBusQueue() *schema.Resource {
 			"forward_dead_lettered_messages_to": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateServiceBusQueueName(),
+				ValidateFunc: azValidate.QueueName(),
 			},
 
 			"forward_to": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateServiceBusQueueName(),
+				ValidateFunc: azValidate.QueueName(),
 			},
 
 			"lock_duration": {

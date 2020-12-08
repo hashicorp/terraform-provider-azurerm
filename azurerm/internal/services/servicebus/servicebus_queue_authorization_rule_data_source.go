@@ -36,7 +36,7 @@ func dataSourceArmServiceBusQueueAuthorizationRule() *schema.Resource {
 			"queue_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateServiceBusQueueName(),
+				ValidateFunc: validate.QueueName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
