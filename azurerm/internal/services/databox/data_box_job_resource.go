@@ -416,6 +416,7 @@ func resourceArmDataBoxJobCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	var expectedDataSizeInTB *int32
+	// nolint: staticcheck
 	if v, ok := d.GetOkExists("expected_data_size_in_tb"); ok {
 		expectedDataSizeInTB = utils.Int32(int32(v.(int)))
 	}
@@ -530,6 +531,7 @@ func resourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error {
 
 	if props := resp.JobProperties; props != nil {
 		if props.DeliveryInfo != nil && props.DeliveryInfo.ScheduledDateTime != nil {
+			// nolint: gocritic
 			d.Set("delivery_scheduled_date_time", (*props.DeliveryInfo.ScheduledDateTime).Format(time.RFC3339))
 		}
 		d.Set("delivery_type", props.DeliveryType)

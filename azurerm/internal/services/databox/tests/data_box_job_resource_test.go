@@ -200,6 +200,7 @@ func testGetLocationFromSubscription() (string, error) {
 	subscription := strings.ToLower(os.Getenv("ARM_SUBSCRIPTION_ID"))
 	location := ""
 
+	// nolint: gocritic
 	if strings.HasPrefix(subscription, "67a9759d") || strings.HasPrefix(subscription, "85b3dbca") {
 		location = "westus"
 	} else if strings.HasPrefix(subscription, "1a6092a6") || strings.HasPrefix(subscription, "88720cb0") {
