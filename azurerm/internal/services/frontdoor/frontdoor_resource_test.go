@@ -209,7 +209,7 @@ func TestAccFrontDoor_CustomHttps(t *testing.T) {
 }
 
 func (FrontDoorResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.FrontDoorID(state.ID)
+	id, err := parse.FrontDoorIDInsensitively(state.ID)
 	if err != nil {
 		return nil, err
 	}

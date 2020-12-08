@@ -8,14 +8,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/parse"
 )
 
-func FrontendEndpointID(input interface{}, key string) (warnings []string, errors []error) {
+func FrontDoorID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
 
-	if _, err := parse.FrontendEndpointID(v); err != nil {
+	if _, err := parse.FrontDoorID(v); err != nil {
 		errors = append(errors, err)
 	}
 

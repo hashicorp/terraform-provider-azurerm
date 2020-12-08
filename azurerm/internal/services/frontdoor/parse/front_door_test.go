@@ -8,21 +8,21 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = RoutingRuleId{}
+var _ resourceid.Formatter = FrontDoorId{}
 
-func TestRoutingRuleIDFormatter(t *testing.T) {
-	actual := NewRoutingRuleID("12345678-1234-9876-4563-123456789012", "resGroup1", "frontdoor1", "rule1").ID("")
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/frontdoor1/routingRules/rule1"
+func TestFrontDoorIDFormatter(t *testing.T) {
+	actual := NewFrontDoorID("12345678-1234-9876-4563-123456789012", "resGroup1", "frontdoor1").ID("")
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/frontdoor1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestRoutingRuleID(t *testing.T) {
+func TestFrontDoorID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *RoutingRuleId
+		Expected *FrontDoorId
 	}{
 
 		{
@@ -56,43 +56,30 @@ func TestRoutingRuleID(t *testing.T) {
 		},
 
 		{
-			// missing FrontDoorName
+			// missing Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/",
 			Error: true,
 		},
 
 		{
-			// missing value for FrontDoorName
+			// missing value for Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/",
 			Error: true,
 		},
 
 		{
-			// missing Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/frontdoor1/",
-			Error: true,
-		},
-
-		{
-			// missing value for Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/frontdoor1/routingRules/",
-			Error: true,
-		},
-
-		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/frontdoor1/routingRules/rule1",
-			Expected: &RoutingRuleId{
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/frontdoor1",
+			Expected: &FrontDoorId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
-				FrontDoorName:  "frontdoor1",
-				Name:           "rule1",
+				Name:           "frontdoor1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NETWORK/FRONTDOORS/FRONTDOOR1/ROUTINGRULES/RULE1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NETWORK/FRONTDOORS/FRONTDOOR1",
 			Error: true,
 		},
 	}
@@ -100,7 +87,7 @@ func TestRoutingRuleID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := RoutingRuleID(v.Input)
+		actual, err := FrontDoorID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -117,9 +104,6 @@ func TestRoutingRuleID(t *testing.T) {
 		}
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
-		}
-		if actual.FrontDoorName != v.Expected.FrontDoorName {
-			t.Fatalf("Expected %q but got %q for FrontDoorName", v.Expected.FrontDoorName, actual.FrontDoorName)
 		}
 		if actual.Name != v.Expected.Name {
 			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
@@ -127,11 +111,11 @@ func TestRoutingRuleID(t *testing.T) {
 	}
 }
 
-func TestRoutingRuleIDInsensitively(t *testing.T) {
+func TestFrontDoorIDInsensitively(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *RoutingRuleId
+		Expected *FrontDoorId
 	}{
 
 		{
@@ -165,70 +149,54 @@ func TestRoutingRuleIDInsensitively(t *testing.T) {
 		},
 
 		{
-			// missing FrontDoorName
+			// missing Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/",
 			Error: true,
 		},
 
 		{
-			// missing value for FrontDoorName
+			// missing value for Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/",
 			Error: true,
 		},
 
 		{
-			// missing Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/frontdoor1/",
-			Error: true,
-		},
-
-		{
-			// missing value for Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/frontdoor1/routingRules/",
-			Error: true,
-		},
-
-		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/frontdoor1/routingRules/rule1",
-			Expected: &RoutingRuleId{
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/frontdoor1",
+			Expected: &FrontDoorId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
-				FrontDoorName:  "frontdoor1",
-				Name:           "rule1",
+				Name:           "frontdoor1",
 			},
 		},
 
 		{
 			// lower-cased segment names
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontdoors/frontdoor1/routingrules/rule1",
-			Expected: &RoutingRuleId{
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontdoors/frontdoor1",
+			Expected: &FrontDoorId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
-				FrontDoorName:  "frontdoor1",
-				Name:           "rule1",
+				Name:           "frontdoor1",
 			},
 		},
 
 		{
 			// upper-cased segment names
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/FRONTDOORS/frontdoor1/ROUTINGRULES/rule1",
-			Expected: &RoutingRuleId{
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/FRONTDOORS/frontdoor1",
+			Expected: &FrontDoorId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
-				FrontDoorName:  "frontdoor1",
-				Name:           "rule1",
+				Name:           "frontdoor1",
 			},
 		},
 
 		{
 			// mixed-cased segment names
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/FrOnTdOoRs/frontdoor1/RoUtInGrUlEs/rule1",
-			Expected: &RoutingRuleId{
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/FrOnTdOoRs/frontdoor1",
+			Expected: &FrontDoorId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
-				FrontDoorName:  "frontdoor1",
-				Name:           "rule1",
+				Name:           "frontdoor1",
 			},
 		},
 	}
@@ -236,7 +204,7 @@ func TestRoutingRuleIDInsensitively(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := RoutingRuleIDInsensitively(v.Input)
+		actual, err := FrontDoorIDInsensitively(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -253,9 +221,6 @@ func TestRoutingRuleIDInsensitively(t *testing.T) {
 		}
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
-		}
-		if actual.FrontDoorName != v.Expected.FrontDoorName {
-			t.Fatalf("Expected %q but got %q for FrontDoorName", v.Expected.FrontDoorName, actual.FrontDoorName)
 		}
 		if actual.Name != v.Expected.Name {
 			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
