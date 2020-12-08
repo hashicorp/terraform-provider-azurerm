@@ -83,6 +83,9 @@ func (client ServiceClient) ListAvailableSkus(ctx context.Context, location stri
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databox.ServiceClient", "ListAvailableSkus", resp, "Failure responding to request")
 	}
+	if result.asr.hasNextLink() && result.asr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -120,7 +123,6 @@ func (client ServiceClient) ListAvailableSkusSender(req *http.Request) (*http.Re
 func (client ServiceClient) ListAvailableSkusResponder(resp *http.Response) (result AvailableSkusResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -208,6 +210,9 @@ func (client ServiceClient) ListAvailableSkusByResourceGroup(ctx context.Context
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databox.ServiceClient", "ListAvailableSkusByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.asr.hasNextLink() && result.asr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -246,7 +251,6 @@ func (client ServiceClient) ListAvailableSkusByResourceGroupSender(req *http.Req
 func (client ServiceClient) ListAvailableSkusByResourceGroupResponder(resp *http.Response) (result AvailableSkusResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -367,7 +371,6 @@ func (client ServiceClient) RegionConfigurationSender(req *http.Request) (*http.
 func (client ServiceClient) RegionConfigurationResponder(resp *http.Response) (result RegionConfigurationResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -455,7 +458,6 @@ func (client ServiceClient) ValidateAddressMethodSender(req *http.Request) (*htt
 func (client ServiceClient) ValidateAddressMethodResponder(resp *http.Response) (result AddressValidationOutput, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -538,7 +540,6 @@ func (client ServiceClient) ValidateInputsSender(req *http.Request) (*http.Respo
 func (client ServiceClient) ValidateInputsResponder(resp *http.Response) (result ValidationResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -623,7 +624,6 @@ func (client ServiceClient) ValidateInputsByResourceGroupSender(req *http.Reques
 func (client ServiceClient) ValidateInputsByResourceGroupResponder(resp *http.Response) (result ValidationResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

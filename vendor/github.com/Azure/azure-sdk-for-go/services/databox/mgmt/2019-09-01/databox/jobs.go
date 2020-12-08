@@ -126,7 +126,6 @@ func (client JobsClient) BookShipmentPickUpSender(req *http.Request) (*http.Resp
 func (client JobsClient) BookShipmentPickUpResponder(resp *http.Response) (result ShipmentPickUpResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -216,7 +215,6 @@ func (client JobsClient) CancelSender(req *http.Request) (*http.Response, error)
 func (client JobsClient) CancelResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -323,7 +321,6 @@ func (client JobsClient) CreateSender(req *http.Request) (future JobsCreateFutur
 func (client JobsClient) CreateResponder(resp *http.Response) (result JobResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -408,7 +405,6 @@ func (client JobsClient) DeleteSender(req *http.Request) (future JobsDeleteFutur
 func (client JobsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -496,7 +492,6 @@ func (client JobsClient) GetSender(req *http.Request) (*http.Response, error) {
 func (client JobsClient) GetResponder(resp *http.Response) (result JobResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -536,6 +531,9 @@ func (client JobsClient) List(ctx context.Context, skipToken string) (result Job
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databox.JobsClient", "List", resp, "Failure responding to request")
 	}
+	if result.jrl.hasNextLink() && result.jrl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -573,7 +571,6 @@ func (client JobsClient) ListSender(req *http.Request) (*http.Response, error) {
 func (client JobsClient) ListResponder(resp *http.Response) (result JobResourceList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -651,6 +648,9 @@ func (client JobsClient) ListByResourceGroup(ctx context.Context, resourceGroupN
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databox.JobsClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.jrl.hasNextLink() && result.jrl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -689,7 +689,6 @@ func (client JobsClient) ListByResourceGroupSender(req *http.Request) (*http.Res
 func (client JobsClient) ListByResourceGroupResponder(resp *http.Response) (result JobResourceList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -811,7 +810,6 @@ func (client JobsClient) ListCredentialsSender(req *http.Request) (*http.Respons
 func (client JobsClient) ListCredentialsResponder(resp *http.Response) (result UnencryptedCredentialsList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -905,7 +903,6 @@ func (client JobsClient) UpdateSender(req *http.Request) (future JobsUpdateFutur
 func (client JobsClient) UpdateResponder(resp *http.Response) (result JobResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

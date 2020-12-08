@@ -1,14 +1,14 @@
 ---
-subcategory: "DataBox"
+subcategory: "Data Box"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_box_job"
 description: |-
-  Get information about an existing DataBox.
+  Get information about an existing Data Box Job.
 ---
 
 # Data Source: azurerm_data_box_job
 
-Use this data source to access information about an existing DataBox.
+Use this data source to access information about an existing Data Box Job.
 
 ## Example Usage
 

@@ -1,9 +1,9 @@
 ---
-subcategory: "DataBox"
+subcategory: "Data Box"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_box_job"
 description: |-
-  Manages a DataBox.
+  Manages a Data Box Job.
 ---
 
 # azurerm_data_box_job
