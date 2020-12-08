@@ -107,5 +107,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Virtual Desktop Host Pools can be imported using the `resource id`, e.g.
 
 ```
-terraform import virtual_desktop_host_pool.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.DesktopVirtualization/hostpools/myhostpool
+terraform import azurerm_virtual_desktop_host_pool.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.DesktopVirtualization/hostpools/myhostpool
 ```

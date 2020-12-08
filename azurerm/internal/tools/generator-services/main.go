@@ -54,11 +54,44 @@ var services = mapOf(
 )`
 	items := make([]string, 0)
 
-	for _, service := range provider.SupportedServices() {
+	services := make(map[string]string)
+	serviceNames := make([]string, 0)
+
+	// combine and unique these
+	for _, service := range provider.SupportedTypedServices() {
 		info := reflect.TypeOf(service)
 		packageSegments := strings.Split(info.PkgPath(), "/")
 		packageName := packageSegments[len(packageSegments)-1]
-		item := fmt.Sprintf("        %q to %q", packageName, service.Name())
+		serviceName := service.Name()
+
+		// Service Registrations are reused across Typed and Untyped Services now
+		if _, exists := services[serviceName]; exists {
+			continue
+		}
+
+		services[serviceName] = packageName
+		serviceNames = append(serviceNames, serviceName)
+	}
+	for _, service := range provider.SupportedUntypedServices() {
+		info := reflect.TypeOf(service)
+		packageSegments := strings.Split(info.PkgPath(), "/")
+		packageName := packageSegments[len(packageSegments)-1]
+		serviceName := service.Name()
+
+		// Service Registrations are reused across Typed and Untyped Services now
+		if _, exists := services[serviceName]; exists {
+			continue
+		}
+
+		services[serviceName] = packageName
+		serviceNames = append(serviceNames, serviceName)
+	}
+
+	// then ensure these are sorted so they're alphabetical
+	sort.Strings(serviceNames)
+	for _, serviceName := range serviceNames {
+		packageName := services[serviceName]
+		item := fmt.Sprintf("        %q to %q", packageName, serviceName)
 		items = append(items, item)
 	}
 
@@ -76,7 +109,16 @@ func (websiteCategoriesGenerator) run(outputFileName string) error {
 	websiteCategories := make([]string, 0)
 
 	// get a distinct list
-	for _, service := range provider.SupportedServices() {
+	for _, service := range provider.SupportedTypedServices() {
+		for _, category := range service.WebsiteCategories() {
+			if contains(websiteCategories, category) {
+				continue
+			}
+
+			websiteCategories = append(websiteCategories, category)
+		}
+	}
+	for _, service := range provider.SupportedUntypedServices() {
 		for _, category := range service.WebsiteCategories() {
 			if contains(websiteCategories, category) {
 				continue

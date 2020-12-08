@@ -7,6 +7,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
+// TODO: @tombuildsstuff pass back through and generate these
+
 type LogAnalyticsLinkedStorageAccountId struct {
 	ResourceGroup string
 	WorkspaceName string

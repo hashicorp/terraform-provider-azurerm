@@ -30,7 +30,7 @@ func resourceArmLoadBalancerBackendAddressPool() *schema.Resource {
 				return nil, err
 			}
 
-			lbId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName)
+			lbId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
 			return &lbId, nil
 		}),
 
@@ -83,7 +83,6 @@ func resourceArmLoadBalancerBackendAddressPool() *schema.Resource {
 
 func resourceArmLoadBalancerBackendAddressPoolCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.LoadBalancersClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -93,7 +92,7 @@ func resourceArmLoadBalancerBackendAddressPoolCreate(d *schema.ResourceData, met
 		return fmt.Errorf("parsing Load Balancer Name and Group: %+v", err)
 	}
 
-	loadBalancerID := loadBalancerId.ID(subscriptionId)
+	loadBalancerID := loadBalancerId.ID("")
 	locks.ByID(loadBalancerID)
 	defer locks.UnlockByID(loadBalancerID)
 
@@ -167,7 +166,7 @@ func resourceArmLoadBalancerBackendAddressPoolRead(d *schema.ResourceData, meta 
 		return err
 	}
 
-	loadBalancerId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName)
+	loadBalancerId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
 	loadBalancer, exists, err := retrieveLoadBalancerById(ctx, client, loadBalancerId)
 	if err != nil {
 		return fmt.Errorf("retrieving Load Balancer by ID: %+v", err)
@@ -178,9 +177,9 @@ func resourceArmLoadBalancerBackendAddressPoolRead(d *schema.ResourceData, meta 
 		return nil
 	}
 
-	config, _, exists := FindLoadBalancerBackEndAddressPoolByName(loadBalancer, id.Name)
+	config, _, exists := FindLoadBalancerBackEndAddressPoolByName(loadBalancer, id.BackendAddressPoolName)
 	if !exists {
-		log.Printf("[INFO] Load Balancer Backend Address Pool %q not found. Removing from state", id.Name)
+		log.Printf("[INFO] Load Balancer Backend Address Pool %q not found. Removing from state", id.BackendAddressPoolName)
 		d.SetId("")
 		return nil
 	}
@@ -213,7 +212,6 @@ func resourceArmLoadBalancerBackendAddressPoolRead(d *schema.ResourceData, meta 
 
 func resourceArmLoadBalancerBackendAddressPoolDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.LoadBalancersClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -222,8 +220,8 @@ func resourceArmLoadBalancerBackendAddressPoolDelete(d *schema.ResourceData, met
 		return err
 	}
 
-	loadBalancerId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName)
-	loadBalancerID := loadBalancerId.ID(subscriptionId)
+	loadBalancerId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
+	loadBalancerID := loadBalancerId.ID("")
 	locks.ByID(loadBalancerID)
 	defer locks.UnlockByID(loadBalancerID)
 

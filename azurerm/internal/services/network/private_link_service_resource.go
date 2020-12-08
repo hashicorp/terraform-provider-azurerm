@@ -200,14 +200,6 @@ func resourceArmPrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error waiting for creation of Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name, "")
-	if err != nil {
-		return fmt.Errorf("Error retrieving Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("API returns a nil/empty id on Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
 	// we can't rely on the use of the Future here due to the resource being successfully completed but now the service is applying those values.
 	// currently being tracked with issue #6466: https://github.com/Azure/azure-sdk-for-go/issues/6466
 	log.Printf("[DEBUG] Waiting for Private Link Service to %q (Resource Group %q) to finish applying", name, resourceGroup)
@@ -226,6 +218,15 @@ func resourceArmPrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta inte
 
 	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for Private Link Service %q (Resource Group %q) to become available: %s", name, resourceGroup, err)
+	}
+
+	// TODO: switch over to using an ID parser
+	resp, err := client.Get(ctx, resourceGroup, name, "")
+	if err != nil {
+		return fmt.Errorf("Error retrieving Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("API returns a nil/empty id on Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -441,6 +442,11 @@ func privateLinkServiceWaitForReadyRefreshFunc(ctx context.Context, client *netw
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroupName, name, "")
 		if err != nil {
+			// the API is eventually consistent during recreates..
+			if utils.ResponseWasNotFound(res.Response) {
+				return res, "Pending", nil
+			}
+
 			return nil, "Error", fmt.Errorf("Error issuing read request in privateLinkServiceWaitForReadyRefreshFunc %q (Resource Group %q): %s", name, resourceGroupName, err)
 		}
 		if props := res.PrivateLinkServiceProperties; props != nil {

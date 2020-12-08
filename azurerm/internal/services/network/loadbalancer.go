@@ -6,7 +6,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -126,13 +125,12 @@ func FindLoadBalancerProbeByName(lb *network.LoadBalancer, name string) (*networ
 func loadBalancerSubResourceImporter(parser func(input string) (*parse.LoadBalancerId, error)) *schema.ResourceImporter {
 	return &schema.ResourceImporter{
 		State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-			subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 			lbId, err := parser(d.Id())
 			if err != nil {
 				return nil, err
 			}
 
-			d.Set("loadbalancer_id", lbId.ID(subscriptionId))
+			d.Set("loadbalancer_id", lbId.ID(""))
 			return []*schema.ResourceData{d}, nil
 		},
 	}
