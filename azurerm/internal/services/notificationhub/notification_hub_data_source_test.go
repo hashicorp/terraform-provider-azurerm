@@ -8,15 +8,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMNotificationHub_basic(t *testing.T) {
+func TestAccDataSourceNotificationHub_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_notification_hub", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNotificationHubDestroy,
+		CheckDestroy: testCheckNotificationHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMNotificationHubBasic(data),
+				Config: testAccDataSourceNotificationHubBasic(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "apns_credential.#", "0"),
 					resource.TestCheckResourceAttr(data.ResourceName, "gcm_credential.#", "0"),
@@ -27,8 +27,8 @@ func TestAccDataSourceAzureRMNotificationHub_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceAzureRMNotificationHubBasic(data acceptance.TestData) string {
-	template := testAccAzureRMNotificationHub_basic(data)
+func testAccDataSourceNotificationHubBasic(data acceptance.TestData) string {
+	template := testAccNotificationHub_basic(data)
 	return fmt.Sprintf(`
 %s
 

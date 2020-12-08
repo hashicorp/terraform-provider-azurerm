@@ -11,17 +11,17 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
-func TestAccAzureRMNotificationHubNamespace_free(t *testing.T) {
+func TestAccNotificationHubNamespace_free(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_notification_hub_namespace", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNotificationHubNamespaceDestroy,
+		CheckDestroy: testCheckNotificationHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNotificationHubNamespace_free(data),
+				Config: testAccNotificationHubNamespace_free(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNotificationHubNamespaceExists(data.ResourceName),
+					testCheckNotificationHubNamespaceExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -29,33 +29,33 @@ func TestAccAzureRMNotificationHubNamespace_free(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMNotificationHubNamespace_updateTag(t *testing.T) {
+func TestAccNotificationHubNamespace_updateTag(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_notification_hub_namespace", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNotificationHubNamespaceDestroy,
+		CheckDestroy: testCheckNotificationHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNotificationHubNamespace_free(data),
+				Config: testAccNotificationHubNamespace_free(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNotificationHubNamespaceExists(data.ResourceName),
+					testCheckNotificationHubNamespaceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMNotificationHubNamespace_withoutTag(data),
+				Config: testAccNotificationHubNamespace_withoutTag(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNotificationHubNamespaceExists(data.ResourceName),
+					testCheckNotificationHubNamespaceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMNotificationHubNamespace_free(data),
+				Config: testAccNotificationHubNamespace_free(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNotificationHubNamespaceExists(data.ResourceName),
+					testCheckNotificationHubNamespaceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 				),
 			},
@@ -64,25 +64,25 @@ func TestAccAzureRMNotificationHubNamespace_updateTag(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMNotificationHubNamespace_requiresImport(t *testing.T) {
+func TestAccNotificationHubNamespace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_notification_hub_namespace", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNotificationHubNamespaceDestroy,
+		CheckDestroy: testCheckNotificationHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNotificationHubNamespace_free(data),
+				Config: testAccNotificationHubNamespace_free(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNotificationHubNamespaceExists(data.ResourceName),
+					testCheckNotificationHubNamespaceExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMNotificationHubNamespace_requiresImport),
+			data.RequiresImportErrorStep(testAccNotificationHubNamespace_requiresImport),
 		},
 	})
 }
 
-func testCheckAzureRMNotificationHubNamespaceExists(resourceName string) resource.TestCheckFunc {
+func testCheckNotificationHubNamespaceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).NotificationHubs.NamespacesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -108,7 +108,7 @@ func testCheckAzureRMNotificationHubNamespaceExists(resourceName string) resourc
 	}
 }
 
-func testCheckAzureRMNotificationHubNamespaceDestroy(s *terraform.State) error {
+func testCheckNotificationHubNamespaceDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).NotificationHubs.NamespacesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -132,7 +132,7 @@ func testCheckAzureRMNotificationHubNamespaceDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMNotificationHubNamespace_free(data acceptance.TestData) string {
+func testAccNotificationHubNamespace_free(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -158,7 +158,7 @@ resource "azurerm_notification_hub_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMNotificationHubNamespace_withoutTag(data acceptance.TestData) string {
+func testAccNotificationHubNamespace_withoutTag(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -180,8 +180,8 @@ resource "azurerm_notification_hub_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMNotificationHubNamespace_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMNotificationHubNamespace_free(data)
+func testAccNotificationHubNamespace_requiresImport(data acceptance.TestData) string {
+	template := testAccNotificationHubNamespace_free(data)
 	return fmt.Sprintf(`
 %s
 

@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmNotificationHubAuthorizationRule() *schema.Resource {
+func resourceNotificationHubAuthorizationRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNotificationHubAuthorizationRuleCreateUpdate,
-		Read:   resourceArmNotificationHubAuthorizationRuleRead,
-		Update: resourceArmNotificationHubAuthorizationRuleCreateUpdate,
-		Delete: resourceArmNotificationHubAuthorizationRuleDelete,
+		Create: resourceNotificationHubAuthorizationRuleCreateUpdate,
+		Read:   resourceNotificationHubAuthorizationRuleRead,
+		Update: resourceNotificationHubAuthorizationRuleCreateUpdate,
+		Delete: resourceNotificationHubAuthorizationRuleDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.NotificationHubAuthorizationRuleID(id)
 			return err
@@ -88,7 +88,7 @@ func resourceArmNotificationHubAuthorizationRule() *schema.Resource {
 	}
 }
 
-func resourceArmNotificationHubAuthorizationRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNotificationHubAuthorizationRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NotificationHubs.HubsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -141,10 +141,10 @@ func resourceArmNotificationHubAuthorizationRuleCreateUpdate(d *schema.ResourceD
 
 	d.SetId(*read.ID)
 
-	return resourceArmNotificationHubAuthorizationRuleRead(d, meta)
+	return resourceNotificationHubAuthorizationRuleRead(d, meta)
 }
 
-func resourceArmNotificationHubAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNotificationHubAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NotificationHubs.HubsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -188,7 +188,7 @@ func resourceArmNotificationHubAuthorizationRuleRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceArmNotificationHubAuthorizationRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNotificationHubAuthorizationRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NotificationHubs.HubsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
