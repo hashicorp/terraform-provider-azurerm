@@ -11,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
-func TestAccResourceArmDashboard_basic(t *testing.T) {
+func TestAccPortalDashboard_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dashboard", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
