@@ -38,7 +38,7 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateServiceBusSubscriptionName(),
+				ValidateFunc: validate.SubscriptionName(),
 			},
 
 			"namespace_name": {

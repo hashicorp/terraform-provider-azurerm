@@ -11,13 +11,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 )
 
-func ValidateServiceBusSubscriptionName() schema.SchemaValidateFunc {
-	return validation.StringMatch(
-		regexp.MustCompile("^[a-zA-Z0-9][-._a-zA-Z0-9]{0,48}([a-zA-Z0-9])?$"),
-		"The name can contain only letters, numbers, periods, hyphens and underscores. The name must start and end with a letter or number and be less then 50 characters long.",
-	)
-}
-
 func ValidateServiceBusTopicName() schema.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile("^[a-zA-Z0-9]([-._~a-zA-Z0-9]{0,258}[a-zA-Z0-9])?$"),

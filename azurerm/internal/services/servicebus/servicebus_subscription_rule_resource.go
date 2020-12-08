@@ -63,7 +63,7 @@ func resourceArmServiceBusSubscriptionRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateServiceBusSubscriptionName(),
+				ValidateFunc: validate.SubscriptionName(),
 			},
 
 			"filter_type": {
