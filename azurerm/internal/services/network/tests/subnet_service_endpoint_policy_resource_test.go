@@ -117,9 +117,9 @@ func testCheckAzureRMSubnetServiceEndpointPolicyExists(resourceName string) reso
 			return err
 		}
 
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name, ""); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceEndpointPolicyName, ""); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Subnet Service Endpoint Policy %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
+				return fmt.Errorf("Subnet Service Endpoint Policy %q (Resource Group %q) does not exist", id.ServiceEndpointPolicyName, id.ResourceGroup)
 			}
 			return fmt.Errorf("Getting on Subnet Service Endpoint Policy: %+v", err)
 		}
@@ -142,7 +142,7 @@ func testCheckAzureRMSubnetServiceEndpointPolicyDestroy(s *terraform.State) erro
 			return err
 		}
 
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+		resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceEndpointPolicyName, "")
 		if err == nil {
 			return fmt.Errorf("Subnet Service Endpoint Policy still exists")
 		}
