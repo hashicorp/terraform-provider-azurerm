@@ -41,11 +41,13 @@ func dataSourceArmDataBoxJob() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"staging_storage_account_id": {
+
+						"share_password": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"share_password": {
+
+						"staging_storage_account_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -62,6 +64,7 @@ func dataSourceArmDataBoxJob() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+
 						"storage_account_id": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -97,17 +100,19 @@ func dataSourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error
 	resp, err := client.Get(ctx, resourceGroup, name, "Details")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("DataBox Job (DataBox Job Name %q / Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("Data Box Job (DataBox Job Name %q / Resource Group %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("reading DataBox Job (DataBox Job Name %q / Resource Group %q): %+v", name, resourceGroup, err)
+
+		return fmt.Errorf("reading Data Box Job (Data Box Job Name %q / Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
+	d.Set("sku_name", resp.Sku.Name)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	d.Set("sku_name", resp.Sku.Name)
+
 	if props := resp.JobProperties; props != nil {
 		if details := props.Details; details != nil {
 			if v, ok := details.AsJobDetailsType(); ok && v != nil {
@@ -117,6 +122,7 @@ func dataSourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error
 				if err := d.Set("destination_managed_disk", destinationManagedDisk); err != nil {
 					return fmt.Errorf("setting `destination_managed_disk`: %+v", err)
 				}
+
 				if err := d.Set("destination_storage_account", destinationStorageAccount); err != nil {
 					return fmt.Errorf("setting `destination_storage_account`: %+v", err)
 				}
@@ -125,6 +131,7 @@ func dataSourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error
 				if err := d.Set("destination_managed_disk", destinationManagedDisk); err != nil {
 					return fmt.Errorf("setting `destination_managed_disk`: %+v", err)
 				}
+
 				if err := d.Set("destination_storage_account", destinationStorageAccount); err != nil {
 					return fmt.Errorf("setting `destination_storage_account`: %+v", err)
 				}
@@ -135,6 +142,7 @@ func dataSourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error
 				if err := d.Set("destination_managed_disk", destinationManagedDisk); err != nil {
 					return fmt.Errorf("setting `destination_managed_disk`: %+v", err)
 				}
+
 				if err := d.Set("destination_storage_account", destinationStorageAccount); err != nil {
 					return fmt.Errorf("setting `destination_storage_account`: %+v", err)
 				}
@@ -143,7 +151,7 @@ func dataSourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("API returns a nil/empty id on DataBox Job %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("empty or nil ID returned for Data Box Job %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	d.SetId(*resp.ID)
 

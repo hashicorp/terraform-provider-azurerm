@@ -1,12 +1,12 @@
 ---
 subcategory: "DataBox"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_databox_job"
+page_title: "Azure Resource Manager: azurerm_data_box_job"
 description: |-
   Get information about an existing DataBox.
 ---
 
-# Data Source: azurerm_databox_job
+# Data Source: azurerm_data_box_job
 
 Use this data source to access information about an existing DataBox.
 
@@ -17,13 +17,13 @@ provider "azurerm" {
   features {}
 }
 
-data "azurerm_databox_job" "existing" {
+data "azurerm_data_box_job" "existing" {
   name                = "example-databoxjob"
   resource_group_name = "example-resources"
 }
 
 output "id" {
-  value = data.azurerm_databox_job.existing.id
+  value = data.azurerm_data_box_job.existing.id
 }
 ```
 

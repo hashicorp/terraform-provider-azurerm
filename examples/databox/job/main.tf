@@ -17,7 +17,7 @@ resource "azurerm_storage_account" "example" {
   account_replication_type = "RAGRS"
 }
 
-resource "azurerm_databox_job" "example" {
+resource "azurerm_data_box_job" "example" {
   name                = "${var.prefix}-databoxjob"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location

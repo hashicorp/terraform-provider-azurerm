@@ -3,5 +3,5 @@ variable "location" {
 }
 
 variable "prefix" {
-  description = "The prefix used for all resources used by this DataBox Job"
+  description = "The prefix used for all resources used by this Data Box Job"
 }

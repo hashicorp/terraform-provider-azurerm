@@ -1,12 +1,12 @@
 ---
 subcategory: "DataBox"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_databox_job"
+page_title: "Azure Resource Manager: azurerm_data_box_job"
 description: |-
   Manages a DataBox.
 ---
 
-# azurerm_databox_job
+# azurerm_data_box_job
 
 Manages a databox.
 
@@ -32,7 +32,7 @@ resource "azurerm_storage_account" "example" {
   account_replication_type = "RAGRS"
 }
 
-resource "azurerm_databox_job" "example" {
+resource "azurerm_data_box_job" "example" {
   name                = "example-databoxjob"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
@@ -204,5 +204,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 DataBox can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_databox_job.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.DataBox/jobs/job1
+terraform import azurerm_data_box_job.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.DataBox/jobs/job1
 ```

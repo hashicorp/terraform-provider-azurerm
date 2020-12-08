@@ -3,6 +3,7 @@ package databox
 import (
 	"context"
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"log"
 	"strconv"
 	"time"
@@ -13,14 +14,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databox/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databox/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -71,11 +71,19 @@ func resourceArmDataBoxJob() *schema.Resource {
 								ValidateFunc: validate.DataBoxJobEmail,
 							},
 						},
+
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validate.DataBoxJobContactName,
 						},
+
+						"phone_number": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.DataBoxJobPhoneNumber,
+						},
+
 						"notification_preference": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -88,11 +96,13 @@ func resourceArmDataBoxJob() *schema.Resource {
 										Optional: true,
 										Default:  true,
 									},
+
 									"data_copied": {
 										Type:     schema.TypeBool,
 										Optional: true,
 										Default:  true,
 									},
+
 									"delivered": {
 										Type:     schema.TypeBool,
 										Optional: true,
@@ -103,11 +113,13 @@ func resourceArmDataBoxJob() *schema.Resource {
 										Optional: true,
 										Default:  true,
 									},
+
 									"dispatched": {
 										Type:     schema.TypeBool,
 										Optional: true,
 										Default:  true,
 									},
+
 									"picked_up": {
 										Type:     schema.TypeBool,
 										Optional: true,
@@ -116,23 +128,115 @@ func resourceArmDataBoxJob() *schema.Resource {
 								},
 							},
 						},
+
 						"phone_extension": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validate.DataBoxJobPhoneExtension,
 						},
+
 						"phone_mobile": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						"phone_number": {
+					},
+				},
+			},
+
+			"preferred_shipment_type": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(databox.CustomerManaged),
+					string(databox.MicrosoftManaged),
+				}, false),
+			},
+
+			"shipping_address": {
+				Type:     schema.TypeList,
+				Required: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"city": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.DataBoxJobPhoneNumber,
+							ValidateFunc: validate.DataBoxJobCity,
+						},
+
+						"country": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"postal_code": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.DataBoxJobPostCode,
+						},
+
+						"state_or_province": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"street_address_1": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.DataBoxJobStreetAddress,
+						},
+
+						"address_type": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  string(databox.None),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(databox.Commercial),
+								string(databox.None),
+								string(databox.Residential),
+							}, false),
+						},
+
+						"company_name": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.DataBoxJobCompanyName,
+						},
+
+						"postal_code_plus_four": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.DataBoxJobPostCode,
+						},
+
+						"street_address_2": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.DataBoxJobStreetAddress,
+						},
+
+						"street_address_3": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.DataBoxJobStreetAddress,
 						},
 					},
 				},
+			},
+
+			"sku_name": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(databox.DataBox),
+					string(databox.DataBoxDisk),
+					string(databox.DataBoxHeavy),
+				}, false),
 			},
 
 			"databox_disk_passkey": {
@@ -141,28 +245,6 @@ func resourceArmDataBoxJob() *schema.Resource {
 				Sensitive:    true,
 				ForceNew:     true,
 				ValidateFunc: validate.DataBoxJobDiskPassKey,
-			},
-
-			"databox_preferred_disk": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"count": {
-							Type:         schema.TypeInt,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.IntAtLeast(1),
-						},
-						"size_in_tb": {
-							Type:         schema.TypeInt,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.IntAtLeast(1),
-						},
-					},
-				},
 			},
 
 			"datacenter_region_preference": {
@@ -195,56 +277,6 @@ func resourceArmDataBoxJob() *schema.Resource {
 				}, false),
 			},
 
-			"destination_managed_disk": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"resource_group_id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: azure.ValidateResourceID,
-						},
-						"share_password": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Sensitive:    true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"staging_storage_account_id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: azure.ValidateResourceID,
-						},
-					},
-				},
-			},
-
-			"destination_storage_account": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"share_password": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Sensitive:    true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"storage_account_id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: azure.ValidateResourceID,
-						},
-					},
-				},
-			},
-
 			"device_password": {
 				Type:          schema.TypeString,
 				Optional:      true,
@@ -261,90 +293,80 @@ func resourceArmDataBoxJob() *schema.Resource {
 				ValidateFunc: validation.IntBetween(1, 1000000),
 			},
 
-			"preferred_shipment_type": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(databox.CustomerManaged),
-					string(databox.MicrosoftManaged),
-				}, false),
-			},
-
-			"shipping_address": {
+			"databox_preferred_disk": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"address_type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  string(databox.None),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(databox.Commercial),
-								string(databox.None),
-								string(databox.Residential),
-							}, false),
-						},
-						"city": {
-							Type:         schema.TypeString,
+						"count": {
+							Type:         schema.TypeInt,
 							Required:     true,
-							ValidateFunc: validate.DataBoxJobCity,
+							ForceNew:     true,
+							ValidateFunc: validation.IntAtLeast(1),
 						},
-						"company_name": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validate.DataBoxJobCompanyName,
-						},
-						"country": {
-							Type:         schema.TypeString,
+
+						"size_in_tb": {
+							Type:         schema.TypeInt,
 							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"postal_code": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.DataBoxJobPostCode,
-						},
-						"postal_code_plus_four": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validate.DataBoxJobPostCode,
-						},
-						"state_or_province": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"street_address_1": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.DataBoxJobStreetAddress,
-						},
-						"street_address_2": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validate.DataBoxJobStreetAddress,
-						},
-						"street_address_3": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validate.DataBoxJobStreetAddress,
+							ForceNew:     true,
+							ValidateFunc: validation.IntAtLeast(1),
 						},
 					},
 				},
 			},
 
-			"sku_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(databox.DataBox),
-					string(databox.DataBoxDisk),
-					string(databox.DataBoxHeavy),
-				}, false),
+			"destination_managed_disk": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"resource_group_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+
+						"staging_storage_account_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+
+						"share_password": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Sensitive:    true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
+			"destination_storage_account": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"storage_account_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+
+						"share_password": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Sensitive:    true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
 			},
 
 			"tags": tags.Schema(),
@@ -360,21 +382,18 @@ func resourceArmDataBoxJobCreate(d *schema.ResourceData, meta interface{}) error
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name, "Details")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing DataBox Job (DataBox Job Name %q / Resource Group %q): %+v", name, resourceGroup, err)
-			}
-		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_databox_job", *existing.ID)
+	existing, err := client.Get(ctx, resourceGroup, name, "Details")
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("checking for present of existing Data Box Job %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_data_box_job", *existing.ID)
+	}
+
 	contactDetails := d.Get("contact_details").([]interface{})
-	deliveryType := d.Get("delivery_type").(string)
 	destinationManagedDisk := d.Get("destination_managed_disk").(*schema.Set).List()
 	destinationStorageAccount := d.Get("destination_storage_account").(*schema.Set).List()
 	devicePassword := d.Get("device_password").(string)
@@ -384,17 +403,16 @@ func resourceArmDataBoxJobCreate(d *schema.ResourceData, meta interface{}) error
 	datacenterRegionPreference := d.Get("datacenter_region_preference").(*schema.Set).List()
 	shippingAddress := d.Get("shipping_address").([]interface{})
 	skuName := d.Get("sku_name").(string)
-	t := d.Get("tags").(map[string]interface{})
 
 	parameters := databox.JobResource{
-		Location: utils.String(location),
+		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		JobProperties: &databox.JobProperties{
-			DeliveryType: databox.JobDeliveryType(deliveryType),
+			DeliveryType: databox.JobDeliveryType(d.Get("delivery_type").(string)),
 		},
 		Sku: &databox.Sku{
 			Name: databox.SkuName(skuName),
 		},
-		Tags: tags.Expand(t),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	var expectedDataSizeInTB *int32
@@ -464,6 +482,7 @@ func resourceArmDataBoxJobCreate(d *schema.ResourceData, meta interface{}) error
 	if err != nil {
 		return fmt.Errorf("creating DataBox Job (DataBox Job Name %q / Resource Group %q): %+v", name, resourceGroup, err)
 	}
+
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation of DataBox Job (DataBox Job Name %q / Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -472,8 +491,9 @@ func resourceArmDataBoxJobCreate(d *schema.ResourceData, meta interface{}) error
 	if err != nil {
 		return fmt.Errorf("retrieving DataBox Job (DataBox Job Name %q / Resource Group %q): %+v", name, resourceGroup, err)
 	}
+
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("cannot read DataBox Job (DataBox Job Name %q / Resource Group %q) ID", name, resourceGroup)
+		return fmt.Errorf("empty or nil ID returned for Data Box Job %q (Resource Group %q) ID", name, resourceGroup)
 	}
 	d.SetId(*resp.ID)
 
@@ -497,15 +517,16 @@ func resourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading DataBox Job (DataBox Job Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+
+		return fmt.Errorf("retrieving Data Box Job %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("sku_name", resp.Sku.Name)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	d.Set("sku_name", resp.Sku.Name)
 
 	if props := resp.JobProperties; props != nil {
 		if props.DeliveryInfo != nil && props.DeliveryInfo.ScheduledDateTime != nil {
@@ -520,23 +541,28 @@ func resourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error {
 				if err := d.Set("contact_details", flattenArmDataBoxJobContactDetails(v.ContactDetails)); err != nil {
 					return fmt.Errorf("setting `contact_details`: %+v", err)
 				}
+
 				destinationManagedDisk, destinationStorageAccount := flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)
 				if err := d.Set("destination_managed_disk", destinationManagedDisk); err != nil {
 					return fmt.Errorf("setting `destination_managed_disk`: %+v", err)
 				}
+
 				if err := d.Set("destination_storage_account", destinationStorageAccount); err != nil {
 					return fmt.Errorf("setting `destination_storage_account`: %+v", err)
 				}
+
 				if v.Preferences != nil {
 					if v.Preferences.TransportPreferences != nil {
 						if err := d.Set("preferred_shipment_type", v.Preferences.TransportPreferences.PreferredShipmentType); err != nil {
 							return fmt.Errorf("setting `preferred_shipment_type`: %+v", err)
 						}
 					}
+
 					if err := d.Set("datacenter_region_preference", utils.FlattenStringSlice(v.Preferences.PreferredDataCenterRegion)); err != nil {
 						return fmt.Errorf("setting `datacenter_region_preference`: %+v", err)
 					}
 				}
+
 				if err := d.Set("shipping_address", flattenArmDataBoxJobShippingAddress(v.ShippingAddress)); err != nil {
 					return fmt.Errorf("setting `shipping_address`: %+v", err)
 				}
@@ -544,26 +570,32 @@ func resourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error {
 				if err := d.Set("databox_preferred_disk", flattenArmDataBoxJobPreferredDisk(v.PreferredDisks)); err != nil {
 					return fmt.Errorf("setting `databox_preferred_disk`: %+v", err)
 				}
+
 				if err := d.Set("contact_details", flattenArmDataBoxJobContactDetails(v.ContactDetails)); err != nil {
 					return fmt.Errorf("setting `contact_details`: %+v", err)
 				}
+
 				destinationManagedDisk, destinationStorageAccount := flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)
 				if err := d.Set("destination_managed_disk", destinationManagedDisk); err != nil {
 					return fmt.Errorf("setting `destination_managed_disk`: %+v", err)
 				}
+
 				if err := d.Set("destination_storage_account", destinationStorageAccount); err != nil {
 					return fmt.Errorf("setting `destination_storage_account`: %+v", err)
 				}
+
 				if v.Preferences != nil {
 					if v.Preferences.TransportPreferences != nil {
 						if err := d.Set("preferred_shipment_type", v.Preferences.TransportPreferences.PreferredShipmentType); err != nil {
 							return fmt.Errorf("setting `preferred_shipment_type`: %+v", err)
 						}
 					}
+
 					if err := d.Set("datacenter_region_preference", utils.FlattenStringSlice(v.Preferences.PreferredDataCenterRegion)); err != nil {
 						return fmt.Errorf("setting `datacenter_region_preference`: %+v", err)
 					}
 				}
+
 				if err := d.Set("shipping_address", flattenArmDataBoxJobShippingAddress(v.ShippingAddress)); err != nil {
 					return fmt.Errorf("setting `shipping_address`: %+v", err)
 				}
@@ -573,19 +605,23 @@ func resourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error {
 				if err := d.Set("contact_details", flattenArmDataBoxJobContactDetails(v.ContactDetails)); err != nil {
 					return fmt.Errorf("setting `contact_details`: %+v", err)
 				}
+
 				destinationManagedDisk, destinationStorageAccount := flattenArmDataBoxJobDestinationAccount(v.DestinationAccountDetails)
 				if err := d.Set("destination_managed_disk", destinationManagedDisk); err != nil {
 					return fmt.Errorf("setting `destination_managed_disk`: %+v", err)
 				}
+
 				if err := d.Set("destination_storage_account", destinationStorageAccount); err != nil {
 					return fmt.Errorf("setting `destination_storage_account`: %+v", err)
 				}
+
 				if v.Preferences != nil {
 					if v.Preferences.TransportPreferences != nil {
 						if err := d.Set("preferred_shipment_type", v.Preferences.TransportPreferences.PreferredShipmentType); err != nil {
 							return fmt.Errorf("setting `preferred_shipment_type`: %+v", err)
 						}
 					}
+
 					if err := d.Set("datacenter_region_preference", utils.FlattenStringSlice(v.Preferences.PreferredDataCenterRegion)); err != nil {
 						return fmt.Errorf("setting `datacenter_region_preference`: %+v", err)
 					}
@@ -605,43 +641,29 @@ func resourceArmDataBoxJobUpdate(d *schema.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for DataBox Job update.")
-
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	contactDetails := d.Get("contact_details").([]interface{})
-	shippingAddress := d.Get("shipping_address").([]interface{})
-	t := d.Get("tags").(map[string]interface{})
+	id, err := parse.DataBoxJobID(d.Id())
+	if err != nil {
+		return err
+	}
 
 	parameters := databox.JobResourceUpdateParameter{
 		UpdateJobProperties: &databox.UpdateJobProperties{
 			Details: &databox.UpdateJobDetails{
-				ContactDetails:  expandArmDataBoxJobContactDetails(contactDetails),
-				ShippingAddress: expandArmDataBoxJobShippingAddress(shippingAddress),
+				ContactDetails:  expandArmDataBoxJobContactDetails(d.Get("contact_details").([]interface{})),
+				ShippingAddress: expandArmDataBoxJobShippingAddress(d.Get("shipping_address").([]interface{})),
 			},
 		},
-		Tags: tags.Expand(t),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.Update(ctx, resourceGroup, name, parameters, "")
+	future, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters, "")
 	if err != nil {
-		return fmt.Errorf("updating DataBox Job %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("updating DataBox Job %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of DataBox Job %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for update of DataBox Job %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
-
-	resp, err := client.Get(ctx, resourceGroup, name, "Details")
-	if err != nil {
-		return fmt.Errorf("retrieving DataBox Job %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("cannot read DataBox Job %s (resource group %s) ID", name, resourceGroup)
-	}
-
-	d.SetId(*resp.ID)
 
 	return resourceArmDataBoxJobRead(d, meta)
 }
@@ -724,6 +746,7 @@ func expandArmDataBoxJobContactDetails(input []interface{}) *databox.ContactDeta
 
 func expandArmDataBoxJobDestinationAccount(destinationManagedDisk []interface{}, destinationStorageAccount []interface{}) *[]databox.BasicDestinationAccountDetails {
 	results := make([]databox.BasicDestinationAccountDetails, 0)
+
 	for _, item := range destinationManagedDisk {
 		if item != nil {
 			v := item.(map[string]interface{})

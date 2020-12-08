@@ -25,8 +25,8 @@ import (
 	cosmosdb "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/client"
 	costmanagement "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/costmanagement/client"
 	customproviders "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/customproviders/client"
-	databox "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databox/client"
 	datamigration "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databasemigration/client"
+	databox "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databox/client"
 	databricks "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks/client"
 	datafactory "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/client"
 	datalake "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake/client"
@@ -120,7 +120,6 @@ type Client struct {
 	DataBox               *databox.Client
 	DatabaseMigration     *datamigration.Client
 	DataBricks            *databricks.Client
-  DataBox               *databox.Client
 	DataFactory           *datafactory.Client
 	Datalake              *datalake.Client
 	DataShare             *datashare.Client
