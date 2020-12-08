@@ -1,4 +1,4 @@
-package tests
+package redis_test
 
 import (
 	"fmt"
