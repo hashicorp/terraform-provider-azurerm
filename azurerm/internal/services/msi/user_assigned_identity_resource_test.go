@@ -12,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mixedreality/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -62,7 +61,7 @@ func (r UserAssignedIdentityResource) Exists(ctx context.Context, client *client
 
 	resp, err := client.MSI.UserAssignedIdentitiesClient.Get(ctx, id.ResourceGroup, name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving User Assigned Identity %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return nil, fmt.Errorf("retrieving User Assigned Identity %q (Resource Group %q): %+v", name, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.IdentityProperties != nil), nil
