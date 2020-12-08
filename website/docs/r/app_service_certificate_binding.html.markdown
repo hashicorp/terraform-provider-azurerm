@@ -3,12 +3,12 @@ subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_certificate_binding"
 description: |-
-  Manages a App Service Certificate Binding.
+  Manages an App Service Certificate Binding.
 ---
 
 # azurerm_app_service_certificate_binding
 
-Manages a App Service Certificate Binding.
+Manages an App Service Certificate Binding.
 
 ## Example Usage
 
@@ -104,8 +104,6 @@ In addition to the arguments listed above - the following attributes are exporte
 * `hostname` - The hostname of the bound certificate.
 
 * `thumbprint` - The certificate thumbprint.
-
-* `resource_group_name` - The name of the Resource Group where the App Service Certificate Binding should exist.
 
 ## Import
 
