@@ -44,7 +44,7 @@ resource "azurerm_media_transform" "example" {
   description                 = "My transform description"
   output {
     relative_priority = "Normal"
-    on_error_type     = "ContinueJob"
+    on_error_action     = "ContinueJob"
     preset {
       type        = "BuiltInStandardEncoderPreset"
       preset_name = "AACGoodQualityAudio"
@@ -88,7 +88,7 @@ resource "azurerm_media_transform" "example" {
   description                 = "My transform description"
   output {
     relative_priority = "Normal"
-    on_error_type     = "ContinueJob"
+    on_error_action     = "ContinueJob"
     preset {
       type        = "BuiltInStandardEncoderPreset"
       preset_name = "AACGoodQualityAudio"
@@ -97,7 +97,7 @@ resource "azurerm_media_transform" "example" {
 
   output {
     relative_priority = "Low"
-    on_error_type     = "ContinueJob"
+    on_error_action     = "ContinueJob"
     preset {
       type                = "AudioAnalyzerPreset"
       audio_language      = "en-US"
@@ -131,7 +131,7 @@ A `output` block supports the following:
 
 * `preset` - (Optional) A `preset` block as defined below.
 
-* `relative_priority` - (Optional) Sets the relative priority of the TransformOutputs within a Transform. This sets the priority that the service uses for processing TransformOutputs. Possibles value are `High`, `Normal` or `Low`.
+* `relative_priority` - (Optional) Sets the relative priority of the TransformOutputs within a Transform. This sets the priority that the service uses for processing Transform Outputs. Possibles value are `High`, `Normal` or `Low`.
 
 ---
 
@@ -145,7 +145,7 @@ A `preset` block supports the following:
 
 * `insights_type` - (Optional) Defines the type of insights that you want the service to generate. The allowed values are `AudioInsightsOnly`, `VideoInsightsOnly`, and `AllInsights`. If you set this to `AllInsights` and the input is audio only, then only audio insights are generated. Similarly if the input is video only, then only video insights are generated. It is recommended that you not use `AudioInsightsOnly` if you expect some of your inputs to be video only; or use `VideoInsightsOnly` if you expect some of your inputs to be audio only. Your Jobs in such conditions would error out. This attribute is only used if the `type` of preset is `VideoAnalyzerPreset`  otherwise will be ignored.
 
-* `preset_name` - (Optional) The built-in preset to be used for encoding videos. This property is only used if the `type` of preset is `BuiltInStandardEncoderPreset`  otherwise will be ignored.
+* `preset_name` - (Optional) The built-in preset to be used for encoding videos. This property is only used if the `type` of preset is `BuiltInStandardEncoderPreset`  otherwise will be ignored. The allowed values are `AACGoodQualityAudio`, `AdaptiveStreaming`,`ContentAwareEncoding`, `ContentAwareEncodingExperimental`,`CopyAllBitrateNonInterleaved`, `H264MultipleBitrate1080p`,`H264MultipleBitrate720p`, `H264MultipleBitrateSD`,`H264SingleBitrate1080p`, `H264SingleBitrate720p` and `H264SingleBitrateSD`.
 
 * `type` - (Optional) The type of preset. Possibles values are `BuiltInStandardEncoderPreset`,`AudioAnalyzerPreset`,`VideoAnalyzerPreset` or `FaceDetectorPreset`.
 

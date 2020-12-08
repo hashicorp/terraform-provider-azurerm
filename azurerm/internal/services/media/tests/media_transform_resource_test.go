@@ -14,12 +14,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-type TransformResource struct {
+type MediaTransformResource struct {
 }
 
-func TestAccTransform_basic(t *testing.T) {
+func TestAccMediaTransform_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_transform", "test")
-	r := TransformResource{}
+	r := MediaTransformResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -33,9 +33,9 @@ func TestAccTransform_basic(t *testing.T) {
 	})
 }
 
-func TestAccTransform_complete(t *testing.T) {
+func TestAccMediaTransform_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_transform", "test")
-	r := TransformResource{}
+	r := MediaTransformResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -50,9 +50,9 @@ func TestAccTransform_complete(t *testing.T) {
 	})
 }
 
-func TestAccTransform_update(t *testing.T) {
+func TestAccMediaTransform_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_transform", "test")
-	r := TransformResource{}
+	r := MediaTransformResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -84,7 +84,7 @@ func TestAccTransform_update(t *testing.T) {
 	})
 }
 
-func (TransformResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r MediaTransformResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.TransformID(state.ID)
 	if err != nil {
 		return nil, err
@@ -98,8 +98,7 @@ func (TransformResource) Exists(ctx context.Context, clients *clients.Client, st
 	return utils.Bool(resp.TransformProperties != nil), nil
 }
 
-func (TransformResource) basic(data acceptance.TestData) string {
-	template := TransformResource{}.template(data)
+func (r MediaTransformResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -109,7 +108,7 @@ resource "azurerm_media_transform" "test" {
   media_services_account_name = azurerm_media_services_account.test.name
   output {
     relative_priority = "High"
-    on_error_type     = "ContinueJob"
+    on_error_action     = "ContinueJob"
     preset {
       type        = "BuiltInStandardEncoderPreset"
       preset_name = "AACGoodQualityAudio"
@@ -117,11 +116,10 @@ resource "azurerm_media_transform" "test" {
   }
 }
 
-`, template)
+`, r.template(data))
 }
 
-func (TransformResource) complete(data acceptance.TestData) string {
-	template := TransformResource{}.template(data)
+func (r MediaTransformResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -132,7 +130,7 @@ resource "azurerm_media_transform" "test" {
   description                 = "Transform description"
   output {
     relative_priority = "High"
-    on_error_type     = "ContinueJob"
+    on_error_action     = "ContinueJob"
     preset {
       type        = "BuiltInStandardEncoderPreset"
       preset_name = "AACGoodQualityAudio"
@@ -141,7 +139,7 @@ resource "azurerm_media_transform" "test" {
 
   output {
     relative_priority = "High"
-    on_error_type     = "StopProcessingJob"
+    on_error_action     = "StopProcessingJob"
     preset {
       type                = "AudioAnalyzerPreset"
       audio_language      = "en-US"
@@ -151,7 +149,7 @@ resource "azurerm_media_transform" "test" {
 
   output {
     relative_priority = "Low"
-    on_error_type     = "StopProcessingJob"
+    on_error_action     = "StopProcessingJob"
     preset {
       type                = "FaceDetectorPreset"
       analysis_resolution = "StandardDefinition"
@@ -160,7 +158,7 @@ resource "azurerm_media_transform" "test" {
 
   output {
     relative_priority = "Normal"
-    on_error_type     = "StopProcessingJob"
+    on_error_action     = "StopProcessingJob"
     preset {
       type                = "VideoAnalyzerPreset"
       audio_language      = "en-US"
@@ -170,10 +168,10 @@ resource "azurerm_media_transform" "test" {
   }
 }
 
-`, template)
+`, r.template(data))
 }
 
-func (TransformResource) template(data acceptance.TestData) string {
+func (r MediaTransformResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceTransform() *schema.Resource {
+func resourceMediaTransform() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceTransformCreateUpdate,
-		Read:   resourceTransformRead,
-		Update: resourceTransformCreateUpdate,
-		Delete: resourceTransformDelete,
+		Create: resourceMediaTransformCreateUpdate,
+		Read:   resourceMediaTransformRead,
+		Update: resourceMediaTransformCreateUpdate,
+		Delete: resourceMediaTransformDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -73,11 +73,11 @@ func resourceTransform() *schema.Resource {
 				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"on_error_type": {
+						"on_error_action": {
 							Type:     schema.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"ContinueJob", "StopProcessingJob",
+								string(media.ContinueJob), string(media.StopProcessingJob),
 							}, true),
 						},
 						"preset": {
@@ -99,11 +99,12 @@ func resourceTransform() *schema.Resource {
 										Type:     schema.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											"AACGoodQualityAudio", "AdaptiveStreaming",
-											"ContentAwareEncoding", "ContentAwareEncodingExperimental",
-											"CopyAllBitrateNonInterleaved", "H264MultipleBitrate1080p",
-											"H264MultipleBitrate720p", "H264MultipleBitrateSD",
-											"H264SingleBitrate1080p", "H264SingleBitrate720p", "H264SingleBitrateSD",
+											string(media.AACGoodQualityAudio), string(media.AdaptiveStreaming),
+											string(media.ContentAwareEncoding), string(media.ContentAwareEncodingExperimental),
+											string(media.CopyAllBitrateNonInterleaved), string(media.H264MultipleBitrate1080p),
+											string(media.H264MultipleBitrate720p), string(media.H264MultipleBitrateSD),
+											string(media.H264SingleBitrate1080p), string(media.H264SingleBitrate720p),
+											string(media.H264MultipleBitrateSD),
 										}, true),
 									},
 
@@ -120,21 +121,21 @@ func resourceTransform() *schema.Resource {
 										Type:     schema.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											"Basic", "Standard",
+											string(media.Basic), string(media.Standard),
 										}, true),
 									},
 									"insights_type": {
 										Type:     schema.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											"AllInsights", "AudioInsightsOnly", "VideoInsightsOnly",
+											string(media.AllInsights), string(media.AudioInsightsOnly), string(media.VideoInsightsOnly),
 										}, true),
 									},
 									"analysis_resolution": {
 										Type:     schema.TypeString,
 										Optional: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											"SourceResolution", "StandardDefinition",
+											string(media.SourceResolution), string(media.StandardDefinition),
 										}, true),
 									},
 								},
@@ -144,7 +145,7 @@ func resourceTransform() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"High", "Normal", "Low",
+								string(media.High), string(media.Normal), string(media.Low),
 							}, true),
 						},
 					},
@@ -154,7 +155,7 @@ func resourceTransform() *schema.Resource {
 	}
 }
 
-func resourceTransformCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMediaTransformCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.TransformsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -178,8 +179,7 @@ func resourceTransformCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		parameters.Outputs = transformOutput
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, accountName, transformName, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, accountName, transformName, parameters); err != nil {
 		return fmt.Errorf("Error creating Transform %q in Media Services Account %q (Resource Group %q): %+v", transformName, accountName, resourceGroup, err)
 	}
 
@@ -190,10 +190,10 @@ func resourceTransformCreateUpdate(d *schema.ResourceData, meta interface{}) err
 
 	d.SetId(*transform.ID)
 
-	return resourceTransformRead(d, meta)
+	return resourceMediaTransformRead(d, meta)
 }
 
-func resourceTransformRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMediaTransformRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.TransformsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -232,7 +232,7 @@ func resourceTransformRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceTransformDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMediaTransformDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.TransformsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -276,8 +276,8 @@ func expandTransformOuputs(input []interface{}) (*[]media.TransformOutput, error
 			Preset: preset,
 		}
 
-		if transform["on_error_type"] != nil {
-			transformOuput.OnError = media.OnErrorType(transform["on_error_type"].(string))
+		if transform["on_error_action"] != nil {
+			transformOuput.OnError = media.OnErrorType(transform["on_error_action"].(string))
 		}
 
 		if transform["relative_priority"] != nil {
@@ -298,7 +298,7 @@ func flattenTransformOutputs(input *[]media.TransformOutput) []interface{} {
 	results := make([]interface{}, 0)
 	for _, transformOuput := range *input {
 		output := make(map[string]interface{})
-		output["on_error_type"] = string(transformOuput.OnError)
+		output["on_error_action"] = string(transformOuput.OnError)
 		output["relative_priority"] = string(transformOuput.RelativePriority)
 		output["preset"] = flattenPreset(transformOuput.Preset)
 		results = append(results, output)
