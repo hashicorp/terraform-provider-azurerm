@@ -29,6 +29,7 @@ type Client struct {
 	ADLSGen2PathsClient      *paths.Client
 	ManagementPoliciesClient *storage.ManagementPoliciesClient
 	BlobServicesClient       *storage.BlobServicesClient
+	CloudEndpointsClient     *storagesync.CloudEndpointsClient
 	EncryptionScopesClient   *storage.EncryptionScopesClient
 	Environment              az.Environment
 	SyncServiceClient        *storagesync.ServicesClient
@@ -55,6 +56,9 @@ func NewClient(options *common.ClientOptions) *Client {
 	blobServicesClient := storage.NewBlobServicesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&blobServicesClient.Client, options.ResourceManagerAuthorizer)
 
+	cloudEndpointsClient := storagesync.NewCloudEndpointsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
+	options.ConfigureClient(&cloudEndpointsClient.Client, options.ResourceManagerAuthorizer)
+
 	encryptionScopesClient := storage.NewEncryptionScopesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&encryptionScopesClient.Client, options.ResourceManagerAuthorizer)
 
@@ -72,6 +76,7 @@ func NewClient(options *common.ClientOptions) *Client {
 		ADLSGen2PathsClient:      &adlsGen2PathsClient,
 		ManagementPoliciesClient: &managementPoliciesClient,
 		BlobServicesClient:       &blobServicesClient,
+		CloudEndpointsClient:     &cloudEndpointsClient,
 		EncryptionScopesClient:   &encryptionScopesClient,
 		Environment:              options.Environment,
 		SubscriptionId:           options.SubscriptionId,
