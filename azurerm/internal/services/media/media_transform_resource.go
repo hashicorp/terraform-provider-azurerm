@@ -274,7 +274,6 @@ func resourceMediaTransformDelete(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	resp, err := client.Delete(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
-
 	if err != nil {
 		if response.WasNotFound(resp.Response) {
 			return nil
