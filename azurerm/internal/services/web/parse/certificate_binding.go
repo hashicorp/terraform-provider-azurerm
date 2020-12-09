@@ -25,7 +25,6 @@ func (id CertificateBindingId) ID(_ string) string {
 }
 
 func CertificateBindingID(input string) (*CertificateBindingId, error) {
-	certificateBindingId := CertificateBindingId{}
 	idParts := strings.Split(input, "|")
 	if len(idParts) != 2 {
 		return nil, fmt.Errorf("could not parse Certificate Binding ID, expected two resource IDs joined by `|`")
@@ -40,8 +39,8 @@ func CertificateBindingID(input string) (*CertificateBindingId, error) {
 		return nil, fmt.Errorf("could not parse Certificate ID portion of Certificate Binding ID: %+v", err)
 	}
 
-	certificateBindingId.HostnameBindingId = *hostnameBindingId
-	certificateBindingId.CertificateId = *certificateId
-
-	return &certificateBindingId, nil
+	return &CertificateBindingId{
+		*hostnameBindingId,
+		*certificateId,
+	}, nil
 }
