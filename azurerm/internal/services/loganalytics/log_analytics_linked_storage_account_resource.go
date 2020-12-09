@@ -89,10 +89,10 @@ func resourceArmLogAnalyticsLinkedStorageAccountCreateUpdate(d *schema.ResourceD
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, workspace.Name, dataSourceType)
+		existing, err := client.Get(ctx, resourceGroup, workspace.WorkspaceName, dataSourceType)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing Log Analytics Linked Storage Account %q (Resource Group %q / workspaceName %q): %+v", dataSourceType, resourceGroup, workspace.Name, err)
+				return fmt.Errorf("checking for present of existing Log Analytics Linked Storage Account %q (Resource Group %q / workspaceName %q): %+v", dataSourceType, resourceGroup, workspace.WorkspaceName, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -105,17 +105,17 @@ func resourceArmLogAnalyticsLinkedStorageAccountCreateUpdate(d *schema.ResourceD
 			StorageAccountIds: utils.ExpandStringSlice(d.Get("storage_account_ids").(*schema.Set).List()),
 		},
 	}
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, workspace.Name, dataSourceType, parameters); err != nil {
-		return fmt.Errorf("creating/updating Log Analytics Linked Storage Account %q (Resource Group %q / workspaceName %q): %+v", dataSourceType, resourceGroup, workspace.Name, err)
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, workspace.WorkspaceName, dataSourceType, parameters); err != nil {
+		return fmt.Errorf("creating/updating Log Analytics Linked Storage Account %q (Resource Group %q / workspaceName %q): %+v", dataSourceType, resourceGroup, workspace.WorkspaceName, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, workspace.Name, dataSourceType)
+	resp, err := client.Get(ctx, resourceGroup, workspace.WorkspaceName, dataSourceType)
 	if err != nil {
-		return fmt.Errorf("retrieving Log Analytics Linked Storage Account %q (Resource Group %q / workspaceName %q): %+v", dataSourceType, resourceGroup, workspace.Name, err)
+		return fmt.Errorf("retrieving Log Analytics Linked Storage Account %q (Resource Group %q / workspaceName %q): %+v", dataSourceType, resourceGroup, workspace.WorkspaceName, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Log Analytics Linked Storage Account %q (Resource Group %q / workspaceName %q) ID", dataSourceType, resourceGroup, workspace.Name)
+		return fmt.Errorf("empty or nil ID returned for Log Analytics Linked Storage Account %q (Resource Group %q / workspaceName %q) ID", dataSourceType, resourceGroup, workspace.WorkspaceName)
 	}
 
 	d.SetId(*resp.ID)

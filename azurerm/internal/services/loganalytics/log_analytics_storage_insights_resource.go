@@ -106,7 +106,7 @@ func resourceArmLogAnalyticsStorageInsightsCreateUpdate(d *schema.ResourceData, 
 	storageAccountKey := d.Get("storage_account_key").(string)
 
 	workspaceId := d.Get("workspace_id").(string)
-	id := parse.NewLogAnalyticsStorageInsightsId(resourceGroup, workspaceId, name)
+	id := parse.NewLogAnalyticsStorageInsightsID(subscriptionId, resourceGroup, workspaceId, name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, id.WorkspaceName, name)
@@ -153,19 +153,19 @@ func resourceArmLogAnalyticsStorageInsightsRead(d *schema.ResourceData, meta int
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.StorageInsightConfigName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Log Analytics Storage Insights %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Log Analytics Storage Insights %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.ResourceGroup, id.WorkspaceName, err)
+		return fmt.Errorf("retrieving Log Analytics Storage Insights %q (Resource Group %q / workspaceName %q): %+v", id.StorageInsightConfigName, id.ResourceGroup, id.WorkspaceName, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.StorageInsightConfigName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("workspace_id", id.WorkspaceID)
+	d.Set("workspace_id", id.WorkspaceName)
 
 	if props := resp.StorageInsightProperties; props != nil {
 		d.Set("blob_container_names", utils.FlattenStringSlice(props.Containers))
@@ -190,8 +190,8 @@ func resourceArmLogAnalyticsStorageInsightsDelete(d *schema.ResourceData, meta i
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
-		return fmt.Errorf("deleting LogAnalytics Storage Insight Config %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.ResourceGroup, id.WorkspaceName, err)
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.StorageInsightConfigName); err != nil {
+		return fmt.Errorf("deleting LogAnalytics Storage Insight Config %q (Resource Group %q / workspaceName %q): %+v", id.StorageInsightConfigName, id.ResourceGroup, id.WorkspaceName, err)
 	}
 	return nil
 }

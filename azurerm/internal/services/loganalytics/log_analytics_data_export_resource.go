@@ -96,10 +96,10 @@ func resourceArmOperationalinsightsDataExportCreateUpdate(d *schema.ResourceData
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, workspace.Name, name)
+		existing, err := client.Get(ctx, resourceGroup, workspace.WorkspaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing Log Analytics Data Export Rule %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, workspace.Name, err)
+				return fmt.Errorf("checking for present of existing Log Analytics Data Export Rule %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, workspace.WorkspaceName, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -117,17 +117,17 @@ func resourceArmOperationalinsightsDataExportCreateUpdate(d *schema.ResourceData
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, workspace.Name, name, parameters); err != nil {
-		return fmt.Errorf("creating/updating Log Analytics Data Export Rule %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, workspace.Name, err)
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, workspace.WorkspaceName, name, parameters); err != nil {
+		return fmt.Errorf("creating/updating Log Analytics Data Export Rule %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, workspace.WorkspaceName, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, workspace.Name, name)
+	resp, err := client.Get(ctx, resourceGroup, workspace.WorkspaceName, name)
 	if err != nil {
-		return fmt.Errorf("retrieving Log Analytics Data Export Rule %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, workspace.Name, err)
+		return fmt.Errorf("retrieving Log Analytics Data Export Rule %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, workspace.WorkspaceName, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Log Analytics Data Export Rule %q (Resource Group %q / workspaceName %q) ID", name, resourceGroup, workspace.Name)
+		return fmt.Errorf("empty or nil ID returned for Log Analytics Data Export Rule %q (Resource Group %q / workspaceName %q) ID", name, resourceGroup, workspace.WorkspaceName)
 	}
 
 	d.SetId(*resp.ID)
