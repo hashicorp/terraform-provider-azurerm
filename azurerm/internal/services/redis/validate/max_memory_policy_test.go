@@ -19,7 +19,7 @@ func TestMaxMemoryPolicy_validation(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := validate.MaxMemoryPolicy(tc.Value, "azurerm_redis_cache")
+		_, errors := MaxMemoryPolicy(tc.Value, "azurerm_redis_cache")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected the Azure RM Redis Cache Max Memory Policy to trigger a validation error")

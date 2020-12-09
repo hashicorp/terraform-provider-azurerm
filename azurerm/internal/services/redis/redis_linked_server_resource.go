@@ -99,7 +99,7 @@ func resourceArmRedisLinkedServerCreate(d *schema.ResourceData, meta interface{}
 		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.RediName, resourceId.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Linked Server %q (Redis Cache %q / Resource Group %q): %+v", resourceId.Name, resourceId.RediName, resourceId.ResourceGroup)
+				return fmt.Errorf("checking for presence of existing Linked Server %q (Redis Cache %q / Resource Group %q): %+v", resourceId.Name, resourceId.RediName, resourceId.ResourceGroup, err)
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {

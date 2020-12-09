@@ -38,7 +38,7 @@ func TestCacheFamily_validation(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := validate.CacheFamily(tc.Value, "azurerm_redis_cache")
+		_, errors := CacheFamily(tc.Value, "azurerm_redis_cache")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected the Azure RM Redis Cache Family to trigger a validation error")

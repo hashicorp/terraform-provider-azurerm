@@ -2,8 +2,6 @@ package validate
 
 import (
 	"testing"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/synapse/validate"
 )
 
 func TestAzureRMRedisFirewallRuleName_validation(t *testing.T) {
@@ -38,7 +36,7 @@ func TestAzureRMRedisFirewallRuleName_validation(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := validate.FirewallRuleName(tc.Value, "azurerm_redis_firewall_rule")
+		_, errors := FirewallRuleName(tc.Value, "azurerm_redis_firewall_rule")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected the Redis Firewall Rule Name to trigger a validation error for '%s'", tc.Value)
