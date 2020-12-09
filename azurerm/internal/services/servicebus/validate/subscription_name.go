@@ -10,6 +10,6 @@ import (
 func SubscriptionName() schema.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile("^[a-zA-Z0-9][-._a-zA-Z0-9]{0,48}([a-zA-Z0-9])?$"),
-		"The name can contain only letters, numbers, periods, hyphens and underscores. The name must start and end with a letter or number and be less then 50 characters long.",
+		"The name can contain only letters, numbers, periods, hyphens and underscores. The name must start and end with a letter or number and be a maximum of 50 characters long.",
 	)
 }

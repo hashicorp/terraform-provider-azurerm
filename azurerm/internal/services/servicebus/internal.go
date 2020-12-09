@@ -104,7 +104,7 @@ func authorizationRuleCustomizeDiff(d *schema.ResourceDiff, _ interface{}) error
 		return fmt.Errorf("One of the `listen`, `send` or `manage` properties needs to be set")
 	}
 
-	if manage.(bool) && !listen.(bool) && !send.(bool) {
+	if manage.(bool) && (!listen.(bool) || !send.(bool)) {
 		return fmt.Errorf("if `manage` is set both `listen` and `send` must be set to true too")
 	}
 
