@@ -84,7 +84,7 @@ resource "azurerm_media_streaming_endpoint" "example" {
       name    = "AllowedIP"
       address = "192.168.1.1"
     }
-    
+
     ip_allow {
       name    = "AnotherIp"
       address = "192.168.1.2"

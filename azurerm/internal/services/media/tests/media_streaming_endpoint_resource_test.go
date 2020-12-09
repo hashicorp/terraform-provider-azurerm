@@ -140,26 +140,26 @@ resource "azurerm_media_streaming_endpoint" "test" {
   scale_units                 = 1
   access_control {
     ip_allow {
-        name    = "AllowedIP"
-        address = "192.168.1.1"
+      name    = "AllowedIP"
+      address = "192.168.1.1"
     }
 
     ip_allow {
-        name    = "AnotherIp"
-        address = "192.168.1.2"
-    }
-    
-    akamai_signature_header_authentication_key {
-        identifier = "id1"
-        expiration = "2030-12-31T16:00:00Z"
-        base64_key = "dGVzdGlkMQ=="
+      name    = "AnotherIp"
+      address = "192.168.1.2"
     }
 
     akamai_signature_header_authentication_key {
-        identifier = "id2"
-        expiration = "2032-01-28T16:00:00Z"
-		base64_key = "dGVzdGlkMQ=="
-	}
+      identifier = "id1"
+      expiration = "2030-12-31T16:00:00Z"
+      base64_key = "dGVzdGlkMQ=="
+    }
+
+    akamai_signature_header_authentication_key {
+      identifier = "id2"
+      expiration = "2032-01-28T16:00:00Z"
+      base64_key = "dGVzdGlkMQ=="
+    }
   }
   max_cache_age_seconds = 60
 
