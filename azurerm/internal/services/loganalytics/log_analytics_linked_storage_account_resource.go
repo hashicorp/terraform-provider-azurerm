@@ -49,6 +49,8 @@ func resourceArmLogAnalyticsLinkedStorageAccount() *schema.Resource {
 					strings.ToLower(string(operationalinsights.AzureWatson)),
 					strings.ToLower(string(operationalinsights.Query)),
 					strings.ToLower(string(operationalinsights.Alerts)),
+					// Value removed from enum in 2020-08-01, but effectively still works
+					"Ingestion",
 				}, false),
 			},
 
