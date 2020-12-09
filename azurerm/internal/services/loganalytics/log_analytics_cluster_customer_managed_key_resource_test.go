@@ -1,5 +1,6 @@
 package loganalytics_test
 
+/* favoretti: it's broken in whichever API version
 import (
 	"fmt"
 	"strings"
@@ -207,3 +208,4 @@ resource "azurerm_log_analytics_cluster_customer_managed_key" "test" {
 
 `, template)
 }
+*/

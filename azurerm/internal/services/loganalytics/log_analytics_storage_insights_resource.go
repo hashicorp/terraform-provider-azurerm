@@ -165,7 +165,7 @@ func resourceArmLogAnalyticsStorageInsightsRead(d *schema.ResourceData, meta int
 
 	d.Set("name", id.StorageInsightConfigName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("workspace_id", id.WorkspaceName)
+	d.Set("workspace_id", parse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID(""))
 
 	if props := resp.StorageInsightProperties; props != nil {
 		d.Set("blob_container_names", utils.FlattenStringSlice(props.Containers))

@@ -177,7 +177,7 @@ func resourceArmLogAnalyticsSavedSearchRead(d *schema.ResourceData, meta interfa
 	}
 	workspaceId := parse.NewLogAnalyticsWorkspaceID(subscriptionId, id.ResourceGroup, id.WorkspaceName).ID("")
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.WorkspaceName)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.SavedSearcheName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -218,7 +218,7 @@ func resourceArmLogAnalyticsSavedSearchDelete(d *schema.ResourceData, meta inter
 		return err
 	}
 
-	if _, err = client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.WorkspaceName); err != nil {
+	if _, err = client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.SavedSearcheName); err != nil {
 		return fmt.Errorf("deleting Saved Search %q (Log Analytics Workspace %q / Resource Group %q): %s", id.WorkspaceName, id.WorkspaceName, id.ResourceGroup, err)
 	}
 
