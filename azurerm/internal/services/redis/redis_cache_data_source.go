@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -215,25 +217,22 @@ func dataSourceArmRedisCache() *schema.Resource {
 
 func dataSourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Redis.Client
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	patchSchedulesClient := meta.(*clients.Client).Redis.PatchSchedulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
-
-	resp, err := client.Get(ctx, resourceGroup, name)
+	id := parse.NewCacheID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id.ResourceGroup, id.RediName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Redis instance %q (Resource group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("Redis Cache %q (Resource Group %q) was not found", id.RediName, id.ResourceGroup)
 		}
-		return fmt.Errorf("Error reading the state of Redis instance %q: %+v", name, err)
+		return fmt.Errorf("retrieving Redis Cache %q (Resource Group %q): %+v", id.RediName, id.ResourceGroup, err)
 	}
 
-	d.SetId(*resp.ID)
-
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.SetId(id.ID(""))
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if zones := resp.Zones; zones != nil {
 		d.Set("zones", zones)
@@ -261,25 +260,23 @@ func dataSourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error
 
 	redisConfiguration, err := flattenRedisConfiguration(resp.RedisConfiguration)
 	if err != nil {
-		return fmt.Errorf("Error flattening `redis_configuration`: %+v", err)
+		return fmt.Errorf("flattening `redis_configuration`: %+v", err)
 	}
 	if err := d.Set("redis_configuration", redisConfiguration); err != nil {
-		return fmt.Errorf("Error setting `redis_configuration`: %+v", err)
+		return fmt.Errorf("setting `redis_configuration`: %+v", err)
 	}
 
-	patchSchedulesClient := meta.(*clients.Client).Redis.PatchSchedulesClient
-
-	schedule, err := patchSchedulesClient.Get(ctx, resourceGroup, name)
+	schedule, err := patchSchedulesClient.Get(ctx, id.ResourceGroup, id.RediName)
 	if err == nil {
 		patchSchedule := flattenRedisPatchSchedules(schedule)
 		if err = d.Set("patch_schedule", patchSchedule); err != nil {
-			return fmt.Errorf("Error setting `patch_schedule`: %+v", err)
+			return fmt.Errorf("setting `patch_schedule`: %+v", err)
 		}
 	} else {
 		d.Set("patch_schedule", []interface{}{})
 	}
 
-	keys, err := client.ListKeys(ctx, resourceGroup, name)
+	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.RediName)
 	if err != nil {
 		return err
 	}

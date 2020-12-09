@@ -12,7 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/validate"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -23,9 +25,11 @@ func resourceArmServiceBusQueue() *schema.Resource {
 		Read:   resourceArmServiceBusQueueRead,
 		Update: resourceArmServiceBusQueueCreateUpdate,
 		Delete: resourceArmServiceBusQueueDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.QueueID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -40,7 +44,7 @@ func resourceArmServiceBusQueue() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateServiceBusQueueName(),
+				ValidateFunc: azValidate.QueueName(),
 			},
 
 			"namespace_name": {
@@ -102,13 +106,13 @@ func resourceArmServiceBusQueue() *schema.Resource {
 			"forward_dead_lettered_messages_to": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateServiceBusQueueName(),
+				ValidateFunc: azValidate.QueueName(),
 			},
 
 			"forward_to": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateServiceBusQueueName(),
+				ValidateFunc: azValidate.QueueName(),
 			},
 
 			"lock_duration": {
@@ -166,13 +170,10 @@ func resourceArmServiceBusQueue() *schema.Resource {
 
 func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.QueuesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for AzureRM ServiceBus Queue creation/update.")
-
-	name := d.Get("name").(string)
-	namespaceName := d.Get("namespace_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	log.Printf("[INFO] preparing arguments for ServiceBus Queue creation/update.")
 
 	deadLetteringOnMessageExpiration := d.Get("dead_lettering_on_message_expiration").(bool)
 	enableBatchedOperations := d.Get("enable_batched_operations").(bool)
@@ -184,21 +185,22 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 	requiresSession := d.Get("requires_session").(bool)
 	status := servicebus.EntityStatus(d.Get("status").(string))
 
+	resourceId := parse.NewQueueID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, namespaceName, name)
+		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing ServiceBus Namespace %q (Resource Group %q): %+v", resourceGroup, namespaceName, err)
+				return fmt.Errorf("checking for presence of %s: %+v", resourceId, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_servicebus_queue", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_servicebus_queue", resourceId.ID(""))
 		}
 	}
 
 	parameters := servicebus.SBQueue{
-		Name: &name,
+		Name: utils.String(resourceId.Name),
 		SBQueueProperties: &servicebus.SBQueueProperties{
 			DeadLetteringOnMessageExpiration: &deadLetteringOnMessageExpiration,
 			EnableBatchedOperations:          &enableBatchedOperations,
@@ -239,31 +241,22 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 	// We need to retrieve the namespace because Premium namespace works differently from Basic and Standard,
 	// so it needs different rules applied to it.
 	namespacesClient := meta.(*clients.Client).ServiceBus.NamespacesClient
-	namespace, err := namespacesClient.Get(ctx, resourceGroup, namespaceName)
+	namespace, err := namespacesClient.Get(ctx, resourceId.ResourceGroup, resourceId.NamespaceName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving ServiceBus Namespace %q (Resource Group %q): %+v", resourceGroup, namespaceName, err)
+		return fmt.Errorf("retrieving ServiceBus Namespace %q (Resource Group %q): %+v", resourceId.NamespaceName, resourceId.ResourceGroup, err)
 	}
 
 	// Enforce Premium namespace to have Express Entities disabled in Terraform since they are not supported for
 	// Premium SKU.
 	if namespace.Sku.Name == servicebus.Premium && d.Get("enable_express").(bool) {
-		return fmt.Errorf("ServiceBus Queue (%s) does not support Express Entities in Premium SKU and must be disabled", name)
+		return fmt.Errorf("ServiceBus Queue %q does not support Express Entities in Premium SKU and must be disabled", resourceId.Name)
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters); err != nil {
+	if _, err = client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.Name, parameters); err != nil {
 		return err
 	}
 
-	read, err := client.Get(ctx, resourceGroup, namespaceName, name)
-	if err != nil {
-		return err
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read ServiceBus Queue %s (resource group %s) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
-
+	d.SetId(resourceId.ID(""))
 	return resourceArmServiceBusQueueRead(d, meta)
 }
 
@@ -272,26 +265,23 @@ func resourceArmServiceBusQueueRead(d *schema.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.QueueID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	namespaceName := id.Path["namespaces"]
-	name := id.Path["queues"]
 
-	resp, err := client.Get(ctx, resourceGroup, namespaceName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure ServiceBus Queue %q: %+v", name, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("namespace_name", namespaceName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("namespace_name", id.NamespaceName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.SBQueueProperties; props != nil {
 		d.Set("auto_delete_on_idle", props.AutoDeleteOnIdle)
@@ -316,7 +306,7 @@ func resourceArmServiceBusQueueRead(d *schema.ResourceData, meta interface{}) er
 			// then the max size returned by the API will be 16 times greater than the value set.
 			if *props.EnablePartitioning {
 				namespacesClient := meta.(*clients.Client).ServiceBus.NamespacesClient
-				namespace, err := namespacesClient.Get(ctx, resourceGroup, namespaceName)
+				namespace, err := namespacesClient.Get(ctx, id.ResourceGroup, id.NamespaceName)
 				if err != nil {
 					return err
 				}
@@ -339,18 +329,15 @@ func resourceArmServiceBusQueueDelete(d *schema.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.QueueID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	namespaceName := id.Path["namespaces"]
-	name := id.Path["queues"]
 
-	resp, err := client.Delete(ctx, resourceGroup, namespaceName, name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return err
+			return fmt.Errorf("deleting %s: %+v", id, err)
 		}
 	}
 

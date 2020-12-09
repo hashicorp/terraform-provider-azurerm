@@ -150,7 +150,7 @@ func resourceArmBotConnectionCreate(d *schema.ResourceData, meta interface{}) er
 			ClientID:          utils.String(d.Get("client_id").(string)),
 			ClientSecret:      utils.String(d.Get("client_secret").(string)),
 			Scopes:            utils.String(d.Get("scopes").(string)),
-			Parameters:        expandAzureRMBotConnectionParameters(d.Get("parameters").(map[string]interface{})),
+			Parameters:        expandBotConnectionParameters(d.Get("parameters").(map[string]interface{})),
 		},
 		Kind:     botservice.KindBot,
 		Location: utils.String(d.Get("location").(string)),
@@ -194,7 +194,7 @@ func resourceArmBotConnectionRead(d *schema.ResourceData, meta interface{}) erro
 	if props := resp.Properties; props != nil {
 		d.Set("client_id", props.ClientID)
 		d.Set("scopes", props.Scopes)
-		if err := d.Set("parameters", flattenAzureRMBotConnectionParameters(props.Parameters)); err != nil {
+		if err := d.Set("parameters", flattenBotConnectionParameters(props.Parameters)); err != nil {
 			return fmt.Errorf("setting `parameters`: %+v", err)
 		}
 	}
@@ -218,7 +218,7 @@ func resourceArmBotConnectionUpdate(d *schema.ResourceData, meta interface{}) er
 			ClientID:                   utils.String(d.Get("client_id").(string)),
 			ClientSecret:               utils.String(d.Get("client_secret").(string)),
 			Scopes:                     utils.String(d.Get("scopes").(string)),
-			Parameters:                 expandAzureRMBotConnectionParameters(d.Get("parameters").(map[string]interface{})),
+			Parameters:                 expandBotConnectionParameters(d.Get("parameters").(map[string]interface{})),
 		},
 		Kind:     botservice.KindBot,
 		Location: utils.String(d.Get("location").(string)),
@@ -252,7 +252,7 @@ func resourceArmBotConnectionDelete(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func expandAzureRMBotConnectionParameters(input map[string]interface{}) *[]botservice.ConnectionSettingParameter {
+func expandBotConnectionParameters(input map[string]interface{}) *[]botservice.ConnectionSettingParameter {
 	output := make([]botservice.ConnectionSettingParameter, 0)
 
 	for k, v := range input {
@@ -264,7 +264,7 @@ func expandAzureRMBotConnectionParameters(input map[string]interface{}) *[]botse
 	return &output
 }
 
-func flattenAzureRMBotConnectionParameters(input *[]botservice.ConnectionSettingParameter) map[string]interface{} {
+func flattenBotConnectionParameters(input *[]botservice.ConnectionSettingParameter) map[string]interface{} {
 	output := make(map[string]interface{})
 	if input == nil {
 		return output

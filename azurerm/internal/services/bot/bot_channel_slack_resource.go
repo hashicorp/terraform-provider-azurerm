@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmBotChannelSlack() *schema.Resource {
+func resourceBotChannelSlack() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmBotChannelSlackCreate,
-		Read:   resourceArmBotChannelSlackRead,
-		Delete: resourceArmBotChannelSlackDelete,
-		Update: resourceArmBotChannelSlackUpdate,
+		Create: resourceBotChannelSlackCreate,
+		Read:   resourceBotChannelSlackRead,
+		Delete: resourceBotChannelSlackDelete,
+		Update: resourceBotChannelSlackUpdate,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.BotChannelID(id)
@@ -79,7 +79,7 @@ func resourceArmBotChannelSlack() *schema.Resource {
 	}
 }
 
-func resourceArmBotChannelSlackCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelSlackCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -119,10 +119,10 @@ func resourceArmBotChannelSlackCreate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	d.SetId(resourceId.ID(""))
-	return resourceArmBotChannelSlackRead(d, meta)
+	return resourceBotChannelSlackRead(d, meta)
 }
 
-func resourceArmBotChannelSlackRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelSlackRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -158,7 +158,7 @@ func resourceArmBotChannelSlackRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceArmBotChannelSlackUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelSlackUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -188,10 +188,10 @@ func resourceArmBotChannelSlackUpdate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("updating Slack Channel for Bot %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroup, err)
 	}
 
-	return resourceArmBotChannelSlackRead(d, meta)
+	return resourceBotChannelSlackRead(d, meta)
 }
 
-func resourceArmBotChannelSlackDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelSlackDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
