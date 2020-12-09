@@ -93,7 +93,6 @@ func resourceArmRedisLinkedServerCreate(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	// resourceId
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	resourceId := parse.NewLinkedServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("target_redis_cache_name").(string), cacheId.RediName)
 	if d.IsNewResource() {
@@ -103,8 +102,7 @@ func resourceArmRedisLinkedServerCreate(d *schema.ResourceData, meta interface{}
 				return fmt.Errorf("checking for presence of existing Linked Server %q (Redis Cache %q / Resource Group %q): %+v", resourceId.Name, resourceId.RediName, resourceId.ResourceGroup)
 			}
 		}
-
-		if existing.ID != nil && *existing.ID != "" {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_redis_linked_server", resourceId.ID(""))
 		}
 	}

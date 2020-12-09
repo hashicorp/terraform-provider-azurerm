@@ -303,8 +303,7 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 			return fmt.Errorf("checking for presence of existing Redis Instance %s (resource group %q): %+v", id.RediName, id.ResourceGroup, err)
 		}
 	}
-
-	if existing.ID != nil && *existing.ID != "" {
+	if !utils.ResponseWasNotFound(existing.Response) {
 		return tf.ImportAsExistsError("azurerm_redis_cache", id.ID(""))
 	}
 
