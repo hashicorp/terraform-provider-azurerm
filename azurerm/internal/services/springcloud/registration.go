@@ -21,15 +21,15 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_spring_cloud_service": dataSourceArmSpringCloudService(),
+		"azurerm_spring_cloud_service": dataSourceSpringCloudService(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_spring_cloud_app":         resourceArmSpringCloudApp(),
-		"azurerm_spring_cloud_certificate": resourceArmSpringCloudCertificate(),
-		"azurerm_spring_cloud_service":     resourceArmSpringCloudService(),
+		"azurerm_spring_cloud_app":         resourceSpringCloudApp(),
+		"azurerm_spring_cloud_certificate": resourceSpringCloudCertificate(),
+		"azurerm_spring_cloud_service":     resourceSpringCloudService(),
 	}
 }
