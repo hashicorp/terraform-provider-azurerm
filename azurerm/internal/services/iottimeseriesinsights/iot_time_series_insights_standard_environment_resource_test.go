@@ -13,18 +13,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMIoTTimeSeriesInsightsStandardEnvironment_basic(t *testing.T) {
+func TestAccIoTTimeSeriesInsightsStandardEnvironment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iot_time_series_insights_standard_environment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIoTTimeSeriesInsightsStandardEnvironmentDestroy,
+		CheckDestroy: testCheckIoTTimeSeriesInsightsStandardEnvironmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIoTTimeSeriesInsightsStandardEnvironment_basic(data),
+				Config: testAccIoTTimeSeriesInsightsStandardEnvironment_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIoTTimeSeriesInsightsStandardEnvironmentExists(data.ResourceName),
+					testCheckIoTTimeSeriesInsightsStandardEnvironmentExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -32,32 +32,32 @@ func TestAccAzureRMIoTTimeSeriesInsightsStandardEnvironment_basic(t *testing.T) 
 	})
 }
 
-func TestAccAzureRMIoTTimeSeriesInsightsStandardEnvironment_update(t *testing.T) {
+func TestAccIoTTimeSeriesInsightsStandardEnvironment_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iot_time_series_insights_standard_environment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIoTTimeSeriesInsightsStandardEnvironmentDestroy,
+		CheckDestroy: testCheckIoTTimeSeriesInsightsStandardEnvironmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIoTTimeSeriesInsightsStandardEnvironment_basic(data),
+				Config: testAccIoTTimeSeriesInsightsStandardEnvironment_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIoTTimeSeriesInsightsStandardEnvironmentExists(data.ResourceName),
+					testCheckIoTTimeSeriesInsightsStandardEnvironmentExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMIoTTimeSeriesInsightsStandardEnvironment_update(data),
+				Config: testAccIoTTimeSeriesInsightsStandardEnvironment_update(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIoTTimeSeriesInsightsStandardEnvironmentExists(data.ResourceName),
+					testCheckIoTTimeSeriesInsightsStandardEnvironmentExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMIoTTimeSeriesInsightsStandardEnvironment_basic(data),
+				Config: testAccIoTTimeSeriesInsightsStandardEnvironment_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIoTTimeSeriesInsightsStandardEnvironmentExists(data.ResourceName),
+					testCheckIoTTimeSeriesInsightsStandardEnvironmentExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -65,18 +65,18 @@ func TestAccAzureRMIoTTimeSeriesInsightsStandardEnvironment_update(t *testing.T)
 	})
 }
 
-func TestAccAzureRMIoTTimeSeriesInsightsStandardEnvironment_complete(t *testing.T) {
+func TestAccIoTTimeSeriesInsightsStandardEnvironment_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iot_time_series_insights_standard_environment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIoTTimeSeriesInsightsStandardEnvironmentDestroy,
+		CheckDestroy: testCheckIoTTimeSeriesInsightsStandardEnvironmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIoTTimeSeriesInsightsStandardEnvironment_complete(data),
+				Config: testAccIoTTimeSeriesInsightsStandardEnvironment_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIoTTimeSeriesInsightsStandardEnvironmentExists(data.ResourceName),
+					testCheckIoTTimeSeriesInsightsStandardEnvironmentExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -84,7 +84,7 @@ func TestAccAzureRMIoTTimeSeriesInsightsStandardEnvironment_complete(t *testing.
 	})
 }
 
-func testCheckAzureRMIoTTimeSeriesInsightsStandardEnvironmentExists(name string) resource.TestCheckFunc {
+func testCheckIoTTimeSeriesInsightsStandardEnvironmentExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTTimeSeriesInsights.EnvironmentsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -113,7 +113,7 @@ func testCheckAzureRMIoTTimeSeriesInsightsStandardEnvironmentExists(name string)
 	}
 }
 
-func testCheckAzureRMIoTTimeSeriesInsightsStandardEnvironmentDestroy(s *terraform.State) error {
+func testCheckIoTTimeSeriesInsightsStandardEnvironmentDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).IoTTimeSeriesInsights.EnvironmentsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -139,7 +139,7 @@ func testCheckAzureRMIoTTimeSeriesInsightsStandardEnvironmentDestroy(s *terrafor
 	return nil
 }
 
-func testAccAzureRMIoTTimeSeriesInsightsStandardEnvironment_basic(data acceptance.TestData) string {
+func testAccIoTTimeSeriesInsightsStandardEnvironment_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -158,7 +158,7 @@ resource "azurerm_iot_time_series_insights_standard_environment" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMIoTTimeSeriesInsightsStandardEnvironment_update(data acceptance.TestData) string {
+func testAccIoTTimeSeriesInsightsStandardEnvironment_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -183,7 +183,7 @@ resource "azurerm_iot_time_series_insights_standard_environment" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMIoTTimeSeriesInsightsStandardEnvironment_complete(data acceptance.TestData) string {
+func testAccIoTTimeSeriesInsightsStandardEnvironment_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

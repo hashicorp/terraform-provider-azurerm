@@ -12,18 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iottimeseriesinsights/parse"
 )
 
-func TestAccAzureRMIoTTimeSeriesInsightsAccessPolicy_basic(t *testing.T) {
+func TestAccIoTTimeSeriesInsightsAccessPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iot_time_series_insights_access_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIoTTimeSeriesInsightsAccessPolicyDestroy,
+		CheckDestroy: testCheckIoTTimeSeriesInsightsAccessPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIoTTimeSeriesInsightsAccessPolicy_basic(data),
+				Config: testAccIoTTimeSeriesInsightsAccessPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIoTTimeSeriesInsightsAccessPolicyExists(data.ResourceName),
+					testCheckIoTTimeSeriesInsightsAccessPolicyExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -31,32 +31,32 @@ func TestAccAzureRMIoTTimeSeriesInsightsAccessPolicy_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMIoTTimeSeriesInsightsAccessPolicy_update(t *testing.T) {
+func TestAccIoTTimeSeriesInsightsAccessPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iot_time_series_insights_access_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIoTTimeSeriesInsightsAccessPolicyDestroy,
+		CheckDestroy: testCheckIoTTimeSeriesInsightsAccessPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIoTTimeSeriesInsightsAccessPolicy_basic(data),
+				Config: testAccIoTTimeSeriesInsightsAccessPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIoTTimeSeriesInsightsAccessPolicyExists(data.ResourceName),
+					testCheckIoTTimeSeriesInsightsAccessPolicyExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMIoTTimeSeriesInsightsAccessPolicy_update(data),
+				Config: testAccIoTTimeSeriesInsightsAccessPolicy_update(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIoTTimeSeriesInsightsAccessPolicyExists(data.ResourceName),
+					testCheckIoTTimeSeriesInsightsAccessPolicyExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMIoTTimeSeriesInsightsAccessPolicy_basic(data),
+				Config: testAccIoTTimeSeriesInsightsAccessPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIoTTimeSeriesInsightsAccessPolicyExists(data.ResourceName),
+					testCheckIoTTimeSeriesInsightsAccessPolicyExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -64,7 +64,7 @@ func TestAccAzureRMIoTTimeSeriesInsightsAccessPolicy_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMIoTTimeSeriesInsightsAccessPolicyExists(name string) resource.TestCheckFunc {
+func testCheckIoTTimeSeriesInsightsAccessPolicyExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTTimeSeriesInsights.AccessPoliciesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -89,7 +89,7 @@ func testCheckAzureRMIoTTimeSeriesInsightsAccessPolicyExists(name string) resour
 	}
 }
 
-func testCheckAzureRMIoTTimeSeriesInsightsAccessPolicyDestroy(s *terraform.State) error {
+func testCheckIoTTimeSeriesInsightsAccessPolicyDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).IoTTimeSeriesInsights.AccessPoliciesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -115,7 +115,7 @@ func testCheckAzureRMIoTTimeSeriesInsightsAccessPolicyDestroy(s *terraform.State
 	return nil
 }
 
-func testAccAzureRMIoTTimeSeriesInsightsAccessPolicy_basic(data acceptance.TestData) string {
+func testAccIoTTimeSeriesInsightsAccessPolicy_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -141,7 +141,7 @@ resource "azurerm_iot_time_series_insights_access_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMIoTTimeSeriesInsightsAccessPolicy_update(data acceptance.TestData) string {
+func testAccIoTTimeSeriesInsightsAccessPolicy_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
