@@ -35,7 +35,7 @@ func (id LogAnalyticsLinkedStorageAccountId) String() string {
 }
 
 func (id LogAnalyticsLinkedStorageAccountId) ID(_ string) string {
-	fmtString := "/subscriptions/%s/resourcegroups/%s/providers/Microsoft.OperationalInsights/workspaces/%s/linkedStorageAccounts/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.OperationalInsights/workspaces/%s/linkedStorageAccounts/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.LinkedStorageAccountName)
 }
 
@@ -56,7 +56,7 @@ func LogAnalyticsLinkedStorageAccountID(input string) (*LogAnalyticsLinkedStorag
 	}
 
 	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourcegroups' element")
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.WorkspaceName, err = id.PopSegment("workspaces"); err != nil {

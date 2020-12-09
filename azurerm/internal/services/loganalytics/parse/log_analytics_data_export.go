@@ -35,7 +35,7 @@ func (id LogAnalyticsDataExportId) String() string {
 }
 
 func (id LogAnalyticsDataExportId) ID(_ string) string {
-	fmtString := "/subscriptions/%s/resourcegroups/%s/providers/Microsoft.OperationalInsights/workspaces/%s/dataExports/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.OperationalInsights/workspaces/%s/dataExports/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.DataExportName)
 }
 
@@ -56,7 +56,7 @@ func LogAnalyticsDataExportID(input string) (*LogAnalyticsDataExportId, error) {
 	}
 
 	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourcegroups' element")
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.WorkspaceName, err = id.PopSegment("workspaces"); err != nil {

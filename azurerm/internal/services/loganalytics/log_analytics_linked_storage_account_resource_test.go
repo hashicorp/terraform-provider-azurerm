@@ -111,9 +111,9 @@ func testCheckAzureRMoperationalinsightsLinkedStorageAccountExists(resourceName 
 		if err != nil {
 			return err
 		}
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, operationalinsights.DataSourceType(id.Name)); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, operationalinsights.DataSourceType(id.LinkedStorageAccountName)); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Operationalinsights LinkedStorageAccount %q does not exist", id.Name)
+				return fmt.Errorf("bad: Operationalinsights LinkedStorageAccount %q does not exist", id.LinkedStorageAccountName)
 			}
 			return fmt.Errorf("bad: Get on Operationalinsights.LinkedStorageAccountClient: %+v", err)
 		}
@@ -133,7 +133,7 @@ func testCheckAzureRMoperationalinsightsLinkedStorageAccountDestroy(s *terraform
 		if err != nil {
 			return err
 		}
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, operationalinsights.DataSourceType(id.Name)); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, operationalinsights.DataSourceType(id.LinkedStorageAccountName)); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("bad: Get on LogAnalytics.LinkedStorageAccountClient: %+v", err)
 			}
