@@ -37,6 +37,7 @@ import (
 	dns "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/client"
 	eventgrid "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/client"
 	eventhub "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/client"
+	firewall "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/client"
 	frontdoor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/client"
 	hdinsight "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/client"
 	healthcare "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare/client"
@@ -131,6 +132,7 @@ type Client struct {
 	Dns                   *dns.Client
 	EventGrid             *eventgrid.Client
 	Eventhub              *eventhub.Client
+	Firewall              *firewall.Client
 	Frontdoor             *frontdoor.Client
 	HPCCache              *hpccache.Client
 	HSM                   *hsm.Client
@@ -225,6 +227,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Dns = dns.NewClient(o)
 	client.EventGrid = eventgrid.NewClient(o)
 	client.Eventhub = eventhub.NewClient(o)
+	client.Firewall = firewall.NewClient(o)
 	client.Frontdoor = frontdoor.NewClient(o)
 	client.HPCCache = hpccache.NewClient(o)
 	client.HSM = hsm.NewClient(o)

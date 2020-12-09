@@ -1,4 +1,4 @@
-package network
+package firewall
 
 import (
 	"fmt"
@@ -142,7 +142,7 @@ func dataSourceArmFirewall() *schema.Resource {
 }
 
 func dataSourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.AzureFirewallsClient
+	client := meta.(*clients.Client).Firewall.AzureFirewallsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

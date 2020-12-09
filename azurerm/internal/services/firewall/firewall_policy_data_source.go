@@ -1,4 +1,4 @@
-package network
+package firewall
 
 import (
 	"fmt"
@@ -121,7 +121,7 @@ func dataSourceArmFirewallPolicy() *schema.Resource {
 }
 
 func dataSourceArmFirewallPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.FirewallPolicyClient
+	client := meta.(*clients.Client).Firewall.FirewallPolicyClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

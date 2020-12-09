@@ -1,4 +1,4 @@
-package network
+package firewall
 
 import (
 	"fmt"
@@ -138,7 +138,7 @@ func resourceArmFirewallApplicationRuleCollection() *schema.Resource {
 }
 
 func resourceArmFirewallApplicationRuleCollectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.AzureFirewallsClient
+	client := meta.(*clients.Client).Firewall.AzureFirewallsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -249,7 +249,7 @@ func resourceArmFirewallApplicationRuleCollectionCreateUpdate(d *schema.Resource
 }
 
 func resourceArmFirewallApplicationRuleCollectionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.AzureFirewallsClient
+	client := meta.(*clients.Client).Firewall.AzureFirewallsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -322,7 +322,7 @@ func resourceArmFirewallApplicationRuleCollectionRead(d *schema.ResourceData, me
 }
 
 func resourceArmFirewallApplicationRuleCollectionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.AzureFirewallsClient
+	client := meta.(*clients.Client).Firewall.AzureFirewallsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

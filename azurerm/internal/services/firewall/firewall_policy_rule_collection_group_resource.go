@@ -1,4 +1,4 @@
-package network
+package firewall
 
 import (
 	"fmt"
@@ -375,7 +375,7 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 }
 
 func resourceArmFirewallPolicyRuleCollectionGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.FirewallPolicyRuleGroupClient
+	client := meta.(*clients.Client).Firewall.FirewallPolicyRuleGroupClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -438,7 +438,7 @@ func resourceArmFirewallPolicyRuleCollectionGroupCreateUpdate(d *schema.Resource
 
 func resourceArmFirewallPolicyRuleCollectionGroupRead(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).Network.FirewallPolicyRuleGroupClient
+	client := meta.(*clients.Client).Firewall.FirewallPolicyRuleGroupClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -481,7 +481,7 @@ func resourceArmFirewallPolicyRuleCollectionGroupRead(d *schema.ResourceData, me
 }
 
 func resourceArmFirewallPolicyRuleCollectionGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.FirewallPolicyRuleGroupClient
+	client := meta.(*clients.Client).Firewall.FirewallPolicyRuleGroupClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

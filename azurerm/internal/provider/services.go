@@ -33,6 +33,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare"
@@ -131,6 +132,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		dns.Registration{},
 		eventgrid.Registration{},
 		eventhub.Registration{},
+		firewall.Registration{},
 		frontdoor.Registration{},
 		hpccache.Registration{},
 		hsm.Registration{},

@@ -1,4 +1,4 @@
-package network
+package firewall
 
 import (
 	"fmt"
@@ -164,7 +164,7 @@ func resourceArmFirewallPolicy() *schema.Resource {
 }
 
 func resourceArmFirewallPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.FirewallPolicyClient
+	client := meta.(*clients.Client).Firewall.FirewallPolicyClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -217,7 +217,7 @@ func resourceArmFirewallPolicyCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmFirewallPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.FirewallPolicyClient
+	client := meta.(*clients.Client).Firewall.FirewallPolicyClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -275,7 +275,7 @@ func resourceArmFirewallPolicyRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmFirewallPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.FirewallPolicyClient
+	client := meta.(*clients.Client).Firewall.FirewallPolicyClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

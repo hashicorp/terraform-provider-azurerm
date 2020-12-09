@@ -104,7 +104,7 @@ func TestAccAzureRMFirewallPolicyRuleCollectionGroup_requiresImport(t *testing.T
 
 func testCheckAzureRMFirewallPolicyRuleCollectionGroupExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.FirewallPolicyRuleGroupClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Firewall.FirewallPolicyRuleGroupClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -129,7 +129,7 @@ func testCheckAzureRMFirewallPolicyRuleCollectionGroupExists(resourceName string
 }
 
 func testCheckAzureRMFirewallPolicyRuleCollectionGroupDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.FirewallPolicyRuleGroupClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Firewall.FirewallPolicyRuleGroupClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {

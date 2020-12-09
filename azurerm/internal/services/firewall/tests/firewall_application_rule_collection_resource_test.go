@@ -414,7 +414,7 @@ func TestAccAzureRMFirewallApplicationRuleCollection_noSource(t *testing.T) {
 
 func testCheckAzureRMFirewallApplicationRuleCollectionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Firewall.AzureFirewallsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
@@ -450,7 +450,7 @@ func testCheckAzureRMFirewallApplicationRuleCollectionExists(resourceName string
 
 func testCheckAzureRMFirewallApplicationRuleCollectionDoesNotExist(resourceName string, collectionName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Firewall.AzureFirewallsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
@@ -479,7 +479,7 @@ func testCheckAzureRMFirewallApplicationRuleCollectionDoesNotExist(resourceName 
 
 func testCheckAzureRMFirewallApplicationRuleCollectionDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Firewall.AzureFirewallsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
