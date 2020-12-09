@@ -5,11 +5,11 @@ import (
 	"time"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	validate2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/validate"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -27,7 +27,7 @@ func dataSourceArmFirewallPolicy() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.FirewallPolicyName(),
+				ValidateFunc: validate2.FirewallPolicyName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),

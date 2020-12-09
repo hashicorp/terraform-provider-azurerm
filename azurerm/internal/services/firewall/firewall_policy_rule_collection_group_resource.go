@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/response"
+	parse2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/parse"
+	validate2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/validate"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -15,8 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -30,7 +30,7 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 		Delete: resourceArmFirewallPolicyRuleCollectionGroupDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.FirewallPolicyRuleCollectionGroupID(id)
+			_, err := parse2.FirewallPolicyRuleCollectionGroupID(id)
 			return err
 		}),
 
@@ -46,14 +46,14 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FirewallPolicyRuleCollectionGroupName(),
+				ValidateFunc: validate2.FirewallPolicyRuleCollectionGroupName(),
 			},
 
 			"firewall_policy_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FirewallPolicyID,
+				ValidateFunc: validate2.FirewallPolicyID,
 			},
 
 			"priority": {
@@ -95,7 +95,7 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 									"name": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.FirewallPolicyRuleName(),
+										ValidateFunc: validate2.FirewallPolicyRuleName(),
 									},
 									"protocols": {
 										Type:     schema.TypeSet,
@@ -194,7 +194,7 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 									"name": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.FirewallPolicyRuleName(),
+										ValidateFunc: validate2.FirewallPolicyRuleName(),
 									},
 									"protocols": {
 										Type:     schema.TypeSet,
@@ -259,7 +259,7 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 										Required: true,
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
-											ValidateFunc: validate.FirewallPolicyRulePort,
+											ValidateFunc: validate2.FirewallPolicyRulePort,
 										},
 									},
 								},
@@ -305,7 +305,7 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 									"name": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.FirewallPolicyRuleName(),
+										ValidateFunc: validate2.FirewallPolicyRuleName(),
 									},
 									"protocols": {
 										Type:     schema.TypeSet,
@@ -351,7 +351,7 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 										Optional: true,
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
-											ValidateFunc: validate.FirewallPolicyRulePort,
+											ValidateFunc: validate2.FirewallPolicyRulePort,
 										},
 									},
 									"translated_address": {
@@ -380,7 +380,7 @@ func resourceArmFirewallPolicyRuleCollectionGroupCreateUpdate(d *schema.Resource
 	defer cancel()
 
 	name := d.Get("name").(string)
-	policyId, err := parse.FirewallPolicyID(d.Get("firewall_policy_id").(string))
+	policyId, err := parse2.FirewallPolicyID(d.Get("firewall_policy_id").(string))
 	if err != nil {
 		return err
 	}
@@ -427,7 +427,7 @@ func resourceArmFirewallPolicyRuleCollectionGroupCreateUpdate(d *schema.Resource
 	if resp.ID == nil || *resp.ID == "" {
 		return fmt.Errorf("empty or nil ID returned for Firewall Policy Rule Collection Group %q (Resource Group %q / Policy: %q) ID", name, policyId.ResourceGroup, policyId.Name)
 	}
-	id, err := parse.FirewallPolicyRuleCollectionGroupID(*resp.ID)
+	id, err := parse2.FirewallPolicyRuleCollectionGroupID(*resp.ID)
 	if err != nil {
 		return err
 	}
@@ -442,7 +442,7 @@ func resourceArmFirewallPolicyRuleCollectionGroupRead(d *schema.ResourceData, me
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FirewallPolicyRuleCollectionGroupID(d.Id())
+	id, err := parse2.FirewallPolicyRuleCollectionGroupID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -460,7 +460,7 @@ func resourceArmFirewallPolicyRuleCollectionGroupRead(d *schema.ResourceData, me
 
 	d.Set("name", resp.Name)
 	d.Set("priority", resp.Priority)
-	d.Set("firewall_policy_id", parse.NewFirewallPolicyID(subscriptionId, id.ResourceGroup, id.FirewallPolicyName).ID(""))
+	d.Set("firewall_policy_id", parse2.NewFirewallPolicyID(subscriptionId, id.ResourceGroup, id.FirewallPolicyName).ID(""))
 
 	applicationRuleCollections, networkRuleCollections, natRuleCollections, err := flattenAzureRmFirewallPolicyRuleCollection(resp.RuleCollections)
 	if err != nil {
@@ -485,7 +485,7 @@ func resourceArmFirewallPolicyRuleCollectionGroupDelete(d *schema.ResourceData, 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FirewallPolicyRuleCollectionGroupID(d.Id())
+	id, err := parse2.FirewallPolicyRuleCollectionGroupID(d.Id())
 	if err != nil {
 		return err
 	}

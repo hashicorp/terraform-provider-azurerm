@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	validate2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -78,7 +79,7 @@ func resourceArmFirewall() *schema.Resource {
 			"firewall_policy_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.FirewallPolicyID,
+				ValidateFunc: validate2.FirewallPolicyID,
 			},
 
 			"ip_configuration": {
