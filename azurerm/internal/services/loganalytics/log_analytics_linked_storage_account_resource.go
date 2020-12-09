@@ -131,7 +131,7 @@ func resourceArmLogAnalyticsLinkedStorageAccountRead(d *schema.ResourceData, met
 		return err
 	}
 
-	dataSourceType := operationalinsights.DataSourceType(id.Name)
+	dataSourceType := operationalinsights.DataSourceType(id.LinkedStorageAccountName)
 	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, dataSourceType)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -139,12 +139,12 @@ func resourceArmLogAnalyticsLinkedStorageAccountRead(d *schema.ResourceData, met
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Log Analytics Linked Storage Account %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.ResourceGroup, id.WorkspaceName, err)
+		return fmt.Errorf("retrieving Log Analytics Linked Storage Account %q (Resource Group %q / workspaceName %q): %+v", id.LinkedStorageAccountName, id.ResourceGroup, id.WorkspaceName, err)
 	}
 
 	d.Set("data_source_type", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("workspace_resource_id", id.WorkspaceID)
+	d.Set("workspace_resource_id", id.WorkspaceName)
 	if props := resp.LinkedStorageAccountsProperties; props != nil {
 		d.Set("storage_account_ids", utils.FlattenStringSlice(props.StorageAccountIds))
 	}
@@ -162,9 +162,9 @@ func resourceArmLogAnalyticsLinkedStorageAccountDelete(d *schema.ResourceData, m
 		return err
 	}
 
-	dataSourceType := operationalinsights.DataSourceType(id.Name)
+	dataSourceType := operationalinsights.DataSourceType(id.LinkedStorageAccountName)
 	if _, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, dataSourceType); err != nil {
-		return fmt.Errorf("deleting Log Analytics Linked Storage Account %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.ResourceGroup, id.WorkspaceName, err)
+		return fmt.Errorf("deleting Log Analytics Linked Storage Account %q (Resource Group %q / workspaceName %q): %+v", id.LinkedStorageAccountName, id.ResourceGroup, id.WorkspaceName, err)
 	}
 	return nil
 }

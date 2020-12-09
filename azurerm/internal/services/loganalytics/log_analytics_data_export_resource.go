@@ -144,18 +144,18 @@ func resourceArmOperationalinsightsDataExportRead(d *schema.ResourceData, meta i
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.DataExportName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Log Analytics %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Log Analytics Data Export Rule %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.ResourceGroup, id.WorkspaceName, err)
+		return fmt.Errorf("retrieving Log Analytics Data Export Rule %q (Resource Group %q / workspaceName %q): %+v", id.DataExportName, id.ResourceGroup, id.WorkspaceName, err)
 	}
-	d.Set("name", id.Name)
+	d.Set("name", id.DataExportName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("workspace_resource_id", id.WorkspaceID)
+	d.Set("workspace_resource_id", id.WorkspaceName)
 	if props := resp.DataExportProperties; props != nil {
 		d.Set("export_rule_id", props.DataExportID)
 		d.Set("destination_resource_id", flattenArmDataExportDestination(props.Destination))
@@ -175,8 +175,8 @@ func resourceArmOperationalinsightsDataExportDelete(d *schema.ResourceData, meta
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
-		return fmt.Errorf("deleting Log Analytics Data Export Rule %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.ResourceGroup, id.WorkspaceName, err)
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.DataExportName); err != nil {
+		return fmt.Errorf("deleting Log Analytics Data Export Rule %q (Resource Group %q / workspaceName %q): %+v", id.DataExportName, id.ResourceGroup, id.WorkspaceName, err)
 	}
 	return nil
 }
