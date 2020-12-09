@@ -32,6 +32,7 @@ var services = mapOf(
         "digitaltwins" to "Digital Twins",
         "eventgrid" to "EventGrid",
         "eventhub" to "EventHub",
+        "firewall" to "Firewall",
         "frontdoor" to "FrontDoor",
         "hdinsight" to "HDInsight",
         "hpccache" to "HPC Cache",
