@@ -94,7 +94,7 @@ resource "azurerm_hpc_cache_blob_target" "test" {
   storage_container_id = azurerm_storage_container.test.resource_manager_id
   namespace_path       = "/blob_storage1"
 }
-`, r.basic(data), data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r HPCCacheBlobTargetResource) namespace(data acceptance.TestData) string {
