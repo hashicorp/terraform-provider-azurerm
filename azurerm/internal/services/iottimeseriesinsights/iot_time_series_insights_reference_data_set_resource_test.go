@@ -1,126 +1,81 @@
 package iottimeseriesinsights_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iottimeseriesinsights/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type IoTTimeSeriesInsightsReferenceDataSetResource struct {
+}
+
 func TestAccIoTTimeSeriesInsightsReferenceDataSet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iot_time_series_insights_reference_data_set", "test")
+	r := IoTTimeSeriesInsightsReferenceDataSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckIoTTimeSeriesInsightsReferenceDataSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccIoTTimeSeriesInsightsReferenceDataSet_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckIoTTimeSeriesInsightsReferenceDataSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccIoTTimeSeriesInsightsReferenceDataSet_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iot_time_series_insights_reference_data_set", "test")
+	r := IoTTimeSeriesInsightsReferenceDataSetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckIoTTimeSeriesInsightsReferenceDataSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccIoTTimeSeriesInsightsReferenceDataSet_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckIoTTimeSeriesInsightsReferenceDataSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccIoTTimeSeriesInsightsReferenceDataSet_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckIoTTimeSeriesInsightsReferenceDataSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccIoTTimeSeriesInsightsReferenceDataSet_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckIoTTimeSeriesInsightsReferenceDataSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckIoTTimeSeriesInsightsReferenceDataSetExists(name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTTimeSeriesInsights.ReferenceDataSetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
-		if !ok {
-			return fmt.Errorf("Not found: %s", name)
-		}
-
-		id, err := parse.ReferenceDataSetID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.EnvironmentName, id.Name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on TimeSeriesInsightsReferenceDataSetClient: %+v", err)
-		}
-
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Time Series Insights Reference Data Set %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
-		}
-
-		return nil
-	}
-}
-
-func testCheckIoTTimeSeriesInsightsReferenceDataSetDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).IoTTimeSeriesInsights.ReferenceDataSetsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_iot_time_series_insights_reference_data_set" {
-			continue
-		}
-
-		id, err := parse.ReferenceDataSetID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		resp, err := client.Get(ctx, id.ResourceGroup, id.EnvironmentName, id.Name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("time Series Insights Reference Data Set still exists: %q", id.Name)
-		}
+func (IoTTimeSeriesInsightsReferenceDataSetResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ReferenceDataSetID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.IoTTimeSeriesInsights.ReferenceDataSetsClient.Get(ctx, id.ResourceGroup, id.EnvironmentName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving IoT Time Series Insights Reference Data Set (%q): %+v", id.String(), err)
+	}
+
+	return utils.Bool(resp.ReferenceDataSetResourceProperties != nil), nil
 }
 
-func testAccIoTTimeSeriesInsightsReferenceDataSet_basic(data acceptance.TestData) string {
+func (IoTTimeSeriesInsightsReferenceDataSetResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -150,7 +105,7 @@ resource "azurerm_iot_time_series_insights_reference_data_set" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccIoTTimeSeriesInsightsReferenceDataSet_update(data acceptance.TestData) string {
+func (IoTTimeSeriesInsightsReferenceDataSetResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

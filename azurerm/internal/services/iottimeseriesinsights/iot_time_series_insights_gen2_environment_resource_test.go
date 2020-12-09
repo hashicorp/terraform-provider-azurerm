@@ -1,145 +1,95 @@
 package iottimeseriesinsights_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iottimeseriesinsights/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type IoTTimeSeriesInsightsGen2EnvironmentResource struct {
+}
+
 func TestAccIoTTimeSeriesInsightsGen2Environment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iot_time_series_insights_gen2_environment", "test")
+	r := IoTTimeSeriesInsightsGen2EnvironmentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckIoTTimeSeriesInsightsGen2EnvironmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccIoTTimeSeriesInsightsGen2Environment_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckIoTTimeSeriesInsightsGen2EnvironmentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("storage.0.key"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("storage.0.key"),
 	})
 }
 
 func TestAccIoTTimeSeriesInsightsGen2Environment_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iot_time_series_insights_gen2_environment", "test")
+	r := IoTTimeSeriesInsightsGen2EnvironmentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckIoTTimeSeriesInsightsGen2EnvironmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccIoTTimeSeriesInsightsGen2Environment_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckIoTTimeSeriesInsightsGen2EnvironmentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("storage.0.key"),
-			{
-				Config: testAccIoTTimeSeriesInsightsGen2Environment_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckIoTTimeSeriesInsightsGen2EnvironmentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("storage.0.key"),
-			{
-				Config: testAccIoTTimeSeriesInsightsGen2Environment_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckIoTTimeSeriesInsightsGen2EnvironmentExists(data.ResourceName),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage.0.key"),
+		{
+			Config: r.update(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage.0.key"),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
 func TestAccIoTTimeSeriesInsightsGen2Environment_multiple_property_ids(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iot_time_series_insights_gen2_environment", "test")
+	r := IoTTimeSeriesInsightsGen2EnvironmentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckIoTTimeSeriesInsightsGen2EnvironmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccIoTTimeSeriesInsightsGen2Environment_multiple_property_ids(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckIoTTimeSeriesInsightsGen2EnvironmentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("storage.0.key"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.multiple_property_ids(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("storage.0.key"),
 	})
 }
 
-func testCheckIoTTimeSeriesInsightsGen2EnvironmentExists(name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTTimeSeriesInsights.EnvironmentsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
-		if !ok {
-			return fmt.Errorf("Not found: %s", name)
-		}
-
-		id, err := parse.EnvironmentID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
-		if err != nil {
-			return fmt.Errorf("Bad: Get on TimeSeriesInsightsGen2EnvironmentClient: %+v", err)
-		}
-
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Time Series Insights Gen2 Environment %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
-		}
-
-		return nil
-	}
-}
-
-func testCheckIoTTimeSeriesInsightsGen2EnvironmentDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).IoTTimeSeriesInsights.EnvironmentsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_iot_time_series_insights_gen2_environment" {
-			continue
-		}
-
-		id, err := parse.EnvironmentID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
-
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("time Series Insights Gen2 Environment still exists: %q", id.Name)
-		}
+func (IoTTimeSeriesInsightsGen2EnvironmentResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.EnvironmentID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.IoTTimeSeriesInsights.EnvironmentsClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	if err != nil {
+		return nil, fmt.Errorf("retrieving IoT Time Series Insights Gen2 Environment (%q): %+v", id.String(), err)
+	}
+
+	return utils.Bool(!utils.ResponseWasNotFound(resp.Response)), nil
 }
 
-func testAccIoTTimeSeriesInsightsGen2Environment_basic(data acceptance.TestData) string {
+func (IoTTimeSeriesInsightsGen2EnvironmentResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -171,7 +121,7 @@ resource "azurerm_iot_time_series_insights_gen2_environment" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func testAccIoTTimeSeriesInsightsGen2Environment_update(data acceptance.TestData) string {
+func (IoTTimeSeriesInsightsGen2EnvironmentResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -205,7 +155,7 @@ resource "azurerm_iot_time_series_insights_gen2_environment" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func testAccIoTTimeSeriesInsightsGen2Environment_multiple_property_ids(data acceptance.TestData) string {
+func (IoTTimeSeriesInsightsGen2EnvironmentResource) multiple_property_ids(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
