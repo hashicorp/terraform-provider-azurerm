@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	advisor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/advisor/client"
@@ -191,6 +192,8 @@ type Client struct {
 
 func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error {
 	autorest.Count429AsRetry = false
+	// Disable the Azure SDK for Go's validation since it's unhelpful for our use-case
+	validation.Disabled = true
 
 	client.Features = o.Features
 	client.StopContext = ctx
