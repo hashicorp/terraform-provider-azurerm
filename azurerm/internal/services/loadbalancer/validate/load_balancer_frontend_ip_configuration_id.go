@@ -5,7 +5,7 @@ package validate
 import (
 	"fmt"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/parse"
 )
 
 func LoadBalancerFrontendIpConfigurationID(input interface{}, key string) (warnings []string, errors []error) {
