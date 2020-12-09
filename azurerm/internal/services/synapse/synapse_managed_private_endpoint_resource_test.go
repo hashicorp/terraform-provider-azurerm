@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/synapse/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -78,7 +77,7 @@ resource "azurerm_synapse_managed_private_endpoint" "test" {
   name                 = "acctestEndpoint%d"
   synapse_workspace_id = azurerm_synapse_workspace.test.id
   target_resource_id   = azurerm_storage_account.test_endpoint.id
-  group_id             = "blob"
+  subresource_name     = "blob"
 
   depends_on = [azurerm_synapse_firewall_rule.test]
 }
@@ -94,7 +93,7 @@ resource "azurerm_synapse_managed_private_endpoint" "import" {
   name                 = azurerm_synapse_managed_private_endpoint.test.name
   synapse_workspace_id = azurerm_synapse_managed_private_endpoint.test.synapse_workspace_id
   target_resource_id   = azurerm_synapse_managed_private_endpoint.test.target_resource_id
-  group_id             = azurerm_synapse_managed_private_endpoint.test.group_id
+  subresource_name     = azurerm_synapse_managed_private_endpoint.test.subresource_name
 }
 `, config)
 }

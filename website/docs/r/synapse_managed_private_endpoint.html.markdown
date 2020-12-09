@@ -63,7 +63,7 @@ resource "azurerm_synapse_managed_private_endpoint" "example" {
   name                 = "example-endpoint"
   synapse_workspace_id = azurerm_synapse_workspace.example.id
   target_resource_id   = azurerm_storage_account.example_connect.id
-  group_id             = "blob"
+  subresource_name     = "blob"
 
   depends_on = [azurerm_synapse_firewall_rule.example]
 }
@@ -81,7 +81,7 @@ The following arguments are supported:
 
 * `target_resource_id` - (Required) The ID of the Private Link Enabled Remote Resource which this Synapse Private Endpoint should be connected to. Changing this forces a new resource to be created.
 
-* `group_id` - (Required) Specifies the sub resource name which the Synapse Private Endpoint is able to connect to. Changing this forces a new resource to be created.
+* `subresource_name` - (Required) Specifies the sub resource name which the Synapse Private Endpoint is able to connect to. Changing this forces a new resource to be created.
 
 -> **NOTE:** Possible values are listed in [documentation](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-overview#dns-configuration).
 

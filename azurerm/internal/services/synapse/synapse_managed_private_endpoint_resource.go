@@ -58,7 +58,7 @@ func resourceSynapseManagedPrivateEndpoint() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"group_id": {
+			"subresource_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -110,7 +110,7 @@ func resourceSynapseManagedPrivateEndpointCreate(d *schema.ResourceData, meta in
 	managedPrivateEndpoint := managedvirtualnetwork.ManagedPrivateEndpoint{
 		Properties: &managedvirtualnetwork.ManagedPrivateEndpointProperties{
 			PrivateLinkResourceID: utils.String(d.Get("target_resource_id").(string)),
-			GroupID:               utils.String(d.Get("group_id").(string)),
+			GroupID:               utils.String(d.Get("subresource_name").(string)),
 		},
 	}
 	resp, err := client.Create(ctx, virtualNetworkName, privateEndpointName, managedPrivateEndpoint)
@@ -157,7 +157,7 @@ func resourceSynapseManagedPrivateEndpointRead(d *schema.ResourceData, meta inte
 
 	if props := resp.Properties; props != nil {
 		d.Set("target_resource_id", props.PrivateLinkResourceID)
-		d.Set("group_id", props.GroupID)
+		d.Set("subresource_name", props.GroupID)
 	}
 	return nil
 }
