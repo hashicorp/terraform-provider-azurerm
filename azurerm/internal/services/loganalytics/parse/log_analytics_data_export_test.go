@@ -12,7 +12,7 @@ var _ resourceid.Formatter = LogAnalyticsDataExportId{}
 
 func TestLogAnalyticsDataExportIDFormatter(t *testing.T) {
 	actual := NewLogAnalyticsDataExportID("12345678-1234-9876-4563-123456789012", "resGroup1", "workspace1", "dataExport1").ID("")
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/dataExports/dataExport1"
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/dataexports/dataExport1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -68,25 +68,25 @@ func TestLogAnalyticsDataExportID(t *testing.T) {
 		},
 
 		{
-			// missing DataExportName
+			// missing DataexportName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/",
 			Error: true,
 		},
 
 		{
-			// missing value for DataExportName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/dataExports/",
+			// missing value for DataexportName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/dataexports/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/dataExports/dataExport1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/dataexports/dataExport1",
 			Expected: &LogAnalyticsDataExportId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
 				WorkspaceName:  "workspace1",
-				DataExportName: "dataExport1",
+				DataexportName: "dataExport1",
 			},
 		},
 
@@ -121,8 +121,8 @@ func TestLogAnalyticsDataExportID(t *testing.T) {
 		if actual.WorkspaceName != v.Expected.WorkspaceName {
 			t.Fatalf("Expected %q but got %q for WorkspaceName", v.Expected.WorkspaceName, actual.WorkspaceName)
 		}
-		if actual.DataExportName != v.Expected.DataExportName {
-			t.Fatalf("Expected %q but got %q for DataExportName", v.Expected.DataExportName, actual.DataExportName)
+		if actual.DataexportName != v.Expected.DataexportName {
+			t.Fatalf("Expected %q but got %q for DataexportName", v.Expected.DataexportName, actual.DataexportName)
 		}
 	}
 }

@@ -13,15 +13,15 @@ type LogAnalyticsDataExportId struct {
 	SubscriptionId string
 	ResourceGroup  string
 	WorkspaceName  string
-	DataExportName string
+	DataexportName string
 }
 
-func NewLogAnalyticsDataExportID(subscriptionId, resourceGroup, workspaceName, dataExportName string) LogAnalyticsDataExportId {
+func NewLogAnalyticsDataExportID(subscriptionId, resourceGroup, workspaceName, dataexportName string) LogAnalyticsDataExportId {
 	return LogAnalyticsDataExportId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
 		WorkspaceName:  workspaceName,
-		DataExportName: dataExportName,
+		DataexportName: dataexportName,
 	}
 }
 
@@ -29,14 +29,14 @@ func (id LogAnalyticsDataExportId) String() string {
 	segments := []string{
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Workspace Name %q", id.WorkspaceName),
-		fmt.Sprintf("Data Export Name %q", id.DataExportName),
+		fmt.Sprintf("Dataexport Name %q", id.DataexportName),
 	}
 	return strings.Join(segments, " / ")
 }
 
 func (id LogAnalyticsDataExportId) ID(_ string) string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.OperationalInsights/workspaces/%s/dataExports/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.DataExportName)
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.OperationalInsights/workspaces/%s/dataexports/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.DataexportName)
 }
 
 // LogAnalyticsDataExportID parses a LogAnalyticsDataExport ID into an LogAnalyticsDataExportId struct
@@ -62,7 +62,7 @@ func LogAnalyticsDataExportID(input string) (*LogAnalyticsDataExportId, error) {
 	if resourceId.WorkspaceName, err = id.PopSegment("workspaces"); err != nil {
 		return nil, err
 	}
-	if resourceId.DataExportName, err = id.PopSegment("dataExports"); err != nil {
+	if resourceId.DataexportName, err = id.PopSegment("dataexports"); err != nil {
 		return nil, err
 	}
 

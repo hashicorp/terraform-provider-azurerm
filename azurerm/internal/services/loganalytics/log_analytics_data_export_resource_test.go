@@ -20,11 +20,11 @@ func TestAccAzureRMLogAnalyticsDataExportRule_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLogAnalyticsDataExportRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogAnalyticsDataExportRule_basic(data),
+				Config:             testAccAzureRMLogAnalyticsDataExportRule_basic(data),
+				ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsDataExportRuleExists(data.ResourceName),
 				),
-				ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
 			},
 			data.ImportStep(),
 		},
@@ -39,11 +39,11 @@ func TestAccAzureRMLogAnalyticsDataExportRule_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLogAnalyticsDataExportRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogAnalyticsDataExportRule_basicLower(data),
+				Config:             testAccAzureRMLogAnalyticsDataExportRule_basicLower(data),
+				ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsDataExportRuleExists(data.ResourceName),
 				),
-				ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
 			},
 			{
 				Config:             testAccAzureRMLogAnalyticsDataExportRule_requiresImport(data),
@@ -62,14 +62,16 @@ func TestAccAzureRMLogAnalyticsDataExportRule_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLogAnalyticsDataExportRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogAnalyticsDataExportRule_basic(data),
+				Config:             testAccAzureRMLogAnalyticsDataExportRule_basic(data),
+				ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsDataExportRuleExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMLogAnalyticsDataExportRule_update(data),
+				Config:             testAccAzureRMLogAnalyticsDataExportRule_update(data),
+				ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsDataExportRuleExists(data.ResourceName),
 				),
@@ -87,11 +89,11 @@ func TestAccAzureRMLogAnalyticsDataExportRule_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLogAnalyticsDataExportRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogAnalyticsDataExportRule_complete(data),
+				Config:             testAccAzureRMLogAnalyticsDataExportRule_complete(data),
+				ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsDataExportRuleExists(data.ResourceName),
 				),
-				ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
 			},
 			data.ImportStep(),
 		},

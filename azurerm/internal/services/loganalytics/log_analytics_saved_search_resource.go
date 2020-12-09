@@ -171,7 +171,8 @@ func resourceArmLogAnalyticsSavedSearchRead(d *schema.ResourceData, meta interfa
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	id, err := parse.LogAnalyticsSavedSearchID(d.Id())
+	// FIXME: @favoretti: API returns ID without a leading slash
+	id, err := parse.LogAnalyticsSavedSearchID(fmt.Sprintf("/%s", strings.TrimPrefix(d.Id(), "/")))
 	if err != nil {
 		return err
 	}
@@ -186,7 +187,7 @@ func resourceArmLogAnalyticsSavedSearchRead(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("retrieving Saved Search %q (Log Analytics Workspace %q / Resource Group %q): %s", id.WorkspaceName, id.WorkspaceName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", id.WorkspaceName)
+	d.Set("name", id.SavedSearcheName)
 	d.Set("log_analytics_workspace_id", workspaceId)
 
 	if props := resp.SavedSearchProperties; props != nil {
@@ -213,7 +214,8 @@ func resourceArmLogAnalyticsSavedSearchDelete(d *schema.ResourceData, meta inter
 	client := meta.(*clients.Client).LogAnalytics.SavedSearchesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	id, err := parse.LogAnalyticsSavedSearchID(d.Id())
+	// FIXME: @favoretti: API returns ID without a leading slash
+	id, err := parse.LogAnalyticsSavedSearchID(fmt.Sprintf("/%s", strings.TrimPrefix(d.Id(), "/")))
 	if err != nil {
 		return err
 	}

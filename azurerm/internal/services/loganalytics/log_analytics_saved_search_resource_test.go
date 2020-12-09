@@ -3,6 +3,7 @@ package loganalytics_test
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -100,7 +101,8 @@ func testCheckAzureRMLogAnalyticsSavedSearchDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.LogAnalyticsSavedSearchID(rs.Primary.ID)
+		// FIXME: @favoretti: API returns ID without a leading slash
+		id, err := parse.LogAnalyticsSavedSearchID(fmt.Sprintf("/%s", strings.TrimPrefix(rs.Primary.ID, "/")))
 		if err != nil {
 			return err
 		}
@@ -129,7 +131,8 @@ func testCheckAzureRMLogAnalyticsSavedSearchExists(resourceName string) resource
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.LogAnalyticsSavedSearchID(rs.Primary.ID)
+		// FIXME: @favoretti: Apparently API returns this resource ID without a leading slash
+		id, err := parse.LogAnalyticsSavedSearchID(fmt.Sprintf("/%s", strings.TrimPrefix(rs.Primary.ID, "/")))
 		if err != nil {
 			return err
 		}
