@@ -12,7 +12,7 @@ var _ resourceid.Formatter = LogAnalyticsSavedSearchId{}
 
 func TestLogAnalyticsSavedSearchIDFormatter(t *testing.T) {
 	actual := NewLogAnalyticsSavedSearchID("12345678-1234-9876-4563-123456789012", "resGroup1", "workspace1", "search1").ID("")
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/savedSearches/search1"
+	expected := "subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/savedSearches/search1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -33,55 +33,55 @@ func TestLogAnalyticsSavedSearchID(t *testing.T) {
 
 		{
 			// missing SubscriptionId
-			Input: "/",
+			Input: "",
 			Error: true,
 		},
 
 		{
 			// missing value for SubscriptionId
-			Input: "/subscriptions/",
+			Input: "subscriptions/",
 			Error: true,
 		},
 
 		{
 			// missing ResourceGroup
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/",
+			Input: "subscriptions/12345678-1234-9876-4563-123456789012/",
 			Error: true,
 		},
 
 		{
 			// missing value for ResourceGroup
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
+			Input: "subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
 			Error: true,
 		},
 
 		{
 			// missing WorkspaceName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/",
+			Input: "subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/",
 			Error: true,
 		},
 
 		{
 			// missing value for WorkspaceName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/",
+			Input: "subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/",
 			Error: true,
 		},
 
 		{
 			// missing SavedSearcheName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/",
+			Input: "subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/",
 			Error: true,
 		},
 
 		{
 			// missing value for SavedSearcheName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/savedSearches/",
+			Input: "subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/savedSearches/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/savedSearches/search1",
+			Input: "subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/savedSearches/search1",
 			Expected: &LogAnalyticsSavedSearchId{
 				SubscriptionId:   "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:    "resGroup1",
@@ -92,7 +92,7 @@ func TestLogAnalyticsSavedSearchID(t *testing.T) {
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.OPERATIONALINSIGHTS/WORKSPACES/WORKSPACE1/SAVEDSEARCHES/SEARCH1",
+			Input: "SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.OPERATIONALINSIGHTS/WORKSPACES/WORKSPACE1/SAVEDSEARCHES/SEARCH1",
 			Error: true,
 		},
 	}

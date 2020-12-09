@@ -105,8 +105,11 @@ func resourceArmLogAnalyticsStorageInsightsCreateUpdate(d *schema.ResourceData, 
 	storageAccountId := d.Get("storage_account_id").(string)
 	storageAccountKey := d.Get("storage_account_key").(string)
 
-	workspaceId := d.Get("workspace_id").(string)
-	id := parse.NewLogAnalyticsStorageInsightsID(subscriptionId, resourceGroup, workspaceId, name)
+	workspace, err := parse.LogAnalyticsWorkspaceID(d.Get("workspace_id").(string))
+	if err != nil {
+		return err
+	}
+	id := parse.NewLogAnalyticsStorageInsightsID(subscriptionId, resourceGroup, workspace.WorkspaceName, name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, id.WorkspaceName, name)
