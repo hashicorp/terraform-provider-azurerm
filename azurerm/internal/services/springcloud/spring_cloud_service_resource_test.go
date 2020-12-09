@@ -318,8 +318,7 @@ resource "azurerm_spring_cloud_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (SpringCloudServiceResource) requiresImport(data acceptance.TestData) string {
-	template := SpringCloudServiceResource{}.basic(data)
+func (r SpringCloudServiceResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -328,5 +327,5 @@ resource "azurerm_spring_cloud_service" "import" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
-`, template)
+`, r.basic(data))
 }

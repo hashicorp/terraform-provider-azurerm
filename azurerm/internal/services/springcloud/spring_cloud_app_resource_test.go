@@ -121,8 +121,7 @@ resource "azurerm_spring_cloud_app" "test" {
 `, template, data.RandomInteger)
 }
 
-func (SpringCloudAppResource) requiresImport(data acceptance.TestData) string {
-	template := SpringCloudAppResource{}.basic(data)
+func (r SpringCloudAppResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -131,11 +130,10 @@ resource "azurerm_spring_cloud_app" "import" {
   resource_group_name = azurerm_spring_cloud_app.test.resource_group_name
   service_name        = azurerm_spring_cloud_app.test.service_name
 }
-`, template)
+`, r.basic(data))
 }
 
-func (SpringCloudAppResource) complete(data acceptance.TestData) string {
-	template := SpringCloudAppResource{}.template(data)
+func (r SpringCloudAppResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -148,7 +146,7 @@ resource "azurerm_spring_cloud_app" "test" {
     type = "SystemAssigned"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (SpringCloudAppResource) template(data acceptance.TestData) string {

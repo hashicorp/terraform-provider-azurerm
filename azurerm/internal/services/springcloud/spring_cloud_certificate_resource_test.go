@@ -62,8 +62,7 @@ func (t SpringCloudCertificateResource) Exists(ctx context.Context, clients *cli
 	return utils.Bool(resp.Properties != nil), nil
 }
 
-func (SpringCloudCertificateResource) basic(data acceptance.TestData) string {
-	template := SpringCloudCertificateResource{}.template(data)
+func (r SpringCloudCertificateResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -73,11 +72,10 @@ resource "azurerm_spring_cloud_certificate" "test" {
   service_name             = azurerm_spring_cloud_service.test.name
   key_vault_certificate_id = azurerm_key_vault_certificate.test.id
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (SpringCloudCertificateResource) requiresImport(data acceptance.TestData) string {
-	template := SpringCloudCertificateResource{}.basic(data)
+func (r SpringCloudCertificateResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -87,10 +85,10 @@ resource "azurerm_spring_cloud_certificate" "import" {
   service_name             = azurerm_spring_cloud_certificate.test.service_name
   key_vault_certificate_id = azurerm_spring_cloud_certificate.test.key_vault_certificate_id
 }
-`, template)
+`, r.template(data))
 }
 
-func (SpringCloudCertificateResource) template(data acceptance.TestData) string {
+func (r SpringCloudCertificateResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
