@@ -15,64 +15,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer"
 )
 
-// TODO: move this out
-
-func TestResourceAzureRMLoadBalancerRuleNameLabel_validation(t *testing.T) {
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{
-			Value:    "-word",
-			ErrCount: 1,
-		},
-		{
-			Value:    "testing-",
-			ErrCount: 1,
-		},
-		{
-			Value:    "test#test",
-			ErrCount: 1,
-		},
-		{
-			Value:    acctest.RandStringFromCharSet(81, "abcdedfed"),
-			ErrCount: 1,
-		},
-		{
-			Value:    "test.rule",
-			ErrCount: 0,
-		},
-		{
-			Value:    "test_rule",
-			ErrCount: 0,
-		},
-		{
-			Value:    "test-rule",
-			ErrCount: 0,
-		},
-		{
-			Value:    "TestRule",
-			ErrCount: 0,
-		},
-		{
-			Value:    "Test123Rule",
-			ErrCount: 0,
-		},
-		{
-			Value:    "TestRule",
-			ErrCount: 0,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := loadbalancer.ValidateArmLoadBalancerRuleName(tc.Value, "azurerm_lb_rule")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Azure RM Load Balancer Rule Name Label to trigger a validation error")
-		}
-	}
-}
-
 func TestAccAzureRMLoadBalancerRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
 	var lb network.LoadBalancer

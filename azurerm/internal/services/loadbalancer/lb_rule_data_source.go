@@ -25,7 +25,7 @@ func dataSourceArmLoadBalancerRule() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: ValidateArmLoadBalancerRuleName,
+				ValidateFunc: validate.RuleName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
