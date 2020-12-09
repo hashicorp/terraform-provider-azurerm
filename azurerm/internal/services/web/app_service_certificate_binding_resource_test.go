@@ -33,6 +33,22 @@ func TestAccAzureRMAppServiceCertificateBinding_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppServiceCertificateBinding_basicSniEnabled(t *testing.T) {
+       data := acceptance.BuildTestData(t, "azurerm_app_service_certificate_binding", "test")
+       r := AppServiceCertificateBindingResource{}
+
+	       data.ResourceTest(t, r, []resource.TestStep{
+		               {
+		                       Config: r.basicSniEnabled(data),
+		                       Check: resource.ComposeTestCheckFunc(
+		                               check.That(data.ResourceName).Key("thumbprint").Exists(),
+		                               check.That(data.ResourceName).Key("ssl_state").HasValue("SniEnabled"),
+		                       ),
+		               },
+		               data.ImportStep(),
+		       })
+}
+
 func TestAccAzureRMAppServiceCertificateBinding_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate_binding", "test")
 	r := AppServiceCertificateBindingResource{}
@@ -94,6 +110,23 @@ resource "azurerm_app_service_certificate_binding" "test" {
   hostname_binding_id = azurerm_app_service_custom_hostname_binding.test.id
   certificate_id      = azurerm_app_service_managed_certificate.test.id
   ssl_state           = "IpBasedEnabled"
+}
+
+%s
+`, template)
+}
+
+func (t AppServiceCertificateBindingResource) basicSniEnabled(data acceptance.TestData) string {
+	template := t.testAccCertificateBinding_template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_app_service_certificate_binding" "test" {
+  hostname_binding_id = azurerm_app_service_custom_hostname_binding.test.id
+  certificate_id      = azurerm_app_service_managed_certificate.test.id
+  ssl_state           = "SniEnabled"
 }
 
 %s

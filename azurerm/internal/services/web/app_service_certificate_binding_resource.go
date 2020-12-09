@@ -129,7 +129,7 @@ func resourceArmAppServiceCertificateBindingCreate(d *schema.ResourceData, meta 
 	props := binding.HostNameBindingProperties
 	if props != nil {
 		if props.Thumbprint != nil && *props.Thumbprint == *thumbprint {
-			return tf.ImportAsExistsError(appServiceHostnameBindingResourceName, id.ID(""))
+			return tf.ImportAsExistsError("azurerm_app_service_certificate_binding", id.ID(""))
 		}
 	}
 
