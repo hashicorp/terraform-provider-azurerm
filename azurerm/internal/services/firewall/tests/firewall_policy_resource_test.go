@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	parse2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -131,7 +131,7 @@ func testCheckAzureRMFirewallPolicyExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Firewall Policy not found: %s", resourceName)
 		}
 
-		id, err := parse2.FirewallPolicyID(rs.Primary.ID)
+		id, err := parse.FirewallPolicyID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -156,7 +156,7 @@ func testCheckAzureRMFirewallPolicyDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse2.FirewallPolicyID(rs.Primary.ID)
+		id, err := parse.FirewallPolicyID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

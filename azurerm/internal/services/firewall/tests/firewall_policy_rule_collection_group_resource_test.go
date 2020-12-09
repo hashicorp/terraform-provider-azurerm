@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	parse2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -112,7 +112,7 @@ func testCheckAzureRMFirewallPolicyRuleCollectionGroupExists(resourceName string
 			return fmt.Errorf("Firewall Policy Rule Collection Group not found: %s", resourceName)
 		}
 
-		id, err := parse2.FirewallPolicyRuleCollectionGroupID(rs.Primary.ID)
+		id, err := parse.FirewallPolicyRuleCollectionGroupID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -137,7 +137,7 @@ func testCheckAzureRMFirewallPolicyRuleCollectionGroupDestroy(s *terraform.State
 			continue
 		}
 
-		id, err := parse2.FirewallPolicyRuleCollectionGroupID(rs.Primary.ID)
+		id, err := parse.FirewallPolicyRuleCollectionGroupID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

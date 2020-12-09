@@ -13,7 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
-	firewallValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/validate"
 	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -44,7 +44,7 @@ func resourceArmFirewall() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: firewallValidate.FirewallName,
+				ValidateFunc: validate.FirewallName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -78,7 +78,7 @@ func resourceArmFirewall() *schema.Resource {
 			"firewall_policy_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: firewallValidate.FirewallPolicyID,
+				ValidateFunc: validate.FirewallPolicyID,
 			},
 
 			"ip_configuration": {
@@ -95,7 +95,7 @@ func resourceArmFirewall() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ForceNew:     true,
-							ValidateFunc: firewallValidate.FirewallSubnetName,
+							ValidateFunc: validate.FirewallSubnetName,
 						},
 						"public_ip_address_id": {
 							Type:         schema.TypeString,
@@ -126,7 +126,7 @@ func resourceArmFirewall() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: firewallValidate.FirewallManagementSubnetName,
+							ValidateFunc: validate.FirewallManagementSubnetName,
 						},
 						"public_ip_address_id": {
 							Type:         schema.TypeString,
