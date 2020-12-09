@@ -1,135 +1,89 @@
 package hpccache_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type HPCCacheBlobTargetResource struct {
+}
+
 func TestAccHPCCacheBlobTarget_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_blob_target", "test")
+	r := HPCCacheBlobTargetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckHPCCacheBlobTargetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccHPCCacheBlobTarget_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckHPCCacheBlobTargetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccHPCCacheBlobTarget_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_blob_target", "test")
+	r := HPCCacheBlobTargetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckHPCCacheBlobTargetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccHPCCacheBlobTarget_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckHPCCacheBlobTargetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccHPCCacheBlobTarget_namespace(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckHPCCacheBlobTargetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.namespace(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccHPCCacheBlobTarget_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_blob_target", "test")
+	r := HPCCacheBlobTargetResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckHPCCacheBlobTargetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccHPCCacheBlobTarget_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckHPCCacheBlobTargetExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccHPCCacheBlobTarget_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckHPCCacheBlobTargetExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("HPC Cache Blob Target not found: %s", resourceName)
-		}
-
-		id, err := parse.StorageTargetID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).HPCCache.StorageTargetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.CacheName, id.Name); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: HPC Cache Blob Target %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on Storage.StorageTargetsClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckHPCCacheBlobTargetDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).HPCCache.StorageTargetsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_hpc_cache_blob_target" {
-			continue
-		}
-
-		id, err := parse.StorageTargetID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.CacheName, id.Name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on Storage.StorageTargetsClient: %+v", err)
-			}
-		}
-
-		return nil
+func (HPCCacheBlobTargetResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.StorageTargetID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.HPCCache.StorageTargetsClient.Get(ctx, id.ResourceGroup, id.CacheName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving HPC Cache Blob Target (%s): %+v", id.String(), err)
+	}
+
+	return utils.Bool(resp.BasicStorageTargetProperties != nil), nil
 }
 
-func testAccHPCCacheBlobTarget_basic(data acceptance.TestData) string {
-	template := testAccHPCCacheBlobTarget_template(data)
+func (r HPCCacheBlobTargetResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -140,11 +94,10 @@ resource "azurerm_hpc_cache_blob_target" "test" {
   storage_container_id = azurerm_storage_container.test.resource_manager_id
   namespace_path       = "/blob_storage1"
 }
-`, template, data.RandomString)
+`, r.basic(data), data.RandomString)
 }
 
-func testAccHPCCacheBlobTarget_namespace(data acceptance.TestData) string {
-	template := testAccHPCCacheBlobTarget_template(data)
+func (r HPCCacheBlobTargetResource) namespace(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -155,11 +108,10 @@ resource "azurerm_hpc_cache_blob_target" "test" {
   storage_container_id = azurerm_storage_container.test.resource_manager_id
   namespace_path       = "/blob_storage2"
 }
-`, template, data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
-func testAccHPCCacheBlobTarget_requiresImport(data acceptance.TestData) string {
-	template := testAccHPCCacheBlobTarget_basic(data)
+func (r HPCCacheBlobTargetResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -170,10 +122,10 @@ resource "azurerm_hpc_cache_blob_target" "import" {
   storage_container_id = azurerm_hpc_cache_blob_target.test.storage_container_id
   namespace_path       = azurerm_hpc_cache_blob_target.test.namespace_path
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccHPCCacheBlobTarget_template(data acceptance.TestData) string {
+func (HPCCacheBlobTargetResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
