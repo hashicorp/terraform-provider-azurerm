@@ -197,7 +197,7 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 			continue
 		}
 
-		var segmentBuilder = func(key, value string) ResourceIdSegment {
+		var segmentBuilder = func(key, value string, last bool) ResourceIdSegment {
 			var toCamelCase = func(input string) string {
 				// lazy but it works
 				out := make([]rune, 0)
@@ -232,6 +232,12 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 				return segment
 			}
 
+			if last {
+				segment.FieldName = "Name"
+				segment.ArgumentName = "name"
+				return segment
+			}
+
 			if strings.HasSuffix(key, "s") {
 				// TODO: in time this could be worth a series of overrides
 
@@ -248,22 +254,12 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 				} else if strings.HasSuffix(key, "s") {
 					key = strings.TrimSuffix(key, "s")
 				}
-
-				if strings.EqualFold(key, typeName) {
-					segment.FieldName = "Name"
-					segment.ArgumentName = "name"
-				} else {
-					// remove {Thing}s and make that {Thing}Name
-					rewritten = fmt.Sprintf("%sName", key)
-					segment.FieldName = strings.Title(rewritten)
-					segment.ArgumentName = toCamelCase(rewritten)
-				}
 			}
 
 			return segment
 		}
 
-		segments = append(segments, segmentBuilder(key, value))
+		segments = append(segments, segmentBuilder(key, value, i == len(split)-2))
 	}
 
 	// finally build up the format string based on this information
