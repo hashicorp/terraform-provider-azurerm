@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmServiceBusQueueAuthorizationRule() *schema.Resource {
+func resourceServiceBusQueueAuthorizationRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceBusQueueAuthorizationRuleCreateUpdate,
-		Read:   resourceArmServiceBusQueueAuthorizationRuleRead,
-		Update: resourceArmServiceBusQueueAuthorizationRuleCreateUpdate,
-		Delete: resourceArmServiceBusQueueAuthorizationRuleDelete,
+		Create: resourceServiceBusQueueAuthorizationRuleCreateUpdate,
+		Read:   resourceServiceBusQueueAuthorizationRuleRead,
+		Update: resourceServiceBusQueueAuthorizationRuleCreateUpdate,
+		Delete: resourceServiceBusQueueAuthorizationRuleDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.QueueAuthorizationRuleID(id)
@@ -65,7 +65,7 @@ func resourceArmServiceBusQueueAuthorizationRule() *schema.Resource {
 	}
 }
 
-func resourceArmServiceBusQueueAuthorizationRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusQueueAuthorizationRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.QueuesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -99,10 +99,10 @@ func resourceArmServiceBusQueueAuthorizationRuleCreateUpdate(d *schema.ResourceD
 	}
 
 	d.SetId(resourceId.ID(""))
-	return resourceArmServiceBusQueueAuthorizationRuleRead(d, meta)
+	return resourceServiceBusQueueAuthorizationRuleRead(d, meta)
 }
 
-func resourceArmServiceBusQueueAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusQueueAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.QueuesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -147,7 +147,7 @@ func resourceArmServiceBusQueueAuthorizationRuleRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceArmServiceBusQueueAuthorizationRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusQueueAuthorizationRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.QueuesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

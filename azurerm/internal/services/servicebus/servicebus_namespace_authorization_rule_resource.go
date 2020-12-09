@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmServiceBusNamespaceAuthorizationRule() *schema.Resource {
+func resourceServiceBusNamespaceAuthorizationRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceBusNamespaceAuthorizationRuleCreateUpdate,
-		Read:   resourceArmServiceBusNamespaceAuthorizationRuleRead,
-		Update: resourceArmServiceBusNamespaceAuthorizationRuleCreateUpdate,
-		Delete: resourceArmServiceBusNamespaceAuthorizationRuleDelete,
+		Create: resourceServiceBusNamespaceAuthorizationRuleCreateUpdate,
+		Read:   resourceServiceBusNamespaceAuthorizationRuleRead,
+		Update: resourceServiceBusNamespaceAuthorizationRuleCreateUpdate,
+		Delete: resourceServiceBusNamespaceAuthorizationRuleDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.NamespaceAuthorizationRuleID(id)
@@ -59,7 +59,7 @@ func resourceArmServiceBusNamespaceAuthorizationRule() *schema.Resource {
 	}
 }
 
-func resourceArmServiceBusNamespaceAuthorizationRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusNamespaceAuthorizationRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.NamespacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -93,10 +93,10 @@ func resourceArmServiceBusNamespaceAuthorizationRuleCreateUpdate(d *schema.Resou
 
 	d.SetId(resourceId.ID(""))
 
-	return resourceArmServiceBusNamespaceAuthorizationRuleRead(d, meta)
+	return resourceServiceBusNamespaceAuthorizationRuleRead(d, meta)
 }
 
-func resourceArmServiceBusNamespaceAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusNamespaceAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.NamespacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -139,7 +139,7 @@ func resourceArmServiceBusNamespaceAuthorizationRuleRead(d *schema.ResourceData,
 	return nil
 }
 
-func resourceArmServiceBusNamespaceAuthorizationRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusNamespaceAuthorizationRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.NamespacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
