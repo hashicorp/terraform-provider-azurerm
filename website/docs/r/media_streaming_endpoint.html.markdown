@@ -80,35 +80,27 @@ resource "azurerm_media_streaming_endpoint" "example" {
   media_services_account_name = azurerm_media_services_account.example.name
   scale_units                 = 2
   access_control {
-    ip {
-      allow {
-        name    = "AllowedIP"
-        address = "192.168.1.1"
-      }
-
-      allow {
-        name    = "AnotherIp"
-        address = "192.168.1.2"
-      }
+    ip_allow {
+      name    = "AllowedIP"
+      address = "192.168.1.1"
+    }
+    
+    ip_allow {
+      name    = "AnotherIp"
+      address = "192.168.1.2"
     }
 
-    akamai {
-      akamai_signature_header_authentication_key {
-        identifier = "id1"
-        expiration = "2030-12-31T16:00:00Z"
-        base64_key = "dGVzdGlkMQ=="
-
-      }
-
-      akamai_signature_header_authentication_key {
-        identifier = "id2"
-        expiration = "2032-01-28T16:00:00Z"
-        base64_key = "dGVzdGlkMQ=="
-
-      }
-
+    akamai_signature_header_authentication_key {
+      identifier = "id1"
+      expiration = "2030-12-31T16:00:00Z"
+      base64_key = "dGVzdGlkMQ=="
     }
 
+    akamai_signature_header_authentication_key {
+      identifier = "id2"
+      expiration = "2032-01-28T16:00:00Z"
+      base64_key = "dGVzdGlkMQ=="
+    }
   }
 }
 ```
@@ -131,7 +123,7 @@ The following arguments are supported:
 
 * `access_control` - (Optional) A `access_control` block as defined below.
 
-* `auto_start` - (Optional) The flag indicates if the resource should be automatically started on creation.
+* `auto_start_enabled` - (Optional) The flag indicates if the resource should be automatically started on creation.
 
 * `cdn_enabled` - (Optional) The CDN enabled flag.
 
@@ -145,7 +137,7 @@ The following arguments are supported:
 
 * `description` - (Optional) The streaming endpoint description.
 
-* `max_cache_age` - (Optional) Max cache age.
+* `max_cache_age_seconds` - (Optional) Max cache age in seconds.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Streaming Endpoint.
 
@@ -153,15 +145,9 @@ The following arguments are supported:
 
 A `access_control` block supports the following:
 
-* `akamai` - (Optional) A `akamai` block as defined below.
-
-* `ip` - (Optional) A `ip` block as defined below.
-
----
-
-A `akamai` block supports the following:
-
 * `akamai_signature_header_authentication_key` - (Optional) One or more `akamai_signature_header_authentication_key` blocks as defined below.
+
+* `ip_allow` - (Optional) A `ip` block as defined below.
 
 ---
 
@@ -175,13 +161,7 @@ A `akamai_signature_header_authentication_key` block supports the following:
 
 ---
 
-A `ip` block supports the following:
-
-* `allow` - (Optional) One or more `allow` blocks as defined above.
-
----
-
-A `allow` block supports the following:
+A `ip_allow` block supports the following:
 
 * `address` - (Optional) The IP address.
 

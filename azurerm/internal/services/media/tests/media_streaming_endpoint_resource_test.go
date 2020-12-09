@@ -62,7 +62,7 @@ func TestAccAzureRMStreamingEndpoint_MaxCacheAge(t *testing.T) {
 			{
 				Config: testAccAzureRMStreamingEndpoint_maxCacheAge(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "max_cache_age", "60"),
+					resource.TestCheckResourceAttr(data.ResourceName, "max_cache_age_seconds", "60"),
 				),
 			},
 			data.ImportStep(),
@@ -79,11 +79,11 @@ func testCheckAzureRMStreamingEndpointDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.MediaStreamingEndpointID(rs.Primary.ID)
+		id, err := parse.StreamingEndpointID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
 
 		if err != nil {
 			return nil
@@ -139,37 +139,30 @@ resource "azurerm_media_streaming_endpoint" "test" {
   media_services_account_name = azurerm_media_services_account.test.name
   scale_units                 = 1
   access_control {
-    ip {
-      allow {
+    ip_allow {
         name    = "AllowedIP"
         address = "192.168.1.1"
-      }
-
-      allow {
-        name    = "AnotherIp"
-        address = "192.168.1.2"
-      }
     }
 
-    akamai {
-      akamai_signature_header_authentication_key {
+    ip_allow {
+        name    = "AnotherIp"
+        address = "192.168.1.2"
+    }
+    
+    akamai_signature_header_authentication_key {
         identifier = "id1"
         expiration = "2030-12-31T16:00:00Z"
         base64_key = "dGVzdGlkMQ=="
-
-      }
-
-      akamai_signature_header_authentication_key {
-        identifier = "id2"
-        expiration = "2032-01-28T16:00:00Z"
-        base64_key = "dGVzdGlkMQ=="
-
-      }
-
     }
 
+    akamai_signature_header_authentication_key {
+        identifier = "id2"
+        expiration = "2032-01-28T16:00:00Z"
+		base64_key = "dGVzdGlkMQ=="
+	}
   }
-  max_cache_age = 60
+  max_cache_age_seconds = 60
+
 }
 `, template)
 }
