@@ -12,6 +12,8 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* dependencies: upgrading `github.com/Azure/go-autorest/validation` to `v0.3.1` [GH-9783]
+* internal: disabling the Azure SDK's validation since it's superfluous [GH-9783]
 * `azurerm_app_service` - support for PHP version `7.4` [GH-9727]
 * `azurerm_bot_channel_directline` - support for enhanced import validation [GH-9690]
 * `azurerm_bot_channel_email` - support for enhanced import validation [GH-9690]
