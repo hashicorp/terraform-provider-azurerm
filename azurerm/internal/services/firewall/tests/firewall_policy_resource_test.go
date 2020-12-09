@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -123,7 +123,7 @@ func TestAccAzureRMFirewallPolicy_inherit(t *testing.T) {
 
 func testCheckAzureRMFirewallPolicyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.FirewallPolicyClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Firewall.FirewallPolicyClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -148,7 +148,7 @@ func testCheckAzureRMFirewallPolicyExists(resourceName string) resource.TestChec
 }
 
 func testCheckAzureRMFirewallPolicyDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.FirewallPolicyClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Firewall.FirewallPolicyClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {

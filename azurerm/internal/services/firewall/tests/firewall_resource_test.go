@@ -9,45 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
-
-func TestValidateFirewallName(t *testing.T) {
-	// The name must begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, underscores, periods, or hyphens.
-	validNames := []string{
-		"a",
-		"abc123",
-		"a_b_c",
-		"hy-ph-en",
-		"valid_",
-		"v-a_l1.d_",
-		strings.Repeat("w", 65),
-	}
-	for _, v := range validNames {
-		_, errors := network.ValidateAzureFirewallName(v, "name")
-		if len(errors) != 0 {
-			t.Fatalf("%q should be a valid Firewall Name: %q", v, errors)
-		}
-	}
-
-	invalidNames := []string{
-		"_invalid",
-		"-invalid",
-		".invalid",
-		"!invalid",
-		"hel!!o",
-		"invalid.",
-		"invalid-",
-		"invalid!",
-	}
-	for _, v := range invalidNames {
-		_, errors := network.ValidateAzureFirewallName(v, "name")
-		if len(errors) == 0 {
-			t.Fatalf("%q should be an invalid Firewall Name", v)
-		}
-	}
-}
 
 func TestAccAzureRMFirewall_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
@@ -346,7 +309,7 @@ func TestAccAzureRMFirewall_inVirtualHub(t *testing.T) {
 
 func testCheckAzureRMFirewallExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Firewall.AzureFirewallsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
@@ -376,7 +339,7 @@ func testCheckAzureRMFirewallExists(resourceName string) resource.TestCheckFunc 
 
 func testCheckAzureRMFirewallDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Firewall.AzureFirewallsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
@@ -404,7 +367,7 @@ func testCheckAzureRMFirewallDisappears(resourceName string) resource.TestCheckF
 }
 
 func testCheckAzureRMFirewallDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Firewall.AzureFirewallsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
