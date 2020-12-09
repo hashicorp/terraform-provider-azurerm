@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2020-03-01-preview/operationalinsights"
+	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-10-01/operationalinsights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -112,7 +112,7 @@ func resourceArmLogAnalyticsClusterCreate(d *schema.ResourceData, meta interface
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := parse.NewLogAnalyticsClusterId(name, resourceGroup)
+	id := parse.NewLogAnalyticsClusterID(subscriptionId, resourceGroup, name)
 
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -147,10 +147,10 @@ func resourceArmLogAnalyticsClusterCreate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("retrieving Log Analytics Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	createWait := logAnalyticsClusterWaitForState(ctx, meta, d.Timeout(schema.TimeoutCreate), id.ResourceGroup, id.Name)
+	createWait := logAnalyticsClusterWaitForState(ctx, meta, d.Timeout(schema.TimeoutCreate), id.ResourceGroup, id.ClusterName)
 
 	if _, err := createWait.WaitForState(); err != nil {
-		return fmt.Errorf("waiting for Log Analytics Cluster to finish updating %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for Log Analytics Cluster to finish updating %q (Resource Group %q): %v", id.ClusterName, id.ResourceGroup, err)
 	}
 
 	d.SetId(id.ID(subscriptionId))
@@ -168,16 +168,16 @@ func resourceArmLogAnalyticsClusterRead(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Log Analytics %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Log Analytics Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Log Analytics Cluster %q (Resource Group %q): %+v", id.ClusterName, id.ResourceGroup, err)
 	}
-	d.Set("name", id.Name)
+	d.Set("name", id.ClusterName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	if err := d.Set("identity", flattenArmLogAnalyticsIdentity(resp.Identity)); err != nil {
@@ -221,18 +221,18 @@ func resourceArmLogAnalyticsClusterUpdate(d *schema.ResourceData, meta interface
 		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
-		return fmt.Errorf("updating Log Analytics Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if _, err := client.Update(ctx, id.ResourceGroup, id.ClusterName, parameters); err != nil {
+		return fmt.Errorf("updating Log Analytics Cluster %q (Resource Group %q): %+v", id.ClusterName, id.ResourceGroup, err)
 	}
 
 	// Need to wait for the cluster to actually finish updating the resource before continuing
 	// since the service returns a 200 instantly while it's still updating in the background
 	log.Printf("[INFO] Checking for Log Analytics Cluster provisioning state")
 
-	updateWait := logAnalyticsClusterWaitForState(ctx, meta, d.Timeout(schema.TimeoutUpdate), id.ResourceGroup, id.Name)
+	updateWait := logAnalyticsClusterWaitForState(ctx, meta, d.Timeout(schema.TimeoutUpdate), id.ResourceGroup, id.ClusterName)
 
 	if _, err := updateWait.WaitForState(); err != nil {
-		return fmt.Errorf("waiting for Log Analytics Cluster to finish updating %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for Log Analytics Cluster to finish updating %q (Resource Group %q): %v", id.ClusterName, id.ResourceGroup, err)
 	}
 
 	return resourceArmLogAnalyticsClusterRead(d, meta)
@@ -248,13 +248,13 @@ func resourceArmLogAnalyticsClusterDelete(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ClusterName)
 	if err != nil {
-		return fmt.Errorf("deleting Log Analytics Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Log Analytics Cluster %q (Resource Group %q): %+v", id.ClusterName, id.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on deleting future for Log Analytics Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting on deleting future for Log Analytics Cluster %q (Resource Group %q): %+v", id.ClusterName, id.ResourceGroup, err)
 	}
 
 	return nil

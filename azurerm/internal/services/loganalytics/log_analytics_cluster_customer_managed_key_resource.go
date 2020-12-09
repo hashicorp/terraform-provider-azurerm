@@ -40,7 +40,7 @@ func resourceArmLogAnalyticsClusterCustomerManagedKey() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.LogAnalyticsClusterId,
+				ValidateFunc: validate.LogAnalyticsClusterID,
 			},
 
 			"key_vault_key_id": {
@@ -63,12 +63,12 @@ func resourceArmLogAnalyticsClusterCustomerManagedKeyCreate(d *schema.ResourceDa
 		return err
 	}
 
-	resp, err := client.Get(ctx, clusterId.ResourceGroup, clusterId.Name)
+	resp, err := client.Get(ctx, clusterId.ResourceGroup, clusterId.ClusterName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Log Analytics Cluster %q (resource group %q) was not found", clusterId.Name, clusterId.ResourceGroup)
+			return fmt.Errorf("Log Analytics Cluster %q (resource group %q) was not found", clusterId.ClusterName, clusterId.ResourceGroup)
 		}
-		return fmt.Errorf("failed to get details of Log Analytics Cluster %q (resource group %q): %+v", clusterId.Name, clusterId.ResourceGroup, err)
+		return fmt.Errorf("failed to get details of Log Analytics Cluster %q (resource group %q): %+v", clusterId.ClusterName, clusterId.ResourceGroup, err)
 	}
 	if resp.ClusterProperties != nil && resp.ClusterProperties.KeyVaultProperties != nil {
 		keyProps := *resp.ClusterProperties.KeyVaultProperties
@@ -106,14 +106,14 @@ func resourceArmLogAnalyticsClusterCustomerManagedKeyUpdate(d *schema.ResourceDa
 		},
 	}
 
-	if _, err := client.Update(ctx, clusterId.ResourceGroup, clusterId.Name, clusterPatch); err != nil {
-		return fmt.Errorf("updating Log Analytics Cluster %q (Resource Group %q): %+v", clusterId.Name, clusterId.ResourceGroup, err)
+	if _, err := client.Update(ctx, clusterId.ResourceGroup, clusterId.ClusterName, clusterPatch); err != nil {
+		return fmt.Errorf("updating Log Analytics Cluster %q (Resource Group %q): %+v", clusterId.ClusterName, clusterId.ResourceGroup, err)
 	}
 
-	updateWait := logAnalyticsClusterWaitForState(ctx, meta, d.Timeout(schema.TimeoutUpdate), clusterId.ResourceGroup, clusterId.Name)
+	updateWait := logAnalyticsClusterWaitForState(ctx, meta, d.Timeout(schema.TimeoutUpdate), clusterId.ResourceGroup, clusterId.ClusterName)
 
 	if _, err := updateWait.WaitForState(); err != nil {
-		return fmt.Errorf("waiting for Log Analytics Cluster to finish updating %q (Resource Group %q): %v", clusterId.Name, clusterId.ResourceGroup, err)
+		return fmt.Errorf("waiting for Log Analytics Cluster to finish updating %q (Resource Group %q): %v", clusterId.ClusterName, clusterId.ResourceGroup, err)
 	}
 
 	return resourceArmLogAnalyticsClusterCustomerManagedKeyRead(d, meta)
@@ -133,14 +133,14 @@ func resourceArmLogAnalyticsClusterCustomerManagedKeyRead(d *schema.ResourceData
 
 	d.Set("log_analytics_cluster_id", idRaw)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Log Analytics %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Log Analytics Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Log Analytics Cluster %q (Resource Group %q): %+v", id.ClusterName, id.ResourceGroup, err)
 	}
 
 	if props := resp.ClusterProperties; props != nil {
@@ -190,14 +190,14 @@ func resourceArmLogAnalyticsClusterCustomerManagedKeyDelete(d *schema.ResourceDa
 		},
 	}
 
-	if _, err = client.Update(ctx, clusterId.ResourceGroup, clusterId.Name, clusterPatch); err != nil {
-		return fmt.Errorf("removing Log Analytics Cluster Customer Managed Key from cluster %q (resource group %q)", clusterId.Name, clusterId.ResourceGroup)
+	if _, err = client.Update(ctx, clusterId.ResourceGroup, clusterId.ClusterName, clusterPatch); err != nil {
+		return fmt.Errorf("removing Log Analytics Cluster Customer Managed Key from cluster %q (resource group %q)", clusterId.ClusterName, clusterId.ResourceGroup)
 	}
 
-	deleteWait := logAnalyticsClusterWaitForState(ctx, meta, d.Timeout(schema.TimeoutDelete), clusterId.ResourceGroup, clusterId.Name)
+	deleteWait := logAnalyticsClusterWaitForState(ctx, meta, d.Timeout(schema.TimeoutDelete), clusterId.ResourceGroup, clusterId.ClusterName)
 
 	if _, err := deleteWait.WaitForState(); err != nil {
-		return fmt.Errorf("waiting for Log Analytics Cluster to finish updating %q (Resource Group %q): %v", clusterId.Name, clusterId.ResourceGroup, err)
+		return fmt.Errorf("waiting for Log Analytics Cluster to finish updating %q (Resource Group %q): %v", clusterId.ClusterName, clusterId.ResourceGroup, err)
 	}
 
 	return nil
