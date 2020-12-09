@@ -9,6 +9,7 @@ FEATURES:
 * **New Resource:** `azurerm_resource_provider` [GH-7951]
 * **New Resource:** `azurerm_storage_share_file` [GH-9406]
 * **New resource:** `azurerm_storage_sync_cloud_endpoint` [GH-8540]
+* **New resource:** `azurerm_subnet_service_endpoint_storage_policy` [GH-8966]
 * **New Resource:** `azurerm_hci_cluster` [GH-9134]
 
 IMPROVEMENTS:
@@ -38,6 +39,7 @@ IMPROVEMENTS:
 * `azurerm_stream_analytics_stream_input_blob` - support for enhanced import validation [GH-9735]
 * `azurerm_stream_analytics_stream_input_iothub` - support for enhanced import validation [GH-9735]
 * `azurerm_stream_analytics_stream_input_eventhub` - support for enhanced import validation [GH-9735]
+* `azurerm_subnet` - support for the `service_endpoint_policy` block [GH-8966]
 
 BUG FIXES:
 
