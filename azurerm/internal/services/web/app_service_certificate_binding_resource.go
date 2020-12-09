@@ -90,10 +90,17 @@ func resourceArmAppServiceCertificateBindingCreate(d *schema.ResourceData, meta 
 
 	log.Printf("[INFO] preparing arguments for App Service Hostname Binding creation.")
 
-	hostnameBindingID := d.Get("hostname_binding_id").(string)
-	certificateID := d.Get("certificate_id").(string)
+	hostnameBindingID, err := parse.HostnameBindingID(d.Get("hostname_binding_id").(string))
+	if err != nil {
+		return err
+	}
 
-	id, err := parse.NewCertificateBindingId(hostnameBindingID, certificateID)
+	certificateID, err := parse.CertificateID(d.Get("certificate_id").(string))
+	if err != nil {
+		return err
+	}
+
+	id := parse.NewCertificateBindingId(*hostnameBindingID, *certificateID)
 	if err != nil {
 		return fmt.Errorf("could not parse ID: %+v", err)
 	}
@@ -116,7 +123,7 @@ func resourceArmAppServiceCertificateBindingCreate(d *schema.ResourceData, meta 
 		if utils.ResponseWasNotFound(binding.Response) {
 			return fmt.Errorf("retrieving Custom Hostname Binding %q (App Service %q / Resource Group %q): %+v", id.HostnameBindingId.Name, id.HostnameBindingId.SiteName, id.HostnameBindingId.ResourceGroup, err)
 		}
-		return fmt.Errorf("retrieving Custom Hostname Certificate Binding %q with certificate name %q (App Service %q / Resource Group %q): %+v", id.HostnameBindingId.Name, id.HostnameBindingId.SiteName, id.HostnameBindingId.SiteName, id.HostnameBindingId.ResourceGroup, err)
+		return fmt.Errorf("retrieving Custom Hostname Certificate Binding %q with certificate name %q (App Service %q / Resource Group %q): %+v", id.HostnameBindingId.Name, id.HostnameBindingId.SiteName, id.CertificateId.Name, id.HostnameBindingId.ResourceGroup, err)
 	}
 
 	props := binding.HostNameBindingProperties
@@ -151,9 +158,6 @@ func resourceArmAppServiceCertificateBindingRead(d *schema.ResourceData, meta in
 		return err
 	}
 
-	d.Set("hostname_binding_id", id.HostnameBindingId.ID(""))
-	d.Set("certificate_id", id.CertificateId.ID(""))
-
 	resp, err := client.GetHostNameBinding(ctx, id.HostnameBindingId.ResourceGroup, id.HostnameBindingId.SiteName, id.HostnameBindingId.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -165,12 +169,14 @@ func resourceArmAppServiceCertificateBindingRead(d *schema.ResourceData, meta in
 	}
 
 	props := resp.HostNameBindingProperties
-	if (props == nil) || (props.Thumbprint == nil) {
+	if props == nil || props.Thumbprint == nil {
 		log.Printf("[DEBUG] App Service Hostname Certificate Binding %q (App Service %q / Resource Group %q) was not found - removing from state", id.HostnameBindingId.Name, id.HostnameBindingId.SiteName, id.HostnameBindingId.ResourceGroup)
 		d.SetId("")
 		return nil
 	}
 
+	d.Set("hostname_binding_id", id.HostnameBindingId.ID(""))
+	d.Set("certificate_id", id.CertificateId.ID(""))
 	d.Set("ssl_state", string(props.SslState))
 	d.Set("thumbprint", props.Thumbprint)
 	d.Set("hostname", id.HostnameBindingId.Name)
@@ -218,6 +224,5 @@ func resourceArmAppServiceCertificateBindingDelete(d *schema.ResourceData, meta 
 		return fmt.Errorf("deleting Custom Hostname Certificate Binding %q (App Service %q / Resource Group %q): %+v", id.HostnameBindingId.Name, id.HostnameBindingId.SiteName, id.HostnameBindingId.ResourceGroup, err)
 	}
 
-	d.SetId("")
 	return nil
 }

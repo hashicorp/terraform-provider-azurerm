@@ -89,7 +89,7 @@ The following arguments are supported:
 
 * `certificate_id` - (Required) The ID of the certificate to bind to the custom domain. Changing this forces a new App Service Certificate Binding to be created.
 
-* `hostname_binding_id` - (Required) The ID of the custom domain. Changing this forces a new App Service Certificate Binding to be created.
+* `hostname_binding_id` - (Required) The ID of the Custom Domain/Hostname Binding. Changing this forces a new App Service Certificate Binding to be created.
 
 * `ssl_state` - (Required) The type of certificate binding. Allowed values are `IpBasedEnabled` or `SniEnabled`. Changing this forces a new App Service Certificate Binding to be created.
 

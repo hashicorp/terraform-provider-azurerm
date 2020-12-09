@@ -10,11 +10,18 @@ import (
 var _ resourceid.Formatter = CertificateBindingId{}
 
 func TestCertificateBindingIDFormatter(t *testing.T) {
-	actual, err := NewCertificateBindingId("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/mygroup1/providers/Microsoft.Web/sites/site1/hostNameBindings/binding1", "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/certificates/certificate1")
-	if err != nil {
-		t.Fatalf("could not parse id: %+v", err)
+	hostnameBindingId := HostnameBindingId{
+		SubscriptionId: "12345678-1234-9876-4563-123456789012",
+		ResourceGroup:  "mygroup1",
+		SiteName:       "site1",
+		Name:           "binding1",
 	}
-
+	certificateId := CertificateId{
+		SubscriptionId: "12345678-1234-9876-4563-123456789012",
+		ResourceGroup:  "resGroup1",
+		Name:           "certificate1",
+	}
+	actual := NewCertificateBindingId(hostnameBindingId, certificateId)
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/mygroup1/providers/Microsoft.Web/sites/site1/hostNameBindings/binding1|/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/certificates/certificate1"
 	if actual.ID("") != expected {
 		t.Fatalf("Expected %q, got %q", expected, actual)
