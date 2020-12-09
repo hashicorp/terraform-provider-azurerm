@@ -181,11 +181,11 @@ func testAccAzureRMCloudEndpoint_complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_storage_sync_cloud_endpoint" "test" {
-  name                  = "acctest-CEP-%d"
-  storage_sync_group_id = azurerm_storage_sync_group.test.id
-  storage_account_id    = azurerm_storage_account.test.id
-  storage_tenant_id     = "%s"
-  file_share_name       = azurerm_storage_share.test.name
+  name                      = "acctest-CEP-%d"
+  storage_sync_group_id     = azurerm_storage_sync_group.test.id
+  storage_account_id        = azurerm_storage_account.test.id
+  storage_account_tenant_id = "%s"
+  file_share_name           = azurerm_storage_share.test.name
 }
 `, template, data.RandomInteger, os.Getenv("ARM_TENANT_ID"))
 }

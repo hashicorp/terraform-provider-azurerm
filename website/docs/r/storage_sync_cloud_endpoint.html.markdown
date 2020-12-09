@@ -10,9 +10,9 @@ description: |-
 
 Manages a Storage Sync Cloud Endpoint.
 
-## Example Usage
-
 -> **NOTE:** Please ensure Azure File Sync has access to the storage account in your subscription, which indicates that `Microsoft.StorageSync` is assigned role `Reader and Data Access` ( refer to details [here](https://docs.microsoft.com/en-us/azure/storage/files/storage-sync-files-troubleshoot?tabs=portal1%2Cazure-portal#common-troubleshooting-steps)).
+
+## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -70,7 +70,7 @@ The following arguments are supported:
 
 * `storage_account_id` - (Required) The ID of the Storage Account where the Storage Share exists. Changing this forces a new Storage Sync Cloud Endpoint to be created.
 
-* `storage_tenant_id` - (Optional) The Tenant ID of the Storage Account where the Storage Share exists. Changing this forces a new Storage Sync Cloud Endpoint to be created. Defaults to the current tenant id.
+* `storage_account_tenant_id` - (Optional) The Tenant ID of the Storage Account where the Storage Share exists. Changing this forces a new Storage Sync Cloud Endpoint to be created. Defaults to the current tenant id.
 
 ## Attributes Reference
 
