@@ -135,9 +135,9 @@ func testCheckAzureRMLogAnalyticsStorageInsightsExists(resourceName string) reso
 		if err != nil {
 			return err
 		}
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.StorageInsightConfigName); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Log Analytics Storage Insights %q does not exist", id.Name)
+				return fmt.Errorf("bad: Log Analytics Storage Insights %q does not exist", id.StorageInsightConfigName)
 			}
 			return fmt.Errorf("bad: Get on LogAnalytics.StorageInsightsClient: %+v", err)
 		}
@@ -157,7 +157,7 @@ func testCheckAzureRMLogAnalyticsStorageInsightsDestroy(s *terraform.State) erro
 		if err != nil {
 			return err
 		}
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.StorageInsightConfigName); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("bad: Get on LogAnalytics.StorageInsightsClient: %+v", err)
 			}

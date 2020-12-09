@@ -117,7 +117,7 @@ func testCheckAzureRMLogAnalyticsDataExportRuleDestroy(s *terraform.State) error
 			return nil
 		}
 
-		resp, err := conn.Get(ctx, resourceGroup, workspace.Name, name)
+		resp, err := conn.Get(ctx, resourceGroup, workspace.WorkspaceName, name)
 		if err != nil {
 			return nil
 		}
@@ -152,7 +152,7 @@ func testCheckAzureRMLogAnalyticsDataExportRuleExists(resourceName string) resou
 			return fmt.Errorf("Bad: unable to access 'workspace_resource_id' for Log Analytics Data Export Rule: %q", name)
 		}
 
-		resp, err := conn.Get(ctx, resourceGroup, workspace.Name, name)
+		resp, err := conn.Get(ctx, resourceGroup, workspace.WorkspaceName, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on Log Analytics Data Export Rule Client: %+v", err)
 		}

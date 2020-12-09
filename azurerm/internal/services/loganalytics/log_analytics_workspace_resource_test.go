@@ -222,7 +222,7 @@ func testCheckAzureRMLogAnalyticsWorkspaceDestroy(s *terraform.State) error {
 			return err
 		}
 
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.WorkspaceName)
 		if err != nil {
 			return nil
 		}
@@ -251,13 +251,13 @@ func testCheckAzureRMLogAnalyticsWorkspaceExists(resourceName string) resource.T
 			return err
 		}
 
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.WorkspaceName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on Log Analytics Workspace Client: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Log Analytics Workspace '%s' (resource group: '%s') does not exist", id.Name, id.ResourceGroup)
+			return fmt.Errorf("Bad: Log Analytics Workspace '%s' (resource group: '%s') does not exist", id.WorkspaceName, id.ResourceGroup)
 		}
 
 		return nil
