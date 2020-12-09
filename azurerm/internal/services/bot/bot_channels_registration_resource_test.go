@@ -12,60 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMBotChannelsRegistration(t *testing.T) {
-	// NOTE: this is a combined test rather than separate split out tests due to
-	// Azure only being able provision against one app id at a time
-	testCases := map[string]map[string]func(t *testing.T){
-		"basic": {
-			"basic":    testAccAzureRMBotChannelsRegistration_basic,
-			"update":   testAccAzureRMBotChannelsRegistration_update,
-			"complete": testAccAzureRMBotChannelsRegistration_complete,
-		},
-		"connection": {
-			"basic":    testAccAzureRMBotConnection_basic,
-			"complete": testAccAzureRMBotConnection_complete,
-		},
-		"channel": {
-			"slackBasic":         testAccAzureRMBotChannelSlack_basic,
-			"slackUpdate":        testAccAzureRMBotChannelSlack_update,
-			"msteamsBasic":       testAccAzureRMBotChannelMsTeams_basic,
-			"msteamsUpdate":      testAccAzureRMBotChannelMsTeams_update,
-			"directlineBasic":    testAccAzureRMBotChannelDirectline_basic,
-			"directlineComplete": testAccAzureRMBotChannelDirectline_complete,
-			"directlineUpdate":   testAccAzureRMBotChannelDirectline_update,
-		},
-		"web_app": {
-			"basic":    testAccAzureRMBotWebApp_basic,
-			"update":   testAccAzureRMBotWebApp_update,
-			"complete": testAccAzureRMBotWebApp_complete,
-		},
-	}
-
-	for group, m := range testCases {
-		m := m
-		t.Run(group, func(t *testing.T) {
-			for name, tc := range m {
-				tc := tc
-				t.Run(name, func(t *testing.T) {
-					tc(t)
-				})
-			}
-		})
-	}
-}
-
-func testAccAzureRMBotChannelsRegistration_basic(t *testing.T) {
+func testAccBotChannelsRegistration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channels_registration", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBotChannelsRegistrationDestroy,
+		CheckDestroy: testCheckBotChannelsRegistrationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBotChannelsRegistration_basicConfig(data),
+				Config: testAccBotChannelsRegistration_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelsRegistrationExists(data.ResourceName),
+					testCheckBotChannelsRegistrationExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("developer_app_insights_api_key"),
@@ -73,25 +31,25 @@ func testAccAzureRMBotChannelsRegistration_basic(t *testing.T) {
 	})
 }
 
-func testAccAzureRMBotChannelsRegistration_update(t *testing.T) {
+func testAccBotChannelsRegistration_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channels_registration", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBotChannelsRegistrationDestroy,
+		CheckDestroy: testCheckBotChannelsRegistrationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBotChannelsRegistration_basicConfig(data),
+				Config: testAccBotChannelsRegistration_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelsRegistrationExists(data.ResourceName),
+					testCheckBotChannelsRegistrationExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("developer_app_insights_api_key"),
 			{
-				Config: testAccAzureRMBotChannelsRegistration_updateConfig(data),
+				Config: testAccBotChannelsRegistration_updateConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelsRegistrationExists(data.ResourceName),
+					testCheckBotChannelsRegistrationExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("developer_app_insights_api_key"),
@@ -99,18 +57,18 @@ func testAccAzureRMBotChannelsRegistration_update(t *testing.T) {
 	})
 }
 
-func testAccAzureRMBotChannelsRegistration_complete(t *testing.T) {
+func testAccBotChannelsRegistration_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channels_registration", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBotChannelsRegistrationDestroy,
+		CheckDestroy: testCheckBotChannelsRegistrationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBotChannelsRegistration_completeConfig(data),
+				Config: testAccBotChannelsRegistration_completeConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelsRegistrationExists(data.ResourceName),
+					testCheckBotChannelsRegistrationExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("developer_app_insights_api_key"),
@@ -118,7 +76,7 @@ func testAccAzureRMBotChannelsRegistration_complete(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMBotChannelsRegistrationExists(name string) resource.TestCheckFunc {
+func testCheckBotChannelsRegistrationExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.BotClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -148,7 +106,7 @@ func testCheckAzureRMBotChannelsRegistrationExists(name string) resource.TestChe
 	}
 }
 
-func testCheckAzureRMBotChannelsRegistrationDestroy(s *terraform.State) error {
+func testCheckBotChannelsRegistrationDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.BotClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -173,7 +131,7 @@ func testCheckAzureRMBotChannelsRegistrationDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMBotChannelsRegistration_basicConfig(data acceptance.TestData) string {
+func testAccBotChannelsRegistration_basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -201,7 +159,7 @@ resource "azurerm_bot_channels_registration" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMBotChannelsRegistration_updateConfig(data acceptance.TestData) string {
+func testAccBotChannelsRegistration_updateConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -229,7 +187,7 @@ resource "azurerm_bot_channels_registration" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMBotChannelsRegistration_completeConfig(data acceptance.TestData) string {
+func testAccBotChannelsRegistration_completeConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

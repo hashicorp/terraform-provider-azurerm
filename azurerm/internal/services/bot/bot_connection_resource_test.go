@@ -12,18 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func testAccAzureRMBotConnection_basic(t *testing.T) {
+func testAccBotConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_connection", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBotConnectionDestroy,
+		CheckDestroy: testCheckBotConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBotConnection_basicConfig(data),
+				Config: testAccBotConnection_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotConnectionExists(data.ResourceName),
+					testCheckBotConnectionExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("client_secret", "service_provider_name"),
@@ -31,25 +31,25 @@ func testAccAzureRMBotConnection_basic(t *testing.T) {
 	})
 }
 
-func testAccAzureRMBotConnection_complete(t *testing.T) {
+func testAccBotConnection_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_connection", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBotConnectionDestroy,
+		CheckDestroy: testCheckBotConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBotConnection_completeConfig(data),
+				Config: testAccBotConnection_completeConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotConnectionExists(data.ResourceName),
+					testCheckBotConnectionExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("client_secret", "service_provider_name"),
 			{
-				Config: testAccAzureRMBotConnection_completeUpdateConfig(data),
+				Config: testAccBotConnection_completeUpdateConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotConnectionExists(data.ResourceName),
+					testCheckBotConnectionExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("client_secret", "service_provider_name"),
@@ -57,7 +57,7 @@ func testAccAzureRMBotConnection_complete(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMBotConnectionExists(name string) resource.TestCheckFunc {
+func testCheckBotConnectionExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.ConnectionClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -88,7 +88,7 @@ func testCheckAzureRMBotConnectionExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testCheckAzureRMBotConnectionDestroy(s *terraform.State) error {
+func testCheckBotConnectionDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.ConnectionClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -114,8 +114,8 @@ func testCheckAzureRMBotConnectionDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMBotConnection_basicConfig(data acceptance.TestData) string {
-	template := testAccAzureRMBotChannelsRegistration_basicConfig(data)
+func testAccBotConnection_basicConfig(data acceptance.TestData) string {
+	template := testAccBotChannelsRegistration_basicConfig(data)
 	return fmt.Sprintf(`
 %s
 
@@ -131,8 +131,8 @@ resource "azurerm_bot_connection" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMBotConnection_completeConfig(data acceptance.TestData) string {
-	template := testAccAzureRMBotChannelsRegistration_basicConfig(data)
+func testAccBotConnection_completeConfig(data acceptance.TestData) string {
+	template := testAccBotChannelsRegistration_basicConfig(data)
 	return fmt.Sprintf(`
 %s
 
@@ -153,8 +153,8 @@ resource "azurerm_bot_connection" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMBotConnection_completeUpdateConfig(data acceptance.TestData) string {
-	template := testAccAzureRMBotChannelsRegistration_basicConfig(data)
+func testAccBotConnection_completeUpdateConfig(data acceptance.TestData) string {
+	template := testAccBotChannelsRegistration_basicConfig(data)
 	return fmt.Sprintf(`
 %s
 

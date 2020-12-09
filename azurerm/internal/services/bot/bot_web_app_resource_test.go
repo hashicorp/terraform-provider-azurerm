@@ -12,18 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func testAccAzureRMBotWebApp_basic(t *testing.T) {
+func testAccBotWebApp_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_web_app", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBotWebAppDestroy,
+		CheckDestroy: testCheckBotWebAppDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBotWebApp_basicConfig(data),
+				Config: testAccBotWebApp_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotWebAppExists(data.ResourceName),
+					testCheckBotWebAppExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("developer_app_insights_api_key"),
@@ -31,25 +31,25 @@ func testAccAzureRMBotWebApp_basic(t *testing.T) {
 	})
 }
 
-func testAccAzureRMBotWebApp_update(t *testing.T) {
+func testAccBotWebApp_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_web_app", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBotWebAppDestroy,
+		CheckDestroy: testCheckBotWebAppDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBotWebApp_basicConfig(data),
+				Config: testAccBotWebApp_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotWebAppExists(data.ResourceName),
+					testCheckBotWebAppExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("developer_app_insights_api_key"),
 			{
-				Config: testAccAzureRMBotWebApp_updateConfig(data),
+				Config: testAccBotWebApp_updateConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotWebAppExists(data.ResourceName),
+					testCheckBotWebAppExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("developer_app_insights_api_key"),
@@ -57,18 +57,18 @@ func testAccAzureRMBotWebApp_update(t *testing.T) {
 	})
 }
 
-func testAccAzureRMBotWebApp_complete(t *testing.T) {
+func testAccBotWebApp_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_web_app", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBotWebAppDestroy,
+		CheckDestroy: testCheckBotWebAppDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBotWebApp_completeConfig(data),
+				Config: testAccBotWebApp_completeConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotWebAppExists(data.ResourceName),
+					testCheckBotWebAppExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("developer_app_insights_api_key"),
@@ -76,7 +76,7 @@ func testAccAzureRMBotWebApp_complete(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMBotWebAppExists(name string) resource.TestCheckFunc {
+func testCheckBotWebAppExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.BotClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -106,7 +106,7 @@ func testCheckAzureRMBotWebAppExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testCheckAzureRMBotWebAppDestroy(s *terraform.State) error {
+func testCheckBotWebAppDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.BotClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -131,7 +131,7 @@ func testCheckAzureRMBotWebAppDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMBotWebApp_basicConfig(data acceptance.TestData) string {
+func testAccBotWebApp_basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -159,7 +159,7 @@ resource "azurerm_bot_web_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMBotWebApp_updateConfig(data acceptance.TestData) string {
+func testAccBotWebApp_updateConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -187,7 +187,7 @@ resource "azurerm_bot_web_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMBotWebApp_completeConfig(data acceptance.TestData) string {
+func testAccBotWebApp_completeConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -13,18 +13,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func testAccAzureRMBotChannelDirectline_basic(t *testing.T) {
+func testAccBotChannelDirectline_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_directline", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBotChannelDirectlineDestroy,
+		CheckDestroy: testCheckBotChannelDirectlineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBotChannelDirectline_basicConfig(data),
+				Config: testAccBotChannelDirectline_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelDirectlineExists(data.ResourceName),
+					testCheckBotChannelDirectlineExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -32,18 +32,18 @@ func testAccAzureRMBotChannelDirectline_basic(t *testing.T) {
 	})
 }
 
-func testAccAzureRMBotChannelDirectline_complete(t *testing.T) {
+func testAccBotChannelDirectline_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_directline", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBotChannelDirectlineDestroy,
+		CheckDestroy: testCheckBotChannelDirectlineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBotChannelDirectline_completeConfig(data),
+				Config: testAccBotChannelDirectline_completeConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelDirectlineExists(data.ResourceName),
+					testCheckBotChannelDirectlineExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -51,32 +51,32 @@ func testAccAzureRMBotChannelDirectline_complete(t *testing.T) {
 	})
 }
 
-func testAccAzureRMBotChannelDirectline_update(t *testing.T) {
+func testAccBotChannelDirectline_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_directline", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBotChannelDirectlineDestroy,
+		CheckDestroy: testCheckBotChannelDirectlineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBotChannelDirectline_basicConfig(data),
+				Config: testAccBotChannelDirectline_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelDirectlineExists(data.ResourceName),
+					testCheckBotChannelDirectlineExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMBotChannelDirectline_completeConfig(data),
+				Config: testAccBotChannelDirectline_completeConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelDirectlineExists(data.ResourceName),
+					testCheckBotChannelDirectlineExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMBotChannelDirectline_basicUpdate(data),
+				Config: testAccBotChannelDirectline_basicUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelDirectlineExists(data.ResourceName),
+					testCheckBotChannelDirectlineExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -84,7 +84,7 @@ func testAccAzureRMBotChannelDirectline_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMBotChannelDirectlineExists(name string) resource.TestCheckFunc {
+func testCheckBotChannelDirectlineExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.ChannelClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -114,7 +114,7 @@ func testCheckAzureRMBotChannelDirectlineExists(name string) resource.TestCheckF
 	}
 }
 
-func testCheckAzureRMBotChannelDirectlineDestroy(s *terraform.State) error {
+func testCheckBotChannelDirectlineDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.ChannelClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -139,8 +139,8 @@ func testCheckAzureRMBotChannelDirectlineDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMBotChannelDirectline_basicConfig(data acceptance.TestData) string {
-	template := testAccAzureRMBotChannelsRegistration_basicConfig(data)
+func testAccBotChannelDirectline_basicConfig(data acceptance.TestData) string {
+	template := testAccBotChannelsRegistration_basicConfig(data)
 	return fmt.Sprintf(` 
 %s
 
@@ -156,8 +156,8 @@ resource "azurerm_bot_channel_directline" "test" {
 `, template)
 }
 
-func testAccAzureRMBotChannelDirectline_completeConfig(data acceptance.TestData) string {
-	template := testAccAzureRMBotChannelsRegistration_basicConfig(data)
+func testAccBotChannelDirectline_completeConfig(data acceptance.TestData) string {
+	template := testAccBotChannelsRegistration_basicConfig(data)
 	return fmt.Sprintf(` 
 %s
 
@@ -177,8 +177,8 @@ resource "azurerm_bot_channel_directline" "test" {
 `, template)
 }
 
-func testAccAzureRMBotChannelDirectline_basicUpdate(data acceptance.TestData) string {
-	template := testAccAzureRMBotChannelsRegistration_basicConfig(data)
+func testAccBotChannelDirectline_basicUpdate(data acceptance.TestData) string {
+	template := testAccBotChannelsRegistration_basicConfig(data)
 	return fmt.Sprintf(` 
 %s
 

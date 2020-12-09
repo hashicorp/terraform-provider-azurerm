@@ -13,18 +13,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func testAccAzureRMBotChannelMsTeams_basic(t *testing.T) {
+func testAccBotChannelMsTeams_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_ms_teams", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBotChannelMsTeamsDestroy,
+		CheckDestroy: testCheckBotChannelMsTeamsDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBotChannelMsTeams_basicConfig(data),
+				Config: testAccBotChannelMsTeams_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelMsTeamsExists(data.ResourceName),
+					testCheckBotChannelMsTeamsExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -32,32 +32,32 @@ func testAccAzureRMBotChannelMsTeams_basic(t *testing.T) {
 	})
 }
 
-func testAccAzureRMBotChannelMsTeams_update(t *testing.T) {
+func testAccBotChannelMsTeams_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_ms_teams", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBotChannelMsTeamsDestroy,
+		CheckDestroy: testCheckBotChannelMsTeamsDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBotChannelMsTeams_basicConfig(data),
+				Config: testAccBotChannelMsTeams_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelMsTeamsExists(data.ResourceName),
+					testCheckBotChannelMsTeamsExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMBotChannelMsTeams_basicUpdate(data),
+				Config: testAccBotChannelMsTeams_basicUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelMsTeamsExists(data.ResourceName),
+					testCheckBotChannelMsTeamsExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMBotChannelMsTeams_basicConfig(data),
+				Config: testAccBotChannelMsTeams_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelMsTeamsExists(data.ResourceName),
+					testCheckBotChannelMsTeamsExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -65,7 +65,7 @@ func testAccAzureRMBotChannelMsTeams_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMBotChannelMsTeamsExists(name string) resource.TestCheckFunc {
+func testCheckBotChannelMsTeamsExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.ChannelClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -95,7 +95,7 @@ func testCheckAzureRMBotChannelMsTeamsExists(name string) resource.TestCheckFunc
 	}
 }
 
-func testCheckAzureRMBotChannelMsTeamsDestroy(s *terraform.State) error {
+func testCheckBotChannelMsTeamsDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.ChannelClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -120,8 +120,8 @@ func testCheckAzureRMBotChannelMsTeamsDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMBotChannelMsTeams_basicConfig(data acceptance.TestData) string {
-	template := testAccAzureRMBotChannelsRegistration_basicConfig(data)
+func testAccBotChannelMsTeams_basicConfig(data acceptance.TestData) string {
+	template := testAccBotChannelsRegistration_basicConfig(data)
 	return fmt.Sprintf(`
 %s
 
@@ -133,8 +133,8 @@ resource "azurerm_bot_channel_ms_teams" "test" {
 `, template)
 }
 
-func testAccAzureRMBotChannelMsTeams_basicUpdate(data acceptance.TestData) string {
-	template := testAccAzureRMBotChannelsRegistration_basicConfig(data)
+func testAccBotChannelMsTeams_basicUpdate(data acceptance.TestData) string {
+	template := testAccBotChannelsRegistration_basicConfig(data)
 	return fmt.Sprintf(`
 %s
 

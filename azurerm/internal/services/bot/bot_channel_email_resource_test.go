@@ -14,7 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMBotChannelEmail_basic(t *testing.T) {
+func TestAccBotChannelEmail_basic(t *testing.T) {
 	if ok := skipEmailChannel(); ok {
 		t.Skip("Skipping as one of `ARM_TEST_EMAIL`, AND `ARM_TEST_EMAIL_PASSWORD` was not specified")
 	}
@@ -23,12 +23,12 @@ func TestAccAzureRMBotChannelEmail_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBotChannelEmailDestroy,
+		CheckDestroy: testCheckBotChannelEmailDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBotChannelEmail_basicConfig(data),
+				Config: testAccBotChannelEmail_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelEmailExists(data.ResourceName),
+					testCheckBotChannelEmailExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("email_password"),
@@ -36,7 +36,7 @@ func TestAccAzureRMBotChannelEmail_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMBotChannelEmail_update(t *testing.T) {
+func TestAccBotChannelEmail_update(t *testing.T) {
 	if ok := skipEmailChannel(); ok {
 		t.Skip("Skipping as one of `ARM_TEST_EMAIL`, AND `ARM_TEST_EMAIL_PASSWORD` was not specified")
 	}
@@ -48,19 +48,19 @@ func TestAccAzureRMBotChannelEmail_update(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBotChannelEmailDestroy,
+		CheckDestroy: testCheckBotChannelEmailDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBotChannelEmail_basicConfig(data),
+				Config: testAccBotChannelEmail_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelEmailExists(data.ResourceName),
+					testCheckBotChannelEmailExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("email_password"),
 			{
-				Config: testAccAzureRMBotChannelEmail_basicUpdate(data),
+				Config: testAccBotChannelEmail_basicUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelEmailExists(data.ResourceName),
+					testCheckBotChannelEmailExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("email_password"),
@@ -68,7 +68,7 @@ func TestAccAzureRMBotChannelEmail_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMBotChannelEmailExists(name string) resource.TestCheckFunc {
+func testCheckBotChannelEmailExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.ChannelClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -98,7 +98,7 @@ func testCheckAzureRMBotChannelEmailExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testCheckAzureRMBotChannelEmailDestroy(s *terraform.State) error {
+func testCheckBotChannelEmailDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.ChannelClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -123,8 +123,8 @@ func testCheckAzureRMBotChannelEmailDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMBotChannelEmail_basicConfig(data acceptance.TestData) string {
-	template := testAccAzureRMBotChannelsRegistration_basicConfig(data)
+func testAccBotChannelEmail_basicConfig(data acceptance.TestData) string {
+	template := testAccBotChannelsRegistration_basicConfig(data)
 	return fmt.Sprintf(`
 %s
 
@@ -138,8 +138,8 @@ resource "azurerm_bot_channel_email" "test" {
 `, template, os.Getenv("ARM_TEST_EMAIL"), os.Getenv("ARM_TEST_EMAIL_PASSWORD"))
 }
 
-func testAccAzureRMBotChannelEmail_basicUpdate(data acceptance.TestData) string {
-	template := testAccAzureRMBotChannelsRegistration_basicConfig(data)
+func testAccBotChannelEmail_basicUpdate(data acceptance.TestData) string {
+	template := testAccBotChannelsRegistration_basicConfig(data)
 	return fmt.Sprintf(`
 %s
 

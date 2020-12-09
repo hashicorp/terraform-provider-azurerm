@@ -14,7 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func testAccAzureRMBotChannelSlack_basic(t *testing.T) {
+func testAccBotChannelSlack_basic(t *testing.T) {
 	if ok := skipSlackChannel(); ok {
 		t.Skip("Skipping as one of `ARM_TEST_SLACK_CLIENT_ID`, `ARM_TEST_SLACK_CLIENT_SECRET`, or `ARM_TEST_SLACK_VERIFICATION_TOKEN` was not specified")
 	}
@@ -23,12 +23,12 @@ func testAccAzureRMBotChannelSlack_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBotChannelSlackDestroy,
+		CheckDestroy: testCheckBotChannelSlackDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBotChannelSlack_basicConfig(data),
+				Config: testAccBotChannelSlack_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelSlackExists(data.ResourceName),
+					testCheckBotChannelSlackExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("client_secret", "verification_token", "landing_page_url"),
@@ -36,7 +36,7 @@ func testAccAzureRMBotChannelSlack_basic(t *testing.T) {
 	})
 }
 
-func testAccAzureRMBotChannelSlack_update(t *testing.T) {
+func testAccBotChannelSlack_update(t *testing.T) {
 	if ok := skipSlackChannel(); ok {
 		t.Skip("Skipping as one of `ARM_TEST_SLACK_CLIENT_ID`, `ARM_TEST_SLACK_CLIENT_SECRET`, or `ARM_TEST_SLACK_VERIFICATION_TOKEN` was not specified")
 	}
@@ -45,19 +45,19 @@ func testAccAzureRMBotChannelSlack_update(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBotChannelSlackDestroy,
+		CheckDestroy: testCheckBotChannelSlackDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBotChannelSlack_basicConfig(data),
+				Config: testAccBotChannelSlack_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelSlackExists(data.ResourceName),
+					testCheckBotChannelSlackExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("client_secret", "verification_token", "landing_page_url"),
 			{
-				Config: testAccAzureRMBotChannelSlack_basicUpdate(data),
+				Config: testAccBotChannelSlack_basicUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelSlackExists(data.ResourceName),
+					testCheckBotChannelSlackExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("client_secret", "verification_token", "landing_page_url"),
@@ -65,7 +65,7 @@ func testAccAzureRMBotChannelSlack_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMBotChannelSlackExists(name string) resource.TestCheckFunc {
+func testCheckBotChannelSlackExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.ChannelClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -95,7 +95,7 @@ func testCheckAzureRMBotChannelSlackExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testCheckAzureRMBotChannelSlackDestroy(s *terraform.State) error {
+func testCheckBotChannelSlackDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.ChannelClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -120,8 +120,8 @@ func testCheckAzureRMBotChannelSlackDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMBotChannelSlack_basicConfig(data acceptance.TestData) string {
-	template := testAccAzureRMBotChannelsRegistration_basicConfig(data)
+func testAccBotChannelSlack_basicConfig(data acceptance.TestData) string {
+	template := testAccBotChannelsRegistration_basicConfig(data)
 	return fmt.Sprintf(`
 %s
 
@@ -136,8 +136,8 @@ resource "azurerm_bot_channel_slack" "test" {
 `, template, os.Getenv("ARM_TEST_SLACK_CLIENT_ID"), os.Getenv("ARM_TEST_SLACK_CLIENT_SECRET"), os.Getenv("ARM_TEST_SLACK_VERIFICATION_TOKEN"))
 }
 
-func testAccAzureRMBotChannelSlack_basicUpdate(data acceptance.TestData) string {
-	template := testAccAzureRMBotChannelsRegistration_basicConfig(data)
+func testAccBotChannelSlack_basicUpdate(data acceptance.TestData) string {
+	template := testAccBotChannelsRegistration_basicConfig(data)
 	return fmt.Sprintf(`
 %s
 
