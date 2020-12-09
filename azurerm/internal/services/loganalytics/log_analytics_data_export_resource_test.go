@@ -66,7 +66,6 @@ func TestAccAzureRMLogAnalyticsDataExportRule_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsDataExportRuleExists(data.ResourceName),
 				),
-				ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
 			},
 			data.ImportStep(),
 			{
@@ -74,7 +73,6 @@ func TestAccAzureRMLogAnalyticsDataExportRule_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsDataExportRuleExists(data.ResourceName),
 				),
-				ExpectNonEmptyPlan: true, // Due to API changing case of attributes you need to ignore a non-empty plan for this resource
 			},
 			data.ImportStep(),
 		},

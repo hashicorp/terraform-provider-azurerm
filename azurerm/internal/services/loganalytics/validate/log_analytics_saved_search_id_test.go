@@ -18,61 +18,61 @@ func TestLogAnalyticsSavedSearchID(t *testing.T) {
 
 		{
 			// missing SubscriptionId
-			Input: "",
+			Input: "/",
 			Valid: false,
 		},
 
 		{
 			// missing value for SubscriptionId
-			Input: "subscriptions/",
+			Input: "/subscriptions/",
 			Valid: false,
 		},
 
 		{
 			// missing ResourceGroup
-			Input: "subscriptions/12345678-1234-9876-4563-123456789012/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/",
 			Valid: false,
 		},
 
 		{
 			// missing value for ResourceGroup
-			Input: "subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
 			Valid: false,
 		},
 
 		{
 			// missing WorkspaceName
-			Input: "subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/",
 			Valid: false,
 		},
 
 		{
 			// missing value for WorkspaceName
-			Input: "subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/",
 			Valid: false,
 		},
 
 		{
 			// missing SavedSearcheName
-			Input: "subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/",
 			Valid: false,
 		},
 
 		{
 			// missing value for SavedSearcheName
-			Input: "subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/savedSearches/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/savedSearches/",
 			Valid: false,
 		},
 
 		{
 			// valid
-			Input: "subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/savedSearches/search1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/savedSearches/search1",
 			Valid: true,
 		},
 
 		{
 			// upper-cased
-			Input: "SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.OPERATIONALINSIGHTS/WORKSPACES/WORKSPACE1/SAVEDSEARCHES/SEARCH1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.OPERATIONALINSIGHTS/WORKSPACES/WORKSPACE1/SAVEDSEARCHES/SEARCH1",
 			Valid: false,
 		},
 	}

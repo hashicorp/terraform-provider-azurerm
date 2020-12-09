@@ -35,7 +35,7 @@ func (id LogAnalyticsSavedSearchId) String() string {
 }
 
 func (id LogAnalyticsSavedSearchId) ID(_ string) string {
-	fmtString := "subscriptions/%s/resourceGroups/%s/providers/Microsoft.OperationalInsights/workspaces/%s/savedSearches/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.OperationalInsights/workspaces/%s/savedSearches/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.SavedSearcheName)
 }
 
