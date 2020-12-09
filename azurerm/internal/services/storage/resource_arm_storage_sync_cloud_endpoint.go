@@ -2,7 +2,6 @@ package storage
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	"log"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -67,6 +67,7 @@ func resourceArmStorageSyncCloudEndpoint() *schema.Resource {
 			"storage_account_tenant_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
@@ -129,8 +130,8 @@ func resourceArmStorageSyncCloudEndpointCreate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmStorageSyncCloudEndpointRead(d *schema.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Storage.CloudEndpointsClient
+	gpClient := meta.(*clients.Client).Storage.SyncGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -150,7 +151,16 @@ func resourceArmStorageSyncCloudEndpointRead(d *schema.ResourceData, meta interf
 	}
 	d.Set("name", resp.Name)
 
-	d.Set("storage_sync_group_id", parse.NewStorageSyncGroupID(subscriptionId, id.ResourceGroup, id.StorageSyncServiceName, id.SyncGroupName).ID(""))
+	gpResp, err := gpClient.Get(ctx, id.ResourceGroup, id.StorageSyncServiceName, id.SyncGroupName)
+	if err != nil {
+		return fmt.Errorf("reading Storage Sync Group (Storage Sync Group Name %q / Storage Sync Name %q /Resource Group %q): %+v", id.SyncGroupName, id.StorageSyncServiceName, id.ResourceGroup, err)
+	}
+
+	if gpResp.ID == nil || *gpResp.ID == "" {
+		return fmt.Errorf("reading Storage Sync Group %q (Resource Group %q) ID is empty or nil", id.SyncGroupName, id.ResourceGroup)
+	}
+
+	d.Set("storage_sync_group_id", gpResp.ID)
 	if props := resp.CloudEndpointProperties; props != nil {
 		d.Set("storage_account_id", props.StorageAccountResourceID)
 		d.Set("file_share_name", props.AzureFileShareName)
