@@ -89,7 +89,7 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 			"retention_in_days": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				Default:      30,
+				Computed:     true,
 				ValidateFunc: validation.Any(validation.IntBetween(30, 730), validation.IntInSlice([]int{7})),
 			},
 
