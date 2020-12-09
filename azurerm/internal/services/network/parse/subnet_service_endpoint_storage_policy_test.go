@@ -8,21 +8,21 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = SubnetServiceEndpointPolicyId{}
+var _ resourceid.Formatter = SubnetServiceEndpointStoragePolicyId{}
 
-func TestSubnetServiceEndpointPolicyIDFormatter(t *testing.T) {
-	actual := NewSubnetServiceEndpointPolicyID("12345678-1234-9876-4563-123456789012", "resGroup1", "policy1").ID("")
+func TestSubnetServiceEndpointStoragePolicyIDFormatter(t *testing.T) {
+	actual := NewSubnetServiceEndpointStoragePolicyID("12345678-1234-9876-4563-123456789012", "resGroup1", "policy1").ID("")
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/serviceEndpointPolicies/policy1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestSubnetServiceEndpointPolicyID(t *testing.T) {
+func TestSubnetServiceEndpointStoragePolicyID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *SubnetServiceEndpointPolicyId
+		Expected *SubnetServiceEndpointStoragePolicyId
 	}{
 
 		{
@@ -70,7 +70,7 @@ func TestSubnetServiceEndpointPolicyID(t *testing.T) {
 		{
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/serviceEndpointPolicies/policy1",
-			Expected: &SubnetServiceEndpointPolicyId{
+			Expected: &SubnetServiceEndpointStoragePolicyId{
 				SubscriptionId:            "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:             "resGroup1",
 				ServiceEndpointPolicyName: "policy1",
@@ -87,7 +87,7 @@ func TestSubnetServiceEndpointPolicyID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := SubnetServiceEndpointPolicyID(v.Input)
+		actual, err := SubnetServiceEndpointStoragePolicyID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

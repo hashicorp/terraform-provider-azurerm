@@ -9,21 +9,21 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type SubnetServiceEndpointPolicyId struct {
+type SubnetServiceEndpointStoragePolicyId struct {
 	SubscriptionId            string
 	ResourceGroup             string
 	ServiceEndpointPolicyName string
 }
 
-func NewSubnetServiceEndpointPolicyID(subscriptionId, resourceGroup, serviceEndpointPolicyName string) SubnetServiceEndpointPolicyId {
-	return SubnetServiceEndpointPolicyId{
+func NewSubnetServiceEndpointStoragePolicyID(subscriptionId, resourceGroup, serviceEndpointPolicyName string) SubnetServiceEndpointStoragePolicyId {
+	return SubnetServiceEndpointStoragePolicyId{
 		SubscriptionId:            subscriptionId,
 		ResourceGroup:             resourceGroup,
 		ServiceEndpointPolicyName: serviceEndpointPolicyName,
 	}
 }
 
-func (id SubnetServiceEndpointPolicyId) String() string {
+func (id SubnetServiceEndpointStoragePolicyId) String() string {
 	segments := []string{
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Service Endpoint Policy Name %q", id.ServiceEndpointPolicyName),
@@ -31,19 +31,19 @@ func (id SubnetServiceEndpointPolicyId) String() string {
 	return strings.Join(segments, " / ")
 }
 
-func (id SubnetServiceEndpointPolicyId) ID(_ string) string {
+func (id SubnetServiceEndpointStoragePolicyId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/serviceEndpointPolicies/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServiceEndpointPolicyName)
 }
 
-// SubnetServiceEndpointPolicyID parses a SubnetServiceEndpointPolicy ID into an SubnetServiceEndpointPolicyId struct
-func SubnetServiceEndpointPolicyID(input string) (*SubnetServiceEndpointPolicyId, error) {
+// SubnetServiceEndpointStoragePolicyID parses a SubnetServiceEndpointStoragePolicy ID into an SubnetServiceEndpointStoragePolicyId struct
+func SubnetServiceEndpointStoragePolicyID(input string) (*SubnetServiceEndpointStoragePolicyId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := SubnetServiceEndpointPolicyId{
+	resourceId := SubnetServiceEndpointStoragePolicyId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}

@@ -24,15 +24,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSubnetServiceEndpointPolicy() *schema.Resource {
+func resourceArmSubnetServiceEndpointStoragePolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSubnetServiceEndpointPolicyCreateUpdate,
-		Read:   resourceArmSubnetServiceEndpointPolicyRead,
-		Update: resourceArmSubnetServiceEndpointPolicyCreateUpdate,
-		Delete: resourceArmSubnetServiceEndpointPolicyDelete,
+		Create: resourceArmSubnetServiceEndpointStoragePolicyCreateUpdate,
+		Read:   resourceArmSubnetServiceEndpointStoragePolicyRead,
+		Update: resourceArmSubnetServiceEndpointStoragePolicyCreateUpdate,
+		Delete: resourceArmSubnetServiceEndpointStoragePolicyDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.SubnetServiceEndpointPolicyID(id)
+			_, err := parse.SubnetServiceEndpointStoragePolicyID(id)
 			return err
 		}),
 
@@ -48,7 +48,7 @@ func resourceArmSubnetServiceEndpointPolicy() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.SubnetServiceEndpointPolicyName,
+				ValidateFunc: validate.SubnetServiceEndpointStoragePolicyName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -65,7 +65,7 @@ func resourceArmSubnetServiceEndpointPolicy() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.SubnetServiceEndpointPolicyDefinitionName,
+							ValidateFunc: validate.SubnetServiceEndpointStoragePolicyDefinitionName,
 						},
 
 						"service_resources": {
@@ -94,7 +94,7 @@ func resourceArmSubnetServiceEndpointPolicy() *schema.Resource {
 	}
 }
 
-func resourceArmSubnetServiceEndpointPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSubnetServiceEndpointStoragePolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ServiceEndpointPoliciesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -108,12 +108,12 @@ func resourceArmSubnetServiceEndpointPolicyCreateUpdate(d *schema.ResourceData, 
 		resp, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("checking for existing Subnet Service Endpoint Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for existing Subnet Service Endpoint Storage Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 
 		if resp.ID != nil && *resp.ID != "" {
-			return tf.ImportAsExistsError("azurerm_subnet_service_endpoint_policy", *resp.ID)
+			return tf.ImportAsExistsError("azurerm_subnet_service_endpoint_storage_policy", *resp.ID)
 		}
 	}
 
@@ -127,36 +127,36 @@ func resourceArmSubnetServiceEndpointPolicyCreateUpdate(d *schema.ResourceData, 
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, param)
 	if err != nil {
-		return fmt.Errorf("creating Subnet Service Endpoint Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Subnet Service Endpoint Storage Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Subnet Service Endpoint Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of Subnet Service Endpoint Storage Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
-		return fmt.Errorf("retrieving Subnet Service Endpoint Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Subnet Service Endpoint Storage Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Subnet Service Endpoint Policy %q (Resource Group %q) ID", name, resourceGroup)
+		return fmt.Errorf("empty or nil ID returned for Subnet Service Endpoint Storage Policy %q (Resource Group %q) ID", name, resourceGroup)
 	}
 
-	id, err := parse.SubnetServiceEndpointPolicyID(*resp.ID)
+	id, err := parse.SubnetServiceEndpointStoragePolicyID(*resp.ID)
 	if err != nil {
 		return err
 	}
 	d.SetId(id.ID(subscriptionId))
 
-	return resourceArmSubnetServiceEndpointPolicyRead(d, meta)
+	return resourceArmSubnetServiceEndpointStoragePolicyRead(d, meta)
 }
 
-func resourceArmSubnetServiceEndpointPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSubnetServiceEndpointStoragePolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ServiceEndpointPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SubnetServiceEndpointPolicyID(d.Id())
+	id, err := parse.SubnetServiceEndpointStoragePolicyID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -164,12 +164,12 @@ func resourceArmSubnetServiceEndpointPolicyRead(d *schema.ResourceData, meta int
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceEndpointPolicyName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Subnet Service Endpoint Policy %q was not found in Resource Group %q - removing from state!", id.ServiceEndpointPolicyName, id.ResourceGroup)
+			log.Printf("[DEBUG] Subnet Service Endpoint Storage Policy %q was not found in Resource Group %q - removing from state!", id.ServiceEndpointPolicyName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Subnet Service Endpoint Policy %q (Resource Group %q): %+v", id.ServiceEndpointPolicyName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Subnet Service Endpoint Storage Policy %q (Resource Group %q): %+v", id.ServiceEndpointPolicyName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.ServiceEndpointPolicyName)
@@ -186,18 +186,18 @@ func resourceArmSubnetServiceEndpointPolicyRead(d *schema.ResourceData, meta int
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmSubnetServiceEndpointPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSubnetServiceEndpointStoragePolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.ServiceEndpointPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SubnetServiceEndpointPolicyID(d.Id())
+	id, err := parse.SubnetServiceEndpointStoragePolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	if _, err := client.Delete(ctx, id.ResourceGroup, id.ServiceEndpointPolicyName); err != nil {
-		return fmt.Errorf("deleting Subnet Service Endpoint Policy %q (Resource Group %q): %+v", id.ServiceEndpointPolicyName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Subnet Service Endpoint Storage Policy %q (Resource Group %q): %+v", id.ServiceEndpointPolicyName, id.ResourceGroup, err)
 	}
 
 	return nil
