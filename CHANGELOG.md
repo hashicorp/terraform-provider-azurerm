@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Resource:** `azurerm_app_service_certificate_binding` [GH-9415]
 * **New Resource:** `azurerm_digital_twins_endpoint_eventhub` [GH-9673]
 * **New Resource:** `azurerm_digital_twins_endpoint_servicebus`  [GH-9702]
 * **New Resource:** `azurerm_media_asset` [GH-9387]
