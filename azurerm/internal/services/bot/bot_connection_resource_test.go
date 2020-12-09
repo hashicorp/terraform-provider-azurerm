@@ -69,7 +69,6 @@ func (t BotConnectionResource) Exists(ctx context.Context, clients *clients.Clie
 }
 
 func (BotConnectionResource) basicConfig(data acceptance.TestData) string {
-	template := BotConnectionResource{}.basicConfig(data)
 	return fmt.Sprintf(`
 %s
 
@@ -82,7 +81,7 @@ resource "azurerm_bot_connection" "test" {
   client_id             = "test"
   client_secret         = "secret"
 }
-`, template, data.RandomInteger)
+`, BotChannelsRegistrationResource{}.basicConfig(data), data.RandomInteger)
 }
 
 func (BotConnectionResource) completeConfig(data acceptance.TestData) string {

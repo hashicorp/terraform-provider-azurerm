@@ -77,7 +77,6 @@ func (t BotChannelSlackResource) Exists(ctx context.Context, clients *clients.Cl
 }
 
 func (BotChannelSlackResource) basicConfig(data acceptance.TestData) string {
-	template := BotChannelSlackResource{}.basicConfig(data)
 	return fmt.Sprintf(`
 %s
 
@@ -89,7 +88,7 @@ resource "azurerm_bot_channel_slack" "test" {
   client_secret       = "%s"
   verification_token  = "%s"
 }
-`, template, os.Getenv("ARM_TEST_SLACK_CLIENT_ID"), os.Getenv("ARM_TEST_SLACK_CLIENT_SECRET"), os.Getenv("ARM_TEST_SLACK_VERIFICATION_TOKEN"))
+`, BotChannelsRegistrationResource{}.basicConfig(data), os.Getenv("ARM_TEST_SLACK_CLIENT_ID"), os.Getenv("ARM_TEST_SLACK_CLIENT_SECRET"), os.Getenv("ARM_TEST_SLACK_VERIFICATION_TOKEN"))
 }
 
 func (BotChannelSlackResource) basicUpdate(data acceptance.TestData) string {
