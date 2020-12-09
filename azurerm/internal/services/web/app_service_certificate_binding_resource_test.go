@@ -34,19 +34,19 @@ func TestAccAzureRMAppServiceCertificateBinding_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceCertificateBinding_basicSniEnabled(t *testing.T) {
-       data := acceptance.BuildTestData(t, "azurerm_app_service_certificate_binding", "test")
-       r := AppServiceCertificateBindingResource{}
+	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate_binding", "test")
+	r := AppServiceCertificateBindingResource{}
 
-	       data.ResourceTest(t, r, []resource.TestStep{
-		               {
-		                       Config: r.basicSniEnabled(data),
-		                       Check: resource.ComposeTestCheckFunc(
-		                               check.That(data.ResourceName).Key("thumbprint").Exists(),
-		                               check.That(data.ResourceName).Key("ssl_state").HasValue("SniEnabled"),
-		                       ),
-		               },
-		               data.ImportStep(),
-		       })
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicSniEnabled(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("thumbprint").Exists(),
+				check.That(data.ResourceName).Key("ssl_state").HasValue("SniEnabled"),
+			),
+		},
+		data.ImportStep(),
+	})
 }
 
 func TestAccAzureRMAppServiceCertificateBinding_requiresImport(t *testing.T) {
