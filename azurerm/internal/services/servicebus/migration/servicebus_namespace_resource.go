@@ -1,4 +1,4 @@
-package servicebus
+package migration
 
 import (
 	"fmt"
@@ -9,8 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func ResourceAzureRMServiceBusNamespaceMigrateState(
-	v int, is *terraform.InstanceState, _ interface{}) (*terraform.InstanceState, error) {
+func ServiceBusNamespaceResourceMigrateState(v int, is *terraform.InstanceState, _ interface{}) (*terraform.InstanceState, error) {
 	switch v {
 	case 0:
 		log.Println("[INFO] Found AzureRM ServiceBus Namespace State v0; migrating to v1")

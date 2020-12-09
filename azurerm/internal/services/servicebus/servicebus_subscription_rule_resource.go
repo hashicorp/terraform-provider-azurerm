@@ -13,7 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/validate"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -24,9 +26,11 @@ func resourceArmServiceBusSubscriptionRule() *schema.Resource {
 		Read:   resourceArmServiceBusSubscriptionRuleRead,
 		Update: resourceArmServiceBusSubscriptionRuleCreateUpdate,
 		Delete: resourceArmServiceBusSubscriptionRuleDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.SubscriptionRuleID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -56,14 +60,14 @@ func resourceArmServiceBusSubscriptionRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateServiceBusTopicName(),
+				ValidateFunc: validate.TopicName(),
 			},
 
 			"subscription_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateServiceBusSubscriptionName(),
+				ValidateFunc: validate.SubscriptionName(),
 			},
 
 			"filter_type": {
@@ -142,27 +146,29 @@ func resourceArmServiceBusSubscriptionRule() *schema.Resource {
 
 func resourceArmServiceBusSubscriptionRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.SubscriptionRulesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for Azure Service Bus Subscription Rule creation.")
 
-	name := d.Get("name").(string)
-	topicName := d.Get("topic_name").(string)
-	subscriptionName := d.Get("subscription_name").(string)
-	namespaceName := d.Get("namespace_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
 	filterType := d.Get("filter_type").(string)
 
+	resourceId := parse.NewSubscriptionRuleID(subscriptionId,
+		d.Get("resource_group_name").(string),
+		d.Get("namespace_name").(string),
+		d.Get("subscription_name").(string),
+		d.Get("topic_name").(string),
+		d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, namespaceName, topicName, subscriptionName, name)
+		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.TopicName, resourceId.SubscriptionName, resourceId.RuleName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Service Bus Subscription %q (Resource Group %q, namespace %q): %+v", name, resourceGroup, namespaceName, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", resourceId, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_servicebus_subscription_rule", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_servicebus_subscription_rule", resourceId.ID(""))
 		}
 	}
 
@@ -181,7 +187,7 @@ func resourceArmServiceBusSubscriptionRuleCreateUpdate(d *schema.ResourceData, m
 	if rule.Ruleproperties.FilterType == servicebus.FilterTypeCorrelationFilter {
 		correlationFilter, err := expandAzureRmServiceBusCorrelationFilter(d)
 		if err != nil {
-			return fmt.Errorf("Cannot create Service Bus Subscription Rule %q: %+v", name, err)
+			return fmt.Errorf("expanding `correlation_filter`: %+v", err)
 		}
 
 		rule.Ruleproperties.CorrelationFilter = correlationFilter
@@ -194,20 +200,11 @@ func resourceArmServiceBusSubscriptionRuleCreateUpdate(d *schema.ResourceData, m
 		}
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, topicName, subscriptionName, name, rule); err != nil {
-		return fmt.Errorf("Error issuing create/update request for Service Bus Subscription %q (Resource Group %q, namespace %q): %+v", name, resourceGroup, namespaceName, err)
+	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.TopicName, resourceId.SubscriptionName, resourceId.RuleName, rule); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", resourceId, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, namespaceName, topicName, subscriptionName, name)
-	if err != nil {
-		return fmt.Errorf("Error issuing get request for Service Bus Subscription %q (Resource Group %q, namespace %q): %+v", name, resourceGroup, namespaceName, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Service Bus Subscription Rule %s (resource group %s) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
-
+	d.SetId(resourceId.ID(""))
 	return resourceArmServiceBusSubscriptionRuleRead(d, meta)
 }
 
@@ -216,31 +213,25 @@ func resourceArmServiceBusSubscriptionRuleRead(d *schema.ResourceData, meta inte
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SubscriptionRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	namespaceName := id.Path["namespaces"]
-	topicName := id.Path["topics"]
-	subscriptionName := id.Path["subscriptions"]
-	name := id.Path["rules"]
-
-	resp, err := client.Get(ctx, resourceGroup, namespaceName, topicName, subscriptionName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.NamespaceName, id.TopicName, id.SubscriptionName, id.RuleName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure Service Bus Subscription Rule %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("namespace_name", namespaceName)
-	d.Set("topic_name", topicName)
-	d.Set("subscription_name", subscriptionName)
+	d.Set("name", id.RuleName)
+	d.Set("namespace_name", id.NamespaceName)
+	d.Set("topic_name", id.TopicName)
+	d.Set("subscription_name", id.SubscriptionName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if properties := resp.Ruleproperties; properties != nil {
 		d.Set("filter_type", properties.FilterType)
@@ -254,7 +245,7 @@ func resourceArmServiceBusSubscriptionRuleRead(d *schema.ResourceData, meta inte
 		}
 
 		if err := d.Set("correlation_filter", flattenAzureRmServiceBusCorrelationFilter(properties.CorrelationFilter)); err != nil {
-			return fmt.Errorf("Error setting `correlation_filter` on Azure Service Bus Subscription Rule (%q): %+v", name, err)
+			return fmt.Errorf("setting `correlation_filter`: %+v", err)
 		}
 	}
 
@@ -266,20 +257,15 @@ func resourceArmServiceBusSubscriptionRuleDelete(d *schema.ResourceData, meta in
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SubscriptionRuleID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	namespaceName := id.Path["namespaces"]
-	topicName := id.Path["topics"]
-	subscriptionName := id.Path["subscriptions"]
-	name := id.Path["rules"]
 
-	resp, err := client.Delete(ctx, resourceGroup, namespaceName, topicName, subscriptionName, name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.NamespaceName, id.TopicName, id.SubscriptionName, id.RuleName)
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting ServiceBus Subscription Rule %q: %+v", name, err)
+			return fmt.Errorf("deleting %s: %+v", id, err)
 		}
 	}
 
