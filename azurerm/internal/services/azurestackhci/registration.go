@@ -25,6 +25,6 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		// @tombuildsstuff: disabling until this is ready for prime-time
-		//"azurerm_hci_cluster": resourceArmHCICluster(),
+		// "azurerm_hci_cluster": resourceArmHCICluster(),
 	}
 }

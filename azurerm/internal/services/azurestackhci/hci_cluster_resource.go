@@ -20,6 +20,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+// @tombuildsstuff: just here to make the compiler happy whilst this functionality is reworked
+var _ *schema.Resource = resourceArmHCICluster()
+
 func resourceArmHCICluster() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmHCIClusterCreate,
