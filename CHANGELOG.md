@@ -7,6 +7,7 @@ FEATURES:
 * **New Resource:** `azurerm_media_asset` [GH-9387]
 * **New Resource:** `azurerm_resource_provider` [GH-7951]
 * **New Resource:** `azurerm_storage_share_file` [GH-9406]
+* **New Resource:** `azurerm_hci_cluster` [GH-9134]
 
 IMPROVEMENTS:
 
