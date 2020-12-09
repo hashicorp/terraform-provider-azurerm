@@ -39,6 +39,7 @@ IMPROVEMENTS:
 * `azurerm_stream_analytics_stream_input_blob` - support for enhanced import validation [GH-9735]
 * `azurerm_stream_analytics_stream_input_iothub` - support for enhanced import validation [GH-9735]
 * `azurerm_stream_analytics_stream_input_eventhub` - support for enhanced import validation [GH-9735]
+* `azurerm_storage_account` - enable the `allow_blob_public_access` and `azurerm_storage_account` properties in US Government Cloud [GH-9540]
 * `azurerm_subnet` - support for the `service_endpoint_policy` block [GH-8966]
 
 BUG FIXES:
