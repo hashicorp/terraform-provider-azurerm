@@ -159,7 +159,6 @@ func resourceArmIotHubFallbackRouteDelete(d *schema.ResourceData, meta interface
 	defer cancel()
 
 	parsedIothubRouteId, err := azure.ParseAzureResourceID(d.Id())
-
 	if err != nil {
 		return err
 	}

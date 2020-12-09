@@ -21,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAppConfiguration() *schema.Resource {
+func resourceAppConfiguration() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAppConfigurationCreate,
-		Read:   resourceArmAppConfigurationRead,
-		Update: resourceArmAppConfigurationUpdate,
-		Delete: resourceArmAppConfigurationDelete,
+		Create: resourceAppConfigurationCreate,
+		Read:   resourceAppConfigurationRead,
+		Update: resourceAppConfigurationUpdate,
+		Delete: resourceAppConfigurationDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -36,7 +36,7 @@ func resourceArmAppConfiguration() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.AppConfigurationID(id)
+			_, err := parse.ConfigurationStoreID(id)
 			return err
 		}),
 
@@ -45,7 +45,7 @@ func resourceArmAppConfiguration() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.AppConfigurationName,
+				ValidateFunc: validate.ConfigurationStoreName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -195,8 +195,9 @@ func resourceArmAppConfiguration() *schema.Resource {
 	}
 }
 
-func resourceArmAppConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppConfiguration.AppConfigurationsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -204,16 +205,15 @@ func resourceArmAppConfigurationCreate(d *schema.ResourceData, meta interface{})
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-
+	resourceId := parse.NewConfigurationStoreID(subscriptionId, resourceGroup, name).ID("")
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return fmt.Errorf("Error checking for presence of existing App Configuration %q (Resource Group %q): %s", name, resourceGroup, err)
 		}
 	}
-
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_app_configuration", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_app_configuration", resourceId)
 	}
 
 	parameters := appconfiguration.ConfigurationStore{
@@ -235,26 +235,17 @@ func resourceArmAppConfigurationCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error waiting for creation of App Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving App Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read App Configuration %s (resource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
-
-	return resourceArmAppConfigurationRead(d, meta)
+	d.SetId(resourceId)
+	return resourceAppConfigurationRead(d, meta)
 }
 
-func resourceArmAppConfigurationUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppConfigurationUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppConfiguration.AppConfigurationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM App Configuration update.")
-	id, err := parse.AppConfigurationID(d.Id())
+	id, err := parse.ConfigurationStoreID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -289,15 +280,15 @@ func resourceArmAppConfigurationUpdate(d *schema.ResourceData, meta interface{})
 
 	d.SetId(*read.ID)
 
-	return resourceArmAppConfigurationRead(d, meta)
+	return resourceAppConfigurationRead(d, meta)
 }
 
-func resourceArmAppConfigurationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppConfigurationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppConfiguration.AppConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AppConfigurationID(d.Id())
+	id, err := parse.ConfigurationStoreID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -317,7 +308,7 @@ func resourceArmAppConfigurationRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Failed to receive access keys for App Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -346,12 +337,12 @@ func resourceArmAppConfigurationRead(d *schema.ResourceData, meta interface{}) e
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmAppConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppConfiguration.AppConfigurationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AppConfigurationID(d.Id())
+	id, err := parse.ConfigurationStoreID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -456,6 +447,7 @@ func expandAppConfigurationIdentity(identities []interface{}) *appconfiguration.
 		Type: identityType,
 	}
 }
+
 func flattenAppConfigurationIdentity(identity *appconfiguration.ResourceIdentity) []interface{} {
 	if identity == nil || identity.Type == appconfiguration.None {
 		return []interface{}{}

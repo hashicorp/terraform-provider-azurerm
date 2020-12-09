@@ -196,6 +196,10 @@ A `volume` block supports:
 
 * `git_repo` - (Optional) A `git_repo` block as defined below.
 
+* `secret` - (Optional) A map of secrets that will be mounted as files in the volume. Changing this forces a new resource to be created.
+
+~> **Note:** The secret values must be supplied as Base64 encoded strings, such as by using the Terraform [base64encode function](https://www.terraform.io/docs/configuration/functions/base64encode.html). The secret values are decoded to their original values when mounted in the volume on the container.
+
 ---
 
 The `git_repo` block supports:
@@ -257,7 +261,9 @@ The `http_get` block supports:
 The `dns_config` block supports:
 
 * `nameservers` - (Required) A list of nameservers the containers will search out to resolve requests.
+
 * `search_domains` - (Required) A list of search domains that DNS requests will search along.
+
 * `options` - (Required) A list of [resolver configuration options](https://man7.org/linux/man-pages/man5/resolv.conf.5.html).
 
 ## Attributes Reference
@@ -275,8 +281,11 @@ The following attributes are exported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container Group.
+
 * `update` - (Defaults to 30 minutes) Used when updating the Container Group.
+
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container Group.
+
 * `delete` - (Defaults to 30 minutes) Used when deleting the Container Group.
 
 ## Import

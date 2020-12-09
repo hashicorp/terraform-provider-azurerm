@@ -146,7 +146,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Diagnostic Settings can be imported using the `resource id`, e.g.
 
 ```
-terraform import azurerm_monitor_diagnostics.example /subscriptions/XXX/resourcegroups/resource_group/providers/microsoft.keyvault/vaults/vault|logMonitoring
+terraform import azurerm_monitor_diagnostic_setting.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.KeyVault/vaults/vault1|logMonitoring1"
 ```
 
 -> **NOTE:** This is a Terraform specific Resource ID which uses the format `{resourceId}|{diagnosticSettingName}`

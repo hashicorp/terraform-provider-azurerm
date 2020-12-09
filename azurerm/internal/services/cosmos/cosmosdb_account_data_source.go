@@ -138,6 +138,11 @@ func dataSourceArmCosmosDbAccount() *schema.Resource {
 				},
 			},
 
+			"key_vault_key_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"enable_multiple_write_locations": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -252,6 +257,10 @@ func dataSourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("is_virtual_network_filter_enabled", resp.IsVirtualNetworkFilterEnabled)
 		d.Set("enable_free_tier", resp.EnableFreeTier)
 		d.Set("enable_automatic_failover", resp.EnableAutomaticFailover)
+
+		if v := props.KeyVaultKeyURI; v != nil {
+			d.Set("key_vault_key_id", resp.KeyVaultKeyURI)
+		}
 
 		if err = d.Set("consistency_policy", flattenAzureRmCosmosDBAccountConsistencyPolicy(resp.ConsistencyPolicy)); err != nil {
 			return fmt.Errorf("Error setting `consistency_policy`: %+v", err)

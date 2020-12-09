@@ -100,6 +100,25 @@ func TestAccAzureRMCosmosDbSqlDatabase_autoscale(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCosmosDbSqlDatabase_serverless(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_database", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMCosmosDbSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCosmosDbSqlDatabase_serverless(data),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMCosmosDbSqlDatabaseExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMCosmosDbSqlDatabaseDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.SqlClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -194,4 +213,15 @@ resource "azurerm_cosmosdb_sql_database" "test" {
   }
 }
 `, testAccAzureRMCosmosDBAccount_basic(data, documentdb.GlobalDocumentDB, documentdb.Strong), data.RandomInteger, maxThroughput)
+}
+
+func testAccAzureRMCosmosDbSqlDatabase_serverless(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+resource "azurerm_cosmosdb_sql_database" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+}
+`, testAccAzureRMCosmosDBAccount_capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableServerless"}), data.RandomInteger)
 }

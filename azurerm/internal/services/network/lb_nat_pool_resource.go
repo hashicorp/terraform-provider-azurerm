@@ -29,12 +29,12 @@ func resourceArmLoadBalancerNatPool() *schema.Resource {
 		Delete: resourceArmLoadBalancerNatPoolDelete,
 
 		Importer: loadBalancerSubResourceImporter(func(input string) (*parse.LoadBalancerId, error) {
-			id, err := parse.LoadBalancerInboundNATPoolID(input)
+			id, err := parse.LoadBalancerInboundNatPoolID(input)
 			if err != nil {
 				return nil, err
 			}
 
-			lbId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName)
+			lbId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
 			return &lbId, nil
 		}),
 
@@ -108,7 +108,6 @@ func resourceArmLoadBalancerNatPool() *schema.Resource {
 
 func resourceArmLoadBalancerNatPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.LoadBalancersClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -118,7 +117,7 @@ func resourceArmLoadBalancerNatPoolCreateUpdate(d *schema.ResourceData, meta int
 		return fmt.Errorf("parsing Load Balancer Name and Group: %+v", err)
 	}
 
-	loadBalancerID := loadBalancerId.ID(subscriptionId)
+	loadBalancerID := loadBalancerId.ID("")
 	locks.ByID(loadBalancerID)
 	defer locks.UnlockByID(loadBalancerID)
 
@@ -188,16 +187,15 @@ func resourceArmLoadBalancerNatPoolCreateUpdate(d *schema.ResourceData, meta int
 
 func resourceArmLoadBalancerNatPoolRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.LoadBalancersClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LoadBalancerInboundNATPoolID(d.Id())
+	id, err := parse.LoadBalancerInboundNatPoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	loadBalancerId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName)
+	loadBalancerId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
 	loadBalancer, exists, err := retrieveLoadBalancerById(ctx, client, loadBalancerId)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Load Balancer by ID: %+v", err)
@@ -208,10 +206,10 @@ func resourceArmLoadBalancerNatPoolRead(d *schema.ResourceData, meta interface{}
 		return nil
 	}
 
-	config, _, exists := FindLoadBalancerNatPoolByName(loadBalancer, id.Name)
+	config, _, exists := FindLoadBalancerNatPoolByName(loadBalancer, id.InboundNatPoolName)
 	if !exists {
 		d.SetId("")
-		log.Printf("[INFO] Load Balancer Nat Pool %q not found. Removing from state", id.Name)
+		log.Printf("[INFO] Load Balancer Nat Pool %q not found. Removing from state", id.InboundNatPoolName)
 		return nil
 	}
 
@@ -228,13 +226,13 @@ func resourceArmLoadBalancerNatPoolRead(d *schema.ResourceData, meta interface{}
 		frontendIPConfigName := ""
 		frontendIPConfigID := ""
 		if props.FrontendIPConfiguration != nil && props.FrontendIPConfiguration.ID != nil {
-			feid, err := parse.LoadBalancerFrontendIPConfigurationID(*props.FrontendIPConfiguration.ID)
+			feid, err := parse.LoadBalancerFrontendIpConfigurationID(*props.FrontendIPConfiguration.ID)
 			if err != nil {
 				return err
 			}
 
-			frontendIPConfigName = feid.Name
-			frontendIPConfigID = feid.ID(subscriptionId)
+			frontendIPConfigName = feid.FrontendIPConfigurationName
+			frontendIPConfigID = feid.ID("")
 		}
 		d.Set("frontend_ip_configuration_id", frontendIPConfigID)
 		d.Set("frontend_ip_configuration_name", frontendIPConfigName)
@@ -258,17 +256,16 @@ func resourceArmLoadBalancerNatPoolRead(d *schema.ResourceData, meta interface{}
 
 func resourceArmLoadBalancerNatPoolDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.LoadBalancersClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LoadBalancerInboundNATPoolID(d.Id())
+	id, err := parse.LoadBalancerInboundNatPoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	loadBalancerId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName)
-	loadBalancerID := loadBalancerId.ID(subscriptionId)
+	loadBalancerId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
+	loadBalancerID := loadBalancerId.ID("")
 	locks.ByID(loadBalancerID)
 	defer locks.UnlockByID(loadBalancerID)
 
@@ -281,7 +278,7 @@ func resourceArmLoadBalancerNatPoolDelete(d *schema.ResourceData, meta interface
 		return nil
 	}
 
-	_, index, exists := FindLoadBalancerNatPoolByName(loadBalancer, id.Name)
+	_, index, exists := FindLoadBalancerNatPoolByName(loadBalancer, id.InboundNatPoolName)
 	if !exists {
 		return nil
 	}

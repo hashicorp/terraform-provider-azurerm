@@ -73,7 +73,7 @@ The following arguments are supported:
 
 * `backup` - (Required) Configures the Policy backup frequency, times & days as documented in the `backup` block below.
 
-* `timezone` - (Optional) Specifies the timezone. Defaults to `UTC`
+* `timezone` - (Optional) Specifies the timezone. [the possible values are defined here](http://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/). Defaults to `UTC`
 
 * `instant_restore_retention_days` - (Optional) Specifies the instant restore retention range in days.
 

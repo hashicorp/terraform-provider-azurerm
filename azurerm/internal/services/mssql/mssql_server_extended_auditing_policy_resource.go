@@ -25,7 +25,7 @@ func resourceArmMsSqlServerExtendedAuditingPolicy() *schema.Resource {
 		Delete: resourceArmMsSqlServerExtendedAuditingPolicyDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.MssqlServerExtendedAuditingPolicyID(id)
+			_, err := parse.ServerExtendedAuditingPolicyID(id)
 			return err
 		}),
 
@@ -41,7 +41,7 @@ func resourceArmMsSqlServerExtendedAuditingPolicy() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.MsSqlServerID,
+				ValidateFunc: validate.ServerID,
 			},
 
 			"storage_endpoint": {
@@ -80,7 +80,7 @@ func resourceArmMsSqlServerExtendedAuditingPolicyCreateUpdate(d *schema.Resource
 
 	log.Printf("[INFO] preparing arguments for MsSql Server Extended Auditing Policy creation.")
 
-	serverId, err := parse.MsSqlServerID(d.Get("server_id").(string))
+	serverId, err := parse.ServerID(d.Get("server_id").(string))
 	if err != nil {
 		return err
 	}
@@ -145,23 +145,23 @@ func resourceArmMsSqlServerExtendedAuditingPolicyRead(d *schema.ResourceData, me
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MssqlServerExtendedAuditingPolicyID(d.Id())
+	id, err := parse.ServerExtendedAuditingPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.MsSqlServer)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading MsSql Server %s Extended Auditing Policy (Resource Group %q): %s", id.MsSqlServer, id.ResourceGroup, err)
+		return fmt.Errorf("reading MsSql Server %s Extended Auditing Policy (Resource Group %q): %s", id.ServerName, id.ResourceGroup, err)
 	}
 
-	serverResp, err := serverClient.Get(ctx, id.ResourceGroup, id.MsSqlServer)
+	serverResp, err := serverClient.Get(ctx, id.ResourceGroup, id.ServerName)
 	if err != nil || serverResp.ID == nil || *serverResp.ID == "" {
-		return fmt.Errorf("reading MsSql Server %q ID is empty or nil(Resource Group %q): %s", id.MsSqlServer, id.ResourceGroup, err)
+		return fmt.Errorf("reading MsSql Server %q ID is empty or nil(Resource Group %q): %s", id.ServerName, id.ResourceGroup, err)
 	}
 
 	d.Set("server_id", serverResp.ID)
@@ -180,7 +180,7 @@ func resourceArmMsSqlServerExtendedAuditingPolicyDelete(d *schema.ResourceData, 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MssqlServerExtendedAuditingPolicyID(d.Id())
+	id, err := parse.ServerExtendedAuditingPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -195,13 +195,13 @@ func resourceArmMsSqlServerExtendedAuditingPolicyDelete(d *schema.ResourceData, 
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.MsSqlServer, params)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, params)
 	if err != nil {
-		return fmt.Errorf("deleting MsSql Server %q Extended Auditing Policy(Resource Group %q): %+v", id.MsSqlServer, id.ResourceGroup, err)
+		return fmt.Errorf("deleting MsSql Server %q Extended Auditing Policy(Resource Group %q): %+v", id.ServerName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of MsSql Server %q Extended Auditing Policy (Resource Group %q): %+v", id.MsSqlServer, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of MsSql Server %q Extended Auditing Policy (Resource Group %q): %+v", id.ServerName, id.ResourceGroup, err)
 	}
 
 	return nil

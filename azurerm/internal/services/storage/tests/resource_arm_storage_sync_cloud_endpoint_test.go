@@ -2,6 +2,7 @@ package tests
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	"os"
 	"testing"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,6 +23,25 @@ func TestAccAzureRMStorageSyncCloudEndpoint_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCloudEndpoint_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageSyncCloudEndpointExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMStorageSyncCloudEndpoint_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_sync_cloud_endpoint", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageSyncCloudEndpointDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCloudEndpoint_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageSyncCloudEndpointExists(data.ResourceName),
 				),
@@ -58,7 +77,7 @@ func testCheckAzureRMStorageSyncCloudEndpointExists(resourceName string) resourc
 			return fmt.Errorf("storage Sync Cloud Endpoint not found: %s", resourceName)
 		}
 
-		id, err := parsers.SyncCloudEndpointID(rs.Primary.Attributes["id"])
+		id, err := parse.StorageSyncCloudEndpointID(rs.Primary.Attributes["id"])
 		if err != nil {
 			return err
 		}
@@ -66,9 +85,9 @@ func testCheckAzureRMStorageSyncCloudEndpointExists(resourceName string) resourc
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.CloudEndpointsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.StorageSyncName, id.StorageSyncGroup, id.Name); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.StorageSyncServiceName, id.SyncGroupName, id.CloudEndpointName); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Storage Sync Cloud Endpoint %q (Storage Sync Group %q / Storage Sync Service Name %q / Resource Group %q) does not exist", id.Name, id.ResourceGroup, id.StorageSyncName, id.ResourceGroup)
+				return fmt.Errorf("bad: Storage Sync Cloud Endpoint %q (Storage Sync Group %q / Storage Sync Service Name %q / Resource Group %q) does not exist", id.CloudEndpointName, id.ResourceGroup, id.StorageSyncServiceName, id.ResourceGroup)
 			}
 			return fmt.Errorf("bad: Get on CloudEndpointsClient: %+v", err)
 		}
@@ -86,12 +105,12 @@ func testCheckAzureRMStorageSyncCloudEndpointDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parsers.SyncCloudEndpointID(rs.Primary.Attributes["id"])
+		id, err := parse.StorageSyncCloudEndpointID(rs.Primary.Attributes["id"])
 		if err != nil {
 			return err
 		}
 
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.StorageSyncName, id.StorageSyncGroup, id.Name); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.StorageSyncServiceName, id.SyncGroupName, id.CloudEndpointName); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("bad: Get on CloudEndpointsClient: %+v", err)
 			}
@@ -102,7 +121,7 @@ func testCheckAzureRMStorageSyncCloudEndpointDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMCloudEndpoint_basic(data acceptance.TestData) string {
+func testAccAzureRMCloudEndpoint_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-StorageSync-%[1]d"
@@ -139,15 +158,36 @@ resource "azurerm_storage_share" "test" {
     }
   }
 }
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func testAccAzureRMCloudEndpoint_basic(data acceptance.TestData) string {
+	template := testAccAzureRMCloudEndpoint_template(data)
+	return fmt.Sprintf(`
+%s
 
 resource "azurerm_storage_sync_cloud_endpoint" "test" {
-  name                      = "acctest-CEP-%[1]d"
-  storage_sync_group_id     = azurerm_storage_sync_group.test.id
-  storage_account_id        = azurerm_storage_account.test.id
-  storage_account_tenant_id = "%[4]s"
-  file_share_name           = azurerm_storage_share.test.name
+  name                  = "acctest-CEP-%d"
+  storage_sync_group_id = azurerm_storage_sync_group.test.id
+  storage_account_id    = azurerm_storage_account.test.id
+  file_share_name       = azurerm_storage_share.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, os.Getenv("ARM_TENANT_ID"))
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMCloudEndpoint_complete(data acceptance.TestData) string {
+	template := testAccAzureRMCloudEndpoint_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_sync_cloud_endpoint" "test" {
+  name                  = "acctest-CEP-%d"
+  storage_sync_group_id = azurerm_storage_sync_group.test.id
+  storage_account_id    = azurerm_storage_account.test.id
+  storage_tenant_id     = "%s"
+  file_share_name       = azurerm_storage_share.test.name
+}
+`, template, data.RandomInteger, os.Getenv("ARM_TENANT_ID"))
 }
 
 func testAccAzureRMCloudEndpoint_requiresImport(data acceptance.TestData) string {
@@ -156,11 +196,10 @@ func testAccAzureRMCloudEndpoint_requiresImport(data acceptance.TestData) string
 %s
 
 resource "azurerm_storage_sync_cloud_endpoint" "import" {
-  name                      = azurerm_storage_sync_cloud_endpoint.test.name
-  storage_sync_group_id     = azurerm_storage_sync_cloud_endpoint.test.storage_sync_group_id
-  storage_account_id        = azurerm_storage_sync_cloud_endpoint.test.storage_account_id
-  storage_account_tenant_id = azurerm_storage_sync_cloud_endpoint.test.storage_account_tenant_id
-  file_share_name           = azurerm_storage_sync_cloud_endpoint.test.file_share_name
+  name                  = azurerm_storage_sync_cloud_endpoint.test.name
+  storage_sync_group_id = azurerm_storage_sync_cloud_endpoint.test.storage_sync_group_id
+  storage_account_id    = azurerm_storage_sync_cloud_endpoint.test.storage_account_id
+  file_share_name       = azurerm_storage_sync_cloud_endpoint.test.file_share_name
 }
 `, template)
 }

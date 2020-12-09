@@ -15,10 +15,10 @@ import (
 // fixing when we move to Binary Testing so that we can test across provider instances
 var enableBinaryTesting = false
 
+// lintignore:AT001
 func (td TestData) DataSourceTest(t *testing.T, steps []resource.TestStep) {
 	// DataSources don't need a check destroy - however since this is a wrapper function
 	// and not matching the ignore pattern `XXX_data_source_test.go`, this needs to be explicitly opted out
-	//lintignore:AT001
 	testCase := resource.TestCase{
 		PreCheck: func() { PreCheck(t) },
 		Steps:    steps,
@@ -38,6 +38,20 @@ func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, s
 	}
 
 	td.runAcceptanceTest(t, testCase)
+}
+
+func RunTestsInSequence(t *testing.T, tests map[string]map[string]func(t *testing.T)) {
+	for group, m := range tests {
+		m := m
+		t.Run(group, func(t *testing.T) {
+			for name, tc := range m {
+				tc := tc
+				t.Run(name, func(t *testing.T) {
+					tc(t)
+				})
+			}
+		})
+	}
 }
 
 func buildClient() *clients.Client {

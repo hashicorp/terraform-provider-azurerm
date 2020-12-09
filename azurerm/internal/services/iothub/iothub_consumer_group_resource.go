@@ -152,7 +152,6 @@ func resourceArmIotHubConsumerGroupDelete(d *schema.ResourceData, meta interface
 	defer locks.UnlockByName(iotHubName, IothubResourceName)
 
 	resp, err := client.DeleteEventHubConsumerGroup(ctx, resourceGroup, iotHubName, endpointName, name)
-
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return fmt.Errorf("Error deleting Consumer Group %q (Endpoint %q / IoTHub %q / Resource Group %q): %+v", name, endpointName, iotHubName, resourceGroup, err)

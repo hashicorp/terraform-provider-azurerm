@@ -22,14 +22,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmServiceFabricMeshApplication() *schema.Resource {
+func resourceServiceFabricMeshApplication() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceFabricMeshApplicationCreateUpdate,
-		Read:   resourceArmServiceFabricMeshApplicationRead,
-		Update: resourceArmServiceFabricMeshApplicationCreateUpdate,
-		Delete: resourceArmServiceFabricMeshApplicationDelete,
+		Create: resourceServiceFabricMeshApplicationCreateUpdate,
+		Read:   resourceServiceFabricMeshApplicationRead,
+		Update: resourceServiceFabricMeshApplicationCreateUpdate,
+		Delete: resourceServiceFabricMeshApplicationDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.ServiceFabricMeshApplicationID(id)
+			_, err := parse.ApplicationID(id)
 			return err
 		}),
 
@@ -145,7 +145,7 @@ func resourceArmServiceFabricMeshApplication() *schema.Resource {
 	}
 }
 
-func resourceArmServiceFabricMeshApplicationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceFabricMeshApplicationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabricMesh.ApplicationClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -201,16 +201,16 @@ func resourceArmServiceFabricMeshApplicationCreateUpdate(d *schema.ResourceData,
 
 	d.SetId(*resp.ID)
 
-	return resourceArmServiceFabricMeshApplicationRead(d, meta)
+	return resourceServiceFabricMeshApplicationRead(d, meta)
 }
 
-func resourceArmServiceFabricMeshApplicationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceFabricMeshApplicationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabricMesh.ApplicationClient
 	serviceClient := meta.(*clients.Client).ServiceFabricMesh.ServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServiceFabricMeshApplicationID(d.Id())
+	id, err := parse.ApplicationID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -247,12 +247,12 @@ func resourceArmServiceFabricMeshApplicationRead(d *schema.ResourceData, meta in
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmServiceFabricMeshApplicationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceFabricMeshApplicationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabricMesh.ApplicationClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServiceFabricMeshApplicationID(d.Id())
+	id, err := parse.ApplicationID(d.Id())
 	if err != nil {
 		return err
 	}
