@@ -5,19 +5,17 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
-	parse2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/parse"
-	validate2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/validate"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
-
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -34,7 +32,7 @@ func resourceArmFirewallPolicy() *schema.Resource {
 		Delete: resourceArmFirewallPolicyDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse2.FirewallPolicyID(id)
+			_, err := parse.FirewallPolicyID(id)
 			return err
 		}),
 
@@ -50,7 +48,7 @@ func resourceArmFirewallPolicy() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate2.FirewallPolicyName(),
+				ValidateFunc: validate.FirewallPolicyName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -60,7 +58,7 @@ func resourceArmFirewallPolicy() *schema.Resource {
 			"base_policy_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate2.FirewallPolicyID,
+				ValidateFunc: validate.FirewallPolicyID,
 			},
 
 			"dns": {
@@ -221,7 +219,7 @@ func resourceArmFirewallPolicyRead(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse2.FirewallPolicyID(d.Id())
+	id, err := parse.FirewallPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -279,7 +277,7 @@ func resourceArmFirewallPolicyDelete(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse2.FirewallPolicyID(d.Id())
+	id, err := parse.FirewallPolicyID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -3,7 +3,6 @@ package firewall
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 	"time"
 
@@ -14,8 +13,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
-	validate2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+	firewallValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/validate"
+	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -45,7 +44,7 @@ func resourceArmFirewall() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateAzureFirewallName,
+				ValidateFunc: firewallValidate.FirewallName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -79,7 +78,7 @@ func resourceArmFirewall() *schema.Resource {
 			"firewall_policy_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate2.FirewallPolicyID,
+				ValidateFunc: firewallValidate.FirewallPolicyID,
 			},
 
 			"ip_configuration": {
@@ -96,12 +95,12 @@ func resourceArmFirewall() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ForceNew:     true,
-							ValidateFunc: validateAzureFirewallSubnetName,
+							ValidateFunc: firewallValidate.FirewallSubnetName,
 						},
 						"public_ip_address_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.PublicIpAddressID,
+							ValidateFunc: networkValidate.PublicIpAddressID,
 						},
 						"private_ip_address": {
 							Type:     schema.TypeString,
@@ -127,12 +126,12 @@ func resourceArmFirewall() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: validateAzureFirewallManagementSubnetName,
+							ValidateFunc: firewallValidate.FirewallManagementSubnetName,
 						},
 						"public_ip_address_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.PublicIpAddressID,
+							ValidateFunc: networkValidate.PublicIpAddressID,
 						},
 						"private_ip_address": {
 							Type:     schema.TypeString,
@@ -175,7 +174,7 @@ func resourceArmFirewall() *schema.Resource {
 						"virtual_hub_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.VirtualHubID,
+							ValidateFunc: networkValidate.VirtualHubID,
 						},
 						"public_ip_count": {
 							Type:         schema.TypeInt,
@@ -718,46 +717,6 @@ func flattenArmFirewallVirtualHubSetting(props *network.AzureFirewallPropertiesF
 			"private_ip_address":  privateIp,
 		},
 	}
-}
-
-func ValidateAzureFirewallName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	// From the Portal:
-	// The name must begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, underscores, periods, or hyphens.
-	if matched := regexp.MustCompile(`^[0-9a-zA-Z]([0-9a-zA-Z._-]{0,}[0-9a-zA-Z_])?$`).Match([]byte(value)); !matched {
-		errors = append(errors, fmt.Errorf("%q must begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, underscores, periods, or hyphens.", k))
-	}
-
-	return warnings, errors
-}
-
-func validateAzureFirewallSubnetName(v interface{}, k string) (warnings []string, errors []error) {
-	parsed, err := azure.ParseAzureResourceID(v.(string))
-	if err != nil {
-		errors = append(errors, fmt.Errorf("Error parsing Azure Resource ID %q", v.(string)))
-		return warnings, errors
-	}
-	subnetName := parsed.Path["subnets"]
-	if subnetName != "AzureFirewallSubnet" {
-		errors = append(errors, fmt.Errorf("The name of the Subnet for %q must be exactly 'AzureFirewallSubnet' to be used for the Azure Firewall resource", k))
-	}
-
-	return warnings, errors
-}
-
-func validateAzureFirewallManagementSubnetName(v interface{}, k string) (warnings []string, errors []error) {
-	parsed, err := azure.ParseAzureResourceID(v.(string))
-	if err != nil {
-		errors = append(errors, fmt.Errorf("Error parsing Azure Resource ID %q", v.(string)))
-		return warnings, errors
-	}
-	subnetName := parsed.Path["subnets"]
-	if subnetName != "AzureFirewallManagementSubnet" {
-		errors = append(errors, fmt.Errorf("The name of the management subnet for %q must be exactly 'AzureFirewallManagementSubnet' to be used for the Azure Firewall resource", k))
-	}
-
-	return warnings, errors
 }
 
 func validateFirewallIPConfigurationSettings(configs []interface{}) error {
