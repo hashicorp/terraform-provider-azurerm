@@ -25,12 +25,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataBoxJob() *schema.Resource {
+func resourceDataBoxJob() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataBoxJobCreate,
-		Read:   resourceArmDataBoxJobRead,
-		Update: resourceArmDataBoxJobUpdate,
-		Delete: resourceArmDataBoxJobDelete,
+		Create: resourceDataBoxJobCreate,
+		Read:   resourceDataBoxJobRead,
+		Update: resourceDataBoxJobUpdate,
+		Delete: resourceDataBoxJobDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.DataBoxJobID(id)
@@ -374,7 +374,7 @@ func resourceArmDataBoxJob() *schema.Resource {
 	}
 }
 
-func resourceArmDataBoxJobCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataBoxJobCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataBox.JobClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -498,10 +498,10 @@ func resourceArmDataBoxJobCreate(d *schema.ResourceData, meta interface{}) error
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmDataBoxJobRead(d, meta)
+	return resourceDataBoxJobRead(d, meta)
 }
 
-func resourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataBoxJobRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataBox.JobClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -638,7 +638,7 @@ func resourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmDataBoxJobUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataBoxJobUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataBox.JobClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -667,10 +667,10 @@ func resourceArmDataBoxJobUpdate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("waiting for update of DataBox Job %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return resourceArmDataBoxJobRead(d, meta)
+	return resourceDataBoxJobRead(d, meta)
 }
 
-func resourceArmDataBoxJobDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataBoxJobDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataBox.JobClient
 	lockClient := meta.(*clients.Client).Resource.LocksClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -682,7 +682,7 @@ func resourceArmDataBoxJobDelete(d *schema.ResourceData, meta interface{}) error
 	}
 
 	reason := &databox.CancellationReason{
-		Reason: utils.String("Cancel the order for deleting"),
+		Reason: utils.String("Cancelling the order to delete DataBox job"),
 	}
 
 	resp, err := client.Cancel(ctx, id.ResourceGroup, id.Name, *reason)

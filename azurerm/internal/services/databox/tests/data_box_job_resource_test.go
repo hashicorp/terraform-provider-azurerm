@@ -2,8 +2,6 @@ package tests
 
 import (
 	"fmt"
-	"os"
-	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -15,12 +13,6 @@ import (
 )
 
 func TestAccDataBoxJob_basic(t *testing.T) {
-	location, err := testGetLocationFromSubscription()
-	if err != nil {
-		t.Skip(fmt.Sprintf("%+v", err))
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_data_box_job", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -29,7 +21,7 @@ func TestAccDataBoxJob_basic(t *testing.T) {
 		CheckDestroy: testCheckDataBoxJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataBoxJob_basic(data, location),
+				Config: testAccDataBoxJob_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckDataBoxJobExists(data.ResourceName),
 				),
@@ -40,11 +32,6 @@ func TestAccDataBoxJob_basic(t *testing.T) {
 }
 
 func TestAccDataBoxJob_complete(t *testing.T) {
-	location, err := testGetLocationFromSubscription()
-	if err != nil {
-		t.Skip(fmt.Sprintf("%+v", err))
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_data_box_job", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -53,7 +40,7 @@ func TestAccDataBoxJob_complete(t *testing.T) {
 		CheckDestroy: testCheckDataBoxJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataBoxJob_complete(data, location),
+				Config: testAccDataBoxJob_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckDataBoxJobExists(data.ResourceName),
 				),
@@ -64,11 +51,6 @@ func TestAccDataBoxJob_complete(t *testing.T) {
 }
 
 func TestAccDataBoxJob_requiresImport(t *testing.T) {
-	location, err := testGetLocationFromSubscription()
-	if err != nil {
-		t.Skip(fmt.Sprintf("%+v", err))
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_data_box_job", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -77,7 +59,7 @@ func TestAccDataBoxJob_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckDataBoxJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataBoxJob_basic(data, location),
+				Config: testAccDataBoxJob_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckDataBoxJobExists(data.ResourceName),
 				),
@@ -88,12 +70,6 @@ func TestAccDataBoxJob_requiresImport(t *testing.T) {
 }
 
 func TestAccDataBoxJob_update(t *testing.T) {
-	location, err := testGetLocationFromSubscription()
-	if err != nil {
-		t.Skip(fmt.Sprintf("%+v", err))
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_data_box_job", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -102,14 +78,14 @@ func TestAccDataBoxJob_update(t *testing.T) {
 		CheckDestroy: testCheckDataBoxJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataBoxJob_complete(data, location),
+				Config: testAccDataBoxJob_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckDataBoxJobExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("databox_disk_passkey", "expected_data_size_in_tb"),
 			{
-				Config: testAccDataBoxJob_update(data, location),
+				Config: testAccDataBoxJob_update(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckDataBoxJobExists(data.ResourceName),
 				),
@@ -120,12 +96,6 @@ func TestAccDataBoxJob_update(t *testing.T) {
 }
 
 func TestAccDataBoxJob_withCustomerManaged(t *testing.T) {
-	location, err := testGetLocationFromSubscription()
-	if err != nil {
-		t.Skip(fmt.Sprintf("%+v", err))
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_data_box_job", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -134,7 +104,7 @@ func TestAccDataBoxJob_withCustomerManaged(t *testing.T) {
 		CheckDestroy: testCheckDataBoxJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataBoxJob_withCustomerManaged(data, location),
+				Config: testAccDataBoxJob_withCustomerManaged(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckDataBoxJobExists(data.ResourceName),
 				),
@@ -196,24 +166,8 @@ func testCheckDataBoxJobDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testGetLocationFromSubscription() (string, error) {
-	subscription := strings.ToLower(os.Getenv("ARM_SUBSCRIPTION_ID"))
-	location := ""
-
-	// nolint: gocritic
-	if strings.HasPrefix(subscription, "67a9759d") || strings.HasPrefix(subscription, "85b3dbca") {
-		location = "westus"
-	} else if strings.HasPrefix(subscription, "1a6092a6") || strings.HasPrefix(subscription, "88720cb0") {
-		location = "westcentralus"
-	} else {
-		return "", fmt.Errorf("Skipping since test is not running as one of the four valid subscriptions allowed to run DataBox tests")
-	}
-
-	return location, nil
-}
-
-func testAccDataBoxJob_basic(data acceptance.TestData, location string) string {
-	template := testAccDataBoxJob_template(data, location)
+func testAccDataBoxJob_basic(data acceptance.TestData) string {
+	template := testAccDataBoxJob_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -223,7 +177,7 @@ resource "azurerm_data_box_job" "test" {
   location            = azurerm_resource_group.test.location
 
   contact_details {
-    name         = "DataBoxJobTester"
+    name         = "Terraform Test"
     emails       = ["some.user@example.com"]
     phone_number = "+11234567891"
   }
@@ -233,11 +187,11 @@ resource "azurerm_data_box_job" "test" {
   }
 
   shipping_address {
-    city              = "San Francisco"
+    city              = "Redmond"
     country           = "US"
-    postal_code       = "94107"
-    state_or_province = "CA"
-    street_address_1  = "16 TOWNSEND ST"
+    postal_code       = "98052"
+    state_or_province = "WA"
+    street_address_1  = "One Microsoft Way"
   }
 
   preferred_shipment_type = "MicrosoftManaged"
@@ -248,11 +202,6 @@ resource "azurerm_data_box_job" "test" {
 }
 
 func testAccDataBoxJob_requiresImport(data acceptance.TestData) string {
-	location, err := testGetLocationFromSubscription()
-	if err != nil {
-		return ""
-	}
-
 	return fmt.Sprintf(`
 %s
 
@@ -262,7 +211,7 @@ resource "azurerm_data_box_job" "import" {
   resource_group_name = azurerm_data_box_job.test.resource_group_name
 
   contact_details {
-    name         = "DataBoxJobTester"
+    name         = "Terraform Test"
     emails       = ["some.user@example.com"]
     phone_number = "+11234567891"
   }
@@ -272,22 +221,22 @@ resource "azurerm_data_box_job" "import" {
   }
 
   shipping_address {
-    city              = "San Francisco"
+    city              = "Redmond"
     country           = "US"
-    postal_code       = "94107"
-    state_or_province = "CA"
-    street_address_1  = "16 TOWNSEND ST"
+    postal_code       = "98052"
+    state_or_province = "WA"
+    street_address_1  = "One Microsoft Way"
   }
 
   preferred_shipment_type = "MicrosoftManaged"
 
   sku_name = "DataBox"
 }
-`, testAccDataBoxJob_basic(data, location))
+`, testAccDataBoxJob_basic(data))
 }
 
-func testAccDataBoxJob_complete(data acceptance.TestData, location string) string {
-	template := testAccDataBoxJob_template(data, location)
+func testAccDataBoxJob_complete(data acceptance.TestData) string {
+	template := testAccDataBoxJob_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -309,7 +258,7 @@ resource "azurerm_data_box_job" "test" {
   location            = azurerm_resource_group.test.location
 
   contact_details {
-    name         = "DataBoxJobTester"
+    name         = "Terraform Test"
     emails       = ["some.user@example.com"]
     phone_number = "+11234567891"
     phone_mobile = "+11234567891"
@@ -335,16 +284,17 @@ resource "azurerm_data_box_job" "test" {
   }
 
   shipping_address {
-    city                  = "San Francisco"
-    country               = "US"
-    postal_code           = "94107"
-    state_or_province     = "CA"
-    street_address_1      = "16 TOWNSEND ST"
-    address_type          = "Commercial"
-    company_name          = "Microsoft"
-    street_address_2      = "17 TOWNSEND ST"
-    street_address_3      = "18 TOWNSEND ST"
-    postal_code_plus_four = "94107"
+    city              = "Redmond"
+    country           = "US"
+    postal_code       = "98052"
+    state_or_province = "WA"
+    street_address_1  = "One Microsoft Way"
+    // Wating to hear back from PM if these are allowed
+    // address_type          = "Commercial"
+    // company_name          = "Microsoft"
+    // street_address_2      = "17 TOWNSEND ST"
+    // street_address_3      = "18 TOWNSEND ST"
+    // postal_code_plus_four = "94107"
   }
 
   expected_data_size_in_tb = 5
@@ -367,8 +317,8 @@ resource "azurerm_data_box_job" "test" {
 `, template, data.RandomString, data.RandomString, data.RandomString)
 }
 
-func testAccDataBoxJob_update(data acceptance.TestData, location string) string {
-	template := testAccDataBoxJob_template(data, location)
+func testAccDataBoxJob_update(data acceptance.TestData) string {
+	template := testAccDataBoxJob_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -390,7 +340,7 @@ resource "azurerm_data_box_job" "test" {
   location            = azurerm_resource_group.test.location
 
   contact_details {
-    name         = "DataBoxJobTester2"
+    name         = "Terraform Test"
     emails       = ["some.user@example.com", "some.user2@example.com"]
     phone_number = "+11234567892"
     phone_mobile = "+11234567892"
@@ -416,16 +366,17 @@ resource "azurerm_data_box_job" "test" {
   }
 
   shipping_address {
-    city                  = "San Diego"
-    country               = "US"
-    postal_code           = "92111"
-    state_or_province     = "CA"
-    street_address_1      = "6901 SUN STREET"
-    address_type          = "Residential"
-    company_name          = "Intel"
-    street_address_2      = "6902 SUN STREET"
-    street_address_3      = "6903 SUN STREET"
-    postal_code_plus_four = "92111"
+    city              = "Redmond"
+    country           = "US"
+    postal_code       = "98052"
+    state_or_province = "WA"
+    street_address_1  = "One Microsoft Way"
+    // Wating to hear back from PM if these are allowed
+    // address_type          = "Residential"
+    // company_name          = "Intel"
+    // street_address_2      = "6902 SUN STREET"
+    // street_address_3      = "6903 SUN STREET"
+    // postal_code_plus_four = "92111"
   }
 
   expected_data_size_in_tb = 5
@@ -448,8 +399,8 @@ resource "azurerm_data_box_job" "test" {
 `, template, data.RandomString, data.RandomString, data.RandomString)
 }
 
-func testAccDataBoxJob_withCustomerManaged(data acceptance.TestData, location string) string {
-	template := testAccDataBoxJob_template(data, location)
+func testAccDataBoxJob_withCustomerManaged(data acceptance.TestData) string {
+	template := testAccDataBoxJob_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -459,7 +410,7 @@ resource "azurerm_data_box_job" "test" {
   location            = azurerm_resource_group.test.location
 
   contact_details {
-    name         = "DataBoxJobTester"
+    name         = "Terraform Test"
     emails       = ["some.user@example.com"]
     phone_number = "+11234567891"
   }
@@ -469,11 +420,11 @@ resource "azurerm_data_box_job" "test" {
   }
 
   shipping_address {
-    city              = "San Francisco"
+    city              = "Redmond"
     country           = "US"
-    postal_code       = "94107"
-    state_or_province = "CA"
-    street_address_1  = "16 TOWNSEND ST"
+    postal_code       = "98052"
+    state_or_province = "WA"
+    street_address_1  = "One Microsoft Way"
   }
 
   preferred_shipment_type      = "CustomerManaged"
@@ -484,7 +435,7 @@ resource "azurerm_data_box_job" "test" {
 `, template, data.RandomString)
 }
 
-func testAccDataBoxJob_template(data acceptance.TestData, location string) string {
+func testAccDataBoxJob_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -504,5 +455,5 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "RAGRS"
 }
-`, data.RandomInteger, location, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

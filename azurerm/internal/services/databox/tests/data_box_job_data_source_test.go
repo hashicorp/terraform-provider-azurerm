@@ -9,12 +9,6 @@ import (
 )
 
 func TestAccDataBoxJobDataSource_basic(t *testing.T) {
-	location, err := testGetLocationFromSubscription()
-	if err != nil {
-		t.Skip(fmt.Sprintf("%+v", err))
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "data.azurerm_data_box_job", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -22,7 +16,7 @@ func TestAccDataBoxJobDataSource_basic(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceDataBoxJob_basic(data, location),
+				Config: testAccDataSourceDataBoxJob_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
 				),
@@ -31,8 +25,8 @@ func TestAccDataBoxJobDataSource_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceDataBoxJob_basic(data acceptance.TestData, location string) string {
-	config := testAccDataBoxJob_basic(data, location)
+func testAccDataSourceDataBoxJob_basic(data acceptance.TestData) string {
+	config := testAccDataBoxJob_basic(data)
 	return fmt.Sprintf(`
 %s
 

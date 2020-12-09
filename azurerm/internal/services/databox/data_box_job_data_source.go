@@ -13,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmDataBoxJob() *schema.Resource {
+func dataSourceDataBoxJob() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmDataBoxJobRead,
+		Read: dataSourceDataBoxJobRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -89,7 +89,7 @@ func dataSourceArmDataBoxJob() *schema.Resource {
 	}
 }
 
-func dataSourceArmDataBoxJobRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDataBoxJobRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataBox.JobClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -21,13 +21,13 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_data_box_job": dataSourceArmDataBoxJob(),
+		"azurerm_data_box_job": dataSourceDataBoxJob(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_data_box_job": resourceArmDataBoxJob(),
+		"azurerm_data_box_job": resourceDataBoxJob(),
 	}
 }
