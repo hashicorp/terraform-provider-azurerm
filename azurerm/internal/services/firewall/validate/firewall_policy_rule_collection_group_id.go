@@ -5,7 +5,7 @@ package validate
 import (
 	"fmt"
 
-	parse2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/parse"
 )
 
 func FirewallPolicyRuleCollectionGroupID(input interface{}, key string) (warnings []string, errors []error) {
@@ -15,7 +15,7 @@ func FirewallPolicyRuleCollectionGroupID(input interface{}, key string) (warning
 		return
 	}
 
-	if _, err := parse2.FirewallPolicyRuleCollectionGroupID(v); err != nil {
+	if _, err := parse.FirewallPolicyRuleCollectionGroupID(v); err != nil {
 		errors = append(errors, err)
 	}
 
