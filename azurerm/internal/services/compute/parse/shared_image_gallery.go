@@ -25,10 +25,11 @@ func NewSharedImageGalleryID(subscriptionId, resourceGroup, galleryName string) 
 
 func (id SharedImageGalleryId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Gallery Name %q", id.GalleryName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Shared Image Gallery", segmentsStr)
 }
 
 func (id SharedImageGalleryId) ID(_ string) string {

@@ -25,10 +25,11 @@ func NewVirtualNetworkID(subscriptionId, resourceGroup, name string) VirtualNetw
 
 func (id VirtualNetworkId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Virtual Network", segmentsStr)
 }
 
 func (id VirtualNetworkId) ID(_ string) string {

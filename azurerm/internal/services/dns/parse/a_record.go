@@ -27,11 +27,12 @@ func NewARecordID(subscriptionId, resourceGroup, dnszoneName, aName string) ARec
 
 func (id ARecordId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Dnszone Name %q", id.DnszoneName),
 		fmt.Sprintf("A Name %q", id.AName),
+		fmt.Sprintf("Dnszone Name %q", id.DnszoneName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "A Record", segmentsStr)
 }
 
 func (id ARecordId) ID(_ string) string {

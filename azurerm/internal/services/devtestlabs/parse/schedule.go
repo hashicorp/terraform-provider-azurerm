@@ -25,10 +25,11 @@ func NewScheduleID(subscriptionId, resourceGroup, name string) ScheduleId {
 
 func (id ScheduleId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Schedule", segmentsStr)
 }
 
 func (id ScheduleId) ID(_ string) string {

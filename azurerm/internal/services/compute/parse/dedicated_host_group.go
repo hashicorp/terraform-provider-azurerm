@@ -25,10 +25,11 @@ func NewDedicatedHostGroupID(subscriptionId, resourceGroup, hostGroupName string
 
 func (id DedicatedHostGroupId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Host Group Name %q", id.HostGroupName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Dedicated Host Group", segmentsStr)
 }
 
 func (id DedicatedHostGroupId) ID(_ string) string {

@@ -27,11 +27,12 @@ func NewDigitalTwinsEndpointID(subscriptionId, resourceGroup, digitalTwinsInstan
 
 func (id DigitalTwinsEndpointId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Digital Twins Instance Name %q", id.DigitalTwinsInstanceName),
 		fmt.Sprintf("Endpoint Name %q", id.EndpointName),
+		fmt.Sprintf("Digital Twins Instance Name %q", id.DigitalTwinsInstanceName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Digital Twins Endpoint", segmentsStr)
 }
 
 func (id DigitalTwinsEndpointId) ID(_ string) string {
