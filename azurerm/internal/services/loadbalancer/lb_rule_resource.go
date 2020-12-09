@@ -15,7 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/parse"
-	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/validate"
+	loadBalancerValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -49,7 +49,7 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.RuleName,
+				ValidateFunc: loadBalancerValidate.RuleName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -58,7 +58,7 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.LoadBalancerID,
+				ValidateFunc: loadBalancerValidate.LoadBalancerID,
 			},
 
 			"frontend_ip_configuration_name": {
