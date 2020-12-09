@@ -1,106 +1,69 @@
 package springcloud_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/parse"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMSpringCloudCertificate_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_certificate", "test")
+type SpringCloudCertificateResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSpringCloudCertificateDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSpringCloudCertificate_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSpringCloudCertificateExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("key_vault_certificate_id"),
+func TestAccSpringCloudCertificate_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_certificate", "test")
+	r := SpringCloudCertificateResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("key_vault_certificate_id"),
 	})
 }
 
-func TestAccAzureRMSpringCloudCertificate_requiresImport(t *testing.T) {
+func TestAccSpringCloudCertificate_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_certificate", "test")
+	r := SpringCloudCertificateResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSpringCloudCertificateDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSpringCloudCertificate_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSpringCloudCertificateExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMSpringCloudCertificate_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckAzureRMSpringCloudCertificateExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Spring Cloud Certificate not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serviceName := rs.Primary.Attributes["service_name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).AppPlatform.CertificatesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		if resp, err := client.Get(ctx, resourceGroup, serviceName, name); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Spring Cloud Certificate %q (Spring Cloud Name %q / Resource Group %q) does not exist", name, serviceName, resourceGroup)
-			}
-			return fmt.Errorf("bad: Get on AppPlatform.CertificatesClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMSpringCloudCertificateDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).AppPlatform.CertificatesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_spring_cloud_certificate" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resGroup := rs.Primary.Attributes["resource_group_name"]
-		serviceName := rs.Primary.Attributes["service_name"]
-		resp, err := client.Get(ctx, resGroup, serviceName, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Get on AppPlatform.CertificatesClient: %+v", err)
-			}
-			return nil
-		}
-		return fmt.Errorf("expected no spring cloud certificate but found %+v", resp)
+func (t SpringCloudCertificateResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.SpringCloudCertificateID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.AppPlatform.CertificatesClient.Get(ctx, id.ResourceGroup, id.SpringName, id.CertificateName)
+	if err != nil {
+		return nil, fmt.Errorf("reading Spring Cloud Certificate %q (Spring Cloud Service %q / Resource Group %q): %+v", id.CertificateName, id.SpringName, id.ResourceGroup, err)
+	}
+
+	return utils.Bool(resp.Properties != nil), nil
 }
 
-func testAccAzureRMSpringCloudCertificate_basic(data acceptance.TestData) string {
-	template := testAccAzureRMSpringCloudCertificate_template(data)
+func (SpringCloudCertificateResource) basic(data acceptance.TestData) string {
+	template := SpringCloudCertificateResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -113,8 +76,8 @@ resource "azurerm_spring_cloud_certificate" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMSpringCloudCertificate_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMSpringCloudCertificate_basic(data)
+func (SpringCloudCertificateResource) requiresImport(data acceptance.TestData) string {
+	template := SpringCloudCertificateResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -127,7 +90,7 @@ resource "azurerm_spring_cloud_certificate" "import" {
 `, template)
 }
 
-func testAccAzureRMSpringCloudCertificate_template(data acceptance.TestData) string {
+func (SpringCloudCertificateResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
