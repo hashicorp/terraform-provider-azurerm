@@ -7,8 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
-	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -33,7 +33,7 @@ func dataSourceArmLoadBalancerRule() *schema.Resource {
 			"loadbalancer_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: networkValidate.LoadBalancerID,
+				ValidateFunc: validate.LoadBalancerID,
 			},
 
 			"frontend_ip_configuration_name": {
@@ -95,7 +95,7 @@ func dataSourceArmLoadBalancerRule() *schema.Resource {
 }
 
 func dataSourceArmLoadBalancerRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.LoadBalancersClient
+	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -114,7 +114,7 @@ func dataSourceArmLoadBalancerRuleRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Load Balancer %q (Resource Group %q) was not found", loadBalancerID.Name, loadBalancerID.ResourceGroup)
 	}
 
-	lbRuleClient := meta.(*clients.Client).Network.LoadBalancerLoadBalancingRulesClient
+	lbRuleClient := meta.(*clients.Client).LoadBalancers.LoadBalancingRulesClient
 	ctx, cancel = timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

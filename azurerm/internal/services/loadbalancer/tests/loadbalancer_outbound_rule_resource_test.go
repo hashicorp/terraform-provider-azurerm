@@ -11,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	nw "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer"
 )
 
 func TestAccAzureRMLoadBalancerOutboundRule_basic(t *testing.T) {
@@ -211,7 +211,7 @@ func TestAccAzureRMLoadBalancerOutboundRule_disappears(t *testing.T) {
 
 func testCheckAzureRMLoadBalancerOutboundRuleExists(outboundRuleName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		if _, _, exists := nw.FindLoadBalancerOutboundRuleByName(lb, outboundRuleName); !exists {
+		if _, _, exists := loadbalancer.FindLoadBalancerOutboundRuleByName(lb, outboundRuleName); !exists {
 			return fmt.Errorf("A Load Balancer Outbound Rule with name %q cannot be found.", outboundRuleName)
 		}
 
@@ -221,7 +221,7 @@ func testCheckAzureRMLoadBalancerOutboundRuleExists(outboundRuleName string, lb 
 
 func testCheckAzureRMLoadBalancerOutboundRuleNotExists(outboundRuleName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		if _, _, exists := nw.FindLoadBalancerOutboundRuleByName(lb, outboundRuleName); exists {
+		if _, _, exists := loadbalancer.FindLoadBalancerOutboundRuleByName(lb, outboundRuleName); exists {
 			return fmt.Errorf("A Load Balancer Outbound Rule with name %q has been found.", outboundRuleName)
 		}
 
@@ -231,10 +231,10 @@ func testCheckAzureRMLoadBalancerOutboundRuleNotExists(outboundRuleName string, 
 
 func testCheckAzureRMLoadBalancerOutboundRuleDisappears(ruleName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LoadBalancersClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).LoadBalancers.LoadBalancersClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-		_, i, exists := nw.FindLoadBalancerOutboundRuleByName(lb, ruleName)
+		_, i, exists := loadbalancer.FindLoadBalancerOutboundRuleByName(lb, ruleName)
 		if !exists {
 			return fmt.Errorf("A Outbound Rule with name %q cannot be found.", ruleName)
 		}

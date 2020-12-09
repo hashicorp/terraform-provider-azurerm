@@ -12,8 +12,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	nw "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer"
 )
+
+// TODO: move this out
 
 func TestResourceAzureRMLoadBalancerRuleNameLabel_validation(t *testing.T) {
 	cases := []struct {
@@ -63,7 +65,7 @@ func TestResourceAzureRMLoadBalancerRuleNameLabel_validation(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := nw.ValidateArmLoadBalancerRuleName(tc.Value, "azurerm_lb_rule")
+		_, errors := loadbalancer.ValidateArmLoadBalancerRuleName(tc.Value, "azurerm_lb_rule")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected the Azure RM Load Balancer Rule Name Label to trigger a validation error")
@@ -342,7 +344,7 @@ func TestAccAzureRMLoadBalancerRule_disappears(t *testing.T) {
 
 func testCheckAzureRMLoadBalancerRuleExists(lbRuleName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		_, _, exists := nw.FindLoadBalancerRuleByName(lb, lbRuleName)
+		_, _, exists := loadbalancer.FindLoadBalancerRuleByName(lb, lbRuleName)
 		if !exists {
 			return fmt.Errorf("A Load Balancer Rule with name %q cannot be found.", lbRuleName)
 		}
@@ -353,7 +355,7 @@ func testCheckAzureRMLoadBalancerRuleExists(lbRuleName string, lb *network.LoadB
 
 func testCheckAzureRMLoadBalancerRuleNotExists(lbRuleName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		_, _, exists := nw.FindLoadBalancerRuleByName(lb, lbRuleName)
+		_, _, exists := loadbalancer.FindLoadBalancerRuleByName(lb, lbRuleName)
 		if exists {
 			return fmt.Errorf("A Load Balancer Rule with name %q has been found.", lbRuleName)
 		}
@@ -364,10 +366,10 @@ func testCheckAzureRMLoadBalancerRuleNotExists(lbRuleName string, lb *network.Lo
 
 func testCheckAzureRMLoadBalancerRuleDisappears(ruleName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LoadBalancersClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).LoadBalancers.LoadBalancersClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-		_, i, exists := nw.FindLoadBalancerRuleByName(lb, ruleName)
+		_, i, exists := loadbalancer.FindLoadBalancerRuleByName(lb, ruleName)
 		if !exists {
 			return fmt.Errorf("A Rule with name %q cannot be found.", ruleName)
 		}

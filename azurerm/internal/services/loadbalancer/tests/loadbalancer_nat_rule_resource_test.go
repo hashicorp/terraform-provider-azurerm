@@ -11,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	nw "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer"
 )
 
 func TestAccAzureRMLoadBalancerNatRule_basic(t *testing.T) {
@@ -242,7 +242,7 @@ func TestAccAzureRMLoadBalancerNatRule_disappears(t *testing.T) {
 
 func testCheckAzureRMLoadBalancerNatRuleExists(natRuleName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		_, _, exists := nw.FindLoadBalancerNatRuleByName(lb, natRuleName)
+		_, _, exists := loadbalancer.FindLoadBalancerNatRuleByName(lb, natRuleName)
 		if !exists {
 			return fmt.Errorf("A NAT Rule with name %q cannot be found.", natRuleName)
 		}
@@ -253,7 +253,7 @@ func testCheckAzureRMLoadBalancerNatRuleExists(natRuleName string, lb *network.L
 
 func testCheckAzureRMLoadBalancerNatRuleNotExists(natRuleName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		_, _, exists := nw.FindLoadBalancerNatRuleByName(lb, natRuleName)
+		_, _, exists := loadbalancer.FindLoadBalancerNatRuleByName(lb, natRuleName)
 		if exists {
 			return fmt.Errorf("A NAT Rule with name %q has been found.", natRuleName)
 		}
@@ -264,10 +264,10 @@ func testCheckAzureRMLoadBalancerNatRuleNotExists(natRuleName string, lb *networ
 
 func testCheckAzureRMLoadBalancerNatRuleDisappears(natRuleName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LoadBalancersClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).LoadBalancers.LoadBalancersClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-		_, i, exists := nw.FindLoadBalancerNatRuleByName(lb, natRuleName)
+		_, i, exists := loadbalancer.FindLoadBalancerNatRuleByName(lb, natRuleName)
 		if !exists {
 			return fmt.Errorf("A Nat Rule with name %q cannot be found.", natRuleName)
 		}
