@@ -20,6 +20,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	networkParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -110,9 +112,10 @@ func resourceArmRedisCache() *schema.Resource {
 			},
 
 			"subnet_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: networkValidate.SubnetID,
 			},
 
 			"private_static_ip_address": {
@@ -336,19 +339,16 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if v, ok := d.GetOk("subnet_id"); ok {
-		// TODO: switch to using the Subnet parser in time
-		parsed, parseErr := azure.ParseAzureResourceID(v.(string))
+		parsed, parseErr := networkParse.SubnetID(v.(string))
 		if parseErr != nil {
-			return fmt.Errorf("Error parsing Azure Resource ID %q", v.(string))
+			return err
 		}
-		subnetName := parsed.Path["subnets"]
-		virtualNetworkName := parsed.Path["virtualNetworks"]
 
-		locks.ByName(virtualNetworkName, network.VirtualNetworkResourceName)
-		defer locks.UnlockByName(virtualNetworkName, network.VirtualNetworkResourceName)
+		locks.ByName(parsed.VirtualNetworkName, network.VirtualNetworkResourceName)
+		defer locks.UnlockByName(parsed.VirtualNetworkName, network.VirtualNetworkResourceName)
 
-		locks.ByName(subnetName, network.SubnetResourceName)
-		defer locks.UnlockByName(subnetName, network.SubnetResourceName)
+		locks.ByName(parsed.Name, network.SubnetResourceName)
+		defer locks.UnlockByName(parsed.Name, network.SubnetResourceName)
 
 		parameters.SubnetID = utils.String(v.(string))
 	}
@@ -530,7 +530,17 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("shard_count", props.ShardCount)
 		}
 		d.Set("private_static_ip_address", props.StaticIP)
-		d.Set("subnet_id", props.SubnetID)
+
+		subnetId := ""
+		if props.SubnetID != nil {
+			parsed, err := networkParse.SubnetID(*props.SubnetID)
+			if err != nil {
+				return err
+			}
+
+			subnetId = parsed.ID("")
+		}
+		d.Set("subnet_id", subnetId)
 	}
 
 	redisConfiguration, err := flattenRedisConfiguration(resp.RedisConfiguration)
@@ -572,19 +582,16 @@ func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error
 	}
 	props := *read.Properties
 	if subnetID := props.SubnetID; subnetID != nil {
-		// TODO: switch out for the Subnet ID in time
-		parsed, parseErr := azure.ParseAzureResourceID(*subnetID)
+		parsed, parseErr := networkParse.SubnetID(*subnetID)
 		if parseErr != nil {
-			return fmt.Errorf("Error parsing Azure Resource ID %q", *subnetID)
+			return err
 		}
-		subnetName := parsed.Path["subnets"]
-		virtualNetworkName := parsed.Path["virtualNetworks"]
 
-		locks.ByName(virtualNetworkName, network.VirtualNetworkResourceName)
-		defer locks.UnlockByName(virtualNetworkName, network.VirtualNetworkResourceName)
+		locks.ByName(parsed.VirtualNetworkName, network.VirtualNetworkResourceName)
+		defer locks.UnlockByName(parsed.VirtualNetworkName, network.VirtualNetworkResourceName)
 
-		locks.ByName(subnetName, network.SubnetResourceName)
-		defer locks.UnlockByName(subnetName, network.SubnetResourceName)
+		locks.ByName(parsed.Name, network.SubnetResourceName)
+		defer locks.UnlockByName(parsed.Name, network.SubnetResourceName)
 	}
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.RediName)
