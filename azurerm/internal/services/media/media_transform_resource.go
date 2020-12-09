@@ -68,7 +68,7 @@ func resourceMediaTransform() *schema.Resource {
 			},
 
 			"output": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				MinItems: 1,
 				Elem: &schema.Resource{
@@ -81,7 +81,7 @@ func resourceMediaTransform() *schema.Resource {
 							}, true),
 						},
 						"builtin_preset": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
@@ -102,7 +102,7 @@ func resourceMediaTransform() *schema.Resource {
 							},
 						},
 						"audio_analyzer_preset": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
@@ -126,7 +126,7 @@ func resourceMediaTransform() *schema.Resource {
 							},
 						},
 						"video_analyzer_preset": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
@@ -157,7 +157,7 @@ func resourceMediaTransform() *schema.Resource {
 							},
 						},
 						"face_detector_preset": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
@@ -203,7 +203,7 @@ func resourceMediaTransformCreateUpdate(d *schema.ResourceData, meta interface{}
 	}
 
 	if v, ok := d.GetOk("output"); ok {
-		transformOutput, err := expandTransformOuputs(v.(*schema.Set).List())
+		transformOutput, err := expandTransformOuputs(v.([]interface{}))
 		if err != nil {
 			return err
 		}
@@ -337,19 +337,19 @@ func flattenTransformOutputs(input *[]media.TransformOutput) []interface{} {
 func expandPreset(transform map[string]interface{}) (media.BasicPreset, error) {
 	presetsCount := 0
 	presetType := ""
-	if transform["builtin_preset"] != nil && len(transform["builtin_preset"].(*schema.Set).List()) > 0 {
+	if transform["builtin_preset"] != nil && len(transform["builtin_preset"].([]interface{})) > 0 {
 		presetsCount++
 		presetType = string(media.OdataTypeMicrosoftMediaBuiltInStandardEncoderPreset)
 	}
-	if transform["audio_analyzer_preset"] != nil && len(transform["audio_analyzer_preset"].(*schema.Set).List()) > 0 {
+	if transform["audio_analyzer_preset"] != nil && len(transform["audio_analyzer_preset"].([]interface{})) > 0 {
 		presetsCount++
 		presetType = string(media.OdataTypeMicrosoftMediaAudioAnalyzerPreset)
 	}
-	if transform["video_analyzer_preset"] != nil && len(transform["video_analyzer_preset"].(*schema.Set).List()) > 0 {
+	if transform["video_analyzer_preset"] != nil && len(transform["video_analyzer_preset"].([]interface{})) > 0 {
 		presetsCount++
 		presetType = string(media.OdataTypeMicrosoftMediaVideoAnalyzerPreset)
 	}
-	if transform["face_detector_preset"] != nil && len(transform["face_detector_preset"].(*schema.Set).List()) > 0 {
+	if transform["face_detector_preset"] != nil && len(transform["face_detector_preset"].([]interface{})) > 0 {
 		presetsCount++
 		presetType = string(media.OdataTypeMicrosoftMediaFaceDetectorPreset)
 	}
@@ -364,7 +364,7 @@ func expandPreset(transform map[string]interface{}) (media.BasicPreset, error) {
 
 	switch presetType {
 	case string(media.OdataTypeMicrosoftMediaBuiltInStandardEncoderPreset):
-		presets := transform["builtin_preset"].(*schema.Set).List()
+		presets := transform["builtin_preset"].([]interface{})
 		preset := presets[0].(map[string]interface{})
 		if preset["preset_name"] == nil {
 			return nil, fmt.Errorf("preset_name is required for BuiltInStandardEncoderPreset")
@@ -376,7 +376,7 @@ func expandPreset(transform map[string]interface{}) (media.BasicPreset, error) {
 		}
 		return builtInPreset, nil
 	case string(media.OdataTypeMicrosoftMediaAudioAnalyzerPreset):
-		presets := transform["audio_analyzer_preset"].(*schema.Set).List()
+		presets := transform["audio_analyzer_preset"].([]interface{})
 		preset := presets[0].(map[string]interface{})
 		audioAnalyzerPreset := &media.AudioAnalyzerPreset{
 			OdataType: media.OdataTypeMicrosoftMediaAudioAnalyzerPreset,
@@ -389,7 +389,7 @@ func expandPreset(transform map[string]interface{}) (media.BasicPreset, error) {
 		}
 		return audioAnalyzerPreset, nil
 	case string(media.OdataTypeMicrosoftMediaFaceDetectorPreset):
-		presets := transform["face_detector_preset"].(*schema.Set).List()
+		presets := transform["face_detector_preset"].([]interface{})
 		preset := presets[0].(map[string]interface{})
 		faceDetectorPreset := &media.FaceDetectorPreset{
 			OdataType: media.OdataTypeMicrosoftMediaFaceDetectorPreset,
@@ -399,7 +399,7 @@ func expandPreset(transform map[string]interface{}) (media.BasicPreset, error) {
 		}
 		return faceDetectorPreset, nil
 	case string(media.OdataTypeMicrosoftMediaVideoAnalyzerPreset):
-		presets := transform["video_analyzer_preset"].(*schema.Set).List()
+		presets := transform["video_analyzer_preset"].([]interface{})
 		preset := presets[0].(map[string]interface{})
 		videoAnalyzerPreset := &media.VideoAnalyzerPreset{
 			OdataType: media.OdataTypeMicrosoftMediaVideoAnalyzerPreset,
