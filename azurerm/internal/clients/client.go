@@ -48,6 +48,7 @@ import (
 	keyvault "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/client"
 	kusto "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/client"
 	lighthouse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/lighthouse/client"
+	loadbalancers "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/client"
 	loganalytics "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/client"
 	logic "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/client"
 	machinelearning "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/machinelearning/client"
@@ -141,6 +142,7 @@ type Client struct {
 	KeyVault              *keyvault.Client
 	Kusto                 *kusto.Client
 	Lighthouse            *lighthouse.Client
+	LoadBalancers         *loadbalancers.Client
 	LogAnalytics          *loganalytics.Client
 	Logic                 *logic.Client
 	MachineLearning       *machinelearning.Client
@@ -235,6 +237,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Kusto = kusto.NewClient(o)
 	client.Lighthouse = lighthouse.NewClient(o)
 	client.LogAnalytics = loganalytics.NewClient(o)
+	client.LoadBalancers = loadbalancers.NewClient(o)
 	client.Logic = logic.NewClient(o)
 	client.MachineLearning = machinelearning.NewClient(o)
 	client.Maintenance = maintenance.NewClient(o)

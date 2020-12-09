@@ -1,4 +1,4 @@
-package network
+package loadbalancer
 
 import (
 	"fmt"
@@ -102,7 +102,7 @@ func dataSourceArmLoadBalancer() *schema.Resource {
 }
 
 func dataSourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.LoadBalancersClient
+	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

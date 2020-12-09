@@ -1,9 +1,8 @@
-package network
+package loadbalancer
 
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
@@ -15,8 +14,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
-	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/parse"
+	loadBalancerValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -50,7 +49,7 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateArmLoadBalancerRuleName,
+				ValidateFunc: loadBalancerValidate.RuleName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -59,7 +58,7 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.LoadBalancerID,
+				ValidateFunc: loadBalancerValidate.LoadBalancerID,
 			},
 
 			"frontend_ip_configuration_name": {
@@ -142,7 +141,7 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 }
 
 func resourceArmLoadBalancerRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.LoadBalancersClient
+	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -221,7 +220,7 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmLoadBalancerRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.LoadBalancersClient
+	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -312,7 +311,7 @@ func resourceArmLoadBalancerRuleRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmLoadBalancerRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.LoadBalancersClient
+	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -410,34 +409,4 @@ func expandAzureRmLoadBalancerRule(d *schema.ResourceData, lb *network.LoadBalan
 		Name:                              utils.String(d.Get("name").(string)),
 		LoadBalancingRulePropertiesFormat: &properties,
 	}, nil
-}
-
-func ValidateArmLoadBalancerRuleName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-	if !regexp.MustCompile(`^[a-zA-Z_0-9.-]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"only word characters, numbers, underscores, periods, and hyphens allowed in %q: %q",
-			k, value))
-	}
-
-	if len(value) > 80 {
-		errors = append(errors, fmt.Errorf(
-			"%q cannot be longer than 80 characters: %q", k, value))
-	}
-
-	if len(value) == 0 {
-		errors = append(errors, fmt.Errorf(
-			"%q cannot be an empty string: %q", k, value))
-	}
-	if !regexp.MustCompile(`[a-zA-Z0-9_]$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"%q must end with a word character, number, or underscore: %q", k, value))
-	}
-
-	if !regexp.MustCompile(`^[a-zA-Z0-9]`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"%q must start with a word character or number: %q", k, value))
-	}
-
-	return warnings, errors
 }

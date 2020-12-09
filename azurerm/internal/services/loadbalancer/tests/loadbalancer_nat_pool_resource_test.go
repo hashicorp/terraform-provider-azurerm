@@ -11,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	nw "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer"
 )
 
 func TestAccAzureRMLoadBalancerNatPool_basic(t *testing.T) {
@@ -171,7 +171,7 @@ func TestAccAzureRMLoadBalancerNatPool_disappears(t *testing.T) {
 
 func testCheckAzureRMLoadBalancerNatPoolExists(natPoolName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		_, _, exists := nw.FindLoadBalancerNatPoolByName(lb, natPoolName)
+		_, _, exists := loadbalancer.FindLoadBalancerNatPoolByName(lb, natPoolName)
 		if !exists {
 			return fmt.Errorf("A NAT Pool with name %q cannot be found.", natPoolName)
 		}
@@ -182,7 +182,7 @@ func testCheckAzureRMLoadBalancerNatPoolExists(natPoolName string, lb *network.L
 
 func testCheckAzureRMLoadBalancerNatPoolNotExists(natPoolName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		_, _, exists := nw.FindLoadBalancerNatPoolByName(lb, natPoolName)
+		_, _, exists := loadbalancer.FindLoadBalancerNatPoolByName(lb, natPoolName)
 		if exists {
 			return fmt.Errorf("A NAT Pool with name %q has been found.", natPoolName)
 		}
@@ -193,10 +193,10 @@ func testCheckAzureRMLoadBalancerNatPoolNotExists(natPoolName string, lb *networ
 
 func testCheckAzureRMLoadBalancerNatPoolDisappears(natPoolName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LoadBalancersClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).LoadBalancers.LoadBalancersClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-		_, i, exists := nw.FindLoadBalancerNatPoolByName(lb, natPoolName)
+		_, i, exists := loadbalancer.FindLoadBalancerNatPoolByName(lb, natPoolName)
 		if !exists {
 			return fmt.Errorf("A Nat Pool with name %q cannot be found.", natPoolName)
 		}

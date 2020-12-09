@@ -10,7 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	nw "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer"
 )
 
 func TestAccAzureRMLoadBalancerBackEndAddressPool_basic(t *testing.T) {
@@ -110,7 +110,7 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_disappears(t *testing.T) {
 
 func testCheckAzureRMLoadBalancerBackEndAddressPoolExists(addressPoolName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		_, _, exists := nw.FindLoadBalancerBackEndAddressPoolByName(lb, addressPoolName)
+		_, _, exists := loadbalancer.FindLoadBalancerBackEndAddressPoolByName(lb, addressPoolName)
 		if !exists {
 			return fmt.Errorf("A BackEnd Address Pool with name %q cannot be found.", addressPoolName)
 		}
@@ -121,7 +121,7 @@ func testCheckAzureRMLoadBalancerBackEndAddressPoolExists(addressPoolName string
 
 func testCheckAzureRMLoadBalancerBackEndAddressPoolNotExists(addressPoolName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		_, _, exists := nw.FindLoadBalancerBackEndAddressPoolByName(lb, addressPoolName)
+		_, _, exists := loadbalancer.FindLoadBalancerBackEndAddressPoolByName(lb, addressPoolName)
 		if exists {
 			return fmt.Errorf("A BackEnd Address Pool with name %q has been found.", addressPoolName)
 		}
@@ -132,10 +132,10 @@ func testCheckAzureRMLoadBalancerBackEndAddressPoolNotExists(addressPoolName str
 
 func testCheckAzureRMLoadBalancerBackEndAddressPoolDisappears(addressPoolName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LoadBalancersClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).LoadBalancers.LoadBalancersClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-		_, i, exists := nw.FindLoadBalancerBackEndAddressPoolByName(lb, addressPoolName)
+		_, i, exists := loadbalancer.FindLoadBalancerBackEndAddressPoolByName(lb, addressPoolName)
 		if !exists {
 			return fmt.Errorf("A BackEnd Address Pool with name %q cannot be found.", addressPoolName)
 		}

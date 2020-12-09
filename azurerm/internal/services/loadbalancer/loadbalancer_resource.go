@@ -1,4 +1,4 @@
-package network
+package loadbalancer
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/state"
@@ -185,7 +185,7 @@ func resourceArmLoadBalancer() *schema.Resource {
 }
 
 func resourceArmLoadBalancerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.LoadBalancersClient
+	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -251,7 +251,7 @@ func resourceArmLoadBalancerCreateUpdate(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.LoadBalancersClient
+	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -309,7 +309,7 @@ func resourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmLoadBalancerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.LoadBalancersClient
+	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

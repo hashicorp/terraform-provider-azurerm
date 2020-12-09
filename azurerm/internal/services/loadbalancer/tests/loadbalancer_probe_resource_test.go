@@ -11,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	nw "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer"
 )
 
 func TestAccAzureRMLoadBalancerProbe_basic(t *testing.T) {
@@ -198,7 +198,7 @@ func TestAccAzureRMLoadBalancerProbe_disappears(t *testing.T) {
 
 func testCheckAzureRMLoadBalancerProbeExists(natRuleName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		_, _, exists := nw.FindLoadBalancerProbeByName(lb, natRuleName)
+		_, _, exists := loadbalancer.FindLoadBalancerProbeByName(lb, natRuleName)
 		if !exists {
 			return fmt.Errorf("A Probe with name %q cannot be found.", natRuleName)
 		}
@@ -209,7 +209,7 @@ func testCheckAzureRMLoadBalancerProbeExists(natRuleName string, lb *network.Loa
 
 func testCheckAzureRMLoadBalancerProbeNotExists(natRuleName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		_, _, exists := nw.FindLoadBalancerProbeByName(lb, natRuleName)
+		_, _, exists := loadbalancer.FindLoadBalancerProbeByName(lb, natRuleName)
 		if exists {
 			return fmt.Errorf("A Probe with name %q has been found.", natRuleName)
 		}
@@ -220,10 +220,10 @@ func testCheckAzureRMLoadBalancerProbeNotExists(natRuleName string, lb *network.
 
 func testCheckAzureRMLoadBalancerProbeDisappears(addressPoolName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LoadBalancersClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).LoadBalancers.LoadBalancersClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-		_, i, exists := nw.FindLoadBalancerProbeByName(lb, addressPoolName)
+		_, i, exists := loadbalancer.FindLoadBalancerProbeByName(lb, addressPoolName)
 		if !exists {
 			return fmt.Errorf("A Probe with name %q cannot be found.", addressPoolName)
 		}

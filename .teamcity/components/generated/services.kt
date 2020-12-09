@@ -42,6 +42,7 @@ var services = mapOf(
         "keyvault" to "KeyVault",
         "kusto" to "Kusto",
         "lighthouse" to "Lighthouse",
+        "loadbalancer" to "Load Balancer",
         "loganalytics" to "Log Analytics",
         "logic" to "Logic",
         "machinelearning" to "Machine Learning",

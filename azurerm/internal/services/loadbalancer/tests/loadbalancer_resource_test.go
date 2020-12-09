@@ -215,7 +215,7 @@ func TestAccAzureRMLoadBalancer_privateIP(t *testing.T) {
 
 func testCheckAzureRMLoadBalancerExists(resourceName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LoadBalancersClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).LoadBalancers.LoadBalancersClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -245,7 +245,7 @@ func testCheckAzureRMLoadBalancerExists(resourceName string, lb *network.LoadBal
 }
 
 func testCheckAzureRMLoadBalancerDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LoadBalancersClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).LoadBalancers.LoadBalancersClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
