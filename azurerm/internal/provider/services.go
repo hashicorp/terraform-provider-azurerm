@@ -43,6 +43,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/lighthouse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/machinelearning"
@@ -137,6 +138,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		iotcentral.Registration{},
 		keyvault.Registration{},
 		kusto.Registration{},
+		loadbalancer.Registration{},
 		loganalytics.Registration{},
 		logic.Registration{},
 		machinelearning.Registration{},
