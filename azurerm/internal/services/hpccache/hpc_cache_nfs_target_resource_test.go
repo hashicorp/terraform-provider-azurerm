@@ -12,18 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMHPCCacheNFSTarget_basic(t *testing.T) {
+func TestAccHPCCacheNFSTarget_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_nfs_target", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHPCCacheNFSTargetDestroy,
+		CheckDestroy: testCheckHPCCacheNFSTargetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHPCCacheNFSTarget_basic(data),
+				Config: testAccHPCCacheNFSTarget_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHPCCacheNFSTargetExists(data.ResourceName),
+					testCheckHPCCacheNFSTargetExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -31,32 +31,32 @@ func TestAccAzureRMHPCCacheNFSTarget_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHPCCacheNFSTarget_usageModel(t *testing.T) {
+func TestAccHPCCacheNFSTarget_usageModel(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_nfs_target", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHPCCacheNFSTargetDestroy,
+		CheckDestroy: testCheckHPCCacheNFSTargetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHPCCacheNFSTarget_basic(data),
+				Config: testAccHPCCacheNFSTarget_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHPCCacheNFSTargetExists(data.ResourceName),
+					testCheckHPCCacheNFSTargetExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMHPCCacheNFSTarget_usageModel(data),
+				Config: testAccHPCCacheNFSTarget_usageModel(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHPCCacheNFSTargetExists(data.ResourceName),
+					testCheckHPCCacheNFSTargetExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMHPCCacheNFSTarget_basic(data),
+				Config: testAccHPCCacheNFSTarget_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHPCCacheNFSTargetExists(data.ResourceName),
+					testCheckHPCCacheNFSTargetExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -64,32 +64,32 @@ func TestAccAzureRMHPCCacheNFSTarget_usageModel(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHPCCacheNFSTarget_namespaceJunction(t *testing.T) {
+func TestAccHPCCacheNFSTarget_namespaceJunction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_nfs_target", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHPCCacheNFSTargetDestroy,
+		CheckDestroy: testCheckHPCCacheNFSTargetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHPCCacheNFSTarget_basic(data),
+				Config: testAccHPCCacheNFSTarget_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHPCCacheNFSTargetExists(data.ResourceName),
+					testCheckHPCCacheNFSTargetExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMHPCCacheNFSTarget_namespaceJunction(data),
+				Config: testAccHPCCacheNFSTarget_namespaceJunction(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHPCCacheNFSTargetExists(data.ResourceName),
+					testCheckHPCCacheNFSTargetExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMHPCCacheNFSTarget_basic(data),
+				Config: testAccHPCCacheNFSTarget_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHPCCacheNFSTargetExists(data.ResourceName),
+					testCheckHPCCacheNFSTargetExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -97,26 +97,26 @@ func TestAccAzureRMHPCCacheNFSTarget_namespaceJunction(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHPCCacheNFSTarget_requiresImport(t *testing.T) {
+func TestAccHPCCacheNFSTarget_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_nfs_target", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHPCCacheNFSTargetDestroy,
+		CheckDestroy: testCheckHPCCacheNFSTargetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHPCCacheNFSTarget_basic(data),
+				Config: testAccHPCCacheNFSTarget_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHPCCacheNFSTargetExists(data.ResourceName),
+					testCheckHPCCacheNFSTargetExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMHPCCacheNFSTarget_requiresImport),
+			data.RequiresImportErrorStep(testAccHPCCacheNFSTarget_requiresImport),
 		},
 	})
 }
 
-func testCheckAzureRMHPCCacheNFSTargetExists(resourceName string) resource.TestCheckFunc {
+func testCheckHPCCacheNFSTargetExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).HPCCache.StorageTargetsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -142,7 +142,7 @@ func testCheckAzureRMHPCCacheNFSTargetExists(resourceName string) resource.TestC
 	}
 }
 
-func testCheckAzureRMHPCCacheNFSTargetDestroy(s *terraform.State) error {
+func testCheckHPCCacheNFSTargetDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).HPCCache.StorageTargetsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -168,8 +168,8 @@ func testCheckAzureRMHPCCacheNFSTargetDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMHPCCacheNFSTarget_basic(data acceptance.TestData) string {
-	template := testAccAzureRMHPCCacheNFSTarget_template(data)
+func testAccHPCCacheNFSTarget_basic(data acceptance.TestData) string {
+	template := testAccHPCCacheNFSTarget_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -192,8 +192,8 @@ resource "azurerm_hpc_cache_nfs_target" "test" {
 `, template, data.RandomString)
 }
 
-func testAccAzureRMHPCCacheNFSTarget_usageModel(data acceptance.TestData) string {
-	template := testAccAzureRMHPCCacheNFSTarget_template(data)
+func testAccHPCCacheNFSTarget_usageModel(data acceptance.TestData) string {
+	template := testAccHPCCacheNFSTarget_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -216,8 +216,8 @@ resource "azurerm_hpc_cache_nfs_target" "test" {
 `, template, data.RandomString)
 }
 
-func testAccAzureRMHPCCacheNFSTarget_namespaceJunction(data acceptance.TestData) string {
-	template := testAccAzureRMHPCCacheNFSTarget_template(data)
+func testAccHPCCacheNFSTarget_namespaceJunction(data acceptance.TestData) string {
+	template := testAccHPCCacheNFSTarget_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -236,8 +236,8 @@ resource "azurerm_hpc_cache_nfs_target" "test" {
 `, template, data.RandomString)
 }
 
-func testAccAzureRMHPCCacheNFSTarget_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMHPCCacheNFSTarget_basic(data)
+func testAccHPCCacheNFSTarget_requiresImport(data acceptance.TestData) string {
+	template := testAccHPCCacheNFSTarget_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -260,7 +260,7 @@ resource "azurerm_hpc_cache_nfs_target" "import" {
 `, template)
 }
 
-func testAccAzureRMHPCCacheNFSTarget_template(data acceptance.TestData) string {
+func testAccHPCCacheNFSTarget_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -328,5 +328,5 @@ resource "azurerm_linux_virtual_machine" "test" {
   custom_data = base64encode(local.custom_data)
 }
 
-`, testAccAzureRMHPCCache_basic(data), data.RandomString)
+`, testAccHPCCache_basic(data), data.RandomString)
 }

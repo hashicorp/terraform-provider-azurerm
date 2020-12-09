@@ -12,18 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMHPCCacheBlobTarget_basic(t *testing.T) {
+func TestAccHPCCacheBlobTarget_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_blob_target", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHPCCacheBlobTargetDestroy,
+		CheckDestroy: testCheckHPCCacheBlobTargetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHPCCacheBlobTarget_basic(data),
+				Config: testAccHPCCacheBlobTarget_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHPCCacheBlobTargetExists(data.ResourceName),
+					testCheckHPCCacheBlobTargetExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -31,25 +31,25 @@ func TestAccAzureRMHPCCacheBlobTarget_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHPCCacheBlobTarget_update(t *testing.T) {
+func TestAccHPCCacheBlobTarget_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_blob_target", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHPCCacheBlobTargetDestroy,
+		CheckDestroy: testCheckHPCCacheBlobTargetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHPCCacheBlobTarget_basic(data),
+				Config: testAccHPCCacheBlobTarget_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHPCCacheBlobTargetExists(data.ResourceName),
+					testCheckHPCCacheBlobTargetExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMHPCCacheBlobTarget_namespace(data),
+				Config: testAccHPCCacheBlobTarget_namespace(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHPCCacheBlobTargetExists(data.ResourceName),
+					testCheckHPCCacheBlobTargetExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -57,26 +57,26 @@ func TestAccAzureRMHPCCacheBlobTarget_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHPCCacheBlobTarget_requiresImport(t *testing.T) {
+func TestAccHPCCacheBlobTarget_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_blob_target", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHPCCacheBlobTargetDestroy,
+		CheckDestroy: testCheckHPCCacheBlobTargetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHPCCacheBlobTarget_basic(data),
+				Config: testAccHPCCacheBlobTarget_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHPCCacheBlobTargetExists(data.ResourceName),
+					testCheckHPCCacheBlobTargetExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMHPCCacheBlobTarget_requiresImport),
+			data.RequiresImportErrorStep(testAccHPCCacheBlobTarget_requiresImport),
 		},
 	})
 }
 
-func testCheckAzureRMHPCCacheBlobTargetExists(resourceName string) resource.TestCheckFunc {
+func testCheckHPCCacheBlobTargetExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -102,7 +102,7 @@ func testCheckAzureRMHPCCacheBlobTargetExists(resourceName string) resource.Test
 	}
 }
 
-func testCheckAzureRMHPCCacheBlobTargetDestroy(s *terraform.State) error {
+func testCheckHPCCacheBlobTargetDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).HPCCache.StorageTargetsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -128,8 +128,8 @@ func testCheckAzureRMHPCCacheBlobTargetDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMHPCCacheBlobTarget_basic(data acceptance.TestData) string {
-	template := testAccAzureRMHPCCacheBlobTarget_template(data)
+func testAccHPCCacheBlobTarget_basic(data acceptance.TestData) string {
+	template := testAccHPCCacheBlobTarget_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -143,8 +143,8 @@ resource "azurerm_hpc_cache_blob_target" "test" {
 `, template, data.RandomString)
 }
 
-func testAccAzureRMHPCCacheBlobTarget_namespace(data acceptance.TestData) string {
-	template := testAccAzureRMHPCCacheBlobTarget_template(data)
+func testAccHPCCacheBlobTarget_namespace(data acceptance.TestData) string {
+	template := testAccHPCCacheBlobTarget_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -158,8 +158,8 @@ resource "azurerm_hpc_cache_blob_target" "test" {
 `, template, data.RandomString)
 }
 
-func testAccAzureRMHPCCacheBlobTarget_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMHPCCacheBlobTarget_basic(data)
+func testAccHPCCacheBlobTarget_requiresImport(data acceptance.TestData) string {
+	template := testAccHPCCacheBlobTarget_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -173,7 +173,7 @@ resource "azurerm_hpc_cache_blob_target" "import" {
 `, template)
 }
 
-func testAccAzureRMHPCCacheBlobTarget_template(data acceptance.TestData) string {
+func testAccHPCCacheBlobTarget_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
