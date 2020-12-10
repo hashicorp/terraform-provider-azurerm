@@ -156,8 +156,8 @@ func resourceArmServiceBusSubscriptionRuleCreateUpdate(d *schema.ResourceData, m
 	resourceId := parse.NewSubscriptionRuleID(subscriptionId,
 		d.Get("resource_group_name").(string),
 		d.Get("namespace_name").(string),
-		d.Get("subscription_name").(string),
 		d.Get("topic_name").(string),
+		d.Get("subscription_name").(string),
 		d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.TopicName, resourceId.SubscriptionName, resourceId.RuleName)
