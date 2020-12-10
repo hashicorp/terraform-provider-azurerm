@@ -78,7 +78,6 @@ func TestAccMediaServicesAccount_multiplePrimaries(t *testing.T) {
 			Config:      r.multiplePrimaries(data),
 			ExpectError: regexp.MustCompile("Only one Storage Account can be set as Primary"),
 		},
-		data.ImportStep(),
 	})
 }
 
