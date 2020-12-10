@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `tenant_id` - (Optional) The Tenant ID of the Azure Active Directory which is used by the Azure Stack HCI Cluster. Changing this forces a new resource to be created.
 
-~> **NOTE** By default, the `tenant_id` would be sourced from the `ARM_TENANT_ID` Environment Variable.
+~> **NOTE** If unspecified the Tenant ID of the Provider will be used.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Azure Stack HCI Cluster.
 
