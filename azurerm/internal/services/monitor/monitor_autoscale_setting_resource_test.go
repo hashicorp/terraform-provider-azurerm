@@ -282,6 +282,46 @@ func TestAccAzureRMMonitorAutoScaleSetting_fixedDate(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMonitorAutoScaleSetting_multipleRulesDimensions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMonitorAutoScaleSettingDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMonitorAutoScaleSetting_multipleRules(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorAutoScaleSettingExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMMonitorAutoScaleSetting_multipleRulesDimensions(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorAutoScaleSettingExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMMonitorAutoScaleSetting_multipleRulesDimensionsUpdate(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorAutoScaleSettingExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMMonitorAutoScaleSetting_multipleRules(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorAutoScaleSettingExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMMonitorAutoScaleSettingExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.AutoscaleSettingsClient
@@ -874,7 +914,88 @@ resource "azurerm_monitor_autoscale_setting" "test" {
         time_aggregation   = "Average"
         operator           = "GreaterThan"
         threshold          = 75
-        metric_namespace   = "Compute"
+        dimensions {
+          name     = "AppName"
+          operator = "Equals"
+          values   = ["App1"]
+        }
+      }
+
+
+      scale_action {
+        direction = "Increase"
+        type      = "ChangeCount"
+        value     = 1
+        cooldown  = "PT1M"
+      }
+    }
+
+    rule {
+      metric_trigger {
+        metric_name        = "Percentage CPU"
+        metric_resource_id = azurerm_virtual_machine_scale_set.test.id
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "LessThan"
+        threshold          = 25
+      }
+
+      scale_action {
+        direction = "Decrease"
+        type      = "ChangeCount"
+        value     = 1
+        cooldown  = "PT1M"
+      }
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMMonitorAutoScaleSetting_multipleRulesDimensionsUpdate(data acceptance.TestData) string {
+	template := testAccAzureRMMonitorAutoScaleSetting_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_monitor_autoscale_setting" "test" {
+  name                = "acctestautoscale-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  target_resource_id  = azurerm_virtual_machine_scale_set.test.id
+  enabled             = true
+
+  profile {
+    name = "metricRules"
+
+    capacity {
+      default = 1
+      minimum = 1
+      maximum = 10
+    }
+
+    rule {
+      metric_trigger {
+        metric_name        = "Percentage CPU"
+        metric_resource_id = azurerm_virtual_machine_scale_set.test.id
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "GreaterThan"
+        threshold          = 75
+        dimensions {
+          name     = "AppName2"
+          operator = "NotEquals"
+          values   = ["App2"]
+        }
+
+        dimensions {
+          name     = "Deployment"
+          operator = "Equals"
+          values   = ["default"]
+        }
       }
 
       scale_action {

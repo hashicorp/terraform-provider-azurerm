@@ -335,6 +335,8 @@ A `metric_trigger` block supports the following:
 
 * `threshold` - (Required) Specifies the threshold of the metric that triggers the scale action.
 
+* `dimensions` - (Optional) One or more `dimensions` block as defined below.
+
 ---
 
 A `scale_action` block supports the following:
@@ -394,6 +396,16 @@ A `webhook` block supports the following:
 * `service_uri` - (Required) The HTTPS URI which should receive scale notifications.
 
 * `properties` - (Optional) A map of settings.
+
+---
+
+A `dimensions` block supports the following:
+
+* `name` - (Required) The name of the dimension.
+
+* `operator` - (Required) The dimension operator. Possible values are `Equals` and `NotEquals`. `Equals` means being equal to any of the values. `NotEquals` means being not equal to any of the values.
+
+* `values` - (Required) A list of dimension values.
 
 ## Attributes Reference
 
