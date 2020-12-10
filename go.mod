@@ -4,7 +4,7 @@ require (
 	github.com/Azure/azure-sdk-for-go v48.1.0+incompatible
 	github.com/Azure/go-autorest/autorest v0.11.10
 	github.com/Azure/go-autorest/autorest/date v0.3.0
-	github.com/Azure/go-autorest/autorest/validation v0.3.0
+	github.com/Azure/go-autorest/autorest/validation v0.3.1
 	github.com/btubbs/datetime v0.1.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/google/go-cmp v0.3.1

@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSynapseFirewallRule() *schema.Resource {
+func resourceSynapseFirewallRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSynapseFirewallRuleCreateUpdate,
-		Read:   resourceArmSynapseFirewallRuleRead,
-		Update: resourceArmSynapseFirewallRuleCreateUpdate,
-		Delete: resourceArmSynapseFirewallRuleDelete,
+		Create: resourceSynapseFirewallRuleCreateUpdate,
+		Read:   resourceSynapseFirewallRuleRead,
+		Update: resourceSynapseFirewallRuleCreateUpdate,
+		Delete: resourceSynapseFirewallRuleDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.FirewallRuleID(id)
@@ -66,7 +66,7 @@ func resourceArmSynapseFirewallRule() *schema.Resource {
 	}
 }
 
-func resourceArmSynapseFirewallRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseFirewallRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.FirewallRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -112,10 +112,10 @@ func resourceArmSynapseFirewallRuleCreateUpdate(d *schema.ResourceData, meta int
 
 	d.SetId(*resp.ID)
 
-	return resourceArmSynapseFirewallRuleRead(d, meta)
+	return resourceSynapseFirewallRuleRead(d, meta)
 }
 
-func resourceArmSynapseFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.FirewallRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -148,7 +148,7 @@ func resourceArmSynapseFirewallRuleRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceArmSynapseFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.FirewallRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

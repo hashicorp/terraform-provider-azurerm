@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
@@ -49,7 +50,7 @@ func resourceArmLogAnalyticsSolution() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateAzureRmLogAnalyticsWorkspaceName,
+				ValidateFunc: validate.LogAnalyticsWorkspaceName,
 			},
 
 			"workspace_resource_id": {

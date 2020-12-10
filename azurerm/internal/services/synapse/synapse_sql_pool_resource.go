@@ -28,12 +28,12 @@ const (
 	PointInTimeRestoreCreateMode = "PointInTimeRestore"
 )
 
-func resourceArmSynapseSqlPool() *schema.Resource {
+func resourceSynapseSqlPool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSynapseSqlPoolCreate,
-		Read:   resourceArmSynapseSqlPoolRead,
-		Update: resourceArmSynapseSqlPoolUpdate,
-		Delete: resourceArmSynapseSqlPoolDelete,
+		Create: resourceSynapseSqlPoolCreate,
+		Read:   resourceSynapseSqlPoolRead,
+		Update: resourceSynapseSqlPoolUpdate,
+		Delete: resourceSynapseSqlPoolDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -164,7 +164,7 @@ func resourceArmSynapseSqlPool() *schema.Resource {
 	}
 }
 
-func resourceArmSynapseSqlPoolCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseSqlPoolCreate(d *schema.ResourceData, meta interface{}) error {
 	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
 	sqlPTDEClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
 	workspaceClient := meta.(*clients.Client).Synapse.WorkspaceClient
@@ -257,10 +257,10 @@ func resourceArmSynapseSqlPoolCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	d.SetId(*resp.ID)
-	return resourceArmSynapseSqlPoolRead(d, meta)
+	return resourceSynapseSqlPoolRead(d, meta)
 }
 
-func resourceArmSynapseSqlPoolUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseSqlPoolUpdate(d *schema.ResourceData, meta interface{}) error {
 	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
 	sqlPTDEClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -320,10 +320,10 @@ func resourceArmSynapseSqlPoolUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	return resourceArmSynapseSqlPoolRead(d, meta)
+	return resourceSynapseSqlPoolRead(d, meta)
 }
 
-func resourceArmSynapseSqlPoolRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseSqlPoolRead(d *schema.ResourceData, meta interface{}) error {
 	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
 	sqlPTDEClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -369,7 +369,7 @@ func resourceArmSynapseSqlPoolRead(d *schema.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmSynapseSqlPoolDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseSqlPoolDelete(d *schema.ResourceData, meta interface{}) error {
 	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

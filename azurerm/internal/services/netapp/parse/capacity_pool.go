@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -22,6 +23,15 @@ func NewCapacityPoolID(subscriptionId, resourceGroup, netAppAccountName, name st
 		NetAppAccountName: netAppAccountName,
 		Name:              name,
 	}
+}
+
+func (id CapacityPoolId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Net App Account Name %q", id.NetAppAccountName),
+		fmt.Sprintf("Name %q", id.Name),
+	}
+	return strings.Join(segments, " / ")
 }
 
 func (id CapacityPoolId) ID(_ string) string {

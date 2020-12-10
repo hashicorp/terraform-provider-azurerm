@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -22,6 +23,15 @@ func NewNamespaceNetworkRuleSetID(subscriptionId, resourceGroup, namespaceName, 
 		NamespaceName:      namespaceName,
 		NetworkrulesetName: networkrulesetName,
 	}
+}
+
+func (id NamespaceNetworkRuleSetId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Namespace Name %q", id.NamespaceName),
+		fmt.Sprintf("Networkruleset Name %q", id.NetworkrulesetName),
+	}
+	return strings.Join(segments, " / ")
 }
 
 func (id NamespaceNetworkRuleSetId) ID(_ string) string {

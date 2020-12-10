@@ -19,11 +19,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSynapseRoleAssignment() *schema.Resource {
+func resourceSynapseRoleAssignment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSynapseRoleAssignmentCreate,
-		Read:   resourceArmSynapseRoleAssignmentRead,
-		Delete: resourceArmSynapseRoleAssignmentDelete,
+		Create: resourceSynapseRoleAssignmentCreate,
+		Read:   resourceSynapseRoleAssignmentRead,
+		Delete: resourceSynapseRoleAssignmentDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -65,7 +65,7 @@ func resourceArmSynapseRoleAssignment() *schema.Resource {
 	}
 }
 
-func resourceArmSynapseRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) error {
 	synapseClient := meta.(*clients.Client).Synapse
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -118,10 +118,10 @@ func resourceArmSynapseRoleAssignmentCreate(d *schema.ResourceData, meta interfa
 
 	resourceId := parse.NewRoleAssignmentId(*workspaceId, *resp.ID).ID("")
 	d.SetId(resourceId)
-	return resourceArmSynapseRoleAssignmentRead(d, meta)
+	return resourceSynapseRoleAssignmentRead(d, meta)
 }
 
-func resourceArmSynapseRoleAssignmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseRoleAssignmentRead(d *schema.ResourceData, meta interface{}) error {
 	synapseClient := meta.(*clients.Client).Synapse
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -159,7 +159,7 @@ func resourceArmSynapseRoleAssignmentRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func resourceArmSynapseRoleAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseRoleAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
 	synapseClient := meta.(*clients.Client).Synapse
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

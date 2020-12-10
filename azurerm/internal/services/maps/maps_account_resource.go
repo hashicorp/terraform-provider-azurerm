@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMapsAccount() *schema.Resource {
+func resourceMapsAccount() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMapsAccountCreateUpdate,
-		Read:   resourceArmMapsAccountRead,
-		Update: resourceArmMapsAccountCreateUpdate,
-		Delete: resourceArmMapsAccountDelete,
+		Create: resourceMapsAccountCreateUpdate,
+		Read:   resourceMapsAccountRead,
+		Update: resourceMapsAccountCreateUpdate,
+		Delete: resourceMapsAccountDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -80,7 +80,7 @@ func resourceArmMapsAccount() *schema.Resource {
 	}
 }
 
-func resourceArmMapsAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMapsAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Maps.AccountsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -128,10 +128,10 @@ func resourceArmMapsAccountCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(*read.ID)
 
-	return resourceArmMapsAccountRead(d, meta)
+	return resourceMapsAccountRead(d, meta)
 }
 
-func resourceArmMapsAccountRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMapsAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Maps.AccountsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -170,7 +170,7 @@ func resourceArmMapsAccountRead(d *schema.ResourceData, meta interface{}) error 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmMapsAccountDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMapsAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Maps.AccountsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

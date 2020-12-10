@@ -1,38 +1,62 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 type WebApplicationFirewallPolicyId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId                            string
+	ResourceGroup                             string
+	FrontDoorWebApplicationFirewallPolicyName string
 }
 
-func NewWebApplicationFirewallPolicyID(resourceGroup, name string) WebApplicationFirewallPolicyId {
+func NewWebApplicationFirewallPolicyID(subscriptionId, resourceGroup, frontDoorWebApplicationFirewallPolicyName string) WebApplicationFirewallPolicyId {
 	return WebApplicationFirewallPolicyId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		FrontDoorWebApplicationFirewallPolicyName: frontDoorWebApplicationFirewallPolicyName,
 	}
 }
 
-func (id WebApplicationFirewallPolicyId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/%s", subscriptionId, id.ResourceGroup, id.Name)
+func (id WebApplicationFirewallPolicyId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Front Door Web Application Firewall Policy Name %q", id.FrontDoorWebApplicationFirewallPolicyName),
+	}
+	return strings.Join(segments, " / ")
 }
 
+func (id WebApplicationFirewallPolicyId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.FrontDoorWebApplicationFirewallPolicyName)
+}
+
+// WebApplicationFirewallPolicyID parses a WebApplicationFirewallPolicy ID into an WebApplicationFirewallPolicyId struct
 func WebApplicationFirewallPolicyID(input string) (*WebApplicationFirewallPolicyId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing Web Application Firewall Policy ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	policy := WebApplicationFirewallPolicyId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := WebApplicationFirewallPolicyId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if policy.Name, err = id.PopSegment("frontDoorWebApplicationFirewallPolicies"); err != nil {
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.FrontDoorWebApplicationFirewallPolicyName, err = id.PopSegment("frontDoorWebApplicationFirewallPolicies"); err != nil {
 		return nil, err
 	}
 
@@ -40,5 +64,49 @@ func WebApplicationFirewallPolicyID(input string) (*WebApplicationFirewallPolicy
 		return nil, err
 	}
 
-	return &policy, nil
+	return &resourceId, nil
+}
+
+// WebApplicationFirewallPolicyIDInsensitively parses an WebApplicationFirewallPolicy ID into an WebApplicationFirewallPolicyId struct, insensitively
+// This should only be used to parse an ID for rewriting, the WebApplicationFirewallPolicyID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func WebApplicationFirewallPolicyIDInsensitively(input string) (*WebApplicationFirewallPolicyId, error) {
+	id, err := azure.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := WebApplicationFirewallPolicyId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	// find the correct casing for the 'frontDoorWebApplicationFirewallPolicies' segment
+	frontDoorWebApplicationFirewallPoliciesKey := "frontDoorWebApplicationFirewallPolicies"
+	for key := range id.Path {
+		if strings.EqualFold(key, frontDoorWebApplicationFirewallPoliciesKey) {
+			frontDoorWebApplicationFirewallPoliciesKey = key
+			break
+		}
+	}
+	if resourceId.FrontDoorWebApplicationFirewallPolicyName, err = id.PopSegment(frontDoorWebApplicationFirewallPoliciesKey); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
 }
