@@ -88,28 +88,26 @@ func resourceArmPrivateDnsTxtRecord() *schema.Resource {
 
 func resourceArmPrivateDnsTxtRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PrivateDns.RecordSetsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
-	zoneName := d.Get("zone_name").(string)
-
+	resourceId := parse.NewTxtRecordID(subscriptionId, d.Get("resource_group_name").(string), d.Get("zone_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, zoneName, privatedns.TXT, name)
+		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.PrivateDnsZoneName, privatedns.TXT, resourceId.TXTName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Private DNS TXT Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+				return fmt.Errorf("checking for presence of %s: %+v", resourceId, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_private_dns_txt_record", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_private_dns_txt_record", resourceId.ID(""))
 		}
 	}
 
 	parameters := privatedns.RecordSet{
-		Name: &name,
+		Name: utils.String(resourceId.TXTName),
 		RecordSetProperties: &privatedns.RecordSetProperties{
 			Metadata:   tags.Expand(d.Get("tags").(map[string]interface{})),
 			TTL:        utils.Int64(int64(d.Get("ttl").(int))),
@@ -117,21 +115,11 @@ func resourceArmPrivateDnsTxtRecordCreateUpdate(d *schema.ResourceData, meta int
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, privatedns.TXT, name, parameters, "", ""); err != nil {
-		return fmt.Errorf("Error creating/updating Private DNS TXT Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.PrivateDnsZoneName, privatedns.TXT, resourceId.TXTName, parameters, "", ""); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", resourceId, err)
 	}
 
-	resp, err := client.Get(ctx, resGroup, zoneName, privatedns.TXT, name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving Private DNS TXT Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Private DNS TXT Record %s (resource group %s) ID", name, resGroup)
-	}
-
-	d.SetId(*resp.ID)
-
+	d.SetId(resourceId.ID(""))
 	return resourceArmPrivateDnsTxtRecordRead(d, meta)
 }
 
@@ -140,32 +128,29 @@ func resourceArmPrivateDnsTxtRecordRead(d *schema.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.TxtRecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Path["TXT"]
-	zoneName := id.Path["privateDnsZones"]
-
-	resp, err := dnsClient.Get(ctx, resGroup, zoneName, privatedns.TXT, name)
+	resp, err := dnsClient.Get(ctx, id.ResourceGroup, id.PrivateDnsZoneName, privatedns.TXT, id.TXTName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Private DNS TXT record %s: %+v", name, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resGroup)
-	d.Set("zone_name", zoneName)
+	d.Set("name", id.TXTName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("zone_name", id.PrivateDnsZoneName)
+
 	d.Set("ttl", resp.TTL)
 	d.Set("fqdn", resp.Fqdn)
 
 	if err := d.Set("record", flattenAzureRmPrivateDnsTxtRecords(resp.TxtRecords)); err != nil {
-		return fmt.Errorf("setting `record`: %s", err)
+		return fmt.Errorf("setting `record`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Metadata)
@@ -176,18 +161,13 @@ func resourceArmPrivateDnsTxtRecordDelete(d *schema.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.TxtRecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Path["TXT"]
-	zoneName := id.Path["privateDnsZones"]
-
-	_, err = dnsClient.Delete(ctx, resGroup, zoneName, privatedns.TXT, name, "")
-	if err != nil {
-		return fmt.Errorf("Error deleting Private DNS TXT Record %s: %+v", name, err)
+	if _, err = dnsClient.Delete(ctx, id.ResourceGroup, id.PrivateDnsZoneName, privatedns.TXT, id.PrivateDnsZoneName, ""); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
