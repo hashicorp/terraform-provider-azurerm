@@ -295,7 +295,7 @@ func resourceArmSentinelAlertRuleScheduledRead(d *schema.ResourceData, meta inte
 
 	d.Set("name", id.Name)
 
-	logAnalyticsWorkspaceId := loganalyticsParse.NewLogAnalyticsWorkspaceID(id.Workspace, id.ResourceGroup)
+	logAnalyticsWorkspaceId := loganalyticsParse.NewLogAnalyticsWorkspaceID(subscriptionId, id.Workspace, id.ResourceGroup)
 	d.Set("log_analytics_workspace_id", logAnalyticsWorkspaceId.ID(subscriptionId))
 
 	if prop := rule.ScheduledAlertRuleProperties; prop != nil {
