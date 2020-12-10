@@ -13,6 +13,10 @@ Manages an Azure Stack HCI Cluster.
 ## Example Usage
 
 ```hcl
+data "azuread_application" "example" {
+  name = "example-app"
+}
+
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "example" {
@@ -24,7 +28,7 @@ resource "azurerm_stack_hci_cluster" "example" {
   name                = "example-cluster"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  client_id           = data.azurerm_client_config.current.client_id
+  client_id           = data.azuread_application.example.application_id
   tenant_id           = data.azurerm_client_config.current.tenant_id
 }
 ```

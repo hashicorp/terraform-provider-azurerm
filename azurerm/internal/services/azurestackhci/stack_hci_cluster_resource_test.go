@@ -111,7 +111,7 @@ resource "azurerm_stack_hci_cluster" "test" {
   name                = "acctest-StackHCICluster-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  client_id           = data.azurerm_client_config.current.client_id
+  client_id           = azuread_application.test.application_id
   tenant_id           = data.azurerm_client_config.current.tenant_id
 }
 `, template, data.RandomInteger)
@@ -141,7 +141,7 @@ resource "azurerm_stack_hci_cluster" "test" {
   name                = "acctest-StackHCICluster-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  client_id           = data.azurerm_client_config.current.client_id
+  client_id           = azuread_application.test.application_id
   tenant_id           = data.azurerm_client_config.current.tenant_id
 
   tags = {
@@ -160,7 +160,7 @@ resource "azurerm_stack_hci_cluster" "test" {
   name                = "acctest-StackHCICluster-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  client_id           = data.azurerm_client_config.current.client_id
+  client_id           = azuread_application.test.application_id
   tenant_id           = data.azurerm_client_config.current.tenant_id
 
   tags = {
@@ -178,9 +178,13 @@ provider "azurerm" {
 
 data "azurerm_client_config" "current" {}
 
+resource "azuread_application" "test" {
+  name = "acctestspa-%d"
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-hci-%d"
   location = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
 }
