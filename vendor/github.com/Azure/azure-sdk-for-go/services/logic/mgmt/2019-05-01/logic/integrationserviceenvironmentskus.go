@@ -76,6 +76,9 @@ func (client IntegrationServiceEnvironmentSkusClient) List(ctx context.Context, 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentSkusClient", "List", resp, "Failure responding to request")
 	}
+	if result.isesl.hasNextLink() && result.isesl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

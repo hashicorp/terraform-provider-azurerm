@@ -152,6 +152,9 @@ func (client ReplicationLogicalNetworksClient) ListByReplicationFabrics(ctx cont
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationLogicalNetworksClient", "ListByReplicationFabrics", resp, "Failure responding to request")
 	}
+	if result.lnc.hasNextLink() && result.lnc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

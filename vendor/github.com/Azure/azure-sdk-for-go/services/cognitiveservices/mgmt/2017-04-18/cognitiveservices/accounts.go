@@ -79,6 +79,14 @@ func (client AccountsClient) Create(ctx context.Context, resourceGroupName strin
 							Chain: []validation.Constraint{{Target: "account.Properties.APIProperties.StorageAccountConnectionString", Name: validation.MaxLength, Rule: 1000, Chain: nil},
 								{Target: "account.Properties.APIProperties.StorageAccountConnectionString", Name: validation.Pattern, Rule: `^(( *)DefaultEndpointsProtocol=(http|https)( *);( *))?AccountName=(.*)AccountKey=(.*)EndpointSuffix=(.*)$`, Chain: nil},
 							}},
+						{Target: "account.Properties.APIProperties.AadClientID", Name: validation.Null, Rule: false,
+							Chain: []validation.Constraint{{Target: "account.Properties.APIProperties.AadClientID", Name: validation.MaxLength, Rule: 500, Chain: nil}}},
+						{Target: "account.Properties.APIProperties.AadTenantID", Name: validation.Null, Rule: false,
+							Chain: []validation.Constraint{{Target: "account.Properties.APIProperties.AadTenantID", Name: validation.MaxLength, Rule: 500, Chain: nil}}},
+						{Target: "account.Properties.APIProperties.SuperUser", Name: validation.Null, Rule: false,
+							Chain: []validation.Constraint{{Target: "account.Properties.APIProperties.SuperUser", Name: validation.MaxLength, Rule: 500, Chain: nil}}},
+						{Target: "account.Properties.APIProperties.WebsiteName", Name: validation.Null, Rule: false,
+							Chain: []validation.Constraint{{Target: "account.Properties.APIProperties.WebsiteName", Name: validation.MaxLength, Rule: 500, Chain: nil}}},
 					}},
 				}},
 				{Target: "account.Sku", Name: validation.Null, Rule: false,
@@ -461,6 +469,9 @@ func (client AccountsClient) List(ctx context.Context) (result AccountListResult
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cognitiveservices.AccountsClient", "List", resp, "Failure responding to request")
 	}
+	if result.alr.hasNextLink() && result.alr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -580,6 +591,9 @@ func (client AccountsClient) ListByResourceGroup(ctx context.Context, resourceGr
 	result.alr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cognitiveservices.AccountsClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.alr.hasNextLink() && result.alr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

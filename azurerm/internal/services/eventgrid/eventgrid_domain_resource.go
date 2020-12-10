@@ -3,6 +3,7 @@ package eventgrid
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-04-01-preview/eventgrid"
@@ -19,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmEventGridDomain() *schema.Resource {
+func resourceEventGridDomain() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmEventGridDomainCreateUpdate,
-		Read:   resourceArmEventGridDomainRead,
-		Update: resourceArmEventGridDomainCreateUpdate,
-		Delete: resourceArmEventGridDomainDelete,
+		Create: resourceEventGridDomainCreateUpdate,
+		Read:   resourceEventGridDomainRead,
+		Update: resourceEventGridDomainCreateUpdate,
+		Delete: resourceEventGridDomainDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -34,7 +35,7 @@ func resourceArmEventGridDomain() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.EventGridDomainID(id)
+			_, err := parse.DomainID(id)
 			return err
 		}),
 
@@ -43,6 +44,13 @@ func resourceArmEventGridDomain() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.All(
+					validation.StringIsNotEmpty,
+					validation.StringMatch(
+						regexp.MustCompile("^[-a-zA-Z0-9]{3,50}$"),
+						"EventGrid domain name must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
+					),
+				),
 			},
 
 			"location": azure.SchemaLocation(),
@@ -150,7 +158,7 @@ func resourceArmEventGridDomain() *schema.Resource {
 	}
 }
 
-func resourceArmEventGridDomainCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridDomainCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.DomainsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -206,15 +214,15 @@ func resourceArmEventGridDomainCreateUpdate(d *schema.ResourceData, meta interfa
 
 	d.SetId(*read.ID)
 
-	return resourceArmEventGridDomainRead(d, meta)
+	return resourceEventGridDomainRead(d, meta)
 }
 
-func resourceArmEventGridDomainRead(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridDomainRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.DomainsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EventGridDomainID(d.Id())
+	id, err := parse.DomainID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -268,12 +276,12 @@ func resourceArmEventGridDomainRead(d *schema.ResourceData, meta interface{}) er
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmEventGridDomainDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridDomainDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.DomainsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EventGridDomainID(d.Id())
+	id, err := parse.DomainID(d.Id())
 	if err != nil {
 		return err
 	}

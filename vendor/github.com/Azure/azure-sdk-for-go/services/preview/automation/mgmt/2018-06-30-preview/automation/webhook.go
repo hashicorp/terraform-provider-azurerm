@@ -427,6 +427,9 @@ func (client WebhookClient) ListByAutomationAccount(ctx context.Context, resourc
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.WebhookClient", "ListByAutomationAccount", resp, "Failure responding to request")
 	}
+	if result.wlr.hasNextLink() && result.wlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

@@ -349,6 +349,9 @@ func (client ModuleClient) ListByAutomationAccount(ctx context.Context, resource
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ModuleClient", "ListByAutomationAccount", resp, "Failure responding to request")
 	}
+	if result.mlr.hasNextLink() && result.mlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

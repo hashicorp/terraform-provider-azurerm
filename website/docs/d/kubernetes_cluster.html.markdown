@@ -118,8 +118,6 @@ A `agent_pool_profile` block exports the following:
 
 * `name` - The name assigned to this pool of agents.
 
-* `node_taints` - The list of Kubernetes taints which are applied to nodes in the agent pool
-
 * `os_disk_size_gb` - The size of the Agent VM's Operating System Disk in GB.
 
 * `os_type` - The Operating System used for the Agents.
@@ -172,7 +170,7 @@ The `kube_admin_config` and `kube_config` blocks exports the following:
 
 -> **NOTE:** It's possible to use these credentials with [the Kubernetes Provider](/docs/providers/kubernetes/index.html) like so:
 
-```
+```hcl
 provider "kubernetes" {
   load_config_file       = "false"
   host                   = "${data.azurerm_kubernetes_cluster.main.kube_config.0.host}"

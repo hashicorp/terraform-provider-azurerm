@@ -259,6 +259,9 @@ func (client NodeReportsClient) ListByNode(ctx context.Context, resourceGroupNam
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.NodeReportsClient", "ListByNode", resp, "Failure responding to request")
 	}
+	if result.dnrlr.hasNextLink() && result.dnrlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

@@ -644,6 +644,9 @@ func (client TopicsClient) ListAuthorizationRules(ctx context.Context, resourceG
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.TopicsClient", "ListAuthorizationRules", resp, "Failure responding to request")
 	}
+	if result.sarlr.hasNextLink() && result.sarlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -781,6 +784,9 @@ func (client TopicsClient) ListByNamespace(ctx context.Context, resourceGroupNam
 	result.stlr, err = client.ListByNamespaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.TopicsClient", "ListByNamespace", resp, "Failure responding to request")
+	}
+	if result.stlr.hasNextLink() && result.stlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

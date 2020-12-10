@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2019-03-22-preview/devices"
+	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2020-03-01/devices"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -20,7 +20,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/parse"
+	iothubValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -56,9 +59,11 @@ func resourceArmIotHub() *schema.Resource {
 		Read:   resourceArmIotHubRead,
 		Update: resourceArmIotHubCreateUpdate,
 		Delete: resourceArmIotHubDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.IotHubID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -72,7 +77,7 @@ func resourceArmIotHub() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.IoTHubName,
+				ValidateFunc: iothubValidate.IoTHubName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -224,6 +229,7 @@ func resourceArmIotHub() *schema.Resource {
 								"AzureIotHub.EventHub",
 							}, false),
 						},
+
 						"connection_string": {
 							Type:     schema.TypeString,
 							Required: true,
@@ -239,11 +245,13 @@ func resourceArmIotHub() *schema.Resource {
 							},
 							Sensitive: true,
 						},
+
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.IoTHubEndpointName,
+							ValidateFunc: iothubValidate.IoTHubEndpointName,
 						},
+
 						"batch_frequency_in_seconds": {
 							Type:             schema.TypeInt,
 							Optional:         true,
@@ -251,6 +259,7 @@ func resourceArmIotHub() *schema.Resource {
 							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
 							ValidateFunc:     validation.IntBetween(60, 720),
 						},
+
 						"max_chunk_size_in_bytes": {
 							Type:             schema.TypeInt,
 							Optional:         true,
@@ -258,11 +267,13 @@ func resourceArmIotHub() *schema.Resource {
 							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
 							ValidateFunc:     validation.IntBetween(10485760, 524288000),
 						},
+
 						"container_name": {
 							Type:             schema.TypeString,
 							Optional:         true,
 							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
 						},
+
 						"encoding": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -275,11 +286,14 @@ func resourceArmIotHub() *schema.Resource {
 								string(devices.JSON),
 							}, true),
 						},
+
 						"file_name_format": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validateIoTHubFileNameFormat,
 						},
+
+						"resource_group_name": azure.SchemaResourceGroupNameOptional(),
 					},
 				},
 			},
@@ -403,6 +417,20 @@ func resourceArmIotHub() *schema.Resource {
 				},
 			},
 
+			"min_tls_version": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"1.2",
+				}, false),
+			},
+
+			"public_network_access_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"type": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -508,6 +536,15 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	// nolint staticcheck
+	if v, ok := d.GetOkExists("public_network_access_enabled"); ok {
+		enabled := devices.Disabled
+		if v.(bool) {
+			enabled = devices.Enabled
+		}
+		props.Properties.PublicNetworkAccess = enabled
+	}
+
 	retention, retentionOk := d.GetOk("event_hub_retention_in_days")
 	partition, partitionOk := d.GetOk("event_hub_partition_count")
 	if partitionOk || retentionOk {
@@ -522,6 +559,10 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		props.Properties.EventHubEndpoints = map[string]*devices.EventHubProperties{
 			"events": &eh,
 		}
+	}
+
+	if v, ok := d.GetOk("min_tls_version"); ok {
+		props.Properties.MinTLSVersion = utils.String(v.(string))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, props, "")
@@ -548,34 +589,32 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.IotHubID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	name := id.Path["IotHubs"]
-	resourceGroup := id.ResourceGroup
-	hub, err := client.Get(ctx, id.ResourceGroup, name)
+	hub, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(hub.Response) {
-			log.Printf("[DEBUG] IoTHub %q (Resource Group %q) was not found!", name, resourceGroup)
+			log.Printf("[DEBUG] IoTHub %q (Resource Group %q) was not found!", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving IotHub Client %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving IotHub Client %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	keysResp, err := client.ListKeys(ctx, resourceGroup, name)
+	keysResp, err := client.ListKeys(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error listing keys for IoTHub %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("listing keys for IoTHub %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	keyList := keysResp.Response()
 	keys := flattenIoTHubSharedAccessPolicy(keyList.Value)
 
 	if err := d.Set("shared_access_policy", keys); err != nil {
-		return fmt.Errorf("Error setting `shared_access_policy` in IoTHub %q: %+v", name, err)
+		return fmt.Errorf("setting `shared_access_policy` in IoTHub %q: %+v", id.Name, err)
 	}
 
 	if properties := hub.Properties; properties != nil {
@@ -599,32 +638,38 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 
 		endpoints := flattenIoTHubEndpoint(properties.Routing)
 		if err := d.Set("endpoint", endpoints); err != nil {
-			return fmt.Errorf("Error setting `endpoint` in IoTHub %q: %+v", name, err)
+			return fmt.Errorf("setting `endpoint` in IoTHub %q: %+v", id.Name, err)
 		}
 
 		routes := flattenIoTHubRoute(properties.Routing)
 		if err := d.Set("route", routes); err != nil {
-			return fmt.Errorf("Error setting `route` in IoTHub %q: %+v", name, err)
+			return fmt.Errorf("setting `route` in IoTHub %q: %+v", id.Name, err)
 		}
 
 		fallbackRoute := flattenIoTHubFallbackRoute(properties.Routing)
 		if err := d.Set("fallback_route", fallbackRoute); err != nil {
-			return fmt.Errorf("Error setting `fallbackRoute` in IoTHub %q: %+v", name, err)
+			return fmt.Errorf("setting `fallbackRoute` in IoTHub %q: %+v", id.Name, err)
 		}
 
 		ipFilterRules := flattenIPFilterRules(properties.IPFilterRules)
 		if err := d.Set("ip_filter_rule", ipFilterRules); err != nil {
-			return fmt.Errorf("Error setting `ip_filter_rule` in IoTHub %q: %+v", name, err)
+			return fmt.Errorf("setting `ip_filter_rule` in IoTHub %q: %+v", id.Name, err)
 		}
 
 		fileUpload := flattenIoTHubFileUpload(properties.StorageEndpoints, properties.MessagingEndpoints, properties.EnableFileUploadNotifications)
 		if err := d.Set("file_upload", fileUpload); err != nil {
-			return fmt.Errorf("Error setting `file_upload` in IoTHub %q: %+v", name, err)
+			return fmt.Errorf("setting `file_upload` in IoTHub %q: %+v", id.Name, err)
 		}
+
+		if enabled := properties.PublicNetworkAccess; enabled != "" {
+			d.Set("public_network_access_enabled", enabled == devices.Enabled)
+		}
+
+		d.Set("min_tls_version", properties.MinTLSVersion)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := hub.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -637,7 +682,7 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmIotHubDelete(d *schema.ResourceData, meta interface{}) error {
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.IotHubID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -646,13 +691,10 @@ func resourceArmIotHubDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := id.Path["IotHubs"]
-	resourceGroup := id.ResourceGroup
+	locks.ByName(id.Name, IothubResourceName)
+	defer locks.UnlockByName(id.Name, IothubResourceName)
 
-	locks.ByName(name, IothubResourceName)
-	defer locks.UnlockByName(name, IothubResourceName)
-
-	future, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
@@ -660,7 +702,7 @@ func resourceArmIotHubDelete(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	return waitForIotHubToBeDeleted(ctx, client, resourceGroup, name, d)
+	return waitForIotHubToBeDeleted(ctx, client, id.ResourceGroup, id.Name, d)
 }
 
 func waitForIotHubToBeDeleted(ctx context.Context, client *devices.IotHubResourceClient, resourceGroup, name string, d *schema.ResourceData) error {
@@ -773,8 +815,8 @@ func expandIoTHubEndpoints(d *schema.ResourceData, subscriptionId string) *devic
 		t := endpoint["type"]
 		connectionStr := endpoint["connection_string"].(string)
 		name := endpoint["name"].(string)
+		resourceGroup := endpoint["resource_group_name"].(string)
 		subscriptionID := subscriptionId
-		resourceGroup := d.Get("resource_group_name").(string)
 
 		switch t {
 		case "AzureIotHub.StorageContainer":
@@ -965,6 +1007,9 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 				if chunkSize := container.MaxChunkSizeInBytes; chunkSize != nil {
 					output["max_chunk_size_in_bytes"] = *chunkSize
 				}
+				if resourceGroup := container.ResourceGroup; resourceGroup != nil {
+					output["resource_group_name"] = *resourceGroup
+				}
 
 				output["encoding"] = string(container.Encoding)
 				output["type"] = "AzureIotHub.StorageContainer"
@@ -983,6 +1028,9 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 				if name := queue.Name; name != nil {
 					output["name"] = *name
 				}
+				if resourceGroup := queue.ResourceGroup; resourceGroup != nil {
+					output["resource_group_name"] = *resourceGroup
+				}
 
 				output["type"] = "AzureIotHub.ServiceBusQueue"
 
@@ -1000,6 +1048,9 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 				if name := topic.Name; name != nil {
 					output["name"] = *name
 				}
+				if resourceGroup := topic.ResourceGroup; resourceGroup != nil {
+					output["resource_group_name"] = *resourceGroup
+				}
 
 				output["type"] = "AzureIotHub.ServiceBusTopic"
 
@@ -1016,6 +1067,9 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 				}
 				if name := eventHub.Name; name != nil {
 					output["name"] = *name
+				}
+				if resourceGroup := eventHub.ResourceGroup; resourceGroup != nil {
+					output["resource_group_name"] = *resourceGroup
 				}
 
 				output["type"] = "AzureIotHub.EventHub"
@@ -1100,6 +1154,7 @@ func validateIoTHubFileNameFormat(v interface{}, k string) (warnings []string, e
 
 	return warnings, errors
 }
+
 func expandIPFilterRules(d *schema.ResourceData) *[]devices.IPFilterRule {
 	ipFilterRuleList := d.Get("ip_filter_rule").(*schema.Set).List()
 	if len(ipFilterRuleList) == 0 {

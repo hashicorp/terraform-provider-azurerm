@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -22,6 +21,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -33,7 +33,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 		Update: resourceArmMsSqlDatabaseCreateUpdate,
 		Delete: resourceArmMsSqlDatabaseDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.MsSqlDatabaseID(id)
+			_, err := parse.DatabaseID(id)
 			return err
 		}),
 
@@ -56,17 +56,16 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.MsSqlServerID,
+				ValidateFunc: validate.ServerID,
 			},
 
 			"auto_pause_delay_in_minutes": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validate.MsSqlDatabaseAutoPauseDelay,
+				ValidateFunc: validate.DatabaseAutoPauseDelay,
 			},
 
-			// recovery is not support in version 2017-10-01-preview
 			"create_mode": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -78,6 +77,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 					string(sql.CreateModeOnlineSecondary),
 					string(sql.CreateModePointInTimeRestore),
 					string(sql.CreateModeRestore),
+					string(sql.CreateModeRecovery),
 					string(sql.CreateModeRestoreExternalBackup),
 					string(sql.CreateModeRestoreExternalBackupSecondary),
 					string(sql.CreateModeRestoreLongTermRetentionBackup),
@@ -90,13 +90,13 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.MsSqlDBCollation(),
+				ValidateFunc: validate.DatabaseCollation(),
 			},
 
 			"elastic_pool_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.MsSqlElasticPoolID,
+				ValidateFunc: validate.ElasticPoolID,
 			},
 
 			"extended_auditing_policy": helper.ExtendedAuditingSchema(),
@@ -111,6 +111,10 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				}, false),
 			},
 
+			"long_term_retention_policy": helper.LongTermRetentionPolicySchema(),
+
+			"short_term_retention_policy": helper.ShortTermRetentionPolicySchema(),
+
 			"max_size_gb": {
 				Type:         schema.TypeInt,
 				Optional:     true,
@@ -122,7 +126,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				Type:         schema.TypeFloat,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: azValidate.FloatInSlice([]float64{0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 3, 4, 5}),
+				ValidateFunc: azValidate.FloatInSlice([]float64{0, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 3, 4, 5, 6, 8, 10, 12, 14, 16, 18, 20, 24, 32, 40}),
 			},
 
 			"restore_point_in_time": {
@@ -131,6 +135,18 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				Computed:         true,
 				DiffSuppressFunc: suppress.RFC3339Time,
 				ValidateFunc:     validation.IsRFC3339Time,
+			},
+
+			"recover_database_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.RecoverableDatabaseID,
+			},
+
+			"restore_dropped_database_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.RestorableDatabaseID,
 			},
 
 			"read_replica_count": {
@@ -159,7 +175,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				ValidateFunc:     validate.MsSqlDBSkuName(),
+				ValidateFunc:     validate.DatabaseSkuName(),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
@@ -168,7 +184,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				Computed:     true,
-				ValidateFunc: validate.MsSqlDatabaseID,
+				ValidateFunc: validate.DatabaseID,
 			},
 
 			"zone_redundant": {
@@ -280,6 +296,8 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 	auditingClient := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
 	serverClient := meta.(*clients.Client).MSSQL.ServersClient
 	threatClient := meta.(*clients.Client).MSSQL.DatabaseThreatDetectionPoliciesClient
+	longTermRetentionClient := meta.(*clients.Client).MSSQL.BackupLongTermRetentionPoliciesClient
+	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -287,7 +305,7 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 
 	name := d.Get("name").(string)
 	sqlServerId := d.Get("server_id").(string)
-	serverId, _ := parse.MsSqlServerID(sqlServerId)
+	serverId, _ := parse.ServerID(sqlServerId)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, serverId.ResourceGroup, serverId.Name, name)
@@ -338,9 +356,16 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 	}
 
 	createMode, ok := d.GetOk("create_mode")
-	if _, dbok := d.GetOk("creation_source_database_id"); ok && (createMode.(string) == string(sql.CreateModeCopy) || createMode.(string) == string(sql.CreateModePointInTimeRestore) || createMode.(string) == string(sql.CreateModeRestore) || createMode.(string) == string(sql.CreateModeSecondary)) && !dbok {
+	if _, dbok := d.GetOk("creation_source_database_id"); ok && (createMode.(string) == string(sql.CreateModeCopy) || createMode.(string) == string(sql.CreateModePointInTimeRestore) || createMode.(string) == string(sql.CreateModeSecondary)) && !dbok {
 		return fmt.Errorf("'creation_source_database_id' is required for create_mode %s", createMode.(string))
 	}
+	if _, dbok := d.GetOk("recover_database_id"); ok && createMode.(string) == string(sql.CreateModeRecovery) && !dbok {
+		return fmt.Errorf("'recover_database_id' is required for create_mode %s", createMode.(string))
+	}
+	if _, dbok := d.GetOk("restore_dropped_database_id"); ok && createMode.(string) == string(sql.CreateModeRestore) && !dbok {
+		return fmt.Errorf("'restore_dropped_database_id' is required for create_mode %s", createMode.(string))
+	}
+
 	params.DatabaseProperties.CreateMode = sql.CreateMode(createMode.(string))
 
 	auditingPolicies := d.Get("extended_auditing_policy").([]interface{})
@@ -366,14 +391,23 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 		params.DatabaseProperties.RestorePointInTime = &date.Time{Time: restorePointInTime}
 	}
 
-	if v, ok := d.GetOk("sku_name"); ok {
+	skuName, ok := d.GetOk("sku_name")
+	if ok {
 		params.Sku = &sql.Sku{
-			Name: utils.String(v.(string)),
+			Name: utils.String(skuName.(string)),
 		}
 	}
 
 	if v, ok := d.GetOk("creation_source_database_id"); ok {
 		params.DatabaseProperties.SourceDatabaseID = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("recover_database_id"); ok {
+		params.DatabaseProperties.RecoverableDatabaseID = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("restore_dropped_database_id"); ok {
+		params.DatabaseProperties.RestorableDroppedDatabaseID = utils.String(v.(string))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, params)
@@ -409,6 +443,49 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 		}
 	}
 
+	// hyper-scale SKU's do not support LRP currently
+	if d.HasChange("long_term_retention_policy") {
+		v := d.Get("long_term_retention_policy")
+		longTermRetentionProps := helper.ExpandLongTermRetentionPolicy(v.([]interface{}))
+		if longTermRetentionProps != nil {
+			longTermRetentionPolicy := sql.BackupLongTermRetentionPolicy{}
+
+			if !strings.HasPrefix(skuName.(string), "HS") && !strings.HasPrefix(skuName.(string), "DW") {
+				longTermRetentionPolicy.LongTermRetentionPolicyProperties = longTermRetentionProps
+			}
+
+			longTermRetentionfuture, err := longTermRetentionClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, longTermRetentionPolicy)
+			if err != nil {
+				return fmt.Errorf("Error issuing create/update request for Sql Server %q (Database %q) Long Term Retention Policies (Resource Group %q): %+v", serverId.Name, name, serverId.ResourceGroup, err)
+			}
+
+			if err = longTermRetentionfuture.WaitForCompletionRef(ctx, longTermRetentionClient.Client); err != nil {
+				return fmt.Errorf("Error waiting for completion of Create/Update for Sql Server %q (Database %q) Long Term Retention Policies (Resource Group %q): %+v", serverId.Name, name, serverId.ResourceGroup, err)
+			}
+		}
+	}
+
+	if d.HasChange("short_term_retention_policy") {
+		v := d.Get("short_term_retention_policy")
+		backupShortTermPolicyProps := helper.ExpandShortTermRetentionPolicy(v.([]interface{}))
+		if backupShortTermPolicyProps != nil {
+			backupShortTermPolicy := sql.BackupShortTermRetentionPolicy{}
+
+			if !strings.HasPrefix(skuName.(string), "HS") && !strings.HasPrefix(skuName.(string), "DW") {
+				backupShortTermPolicy.BackupShortTermRetentionPolicyProperties = backupShortTermPolicyProps
+			}
+
+			shortTermRetentionFuture, err := shortTermRetentionClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, backupShortTermPolicy)
+			if err != nil {
+				return fmt.Errorf("Error issuing create/update request for Sql Server %q (Database %q) Short Term Retention Policies (Resource Group %q): %+v", serverId.Name, name, serverId.ResourceGroup, err)
+			}
+
+			if err = shortTermRetentionFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("Error waiting for completion of Create/Update for Sql Server %q (Database %q) Short Term Retention Policies (Resource Group %q): %+v", serverId.Name, name, serverId.ResourceGroup, err)
+			}
+		}
+	}
+
 	return resourceArmMsSqlDatabaseRead(d, meta)
 }
 
@@ -416,33 +493,36 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
 	threatClient := meta.(*clients.Client).MSSQL.DatabaseThreatDetectionPoliciesClient
 	auditingClient := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
+	longTermRetentionClient := meta.(*clients.Client).MSSQL.BackupLongTermRetentionPoliciesClient
+	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MsSqlDatabaseID(d.Id())
+	id, err := parse.DatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.MsSqlServer, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading MsSql Database %s (MsSql Server Name %q / Resource Group %q): %s", id.Name, id.MsSqlServer, id.ResourceGroup, err)
+		return fmt.Errorf("reading MsSql Database %s (MsSql Server Name %q / Resource Group %q): %s", id.Name, id.ServerName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
 
 	serverClient := meta.(*clients.Client).MSSQL.ServersClient
 
-	serverResp, err := serverClient.Get(ctx, id.ResourceGroup, id.MsSqlServer)
+	serverResp, err := serverClient.Get(ctx, id.ResourceGroup, id.ServerName)
 	if err != nil || *serverResp.ID == "" {
-		return fmt.Errorf("making Read request on MsSql Server  %q (Resource Group %q): %s", id.MsSqlServer, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on MsSql Server  %q (Resource Group %q): %s", id.ServerName, id.ResourceGroup, err)
 	}
 	d.Set("server_id", serverResp.ID)
 
+	skuName := ""
 	if props := resp.DatabaseProperties; props != nil {
 		d.Set("auto_pause_delay_in_minutes", props.AutoPauseDelay)
 		d.Set("collation", props.Collation)
@@ -458,18 +538,21 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 		} else if props.ReadScale == sql.DatabaseReadScaleDisabled {
 			d.Set("read_scale", false)
 		}
+		if props.CurrentServiceObjectiveName != nil {
+			skuName = *props.CurrentServiceObjectiveName
+		}
 		d.Set("sku_name", props.CurrentServiceObjectiveName)
 		d.Set("zone_redundant", props.ZoneRedundant)
 	}
 
-	threat, err := threatClient.Get(ctx, id.ResourceGroup, id.MsSqlServer, id.Name)
+	threat, err := threatClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err == nil {
 		if err := d.Set("threat_detection_policy", flattenArmMsSqlServerThreatDetectionPolicy(d, threat)); err != nil {
 			return fmt.Errorf("setting `threat_detection_policy`: %+v", err)
 		}
 	}
 
-	auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.MsSqlServer, id.Name)
+	auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
 		return fmt.Errorf("failure in reading SQL Database %q: %v Blob Auditing Policies", id.Name, err)
 	}
@@ -477,6 +560,33 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 	flattenBlobAuditing := helper.FlattenAzureRmMsSqlDBBlobAuditingPolicies(&auditingResp, d)
 	if err := d.Set("extended_auditing_policy", flattenBlobAuditing); err != nil {
 		return fmt.Errorf("failure in setting `extended_auditing_policy`: %+v", err)
+	}
+
+	// Hyper Scale SKU's do not currently support LRP and do not honour normal SRP operations
+	if !strings.HasPrefix(skuName, "HS") && !strings.HasPrefix(skuName, "DW") {
+		longTermPolicy, err := longTermRetentionClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+		if err != nil {
+			return fmt.Errorf("Error retrieving Long Term Policies for Database %q (Sql Server %q ;Resource Group %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
+		}
+		flattenlongTermPolicy := helper.FlattenLongTermRetentionPolicy(&longTermPolicy, d)
+		if err := d.Set("long_term_retention_policy", flattenlongTermPolicy); err != nil {
+			return fmt.Errorf("failure in setting `long_term_retention_policy`: %+v", err)
+		}
+
+		shortTermPolicy, err := shortTermRetentionClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+		if err != nil {
+			return fmt.Errorf("Error retrieving Short Term Policies for Database %q (Sql Server %q ;Resource Group %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
+		}
+
+		flattenShortTermPolicy := helper.FlattenShortTermRetentionPolicy(&shortTermPolicy, d)
+		if err := d.Set("short_term_retention_policy", flattenShortTermPolicy); err != nil {
+			return fmt.Errorf("failure in setting `short_term_retention_policy`: %+v", err)
+		}
+	} else {
+		// HS and DW SKUs need the retention policies zeroing for state consistency
+		zero := make([]interface{}, 0)
+		d.Set("long_term_retention_policy", zero)
+		d.Set("short_term_retention_policy", zero)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -487,21 +597,21 @@ func resourceArmMsSqlDatabaseDelete(d *schema.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MsSqlDatabaseID(d.Id())
+	id, err := parse.DatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.MsSqlServer, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting MsSql Database %q ( MsSql Server %q / Resource Group %q): %+v", id.Name, id.MsSqlServer, id.ResourceGroup, err)
+		return fmt.Errorf("deleting MsSql Database %q ( MsSql Server %q / Resource Group %q): %+v", id.Name, id.ServerName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("waiting for MsSql Database %q ( MsSql Server %q / Resource Group %q) to be deleted: %+v", id.Name, id.MsSqlServer, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for MsSql Database %q ( MsSql Server %q / Resource Group %q) to be deleted: %+v", id.Name, id.ServerName, id.ResourceGroup, err)
 	}
 
 	return nil

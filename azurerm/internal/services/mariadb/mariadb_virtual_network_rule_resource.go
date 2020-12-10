@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMariaDbVirtualNetworkRule() *schema.Resource {
+func resourceMariaDbVirtualNetworkRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMariaDbVirtualNetworkRuleCreateUpdate,
-		Read:   resourceArmMariaDbVirtualNetworkRuleRead,
-		Update: resourceArmMariaDbVirtualNetworkRuleCreateUpdate,
-		Delete: resourceArmMariaDbVirtualNetworkRuleDelete,
+		Create: resourceMariaDbVirtualNetworkRuleCreateUpdate,
+		Read:   resourceMariaDbVirtualNetworkRuleRead,
+		Update: resourceMariaDbVirtualNetworkRuleCreateUpdate,
+		Delete: resourceMariaDbVirtualNetworkRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -50,7 +50,7 @@ func resourceArmMariaDbVirtualNetworkRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.MariaDbServerServerName,
+				ValidateFunc: validate.ServerName,
 			},
 
 			"subnet_id": {
@@ -62,7 +62,7 @@ func resourceArmMariaDbVirtualNetworkRule() *schema.Resource {
 	}
 }
 
-func resourceArmMariaDbVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMariaDbVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.VirtualNetworkRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -122,10 +122,10 @@ func resourceArmMariaDbVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, me
 
 	d.SetId(*resp.ID)
 
-	return resourceArmMariaDbVirtualNetworkRuleRead(d, meta)
+	return resourceMariaDbVirtualNetworkRuleRead(d, meta)
 }
 
-func resourceArmMariaDbVirtualNetworkRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMariaDbVirtualNetworkRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.VirtualNetworkRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -161,7 +161,7 @@ func resourceArmMariaDbVirtualNetworkRuleRead(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func resourceArmMariaDbVirtualNetworkRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMariaDbVirtualNetworkRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.VirtualNetworkRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -196,7 +196,6 @@ func resourceArmMariaDbVirtualNetworkRuleDelete(d *schema.ResourceData, meta int
 func mariaDbVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client *mariadb.VirtualNetworkRulesClient, resourceGroup string, serverName string, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				log.Printf("[DEBUG] Retrieving MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q) returned 404.", resourceGroup, serverName, name)

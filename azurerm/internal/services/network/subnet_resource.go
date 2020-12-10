@@ -335,7 +335,6 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	name := id.Path["subnets"]
 
 	resp, err := client.Get(ctx, resourceGroup, networkName, name, "")
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")

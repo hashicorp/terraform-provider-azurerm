@@ -173,6 +173,9 @@ func (client PrivateLinkResourcesClient) List(ctx context.Context, resourceGroup
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.PrivateLinkResourcesClient", "List", resp, "Failure responding to request")
 	}
+	if result.plrlr.hasNextLink() && result.plrlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

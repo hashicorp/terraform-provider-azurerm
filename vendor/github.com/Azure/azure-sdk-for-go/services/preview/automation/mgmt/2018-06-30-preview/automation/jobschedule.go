@@ -347,6 +347,9 @@ func (client JobScheduleClient) ListByAutomationAccount(ctx context.Context, res
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.JobScheduleClient", "ListByAutomationAccount", resp, "Failure responding to request")
 	}
+	if result.jslr.hasNextLink() && result.jslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

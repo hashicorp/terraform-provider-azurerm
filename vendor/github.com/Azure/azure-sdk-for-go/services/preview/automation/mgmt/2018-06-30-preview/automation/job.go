@@ -448,6 +448,9 @@ func (client JobClient) ListByAutomationAccount(ctx context.Context, resourceGro
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.JobClient", "ListByAutomationAccount", resp, "Failure responding to request")
 	}
+	if result.jlrv.hasNextLink() && result.jlrv.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

@@ -408,6 +408,9 @@ func (client DisksClient) List(ctx context.Context) (result DiskListPage, err er
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.DisksClient", "List", resp, "Failure responding to request")
 	}
+	if result.dl.hasNextLink() && result.dl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -517,6 +520,9 @@ func (client DisksClient) ListByResourceGroup(ctx context.Context, resourceGroup
 	result.dl, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.DisksClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.dl.hasNextLink() && result.dl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

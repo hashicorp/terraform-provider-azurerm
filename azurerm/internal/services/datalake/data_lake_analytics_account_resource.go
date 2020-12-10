@@ -19,7 +19,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataLakeAnalyticsAccount() *schema.Resource {
+func resourceDataLakeAnalyticsAccount() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmDateLakeAnalyticsAccountCreate,
 		Read:   resourceArmDateLakeAnalyticsAccountRead,
@@ -42,7 +42,7 @@ func resourceArmDataLakeAnalyticsAccount() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DataLakeAccountName(),
+				ValidateFunc: validate.AccountName(),
 			},
 
 			"location": azure.SchemaLocation(),
@@ -71,7 +71,7 @@ func resourceArmDataLakeAnalyticsAccount() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DataLakeAccountName(),
+				ValidateFunc: validate.AccountName(),
 			},
 
 			"tags": tags.Schema(),

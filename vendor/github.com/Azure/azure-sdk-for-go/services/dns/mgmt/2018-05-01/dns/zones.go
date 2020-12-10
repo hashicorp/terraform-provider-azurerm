@@ -319,6 +319,9 @@ func (client ZonesClient) List(ctx context.Context, top *int32) (result ZoneList
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dns.ZonesClient", "List", resp, "Failure responding to request")
 	}
+	if result.zlr.hasNextLink() && result.zlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -432,6 +435,9 @@ func (client ZonesClient) ListByResourceGroup(ctx context.Context, resourceGroup
 	result.zlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dns.ZonesClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.zlr.hasNextLink() && result.zlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

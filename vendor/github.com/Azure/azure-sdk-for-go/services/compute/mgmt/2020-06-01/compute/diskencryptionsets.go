@@ -318,6 +318,9 @@ func (client DiskEncryptionSetsClient) List(ctx context.Context) (result DiskEnc
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.DiskEncryptionSetsClient", "List", resp, "Failure responding to request")
 	}
+	if result.desl.hasNextLink() && result.desl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -427,6 +430,9 @@ func (client DiskEncryptionSetsClient) ListByResourceGroup(ctx context.Context, 
 	result.desl, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.DiskEncryptionSetsClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.desl.hasNextLink() && result.desl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

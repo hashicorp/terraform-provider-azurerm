@@ -442,6 +442,9 @@ func (client RunbookClient) ListByAutomationAccount(ctx context.Context, resourc
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.RunbookClient", "ListByAutomationAccount", resp, "Failure responding to request")
 	}
+	if result.rlr.hasNextLink() && result.rlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

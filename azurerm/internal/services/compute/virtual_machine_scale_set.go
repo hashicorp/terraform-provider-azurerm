@@ -779,12 +779,26 @@ func VirtualMachineScaleSetDataDiskSchema() *schema.Schema {
 					Optional: true,
 					Default:  false,
 				},
+
+				// TODO 3.0 - change this to ultra_ssd_disk_iops_read_write
+				"disk_iops_read_write": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
+
+				// TODO 3.0 - change this to ultra_ssd_disk_iops_read_write
+				"disk_mbps_read_write": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
 			},
 		},
 	}
 }
 
-func ExpandVirtualMachineScaleSetDataDisk(input []interface{}) *[]compute.VirtualMachineScaleSetDataDisk {
+func ExpandVirtualMachineScaleSetDataDisk(input []interface{}, ultraSSDEnabled bool) (*[]compute.VirtualMachineScaleSetDataDisk, error) {
 	disks := make([]compute.VirtualMachineScaleSetDataDisk, 0)
 
 	for _, v := range input {
@@ -807,10 +821,24 @@ func ExpandVirtualMachineScaleSetDataDisk(input []interface{}) *[]compute.Virtua
 			}
 		}
 
+		if iops := raw["disk_iops_read_write"].(int); iops != 0 {
+			if !ultraSSDEnabled {
+				return nil, fmt.Errorf("`disk_iops_read_write` are only available for UltraSSD disks")
+			}
+			disk.DiskIOPSReadWrite = utils.Int64(int64(iops))
+		}
+
+		if mbps := raw["disk_mbps_read_write"].(int); mbps != 0 {
+			if !ultraSSDEnabled {
+				return nil, fmt.Errorf("`disk_mbps_read_write` are only available for UltraSSD disks")
+			}
+			disk.DiskMBpsReadWrite = utils.Int64(int64(mbps))
+		}
+
 		disks = append(disks, disk)
 	}
 
-	return &disks
+	return &disks, nil
 }
 
 func FlattenVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleSetDataDisk) []interface{} {
@@ -845,6 +873,16 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleS
 			writeAcceleratorEnabled = *v.WriteAcceleratorEnabled
 		}
 
+		iops := 0
+		if v.DiskIOPSReadWrite != nil {
+			iops = int(*v.DiskIOPSReadWrite)
+		}
+
+		mbps := 0
+		if v.DiskMBpsReadWrite != nil {
+			mbps = int(*v.DiskMBpsReadWrite)
+		}
+
 		output = append(output, map[string]interface{}{
 			"caching":                   string(v.Caching),
 			"create_option":             string(v.CreateOption),
@@ -853,6 +891,8 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleS
 			"disk_size_gb":              diskSizeGb,
 			"storage_account_type":      storageAccountType,
 			"write_accelerator_enabled": writeAcceleratorEnabled,
+			"disk_iops_read_write":      iops,
+			"disk_mbps_read_write":      mbps,
 		})
 	}
 
@@ -922,7 +962,7 @@ func VirtualMachineScaleSetOSDiskSchema() *schema.Schema {
 					Type:         schema.TypeInt,
 					Optional:     true,
 					Computed:     true,
-					ValidateFunc: validation.IntBetween(0, 2048),
+					ValidateFunc: validation.IntBetween(0, 4095),
 				},
 
 				"write_accelerator_enabled": {
@@ -1392,18 +1432,23 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (*compute.Virtu
 			extensionProps.ForceUpdateTag = utils.String(forceUpdateTag.(string))
 		}
 
-		settings, err := structure.ExpandJsonFromString(extensionRaw["settings"].(string))
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse JSON from `settings`: %+v", err)
-		}
-		extensionProps.Settings = settings
-
-		protectedSettings, err := structure.ExpandJsonFromString(extensionRaw["protected_settings"].(string))
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse JSON from `settings`: %+v", err)
+		settings, ok := extensionRaw["settings"].(string)
+		if ok && settings != "" {
+			settings, err := structure.ExpandJsonFromString(settings)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse JSON from `settings`: %+v", err)
+			}
+			extensionProps.Settings = settings
 		}
 
-		extensionProps.ProtectedSettings = protectedSettings
+		protectedSettings, ok := extensionRaw["protected_settings"].(string)
+		if ok && protectedSettings != "" {
+			protectedSettings, err := structure.ExpandJsonFromString(protectedSettings)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse JSON from `settings`: %+v", err)
+			}
+			extensionProps.ProtectedSettings = protectedSettings
+		}
 
 		extension.VirtualMachineScaleSetExtensionProperties = &extensionProps
 		extensions = append(extensions, extension)

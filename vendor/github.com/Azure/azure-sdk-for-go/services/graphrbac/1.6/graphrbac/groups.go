@@ -472,6 +472,9 @@ func (client GroupsClient) GetGroupMembers(ctx context.Context, objectID string)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "graphrbac.GroupsClient", "GetGroupMembers", resp, "Failure responding to request")
 	}
+	if result.dolr.hasNextLink() && result.dolr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -804,6 +807,9 @@ func (client GroupsClient) List(ctx context.Context, filter string) (result Grou
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "graphrbac.GroupsClient", "List", resp, "Failure responding to request")
 	}
+	if result.glr.hasNextLink() && result.glr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -968,6 +974,9 @@ func (client GroupsClient) ListOwners(ctx context.Context, objectID string) (res
 	result.dolr, err = client.ListOwnersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "graphrbac.GroupsClient", "ListOwners", resp, "Failure responding to request")
+	}
+	if result.dolr.hasNextLink() && result.dolr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

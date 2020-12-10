@@ -98,6 +98,9 @@ func (client APIRevisionClient) ListByService(ctx context.Context, resourceGroup
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIRevisionClient", "ListByService", resp, "Failure responding to request")
 	}
+	if result.arc.hasNextLink() && result.arc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

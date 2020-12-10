@@ -429,6 +429,9 @@ func (client ServicesClient) List(ctx context.Context) (result ServicesDescripti
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "healthcareapis.ServicesClient", "List", resp, "Failure responding to request")
 	}
+	if result.sdlr.hasNextLink() && result.sdlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -546,6 +549,9 @@ func (client ServicesClient) ListByResourceGroup(ctx context.Context, resourceGr
 	result.sdlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "healthcareapis.ServicesClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.sdlr.hasNextLink() && result.sdlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

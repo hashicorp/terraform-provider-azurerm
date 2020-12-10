@@ -340,6 +340,9 @@ func (client GalleryApplicationVersionsClient) ListByGalleryApplication(ctx cont
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.GalleryApplicationVersionsClient", "ListByGalleryApplication", resp, "Failure responding to request")
 	}
+	if result.gavl.hasNextLink() && result.gavl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

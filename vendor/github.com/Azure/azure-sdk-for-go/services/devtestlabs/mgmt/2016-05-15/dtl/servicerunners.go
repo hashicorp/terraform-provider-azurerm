@@ -310,6 +310,9 @@ func (client ServiceRunnersClient) List(ctx context.Context, resourceGroupName s
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ServiceRunnersClient", "List", resp, "Failure responding to request")
 	}
+	if result.rwcsr.hasNextLink() && result.rwcsr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

@@ -26,8 +26,10 @@ import (
 
 // Default Authorization Rule/Policy created by Azure, used to populate the
 // default connection strings and keys
-var eventHubNamespaceDefaultAuthorizationRule = "RootManageSharedAccessKey"
-var eventHubNamespaceResourceName = "azurerm_eventhub_namespace"
+var (
+	eventHubNamespaceDefaultAuthorizationRule = "RootManageSharedAccessKey"
+	eventHubNamespaceResourceName             = "azurerm_eventhub_namespace"
+)
 
 func resourceArmEventHubNamespace() *schema.Resource {
 	return &schema.Resource{
@@ -94,7 +96,7 @@ func resourceArmEventHubNamespace() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ValidateEventHubDedicatedClusterID,
+				ValidateFunc: validate.ClusterID,
 			},
 
 			"identity": {

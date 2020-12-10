@@ -155,6 +155,9 @@ func (client AssignmentOperationsClient) List(ctx context.Context, resourceScope
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blueprint.AssignmentOperationsClient", "List", resp, "Failure responding to request")
 	}
+	if result.aol.hasNextLink() && result.aol.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

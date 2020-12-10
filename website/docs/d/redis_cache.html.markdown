@@ -11,7 +11,8 @@ description: |-
 
 Use this data source to access information about an existing Redis Cache
 
-# Example Usage
+## Example Usage
+
 ```hcl
 data "azurerm_redis_cache" "example" {
   name                = "myrediscache"
