@@ -13,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmEventGridTopic() *schema.Resource {
+func dataSourceEventGridTopic() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmEventGridTopicRead,
+		Read: dataSourceEventGridTopicRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -54,7 +54,7 @@ func dataSourceArmEventGridTopic() *schema.Resource {
 	}
 }
 
-func dataSourceArmEventGridTopicRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceEventGridTopicRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.TopicsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

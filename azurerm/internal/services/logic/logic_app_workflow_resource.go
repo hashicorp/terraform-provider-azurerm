@@ -21,12 +21,12 @@ import (
 
 var logicAppResourceName = "azurerm_logic_app"
 
-func resourceArmLogicAppWorkflow() *schema.Resource {
+func resourceLogicAppWorkflow() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogicAppWorkflowCreate,
-		Read:   resourceArmLogicAppWorkflowRead,
-		Update: resourceArmLogicAppWorkflowUpdate,
-		Delete: resourceArmLogicAppWorkflowDelete,
+		Create: resourceLogicAppWorkflowCreate,
+		Read:   resourceLogicAppWorkflowRead,
+		Update: resourceLogicAppWorkflowUpdate,
+		Delete: resourceLogicAppWorkflowDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -123,7 +123,7 @@ func resourceArmLogicAppWorkflow() *schema.Resource {
 	}
 }
 
-func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logic.WorkflowClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -193,10 +193,10 @@ func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{})
 
 	d.SetId(*read.ID)
 
-	return resourceArmLogicAppWorkflowRead(d, meta)
+	return resourceLogicAppWorkflowRead(d, meta)
 }
 
-func resourceArmLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logic.WorkflowClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -250,10 +250,10 @@ func resourceArmLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error updating Logic App Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	return resourceArmLogicAppWorkflowRead(d, meta)
+	return resourceLogicAppWorkflowRead(d, meta)
 }
 
-func resourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logic.WorkflowClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -332,7 +332,7 @@ func resourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) e
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmLogicAppWorkflowDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppWorkflowDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logic.WorkflowClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

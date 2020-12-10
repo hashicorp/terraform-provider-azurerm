@@ -17,6 +17,7 @@ tools:
 	GO111MODULE=off go get -u github.com/bflad/tfproviderlint/cmd/tfproviderlint
 	GO111MODULE=off go get -u github.com/bflad/tfproviderdocs
 	GO111MODULE=off go get -u github.com/katbyte/terrafmt
+	GO111MODULE=off go get -u golang.org/x/tools/cmd/goimports
 	GO111MODULE=off go get -u mvdan.cc/gofumpt
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v1.32.0
 
@@ -50,6 +51,7 @@ terrafmt:
 	@find . | egrep html.markdown | sort | while read f; do terrafmt fmt $$f; done
 
 generate:
+	go generate ./azurerm/internal/services/...
 	go generate ./azurerm/internal/provider/
 
 goimports:
@@ -68,6 +70,13 @@ depscheck:
 	@go mod vendor
 	@git diff --compact-summary --exit-code -- vendor || \
 		(echo; echo "Unexpected difference in vendor/ directory. Run 'go mod vendor' command or revert any go.mod/go.sum/vendor changes and commit."; exit 1)
+
+gencheck:
+	@echo "==> Generating..."
+	@make generate
+	@echo "==> Comparing generated code to committed code..."
+	@git diff --compact-summary --exit-code -- ./ || \
+    		(echo; echo "Unexpected difference in generated code. Run 'go generate' to update the generated code and commit."; exit 1)
 
 tflint:
 	./scripts/run-tflint.sh

@@ -191,7 +191,7 @@ The following arguments are supported:
 
 * `cors` - (Optional) A `cors` block as defined below.
 
-* `ftps_state` - (Optional) State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`.
+* `ftps_state` - (Optional) State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`. Defaults to `AllAllowed`.
 
 * `health_check_path` - (Optional) Path which will be checked for this function app health.
 
@@ -368,6 +368,8 @@ A `source_control` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the Function App
+
+* `custom_domain_verification_id` - An identifier used by App Service to perform domain ownership verification via DNS TXT record. 
 
 * `default_hostname` - The default hostname associated with the Function App - such as `mysite.azurewebsites.net`
 

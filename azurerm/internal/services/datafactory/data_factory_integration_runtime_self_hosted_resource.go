@@ -28,7 +28,7 @@ func resourceArmDataFactoryIntegrationRuntimeSelfHosted() *schema.Resource {
 		Delete: resourceArmDataFactoryIntegrationRuntimeSelfHostedDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DataFactoryIntegrationRuntimeID(id)
+			_, err := parse.IntegrationRuntimeID(id)
 			return err
 		}),
 
@@ -156,12 +156,12 @@ func resourceArmDataFactoryIntegrationRuntimeSelfHostedRead(d *schema.ResourceDa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataFactoryIntegrationRuntimeID(d.Id())
+	id, err := parse.IntegrationRuntimeID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	factoryName := id.DataFactory
+	factoryName := id.FactoryName
 	name := id.Name
 
 	resp, err := client.Get(ctx, resourceGroup, factoryName, name, "")
@@ -222,12 +222,12 @@ func resourceArmDataFactoryIntegrationRuntimeSelfHostedDelete(d *schema.Resource
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataFactoryIntegrationRuntimeID(d.Id())
+	id, err := parse.IntegrationRuntimeID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	factoryName := id.DataFactory
+	factoryName := id.FactoryName
 	name := id.Name
 
 	response, err := client.Delete(ctx, resourceGroup, factoryName, name)

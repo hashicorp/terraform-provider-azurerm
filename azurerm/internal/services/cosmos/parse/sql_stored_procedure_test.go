@@ -1,105 +1,160 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-func TestStoredProcedureID(t *testing.T) {
+var _ resourceid.Formatter = SqlStoredProcedureId{}
+
+func TestSqlStoredProcedureIDFormatter(t *testing.T) {
+	actual := NewSqlStoredProcedureID("12345678-1234-9876-4563-123456789012", "resGroup1", "acc1", "db1", "container1", "sproc1").ID("")
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/sqlDatabases/db1/containers/container1/storedProcedures/sproc1"
+	if actual != expected {
+		t.Fatalf("Expected %q but got %q", expected, actual)
+	}
+}
+
+func TestSqlStoredProcedureID(t *testing.T) {
 	testData := []struct {
-		Name   string
-		Input  string
-		Error  bool
-		Expect *StoredProcedureId
+		Input    string
+		Error    bool
+		Expected *SqlStoredProcedureId
 	}{
+
 		{
-			Name:  "Empty",
+			// empty
 			Input: "",
 			Error: true,
 		},
+
 		{
-			Name:  "No Resource Groups Segment",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000",
+			// missing SubscriptionId
+			Input: "/",
 			Error: true,
 		},
+
 		{
-			Name:  "No Resource Groups Value",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/",
+			// missing value for SubscriptionId
+			Input: "/subscriptions/",
 			Error: true,
 		},
+
 		{
-			Name:  "Resource Group ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/",
+			// missing ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/",
 			Error: true,
 		},
+
 		{
-			Name:  "Missing Database Account Value",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/",
+			// missing value for ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
 			Error: true,
 		},
+
 		{
-			Name:  "Missing SQL Database Value",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/sqlDatabases/",
+			// missing DatabaseAccountName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/",
 			Error: true,
 		},
+
 		{
-			Name:  "Missing Container Value",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/sqlDatabases/db1/containers/",
+			// missing value for DatabaseAccountName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/",
 			Error: true,
 		},
+
 		{
-			Name:  "Missing Stored Procedure Value",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/sqlDatabases/db1/containers/container1/storedProcedures/",
+			// missing SqlDatabaseName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/",
 			Error: true,
 		},
+
 		{
-			Name:  "Stored Procedure ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/sqlDatabases/db1/containers/container1/storedProcedures/sproc1",
-			Error: false,
-			Expect: &StoredProcedureId{
-				ResourceGroup: "resGroup1",
-				Account:       "acc1",
-				Database:      "db1",
-				Container:     "container1",
-				Name:          "sproc1",
+			// missing value for SqlDatabaseName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/sqlDatabases/",
+			Error: true,
+		},
+
+		{
+			// missing ContainerName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/sqlDatabases/db1/",
+			Error: true,
+		},
+
+		{
+			// missing value for ContainerName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/sqlDatabases/db1/containers/",
+			Error: true,
+		},
+
+		{
+			// missing StoredProcedureName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/sqlDatabases/db1/containers/container1/",
+			Error: true,
+		},
+
+		{
+			// missing value for StoredProcedureName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/sqlDatabases/db1/containers/container1/storedProcedures/",
+			Error: true,
+		},
+
+		{
+			// valid
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/sqlDatabases/db1/containers/container1/storedProcedures/sproc1",
+			Expected: &SqlStoredProcedureId{
+				SubscriptionId:      "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:       "resGroup1",
+				DatabaseAccountName: "acc1",
+				SqlDatabaseName:     "db1",
+				ContainerName:       "container1",
+				StoredProcedureName: "sproc1",
 			},
 		},
+
 		{
-			Name:  "Wrong Casing",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/sqlDatabases/db1/containers/container1/StoredProcedures/sproc1",
+			// upper-cased
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.DOCUMENTDB/DATABASEACCOUNTS/ACC1/SQLDATABASES/DB1/CONTAINERS/CONTAINER1/STOREDPROCEDURES/SPROC1",
 			Error: true,
 		},
 	}
 
 	for _, v := range testData {
-		t.Logf("[DEBUG] Testing %q", v.Name)
+		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := StoredProcedureID(v.Input)
+		actual, err := SqlStoredProcedureID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
 			}
 
-			t.Fatalf("Expected a value but got an error: %s", err)
+			t.Fatalf("Expect a value but got an error: %s", err)
+		}
+		if v.Error {
+			t.Fatal("Expect an error but didn't get one")
 		}
 
-		if actual.Name != v.Expect.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expect.Name, actual.Name)
+		if actual.SubscriptionId != v.Expected.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
 		}
-
-		if actual.Container != v.Expect.Container {
-			t.Fatalf("Expected %q but got %q for Container", v.Expect.Container, actual.Container)
+		if actual.ResourceGroup != v.Expected.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
-
-		if actual.Database != v.Expect.Database {
-			t.Fatalf("Expected %q but got %q for Database", v.Expect.Database, actual.Database)
+		if actual.DatabaseAccountName != v.Expected.DatabaseAccountName {
+			t.Fatalf("Expected %q but got %q for DatabaseAccountName", v.Expected.DatabaseAccountName, actual.DatabaseAccountName)
 		}
-
-		if actual.Account != v.Expect.Account {
-			t.Fatalf("Expected %q but got %q for Account", v.Expect.Account, actual.Account)
+		if actual.SqlDatabaseName != v.Expected.SqlDatabaseName {
+			t.Fatalf("Expected %q but got %q for SqlDatabaseName", v.Expected.SqlDatabaseName, actual.SqlDatabaseName)
 		}
-
-		if actual.ResourceGroup != v.Expect.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for Resource Group", v.Expect.ResourceGroup, actual.ResourceGroup)
+		if actual.ContainerName != v.Expected.ContainerName {
+			t.Fatalf("Expected %q but got %q for ContainerName", v.Expected.ContainerName, actual.ContainerName)
+		}
+		if actual.StoredProcedureName != v.Expected.StoredProcedureName {
+			t.Fatalf("Expected %q but got %q for StoredProcedureName", v.Expected.StoredProcedureName, actual.StoredProcedureName)
 		}
 	}
 }

@@ -5,13 +5,14 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -25,7 +26,7 @@ func resourceArmAppServiceCustomHostnameBinding() *schema.Resource {
 		Read:   resourceArmAppServiceCustomHostnameBindingRead,
 		Delete: resourceArmAppServiceCustomHostnameBindingDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := ParseAppServiceCustomHostnameBindingID(id)
+			_, err := parse.AppServiceCustomHostnameBindingID(id)
 			return err
 		}),
 
@@ -54,6 +55,7 @@ func resourceArmAppServiceCustomHostnameBinding() *schema.Resource {
 			"ssl_state": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(web.SslStateIPBasedEnabled),
@@ -64,6 +66,7 @@ func resourceArmAppServiceCustomHostnameBinding() *schema.Resource {
 			"thumbprint": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -149,7 +152,7 @@ func resourceArmAppServiceCustomHostnameBindingRead(d *schema.ResourceData, meta
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseAppServiceCustomHostnameBindingID(d.Id())
+	id, err := parse.AppServiceCustomHostnameBindingID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -182,7 +185,7 @@ func resourceArmAppServiceCustomHostnameBindingDelete(d *schema.ResourceData, me
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseAppServiceCustomHostnameBindingID(d.Id())
+	id, err := parse.AppServiceCustomHostnameBindingID(d.Id())
 	if err != nil {
 		return err
 	}

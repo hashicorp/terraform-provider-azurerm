@@ -500,7 +500,7 @@ resource "azurerm_analysis_services_server" "test" {
 }
 
 func (t AnalysisServicesServerResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.AnalysisServicesServerID(state.ID)
+	id, err := parse.ServerID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -516,7 +516,7 @@ func (t AnalysisServicesServerResource) Exists(ctx context.Context, clients *cli
 func (t AnalysisServicesServerResource) suspend(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
 	client := clients.AnalysisServices.ServerClient
 
-	id, err := parse.AnalysisServicesServerID(state.ID)
+	id, err := parse.ServerID(state.ID)
 	if err != nil {
 		return err
 	}
@@ -538,7 +538,7 @@ func (t AnalysisServicesServerResource) checkState(serverState analysisservices.
 	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
 		client := clients.AnalysisServices.ServerClient
 
-		id, err := parse.AnalysisServicesServerID(state.ID)
+		id, err := parse.ServerID(state.ID)
 		if err != nil {
 			return err
 		}
@@ -549,7 +549,7 @@ func (t AnalysisServicesServerResource) checkState(serverState analysisservices.
 		}
 
 		if resp.State != serverState {
-			return fmt.Errorf("Unexpected state. Expected %s but is %s", state, resp.State)
+			return fmt.Errorf("Unexpected state. Expected %s but is %s", serverState, resp.State)
 		}
 
 		return nil

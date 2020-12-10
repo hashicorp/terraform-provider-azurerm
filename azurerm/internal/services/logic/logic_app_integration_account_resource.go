@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLogicAppIntegrationAccount() *schema.Resource {
+func resourceLogicAppIntegrationAccount() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogicAppIntegrationAccountCreateUpdate,
-		Read:   resourceArmLogicAppIntegrationAccountRead,
-		Update: resourceArmLogicAppIntegrationAccountCreateUpdate,
-		Delete: resourceArmLogicAppIntegrationAccountDelete,
+		Create: resourceLogicAppIntegrationAccountCreateUpdate,
+		Read:   resourceLogicAppIntegrationAccountRead,
+		Update: resourceLogicAppIntegrationAccountCreateUpdate,
+		Delete: resourceLogicAppIntegrationAccountDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -65,7 +65,7 @@ func resourceArmLogicAppIntegrationAccount() *schema.Resource {
 	}
 }
 
-func resourceArmLogicAppIntegrationAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppIntegrationAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logic.IntegrationAccountClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -109,10 +109,10 @@ func resourceArmLogicAppIntegrationAccountCreateUpdate(d *schema.ResourceData, m
 
 	d.SetId(*resp.ID)
 
-	return resourceArmLogicAppIntegrationAccountRead(d, meta)
+	return resourceLogicAppIntegrationAccountRead(d, meta)
 }
 
-func resourceArmLogicAppIntegrationAccountRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppIntegrationAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logic.IntegrationAccountClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -134,7 +134,7 @@ func resourceArmLogicAppIntegrationAccountRead(d *schema.ResourceData, meta inte
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmLogicAppIntegrationAccountDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppIntegrationAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logic.IntegrationAccountClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

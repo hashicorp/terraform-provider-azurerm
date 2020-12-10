@@ -13,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmDatabaseMigrationService() *schema.Resource {
+func dataSourceDatabaseMigrationService() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmDatabaseMigrationServiceRead,
+		Read: dataSourceDatabaseMigrationServiceRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -47,7 +47,7 @@ func dataSourceArmDatabaseMigrationService() *schema.Resource {
 	}
 }
 
-func dataSourceArmDatabaseMigrationServiceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDatabaseMigrationServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DatabaseMigration.ServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -34,12 +34,12 @@ func enpointPropertyNames() []string {
 	}
 }
 
-func resourceArmEventGridEventSubscription() *schema.Resource {
+func resourceEventGridEventSubscription() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmEventGridEventSubscriptionCreateUpdate,
-		Read:   resourceArmEventGridEventSubscriptionRead,
-		Update: resourceArmEventGridEventSubscriptionCreateUpdate,
-		Delete: resourceArmEventGridEventSubscriptionDelete,
+		Create: resourceEventGridEventSubscriptionCreateUpdate,
+		Read:   resourceEventGridEventSubscriptionRead,
+		Update: resourceEventGridEventSubscriptionCreateUpdate,
+		Delete: resourceEventGridEventSubscriptionDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -49,7 +49,7 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.EventGridEventSubscriptionID(id)
+			_, err := parse.EventSubscriptionID(id)
 			return err
 		}),
 
@@ -576,7 +576,7 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 	}
 }
 
-func resourceArmEventGridEventSubscriptionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridEventSubscriptionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.EventSubscriptionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -647,15 +647,15 @@ func resourceArmEventGridEventSubscriptionCreateUpdate(d *schema.ResourceData, m
 
 	d.SetId(*read.ID)
 
-	return resourceArmEventGridEventSubscriptionRead(d, meta)
+	return resourceEventGridEventSubscriptionRead(d, meta)
 }
 
-func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridEventSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.EventSubscriptionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EventGridEventSubscriptionID(d.Id())
+	id, err := parse.EventSubscriptionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -761,12 +761,12 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceArmEventGridEventSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridEventSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.EventSubscriptionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EventGridEventSubscriptionID(d.Id())
+	id, err := parse.EventSubscriptionID(d.Id())
 	if err != nil {
 		return err
 	}
