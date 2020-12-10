@@ -1,129 +1,110 @@
 package securitycenter_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+type AdvancedThreatProtectionResource struct {
+}
 
 func TestAccAdvancedThreatProtection_storageAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_advanced_threat_protection", "test")
+	r := AdvancedThreatProtectionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAdvancedThreatProtectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAdvancedThreatProtection_storageAccount(data, true),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAdvancedThreatProtectionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAdvancedThreatProtection_storageAccount(data, false),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAdvancedThreatProtectionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "false"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.storageAccount(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.storageAccount(data, false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAdvancedThreatProtection_cosmosAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_advanced_threat_protection", "test")
+	r := AdvancedThreatProtectionResource{}
 
 	// the API errors on deleting the cosmos DB account some of the time so lets skip this test for now
 	// TODO: remove once this is fixed: https://github.com/Azure/azure-sdk-for-go/issues/6310
 	// run it multiple times in a row as it only fails 50% of the time
 	t.Skip()
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAdvancedThreatProtectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAdvancedThreatProtection_cosmosAccount(data, true, true),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAdvancedThreatProtectionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAdvancedThreatProtection_cosmosAccount(data, true, false),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAdvancedThreatProtectionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "false"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAdvancedThreatProtection_cosmosAccount(data, false, false),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAdvancedThreatProtectionIsFalse(data.ResourceName),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.cosmosAccount(data, true, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.cosmosAccount(data, true, false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.cosmosAccount(data, false, false),
+			Check: resource.ComposeTestCheckFunc(
+				testCheckAdvancedThreatProtectionIsFalse(data.ResourceName),
+			),
 		},
 	})
 }
 
 func TestAccAdvancedThreatProtection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_advanced_threat_protection", "test")
+	r := AdvancedThreatProtectionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAdvancedThreatProtectionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAdvancedThreatProtection_storageAccount(data, true),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAdvancedThreatProtectionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-				),
-			},
-			data.ImportStep(),
-			data.RequiresImportErrorStep(testAccAdvancedThreatProtection_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.storageAccount(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+			),
 		},
+		data.ImportStep(),
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckAdvancedThreatProtectionExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		// Ensure resource group exists in API
-		client := acceptance.AzureProvider.Meta().(*clients.Client).SecurityCenter.AdvancedThreatProtectionClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		targetResourceId := rs.Primary.Attributes["target_resource_id"]
-
-		resp, err := client.Get(ctx, targetResourceId)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on AdvancedThreatProtectionClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Advanced Threat Protection for resource %q not found", targetResourceId)
-		}
-
-		return nil
+func (t AdvancedThreatProtectionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.AdvancedThreatProtectionID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	resp, err := clients.SecurityCenter.AdvancedThreatProtectionClient.Get(ctx, id.TargetResourceID)
+	if err != nil {
+		return nil, fmt.Errorf("reading Advanced Threat Protection (%s): %+v", id.TargetResourceID, err)
+	}
+
+	return utils.Bool(resp.AdvancedThreatProtectionProperties != nil), nil
 }
 
 // nolint unused
@@ -157,31 +138,8 @@ func testCheckAdvancedThreatProtectionIsFalse(resourceName string) resource.Test
 	}
 }
 
-func testCheckAdvancedThreatProtectionDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).SecurityCenter.AdvancedThreatProtectionClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_advanced_threat_protection" {
-			continue
-		}
-
-		targetResourceId := rs.Primary.Attributes["target_resource_id"]
-		resp, err := client.Get(ctx, targetResourceId)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Advanced Threat Protection still exists:\n%#v", resp.ID)
-		}
-	}
-
-	return nil
-}
-
-func testAccAdvancedThreatProtection_requiresImport(data acceptance.TestData) string {
-	template := testAccAdvancedThreatProtection_storageAccount(data, true)
+func (AdvancedThreatProtectionResource) requiresImport(data acceptance.TestData) string {
+	template := AdvancedThreatProtectionResource{}.storageAccount(data, true)
 	return fmt.Sprintf(`
 %s
 
@@ -192,7 +150,7 @@ resource "azurerm_advanced_threat_protection" "import" {
 `, template)
 }
 
-func testAccAdvancedThreatProtection_storageAccount(data acceptance.TestData, enabled bool) string {
+func (AdvancedThreatProtectionResource) storageAccount(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -224,7 +182,7 @@ resource "azurerm_advanced_threat_protection" "test" {
 }
 
 // nolint unused - mistakenly marked as unused
-func testAccAdvancedThreatProtection_cosmosAccount(data acceptance.TestData, hasResource, enabled bool) string {
+func (AdvancedThreatProtectionResource) cosmosAccount(data acceptance.TestData, hasResource, enabled bool) string {
 	atp := ""
 	if hasResource {
 		atp = fmt.Sprintf(`

@@ -92,3 +92,10 @@ func (td TestData) RequiresImportErrorStep(configBuilder func(data TestData) str
 		ExpectError: RequiresImportError(td.ResourceType),
 	}
 }
+
+func (td TestData) RequiresImportErrorStepWithConfig(config string) resource.TestStep {
+	return resource.TestStep{
+		Config:      config,
+		ExpectError: RequiresImportError(td.ResourceType),
+	}
+}
