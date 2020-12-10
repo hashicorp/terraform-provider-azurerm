@@ -1,179 +1,131 @@
 package hpccache_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMHPCCache_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
+type HPCCacheResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHPCCacheDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMHPCCache_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHPCCacheExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "mount_addresses.#"),
-				),
-			},
-			data.ImportStep(),
+func TestAccHPCCache_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
+	r := HPCCacheResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMHPCCache_mtu(t *testing.T) {
+func TestAccHPCCache_mtu(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
+	r := HPCCacheResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHPCCacheDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMHPCCache_mtu(data, 1000),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHPCCacheExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "mount_addresses.#"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMHPCCache_mtu(data, 1500),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHPCCacheExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "mount_addresses.#"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMHPCCache_mtu(data, 1000),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHPCCacheExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "mount_addresses.#"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.mtu(data, 1000),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.mtu(data, 1500),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.mtu(data, 1000),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMHPCCache_rootSquash(t *testing.T) {
+func TestAccHPCCache_rootSquash(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
+	r := HPCCacheResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHPCCacheDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMHPCCache_rootSquash(data, false),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHPCCacheExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "mount_addresses.#"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMHPCCache_rootSquash(data, true),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHPCCacheExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "mount_addresses.#"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMHPCCache_rootSquash(data, true),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHPCCacheExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "mount_addresses.#"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.rootSquash(data, false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.rootSquash(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.rootSquash(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("mount_addresses.#").Exists(),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMHPCCache_requiresImport(t *testing.T) {
+func TestAccHPCCache_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHPCCacheDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMHPCCache_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHPCCacheExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMHPCCahce_requiresImport),
+	r := HPCCacheResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckAzureRMHPCCacheExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).HPCCache.CachesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on storageCacheCachesClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: HPC Cache %q (resource group: %q) does not exist", name, resourceGroup)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMHPCCacheDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).HPCCache.CachesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_hpc_cache" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		resp, err := conn.Get(ctx, resourceGroup, name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("HPC Cache still exists:\n%#v", resp)
-		}
+func (HPCCacheResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.CacheID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.HPCCache.CachesClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving HPC Cache (%s): %+v", id.String(), err)
+	}
+
+	return utils.Bool(resp.CacheProperties != nil), nil
 }
 
-func testAccAzureRMHPCCache_basic(data acceptance.TestData) string {
-	template := testAccAzureRMHPCCache_template(data)
+func (r HPCCacheResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -185,11 +137,10 @@ resource "azurerm_hpc_cache" "test" {
   subnet_id           = azurerm_subnet.test.id
   sku_name            = "Standard_2G"
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMHPCCahce_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMHPCCache_basic(data)
+func (r HPCCacheResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -201,11 +152,10 @@ resource "azurerm_hpc_cache" "import" {
   subnet_id           = azurerm_hpc_cache.test.subnet_id
   sku_name            = azurerm_hpc_cache.test.sku_name
 }
-`, template)
+`, r.template(data))
 }
 
-func testAccAzureRMHPCCache_mtu(data acceptance.TestData, mtu int) string {
-	template := testAccAzureRMHPCCache_template(data)
+func (r HPCCacheResource) mtu(data acceptance.TestData, mtu int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -218,11 +168,10 @@ resource "azurerm_hpc_cache" "test" {
   sku_name            = "Standard_2G"
   mtu                 = %d
 }
-`, template, data.RandomInteger, mtu)
+`, r.template(data), data.RandomInteger, mtu)
 }
 
-func testAccAzureRMHPCCache_rootSquash(data acceptance.TestData, enable bool) string {
-	template := testAccAzureRMHPCCache_template(data)
+func (r HPCCacheResource) rootSquash(data acceptance.TestData, enable bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -235,10 +184,10 @@ resource "azurerm_hpc_cache" "test" {
   sku_name            = "Standard_2G"
   root_squash_enabled = %t
 }
-`, template, data.RandomInteger, enable)
+`, r.template(data), data.RandomInteger, enable)
 }
 
-func testAccAzureRMHPCCache_template(data acceptance.TestData) string {
+func (HPCCacheResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

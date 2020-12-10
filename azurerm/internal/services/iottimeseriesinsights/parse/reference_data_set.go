@@ -27,11 +27,12 @@ func NewReferenceDataSetID(subscriptionId, resourceGroup, environmentName, name 
 
 func (id ReferenceDataSetId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Environment Name %q", id.EnvironmentName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Environment Name %q", id.EnvironmentName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Reference Data Set", segmentsStr)
 }
 
 func (id ReferenceDataSetId) ID(_ string) string {

@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -37,7 +38,7 @@ func dataSourceArmServiceBusSubscription() *schema.Resource {
 			"topic_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateServiceBusTopicName(),
+				ValidateFunc: validate.TopicName(),
 			},
 
 			"auto_delete_on_idle": {
@@ -95,24 +96,21 @@ func dataSourceArmServiceBusSubscription() *schema.Resource {
 
 func dataSourceArmServiceBusSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.SubscriptionsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	namespaceName := d.Get("namespace_name").(string)
-	topicName := d.Get("topic_name").(string)
-
-	existing, err := client.Get(ctx, resourceGroup, namespaceName, topicName, name)
+	id := parse.NewSubscriptionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("topic_name").(string), d.Get("name").(string))
+	existing, err := client.Get(ctx, id.ResourceGroup, id.NamespaceName, id.TopicName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("ServiceBus Subscription %q was not found in Namespace %q in Resource Group %q", name, namespaceName, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("Error retrieving ServiceBus Subscription %q (Namespace %q, Resource Group %q): %s", name, namespaceName, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.SetId(*existing.ID)
+	d.SetId(id.ID(""))
 
 	if props := existing.SBSubscriptionProperties; props != nil {
 		d.Set("auto_delete_on_idle", props.AutoDeleteOnIdle)

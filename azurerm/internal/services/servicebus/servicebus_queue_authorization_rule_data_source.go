@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -24,7 +25,7 @@ func dataSourceArmServiceBusQueueAuthorizationRule() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateServiceBusAuthorizationRuleName(),
+				ValidateFunc: validate.AuthorizationRuleName(),
 			},
 
 			"namespace_name": {
@@ -36,7 +37,7 @@ func dataSourceArmServiceBusQueueAuthorizationRule() *schema.Resource {
 			"queue_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateServiceBusQueueName(),
+				ValidateFunc: validate.QueueName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -85,42 +86,35 @@ func dataSourceArmServiceBusQueueAuthorizationRule() *schema.Resource {
 
 func dataSourceArmServiceBusQueueAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.QueuesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	namespaceName := d.Get("namespace_name").(string)
-	queueName := d.Get("queue_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	resp, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, queueName, name)
+	id := parse.NewQueueAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("queue_name").(string), d.Get("name").(string))
+	resp, err := client.GetAuthorizationRule(ctx, id.ResourceGroup, id.NamespaceName, id.QueueName, id.AuthorizationRuleName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("ServiceBus Queue Authorization Rule %q (Resource Group %q / Namespace Name %q) was not found", name, resourceGroup, namespaceName)
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("Error making Read request on Azure ServiceBus Queue Authorization Rule %s: %+v", name, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", name)
-	d.Set("queue_name", queueName)
-	d.Set("namespace_name", namespaceName)
-	d.Set("resource_group_name", resourceGroup)
+	keysResp, err := client.ListKeys(ctx, id.ResourceGroup, id.NamespaceName, id.QueueName, id.AuthorizationRuleName)
+	if err != nil {
+		return fmt.Errorf("listing keys for %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID(""))
+	d.Set("name", id.AuthorizationRuleName)
+	d.Set("queue_name", id.QueueName)
+	d.Set("namespace_name", id.NamespaceName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if properties := resp.SBAuthorizationRuleProperties; properties != nil {
-		listen, send, manage := azure.FlattenServiceBusAuthorizationRuleRights(properties.Rights)
+		listen, send, manage := flattenAuthorizationRuleRights(properties.Rights)
 		d.Set("listen", listen)
 		d.Set("send", send)
 		d.Set("manage", manage)
-	}
-
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("API returned a nil/empty id for ServiceBus Queue Authorization Rule %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	d.SetId(*resp.ID)
-
-	keysResp, err := client.ListKeys(ctx, resourceGroup, namespaceName, queueName, name)
-	if err != nil {
-		return fmt.Errorf("Error making Read request on Azure ServiceBus Queue Authorization Rule List Keys %s: %+v", name, err)
 	}
 
 	d.Set("primary_key", keysResp.PrimaryKey)

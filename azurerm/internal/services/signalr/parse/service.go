@@ -25,10 +25,11 @@ func NewServiceID(subscriptionId, resourceGroup, signalRName string) ServiceId {
 
 func (id ServiceId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Signal R Name %q", id.SignalRName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Service", segmentsStr)
 }
 
 func (id ServiceId) ID(_ string) string {

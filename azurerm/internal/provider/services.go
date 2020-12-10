@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/attestation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/azurestackhci"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/blueprints"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot"
@@ -32,6 +33,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare"
@@ -43,6 +45,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/lighthouse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/machinelearning"
@@ -106,6 +109,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		attestation.Registration{},
 		authorization.Registration{},
 		automation.Registration{},
+		azurestackhci.Registration{},
 		batch.Registration{},
 		blueprints.Registration{},
 		bot.Registration{},
@@ -128,6 +132,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		dns.Registration{},
 		eventgrid.Registration{},
 		eventhub.Registration{},
+		firewall.Registration{},
 		frontdoor.Registration{},
 		hpccache.Registration{},
 		hsm.Registration{},
@@ -137,6 +142,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		iotcentral.Registration{},
 		keyvault.Registration{},
 		kusto.Registration{},
+		loadbalancer.Registration{},
 		loganalytics.Registration{},
 		logic.Registration{},
 		machinelearning.Registration{},

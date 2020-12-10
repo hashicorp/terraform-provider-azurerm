@@ -27,11 +27,12 @@ func NewConnectionMonitorID(subscriptionId, resourceGroup, networkWatcherName, n
 
 func (id ConnectionMonitorId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Network Watcher Name %q", id.NetworkWatcherName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Network Watcher Name %q", id.NetworkWatcherName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Connection Monitor", segmentsStr)
 }
 
 func (id ConnectionMonitorId) ID(_ string) string {

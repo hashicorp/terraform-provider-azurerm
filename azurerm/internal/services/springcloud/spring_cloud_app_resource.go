@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSpringCloudApp() *schema.Resource {
+func resourceSpringCloudApp() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSpringCloudAppCreateUpdate,
-		Read:   resourceArmSpringCloudAppRead,
-		Update: resourceArmSpringCloudAppCreateUpdate,
-		Delete: resourceArmSpringCloudAppDelete,
+		Create: resourceSpringCloudAppCreateUpdate,
+		Read:   resourceSpringCloudAppRead,
+		Update: resourceSpringCloudAppCreateUpdate,
+		Delete: resourceSpringCloudAppDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.SpringCloudAppID(id)
@@ -85,7 +85,7 @@ func resourceArmSpringCloudApp() *schema.Resource {
 	}
 }
 
-func resourceArmSpringCloudAppCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.AppsClient
 	servicesClient := meta.(*clients.Client).AppPlatform.ServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -127,10 +127,10 @@ func resourceArmSpringCloudAppCreateUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	d.SetId(resourceId)
-	return resourceArmSpringCloudAppRead(d, meta)
+	return resourceSpringCloudAppRead(d, meta)
 }
 
-func resourceArmSpringCloudAppRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.AppsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -161,7 +161,7 @@ func resourceArmSpringCloudAppRead(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceArmSpringCloudAppDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.AppsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

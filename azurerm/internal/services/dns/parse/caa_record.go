@@ -27,11 +27,12 @@ func NewCaaRecordID(subscriptionId, resourceGroup, dnszoneName, cAAName string) 
 
 func (id CaaRecordId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Dnszone Name %q", id.DnszoneName),
 		fmt.Sprintf("C A A Name %q", id.CAAName),
+		fmt.Sprintf("Dnszone Name %q", id.DnszoneName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Caa Record", segmentsStr)
 }
 
 func (id CaaRecordId) ID(_ string) string {

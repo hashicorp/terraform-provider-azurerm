@@ -27,11 +27,12 @@ func NewNamespaceNetworkRuleSetID(subscriptionId, resourceGroup, namespaceName, 
 
 func (id NamespaceNetworkRuleSetId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Namespace Name %q", id.NamespaceName),
 		fmt.Sprintf("Networkruleset Name %q", id.NetworkrulesetName),
+		fmt.Sprintf("Namespace Name %q", id.NamespaceName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Namespace Network Rule Set", segmentsStr)
 }
 
 func (id NamespaceNetworkRuleSetId) ID(_ string) string {

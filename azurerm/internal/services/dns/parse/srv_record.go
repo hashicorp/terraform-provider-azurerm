@@ -27,11 +27,12 @@ func NewSrvRecordID(subscriptionId, resourceGroup, dnszoneName, sRVName string) 
 
 func (id SrvRecordId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Dnszone Name %q", id.DnszoneName),
 		fmt.Sprintf("S R V Name %q", id.SRVName),
+		fmt.Sprintf("Dnszone Name %q", id.DnszoneName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Srv Record", segmentsStr)
 }
 
 func (id SrvRecordId) ID(_ string) string {

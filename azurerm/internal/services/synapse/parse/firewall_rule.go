@@ -27,11 +27,12 @@ func NewFirewallRuleID(subscriptionId, resourceGroup, workspaceName, name string
 
 func (id FirewallRuleId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Workspace Name %q", id.WorkspaceName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Workspace Name %q", id.WorkspaceName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Firewall Rule", segmentsStr)
 }
 
 func (id FirewallRuleId) ID(_ string) string {

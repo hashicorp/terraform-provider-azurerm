@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmHPCCache() *schema.Resource {
+func resourceHPCCache() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmHPCCacheCreateOrUpdate,
-		Update: resourceArmHPCCacheCreateOrUpdate,
-		Read:   resourceArmHPCCacheRead,
-		Delete: resourceArmHPCCacheDelete,
+		Create: resourceHPCCacheCreateOrUpdate,
+		Update: resourceHPCCacheCreateOrUpdate,
+		Read:   resourceHPCCacheRead,
+		Delete: resourceHPCCacheDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -104,7 +104,7 @@ func resourceArmHPCCache() *schema.Resource {
 	}
 }
 
-func resourceArmHPCCacheCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceHPCCacheCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HPCCache.CachesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -169,10 +169,10 @@ func resourceArmHPCCacheCreateOrUpdate(d *schema.ResourceData, meta interface{})
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmHPCCacheRead(d, meta)
+	return resourceHPCCacheRead(d, meta)
 }
 
-func resourceArmHPCCacheRead(d *schema.ResourceData, meta interface{}) error {
+func resourceHPCCacheRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HPCCache.CachesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -216,7 +216,7 @@ func resourceArmHPCCacheRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceArmHPCCacheDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceHPCCacheDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HPCCache.CachesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
