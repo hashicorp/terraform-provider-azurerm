@@ -44,6 +44,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_app_service_managed_certificate` - create certificate in service plan resource group to prevent diff loop [GH-9701]
 * `azurerm_bot_channel_directline` - the field `bot_name` is now ForceNew to match the documentation/API behaviour [GH-9690]
 * `azurerm_bot_channel_ms_teams` - the field `bot_name` is now ForceNew to match the documentation/API behaviour [GH-9690]
 * `azurerm_bot_channel_slack` - the field `bot_name` is now ForceNew to match the documentation/API behaviour [GH-9690]
