@@ -504,26 +504,18 @@ func flattenSubnetDelegation(delegations *[]network.Delegation) []interface{} {
 	return retDeles
 }
 
-// TODO: confirm this logic below
-
 func expandSubnetPrivateLinkNetworkPolicy(enabled bool) *string {
-	// This is strange logic, but to get the schema to make sense for the end user
-	// I exposed it with the same name that the Azure CLI does to be consistent
-	// between the tool sets, which means true == Disabled.
 	if enabled {
-		return utils.String("Disabled")
+		return utils.String("Enabled")
 	}
 
-	return utils.String("Enabled")
+	return utils.String("Disabled")
 }
 
 func flattenSubnetPrivateLinkNetworkPolicy(input *string) bool {
-	// This is strange logic, but to get the schema to make sense for the end user
-	// I exposed it with the same name that the Azure CLI does to be consistent
-	// between the tool sets, which means true == Disabled.
 	if input == nil {
-		return false
+		return true
 	}
 
-	return strings.EqualFold(*input, "Disabled")
+	return strings.EqualFold(*input, "Enabled")
 }
