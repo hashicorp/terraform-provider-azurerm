@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -145,7 +146,7 @@ func resourceMediaStreamingEndpoint() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"StandardVerizon",
+					"StandardVerizon", "PremiumVerizon", "StandardAkamai",
 				}, false),
 			},
 
@@ -208,19 +209,17 @@ func resourceMediaStreamingEndpointCreate(d *schema.ResourceData, meta interface
 	accountName := d.Get("media_services_account_name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	scaleUnits := d.Get("scale_units").(int)
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionID
-	resourceId := parse.NewStreamingEndpointId(subscriptionId, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("name").(string))
-	existing, err := client.Get(resourceId.ResourceGroup, resourceId.MediaserviceName, resourceId.Name)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	resourceId := parse.NewStreamingEndpointID(subscriptionId, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("name").(string))
+	existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.MediaserviceName, resourceId.Name)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response()) {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return fmt.Errorf("checking for presence of %s: %+v", resourceId, err)
 		}
 	}
-	if !utils.ResponseWasNotFound(existing.Response()) {
-		return tf.RequiresImportError("azurerm_media_streaming_endpoint", resourceId)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_media_streaming_endpoint", resourceId.ID(""))
 	}
-	
-	autoStart := utils.Bool(false)
 
 	parameters := media.StreamingEndpoint{
 		StreamingEndpointProperties: &media.StreamingEndpointProperties{
@@ -229,11 +228,16 @@ func resourceMediaStreamingEndpointCreate(d *schema.ResourceData, meta interface
 		Location: utils.String(location),
 	}
 
+	autoStart := utils.Bool(false)
 	if _, ok := d.GetOk("auto_start_enabled"); ok {
 		autoStart = utils.Bool(d.Get("auto_start_enabled").(bool))
 	}
 	if _, ok := d.GetOk("access_control"); ok {
-		parameters.StreamingEndpointProperties.AccessControl = expandAccessControl(d)
+		accessControl, err := expandAccessControl(d)
+		if err != nil {
+			return err
+		}
+		parameters.StreamingEndpointProperties.AccessControl = accessControl
 	}
 	if cdnEnabled, ok := d.GetOk("cdn_enabled"); ok {
 		parameters.StreamingEndpointProperties.CdnEnabled = utils.Bool(cdnEnabled.(bool))
@@ -247,8 +251,8 @@ func resourceMediaStreamingEndpointCreate(d *schema.ResourceData, meta interface
 		parameters.StreamingEndpointProperties.CdnProvider = utils.String(cdnProvider.(string))
 	}
 
-	if _, ok := d.GetOk("cross_site_access_policies"); ok {
-		parameters.StreamingEndpointProperties.CrossSiteAccessPolicies = expandCrossSiteAccessPolicies(d)
+	if crossSite, ok := d.GetOk("cross_site_access_policy"); ok {
+		parameters.StreamingEndpointProperties.CrossSiteAccessPolicies = expandCrossSiteAccessPolicies(crossSite.([]interface{}))
 	}
 
 	if _, ok := d.GetOk("custom_host_names"); ok {
@@ -273,12 +277,7 @@ func resourceMediaStreamingEndpointCreate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error waiting for creation of Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", streamingEndpointName, accountName, resourceGroup, err)
 	}
 
-	endpoint, err := client.Get(ctx, resourceGroup, accountName, streamingEndpointName)
-	if err != nil {
-		return fmt.Errorf("Error retrieving Streaming Endpoint %q from Media Services Account %q (Resource Group %q): %+v", streamingEndpointName, accountName, resourceGroup, err)
-	}
-
-	d.SetId(*endpoint.ID)
+	d.SetId(resourceId.ID(""))
 
 	return resourceMediaStreamingEndpointRead(d, meta)
 }
@@ -288,9 +287,7 @@ func resourceMediaStreamingEndpointUpdate(d *schema.ResourceData, meta interface
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	streamingEndpointName := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	id, err := parse.StreamingEndpoint(d.ID())
+	id, err := parse.StreamingEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -309,18 +306,22 @@ func resourceMediaStreamingEndpointUpdate(d *schema.ResourceData, meta interface
 			ScaleUnit: utils.Int32(int32(scaleUnits)),
 		}
 
-		future, err := client.Scale(ctx, resourceGroup, accountName, streamingEndpointName, scaleParamaters)
+		future, err := client.Scale(ctx, id.ResourceGroup, id.MediaserviceName, id.Name, scaleParamaters)
 		if err != nil {
-			return fmt.Errorf("Error scaling units in Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", streamingEndpointName, accountName, resourceGroup, err)
+			return fmt.Errorf("Error scaling units in Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for scaling of Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", streamingEndpointName, accountName, resourceGroup, err)
+			return fmt.Errorf("Error waiting for scaling of Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
 		}
 	}
 
 	if _, ok := d.GetOk("access_control"); ok {
-		parameters.StreamingEndpointProperties.AccessControl = expandAccessControl(d)
+		accessControl, err := expandAccessControl(d)
+		if err != nil {
+			return err
+		}
+		parameters.StreamingEndpointProperties.AccessControl = accessControl
 	}
 
 	if cdnEnabled, ok := d.GetOk("cdn_enabled"); ok {
@@ -335,8 +336,8 @@ func resourceMediaStreamingEndpointUpdate(d *schema.ResourceData, meta interface
 		parameters.StreamingEndpointProperties.CdnProvider = utils.String(cdnProvider.(string))
 	}
 
-	if _, ok := d.GetOk("cross_site_access_policies"); ok {
-		parameters.StreamingEndpointProperties.CrossSiteAccessPolicies = expandCrossSiteAccessPolicies(d)
+	if crossSitePolicies, ok := d.GetOk("cross_site_access_policy"); ok {
+		parameters.StreamingEndpointProperties.CrossSiteAccessPolicies = expandCrossSiteAccessPolicies(crossSitePolicies.([]interface{}))
 	}
 
 	if _, ok := d.GetOk("custom_host_names"); ok {
@@ -352,21 +353,14 @@ func resourceMediaStreamingEndpointUpdate(d *schema.ResourceData, meta interface
 		parameters.StreamingEndpointProperties.MaxCacheAge = utils.Int64(int64(maxCacheAge.(int)))
 	}
 
-	future, err := client.Update(ctx, resourceGroup, accountName, streamingEndpointName, parameters)
+	future, err := client.Update(ctx, id.ResourceGroup, id.MediaserviceName, id.Name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", streamingEndpointName, accountName, resourceGroup, err)
+		return fmt.Errorf("Error creating Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", streamingEndpointName, accountName, resourceGroup, err)
+		return fmt.Errorf("Error waiting for creation of Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
 	}
-
-	endpoint, err := client.Get(ctx, resourceGroup, accountName, streamingEndpointName)
-	if err != nil {
-		return fmt.Errorf("Error retrieving Streaming Endpoint %q from Media Services Account %q (Resource Group %q): %+v", streamingEndpointName, accountName, resourceGroup, err)
-	}
-
-	d.SetId(*endpoint.ID)
 
 	return resourceMediaStreamingEndpointRead(d, meta)
 }
@@ -409,33 +403,18 @@ func resourceMediaStreamingEndpointRead(d *schema.ResourceData, meta interface{}
 			return fmt.Errorf("Error flattening `access_control`: %s", err)
 		}
 
-		if cdnEnabled := props.CdnEnabled; cdnEnabled != nil {
-			d.Set("cdn_enabled", cdnEnabled)
 		d.Set("cdn_enabled", props.CdnEnabled)
-
-		if cdnProfile := props.CdnProfile; cdnProfile != nil {
-			d.Set("cdn_profile", cdnProfile)
 		d.Set("cdn_profile", props.CdnProfile)
-
-		if cdnProvider := props.CdnProvider; cdnProvider != nil {
-			d.Set("cdn_provider", cdnProvider)
-		}
+		d.Set("cdn_provider", props.CdnProvider)
 
 		crossSiteAccessPolicies := flattenCrossSiteAccessPolicies(resp.CrossSiteAccessPolicies)
-		if err := d.Set("cross_site_access_policies", crossSiteAccessPolicies); err != nil {
-			return fmt.Errorf("Error flattening `cross_site_access_policies`: %s", err)
+		if err := d.Set("cross_site_access_policy", crossSiteAccessPolicies); err != nil {
+			return fmt.Errorf("Error flattening `cross_site_access_policy`: %s", err)
 		}
 
-		if customHostNames := props.CustomHostNames; customHostNames != nil {
-			d.Set("custom_host_names", customHostNames)
-		}
+		d.Set("custom_host_names", props.CustomHostNames)
+		d.Set("description", props.Description)
 
-		if description := props.Description; description != nil {
-			d.Set("description", description)
-		}
-
-		if maxCacheAge := props.MaxCacheAge; maxCacheAge != nil {
-			d.Set("max_cache_age_seconds", maxCacheAge)
 		maxCacheAge := 0
 		if props.MaxCacheAge != nil {
 			maxCacheAge = int(*props.MaxCacheAge)
@@ -471,7 +450,7 @@ func resourceMediaStreamingEndpointDelete(d *schema.ResourceData, meta interface
 func expandAccessControl(d *schema.ResourceData) (*media.StreamingEndpointAccessControl, error) {
 	accessControls := d.Get("access_control").(*schema.Set).List()
 	if len(accessControls) == 0 {
-		return nil
+		return nil, nil
 	}
 	accessControlResult := new(media.StreamingEndpointAccessControl)
 	accessControl := accessControls[0].(map[string]interface{})
@@ -528,103 +507,55 @@ func expandAccessControl(d *schema.ResourceData) (*media.StreamingEndpointAccess
 		}
 	}
 
-	return &accessControlResult, nil
+	return accessControlResult, nil
 }
 
-func flattenAccessControl(accessControl *media.StreamingEndpointAccessControl) []interface{} {
-	if accessControl == nil {
+func flattenAccessControl(input *media.StreamingEndpointAccessControl) []interface{} {
+	if input == nil {
 		return make([]interface{}, 0)
 	}
 
-	result := make(map[string]interface{})
-
-	if accessControl.IP != nil {
-		allows := make([]interface{}, len(*accessControl.IP.Allow))
-		for i, ipAllow := range *accessControl.IP.Allow {
-			allow := make(map[string]interface{})
-			if ipAllow.Name != nil {
-				allow["name"] = ipAllow.Name
-			}
-			if ipAllow.Address != nil {
-				allow["address"] = ipAllow.Address
-			}
-			if ipAllow.SubnetPrefixLength != nil {
-				allow["subnet_prefix_length"] = ipAllow.SubnetPrefixLength
-			}
-			if allow != nil {
-				allows[i] = allow
-			}
-		}
-
-		result["ip_allow"] = allows
-	}
-
-	if accessControl.Akamai != nil {
-		akamaiSignatureKeyList := make([]interface{}, len(*accessControl.Akamai.AkamaiSignatureHeaderAuthenticationKeyList))
-		for i, key := range *accessControl.Akamai.AkamaiSignatureHeaderAuthenticationKeyList {
-			akamaiSignatureHeaderKey := make(map[string]interface{})
-			if key.Base64Key != nil {
-				akamaiSignatureHeaderKey["base64_key"] = key.Base64Key
-			}
-			if key.Expiration != nil {
-				akamaiSignatureHeaderKey["expiration"] = key.Expiration.Format(time.RFC3339)
-			}
-			if key.Identifier != nil {
-				akamaiSignatureHeaderKey["identifier"] = key.Identifier
-			}
-			if akamaiSignatureKeyList != nil {
-				akamaiSignatureKeyList[i] = akamaiSignatureHeaderKey
-			}
-		}
-
-		result["akamai_signature_header_authentication_key"] = akamaiSignatureKeyList
-	}
-
-	if input == nil {
- 		return make([]interface{}, 0)
- 	}
-	
 	ipAllowRules := make([]interface{}, 0)
-	if input.IP != nil {
-		for _, v := range *input.IP {
+	if input.IP != nil && input.IP.Allow != nil {
+		for _, v := range *input.IP.Allow {
 			name := ""
 			if v.Name != nil {
 				name = *v.Name
 			}
-			
+
 			address := ""
 			if v.Address != nil {
 				address = *v.Address
 			}
-			
-			subnetPrefixLength := ""
+
+			var subnetPrefixLength int32
 			if v.SubnetPrefixLength != nil {
 				subnetPrefixLength = *v.SubnetPrefixLength
 			}
-			
+
 			ipAllowRules = append(ipAllowRules, map[string]interface{}{
-				"name": name,
-				"address": address,
+				"name":                 name,
+				"address":              address,
 				"subnet_prefix_length": subnetPrefixLength,
 			})
 		}
 	}
 
-	akamaiRules := make([]interface, 0)
+	akamaiRules := make([]interface{}, 0)
 	if input.Akamai != nil && input.Akamai.AkamaiSignatureHeaderAuthenticationKeyList != nil {
 		for _, v := range *input.Akamai.AkamaiSignatureHeaderAuthenticationKeyList {
 			base64Key := ""
 			if v.Base64Key != nil {
 				base64Key = *v.Base64Key
 			}
-			
+
 			expiration := ""
 			if v.Expiration != nil {
 				expiration = v.Expiration.Format(time.RFC3339)
 			}
-			
+
 			identifier := ""
-			if v.Idenifier != nil {
+			if v.Identifier != nil {
 				identifier = *v.Identifier
 			}
 
@@ -635,21 +566,20 @@ func flattenAccessControl(accessControl *media.StreamingEndpointAccessControl) [
 			})
 		}
 	}
-  
+
 	return []interface{}{
 		map[string]interface{}{
 			"akamai_signature_header_authentication_key": akamaiRules,
 			"ip_allow": ipAllowRules,
-		}
+		},
 	}
 }
 
 func expandCrossSiteAccessPolicies(input []interface{}) *media.CrossSiteAccessPolicies {
-	crossSiteAccessPolicies := d.Get("cross_site_access_policies").([]interface{})
 	if len(input) == 0 {
 		return nil
 	}
-	
+
 	crossSiteAccessPolicy := input[0].(map[string]interface{})
 	clientAccessPolicy := crossSiteAccessPolicy["client_access_policy"].(string)
 	crossDomainPolicy := crossSiteAccessPolicy["cross_domain_policy"].(string)
@@ -660,33 +590,24 @@ func expandCrossSiteAccessPolicies(input []interface{}) *media.CrossSiteAccessPo
 }
 
 func flattenCrossSiteAccessPolicies(input *media.CrossSiteAccessPolicies) []interface{} {
-	if crossSiteAccessPolicies == nil {
+	if input == nil {
 		return make([]interface{}, 0)
-	}
-
-	result := make(map[string]interface{})
-
-	if crossSiteAccessPolicies.ClientAccessPolicy != nil {
-		result["client_access_policy"] = *crossSiteAccessPolicies.ClientAccessPolicy
-	}
-	if crossSiteAccessPolicies.CrossDomainPolicy != nil {
-		result["cross_domain_policy"] = *crossSiteAccessPolicies.CrossDomainPolicy
 	}
 
 	clientAccessPolicy := ""
 	if input.ClientAccessPolicy != nil {
 		clientAccessPolicy = *input.ClientAccessPolicy
 	}
-	
+
 	crossDomainPolicy := ""
 	if input.CrossDomainPolicy != nil {
 		crossDomainPolicy = *input.CrossDomainPolicy
 	}
-	
+
 	return []interface{}{
 		map[string]interface{}{
 			"client_access_policy": clientAccessPolicy,
-			"cross_domain_policy": crossDomainPolicy,
+			"cross_domain_policy":  crossDomainPolicy,
 		},
 	}
 }

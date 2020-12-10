@@ -129,9 +129,9 @@ The following arguments are supported:
 
 * `cdn_profile` - (Optional) The CDN profile name.
 
-* `cdn_provider` - (Optional) The CDN provider name. At this time the only supported value is `StandardVerizon`
+* `cdn_provider` - (Optional) The CDN provider name. Supported value are `StandardVerizon`,`PremiumVerizon` and `StandardAkamai`
 
-* `cross_site_access_policies` - (Optional) A `cross_site_access_policies` block as defined below.
+* `cross_site_access_policy` - (Optional) A `cross_site_access_policy` block as defined below.
 
 * `custom_host_names` - (Optional) The custom host names of the streaming endpoint.
 
@@ -170,7 +170,7 @@ A `ip_allow` block supports the following:
 * `subnet_prefix_length` - (Optional) The subnet mask prefix length (see CIDR notation).
 
 ---
-A `cross_site_access_policies` block supports the following:
+A `cross_site_access_policy` block supports the following:
 
 * `client_access_policy` - (Optional) The content of clientaccesspolicy.xml used by Silverlight.
 
