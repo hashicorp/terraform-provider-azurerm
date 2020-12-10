@@ -172,6 +172,12 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 													Required: true,
 												},
 
+												"metric_namespace": {
+													Type:         schema.TypeString,
+													Optional:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+
 												"dimensions": {
 													Type:     schema.TypeList,
 													Optional: true,
@@ -576,6 +582,7 @@ func expandAzureRmMonitorAutoScaleSettingRule(input []interface{}) *[]insights.S
 		triggerRaw := triggersRaw[0].(map[string]interface{})
 		metricTrigger := insights.MetricTrigger{
 			MetricName:        utils.String(triggerRaw["metric_name"].(string)),
+			MetricNamespace:   utils.String(triggerRaw["metric_namespace"].(string)),
 			MetricResourceURI: utils.String(triggerRaw["metric_resource_id"].(string)),
 			TimeGrain:         utils.String(triggerRaw["time_grain"].(string)),
 			Statistic:         insights.MetricStatisticType(triggerRaw["statistic"].(string)),
@@ -841,10 +848,14 @@ func flattenAzureRmMonitorAutoScaleSettingRules(input *[]insights.ScaleRule) ([]
 
 		metricTriggers := make([]interface{}, 0)
 		if trigger := rule.MetricTrigger; trigger != nil {
-			var metricName, metricId, timeGrain, timeWindow string
+			var metricName, metricNamespace, metricId, timeGrain, timeWindow string
 			var threshold float64
 			if trigger.MetricName != nil {
 				metricName = *trigger.MetricName
+			}
+
+			if v := trigger.MetricNamespace; v != nil {
+				metricNamespace = *v
 			}
 
 			if trigger.MetricResourceURI != nil {
@@ -865,6 +876,7 @@ func flattenAzureRmMonitorAutoScaleSettingRules(input *[]insights.ScaleRule) ([]
 
 			metricTriggers = append(metricTriggers, map[string]interface{}{
 				"metric_name":        metricName,
+				"metric_namespace":   metricNamespace,
 				"metric_resource_id": metricId,
 				"time_grain":         timeGrain,
 				"statistic":          string(trigger.Statistic),

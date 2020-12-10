@@ -627,6 +627,7 @@ resource "azurerm_monitor_autoscale_setting" "test" {
         time_aggregation   = "Average"
         operator           = "GreaterThan"
         threshold          = 75
+        metric_namespace   = "microsoft.compute/virtualmachinescalesets"
       }
 
       scale_action {
@@ -647,6 +648,7 @@ resource "azurerm_monitor_autoscale_setting" "test" {
         time_aggregation   = "Average"
         operator           = "LessThan"
         threshold          = 25
+        metric_namespace   = "microsoft.compute/virtualmachinescalesets"
       }
 
       scale_action {
@@ -914,6 +916,7 @@ resource "azurerm_monitor_autoscale_setting" "test" {
         time_aggregation   = "Average"
         operator           = "GreaterThan"
         threshold          = 75
+        metric_namespace   = "microsoft.compute/virtualmachinescalesets"
         dimensions {
           name     = "AppName"
           operator = "Equals"
@@ -940,6 +943,7 @@ resource "azurerm_monitor_autoscale_setting" "test" {
         time_aggregation   = "Average"
         operator           = "LessThan"
         threshold          = 25
+        metric_namespace   = "microsoft.compute/virtualmachinescalesets"
       }
 
       scale_action {
@@ -985,6 +989,7 @@ resource "azurerm_monitor_autoscale_setting" "test" {
         time_aggregation   = "Average"
         operator           = "GreaterThan"
         threshold          = 75
+        metric_namespace   = "microsoft.compute/virtualmachinescalesets"
         dimensions {
           name     = "AppName2"
           operator = "NotEquals"
@@ -1016,6 +1021,7 @@ resource "azurerm_monitor_autoscale_setting" "test" {
         time_aggregation   = "Average"
         operator           = "LessThan"
         threshold          = 25
+        metric_namespace   = "microsoft.compute/virtualmachinescalesets"
       }
 
       scale_action {

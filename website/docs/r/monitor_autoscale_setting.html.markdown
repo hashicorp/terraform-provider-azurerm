@@ -47,6 +47,12 @@ resource "azurerm_monitor_autoscale_setting" "example" {
         time_aggregation   = "Average"
         operator           = "GreaterThan"
         threshold          = 75
+        metric_namespace   = "microsoft.compute/virtualmachinescalesets"
+        dimensions {
+          name     = "AppName"
+          operator = "Equals"
+          values   = ["App1"]
+        }
       }
 
       scale_action {
@@ -334,6 +340,8 @@ A `metric_trigger` block supports the following:
 * `time_window` - (Required) Specifies the time range for which data is collected, which must be greater than the delay in metric collection (which varies from resource to resource). This value must be between 5 minutes and 12 hours and be formatted as an ISO 8601 string.
 
 * `threshold` - (Required) Specifies the threshold of the metric that triggers the scale action.
+
+* `metric_namespace` - (Optional) The namespace of the metric that defines what the rule monitors, such as `microsoft.compute/virtualmachinescalesets` for `Virtual Machine Scale Sets`.
 
 * `dimensions` - (Optional) One or more `dimensions` block as defined below.
 
