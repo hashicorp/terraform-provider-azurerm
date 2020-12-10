@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmIoTTimeSeriesInsightsGen2Environment() *schema.Resource {
+func resourceIoTTimeSeriesInsightsGen2Environment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIoTTimeSeriesInsightsGen2EnvironmentCreateUpdate,
-		Read:   resourceArmIoTTimeSeriesInsightsGen2EnvironmentRead,
-		Update: resourceArmIoTTimeSeriesInsightsGen2EnvironmentCreateUpdate,
-		Delete: resourceArmIoTTimeSeriesInsightsGen2EnvironmentDelete,
+		Create: resourceIoTTimeSeriesInsightsGen2EnvironmentCreateUpdate,
+		Read:   resourceIoTTimeSeriesInsightsGen2EnvironmentRead,
+		Update: resourceIoTTimeSeriesInsightsGen2EnvironmentCreateUpdate,
+		Delete: resourceIoTTimeSeriesInsightsGen2EnvironmentDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.EnvironmentID(id)
 			return err
@@ -101,7 +101,7 @@ func resourceArmIoTTimeSeriesInsightsGen2Environment() *schema.Resource {
 	}
 }
 
-func resourceArmIoTTimeSeriesInsightsGen2EnvironmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIoTTimeSeriesInsightsGen2EnvironmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTTimeSeriesInsights.EnvironmentsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -176,10 +176,10 @@ func resourceArmIoTTimeSeriesInsightsGen2EnvironmentCreateUpdate(d *schema.Resou
 
 	d.SetId(*resource.ID)
 
-	return resourceArmIoTTimeSeriesInsightsGen2EnvironmentRead(d, meta)
+	return resourceIoTTimeSeriesInsightsGen2EnvironmentRead(d, meta)
 }
 
-func resourceArmIoTTimeSeriesInsightsGen2EnvironmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIoTTimeSeriesInsightsGen2EnvironmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTTimeSeriesInsights.EnvironmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -223,7 +223,7 @@ func resourceArmIoTTimeSeriesInsightsGen2EnvironmentRead(d *schema.ResourceData,
 	return tags.FlattenAndSet(d, environment.Tags)
 }
 
-func resourceArmIoTTimeSeriesInsightsGen2EnvironmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIoTTimeSeriesInsightsGen2EnvironmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTTimeSeriesInsights.EnvironmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

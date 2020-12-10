@@ -26,9 +26,9 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_iot_time_series_insights_access_policy":        resourceArmIoTTimeSeriesInsightsAccessPolicy(),
-		"azurerm_iot_time_series_insights_standard_environment": resourceArmIoTTimeSeriesInsightsStandardEnvironment(),
-		"azurerm_iot_time_series_insights_gen2_environment":     resourceArmIoTTimeSeriesInsightsGen2Environment(),
-		"azurerm_iot_time_series_insights_reference_data_set":   resourceArmIoTTimeSeriesInsightsReferenceDataSet(),
+		"azurerm_iot_time_series_insights_access_policy":        resourceIoTTimeSeriesInsightsAccessPolicy(),
+		"azurerm_iot_time_series_insights_standard_environment": resourceIoTTimeSeriesInsightsStandardEnvironment(),
+		"azurerm_iot_time_series_insights_gen2_environment":     resourceIoTTimeSeriesInsightsGen2Environment(),
+		"azurerm_iot_time_series_insights_reference_data_set":   resourceIoTTimeSeriesInsightsReferenceDataSet(),
 	}
 }
