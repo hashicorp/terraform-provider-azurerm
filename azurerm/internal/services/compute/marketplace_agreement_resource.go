@@ -10,7 +10,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -77,30 +76,28 @@ func resourceArmMarketplaceAgreementCreateUpdate(d *schema.ResourceData, meta in
 
 	log.Printf("[DEBUG] Retrieving the Marketplace Terms for Publisher %q / Offer %q / Plan %q", publisher, offer, plan)
 
-	if features.ShouldResourcesBeImported() {
-		term, err := client.Get(ctx, publisher, offer, plan)
+	term, err := client.Get(ctx, publisher, offer, plan)
+	if err != nil {
+		if !utils.ResponseWasNotFound(term.Response) {
+			return fmt.Errorf("Error retrieving the Marketplace Terms for Publisher %q / Offer %q / Plan %q: %s", publisher, offer, plan, err)
+		}
+	}
+
+	accepted := false
+	if props := term.AgreementProperties; props != nil {
+		if acc := props.Accepted; acc != nil {
+			accepted = *acc
+		}
+	}
+
+	if accepted {
+		agreement, err := client.GetAgreement(ctx, publisher, offer, plan)
 		if err != nil {
-			if !utils.ResponseWasNotFound(term.Response) {
-				return fmt.Errorf("Error retrieving the Marketplace Terms for Publisher %q / Offer %q / Plan %q: %s", publisher, offer, plan, err)
+			if !utils.ResponseWasNotFound(agreement.Response) {
+				return fmt.Errorf("Error retrieving agreement for Publisher %q / Offer %q / Plan %q: %s", publisher, offer, plan, err)
 			}
 		}
-
-		accepted := false
-		if props := term.AgreementProperties; props != nil {
-			if acc := props.Accepted; acc != nil {
-				accepted = *acc
-			}
-		}
-
-		if accepted {
-			agreement, err := client.GetAgreement(ctx, publisher, offer, plan)
-			if err != nil {
-				if !utils.ResponseWasNotFound(agreement.Response) {
-					return fmt.Errorf("Error retrieving agreement for Publisher %q / Offer %q / Plan %q: %s", publisher, offer, plan, err)
-				}
-			}
-			return tf.ImportAsExistsError("azurerm_marketplace_agreement", *agreement.ID)
-		}
+		return tf.ImportAsExistsError("azurerm_marketplace_agreement", *agreement.ID)
 	}
 
 	terms, err := client.Get(ctx, publisher, offer, plan)

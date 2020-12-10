@@ -41,14 +41,20 @@ func dataSourceLogAnalyticsWorkspace() *schema.Resource {
 				Computed: true,
 			},
 
+			"daily_quota_gb": {
+				Type:     schema.TypeFloat,
+				Computed: true,
+			},
+
 			"workspace_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"portal_url": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:       schema.TypeString,
+				Computed:   true,
+				Deprecated: "this property has been removed from the API and will be removed in version 3.0 of the provider",
 			},
 
 			"primary_shared_key": {
@@ -70,6 +76,7 @@ func dataSourceLogAnalyticsWorkspace() *schema.Resource {
 
 func dataSourceLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.WorkspacesClient
+	sharedKeysClient := meta.(*clients.Client).LogAnalytics.SharedKeysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -93,13 +100,19 @@ func dataSourceLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface{
 	}
 
 	d.Set("workspace_id", resp.CustomerID)
-	d.Set("portal_url", resp.PortalURL)
+	d.Set("portal_url", "")
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", sku.Name)
 	}
 	d.Set("retention_in_days", resp.RetentionInDays)
 
-	sharedKeys, err := client.GetSharedKeys(ctx, resGroup, name)
+	if workspaceCapping := resp.WorkspaceCapping; workspaceCapping != nil {
+		d.Set("daily_quota_gb", resp.WorkspaceCapping.DailyQuotaGb)
+	} else {
+		d.Set("daily_quota_gb", utils.Float(-1))
+	}
+
+	sharedKeys, err := sharedKeysClient.GetSharedKeys(ctx, resGroup, name)
 	if err != nil {
 		log.Printf("[ERROR] Unable to List Shared keys for Log Analytics workspaces %s: %+v", name, err)
 	} else {

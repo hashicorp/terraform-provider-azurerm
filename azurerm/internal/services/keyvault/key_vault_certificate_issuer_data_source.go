@@ -24,7 +24,6 @@ func dataSourceArmKeyVaultCertificateIssuer() *schema.Resource {
 			"key_vault_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 

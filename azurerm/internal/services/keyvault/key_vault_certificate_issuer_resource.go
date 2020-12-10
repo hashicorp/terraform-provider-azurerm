@@ -49,19 +49,22 @@ func resourceArmKeyVaultCertificateIssuer() *schema.Resource {
 				ValidateFunc: validate.KeyVaultCertificateIssuerName,
 			},
 
-			"org_id": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
 			"provider_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"DigiCert",
 					"GlobalSign",
+					"OneCertV2-PrivateCA",
+					"OneCertV2-PublicCA",
+					"SslAdminV2",
 				}, false),
+			},
+
+			"org_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"account_id": {
@@ -131,18 +134,17 @@ func resourceArmKeyVaultCertificateIssuerCreateOrUpdate(d *schema.ResourceData, 
 	}
 
 	parameter := keyvault.CertificateIssuerSetParameters{
-		Provider: utils.String(d.Get("provider_name").(string)),
+		Provider:            utils.String(d.Get("provider_name").(string)),
+		OrganizationDetails: &keyvault.OrganizationDetails{},
 	}
 
-	orgDetails := &keyvault.OrganizationDetails{
-		ID: utils.String(d.Get("org_id").(string)),
+	if orgIdRaw, ok := d.GetOk("org_id"); ok {
+		parameter.OrganizationDetails.ID = utils.String(orgIdRaw.(string))
 	}
 
 	if adminsRaw, ok := d.GetOk("admin"); ok {
-		orgDetails.AdminDetails = expandKeyVaultCertificateIssuerOrganizationDetailsAdminDetails(adminsRaw.([]interface{}))
+		parameter.OrganizationDetails.AdminDetails = expandKeyVaultCertificateIssuerOrganizationDetailsAdminDetails(adminsRaw.([]interface{}))
 	}
-
-	parameter.OrganizationDetails = orgDetails
 
 	accountId, gotAccountId := d.GetOk("account_id")
 	password, gotPassword := d.GetOk("password")
@@ -178,7 +180,7 @@ func resourceArmKeyVaultCertificateIssuerRead(d *schema.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KeyVaultCertificateIssuerId(d.Id())
+	id, err := parse.IssuerID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -240,7 +242,7 @@ func resourceArmKeyVaultCertificateIssuerDelete(d *schema.ResourceData, meta int
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KeyVaultCertificateIssuerId(d.Id())
+	id, err := parse.IssuerID(d.Id())
 	if err != nil {
 		return err
 	}

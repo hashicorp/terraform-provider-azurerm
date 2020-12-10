@@ -2,20 +2,22 @@ package monitor
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -156,6 +158,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 				},
 			},
 
+			// lintignore: S018
 			"dynamic_criteria": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -268,12 +271,12 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 						"web_test_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.ApplicationInsightsWebTestID,
+							ValidateFunc: validate.WebTestID,
 						},
 						"component_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.ApplicationInsightsID,
+							ValidateFunc: validate.ComponentID,
 						},
 						"failed_location_count": {
 							Type:         schema.TypeInt,
@@ -372,7 +375,7 @@ func resourceArmMonitorMetricAlertCreateUpdate(d *schema.ResourceData, meta inte
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -441,9 +444,30 @@ func resourceArmMonitorMetricAlertCreateUpdate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error creating or updating metric alert %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
+	// Monitor Metric Alert API would return 404 while creating multiple Monitor Metric Alerts and get each resource immediately once it's created successfully in parallel.
+	// Tracked by this issue: https://github.com/Azure/azure-rest-api-specs/issues/10973
+	log.Printf("[DEBUG] Waiting for Monitor Metric Alert %q (Resource Group %q) to be created", name, resourceGroup)
+	stateConf := &resource.StateChangeConf{
+		Pending:                   []string{"404"},
+		Target:                    []string{"200"},
+		Refresh:                   monitorMetricAlertStateRefreshFunc(ctx, client, resourceGroup, name),
+		MinTimeout:                15 * time.Second,
+		ContinuousTargetOccurence: 10,
+	}
+
+	if d.IsNewResource() {
+		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+	} else {
+		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("Error waiting for Monitor Metric Alert %q (Resource Group %q) to finish provisioning: %s", name, resourceGroup, err)
+	}
+
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("retrieving Monitor Metric Alert %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Metric alert %q (resource group %q) ID is empty", name, resourceGroup)
@@ -511,7 +535,7 @@ func resourceArmMonitorMetricAlertRead(d *schema.ResourceData, meta interface{})
 		}
 
 		monitorMetricAlertCriteria := flattenMonitorMetricAlertCriteria(alert.Criteria)
-
+		// lintignore:R001
 		if err := d.Set(criteriaSchema, monitorMetricAlertCriteria); err != nil {
 			return fmt.Errorf("failed setting `%s`: %+v", criteriaSchema, err)
 		}
@@ -906,4 +930,19 @@ func resourceArmMonitorMetricAlertActionHash(input interface{}) int {
 		buf.WriteString(fmt.Sprintf("%s-", v["action_group_id"].(string)))
 	}
 	return hashcode.String(buf.String())
+}
+
+func monitorMetricAlertStateRefreshFunc(ctx context.Context, client *insights.MetricAlertsClient, resourceGroupName string, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, resourceGroupName, name)
+		if err != nil {
+			if utils.ResponseWasNotFound(res.Response) {
+				return nil, "404", nil
+			}
+
+			return nil, "", fmt.Errorf("Error retrieving Monitor Metric Alert %q (Resource Group %q): %s", name, resourceGroupName, err)
+		}
+
+		return res, strconv.Itoa(res.StatusCode), nil
+	}
 }

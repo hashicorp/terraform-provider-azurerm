@@ -345,6 +345,9 @@ func (client SharedPrivateLinkResourcesClient) ListByService(ctx context.Context
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "search.SharedPrivateLinkResourcesClient", "ListByService", resp, "Failure responding to request")
 	}
+	if result.splrlr.hasNextLink() && result.splrlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

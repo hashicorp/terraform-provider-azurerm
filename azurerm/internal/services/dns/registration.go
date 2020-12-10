@@ -21,21 +21,22 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_dns_zone": dataSourceArmDnsZone(),
+		"azurerm_dns_zone": dataSourceDnsZone(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_dns_a_record":     resourceArmDnsARecord(),
-		"azurerm_dns_aaaa_record":  resourceArmDnsAAAARecord(),
-		"azurerm_dns_caa_record":   resourceArmDnsCaaRecord(),
-		"azurerm_dns_cname_record": resourceArmDnsCNameRecord(),
-		"azurerm_dns_mx_record":    resourceArmDnsMxRecord(),
-		"azurerm_dns_ns_record":    resourceArmDnsNsRecord(),
-		"azurerm_dns_ptr_record":   resourceArmDnsPtrRecord(),
-		"azurerm_dns_srv_record":   resourceArmDnsSrvRecord(),
-		"azurerm_dns_txt_record":   resourceArmDnsTxtRecord(),
-		"azurerm_dns_zone":         resourceArmDnsZone()}
+		"azurerm_dns_a_record":     resourceDnsARecord(),
+		"azurerm_dns_aaaa_record":  resourceDnsAAAARecord(),
+		"azurerm_dns_caa_record":   resourceDnsCaaRecord(),
+		"azurerm_dns_cname_record": resourceDnsCNameRecord(),
+		"azurerm_dns_mx_record":    resourceDnsMxRecord(),
+		"azurerm_dns_ns_record":    resourceDnsNsRecord(),
+		"azurerm_dns_ptr_record":   resourceDnsPtrRecord(),
+		"azurerm_dns_srv_record":   resourceDnsSrvRecord(),
+		"azurerm_dns_txt_record":   resourceDnsTxtRecord(),
+		"azurerm_dns_zone":         resourceDnsZone(),
+	}
 }

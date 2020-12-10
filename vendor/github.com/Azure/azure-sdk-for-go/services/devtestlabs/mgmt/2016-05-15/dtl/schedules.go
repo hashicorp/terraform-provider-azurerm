@@ -398,6 +398,9 @@ func (client SchedulesClient) List(ctx context.Context, resourceGroupName string
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.SchedulesClient", "List", resp, "Failure responding to request")
 	}
+	if result.rwcs.hasNextLink() && result.rwcs.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -523,6 +526,9 @@ func (client SchedulesClient) ListApplicable(ctx context.Context, resourceGroupN
 	result.rwcs, err = client.ListApplicableResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.SchedulesClient", "ListApplicable", resp, "Failure responding to request")
+	}
+	if result.rwcs.hasNextLink() && result.rwcs.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

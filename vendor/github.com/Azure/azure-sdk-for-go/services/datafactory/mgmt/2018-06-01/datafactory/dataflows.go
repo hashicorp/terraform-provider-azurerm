@@ -383,6 +383,9 @@ func (client DataFlowsClient) ListByFactory(ctx context.Context, resourceGroupNa
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.DataFlowsClient", "ListByFactory", resp, "Failure responding to request")
 	}
+	if result.dflr.hasNextLink() && result.dflr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

@@ -13,7 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -185,7 +184,7 @@ func resourceArmMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interf
 	serverName := d.Get("server_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, serverName, elasticPoolName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -250,12 +249,12 @@ func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	elasticPool, err := parse.MSSqlElasticPoolID(d.Id())
+	elasticPool, err := parse.ElasticPoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, elasticPool.ResourceGroup, elasticPool.MsSqlServer, elasticPool.Name)
+	resp, err := client.Get(ctx, elasticPool.ResourceGroup, elasticPool.ServerName, elasticPool.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -271,7 +270,7 @@ func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	d.Set("server_name", elasticPool.MsSqlServer)
+	d.Set("server_name", elasticPool.ServerName)
 
 	if err := d.Set("sku", flattenAzureRmMsSqlElasticPoolSku(resp.Sku)); err != nil {
 		return fmt.Errorf("Error setting `sku`: %+v", err)
@@ -302,17 +301,17 @@ func resourceArmMsSqlElasticPoolDelete(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	elasticPool, err := parse.MSSqlElasticPoolID(d.Id())
+	elasticPool, err := parse.ElasticPoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, elasticPool.ResourceGroup, elasticPool.MsSqlServer, elasticPool.Name)
+	future, err := client.Delete(ctx, elasticPool.ResourceGroup, elasticPool.ServerName, elasticPool.Name)
 	if err != nil {
-		return fmt.Errorf("deleting ElasticPool %q (Server %q / Resource Group %q): %+v", elasticPool.Name, elasticPool.MsSqlServer, elasticPool.ResourceGroup, err)
+		return fmt.Errorf("deleting ElasticPool %q (Server %q / Resource Group %q): %+v", elasticPool.Name, elasticPool.ServerName, elasticPool.ResourceGroup, err)
 	}
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of ElasticPool %q (Server %q / Resource Group %q): %+v", elasticPool.Name, elasticPool.MsSqlServer, elasticPool.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of ElasticPool %q (Server %q / Resource Group %q): %+v", elasticPool.Name, elasticPool.ServerName, elasticPool.ResourceGroup, err)
 	}
 
 	return nil

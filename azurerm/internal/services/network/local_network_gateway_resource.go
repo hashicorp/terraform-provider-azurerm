@@ -10,7 +10,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -45,8 +44,15 @@ func resourceArmLocalNetworkGateway() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"gateway_address": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ExactlyOneOf: []string{"gateway_address", "gateway_fqdn"},
+			},
+
+			"gateway_fqdn": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ExactlyOneOf: []string{"gateway_address", "gateway_fqdn"},
 			},
 
 			"address_space": {
@@ -95,7 +101,7 @@ func resourceArmLocalNetworkGatewayCreateUpdate(d *schema.ResourceData, meta int
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -109,8 +115,6 @@ func resourceArmLocalNetworkGatewayCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	ipAddress := d.Get("gateway_address").(string)
-
 	t := d.Get("tags").(map[string]interface{})
 
 	gateway := network.LocalNetworkGateway{
@@ -118,10 +122,17 @@ func resourceArmLocalNetworkGatewayCreateUpdate(d *schema.ResourceData, meta int
 		Location: &location,
 		LocalNetworkGatewayPropertiesFormat: &network.LocalNetworkGatewayPropertiesFormat{
 			LocalNetworkAddressSpace: &network.AddressSpace{},
-			GatewayIPAddress:         &ipAddress,
 			BgpSettings:              expandLocalNetworkGatewayBGPSettings(d),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	ipAddress := d.Get("gateway_address").(string)
+	fqdn := d.Get("gateway_fqdn").(string)
+	if ipAddress != "" {
+		gateway.LocalNetworkGatewayPropertiesFormat.GatewayIPAddress = &ipAddress
+	} else {
+		gateway.LocalNetworkGatewayPropertiesFormat.Fqdn = &fqdn
 	}
 
 	// There is a bug in the provider where the address space ordering doesn't change as expected.
@@ -188,6 +199,7 @@ func resourceArmLocalNetworkGatewayRead(d *schema.ResourceData, meta interface{}
 
 	if props := resp.LocalNetworkGatewayPropertiesFormat; props != nil {
 		d.Set("gateway_address", props.GatewayIPAddress)
+		d.Set("gateway_fqdn", props.Fqdn)
 
 		if lnas := props.LocalNetworkAddressSpace; lnas != nil {
 			d.Set("address_space", lnas.AddressPrefixes)

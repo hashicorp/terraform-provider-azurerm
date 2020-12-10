@@ -1,11 +1,13 @@
 package web
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
+	relayMngt "github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -13,7 +15,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay"
+	relayParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay/parse"
+	relayValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -28,7 +32,7 @@ func resourceArmAppServiceHybridConnection() *schema.Resource {
 		Delete: resourceArmAppServiceHybridConnectionDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := ParseAppServiceHybridConnectionID(id)
+			_, err := parse.HybridConnectionID(id)
 			return err
 		}),
 
@@ -53,7 +57,7 @@ func resourceArmAppServiceHybridConnection() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: relay.ValidateHybridConnectionID,
+				ValidateFunc: relayValidate.HybridConnectionID,
 			},
 
 			"hostname": {
@@ -112,7 +116,7 @@ func resourceArmAppServiceHybridConnectionCreateUpdate(d *schema.ResourceData, m
 	name := d.Get("app_service_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	relayArmURI := d.Get("relay_id").(string)
-	relayId, err := relay.ParseHybridConnectionID(relayArmURI)
+	relayId, err := relayParse.HybridConnectionID(relayArmURI)
 	if err != nil {
 		return fmt.Errorf("Error parsing relay ID %q: %s", relayArmURI, err)
 	}
@@ -162,28 +166,24 @@ func resourceArmAppServiceHybridConnectionRead(d *schema.ResourceData, meta inte
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.HybridConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["sites"]
-	namespaceName := id.Path["hybridConnectionNamespaces"]
-	relayName := id.Path["relays"]
 
-	resp, err := client.GetHybridConnection(ctx, resourceGroup, name, namespaceName, relayName)
+	resp, err := client.GetHybridConnection(ctx, id.ResourceGroup, id.SiteName, id.HybridConnectionNamespaceName, id.RelayName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Hybrid Connection for App Service %q (resource group %q) was not found - removing from state", name, resourceGroup)
+			log.Printf("[DEBUG] Hybrid Connection %q for App Service %q (Resource Group %q) was not found - removing from state", id.HybridConnectionNamespaceName, id.SiteName, id.RelayName)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on App Service Hybrid Connection %q in Namespace %q, Resource Group %q: %s", name, namespaceName, resourceGroup, err)
+		return fmt.Errorf("retrieving App Service Hybrid Connection %q in Namespace %q, Resource Group %q: %s", id.SiteName, id.HybridConnectionNamespaceName, id.ResourceGroup, err)
 	}
-	d.Set("app_service_name", name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("namespace_name", namespaceName)
-	d.Set("relay_name", relayName)
+	d.Set("app_service_name", id.SiteName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("namespace_name", id.HybridConnectionNamespaceName)
+	d.Set("relay_name", id.RelayName)
 
 	if props := resp.HybridConnectionProperties; props != nil {
 		d.Set("port", resp.Port)
@@ -195,12 +195,18 @@ func resourceArmAppServiceHybridConnectionRead(d *schema.ResourceData, meta inte
 	}
 
 	// key values are not returned in the response, so we get the primary key from the relay namespace ListKeys func
-	relayNSClient := meta.(*clients.Client).Relay.NamespacesClient
-	accessKeys, err := relayNSClient.ListKeys(ctx, resourceGroup, *resp.ServiceBusNamespace, *resp.SendKeyName)
-	if err != nil {
-		return fmt.Errorf("unable to List Access Keys for Namespace %q (Resource Group %q): %+v", *resp.ServiceBusNamespace, resourceGroup, err)
-	} else {
-		d.Set("send_key_value", accessKeys.PrimaryKey)
+	if resp.ServiceBusNamespace != nil && resp.SendKeyName != nil {
+		relayNSClient := meta.(*clients.Client).Relay.NamespacesClient
+		relayNamespaceRG, err := findRelayNamespace(relayNSClient, ctx, *resp.ServiceBusNamespace)
+		if err != nil {
+			return err
+		}
+		accessKeys, err := relayNSClient.ListKeys(ctx, relayNamespaceRG, *resp.ServiceBusNamespace, *resp.SendKeyName)
+		if err != nil {
+			return fmt.Errorf("unable to List Access Keys for Namespace %q (Resource Group %q): %+v", *resp.ServiceBusNamespace, id.ResourceGroup, err)
+		} else {
+			d.Set("send_key_value", accessKeys.PrimaryKey)
+		}
 	}
 
 	return nil
@@ -211,22 +217,46 @@ func resourceArmAppServiceHybridConnectionDelete(d *schema.ResourceData, meta in
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.HybridConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["sites"]
-	namespaceName := id.Path["hybridConnectionNamespaces"]
-	relayName := id.Path["relays"]
 
-	resp, err := client.DeleteHybridConnection(ctx, resourceGroup, name, namespaceName, relayName)
+	resp, err := client.DeleteHybridConnection(ctx, id.ResourceGroup, id.SiteName, id.HybridConnectionNamespaceName, id.RelayName)
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return nil
+			return fmt.Errorf("deleting App Service Hybrid Connection %q (Resource Group %q, Relay %q): %+v", id.SiteName, id.ResourceGroup, id.RelayName, err)
 		}
-		return fmt.Errorf("Error deleting App Service Hybrid Connection %q (Resource Group %q, Relay %q): %+v", name, resourceGroup, relayName, err)
 	}
 
 	return nil
+}
+
+func findRelayNamespace(client *relayMngt.NamespacesClient, ctx context.Context, name string) (string, error) {
+	relayNSIterator, err := client.ListComplete(ctx)
+	if err != nil {
+		return "", fmt.Errorf("listing Relay Namespaces: %+v", err)
+	}
+
+	var found *relayMngt.Namespace
+	for relayNSIterator.NotDone() {
+		namespace := relayNSIterator.Value()
+		if namespace.Name != nil && *namespace.Name == name {
+			found = &namespace
+			break
+		}
+		if err := relayNSIterator.NextWithContext(ctx); err != nil {
+			return "", fmt.Errorf("listing Relay Namespaces: %+v", err)
+		}
+	}
+
+	if found == nil || found.ID == nil {
+		return "", fmt.Errorf("could not find Relay Namespace with name: %q", name)
+	}
+
+	id, err := relayParse.NamespaceID(*found.ID)
+	if err != nil {
+		return "", fmt.Errorf("relay Namespace id not valid: %+v", err)
+	}
+	return id.ResourceGroup, nil
 }

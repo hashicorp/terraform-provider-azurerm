@@ -50,7 +50,7 @@ output "https_endpoint" {
 
 * `ssh_endpoint` - The SSH Endpoint for this HDInsight Cluster.
 
-* `min_tls_version` - The minimal supported tls version. 
+* `tls_min_version` - The minimal supported tls version. 
 
 * `tags` - A map of tags assigned to the HDInsight Cluster.
 

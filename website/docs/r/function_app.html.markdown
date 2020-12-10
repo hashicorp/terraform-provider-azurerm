@@ -39,11 +39,12 @@ resource "azurerm_app_service_plan" "example" {
 }
 
 resource "azurerm_function_app" "example" {
-  name                      = "test-azure-functions"
-  location                  = azurerm_resource_group.example.location
-  resource_group_name       = azurerm_resource_group.example.name
-  app_service_plan_id       = azurerm_app_service_plan.example.id
-  storage_connection_string = azurerm_storage_account.example.primary_connection_string
+  name                       = "test-azure-functions"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  app_service_plan_id        = azurerm_app_service_plan.example.id
+  storage_account_name       = azurerm_storage_account.example.name
+  storage_account_access_key = azurerm_storage_account.example.primary_access_key
 }
 ```
 ## Example Usage (in a Consumption Plan)
@@ -75,11 +76,12 @@ resource "azurerm_app_service_plan" "example" {
 }
 
 resource "azurerm_function_app" "example" {
-  name                      = "test-azure-functions"
-  location                  = azurerm_resource_group.example.location
-  resource_group_name       = azurerm_resource_group.example.name
-  app_service_plan_id       = azurerm_app_service_plan.example.id
-  storage_connection_string = azurerm_storage_account.example.primary_connection_string
+  name                       = "test-azure-functions"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  app_service_plan_id        = azurerm_app_service_plan.example.id
+  storage_account_name       = azurerm_storage_account.example.name
+  storage_account_access_key = azurerm_storage_account.example.primary_access_key
 }
 ```
 ## Example Usage (Linux)
@@ -112,12 +114,13 @@ resource "azurerm_app_service_plan" "example" {
 }
 
 resource "azurerm_function_app" "example" {
-  name                      = "test-azure-functions"
-  location                  = azurerm_resource_group.example.location
-  resource_group_name       = azurerm_resource_group.example.name
-  app_service_plan_id       = azurerm_app_service_plan.example.id
-  storage_connection_string = azurerm_storage_account.example.primary_connection_string
-  os_type                   = "linux"
+  name                       = "test-azure-functions"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  app_service_plan_id        = azurerm_app_service_plan.example.id
+  storage_account_name       = azurerm_storage_account.example.name
+  storage_account_access_key = azurerm_storage_account.example.primary_access_key
+  os_type                    = "linux"
 }
 ```
 ## Argument Reference
@@ -188,7 +191,9 @@ The following arguments are supported:
 
 * `cors` - (Optional) A `cors` block as defined below.
 
-* `ftps_state` - (Optional) State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`.
+* `ftps_state` - (Optional) State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`. Defaults to `AllAllowed`.
+
+* `health_check_path` - (Optional) Path which will be checked for this function app health.
 
 * `http2_enabled` - (Optional) Specifies whether or not the http2 protocol should be enabled. Defaults to `false`.
 
@@ -363,6 +368,8 @@ A `source_control` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the Function App
+
+* `custom_domain_verification_id` - An identifier used by App Service to perform domain ownership verification via DNS TXT record. 
 
 * `default_hostname` - The default hostname associated with the Function App - such as `mysite.azurewebsites.net`
 

@@ -10,6 +10,7 @@ type Client struct {
 	DatabasesClient                   *mysql.DatabasesClient
 	FirewallRulesClient               *mysql.FirewallRulesClient
 	ServersClient                     *mysql.ServersClient
+	ServerKeysClient                  *mysql.ServerKeysClient
 	ServerSecurityAlertPoliciesClient *mysql.ServerSecurityAlertPoliciesClient
 	VirtualNetworkRulesClient         *mysql.VirtualNetworkRulesClient
 	ServerAdministratorsClient        *mysql.ServerAdministratorsClient
@@ -28,6 +29,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	ServersClient := mysql.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ServersClient.Client, o.ResourceManagerAuthorizer)
 
+	ServerKeysClient := mysql.NewServerKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ServerKeysClient.Client, o.ResourceManagerAuthorizer)
+
 	serverSecurityAlertPoliciesClient := mysql.NewServerSecurityAlertPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serverSecurityAlertPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -42,6 +46,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		DatabasesClient:                   &DatabasesClient,
 		FirewallRulesClient:               &FirewallRulesClient,
 		ServersClient:                     &ServersClient,
+		ServerKeysClient:                  &ServerKeysClient,
 		ServerSecurityAlertPoliciesClient: &serverSecurityAlertPoliciesClient,
 		VirtualNetworkRulesClient:         &VirtualNetworkRulesClient,
 		ServerAdministratorsClient:        &serverAdministratorsClient,

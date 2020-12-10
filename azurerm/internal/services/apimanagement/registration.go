@@ -35,6 +35,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_api_management":                             resourceArmApiManagementService(),
 		"azurerm_api_management_api":                         resourceArmApiManagementApi(),
+		"azurerm_api_management_api_diagnostic":              resourceArmApiManagementApiDiagnostic(),
 		"azurerm_api_management_api_operation":               resourceArmApiManagementApiOperation(),
 		"azurerm_api_management_api_operation_policy":        resourceArmApiManagementApiOperationPolicy(),
 		"azurerm_api_management_api_policy":                  resourceArmApiManagementApiPolicy(),
@@ -43,6 +44,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_api_management_authorization_server":        resourceArmApiManagementAuthorizationServer(),
 		"azurerm_api_management_backend":                     resourceArmApiManagementBackend(),
 		"azurerm_api_management_certificate":                 resourceArmApiManagementCertificate(),
+		"azurerm_api_management_custom_domain":               resourceArmApiManagementCustomDomain(),
 		"azurerm_api_management_diagnostic":                  resourceArmApiManagementDiagnostic(),
 		"azurerm_api_management_group":                       resourceArmApiManagementGroup(),
 		"azurerm_api_management_group_user":                  resourceArmApiManagementGroupUser(),
@@ -54,6 +56,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_api_management_logger":                      resourceArmApiManagementLogger(),
 		"azurerm_api_management_named_value":                 resourceArmApiManagementNamedValue(),
 		"azurerm_api_management_openid_connect_provider":     resourceArmApiManagementOpenIDConnectProvider(),
+		"azurerm_api_management_policy":                      resourceArmApiManagementPolicy(),
 		"azurerm_api_management_product":                     resourceArmApiManagementProduct(),
 		"azurerm_api_management_product_api":                 resourceArmApiManagementProductApi(),
 		"azurerm_api_management_product_group":               resourceArmApiManagementProductGroup(),

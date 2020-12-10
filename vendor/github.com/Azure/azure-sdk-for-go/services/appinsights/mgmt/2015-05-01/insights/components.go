@@ -425,6 +425,9 @@ func (client ComponentsClient) List(ctx context.Context) (result ApplicationInsi
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ComponentsClient", "List", resp, "Failure responding to request")
 	}
+	if result.aiclr.hasNextLink() && result.aiclr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -544,6 +547,9 @@ func (client ComponentsClient) ListByResourceGroup(ctx context.Context, resource
 	result.aiclr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ComponentsClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.aiclr.hasNextLink() && result.aiclr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

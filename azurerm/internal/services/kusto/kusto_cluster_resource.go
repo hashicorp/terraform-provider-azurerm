@@ -7,13 +7,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-02-15/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -179,6 +178,17 @@ func resourceArmKustoCluster() *schema.Resource {
 				},
 			},
 
+			"engine": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(kusto.V2),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(kusto.V2),
+					string(kusto.V3),
+				}, false),
+			},
+
 			"uri": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -206,7 +216,7 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		server, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(server.Response) {
@@ -231,9 +241,12 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 	optimizedAutoScale := expandOptimizedAutoScale(d.Get("optimized_auto_scale").([]interface{}))
 
 	if optimizedAutoScale != nil && *optimizedAutoScale.IsEnabled {
-		// if Capacity has not been set use min instances
-		if *sku.Capacity == 0 {
+		// Ensure that requested Capcity is always between min and max to support updating to not overlapping autoscale ranges
+		if *sku.Capacity < *optimizedAutoScale.Minimum {
 			sku.Capacity = utils.Int32(*optimizedAutoScale.Minimum)
+		}
+		if *sku.Capacity > *optimizedAutoScale.Maximum {
+			sku.Capacity = utils.Int32(*optimizedAutoScale.Maximum)
 		}
 
 		// Capacity must be set for the initial creation when using OptimizedAutoScaling but cannot be updated
@@ -246,11 +259,14 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 		}
 	}
 
+	engine := kusto.EngineType(d.Get("engine").(string))
+
 	clusterProperties := kusto.ClusterProperties{
 		OptimizedAutoscale:    optimizedAutoScale,
 		EnableDiskEncryption:  utils.Bool(d.Get("enable_disk_encryption").(bool)),
 		EnableStreamingIngest: utils.Bool(d.Get("enable_streaming_ingest").(bool)),
 		EnablePurge:           utils.Bool(d.Get("enable_purge").(bool)),
+		EngineType:            engine,
 	}
 
 	if v, ok := d.GetOk("virtual_network_configuration"); ok {
@@ -348,13 +364,12 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KustoClusterID(d.Id())
+	id, err := parse.ClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	clusterResponse, err := client.Get(ctx, id.ResourceGroup, id.Name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(clusterResponse.Response) {
 			d.SetId("")
@@ -394,6 +409,7 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("language_extensions", flattenKustoClusterLanguageExtensions(clusterProperties.LanguageExtensions))
 		d.Set("uri", clusterProperties.URI)
 		d.Set("data_ingestion_uri", clusterProperties.DataIngestionURI)
+		d.Set("engine", clusterProperties.EngineType)
 	}
 
 	return tags.FlattenAndSet(d, clusterResponse.Tags)
@@ -404,7 +420,7 @@ func resourceArmKustoClusterDelete(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KustoClusterID(d.Id())
+	id, err := parse.ClusterID(d.Id())
 	if err != nil {
 		return err
 	}

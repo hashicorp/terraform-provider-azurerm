@@ -310,6 +310,9 @@ func (client SuppressionsClient) List(ctx context.Context, top *int32, skipToken
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.SuppressionsClient", "List", resp, "Failure responding to request")
 	}
+	if result.sclr.hasNextLink() && result.sclr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

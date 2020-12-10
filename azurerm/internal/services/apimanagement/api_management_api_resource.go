@@ -35,12 +35,7 @@ func resourceArmApiManagementApi() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.ApiManagementApiName,
-			},
+			"name": azure.SchemaApiManagementApiName(),
 
 			"api_management_name": azure.SchemaApiManagementName(),
 
@@ -166,7 +161,7 @@ func resourceArmApiManagementApi() *schema.Resource {
 			"subscription_required": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Computed: true,
+				Default:  true,
 			},
 
 			"soap_pass_through": {
@@ -311,7 +306,7 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 		}
 		wsdlSelectorVs := importV["wsdl_selector"].([]interface{})
 
-		//`wsdl_selector` is necessary under format `wsdl`
+		// `wsdl_selector` is necessary under format `wsdl`
 		if len(wsdlSelectorVs) == 0 && contentFormat == string(apimanagement.Wsdl) {
 			return fmt.Errorf("`wsdl_selector` is required when content format is `wsdl` in API Management API %q", name)
 		}

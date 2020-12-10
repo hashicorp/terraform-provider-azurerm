@@ -299,6 +299,9 @@ func (client RecommendationsClient) List(ctx context.Context, filter string, top
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.RecommendationsClient", "List", resp, "Failure responding to request")
 	}
+	if result.rrblr.hasNextLink() && result.rrblr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

@@ -64,7 +64,6 @@ func TestAccAzureRMStorageBlobMigrateState(t *testing.T) {
 			Attributes: tc.InputAttributes,
 		}
 		is, err := storage.ResourceStorageBlobMigrateState(tc.StateVersion, is, client)
-
 		if err != nil {
 			t.Fatalf("bad: %s, err: %#v", tn, err)
 		}

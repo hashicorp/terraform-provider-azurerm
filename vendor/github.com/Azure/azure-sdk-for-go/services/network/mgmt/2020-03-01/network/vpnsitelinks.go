@@ -151,6 +151,9 @@ func (client VpnSiteLinksClient) ListByVpnSite(ctx context.Context, resourceGrou
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnSiteLinksClient", "ListByVpnSite", resp, "Failure responding to request")
 	}
+	if result.lvslr.hasNextLink() && result.lvslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

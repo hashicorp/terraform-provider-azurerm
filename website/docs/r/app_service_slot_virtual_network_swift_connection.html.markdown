@@ -30,7 +30,7 @@ resource "azurerm_subnet" "example" {
   name                 = "example-subnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 
   delegation {
     name = "example-delegation"
@@ -79,9 +79,9 @@ resource "azurerm_app_service_slot_virtual_network_swift_connection" "example" {
 
 The following arguments are supported:
 
-* `app_service_id` - (Required) The ID of the App Service to associate to the VNet. Changing this forces a new resource to be created.
+* `app_service_id` - (Required) The ID of the App Service or Function App to associate to the VNet. Changing this forces a new resource to be created.
 
-* `slot_name` - (Required) The name of the App Service Slot. Changing this forces a new resource to be created.
+* `slot_name` - (Required) The name of the App Service Slot or Function App Slot. Changing this forces a new resource to be created.
 
 * `subnet_id` - (Required) The ID of the subnet the app service will be associated to (the subnet must have a `service_delegation` configured for `Microsoft.Web/serverFarms`).
 
@@ -105,5 +105,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 App Service Slot Virtual Network Associations can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_app_service_slot_virtual_network_swift_connection.myassociation /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/instance1/slots/stageing/networkconfig/virtualNetwork
+terraform import azurerm_app_service_slot_virtual_network_swift_connection.myassociation /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/instance1/slots/stageing/config/virtualNetwork
 ```

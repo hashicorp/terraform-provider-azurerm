@@ -3,18 +3,20 @@ package compute
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
@@ -136,7 +138,6 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 			"dedicated_host_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ForceNew:     true, // TODO: investigate, looks like the Portal allows migration
 				ValidateFunc: computeValidate.DedicatedHostID,
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE :shrug:
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -151,6 +152,11 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 				Default:  true,
 			},
 
+			"encryption_at_host_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"eviction_policy": {
 				// only applicable when `priority` is set to `Spot`
 				Type:     schema.TypeString,
@@ -160,6 +166,13 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 					// NOTE: whilst Delete is an option here, it's only applicable for VMSS
 					string(compute.Deallocate),
 				}, false),
+			},
+
+			"extensions_time_budget": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "PT1H30M",
+				ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
 			},
 
 			"identity": virtualMachineIdentitySchema(),
@@ -282,17 +295,15 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 	locks.ByName(name, virtualMachineResourceName)
 	defer locks.UnlockByName(name, virtualMachineResourceName)
 
-	if features.ShouldResourcesBeImported() {
-		resp, err := client.Get(ctx, resourceGroup, name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Error checking for existing Linux Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
-			}
-		}
-
+	resp, err := client.Get(ctx, resourceGroup, name, "")
+	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return tf.ImportAsExistsError("azurerm_linux_virtual_machine", *resp.ID)
+			return fmt.Errorf("checking for existing Linux Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
+	}
+
+	if !utils.ResponseWasNotFound(resp.Response) {
+		return tf.ImportAsExistsError("azurerm_linux_virtual_machine", *resp.ID)
 	}
 
 	additionalCapabilitiesRaw := d.Get("additional_capabilities").([]interface{})
@@ -300,8 +311,10 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 
 	adminUsername := d.Get("admin_username").(string)
 	allowExtensionOperations := d.Get("allow_extension_operations").(bool)
+
 	bootDiagnosticsRaw := d.Get("boot_diagnostics").([]interface{})
 	bootDiagnostics := expandBootDiagnostics(bootDiagnosticsRaw)
+
 	var computerName string
 	if v, ok := d.GetOk("computer_name"); ok && len(v.(string)) > 0 {
 		computerName = v.(string)
@@ -317,7 +330,7 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 	identityRaw := d.Get("identity").([]interface{})
 	identity, err := expandVirtualMachineIdentity(identityRaw)
 	if err != nil {
-		return fmt.Errorf("Error expanding `identity`: %+v", err)
+		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 	planRaw := d.Get("plan").([]interface{})
 	plan := expandPlan(planRaw)
@@ -383,8 +396,15 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 			// Optional
 			AdditionalCapabilities: additionalCapabilities,
 			DiagnosticsProfile:     bootDiagnostics,
+			ExtensionsTimeBudget:   utils.String(d.Get("extensions_time_budget").(string)),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
+		params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
+			EncryptionAtHost: utils.Bool(encryptionAtHostEnabled.(bool)),
+		}
 	}
 
 	if !provisionVMAgent && allowExtensionOperations {
@@ -459,20 +479,20 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, params)
 	if err != nil {
-		return fmt.Errorf("Error creating Linux Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Linux Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Linux Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of Linux Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Linux Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Linux Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Error retrieving Linux Virtual Machine %q (Resource Group %q): `id` was nil", name, resourceGroup)
+		return fmt.Errorf("retrieving Linux Virtual Machine %q (Resource Group %q): `id` was nil", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -500,7 +520,7 @@ func resourceLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -510,20 +530,20 @@ func resourceLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if err := d.Set("identity", flattenVirtualMachineIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("Error setting `identity`: %+v", err)
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	if err := d.Set("plan", flattenPlan(resp.Plan)); err != nil {
-		return fmt.Errorf("Error setting `plan`: %+v", err)
+		return fmt.Errorf("setting `plan`: %+v", err)
 	}
 
 	if resp.VirtualMachineProperties == nil {
-		return fmt.Errorf("Error retrieving Linux Virtual Machine %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
+		return fmt.Errorf("retrieving Linux Virtual Machine %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
 	}
 
 	props := *resp.VirtualMachineProperties
 	if err := d.Set("additional_capabilities", flattenVirtualMachineAdditionalCapabilities(props.AdditionalCapabilities)); err != nil {
-		return fmt.Errorf("Error setting `additional_capabilities`: %+v", err)
+		return fmt.Errorf("setting `additional_capabilities`: %+v", err)
 	}
 
 	availabilitySetId := ""
@@ -533,13 +553,19 @@ func resourceLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("availability_set_id", availabilitySetId)
 
 	if err := d.Set("boot_diagnostics", flattenBootDiagnostics(props.DiagnosticsProfile)); err != nil {
-		return fmt.Errorf("Error setting `boot_diagnostics`: %+v", err)
+		return fmt.Errorf("setting `boot_diagnostics`: %+v", err)
 	}
 
 	d.Set("eviction_policy", string(props.EvictionPolicy))
 	if profile := props.HardwareProfile; profile != nil {
 		d.Set("size", string(profile.VMSize))
 	}
+
+	extensionsTimeBudget := "PT1H30M"
+	if props.ExtensionsTimeBudget != nil {
+		extensionsTimeBudget = *props.ExtensionsTimeBudget
+	}
+	d.Set("extensions_time_budget", extensionsTimeBudget)
 
 	// defaulted since BillingProfile isn't returned if it's unset
 	maxBidPrice := float64(-1.0)
@@ -550,7 +576,7 @@ func resourceLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 
 	if profile := props.NetworkProfile; profile != nil {
 		if err := d.Set("network_interface_ids", flattenVirtualMachineNetworkInterfaceIDs(props.NetworkProfile.NetworkInterfaces)); err != nil {
-			return fmt.Errorf("Error setting `network_interface_ids`: %+v", err)
+			return fmt.Errorf("setting `network_interface_ids`: %+v", err)
 		}
 	}
 
@@ -577,15 +603,15 @@ func resourceLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 
 			flattenedSSHKeys, err := FlattenSSHKeys(config.SSH)
 			if err != nil {
-				return fmt.Errorf("Error flattening `admin_ssh_key`: %+v", err)
+				return fmt.Errorf("flattening `admin_ssh_key`: %+v", err)
 			}
 			if err := d.Set("admin_ssh_key", flattenedSSHKeys); err != nil {
-				return fmt.Errorf("Error setting `admin_ssh_key`: %+v", err)
+				return fmt.Errorf("setting `admin_ssh_key`: %+v", err)
 			}
 		}
 
 		if err := d.Set("secret", flattenLinuxSecrets(profile.Secrets)); err != nil {
-			return fmt.Errorf("Error setting `secret`: %+v", err)
+			return fmt.Errorf("setting `secret`: %+v", err)
 		}
 	}
 	// Resources created with azurerm_virtual_machine have priority set to ""
@@ -605,10 +631,10 @@ func resourceLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 		// the storage_account_type isn't returned so we need to look it up
 		flattenedOSDisk, err := flattenVirtualMachineOSDisk(ctx, disksClient, profile.OsDisk)
 		if err != nil {
-			return fmt.Errorf("Error flattening `os_disk`: %+v", err)
+			return fmt.Errorf("flattening `os_disk`: %+v", err)
 		}
 		if err := d.Set("os_disk", flattenedOSDisk); err != nil {
-			return fmt.Errorf("Error settings `os_disk`: %+v", err)
+			return fmt.Errorf("settings `os_disk`: %+v", err)
 		}
 
 		var storageImageId string
@@ -618,9 +644,15 @@ func resourceLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("source_image_id", storageImageId)
 
 		if err := d.Set("source_image_reference", flattenSourceImageReference(profile.ImageReference)); err != nil {
-			return fmt.Errorf("Error setting `source_image_reference`: %+v", err)
+			return fmt.Errorf("setting `source_image_reference`: %+v", err)
 		}
 	}
+
+	encryptionAtHostEnabled := false
+	if props.SecurityProfile != nil && props.SecurityProfile.EncryptionAtHost != nil {
+		encryptionAtHostEnabled = *props.SecurityProfile.EncryptionAtHost
+	}
+	d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
 
 	d.Set("virtual_machine_id", props.VMID)
 
@@ -663,13 +695,13 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	log.Printf("[DEBUG] Retrieving InstanceView for Linux Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 	instanceView, err := client.InstanceView(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving InstanceView for Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving InstanceView for Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	shouldTurnBackOn := virtualMachineShouldBeStarted(instanceView)
@@ -718,9 +750,29 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 		identityRaw := d.Get("identity").([]interface{})
 		identity, err := expandVirtualMachineIdentity(identityRaw)
 		if err != nil {
-			return fmt.Errorf("Error expanding `identity`: %+v", err)
+			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
 		update.Identity = identity
+	}
+
+	if d.HasChange("dedicated_host_id") {
+		shouldUpdate = true
+
+		// Code="PropertyChangeNotAllowed" Message="Updating Host of VM 'VMNAME' is not allowed as the VM is currently allocated. Please Deallocate the VM and retry the operation."
+		shouldDeallocate = true
+
+		if v, ok := d.GetOk("dedicated_host_id"); ok {
+			update.Host = &compute.SubResource{
+				ID: utils.String(v.(string)),
+			}
+		} else {
+			update.Host = &compute.SubResource{}
+		}
+	}
+
+	if d.HasChange("extensions_time_budget") {
+		shouldUpdate = true
+		update.ExtensionsTimeBudget = utils.String(d.Get("extensions_time_budget").(string))
 	}
 
 	if d.HasChange("max_bid_price") {
@@ -785,7 +837,7 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 		availableOnThisHost := false
 		sizes, err := client.ListAvailableSizes(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			return fmt.Errorf("Error retrieving available sizes for Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("retrieving available sizes for Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 
 		if sizes.Value != nil {
@@ -816,12 +868,7 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("allow_extension_operations") {
-		provisionVMAgent := d.Get("provision_vm_agent").(bool)
 		allowExtensionOperations := d.Get("allow_extension_operations").(bool)
-
-		if !provisionVMAgent && allowExtensionOperations {
-			return fmt.Errorf("`allow_extension_operations` cannot be set to `true` when `provision_vm_agent` is set to `false`")
-		}
 
 		shouldUpdate = true
 
@@ -837,6 +884,27 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 
 		tagsRaw := d.Get("tags").(map[string]interface{})
 		update.Tags = tags.Expand(tagsRaw)
+	}
+
+	if d.HasChange("additional_capabilities") {
+		shouldUpdate = true
+
+		if d.HasChange("additional_capabilities.0.ultra_ssd_enabled") {
+			shouldShutDown = true
+			shouldDeallocate = true
+		}
+
+		additionalCapabilitiesRaw := d.Get("additional_capabilities").([]interface{})
+		update.VirtualMachineProperties.AdditionalCapabilities = expandVirtualMachineAdditionalCapabilities(additionalCapabilitiesRaw)
+	}
+
+	if d.HasChange("encryption_at_host_enabled") {
+		shouldUpdate = true
+		shouldDeallocate = true // API returns the following error if not deallocate: 'securityProfile.encryptionAtHost' can be updated only when VM is in deallocated state
+
+		update.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
+			EncryptionAtHost: utils.Bool(d.Get("encryption_at_host_enabled").(bool)),
+		}
 	}
 
 	if instanceView.Statuses != nil {
@@ -874,11 +942,11 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 		forceShutdown := false
 		future, err := client.PowerOff(ctx, id.ResourceGroup, id.Name, utils.Bool(forceShutdown))
 		if err != nil {
-			return fmt.Errorf("Error sending Power Off to Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("sending Power Off to Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 
 		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for Power Off of Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for Power Off of Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 
 		log.Printf("[DEBUG] Shut Down Linux Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
@@ -889,11 +957,11 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 			log.Printf("[DEBUG] Deallocating Linux Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 			future, err := client.Deallocate(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
-				return fmt.Errorf("Error Deallocating Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("Deallocating Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
 
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("Error waiting for Deallocation of Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("waiting for Deallocation of Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
 
 			log.Printf("[DEBUG] Deallocated Linux Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
@@ -921,11 +989,11 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 
 		future, err := disksClient.Update(ctx, id.ResourceGroup, diskName, update)
 		if err != nil {
-			return fmt.Errorf("Error resizing OS Disk %q for Linux Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("resizing OS Disk %q for Linux Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
 		}
 
 		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for resize of OS Disk %q for Linux Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for resize of OS Disk %q for Linux Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
 		}
 
 		log.Printf("[DEBUG] Resized OS Disk %q for Linux Virtual Machine %q (Resource Group %q) to %dGB.", diskName, id.Name, id.ResourceGroup, newSize)
@@ -949,11 +1017,11 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 
 			future, err := disksClient.Update(ctx, id.ResourceGroup, diskName, update)
 			if err != nil {
-				return fmt.Errorf("Error updating encryption settings of OS Disk %q for Linux Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("updating encryption settings of OS Disk %q for Linux Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
 			}
 
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("Error waiting to update encryption settings of OS Disk %q for Linux Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("waiting to update encryption settings of OS Disk %q for Linux Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
 			}
 
 			log.Printf("[DEBUG] Updating encryption settings of OS Disk %q for Linux Virtual Machine %q (Resource Group %q) to %q.", diskName, id.Name, id.ResourceGroup, diskEncryptionSetId)
@@ -966,11 +1034,11 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 		log.Printf("[DEBUG] Updating Linux Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 		future, err := client.Update(ctx, id.ResourceGroup, id.Name, update)
 		if err != nil {
-			return fmt.Errorf("Error updating Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("updating Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 
 		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for update of Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for update of Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 
 		log.Printf("[DEBUG] Updated Linux Virtual Machine %q (Resource Group %q).", id.Name, id.ResourceGroup)
@@ -981,11 +1049,11 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 		log.Printf("[DEBUG] Starting Linux Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 		future, err := client.Start(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			return fmt.Errorf("Error starting Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("starting Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 
 		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for start of Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for start of Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 
 		log.Printf("[DEBUG] Started Linux Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
@@ -1014,32 +1082,30 @@ func resourceLinuxVirtualMachineDelete(d *schema.ResourceData, meta interface{})
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	// ISSUE: XXX
 	// shutting down the Virtual Machine prior to removing it means users are no longer charged for the compute
 	// thus this can be a large cost-saving when deleting larger instances
-	// in addition - since we're shutting down the machine to remove it, forcing a power-off is fine (as opposed
-	// to waiting for a graceful shut down)
 	log.Printf("[DEBUG] Powering Off Linux Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-	skipShutdown := true
+	skipShutdown := !meta.(*clients.Client).Features.VirtualMachine.GracefulShutdown
 	powerOffFuture, err := client.PowerOff(ctx, id.ResourceGroup, id.Name, utils.Bool(skipShutdown))
 	if err != nil {
-		return fmt.Errorf("Error powering off Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("powering off Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	if err := powerOffFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for power off of Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for power off of Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	log.Printf("[DEBUG] Powered Off Linux Virtual Machine %q (Resource Group %q).", id.Name, id.ResourceGroup)
 
 	log.Printf("[DEBUG] Deleting Linux Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 	deleteFuture, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	if err := deleteFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	log.Printf("[DEBUG] Deleted Linux Virtual Machine %q (Resource Group %q).", id.Name, id.ResourceGroup)
 
@@ -1060,24 +1126,60 @@ func resourceLinuxVirtualMachineDelete(d *schema.ResourceData, meta interface{})
 				return err
 			}
 
-			diskDeleteFuture, err := disksClient.Delete(ctx, diskId.ResourceGroup, diskId.Name)
+			diskDeleteFuture, err := disksClient.Delete(ctx, diskId.ResourceGroup, diskId.DiskName)
 			if err != nil {
 				if !response.WasNotFound(diskDeleteFuture.Response()) {
-					return fmt.Errorf("Error deleting OS Disk %q (Resource Group %q) for Linux Virtual Machine %q (Resource Group %q): %+v", diskId.Name, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
+					return fmt.Errorf("deleting OS Disk %q (Resource Group %q) for Linux Virtual Machine %q (Resource Group %q): %+v", diskId.DiskName, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
 				}
 			}
 			if !response.WasNotFound(diskDeleteFuture.Response()) {
 				if err := diskDeleteFuture.WaitForCompletionRef(ctx, disksClient.Client); err != nil {
-					return fmt.Errorf("Error OS Disk %q (Resource Group %q) for Linux Virtual Machine %q (Resource Group %q): %+v", diskId.Name, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
+					return fmt.Errorf("OS Disk %q (Resource Group %q) for Linux Virtual Machine %q (Resource Group %q): %+v", diskId.DiskName, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
 				}
 			}
 
-			log.Printf("[DEBUG] Deleted OS Disk from Linux Virtual Machine %q (Resource Group %q).", diskId.Name, diskId.ResourceGroup)
+			log.Printf("[DEBUG] Deleted OS Disk from Linux Virtual Machine %q (Resource Group %q).", diskId.DiskName, diskId.ResourceGroup)
 		} else {
 			log.Printf("[DEBUG] Skipping Deleting OS Disk from Linux Virtual Machine %q (Resource Group %q) - cannot determine OS Disk ID.", id.Name, id.ResourceGroup)
 		}
 	} else {
 		log.Printf("[DEBUG] Skipping Deleting OS Disk from Linux Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
+	}
+
+	// Need to add a get and a state wait to avoid bug in network API where the attached disk(s) are not actually deleted
+	// Service team indicated that we need to do a get after VM delete call returns to verify that the VM and all attached
+	// disks have actually been deleted.
+
+	log.Printf("[INFO] verifying Linux Virtual Machine %q has been deleted", id.Name)
+	virtualMachine, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	if err != nil && !utils.ResponseWasNotFound(virtualMachine.Response) {
+		return fmt.Errorf("verifying Linux Virtual Machine %q (Resource Group %q) has been deleted: %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	if !utils.ResponseWasNotFound(virtualMachine.Response) {
+		log.Printf("[INFO] Linux Virtual Machine still exists, waiting on Linux Virtual Machine %q to be deleted", id.Name)
+
+		deleteWait := &resource.StateChangeConf{
+			Pending:    []string{"200"},
+			Target:     []string{"404"},
+			MinTimeout: 30 * time.Second,
+			Timeout:    d.Timeout(schema.TimeoutDelete),
+			Refresh: func() (interface{}, string, error) {
+				log.Printf("[INFO] checking on state of Linux Virtual Machine %q", id.Name)
+				resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+				if err != nil {
+					if utils.ResponseWasNotFound(resp.Response) {
+						return resp, strconv.Itoa(resp.StatusCode), nil
+					}
+					return nil, "nil", fmt.Errorf("polling for the status of Linux Virtual Machine %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+				}
+				return resp, strconv.Itoa(resp.StatusCode), nil
+			},
+		}
+
+		if _, err := deleteWait.WaitForState(); err != nil {
+			return fmt.Errorf("waiting for the deletion of Linux Virtual Machine %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+		}
 	}
 
 	return nil

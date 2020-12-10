@@ -317,6 +317,9 @@ func (client IntegrationAccountSchemasClient) List(ctx context.Context, resource
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountSchemasClient", "List", resp, "Failure responding to request")
 	}
+	if result.iaslr.hasNextLink() && result.iaslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

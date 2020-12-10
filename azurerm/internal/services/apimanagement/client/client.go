@@ -7,6 +7,7 @@ import (
 
 type Client struct {
 	ApiClient                  *apimanagement.APIClient
+	ApiDiagnosticClient        *apimanagement.APIDiagnosticClient
 	ApiPoliciesClient          *apimanagement.APIPolicyClient
 	ApiOperationsClient        *apimanagement.APIOperationClient
 	ApiOperationPoliciesClient *apimanagement.APIOperationPolicyClient
@@ -37,6 +38,9 @@ type Client struct {
 func NewClient(o *common.ClientOptions) *Client {
 	apiClient := apimanagement.NewAPIClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&apiClient.Client, o.ResourceManagerAuthorizer)
+
+	apiDiagnosticClient := apimanagement.NewAPIDiagnosticClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&apiDiagnosticClient.Client, o.ResourceManagerAuthorizer)
 
 	apiPoliciesClient := apimanagement.NewAPIPolicyClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&apiPoliciesClient.Client, o.ResourceManagerAuthorizer)
@@ -115,6 +119,7 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	return &Client{
 		ApiClient:                  &apiClient,
+		ApiDiagnosticClient:        &apiDiagnosticClient,
 		ApiPoliciesClient:          &apiPoliciesClient,
 		ApiOperationsClient:        &apiOperationsClient,
 		ApiOperationPoliciesClient: &apiOperationPoliciesClient,

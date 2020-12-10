@@ -189,9 +189,9 @@ func testCheckAzureRMDedicatedHostExists(resourceName string) resource.TestCheck
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.DedicatedHostsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.HostGroup, id.Name, ""); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.HostGroupName, id.HostName, ""); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Dedicated Host %q (Host Group Name %q / Resource Group %q) does not exist", id.Name, id.HostGroup, id.ResourceGroup)
+				return fmt.Errorf("Bad: Dedicated Host %q (Host Group Name %q / Resource Group %q) does not exist", id.HostName, id.HostGroupName, id.ResourceGroup)
 			}
 			return fmt.Errorf("Bad: Get on Compute.DedicatedHostsClient: %+v", err)
 		}
@@ -214,7 +214,7 @@ func testCheckAzureRMDedicatedHostDestroy(s *terraform.State) error {
 			return err
 		}
 
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.HostGroup, id.Name, ""); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.HostGroupName, id.HostName, ""); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Get on Compute.DedicatedHostsClient: %+v", err)
 			}

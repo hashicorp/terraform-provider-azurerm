@@ -28,7 +28,7 @@ func SentinelAlertRuleID(input string) (*SentinelAlertRuleId, error) {
 	}
 	return &SentinelAlertRuleId{
 		ResourceGroup: workspaceId.ResourceGroup,
-		Workspace:     workspaceId.Name,
+		Workspace:     workspaceId.WorkspaceName,
 		Name:          name,
 	}, nil
 }

@@ -48,7 +48,7 @@ The following arguments are supported:
 `filters` supports the following:
 
 * `prefix_match` - An array of strings for prefixes to be matched.
-* `blob_types` - An array of predefined values. Only `blockBlob` is supported.
+* `blob_types` - An array of predefined values. Valid options are `blockBlob` and `appendBlob`.
 
 ---
 
@@ -69,7 +69,7 @@ The following arguments are supported:
 
 `snapshot` supports the following:
 
-* `delete_after_days_since_creation_greater_than` - The age in days after create to delete the snaphot.
+* `delete_after_days_since_creation_greater_than` - The age in days after create to delete the snapshot.
 
 ## Timeouts
 

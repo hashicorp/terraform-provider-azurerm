@@ -604,6 +604,9 @@ func (client ApplicationsClient) ListByResourceGroup(ctx context.Context, resour
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedapplications.ApplicationsClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.alr.hasNextLink() && result.alr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -712,6 +715,9 @@ func (client ApplicationsClient) ListBySubscription(ctx context.Context) (result
 	result.alr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedapplications.ApplicationsClient", "ListBySubscription", resp, "Failure responding to request")
+	}
+	if result.alr.hasNextLink() && result.alr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

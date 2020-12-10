@@ -316,6 +316,9 @@ func (client VirtualAppliancesClient) List(ctx context.Context) (result VirtualA
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualAppliancesClient", "List", resp, "Failure responding to request")
 	}
+	if result.valr.hasNextLink() && result.valr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -425,6 +428,9 @@ func (client VirtualAppliancesClient) ListByResourceGroup(ctx context.Context, r
 	result.valr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualAppliancesClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.valr.hasNextLink() && result.valr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

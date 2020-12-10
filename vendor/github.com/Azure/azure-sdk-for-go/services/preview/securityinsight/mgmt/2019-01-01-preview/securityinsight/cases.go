@@ -137,7 +137,6 @@ func (client CasesClient) CreateOrUpdateSender(req *http.Request) (*http.Respons
 func (client CasesClient) CreateOrUpdateResponder(resp *http.Response) (result Case, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -232,7 +231,6 @@ func (client CasesClient) DeleteSender(req *http.Request) (*http.Response, error
 func (client CasesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -326,7 +324,6 @@ func (client CasesClient) GetSender(req *http.Request) (*http.Response, error) {
 func (client CasesClient) GetResponder(resp *http.Response) (result Case, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -423,7 +420,6 @@ func (client CasesClient) GetCommentSender(req *http.Request) (*http.Response, e
 func (client CasesClient) GetCommentResponder(resp *http.Response) (result CaseComment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -486,6 +482,9 @@ func (client CasesClient) List(ctx context.Context, resourceGroupName string, op
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.CasesClient", "List", resp, "Failure responding to request")
 	}
+	if result.cl.hasNextLink() && result.cl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -535,7 +534,6 @@ func (client CasesClient) ListSender(req *http.Request) (*http.Response, error) 
 func (client CasesClient) ListResponder(resp *http.Response) (result CaseList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -12,7 +12,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/migration"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -25,6 +26,15 @@ func resourceArmNetworkPacketCapture() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    migration.NetworkPacketCaptureV0Schema().CoreConfigSchema().ImpliedType(),
+				Upgrade: migration.NetworkPacketCaptureV0ToV1,
+				Version: 0,
+			},
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -157,17 +167,15 @@ func resourceArmNetworkPacketCaptureCreate(d *schema.ResourceData, meta interfac
 	totalBytesPerSession := d.Get("maximum_bytes_per_session").(int)
 	timeLimitInSeconds := d.Get("maximum_capture_duration").(int)
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.Get(ctx, resourceGroup, watcherName, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Packet Capture %q (Resource Group %q): %s", name, resourceGroup, err)
-			}
+	existing, err := client.Get(ctx, resourceGroup, watcherName, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of existing Packet Capture %q (Resource Group %q): %s", name, resourceGroup, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_network_packet_capture", *existing.ID)
-		}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_network_packet_capture", *existing.ID)
 	}
 
 	storageLocation, err := expandArmNetworkPacketCaptureStorageLocation(d)
@@ -210,29 +218,25 @@ func resourceArmNetworkPacketCaptureRead(d *schema.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.PacketCaptureID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	watcherName := id.Path["networkWatchers"]
-	name := id.Path["NetworkPacketCaptures"]
-
-	resp, err := client.Get(ctx, resourceGroup, watcherName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] Packet Capture %q (Watcher %q / Resource Group %q) %qw not found - removing from state", name, watcherName, resourceGroup, id)
+			log.Printf("[WARN] Packet Capture %q (Watcher %q / Resource Group %q) %qw not found - removing from state", id.Name, id.NetworkWatcherName, id.ResourceGroup, id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Packet Capture %q (Watcher %q / Resource Group %q) %+v", name, watcherName, resourceGroup, err)
+		return fmt.Errorf("Error reading Packet Capture %q (Watcher %q / Resource Group %q) %+v", id.Name, id.NetworkWatcherName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", name)
-	d.Set("network_watcher_name", watcherName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("network_watcher_name", id.NetworkWatcherName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.PacketCaptureResultProperties; props != nil {
 		d.Set("target_resource_id", props.Target)
@@ -259,22 +263,18 @@ func resourceArmNetworkPacketCaptureDelete(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.PacketCaptureID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	watcherName := id.Path["networkWatchers"]
-	name := id.Path["NetworkPacketCaptures"]
-
-	future, err := client.Delete(ctx, resourceGroup, watcherName, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting Packet Capture %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
+		return fmt.Errorf("Error deleting Packet Capture %q (Watcher %q / Resource Group %q): %+v", id.Name, id.NetworkWatcherName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
@@ -282,7 +282,7 @@ func resourceArmNetworkPacketCaptureDelete(d *schema.ResourceData, meta interfac
 			return nil
 		}
 
-		return fmt.Errorf("Error waiting for the deletion of Packet Capture %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
+		return fmt.Errorf("Error waiting for the deletion of Packet Capture %q (Watcher %q / Resource Group %q): %+v", id.Name, id.NetworkWatcherName, id.ResourceGroup, err)
 	}
 
 	return nil

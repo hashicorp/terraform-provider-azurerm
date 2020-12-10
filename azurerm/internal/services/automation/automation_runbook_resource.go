@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	uuid "github.com/satori/go.uuid"
@@ -22,12 +22,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAutomationRunbook() *schema.Resource {
+func resourceAutomationRunbook() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAutomationRunbookCreateUpdate,
-		Read:   resourceArmAutomationRunbookRead,
-		Update: resourceArmAutomationRunbookCreateUpdate,
-		Delete: resourceArmAutomationRunbookDelete,
+		Create: resourceAutomationRunbookCreateUpdate,
+		Read:   resourceAutomationRunbookRead,
+		Update: resourceAutomationRunbookCreateUpdate,
+		Delete: resourceAutomationRunbookDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -45,14 +45,14 @@ func resourceArmAutomationRunbook() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.AutomationRunbookName(),
+				ValidateFunc: validate.RunbookName(),
 			},
 
 			"automation_account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.AutomationAccountName(),
+				ValidateFunc: validate.AutomationAccount(),
 			},
 
 			"location": azure.SchemaLocation(),
@@ -142,7 +142,7 @@ func resourceArmAutomationRunbook() *schema.Resource {
 	}
 }
 
-func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationRunbookCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.RunbookClient
 	jsClient := meta.(*clients.Client).Automation.JobScheduleClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -207,7 +207,7 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 			return fmt.Errorf("Error setting the draft Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
 		}
 
-		if _, err := draftClient.Publish(ctx, resGroup, accName, name); err != nil {
+		if _, err := client.Publish(ctx, resGroup, accName, name); err != nil {
 			return fmt.Errorf("Error publishing the updated Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
 		}
 	}
@@ -252,10 +252,10 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 		}
 	}
 
-	return resourceArmAutomationRunbookRead(d, meta)
+	return resourceAutomationRunbookRead(d, meta)
 }
 
-func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationRunbookRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.RunbookClient
 	jsClient := meta.(*clients.Client).Automation.JobScheduleClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -344,7 +344,7 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceArmAutomationRunbookDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationRunbookDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.RunbookClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

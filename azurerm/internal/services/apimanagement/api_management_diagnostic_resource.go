@@ -26,7 +26,7 @@ func resourceArmApiManagementDiagnostic() *schema.Resource {
 		Delete: resourceArmApiManagementDiagnosticDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.ApiManagementDiagnosticID(id)
+			_, err := parse.DiagnosticID(id)
 			return err
 		}),
 
@@ -44,6 +44,7 @@ func resourceArmApiManagementDiagnostic() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"applicationinsights",
+					"azuremonitor",
 				}, false),
 			},
 
@@ -54,7 +55,7 @@ func resourceArmApiManagementDiagnostic() *schema.Resource {
 			"api_management_logger_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ApiManagementLoggerID,
+				ValidateFunc: validate.LoggerID,
 			},
 
 			"enabled": {
@@ -115,7 +116,7 @@ func resourceArmApiManagementDiagnosticRead(d *schema.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	diagnosticId, err := parse.ApiManagementDiagnosticID(d.Id())
+	diagnosticId, err := parse.DiagnosticID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -144,7 +145,7 @@ func resourceArmApiManagementDiagnosticDelete(d *schema.ResourceData, meta inter
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	diagnosticId, err := parse.ApiManagementDiagnosticID(d.Id())
+	diagnosticId, err := parse.DiagnosticID(d.Id())
 	if err != nil {
 		return err
 	}

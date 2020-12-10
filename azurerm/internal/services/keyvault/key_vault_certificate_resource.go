@@ -15,11 +15,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -138,6 +137,7 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 										ForceNew: true,
 										ValidateFunc: validation.IntInSlice([]int{
 											2048,
+											3072,
 											4096,
 										}),
 									},
@@ -382,17 +382,15 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error looking up Certificate %q vault url from id %q: %+v", name, keyVaultId, err)
 	}
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.GetCertificate(ctx, keyVaultBaseUrl, name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Certificate %q (Key Vault %q): %s", name, keyVaultBaseUrl, err)
-			}
+	existing, err := client.GetCertificate(ctx, keyVaultBaseUrl, name, "")
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of existing Certificate %q (Key Vault %q): %s", name, keyVaultBaseUrl, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_key_vault_certificate", *existing.ID)
-		}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_key_vault_certificate", *existing.ID)
 	}
 
 	t := d.Get("tags").(map[string]interface{})
@@ -725,6 +723,10 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 }
 
 func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
 	policy := make(map[string]interface{})
 
 	if params := input.IssuerParameters; params != nil {

@@ -1,19 +1,10 @@
 package azure
 
 import (
-	"encoding/json"
-	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+// Deprecated: moved to utils and will be removed in 3.0
 func NormalizeJson(jsonString interface{}) string {
-	if jsonString == nil || jsonString == "" {
-		return ""
-	}
-	var j interface{}
-
-	if err := json.Unmarshal([]byte(jsonString.(string)), &j); err != nil {
-		return fmt.Sprintf("Error parsing JSON: %+v", err)
-	}
-	b, _ := json.Marshal(j)
-	return string(b)
+	return utils.NormalizeJson(jsonString)
 }

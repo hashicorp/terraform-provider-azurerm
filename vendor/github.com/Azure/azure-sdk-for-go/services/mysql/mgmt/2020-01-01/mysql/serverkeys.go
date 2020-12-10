@@ -354,6 +354,9 @@ func (client ServerKeysClient) List(ctx context.Context, resourceGroupName strin
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mysql.ServerKeysClient", "List", resp, "Failure responding to request")
 	}
+	if result.sklr.hasNextLink() && result.sklr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
