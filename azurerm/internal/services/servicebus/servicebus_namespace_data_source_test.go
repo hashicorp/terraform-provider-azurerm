@@ -60,7 +60,7 @@ data "azurerm_servicebus_namespace" "test" {
   name                = azurerm_servicebus_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, ServiceBusNamespaceDataSource{}.basic(data))
+`, ServiceBusNamespaceResource{}.basic(data))
 }
 
 func (ServiceBusNamespaceDataSource) premium(data acceptance.TestData) string {
@@ -71,5 +71,5 @@ data "azurerm_servicebus_namespace" "test" {
   name                = azurerm_servicebus_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, ServiceBusNamespaceDataSource{}.premium(data))
+`, ServiceBusNamespaceResource{}.premium(data))
 }
