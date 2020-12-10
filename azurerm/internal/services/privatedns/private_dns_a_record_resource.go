@@ -2,7 +2,6 @@ package privatedns
 
 import (
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
@@ -77,22 +76,20 @@ func resourceArmPrivateDnsARecord() *schema.Resource {
 
 func resourceArmPrivateDnsARecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PrivateDns.RecordSetsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
-	zoneName := d.Get("zone_name").(string)
-
+	resourceId := parse.NewARecordID(subscriptionId, d.Get("resource_group_name").(string), d.Get("zone_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, zoneName, privatedns.A, name)
+		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.PrivateDnsZoneName, privatedns.A, resourceId.AName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Private DNS A Record %q (Private Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", resourceId, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
+		if !utils.ResponseWasNotFound(existing.Response) {
 			return tf.ImportAsExistsError("azurerm_private_dns_a_record", *existing.ID)
 		}
 	}
@@ -101,7 +98,7 @@ func resourceArmPrivateDnsARecordCreateUpdate(d *schema.ResourceData, meta inter
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := privatedns.RecordSet{
-		Name: &name,
+		Name: utils.String(resourceId.AName),
 		RecordSetProperties: &privatedns.RecordSetProperties{
 			Metadata: tags.Expand(t),
 			TTL:      &ttl,
@@ -111,17 +108,8 @@ func resourceArmPrivateDnsARecordCreateUpdate(d *schema.ResourceData, meta inter
 
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
-	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, privatedns.A, name, parameters, eTag, ifNoneMatch); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.PrivateDnsZoneName, privatedns.A, resourceId.AName, parameters, eTag, ifNoneMatch); err != nil {
 		return fmt.Errorf("Error creating/updating Private DNS A Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
-	}
-
-	resp, err := client.Get(ctx, resGroup, zoneName, privatedns.A, name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving Private DNS A Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Private DNS A Record %s (resource group %s) ID", name, resGroup)
 	}
 
 	d.SetId(*resp.ID)
@@ -134,33 +122,31 @@ func resourceArmPrivateDnsARecordRead(d *schema.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ARecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Path["A"]
-	zoneName := id.Path["privateDnsZones"]
-
-	resp, err := dnsClient.Get(ctx, resGroup, zoneName, privatedns.A, name)
+	resp, err := dnsClient.Get(ctx, id.ResourceGroup, id.PrivateDnsZoneName, privatedns.A, id.AName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Private DNS A record %s: %+v", name, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resGroup)
-	d.Set("zone_name", zoneName)
+	d.Set("name", id.AName)
+	d.Set("zone_name", id.PrivateDnsZoneName)
+	d.Set("resource_group_name", id.ResourceGroup)
+
 	d.Set("ttl", resp.TTL)
 	d.Set("fqdn", resp.Fqdn)
 
 	if err := d.Set("records", flattenAzureRmPrivateDnsARecords(resp.ARecords)); err != nil {
 		return err
 	}
+
 	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
@@ -169,18 +155,13 @@ func resourceArmPrivateDnsARecordDelete(d *schema.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ARecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	zoneName := id.Path["privateDnsZones"]
-	name := id.Path["A"]
-
-	resp, err := dnsClient.Delete(ctx, resGroup, zoneName, privatedns.A, name, "")
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting Private DNS A Record %s: %+v", name, err)
+	if _, err := dnsClient.Delete(ctx, id.ResourceGroup, id.PrivateDnsZoneName, privatedns.A, id.AName, ""); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
