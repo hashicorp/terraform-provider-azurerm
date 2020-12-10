@@ -165,7 +165,7 @@ func resourceArmSubnetServiceEndpointStoragePolicyRead(d *schema.ResourceData, m
 	}
 	if prop := resp.ServiceEndpointPolicyPropertiesFormat; prop != nil {
 		if err := d.Set("definition", flattenServiceEndpointPolicyDefinitions(prop.ServiceEndpointPolicyDefinitions)); err != nil {
-			return fmt.Errorf(`setting "definition": %v`, err)
+			return fmt.Errorf("setting `definition`: %v", err)
 		}
 	}
 
