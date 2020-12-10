@@ -109,11 +109,10 @@ func resourceArmPrivateDnsARecordCreateUpdate(d *schema.ResourceData, meta inter
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
 	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.PrivateDnsZoneName, privatedns.A, resourceId.AName, parameters, eTag, ifNoneMatch); err != nil {
-		return fmt.Errorf("Error creating/updating Private DNS A Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", resourceId, err)
 	}
 
-	d.SetId(*resp.ID)
-
+	d.SetId(resourceId.ID(""))
 	return resourceArmPrivateDnsARecordRead(d, meta)
 }
 
