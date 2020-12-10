@@ -8,7 +8,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -133,14 +132,14 @@ func findPrivateZone(ctx context.Context, client *privatedns.PrivateZonesClient,
 			continue
 		}
 
-		id, err := azure.ParseAzureResourceID(*z.ID)
+		id, err := parse.PrivateDnsZoneID(*z.ID)
 		if err != nil {
 			continue
 		}
 
-		zone, err := client.Get(ctx, id.ResourceGroup, name)
+		zone, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			return nil, fmt.Errorf("Error retrieving Private DNS Zone %q in resource group %q: %+v", name, id.ResourceGroup, err)
+			return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 
 		return &privateDnsZone{
