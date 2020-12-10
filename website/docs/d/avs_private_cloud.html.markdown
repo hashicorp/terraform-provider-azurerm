@@ -59,7 +59,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `vcenter_certificate_thumbprint` - The thumbprint of the vCenter Server SSL certificate.
 
-* `management_network` - The network used to access vCenter Server and NSX-T Manager.
+* `management_subnet` - The network used to access vCenter Server and NSX-T Manager.
 
 * `provisioning_subnet` - The network which isused for virtual machine cold migration, cloning, and snapshot migration.
 

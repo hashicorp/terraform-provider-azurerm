@@ -33,7 +33,7 @@ func TestAccAvsPrivateCloud_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("circuit.0.primary_subnet").Exists(),
 				check.That(data.ResourceName).Key("circuit.0.secondary_subnet").Exists(),
 				check.That(data.ResourceName).Key("hcx_cloud_manager_endpoint").Exists(),
-				check.That(data.ResourceName).Key("management_network").Exists(),
+				check.That(data.ResourceName).Key("management_subnet").Exists(),
 				check.That(data.ResourceName).Key("nsxt_certificate_thumbprint").Exists(),
 				check.That(data.ResourceName).Key("nsxt_manager_endpoint").Exists(),
 				check.That(data.ResourceName).Key("provisioning_subnet").Exists(),
@@ -77,7 +77,7 @@ func TestAccAvsPrivateCloud_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("circuit.0.primary_subnet").Exists(),
 				check.That(data.ResourceName).Key("circuit.0.secondary_subnet").Exists(),
 				check.That(data.ResourceName).Key("hcx_cloud_manager_endpoint").Exists(),
-				check.That(data.ResourceName).Key("management_network").Exists(),
+				check.That(data.ResourceName).Key("management_subnet").Exists(),
 				check.That(data.ResourceName).Key("nsxt_certificate_thumbprint").Exists(),
 				check.That(data.ResourceName).Key("nsxt_manager_endpoint").Exists(),
 				check.That(data.ResourceName).Key("provisioning_subnet").Exists(),
@@ -107,7 +107,7 @@ func TestAccAvsPrivateCloud_update(t *testing.T) {
 				check.That(data.ResourceName).Key("circuit.0.primary_subnet").Exists(),
 				check.That(data.ResourceName).Key("circuit.0.secondary_subnet").Exists(),
 				check.That(data.ResourceName).Key("hcx_cloud_manager_endpoint").Exists(),
-				check.That(data.ResourceName).Key("management_network").Exists(),
+				check.That(data.ResourceName).Key("management_subnet").Exists(),
 				check.That(data.ResourceName).Key("nsxt_certificate_thumbprint").Exists(),
 				check.That(data.ResourceName).Key("nsxt_manager_endpoint").Exists(),
 				check.That(data.ResourceName).Key("provisioning_subnet").Exists(),
@@ -128,7 +128,7 @@ func TestAccAvsPrivateCloud_update(t *testing.T) {
 				check.That(data.ResourceName).Key("circuit.0.primary_subnet").Exists(),
 				check.That(data.ResourceName).Key("circuit.0.secondary_subnet").Exists(),
 				check.That(data.ResourceName).Key("hcx_cloud_manager_endpoint").Exists(),
-				check.That(data.ResourceName).Key("management_network").Exists(),
+				check.That(data.ResourceName).Key("management_subnet").Exists(),
 				check.That(data.ResourceName).Key("nsxt_certificate_thumbprint").Exists(),
 				check.That(data.ResourceName).Key("nsxt_manager_endpoint").Exists(),
 				check.That(data.ResourceName).Key("provisioning_subnet").Exists(),
@@ -149,7 +149,7 @@ func TestAccAvsPrivateCloud_update(t *testing.T) {
 				check.That(data.ResourceName).Key("circuit.0.primary_subnet").Exists(),
 				check.That(data.ResourceName).Key("circuit.0.secondary_subnet").Exists(),
 				check.That(data.ResourceName).Key("hcx_cloud_manager_endpoint").Exists(),
-				check.That(data.ResourceName).Key("management_network").Exists(),
+				check.That(data.ResourceName).Key("management_subnet").Exists(),
 				check.That(data.ResourceName).Key("nsxt_certificate_thumbprint").Exists(),
 				check.That(data.ResourceName).Key("nsxt_manager_endpoint").Exists(),
 				check.That(data.ResourceName).Key("provisioning_subnet").Exists(),
@@ -170,7 +170,7 @@ func TestAccAvsPrivateCloud_update(t *testing.T) {
 				check.That(data.ResourceName).Key("circuit.0.primary_subnet").Exists(),
 				check.That(data.ResourceName).Key("circuit.0.secondary_subnet").Exists(),
 				check.That(data.ResourceName).Key("hcx_cloud_manager_endpoint").Exists(),
-				check.That(data.ResourceName).Key("management_network").Exists(),
+				check.That(data.ResourceName).Key("management_subnet").Exists(),
 				check.That(data.ResourceName).Key("nsxt_certificate_thumbprint").Exists(),
 				check.That(data.ResourceName).Key("nsxt_manager_endpoint").Exists(),
 				check.That(data.ResourceName).Key("provisioning_subnet").Exists(),
@@ -256,7 +256,7 @@ resource "azurerm_avs_private_cloud" "test" {
   name                = "acctest-APC-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku_name            = "AV36"
+  sku_name            = "av36"
 
   management_cluster {
     size = 3
@@ -280,7 +280,7 @@ resource "azurerm_avs_private_cloud" "test" {
   name                = "acctest-APC-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku_name            = "AV36"
+  sku_name            = "av36"
 
   management_cluster {
     size = 4
@@ -304,7 +304,7 @@ resource "azurerm_avs_private_cloud" "test" {
   name                = "acctest-APC-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku_name            = "AV36"
+  sku_name            = "av36"
 
   management_cluster {
     size = 4
@@ -328,7 +328,7 @@ resource "azurerm_avs_private_cloud" "test" {
   name                = "acctest-APC-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku_name            = "AV36"
+  sku_name            = "av36"
 
   management_cluster {
     size = 3

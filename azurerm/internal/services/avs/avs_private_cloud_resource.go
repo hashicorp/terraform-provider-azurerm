@@ -73,17 +73,17 @@ func resourceAvsPrivateCloud() *schema.Resource {
 							ValidateFunc: validation.IntBetween(3, 16),
 						},
 
-						"id": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-
 						"hosts": {
 							Type:     schema.TypeSet,
 							Computed: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
+						},
+
+						"id": {
+							Type:     schema.TypeInt,
+							Computed: true,
 						},
 					},
 				},
@@ -151,7 +151,7 @@ func resourceAvsPrivateCloud() *schema.Resource {
 				Computed: true,
 			},
 
-			"management_network": {
+			"management_subnet": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -286,7 +286,7 @@ func resourceAvsPrivateCloudRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("hcx_cloud_manager_endpoint", props.Endpoints.HcxCloudManager)
 		d.Set("nsxt_manager_endpoint", props.Endpoints.NsxtManager)
 		d.Set("vcsa_endpoint", props.Endpoints.Vcsa)
-		d.Set("management_network", props.ManagementNetwork)
+		d.Set("management_subnet", props.ManagementNetwork)
 		d.Set("nsxt_certificate_thumbprint", props.NsxtCertificateThumbprint)
 		d.Set("provisioning_subnet", props.ProvisioningNetwork)
 		d.Set("vcenter_certificate_thumbprint", props.VcenterCertificateThumbprint)

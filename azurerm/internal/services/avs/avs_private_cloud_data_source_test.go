@@ -30,7 +30,7 @@ func TestAccDataSourceAvsPrivateCloud_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("circuit.0.primary_subnet").Exists(),
 				check.That(data.ResourceName).Key("circuit.0.secondary_subnet").Exists(),
 				check.That(data.ResourceName).Key("hcx_cloud_manager_endpoint").Exists(),
-				check.That(data.ResourceName).Key("management_network").Exists(),
+				check.That(data.ResourceName).Key("management_subnet").Exists(),
 				check.That(data.ResourceName).Key("nsxt_certificate_thumbprint").Exists(),
 				check.That(data.ResourceName).Key("nsxt_manager_endpoint").Exists(),
 				check.That(data.ResourceName).Key("provisioning_subnet").Exists(),

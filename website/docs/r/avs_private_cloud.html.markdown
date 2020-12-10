@@ -26,7 +26,7 @@ resource "azurerm_avs_private_cloud" "example" {
   name                = "example-avs-private-cloud"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  sku_name            = "AV36"
+  sku_name            = "av36"
 
   management_cluster {
     size = 3
@@ -90,7 +90,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `vcenter_certificate_thumbprint` - The thumbprint of the vCenter Server SSL certificate.
 
-* `management_network` - The network used to access vCenter Server and NSX-T Manager.
+* `management_subnet` - The network used to access vCenter Server and NSX-T Manager.
 
 * `provisioning_subnet` - The network which is used for virtual machine cold migration, cloning, and snapshot migration.
 
