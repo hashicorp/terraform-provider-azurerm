@@ -14,11 +14,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-type HCIClusterResource struct{}
+type StackHCIClusterResource struct{}
 
-func TestAccHCICluster_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hci_cluster", "test")
-	r := HCIClusterResource{}
+func TestAccStackHCICluster_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stack_hci_cluster", "test")
+	r := StackHCIClusterResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -31,9 +31,9 @@ func TestAccHCICluster_basic(t *testing.T) {
 	})
 }
 
-func TestAccHCICluster_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hci_cluster", "test")
-	r := HCIClusterResource{}
+func TestAccStackHCICluster_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stack_hci_cluster", "test")
+	r := StackHCIClusterResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -46,9 +46,9 @@ func TestAccHCICluster_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccHCICluster_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hci_cluster", "test")
-	r := HCIClusterResource{}
+func TestAccStackHCICluster_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stack_hci_cluster", "test")
+	r := StackHCIClusterResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -61,9 +61,9 @@ func TestAccHCICluster_complete(t *testing.T) {
 	})
 }
 
-func TestAccHCICluster_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hci_cluster", "test")
-	r := HCIClusterResource{}
+func TestAccStackHCICluster_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stack_hci_cluster", "test")
+	r := StackHCIClusterResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -83,7 +83,7 @@ func TestAccHCICluster_update(t *testing.T) {
 	})
 }
 
-func (r HCIClusterResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r StackHCIClusterResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	clusterClient := client.AzureStackHCI.ClusterClient
 	id, err := parse.ClusterID(state.ID)
 	if err != nil {
@@ -96,52 +96,52 @@ func (r HCIClusterResource) Exists(ctx context.Context, client *clients.Client, 
 			return utils.Bool(false), nil
 		}
 
-		return nil, fmt.Errorf("retrieving HCI Cluster %q: %+v", state.ID, err)
+		return nil, fmt.Errorf("retrieving Azure Stack HCI Cluster %q: %+v", state.ID, err)
 	}
 
 	return utils.Bool(resp.ClusterProperties != nil), nil
 }
 
-func (r HCIClusterResource) basic(data acceptance.TestData) string {
+func (r StackHCIClusterResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_hci_cluster" "test" {
-  name                = "acctest-HCICluster-%d"
+resource "azurerm_stack_hci_cluster" "test" {
+  name                = "acctest-StackHCICluster-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  client_id           = data.azurerm_client_config.current.client_id
+  client_id           = azuread_application.test.application_id
   tenant_id           = data.azurerm_client_config.current.tenant_id
 }
 `, template, data.RandomInteger)
 }
 
-func (r HCIClusterResource) requiresImport(data acceptance.TestData) string {
+func (r StackHCIClusterResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_hci_cluster" "import" {
-  name                = azurerm_hci_cluster.test.name
-  resource_group_name = azurerm_hci_cluster.test.resource_group_name
-  location            = azurerm_hci_cluster.test.location
-  client_id           = azurerm_hci_cluster.test.client_id
-  tenant_id           = azurerm_hci_cluster.test.tenant_id
+resource "azurerm_stack_hci_cluster" "import" {
+  name                = azurerm_stack_hci_cluster.test.name
+  resource_group_name = azurerm_stack_hci_cluster.test.resource_group_name
+  location            = azurerm_stack_hci_cluster.test.location
+  client_id           = azurerm_stack_hci_cluster.test.client_id
+  tenant_id           = azurerm_stack_hci_cluster.test.tenant_id
 }
 `, config)
 }
 
-func (r HCIClusterResource) complete(data acceptance.TestData) string {
+func (r StackHCIClusterResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_hci_cluster" "test" {
-  name                = "acctest-HCICluster-%d"
+resource "azurerm_stack_hci_cluster" "test" {
+  name                = "acctest-StackHCICluster-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  client_id           = data.azurerm_client_config.current.client_id
+  client_id           = azuread_application.test.application_id
   tenant_id           = data.azurerm_client_config.current.tenant_id
 
   tags = {
@@ -151,16 +151,16 @@ resource "azurerm_hci_cluster" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r HCIClusterResource) update(data acceptance.TestData) string {
+func (r StackHCIClusterResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_hci_cluster" "test" {
-  name                = "acctest-HCICluster-%d"
+resource "azurerm_stack_hci_cluster" "test" {
+  name                = "acctest-StackHCICluster-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  client_id           = data.azurerm_client_config.current.client_id
+  client_id           = azuread_application.test.application_id
   tenant_id           = data.azurerm_client_config.current.tenant_id
 
   tags = {
@@ -170,7 +170,7 @@ resource "azurerm_hci_cluster" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r HCIClusterResource) template(data acceptance.TestData) string {
+func (r StackHCIClusterResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -178,9 +178,13 @@ provider "azurerm" {
 
 data "azurerm_client_config" "current" {}
 
+resource "azuread_application" "test" {
+  name = "acctestspa-%d"
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-hci-%d"
   location = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
 }
