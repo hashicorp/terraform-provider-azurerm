@@ -12,18 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMSentinelAlertRuleMsSecurityIncident_basic(t *testing.T) {
+func TestAccSentinelAlertRuleMsSecurityIncident_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_ms_security_incident", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSentinelAlertRuleMsSecurityIncidentDestroy,
+		CheckDestroy: testCheckSentinelAlertRuleMsSecurityIncidentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSentinelAlertRuleMsSecurityIncident_basic(data),
+				Config: testAccSentinelAlertRuleMsSecurityIncident_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSentinelAlertRuleMsSecurityIncidentExists(data.ResourceName),
+					testCheckSentinelAlertRuleMsSecurityIncidentExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -31,18 +31,18 @@ func TestAccAzureRMSentinelAlertRuleMsSecurityIncident_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSentinelAlertRuleMsSecurityIncident_complete(t *testing.T) {
+func TestAccSentinelAlertRuleMsSecurityIncident_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_ms_security_incident", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSentinelAlertRuleMsSecurityIncidentDestroy,
+		CheckDestroy: testCheckSentinelAlertRuleMsSecurityIncidentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSentinelAlertRuleMsSecurityIncident_complete(data),
+				Config: testAccSentinelAlertRuleMsSecurityIncident_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSentinelAlertRuleMsSecurityIncidentExists(data.ResourceName),
+					testCheckSentinelAlertRuleMsSecurityIncidentExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -50,32 +50,32 @@ func TestAccAzureRMSentinelAlertRuleMsSecurityIncident_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSentinelAlertRuleMsSecurityIncident_update(t *testing.T) {
+func TestAccSentinelAlertRuleMsSecurityIncident_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_ms_security_incident", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSentinelAlertRuleMsSecurityIncidentDestroy,
+		CheckDestroy: testCheckSentinelAlertRuleMsSecurityIncidentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSentinelAlertRuleMsSecurityIncident_basic(data),
+				Config: testAccSentinelAlertRuleMsSecurityIncident_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSentinelAlertRuleMsSecurityIncidentExists(data.ResourceName),
+					testCheckSentinelAlertRuleMsSecurityIncidentExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMSentinelAlertRuleMsSecurityIncident_complete(data),
+				Config: testAccSentinelAlertRuleMsSecurityIncident_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSentinelAlertRuleMsSecurityIncidentExists(data.ResourceName),
+					testCheckSentinelAlertRuleMsSecurityIncidentExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMSentinelAlertRuleMsSecurityIncident_basic(data),
+				Config: testAccSentinelAlertRuleMsSecurityIncident_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSentinelAlertRuleMsSecurityIncidentExists(data.ResourceName),
+					testCheckSentinelAlertRuleMsSecurityIncidentExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -83,26 +83,26 @@ func TestAccAzureRMSentinelAlertRuleMsSecurityIncident_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSentinelAlertRuleMsSecurityIncident_requiresImport(t *testing.T) {
+func TestAccSentinelAlertRuleMsSecurityIncident_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_ms_security_incident", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSentinelAlertRuleMsSecurityIncidentDestroy,
+		CheckDestroy: testCheckSentinelAlertRuleMsSecurityIncidentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSentinelAlertRuleMsSecurityIncident_basic(data),
+				Config: testAccSentinelAlertRuleMsSecurityIncident_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSentinelAlertRuleMsSecurityIncidentExists(data.ResourceName),
+					testCheckSentinelAlertRuleMsSecurityIncidentExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMSentinelAlertRuleMsSecurityIncident_requiresImport),
+			data.RequiresImportErrorStep(testAccSentinelAlertRuleMsSecurityIncident_requiresImport),
 		},
 	})
 }
 
-func testCheckAzureRMSentinelAlertRuleMsSecurityIncidentExists(resourceName string) resource.TestCheckFunc {
+func testCheckSentinelAlertRuleMsSecurityIncidentExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Sentinel.AlertRulesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -128,7 +128,7 @@ func testCheckAzureRMSentinelAlertRuleMsSecurityIncidentExists(resourceName stri
 	}
 }
 
-func testCheckAzureRMSentinelAlertRuleMsSecurityIncidentDestroy(s *terraform.State) error {
+func testCheckSentinelAlertRuleMsSecurityIncidentDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Sentinel.AlertRulesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -154,8 +154,8 @@ func testCheckAzureRMSentinelAlertRuleMsSecurityIncidentDestroy(s *terraform.Sta
 	return nil
 }
 
-func testAccAzureRMSentinelAlertRuleMsSecurityIncident_basic(data acceptance.TestData) string {
-	template := testAccAzureRMSentinelAlertRuleMsSecurityIncident_template(data)
+func testAccSentinelAlertRuleMsSecurityIncident_basic(data acceptance.TestData) string {
+	template := testAccSentinelAlertRuleMsSecurityIncident_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -169,8 +169,8 @@ resource "azurerm_sentinel_alert_rule_ms_security_incident" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMSentinelAlertRuleMsSecurityIncident_complete(data acceptance.TestData) string {
-	template := testAccAzureRMSentinelAlertRuleMsSecurityIncident_template(data)
+func testAccSentinelAlertRuleMsSecurityIncident_complete(data acceptance.TestData) string {
+	template := testAccSentinelAlertRuleMsSecurityIncident_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -186,8 +186,8 @@ resource "azurerm_sentinel_alert_rule_ms_security_incident" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMSentinelAlertRuleMsSecurityIncident_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMSentinelAlertRuleMsSecurityIncident_basic(data)
+func testAccSentinelAlertRuleMsSecurityIncident_requiresImport(data acceptance.TestData) string {
+	template := testAccSentinelAlertRuleMsSecurityIncident_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -201,7 +201,7 @@ resource "azurerm_sentinel_alert_rule_ms_security_incident" "import" {
 `, template)
 }
 
-func testAccAzureRMSentinelAlertRuleMsSecurityIncident_template(data acceptance.TestData) string {
+func testAccSentinelAlertRuleMsSecurityIncident_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

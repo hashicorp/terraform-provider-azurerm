@@ -26,7 +26,7 @@ func TestAccDataSourceSentinelAlertRule_basic(t *testing.T) {
 }
 
 func testAccDataSourceSentinelAlertRule_basic(data acceptance.TestData) string {
-	config := testAccAzureRMSentinelAlertRuleMsSecurityIncident_basic(data)
+	config := testAccSentinelAlertRuleMsSecurityIncident_basic(data)
 	return fmt.Sprintf(`
 %s
 

@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSentinelAlertRuleScheduled() *schema.Resource {
+func resourceSentinelAlertRuleScheduled() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSentinelAlertRuleScheduledCreateUpdate,
-		Read:   resourceArmSentinelAlertRuleScheduledRead,
-		Update: resourceArmSentinelAlertRuleScheduledCreateUpdate,
-		Delete: resourceArmSentinelAlertRuleScheduledDelete,
+		Create: resourceSentinelAlertRuleScheduledCreateUpdate,
+		Read:   resourceSentinelAlertRuleScheduledRead,
+		Update: resourceSentinelAlertRuleScheduledCreateUpdate,
+		Delete: resourceSentinelAlertRuleScheduledDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			_, err := parse.SentinelAlertRuleID(id)
@@ -159,7 +159,7 @@ func resourceArmSentinelAlertRuleScheduled() *schema.Resource {
 	}
 }
 
-func resourceArmSentinelAlertRuleScheduledCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleScheduledCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -252,10 +252,10 @@ func resourceArmSentinelAlertRuleScheduledCreateUpdate(d *schema.ResourceData, m
 	}
 	d.SetId(*id)
 
-	return resourceArmSentinelAlertRuleScheduledRead(d, meta)
+	return resourceSentinelAlertRuleScheduledRead(d, meta)
 }
 
-func resourceArmSentinelAlertRuleScheduledRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleScheduledRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -312,7 +312,7 @@ func resourceArmSentinelAlertRuleScheduledRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceArmSentinelAlertRuleScheduledDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleScheduledDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

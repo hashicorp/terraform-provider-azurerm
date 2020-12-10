@@ -12,18 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMSentinelAlertRuleScheduled_basic(t *testing.T) {
+func TestAccSentinelAlertRuleScheduled_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_scheduled", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSentinelAlertRuleScheduledDestroy,
+		CheckDestroy: testCheckSentinelAlertRuleScheduledDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSentinelAlertRuleScheduled_basic(data),
+				Config: testAccSentinelAlertRuleScheduled_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSentinelAlertRuleScheduledExists(data.ResourceName),
+					testCheckSentinelAlertRuleScheduledExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -31,18 +31,18 @@ func TestAccAzureRMSentinelAlertRuleScheduled_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSentinelAlertRuleScheduled_complete(t *testing.T) {
+func TestAccSentinelAlertRuleScheduled_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_scheduled", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSentinelAlertRuleScheduledDestroy,
+		CheckDestroy: testCheckSentinelAlertRuleScheduledDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSentinelAlertRuleScheduled_complete(data),
+				Config: testAccSentinelAlertRuleScheduled_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSentinelAlertRuleScheduledExists(data.ResourceName),
+					testCheckSentinelAlertRuleScheduledExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -50,32 +50,32 @@ func TestAccAzureRMSentinelAlertRuleScheduled_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSentinelAlertRuleScheduled_update(t *testing.T) {
+func TestAccSentinelAlertRuleScheduled_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_scheduled", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSentinelAlertRuleScheduledDestroy,
+		CheckDestroy: testCheckSentinelAlertRuleScheduledDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSentinelAlertRuleScheduled_basic(data),
+				Config: testAccSentinelAlertRuleScheduled_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSentinelAlertRuleScheduledExists(data.ResourceName),
+					testCheckSentinelAlertRuleScheduledExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMSentinelAlertRuleScheduled_complete(data),
+				Config: testAccSentinelAlertRuleScheduled_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSentinelAlertRuleScheduledExists(data.ResourceName),
+					testCheckSentinelAlertRuleScheduledExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMSentinelAlertRuleScheduled_basic(data),
+				Config: testAccSentinelAlertRuleScheduled_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSentinelAlertRuleScheduledExists(data.ResourceName),
+					testCheckSentinelAlertRuleScheduledExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -83,26 +83,26 @@ func TestAccAzureRMSentinelAlertRuleScheduled_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSentinelAlertRuleScheduled_requiresImport(t *testing.T) {
+func TestAccSentinelAlertRuleScheduled_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_scheduled", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSentinelAlertRuleScheduledDestroy,
+		CheckDestroy: testCheckSentinelAlertRuleScheduledDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSentinelAlertRuleScheduled_basic(data),
+				Config: testAccSentinelAlertRuleScheduled_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSentinelAlertRuleScheduledExists(data.ResourceName),
+					testCheckSentinelAlertRuleScheduledExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMSentinelAlertRuleScheduled_requiresImport),
+			data.RequiresImportErrorStep(testAccSentinelAlertRuleScheduled_requiresImport),
 		},
 	})
 }
 
-func testCheckAzureRMSentinelAlertRuleScheduledExists(resourceName string) resource.TestCheckFunc {
+func testCheckSentinelAlertRuleScheduledExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Sentinel.AlertRulesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -128,7 +128,7 @@ func testCheckAzureRMSentinelAlertRuleScheduledExists(resourceName string) resou
 	}
 }
 
-func testCheckAzureRMSentinelAlertRuleScheduledDestroy(s *terraform.State) error {
+func testCheckSentinelAlertRuleScheduledDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Sentinel.AlertRulesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -154,8 +154,8 @@ func testCheckAzureRMSentinelAlertRuleScheduledDestroy(s *terraform.State) error
 	return nil
 }
 
-func testAccAzureRMSentinelAlertRuleScheduled_basic(data acceptance.TestData) string {
-	template := testAccAzureRMSentinelAlertRuleScheduled_template(data)
+func testAccSentinelAlertRuleScheduled_basic(data acceptance.TestData) string {
+	template := testAccSentinelAlertRuleScheduled_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -174,8 +174,8 @@ QUERY
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMSentinelAlertRuleScheduled_complete(data acceptance.TestData) string {
-	template := testAccAzureRMSentinelAlertRuleScheduled_template(data)
+func testAccSentinelAlertRuleScheduled_complete(data acceptance.TestData) string {
+	template := testAccSentinelAlertRuleScheduled_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -203,8 +203,8 @@ QUERY
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMSentinelAlertRuleScheduled_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMSentinelAlertRuleScheduled_basic(data)
+func testAccSentinelAlertRuleScheduled_requiresImport(data acceptance.TestData) string {
+	template := testAccSentinelAlertRuleScheduled_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -218,7 +218,7 @@ resource "azurerm_sentinel_alert_rule_scheduled" "import" {
 `, template)
 }
 
-func testAccAzureRMSentinelAlertRuleScheduled_template(data acceptance.TestData) string {
+func testAccSentinelAlertRuleScheduled_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
