@@ -129,7 +129,7 @@ The following arguments are supported:
 
 * `cdn_profile` - (Optional) The CDN profile name.
 
-* `cdn_provider` - (Optional) The CDN provider name.
+* `cdn_provider` - (Optional) The CDN provider name. At this time the only supported value is `StandardVerizon`
 
 * `cross_site_access_policies` - (Optional) A `cross_site_access_policies` block as defined below.
 
@@ -163,7 +163,7 @@ A `akamai_signature_header_authentication_key` block supports the following:
 
 A `ip_allow` block supports the following:
 
-* `address` - (Optional) The IP address.
+* `address` - (Optional) The IP address to allow.
 
 * `name` - (Optional) The friendly name for the IP address range.
 

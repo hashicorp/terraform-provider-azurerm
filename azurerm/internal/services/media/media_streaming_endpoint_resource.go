@@ -128,7 +128,6 @@ func resourceMediaStreamingEndpoint() *schema.Resource {
 			"cdn_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Computed: true,
 			},
 
 			"cdn_profile": {
@@ -150,7 +149,7 @@ func resourceMediaStreamingEndpoint() *schema.Resource {
 				}, false),
 			},
 
-			"cross_site_access_policies": {
+			"cross_site_access_policy": {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -209,6 +208,18 @@ func resourceMediaStreamingEndpointCreate(d *schema.ResourceData, meta interface
 	accountName := d.Get("media_services_account_name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	scaleUnits := d.Get("scale_units").(int)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionID
+	resourceId := parse.NewStreamingEndpointId(subscriptionId, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("name").(string))
+	existing, err := client.Get(resourceId.ResourceGroup, resourceId.MediaserviceName, resourceId.Name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response()) {
+			return fmt.Errorf("checking for presence of %s: %+v", resourceId, err)
+		}
+	}
+	if !utils.ResponseWasNotFound(existing.Response()) {
+		return tf.RequiresImportError("azurerm_media_streaming_endpoint", resourceId)
+	}
+	
 	autoStart := utils.Bool(false)
 
 	parameters := media.StreamingEndpoint{
@@ -279,7 +290,10 @@ func resourceMediaStreamingEndpointUpdate(d *schema.ResourceData, meta interface
 
 	streamingEndpointName := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	accountName := d.Get("media_services_account_name").(string)
+	id, err := parse.StreamingEndpoint(d.ID())
+	if err != nil {
+		return err
+	}
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	scaleUnits := d.Get("scale_units").(int)
 
@@ -397,11 +411,11 @@ func resourceMediaStreamingEndpointRead(d *schema.ResourceData, meta interface{}
 
 		if cdnEnabled := props.CdnEnabled; cdnEnabled != nil {
 			d.Set("cdn_enabled", cdnEnabled)
-		}
+		d.Set("cdn_enabled", props.CdnEnabled)
 
 		if cdnProfile := props.CdnProfile; cdnProfile != nil {
 			d.Set("cdn_profile", cdnProfile)
-		}
+		d.Set("cdn_profile", props.CdnProfile)
 
 		if cdnProvider := props.CdnProvider; cdnProvider != nil {
 			d.Set("cdn_provider", cdnProvider)
@@ -422,7 +436,11 @@ func resourceMediaStreamingEndpointRead(d *schema.ResourceData, meta interface{}
 
 		if maxCacheAge := props.MaxCacheAge; maxCacheAge != nil {
 			d.Set("max_cache_age_seconds", maxCacheAge)
+		maxCacheAge := 0
+		if props.MaxCacheAge != nil {
+			maxCacheAge = int(*props.MaxCacheAge)
 		}
+		d.Set("max_cache_age_seconds", maxCacheAge)
 	}
 
 	return nil
@@ -450,7 +468,7 @@ func resourceMediaStreamingEndpointDelete(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func expandAccessControl(d *schema.ResourceData) *media.StreamingEndpointAccessControl {
+func expandAccessControl(d *schema.ResourceData) (*media.StreamingEndpointAccessControl, error) {
 	accessControls := d.Get("access_control").(*schema.Set).List()
 	if len(accessControls) == 0 {
 		return nil
@@ -495,7 +513,10 @@ func expandAccessControl(d *schema.ResourceData) *media.StreamingEndpointAccessC
 				Identifier: utils.String(identifier),
 			}
 			if expirationRaw != "" {
-				expiration, _ := date.ParseTime(time.RFC3339, expirationRaw)
+				expiration, err := date.ParseTime(time.RFC3339, expirationRaw)
+				if err != nil {
+					return nil, err
+				}
 				akamaiSignatureHeaderAuthenticationKey.Expiration = &date.Time{
 					Time: expiration,
 				}
@@ -507,7 +528,7 @@ func expandAccessControl(d *schema.ResourceData) *media.StreamingEndpointAccessC
 		}
 	}
 
-	return accessControlResult
+	return &accessControlResult, nil
 }
 
 func flattenAccessControl(accessControl *media.StreamingEndpointAccessControl) []interface{} {
@@ -559,12 +580,77 @@ func flattenAccessControl(accessControl *media.StreamingEndpointAccessControl) [
 		result["akamai_signature_header_authentication_key"] = akamaiSignatureKeyList
 	}
 
-	return []interface{}{result}
+	if input == nil {
+ 		return make([]interface{}, 0)
+ 	}
+	
+	ipAllowRules := make([]interface{}, 0)
+	if input.IP != nil {
+		for _, v := range *input.IP {
+			name := ""
+			if v.Name != nil {
+				name = *v.Name
+			}
+			
+			address := ""
+			if v.Address != nil {
+				address = *v.Address
+			}
+			
+			subnetPrefixLength := ""
+			if v.SubnetPrefixLength != nil {
+				subnetPrefixLength = *v.SubnetPrefixLength
+			}
+			
+			ipAllowRules = append(ipAllowRules, map[string]interface{}{
+				"name": name,
+				"address": address,
+				"subnet_prefix_length": subnetPrefixLength,
+			})
+		}
+	}
+
+	akamaiRules := make([]interface, 0)
+	if input.Akamai != nil && input.Akamai.AkamaiSignatureHeaderAuthenticationKeyList != nil {
+		for _, v := range *input.Akamai.AkamaiSignatureHeaderAuthenticationKeyList {
+			base64Key := ""
+			if v.Base64Key != nil {
+				base64Key = *v.Base64Key
+			}
+			
+			expiration := ""
+			if v.Expiration != nil {
+				expiration = v.Expiration.Format(time.RFC3339)
+			}
+			
+			identifier := ""
+			if v.Idenifier != nil {
+				identifier = *v.Identifier
+			}
+
+			akamaiRules = append(akamaiRules, map[string]interface{}{
+				"base64_key": base64Key,
+				"expiration": expiration,
+				"identifier": identifier,
+			})
+		}
+	}
+  
+	return []interface{}{
+		map[string]interface{}{
+			"akamai_signature_header_authentication_key": akamaiRules,
+			"ip_allow": ipAllowRules,
+		}
+	}
 }
 
-func expandCrossSiteAccessPolicies(d *schema.ResourceData) *media.CrossSiteAccessPolicies {
+func expandCrossSiteAccessPolicies(input []interface{}) *media.CrossSiteAccessPolicies {
 	crossSiteAccessPolicies := d.Get("cross_site_access_policies").([]interface{})
-	crossSiteAccessPolicy := crossSiteAccessPolicies[0].(map[string]interface{})
+	if len(input) == 0 {
+		return nil
+	}
+	
+	crossSiteAccessPolicy := input[0].(map[string]interface{})
 	clientAccessPolicy := crossSiteAccessPolicy["client_access_policy"].(string)
 	crossDomainPolicy := crossSiteAccessPolicy["cross_domain_policy"].(string)
 	return &media.CrossSiteAccessPolicies{
@@ -573,7 +659,7 @@ func expandCrossSiteAccessPolicies(d *schema.ResourceData) *media.CrossSiteAcces
 	}
 }
 
-func flattenCrossSiteAccessPolicies(crossSiteAccessPolicies *media.CrossSiteAccessPolicies) []interface{} {
+func flattenCrossSiteAccessPolicies(input *media.CrossSiteAccessPolicies) []interface{} {
 	if crossSiteAccessPolicies == nil {
 		return make([]interface{}, 0)
 	}
@@ -587,5 +673,20 @@ func flattenCrossSiteAccessPolicies(crossSiteAccessPolicies *media.CrossSiteAcce
 		result["cross_domain_policy"] = *crossSiteAccessPolicies.CrossDomainPolicy
 	}
 
-	return []interface{}{result}
+	clientAccessPolicy := ""
+	if input.ClientAccessPolicy != nil {
+		clientAccessPolicy = *input.ClientAccessPolicy
+	}
+	
+	crossDomainPolicy := ""
+	if input.CrossDomainPolicy != nil {
+		crossDomainPolicy = *input.CrossDomainPolicy
+	}
+	
+	return []interface{}{
+		map[string]interface{}{
+			"client_access_policy": clientAccessPolicy,
+			"cross_domain_policy": crossDomainPolicy,
+		},
+	}
 }
