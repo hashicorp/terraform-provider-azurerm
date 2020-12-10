@@ -32,6 +32,21 @@ func TestAccMediaAsset_basic(t *testing.T) {
 	})
 }
 
+func TestAccMediaAsset_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_media_asset", "test")
+	r := MediaAssetResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).Key("name").HasValue("Asset-Content1"),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
 func TestMediaAccAsset_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_asset", "test")
 	r := MediaAssetResource{}
@@ -98,8 +113,8 @@ func (MediaAssetResource) Exists(ctx context.Context, clients *clients.Client, s
 	return utils.Bool(resp.AssetProperties != nil), nil
 }
 
-func (MediaAssetResource) basic(data acceptance.TestData) string {
-	template := MediaAssetResource{}.template(data)
+func (r MediaAssetResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -107,6 +122,20 @@ resource "azurerm_media_asset" "test" {
   name                        = "Asset-Content1"
   resource_group_name         = azurerm_resource_group.test.name
   media_services_account_name = azurerm_media_services_account.test.name
+}
+
+`, template)
+}
+
+func (r MediaAssetResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_media_asset" "import" {
+  name                        = azurerm_media_asset.test.name
+  resource_group_name         = azurerm_media_asset.test.resource_group_name
+  media_services_account_name = azurerm_media_asset.test.media_services_account_name
 }
 
 `, template)
