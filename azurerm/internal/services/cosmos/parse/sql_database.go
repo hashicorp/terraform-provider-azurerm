@@ -27,11 +27,12 @@ func NewSqlDatabaseID(subscriptionId, resourceGroup, databaseAccountName, name s
 
 func (id SqlDatabaseId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Database Account Name %q", id.DatabaseAccountName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Database Account Name %q", id.DatabaseAccountName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Sql Database", segmentsStr)
 }
 
 func (id SqlDatabaseId) ID(_ string) string {

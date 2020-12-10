@@ -27,11 +27,12 @@ func NewHybridConnectionID(subscriptionId, resourceGroup, namespaceName, name st
 
 func (id HybridConnectionId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Namespace Name %q", id.NamespaceName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Namespace Name %q", id.NamespaceName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Hybrid Connection", segmentsStr)
 }
 
 func (id HybridConnectionId) ID(_ string) string {

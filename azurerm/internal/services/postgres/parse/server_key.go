@@ -27,11 +27,12 @@ func NewServerKeyID(subscriptionId, resourceGroup, serverName, keyName string) S
 
 func (id ServerKeyId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Server Name %q", id.ServerName),
 		fmt.Sprintf("Key Name %q", id.KeyName),
+		fmt.Sprintf("Server Name %q", id.ServerName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Server Key", segmentsStr)
 }
 
 func (id ServerKeyId) ID(_ string) string {

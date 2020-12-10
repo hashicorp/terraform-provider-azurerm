@@ -27,11 +27,12 @@ func NewNsRecordID(subscriptionId, resourceGroup, dnszoneName, nSName string) Ns
 
 func (id NsRecordId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Dnszone Name %q", id.DnszoneName),
 		fmt.Sprintf("N S Name %q", id.NSName),
+		fmt.Sprintf("Dnszone Name %q", id.DnszoneName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Ns Record", segmentsStr)
 }
 
 func (id NsRecordId) ID(_ string) string {

@@ -25,10 +25,11 @@ func NewAccountID(subscriptionId, resourceGroup, batchAccountName string) Accoun
 
 func (id AccountId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Batch Account Name %q", id.BatchAccountName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Account", segmentsStr)
 }
 
 func (id AccountId) ID(_ string) string {

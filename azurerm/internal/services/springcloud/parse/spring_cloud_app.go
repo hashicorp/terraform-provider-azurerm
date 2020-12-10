@@ -27,11 +27,12 @@ func NewSpringCloudAppID(subscriptionId, resourceGroup, springName, appName stri
 
 func (id SpringCloudAppId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Spring Name %q", id.SpringName),
 		fmt.Sprintf("App Name %q", id.AppName),
+		fmt.Sprintf("Spring Name %q", id.SpringName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Spring Cloud App", segmentsStr)
 }
 
 func (id SpringCloudAppId) ID(_ string) string {

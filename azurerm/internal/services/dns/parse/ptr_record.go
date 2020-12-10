@@ -27,11 +27,12 @@ func NewPtrRecordID(subscriptionId, resourceGroup, dnszoneName, pTRName string) 
 
 func (id PtrRecordId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Dnszone Name %q", id.DnszoneName),
 		fmt.Sprintf("P T R Name %q", id.PTRName),
+		fmt.Sprintf("Dnszone Name %q", id.DnszoneName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Ptr Record", segmentsStr)
 }
 
 func (id PtrRecordId) ID(_ string) string {

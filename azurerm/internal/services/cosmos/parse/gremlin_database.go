@@ -27,11 +27,12 @@ func NewGremlinDatabaseID(subscriptionId, resourceGroup, databaseAccountName, na
 
 func (id GremlinDatabaseId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Database Account Name %q", id.DatabaseAccountName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Database Account Name %q", id.DatabaseAccountName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Gremlin Database", segmentsStr)
 }
 
 func (id GremlinDatabaseId) ID(_ string) string {

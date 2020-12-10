@@ -147,7 +147,7 @@ func resourceMediaServicesAccountCreateUpdate(d *schema.ResourceData, meta inter
 		parameters.Identity = expandAzureRmMediaServiceIdentity(d)
 	}
 
-	if v, ok := d.GetOk("storage_authentication"); ok {
+	if v, ok := d.GetOk("storage_authentication_type"); ok {
 		parameters.StorageAuthentication = media.StorageAuthentication(v.(string))
 	}
 
