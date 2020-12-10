@@ -106,10 +106,22 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 							ForceNew: true,
 						},
 						"private_connection_resource_id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+							ValidateFunc: func(i interface{}, k string) (warnings []string, errors []error) {
+								v, ok := i.(string)
+								if !ok {
+									errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
+									return
+								}
+
+								if strings.HasSuffix(v, ".azure.privatelinkservice") {
+									return
+								}
+
+								return azure.ValidateResourceID(i, k)
+							},
 						},
 						"subresource_names": {
 							Type:     schema.TypeList,
