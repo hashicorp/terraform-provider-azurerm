@@ -54,6 +54,7 @@ BUG FIXES:
 * `azurerm_frontdoor_custom_https_configuration` - working around an upstream API issue by rewriting the returned ID's within Terraform [GH-9750]
 * `azurerm_frontdoor_firewall_policy` - working around an upstream API issue by rewriting the returned ID's within Terraform [GH-9750]
 * `azurerm_media_services_account` - fixing a bug where `storage_authentication_type` wasn't set [GH-9663]
+* `azurerm_media_service_account` - checking for the presence of an existing account during creation [GH-9802]
 * `azurerm_postgresql_server` - changing the `geo_redundant_backup_enabled` property now forces a new resource [GH-9694]
 * `azurerm_postgresql_server` - Fix issue when specifying empty threat detection list attributes [GH-9739]
 * `azurerm_signar_service` - having an empty `allowed_origins` in the `cors` block will no longer cause a panic [GH-9671]
