@@ -12,7 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func testAccAzureRMSecurityCenterWorkspace_basic(t *testing.T) {
+func testAccSecurityCenterWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")
 
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
@@ -20,85 +20,85 @@ func testAccAzureRMSecurityCenterWorkspace_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSecurityCenterWorkspaceDestroy,
+		CheckDestroy: testCheckSecurityCenterWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSecurityCenterWorkspace_basicCfg(data, scope),
+				Config: testAccSecurityCenterWorkspace_basicCfg(data, scope),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSecurityCenterWorkspaceExists(),
+					testCheckSecurityCenterWorkspaceExists(),
 					resource.TestCheckResourceAttr(data.ResourceName, "scope", scope),
 				),
 			},
 			data.ImportStep(),
 			{
 				// reset pricing to free
-				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Free", "VirtualMachines"),
+				Config: testAccSecurityCenterSubscriptionPricing_tier("Free", "VirtualMachines"),
 			},
 		},
 	})
 }
 
-func testAccAzureRMSecurityCenterWorkspace_requiresImport(t *testing.T) {
+func testAccSecurityCenterWorkspace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSecurityCenterWorkspaceDestroy,
+		CheckDestroy: testCheckSecurityCenterWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSecurityCenterWorkspace_basicCfg(data, scope),
+				Config: testAccSecurityCenterWorkspace_basicCfg(data, scope),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSecurityCenterWorkspaceExists(),
+					testCheckSecurityCenterWorkspaceExists(),
 					resource.TestCheckResourceAttr(data.ResourceName, "scope", scope),
 				),
 			},
 			{
-				Config:      testAccAzureRMSecurityCenterWorkspace_requiresImportCfg(data, scope),
+				Config:      testAccSecurityCenterWorkspace_requiresImportCfg(data, scope),
 				ExpectError: acceptance.RequiresImportError("azurerm_security_center_workspace"),
 			},
 			{
 				// reset pricing to free
-				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Free", "VirtualMachines"),
+				Config: testAccSecurityCenterSubscriptionPricing_tier("Free", "VirtualMachines"),
 			},
 		},
 	})
 }
 
-func testAccAzureRMSecurityCenterWorkspace_update(t *testing.T) {
+func testAccSecurityCenterWorkspace_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSecurityCenterWorkspaceDestroy,
+		CheckDestroy: testCheckSecurityCenterWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSecurityCenterWorkspace_basicCfg(data, scope),
+				Config: testAccSecurityCenterWorkspace_basicCfg(data, scope),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSecurityCenterWorkspaceExists(),
+					testCheckSecurityCenterWorkspaceExists(),
 					resource.TestCheckResourceAttr(data.ResourceName, "scope", scope),
 				),
 			},
 			{
-				Config: testAccAzureRMSecurityCenterWorkspace_differentWorkspaceCfg(data, scope),
+				Config: testAccSecurityCenterWorkspace_differentWorkspaceCfg(data, scope),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSecurityCenterWorkspaceExists(),
+					testCheckSecurityCenterWorkspaceExists(),
 					resource.TestCheckResourceAttr(data.ResourceName, "scope", scope),
 				),
 			},
 			data.ImportStep(),
 			{
 				// reset pricing to free
-				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Free", "VirtualMachines"),
+				Config: testAccSecurityCenterSubscriptionPricing_tier("Free", "VirtualMachines"),
 			},
 		},
 	})
 }
 
-func testCheckAzureRMSecurityCenterWorkspaceExists() resource.TestCheckFunc {
+func testCheckSecurityCenterWorkspaceExists() resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).SecurityCenter.WorkspaceClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -117,7 +117,7 @@ func testCheckAzureRMSecurityCenterWorkspaceExists() resource.TestCheckFunc {
 	}
 }
 
-func testCheckAzureRMSecurityCenterWorkspaceDestroy(s *terraform.State) error {
+func testCheckSecurityCenterWorkspaceDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).SecurityCenter.WorkspaceClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -142,7 +142,7 @@ func testCheckAzureRMSecurityCenterWorkspaceDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMSecurityCenterWorkspace_basicCfg(data acceptance.TestData, scope string) string {
+func testAccSecurityCenterWorkspace_basicCfg(data acceptance.TestData, scope string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -172,8 +172,8 @@ resource "azurerm_security_center_workspace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, scope)
 }
 
-func testAccAzureRMSecurityCenterWorkspace_requiresImportCfg(data acceptance.TestData, scope string) string {
-	template := testAccAzureRMSecurityCenterWorkspace_basicCfg(data, scope)
+func testAccSecurityCenterWorkspace_requiresImportCfg(data acceptance.TestData, scope string) string {
+	template := testAccSecurityCenterWorkspace_basicCfg(data, scope)
 	return fmt.Sprintf(`
 %s
 
@@ -184,7 +184,7 @@ resource "azurerm_security_center_workspace" "import" {
 `, template)
 }
 
-func testAccAzureRMSecurityCenterWorkspace_differentWorkspaceCfg(data acceptance.TestData, scope string) string {
+func testAccSecurityCenterWorkspace_differentWorkspaceCfg(data acceptance.TestData, scope string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

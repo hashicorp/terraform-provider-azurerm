@@ -11,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMSecurityCenterSetting_update(t *testing.T) {
+func TestAccSecurityCenterSetting_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_setting", "test")
 
 	// lintignore:AT001
@@ -20,36 +20,36 @@ func TestAccAzureRMSecurityCenterSetting_update(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSecurityCenterSetting_cfg("MCAS", true),
+				Config: testAccSecurityCenterSetting_cfg("MCAS", true),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSecurityCenterSettingExists(data.ResourceName),
+					testCheckSecurityCenterSettingExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "setting_name", "MCAS"),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMSecurityCenterSetting_cfg("MCAS", false),
+				Config: testAccSecurityCenterSetting_cfg("MCAS", false),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSecurityCenterSettingExists(data.ResourceName),
+					testCheckSecurityCenterSettingExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "setting_name", "MCAS"),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "false"),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMSecurityCenterSetting_cfg("WDATP", true),
+				Config: testAccSecurityCenterSetting_cfg("WDATP", true),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSecurityCenterSettingExists(data.ResourceName),
+					testCheckSecurityCenterSettingExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "setting_name", "WDATP"),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMSecurityCenterSetting_cfg("WDATP", false),
+				Config: testAccSecurityCenterSetting_cfg("WDATP", false),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSecurityCenterSettingExists(data.ResourceName),
+					testCheckSecurityCenterSettingExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "setting_name", "WDATP"),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "false"),
 				),
@@ -59,7 +59,7 @@ func TestAccAzureRMSecurityCenterSetting_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMSecurityCenterSettingExists(resourceName string) resource.TestCheckFunc {
+func testCheckSecurityCenterSettingExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).SecurityCenter.SettingClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -84,7 +84,7 @@ func testCheckAzureRMSecurityCenterSettingExists(resourceName string) resource.T
 	}
 }
 
-func testAccAzureRMSecurityCenterSetting_cfg(settingName string, enabled bool) string {
+func testAccSecurityCenterSetting_cfg(settingName string, enabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

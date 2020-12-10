@@ -12,7 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMSecurityCenterAutoProvision_update(t *testing.T) {
+func TestAccSecurityCenterAutoProvision_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_auto_provisioning", "test")
 
 	// lintignore:AT001
@@ -21,17 +21,17 @@ func TestAccAzureRMSecurityCenterAutoProvision_update(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSecurityCenterAutoProvisioning_setting("On"),
+				Config: testAccSecurityCenterAutoProvisioning_setting("On"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSecurityCenterAutoProvisioningExists(data.ResourceName, "On"),
+					testCheckSecurityCenterAutoProvisioningExists(data.ResourceName, "On"),
 					resource.TestCheckResourceAttr(data.ResourceName, "auto_provision", "On"),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMSecurityCenterAutoProvisioning_setting("Off"),
+				Config: testAccSecurityCenterAutoProvisioning_setting("Off"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSecurityCenterAutoProvisioningExists(data.ResourceName, "Off"),
+					testCheckSecurityCenterAutoProvisioningExists(data.ResourceName, "Off"),
 					resource.TestCheckResourceAttr(data.ResourceName, "auto_provision", "Off"),
 				),
 			},
@@ -40,7 +40,7 @@ func TestAccAzureRMSecurityCenterAutoProvision_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMSecurityCenterAutoProvisioningExists(resourceName string, expectedSetting string) resource.TestCheckFunc {
+func testCheckSecurityCenterAutoProvisioningExists(resourceName string, expectedSetting string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).SecurityCenter.AutoProvisioningClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -71,7 +71,7 @@ func testCheckAzureRMSecurityCenterAutoProvisioningExists(resourceName string, e
 	}
 }
 
-func testAccAzureRMSecurityCenterAutoProvisioning_setting(setting string) string {
+func testAccSecurityCenterAutoProvisioning_setting(setting string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

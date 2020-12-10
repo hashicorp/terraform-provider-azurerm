@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAdvancedThreatProtection() *schema.Resource {
+func resourceAdvancedThreatProtection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAdvancedThreatProtectionCreateUpdate,
-		Read:   resourceArmAdvancedThreatProtectionRead,
-		Update: resourceArmAdvancedThreatProtectionCreateUpdate,
-		Delete: resourceArmAdvancedThreatProtectionDelete,
+		Create: resourceAdvancedThreatProtectionCreateUpdate,
+		Read:   resourceAdvancedThreatProtectionRead,
+		Update: resourceAdvancedThreatProtectionCreateUpdate,
+		Delete: resourceAdvancedThreatProtectionDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -49,7 +49,7 @@ func resourceArmAdvancedThreatProtection() *schema.Resource {
 	}
 }
 
-func resourceArmAdvancedThreatProtectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAdvancedThreatProtectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.AdvancedThreatProtectionClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -79,10 +79,10 @@ func resourceArmAdvancedThreatProtectionCreateUpdate(d *schema.ResourceData, met
 	}
 
 	d.SetId(id.ID(""))
-	return resourceArmAdvancedThreatProtectionRead(d, meta)
+	return resourceAdvancedThreatProtectionRead(d, meta)
 }
 
-func resourceArmAdvancedThreatProtectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAdvancedThreatProtectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.AdvancedThreatProtectionClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -111,7 +111,7 @@ func resourceArmAdvancedThreatProtectionRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceArmAdvancedThreatProtectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAdvancedThreatProtectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.AdvancedThreatProtectionClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

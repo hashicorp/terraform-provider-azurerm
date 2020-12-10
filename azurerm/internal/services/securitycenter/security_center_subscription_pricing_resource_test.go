@@ -11,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func testAccAzureRMSecurityCenterSubscriptionPricing_update(t *testing.T) {
+func testAccSecurityCenterSubscriptionPricing_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
 
 	// lintignore:AT001
@@ -20,17 +20,17 @@ func testAccAzureRMSecurityCenterSubscriptionPricing_update(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Standard", "AppServices"),
+				Config: testAccSecurityCenterSubscriptionPricing_tier("Standard", "AppServices"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSecurityCenterSubscriptionPricingExists(data.ResourceName),
+					testCheckSecurityCenterSubscriptionPricingExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tier", "Standard"),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Free", "AppServices"),
+				Config: testAccSecurityCenterSubscriptionPricing_tier("Free", "AppServices"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSecurityCenterSubscriptionPricingExists(data.ResourceName),
+					testCheckSecurityCenterSubscriptionPricingExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tier", "Free"),
 				),
 			},
@@ -39,7 +39,7 @@ func testAccAzureRMSecurityCenterSubscriptionPricing_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMSecurityCenterSubscriptionPricingExists(resourceName string) resource.TestCheckFunc {
+func testCheckSecurityCenterSubscriptionPricingExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).SecurityCenter.PricingClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -64,7 +64,7 @@ func testCheckAzureRMSecurityCenterSubscriptionPricingExists(resourceName string
 	}
 }
 
-func testAccAzureRMSecurityCenterSubscriptionPricing_tier(tier string, resource_type string) string {
+func testAccSecurityCenterSubscriptionPricing_tier(tier string, resource_type string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
