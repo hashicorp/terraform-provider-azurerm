@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -22,6 +23,15 @@ func NewCassandraKeyspaceID(subscriptionId, resourceGroup, databaseAccountName, 
 		DatabaseAccountName: databaseAccountName,
 		Name:                name,
 	}
+}
+
+func (id CassandraKeyspaceId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Database Account Name %q", id.DatabaseAccountName),
+		fmt.Sprintf("Name %q", id.Name),
+	}
+	return strings.Join(segments, " / ")
 }
 
 func (id CassandraKeyspaceId) ID(_ string) string {

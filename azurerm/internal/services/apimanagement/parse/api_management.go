@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -20,6 +21,14 @@ func NewApiManagementID(subscriptionId, resourceGroup, serviceName string) ApiMa
 		ResourceGroup:  resourceGroup,
 		ServiceName:    serviceName,
 	}
+}
+
+func (id ApiManagementId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Service Name %q", id.ServiceName),
+	}
+	return strings.Join(segments, " / ")
 }
 
 func (id ApiManagementId) ID(_ string) string {

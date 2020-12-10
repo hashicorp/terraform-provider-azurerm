@@ -229,7 +229,7 @@ Additional examples of how to run Containers via the `azurerm_app_service` resou
 
 * `min_tls_version` - (Optional) The minimum supported TLS version for the app service. Possible values are `1.0`, `1.1`, and `1.2`. Defaults to `1.2` for new app services.
 
-* `php_version` - (Optional) The version of PHP to use in this App Service. Possible values are `5.5`, `5.6`, `7.0`, `7.1`, `7.2`, and `7.3`.
+* `php_version` - (Optional) The version of PHP to use in this App Service. Possible values are `5.5`, `5.6`, `7.0`, `7.1`, `7.2`, `7.3` and `7.4`.
 
 * `python_version` - (Optional) The version of Python to use in this App Service. Possible values are `2.7` and `3.4`.
 

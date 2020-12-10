@@ -411,8 +411,8 @@ func FrontDoorV1ToV2(rawState map[string]interface{}, _ interface{}) (map[string
 		return rawState, fmt.Errorf("couldn't find the `frontDoors` segment in the old resource id %q", oldId)
 	}
 
-	newId := parse.NewFrontDoorID(resourceGroup, frontDoorName)
-	newIdStr := newId.ID(oldParsedId.SubscriptionID)
+	newId := parse.NewFrontDoorID(oldParsedId.SubscriptionID, resourceGroup, frontDoorName)
+	newIdStr := newId.ID("")
 
 	log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newIdStr)
 

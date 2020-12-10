@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -132,22 +133,21 @@ func dataSourceArmTrafficManagerProfile() *schema.Resource {
 
 func dataSourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).TrafficManager.ProfilesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewTrafficManagerProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Traffic Manager Profile %q was not found in Resource Group %q", name, resourceGroup)
+			return fmt.Errorf("Traffic Manager Profile %q was not found in Resource Group %q", id.Name, id.ResourceGroup)
 		}
 
-		return fmt.Errorf("Error retrieving Traffic Manager Profile %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Traffic Manager Profile %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID(""))
 
 	if profile := resp.ProfileProperties; profile != nil {
 		d.Set("profile_status", profile.ProfileStatus)
