@@ -25,10 +25,11 @@ func NewSubnetServiceEndpointStoragePolicyID(subscriptionId, resourceGroup, serv
 
 func (id SubnetServiceEndpointStoragePolicyId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Service Endpoint Policy Name %q", id.ServiceEndpointPolicyName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Subnet Service Endpoint Storage Policy", segmentsStr)
 }
 
 func (id SubnetServiceEndpointStoragePolicyId) ID(_ string) string {
