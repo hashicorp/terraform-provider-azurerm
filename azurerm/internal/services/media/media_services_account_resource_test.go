@@ -141,7 +141,7 @@ func (r MediaServicesAccountResource) requiresImport(data acceptance.TestData) s
 resource "azurerm_media_services_account" "import" {
   name                = azurerm_media_services_account.test.name
   location            = azurerm_media_services_account.test.location
-  resource_group_name = azurerm_media_services_account.test.name
+  resource_group_name = azurerm_media_services_account.test.resource_group_name
 
   storage_account {
     id         = azurerm_storage_account.first.id
