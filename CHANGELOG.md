@@ -1,3 +1,14 @@
+
+## 2.41.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource:** `azurerm_subnet_service_endpoint_storage_policy` [GH-8966]
+
+IMPROVEMENTS:
+
+* `azurerm_subnet` - support for the `service_endpoint_policy` block [GH-8966]
+
 ## 2.40.0 (December 10, 2020)
 
 FEATURES:
