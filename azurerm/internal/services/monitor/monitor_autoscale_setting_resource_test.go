@@ -843,6 +843,72 @@ resource "azurerm_monitor_autoscale_setting" "test" {
 `, template, data.RandomInteger)
 }
 
+func testAccAzureRMMonitorAutoScaleSetting_multipleRulesDimensions(data acceptance.TestData) string {
+	template := testAccAzureRMMonitorAutoScaleSetting_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_monitor_autoscale_setting" "test" {
+  name                = "acctestautoscale-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  target_resource_id  = azurerm_virtual_machine_scale_set.test.id
+  enabled             = true
+
+  profile {
+    name = "metricRules"
+
+    capacity {
+      default = 1
+      minimum = 1
+      maximum = 10
+    }
+
+    rule {
+      metric_trigger {
+        metric_name        = "Percentage CPU"
+        metric_resource_id = azurerm_virtual_machine_scale_set.test.id
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "GreaterThan"
+        threshold          = 75
+        metric_namespace   = "Compute"
+      }
+
+      scale_action {
+        direction = "Increase"
+        type      = "ChangeCount"
+        value     = 1
+        cooldown  = "PT1M"
+      }
+    }
+
+    rule {
+      metric_trigger {
+        metric_name        = "Percentage CPU"
+        metric_resource_id = azurerm_virtual_machine_scale_set.test.id
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "LessThan"
+        threshold          = 25
+      }
+
+      scale_action {
+        direction = "Decrease"
+        type      = "ChangeCount"
+        value     = 1
+        cooldown  = "PT1M"
+      }
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
 func testAccAzureRMMonitorAutoScaleSetting_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
