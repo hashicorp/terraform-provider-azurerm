@@ -3,6 +3,7 @@
 
 FEATURES:
 
+* **New Resource:** `azurerm_media_streaming_endpoint` [GH-9537]
 * **New Resource:** `azurerm_subnet_service_endpoint_storage_policy` [GH-8966]
 
 IMPROVEMENTS:
