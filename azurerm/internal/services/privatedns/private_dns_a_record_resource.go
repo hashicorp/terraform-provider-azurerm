@@ -11,7 +11,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -22,9 +24,10 @@ func resourceArmPrivateDnsARecord() *schema.Resource {
 		Read:   resourceArmPrivateDnsARecordRead,
 		Update: resourceArmPrivateDnsARecordCreateUpdate,
 		Delete: resourceArmPrivateDnsARecordDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.ARecordID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -172,8 +175,8 @@ func resourceArmPrivateDnsARecordDelete(d *schema.ResourceData, meta interface{}
 	}
 
 	resGroup := id.ResourceGroup
-	name := id.Path["A"]
 	zoneName := id.Path["privateDnsZones"]
+	name := id.Path["A"]
 
 	resp, err := dnsClient.Delete(ctx, resGroup, zoneName, privatedns.A, name, "")
 	if resp.StatusCode != http.StatusOK {
