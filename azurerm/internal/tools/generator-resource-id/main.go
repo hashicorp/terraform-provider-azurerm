@@ -6,8 +6,10 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path"
+	"path/filepath"
+	"sort"
 	"strings"
-	"time"
 	"unicode"
 )
 
@@ -31,18 +33,28 @@ func main() {
 }
 
 func run(servicePackagePath, name, id string, shouldRewrite bool) error {
-	parsersPath := fmt.Sprintf("%s/parse", servicePackagePath)
-	if err := os.Mkdir(parsersPath, 0644); !os.IsExist(err) {
+	servicePackage, err := parseServicePackageName(servicePackagePath)
+	if err != nil {
+		return fmt.Errorf("determining Service Package Name for %q: %+v", servicePackagePath, err)
+	}
+
+	parsersPath := path.Join(servicePackagePath, "/parse")
+	if err := os.Mkdir(parsersPath, 0755); err != nil && !os.IsExist(err) {
 		return fmt.Errorf("creating parse directory at %q: %+v", parsersPath, err)
 	}
+
+	validatorPath := path.Join(servicePackagePath, "/validate")
+	if err := os.Mkdir(validatorPath, 0755); err != nil && !os.IsExist(err) {
+		return fmt.Errorf("creating validate directory at %q: %+v", validatorPath, err)
+	}
+
 	fileName := convertToSnakeCase(name)
+	validatorFileName := fmt.Sprintf("%s_id", fileName)
 	if strings.HasSuffix(fileName, "_test") {
 		// e.g. "webtest" in applicationInsights
 		fileName += "_id"
 	}
-	parserFilePath := fmt.Sprintf("%s/%s.go", parsersPath, fileName)
-	parserTestsFilePath := fmt.Sprintf("%s/%s_test.go", parsersPath, fileName)
-	resourceId, err := NewResourceID(name, id)
+	resourceId, err := NewResourceID(name, *servicePackage, id)
 	if err != nil {
 		return err
 	}
@@ -51,29 +63,95 @@ func run(servicePackagePath, name, id string, shouldRewrite bool) error {
 		ResourceId:    *resourceId,
 		ShouldRewrite: shouldRewrite,
 	}
+
+	parserFilePath := fmt.Sprintf("%s/%s.go", parsersPath, fileName)
 	if err := goFmtAndWriteToFile(parserFilePath, generator.Code()); err != nil {
-		return err
+		return fmt.Errorf("generating Parser at %q: %+v", parserFilePath, err)
 	}
+
+	parserTestsFilePath := fmt.Sprintf("%s/%s_test.go", parsersPath, fileName)
 	if err := goFmtAndWriteToFile(parserTestsFilePath, generator.TestCode()); err != nil {
-		return err
+		return fmt.Errorf("generating Parser Tests at %q: %+v", parserTestsFilePath, err)
+	}
+
+	validatorFilePath := fmt.Sprintf("%s/%s.go", validatorPath, validatorFileName)
+	if err := goFmtAndWriteToFile(validatorFilePath, generator.ValidatorCode()); err != nil {
+		return fmt.Errorf("generating Validator at %q: %+v", validatorFilePath, err)
+	}
+
+	validatorTestsFilePath := fmt.Sprintf("%s/%s_test.go", validatorPath, validatorFileName)
+	if err := goFmtAndWriteToFile(validatorTestsFilePath, generator.ValidatorTestCode()); err != nil {
+		return fmt.Errorf("generating Validator Tests at %q: %+v", validatorTestsFilePath, err)
 	}
 
 	return nil
 }
 
-func convertToSnakeCase(input string) string {
-	out := make([]rune, 0)
-	for _, char := range input {
-		if unicode.IsUpper(char) {
-			out = append(out, '_')
-			out = append(out, unicode.ToLower(char))
-			continue
+func parseServicePackageName(relativePath string) (*string, error) {
+	path := relativePath
+	if !filepath.IsAbs(path) {
+		abs, err := filepath.Abs(path)
+		if err != nil {
+			return nil, err
 		}
 
-		out = append(out, char)
+		path = abs
 	}
-	val := string(out)
-	return strings.TrimPrefix(val, "_")
+
+	// we do this replacement to avoid the case that on windows machine, the absolute path are using the path separator of \ instead of /
+	path = strings.ReplaceAll(path, "\\", "/")
+	segments := strings.Split(path, "/")
+	serviceIndex := -1
+	for i, v := range segments {
+		if strings.EqualFold(v, "services") {
+			serviceIndex = i
+			break
+		}
+	}
+
+	if serviceIndex == -1 {
+		return nil, fmt.Errorf("`services` segment was not found")
+	}
+
+	if len(segments) <= serviceIndex {
+		return nil, fmt.Errorf("not enough segments")
+	}
+
+	servicePackageName := segments[serviceIndex+1]
+	return &servicePackageName, nil
+}
+
+func convertToSnakeCase(input string) string {
+	splitIdxMap := map[int]struct{}{}
+	var lastChar rune
+	for idx, char := range input {
+		switch {
+		case idx == 0:
+			splitIdxMap[idx] = struct{}{}
+		case unicode.IsUpper(lastChar) == unicode.IsUpper(char):
+		case unicode.IsUpper(lastChar):
+			splitIdxMap[idx-1] = struct{}{}
+		case unicode.IsUpper(char):
+			splitIdxMap[idx] = struct{}{}
+		}
+		lastChar = char
+	}
+	splitIdx := make([]int, 0, len(splitIdxMap))
+	for idx := range splitIdxMap {
+		splitIdx = append(splitIdx, idx)
+	}
+	sort.Ints(splitIdx)
+
+	inputRunes := []rune(input)
+	out := make([]string, len(splitIdx))
+	for i := range splitIdx {
+		if i == len(splitIdx)-1 {
+			out[i] = strings.ToLower(string(inputRunes[splitIdx[i]:]))
+			continue
+		}
+		out[i] = strings.ToLower(string(inputRunes[splitIdx[i]:splitIdx[i+1]]))
+	}
+	return strings.Join(out, "_")
 }
 
 type ResourceIdSegment struct {
@@ -95,12 +173,14 @@ type ResourceId struct {
 	IDFmt    string
 	IDRaw    string
 
+	ServicePackageName string
+
 	HasResourceGroup  bool
 	HasSubscriptionId bool
 	Segments          []ResourceIdSegment // this has to be a slice not a map since we care about the order
 }
 
-func NewResourceID(typeName, resourceId string) (*ResourceId, error) {
+func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId, error) {
 	// split the string, but remove the prefix of `/` since it's an empty segment
 	split := strings.Split(strings.TrimPrefix(resourceId, "/"), "/")
 	if len(split)%2 != 0 {
@@ -117,7 +197,7 @@ func NewResourceID(typeName, resourceId string) (*ResourceId, error) {
 			continue
 		}
 
-		var segmentBuilder = func(key, value string) ResourceIdSegment {
+		var segmentBuilder = func(key, value string, hasSubscriptionId bool) ResourceIdSegment {
 			var toCamelCase = func(input string) string {
 				// lazy but it works
 				out := make([]rune, 0)
@@ -146,7 +226,7 @@ func NewResourceID(typeName, resourceId string) (*ResourceId, error) {
 				return segment
 			}
 
-			if key == "subscriptions" {
+			if key == "subscriptions" && !hasSubscriptionId {
 				segment.FieldName = "SubscriptionId"
 				segment.ArgumentName = "subscriptionId"
 				return segment
@@ -161,7 +241,11 @@ func NewResourceID(typeName, resourceId string) (*ResourceId, error) {
 					key = fmt.Sprintf("%sy", key)
 				}
 
-				if strings.HasSuffix(key, "s") {
+				// handles `PublicIPAddressesName`
+				if strings.HasSuffix(key, "sses") {
+					key = strings.TrimSuffix(key, "sses")
+					key = fmt.Sprintf("%sss", key)
+				} else if strings.HasSuffix(key, "s") {
 					key = strings.TrimSuffix(key, "s")
 				}
 
@@ -179,7 +263,17 @@ func NewResourceID(typeName, resourceId string) (*ResourceId, error) {
 			return segment
 		}
 
-		segments = append(segments, segmentBuilder(key, value))
+		// handle multiple 'subscriptions' segments, ala ServiceBus Subscription
+		hasSubscriptionId := false
+		for _, v := range segments {
+			if v.FieldName == "SubscriptionId" {
+				hasSubscriptionId = true
+				break
+			}
+		}
+
+		segment := segmentBuilder(key, value, hasSubscriptionId)
+		segments = append(segments, segment)
 	}
 
 	// finally build up the format string based on this information
@@ -199,12 +293,13 @@ func NewResourceID(typeName, resourceId string) (*ResourceId, error) {
 	}
 
 	return &ResourceId{
-		IDFmt:             fmtString,
-		IDRaw:             resourceId,
-		HasResourceGroup:  hasResourceGroup,
-		HasSubscriptionId: hasSubscriptionId,
-		Segments:          segments,
-		TypeName:          typeName,
+		IDFmt:              fmtString,
+		IDRaw:              resourceId,
+		HasResourceGroup:   hasResourceGroup,
+		HasSubscriptionId:  hasSubscriptionId,
+		Segments:           segments,
+		ServicePackageName: servicePackageName,
+		TypeName:           typeName,
 	}, nil
 }
 
@@ -222,6 +317,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -231,7 +327,8 @@ import (
 %s
 %s
 %s
-`, id.codeForType(), id.codeForConstructor(), id.codeForFormatter(), id.codeForParser(), id.codeForParserInsensitive())
+%s
+`, id.codeForType(), id.codeForConstructor(), id.codeForDescription(), id.codeForFormatter(), id.codeForParser(), id.codeForParserInsensitive())
 }
 
 func (id ResourceIdGenerator) codeForType() string {
@@ -267,6 +364,40 @@ func New%[1]sID(%[2]s string) %[1]sId {
 `, id.TypeName, argumentsStr, assignmentsStr)
 }
 
+func (id ResourceIdGenerator) codeForDescription() string {
+	var makeHumanReadable = func(input string) string {
+		chars := make([]rune, 0)
+		for _, c := range input {
+			if unicode.IsUpper(c) {
+				chars = append(chars, ' ')
+			}
+
+			chars = append(chars, c)
+		}
+		out := string(chars)
+		return strings.TrimSpace(out)
+	}
+
+	formatKeys := make([]string, 0)
+	for _, segment := range id.Segments {
+		if segment.FieldName == "SubscriptionId" {
+			continue
+		}
+
+		humanReadableKey := makeHumanReadable(segment.FieldName)
+		formatKeys = append(formatKeys, fmt.Sprintf("\t\tfmt.Sprintf(\"%[1]s %%q\", id.%[2]s),", humanReadableKey, segment.FieldName))
+	}
+	formatKeysString := strings.Join(formatKeys, "\n")
+	return fmt.Sprintf(`
+func (id %[1]sId) String() string {
+	segments := []string{
+%s
+	}
+	return strings.Join(segments, " / ")
+}
+`, id.TypeName, formatKeysString)
+}
+
 func (id ResourceIdGenerator) codeForFormatter() string {
 	formatKeys := make([]string, 0)
 	for _, segment := range id.Segments {
@@ -293,12 +424,14 @@ func (id ResourceIdGenerator) codeForParser() string {
 
 	parserStatements := make([]string, 0)
 	for _, segment := range id.Segments {
-		if strings.EqualFold(segment.SegmentKey, "subscriptions") && id.HasSubscriptionId {
-			// direct assigned above
-			continue
-		}
-		if strings.EqualFold(segment.SegmentKey, "resourceGroups") && id.HasResourceGroup {
-			// direct assigned above
+		isSubscription := strings.EqualFold(segment.FieldName, "SubscriptionId") && id.HasSubscriptionId
+		isResourceGroup := strings.EqualFold(segment.FieldName, "ResourceGroup") && id.HasResourceGroup
+		if isSubscription || isResourceGroup {
+			parserStatements = append(parserStatements, fmt.Sprintf(`
+	if resourceId.%[1]s == "" {
+		return nil, fmt.Errorf("ID was missing the '%[2]s' element")
+	}
+`, segment.FieldName, segment.SegmentKey))
 			continue
 		}
 
@@ -346,12 +479,14 @@ func (id ResourceIdGenerator) codeForParserInsensitive() string {
 
 	parserStatements := make([]string, 0)
 	for _, segment := range id.Segments {
-		if strings.EqualFold(segment.SegmentKey, "subscriptions") && id.HasSubscriptionId {
-			// direct assigned above
-			continue
-		}
-		if strings.EqualFold(segment.SegmentKey, "resourceGroups") && id.HasResourceGroup {
-			// direct assigned above
+		isSubscription := strings.EqualFold(segment.FieldName, "SubscriptionId") && id.HasSubscriptionId
+		isResourceGroup := strings.EqualFold(segment.FieldName, "ResourceGroup") && id.HasResourceGroup
+		if isSubscription || isResourceGroup {
+			parserStatements = append(parserStatements, fmt.Sprintf(`
+	if resourceId.%[1]s == "" {
+		return nil, fmt.Errorf("ID was missing the '%[2]s' element")
+	}
+`, segment.FieldName, segment.SegmentKey))
 			continue
 		}
 
@@ -484,7 +619,7 @@ func (id ResourceIdGenerator) testCodeForParser() string {
 		},
 `, id.IDRaw, id.TypeName, strings.Join(expectAssignments, "\n")))
 
-	// add an intentionally failing lower-cased test case
+	// add an intentionally failing upper-cased test case
 	testCases = append(testCases, fmt.Sprintf(`
 		{
 			// upper-cased
@@ -644,6 +779,104 @@ func Test%[1]sIDInsensitively(t *testing.T) {
 `, id.TypeName, testCasesStr, assignmentCheckStr)
 }
 
+func (id ResourceIdGenerator) ValidatorCode() string {
+	return fmt.Sprintf(`package validate
+
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
+import (
+	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/%[2]s/parse"
+)
+
+func %[1]sID(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %%q to be a string", key))
+		return
+	}
+
+	if _, err := parse.%[1]sID(v); err != nil {
+		errors = append(errors, err)
+	}
+
+	return
+}
+`, id.TypeName, id.ServicePackageName)
+}
+
+func (id ResourceIdGenerator) ValidatorTestCode() string {
+	testCases := make([]string, 0)
+	testCases = append(testCases, `
+		{
+			// empty
+			Input: "",
+			Valid: false,
+		},
+`)
+	for _, segment := range id.Segments {
+		testCaseFmt := `
+		{
+			// missing %s
+			Input: %q,
+			Valid: false,
+		},`
+		// missing the key
+		resourceIdToThisPointIndex := strings.Index(id.IDRaw, segment.SegmentKey)
+		resourceIdToThisPoint := id.IDRaw[0:resourceIdToThisPointIndex]
+		testCases = append(testCases, fmt.Sprintf(testCaseFmt, segment.FieldName, resourceIdToThisPoint))
+
+		// missing the value
+		resourceIdToThisPointIndex = strings.Index(id.IDRaw, segment.SegmentValue)
+		resourceIdToThisPoint = id.IDRaw[0:resourceIdToThisPointIndex]
+		testCases = append(testCases, fmt.Sprintf(testCaseFmt, fmt.Sprintf("value for %s", segment.FieldName), resourceIdToThisPoint))
+	}
+
+	// add a successful test case
+	testCases = append(testCases, fmt.Sprintf(`
+		{
+			// valid
+			Input: %q,
+			Valid: true,
+		},
+`, id.IDRaw))
+
+	// add an intentionally failing upper-cased test case
+	testCases = append(testCases, fmt.Sprintf(`
+		{
+			// upper-cased
+			Input: %q,
+			Valid: false,
+		},`, strings.ToUpper(id.IDRaw)))
+
+	testCasesStr := strings.Join(testCases, "\n")
+
+	return fmt.Sprintf(`package validate
+
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
+import "testing"
+
+func Test%[1]sID(t *testing.T) {
+	cases := []struct {
+		Input    string
+		Valid bool
+	}{
+%[2]s
+	}
+	for _, tc := range cases {
+		t.Logf("[DEBUG] Testing Value %%s", tc.Input)
+		_, errors := %[1]sID(tc.Input, "test")
+		valid := len(errors) == 0
+
+		if tc.Valid != valid {
+			t.Fatalf("Expected %%t but got %%t", tc.Valid, valid)
+		}
+	}
+}
+`, id.TypeName, testCasesStr)
+}
+
 func goFmtAndWriteToFile(filePath, fileContents string) error {
 	fmt, err := GolangCodeFormatter{}.Format(fileContents)
 	if err != nil {
@@ -660,11 +893,18 @@ func goFmtAndWriteToFile(filePath, fileContents string) error {
 type GolangCodeFormatter struct{}
 
 func (f GolangCodeFormatter) Format(input string) (*string, error) {
-	filePath := f.randomFilePath()
-	if err := f.writeContentsToFile(filePath, input); err != nil {
+	tmpfile, err := ioutil.TempFile("", "temp-*.go")
+	if err != nil {
+		return nil, fmt.Errorf("creating temp file: %+v", err)
+	}
+
+	defer os.Remove(tmpfile.Name()) // clean up
+
+	filePath := tmpfile.Name()
+
+	if _, err := tmpfile.WriteString(input); err != nil {
 		return nil, fmt.Errorf("writing contents to %q: %+v", filePath, err)
 	}
-	defer f.deleteFileContents(filePath)
 
 	f.runGoFmt(filePath)
 	f.runGoImports(filePath)
@@ -675,11 +915,6 @@ func (f GolangCodeFormatter) Format(input string) (*string, error) {
 	}
 
 	return contents, nil
-}
-
-func (f GolangCodeFormatter) randomFilePath() string {
-	time := time.Now().Unix()
-	return fmt.Sprintf("%stemp-%d.go", os.TempDir(), time)
 }
 
 func (f GolangCodeFormatter) runGoFmt(filePath string) {
@@ -696,10 +931,6 @@ func (f GolangCodeFormatter) runGoImports(filePath string) {
 	_ = cmd.Wait()
 }
 
-func (f GolangCodeFormatter) deleteFileContents(filePath string) {
-	_ = os.Remove(filePath)
-}
-
 func (f GolangCodeFormatter) readFileContents(filePath string) (*string, error) {
 	data, err := ioutil.ReadFile(filePath)
 	if err != nil {
@@ -708,18 +939,4 @@ func (f GolangCodeFormatter) readFileContents(filePath string) (*string, error) 
 
 	contents := string(data)
 	return &contents, nil
-}
-
-func (GolangCodeFormatter) writeContentsToFile(filePath, contents string) error {
-	file, err := os.Create(filePath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	if _, err = file.WriteString(contents); err != nil {
-		return err
-	}
-
-	return nil
 }

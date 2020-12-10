@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -22,6 +23,14 @@ func NewEmbeddedID(subscriptionId, resourceGroup, capacityName string) EmbeddedI
 	}
 }
 
+func (id EmbeddedId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Capacity Name %q", id.CapacityName),
+	}
+	return strings.Join(segments, " / ")
+}
+
 func (id EmbeddedId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.PowerBIDedicated/capacities/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.CapacityName)
@@ -37,6 +46,14 @@ func EmbeddedID(input string) (*EmbeddedId, error) {
 	resourceId := EmbeddedId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.CapacityName, err = id.PopSegment("capacities"); err != nil {

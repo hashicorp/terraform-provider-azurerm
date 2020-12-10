@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDnsNsRecord() *schema.Resource {
+func resourceDnsNsRecord() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDnsNsRecordCreate,
-		Read:   resourceArmDnsNsRecordRead,
-		Update: resourceArmDnsNsRecordUpdate,
-		Delete: resourceArmDnsNsRecordDelete,
+		Create: resourceDnsNsRecordCreate,
+		Read:   resourceDnsNsRecordRead,
+		Update: resourceDnsNsRecordUpdate,
+		Delete: resourceDnsNsRecordDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -73,7 +73,7 @@ func resourceArmDnsNsRecord() *schema.Resource {
 	}
 }
 
-func resourceArmDnsNsRecordCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsNsRecordCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -125,10 +125,10 @@ func resourceArmDnsNsRecordCreate(d *schema.ResourceData, meta interface{}) erro
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDnsNsRecordRead(d, meta)
+	return resourceDnsNsRecordRead(d, meta)
 }
 
-func resourceArmDnsNsRecordUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsNsRecordUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -172,10 +172,10 @@ func resourceArmDnsNsRecordUpdate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error updating DNS NS Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
-	return resourceArmDnsNsRecordRead(d, meta)
+	return resourceDnsNsRecordRead(d, meta)
 }
 
-func resourceArmDnsNsRecordRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsNsRecordRead(d *schema.ResourceData, meta interface{}) error {
 	dnsClient := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -210,7 +210,7 @@ func resourceArmDnsNsRecordRead(d *schema.ResourceData, meta interface{}) error 
 	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
-func resourceArmDnsNsRecordDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsNsRecordDelete(d *schema.ResourceData, meta interface{}) error {
 	dnsClient := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -26,6 +27,16 @@ func NewSharedImageVersionID(subscriptionId, resourceGroup, galleryName, imageNa
 	}
 }
 
+func (id SharedImageVersionId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Gallery Name %q", id.GalleryName),
+		fmt.Sprintf("Image Name %q", id.ImageName),
+		fmt.Sprintf("Version Name %q", id.VersionName),
+	}
+	return strings.Join(segments, " / ")
+}
+
 func (id SharedImageVersionId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/galleries/%s/images/%s/versions/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.GalleryName, id.ImageName, id.VersionName)
@@ -41,6 +52,14 @@ func SharedImageVersionID(input string) (*SharedImageVersionId, error) {
 	resourceId := SharedImageVersionId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.GalleryName, err = id.PopSegment("galleries"); err != nil {

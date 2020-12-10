@@ -45,7 +45,7 @@ func resourceArmMySQLServerKey() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.MySQLServerID,
+				ValidateFunc: validate.ServerID,
 			},
 
 			"key_vault_key_id": {

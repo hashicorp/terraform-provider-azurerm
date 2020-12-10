@@ -45,7 +45,7 @@ func resourceManagedApplication() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ManagedApplicationName,
+				ValidateFunc: validate.ApplicationName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -67,7 +67,7 @@ func resourceManagedApplication() *schema.Resource {
 			"application_definition_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.ManagedApplicationDefinitionID,
+				ValidateFunc: validate.ApplicationDefinitionID,
 			},
 
 			"parameters": {
@@ -232,7 +232,7 @@ func resourceManagedApplicationRead(d *schema.ResourceData, meta interface{}) er
 			return err
 		}
 
-		d.Set("managed_resource_group_name", id.Name)
+		d.Set("managed_resource_group_name", id.ResourceGroup)
 		d.Set("application_definition_id", props.ApplicationDefinitionID)
 
 		if err = d.Set("parameters", flattenManagedApplicationParametersOrOutputs(props.Parameters)); err != nil {

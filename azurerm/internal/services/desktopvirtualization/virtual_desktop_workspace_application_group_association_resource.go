@@ -19,11 +19,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociation() *schema.Resource {
+func resourceVirtualDesktopWorkspaceApplicationGroupAssociation() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationCreate,
-		Read:   resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationRead,
-		Delete: resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationDelete,
+		Create: resourceVirtualDesktopWorkspaceApplicationGroupAssociationCreate,
+		Read:   resourceVirtualDesktopWorkspaceApplicationGroupAssociationRead,
+		Delete: resourceVirtualDesktopWorkspaceApplicationGroupAssociationDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -51,22 +51,21 @@ func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociation() *schema.Res
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.VirtualDesktopWorkspaceID,
+				ValidateFunc: validate.WorkspaceID,
 			},
 
 			"application_group_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.VirtualDesktopApplicationGroupID,
+				ValidateFunc: validate.ApplicationGroupID,
 			},
 		},
 	}
 }
 
-func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopWorkspaceApplicationGroupAssociationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.WorkspacesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -101,7 +100,7 @@ func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationCreate(d *sche
 		applicationGroupAssociations = *props.ApplicationGroupReferences
 	}
 
-	applicationGroupIdStr := applicationGroupId.ID(subscriptionId)
+	applicationGroupIdStr := applicationGroupId.ID("")
 	if associationExists(workspace.WorkspaceProperties, applicationGroupIdStr) {
 		return tf.ImportAsExistsError("azurerm_virtual_desktop_workspace_application_group_association", associationId)
 	}
@@ -114,10 +113,10 @@ func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationCreate(d *sche
 	}
 
 	d.SetId(associationId)
-	return resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationRead(d, meta)
+	return resourceVirtualDesktopWorkspaceApplicationGroupAssociationRead(d, meta)
 }
 
-func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopWorkspaceApplicationGroupAssociationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.WorkspacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -152,9 +151,8 @@ func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationRead(d *schema
 	return nil
 }
 
-func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopWorkspaceApplicationGroupAssociationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.WorkspacesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -179,7 +177,7 @@ func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationDelete(d *sche
 	}
 
 	applicationGroupReferences := []string{}
-	applicationGroupId := id.ApplicationGroup.ID(subscriptionId)
+	applicationGroupId := id.ApplicationGroup.ID("")
 	if workspace.WorkspaceProperties != nil && workspace.WorkspaceProperties.ApplicationGroupReferences != nil {
 		for _, referenceId := range *workspace.WorkspaceProperties.ApplicationGroupReferences {
 			if strings.EqualFold(referenceId, applicationGroupId) {

@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -24,6 +25,15 @@ func NewNodePoolID(subscriptionId, resourceGroup, managedClusterName, agentPoolN
 	}
 }
 
+func (id NodePoolId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Managed Cluster Name %q", id.ManagedClusterName),
+		fmt.Sprintf("Agent Pool Name %q", id.AgentPoolName),
+	}
+	return strings.Join(segments, " / ")
+}
+
 func (id NodePoolId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ContainerService/managedClusters/%s/agentPools/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ManagedClusterName, id.AgentPoolName)
@@ -39,6 +49,14 @@ func NodePoolID(input string) (*NodePoolId, error) {
 	resourceId := NodePoolId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.ManagedClusterName, err = id.PopSegment("managedClusters"); err != nil {

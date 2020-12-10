@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -22,6 +23,14 @@ func NewDedicatedHostGroupID(subscriptionId, resourceGroup, hostGroupName string
 	}
 }
 
+func (id DedicatedHostGroupId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Host Group Name %q", id.HostGroupName),
+	}
+	return strings.Join(segments, " / ")
+}
+
 func (id DedicatedHostGroupId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/hostGroups/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.HostGroupName)
@@ -37,6 +46,14 @@ func DedicatedHostGroupID(input string) (*DedicatedHostGroupId, error) {
 	resourceId := DedicatedHostGroupId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.HostGroupName, err = id.PopSegment("hostGroups"); err != nil {

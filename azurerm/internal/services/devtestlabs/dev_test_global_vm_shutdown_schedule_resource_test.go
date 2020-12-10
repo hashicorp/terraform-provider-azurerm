@@ -1,180 +1,124 @@
 package devtestlabs_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	computeParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccDevTestLabGlobalVMShutdownSchedule_autoShutdownBasic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_dev_test_global_vm_shutdown_schedule", "test")
+type DevTestGlobalVMShutdownScheduleResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestLabGlobalVMShutdownScheduleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDevTestLabGlobalVMShutdownSchedule_autoShutdownBasic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDevTestLabGlobalVMShutdownScheduleExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "timezone", "Pacific Standard Time"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification_settings.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification_settings.0.enabled", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification_settings.0.time_in_minutes", "30"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification_settings.0.webhook_url", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "daily_recurrence_time", "0100"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Production"),
-				),
-			},
-			data.ImportStep(),
+func TestAccDevTestGlobalVMShutdownSchedule_autoShutdownBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dev_test_global_vm_shutdown_schedule", "test")
+	r := DevTestGlobalVMShutdownScheduleResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.autoShutdownBasic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("timezone").HasValue("Pacific Standard Time"),
+				check.That(data.ResourceName).Key("notification_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("notification_settings.0.enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("notification_settings.0.time_in_minutes").HasValue("30"),
+				check.That(data.ResourceName).Key("notification_settings.0.webhook_url").HasValue(""),
+				check.That(data.ResourceName).Key("daily_recurrence_time").HasValue("0100"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDevTestGlobalVMShutdownSchedule_autoShutdownComplete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dev_test_global_vm_shutdown_schedule", "test")
+	r := DevTestGlobalVMShutdownScheduleResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.autoShutdownComplete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("timezone").HasValue("Central Standard Time"),
+				check.That(data.ResourceName).Key("notification_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("notification_settings.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("notification_settings.0.time_in_minutes").HasValue("15"),
+				check.That(data.ResourceName).Key("notification_settings.0.webhook_url").HasValue("https://www.bing.com/2/4"),
+				check.That(data.ResourceName).Key("daily_recurrence_time").HasValue("1100"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.Environment").HasValue("Production"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDevTestGlobalVMShutdownSchedule_autoShutdownUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dev_test_global_vm_shutdown_schedule", "test")
+	r := DevTestGlobalVMShutdownScheduleResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.autoShutdownBasic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("timezone").HasValue("Pacific Standard Time"),
+				check.That(data.ResourceName).Key("notification_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("notification_settings.0.enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("notification_settings.0.time_in_minutes").HasValue("30"),
+				check.That(data.ResourceName).Key("notification_settings.0.webhook_url").HasValue(""),
+				check.That(data.ResourceName).Key("daily_recurrence_time").HasValue("0100"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.autoShutdownComplete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("timezone").HasValue("Central Standard Time"),
+				check.That(data.ResourceName).Key("notification_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("notification_settings.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("notification_settings.0.time_in_minutes").HasValue("15"),
+				check.That(data.ResourceName).Key("notification_settings.0.webhook_url").HasValue("https://www.bing.com/2/4"),
+				check.That(data.ResourceName).Key("daily_recurrence_time").HasValue("1100"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.Environment").HasValue("Production"),
+			),
 		},
 	})
 }
 
-func TestAccDevTestLabGlobalVMShutdownSchedule_autoShutdownComplete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_dev_test_global_vm_shutdown_schedule", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestLabGlobalVMShutdownScheduleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDevTestLabGlobalVMShutdownSchedule_autoShutdownComplete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDevTestLabGlobalVMShutdownScheduleExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "timezone", "Central Standard Time"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification_settings.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification_settings.0.time_in_minutes", "15"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification_settings.0.webhook_url", "https://www.bing.com/2/4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "daily_recurrence_time", "1100"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.Environment", "Production"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccDevTestLabGlobalVMShutdownSchedule_autoShutdownUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_dev_test_global_vm_shutdown_schedule", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestLabGlobalVMShutdownScheduleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDevTestLabGlobalVMShutdownSchedule_autoShutdownBasic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDevTestLabGlobalVMShutdownScheduleExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "timezone", "Pacific Standard Time"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification_settings.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification_settings.0.enabled", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification_settings.0.time_in_minutes", "30"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification_settings.0.webhook_url", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "daily_recurrence_time", "0100"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Production"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccDevTestLabGlobalVMShutdownSchedule_autoShutdownComplete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDevTestLabGlobalVMShutdownScheduleExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "timezone", "Central Standard Time"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification_settings.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification_settings.0.time_in_minutes", "15"),
-					resource.TestCheckResourceAttr(data.ResourceName, "notification_settings.0.webhook_url", "https://www.bing.com/2/4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "daily_recurrence_time", "1100"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.Environment", "Production"),
-				),
-			},
-		},
-	})
-}
-
-func testCheckDevTestLabGlobalVMShutdownScheduleExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		targetResourceID := rs.Primary.Attributes["virtual_machine_id"]
-		exists, err := testCheckDevTestLabGlobalVMShutdownScheduleExistsInternal(targetResourceID)
-		if err != nil {
-			return fmt.Errorf("Error checking if item has been created: %s", err)
-		}
-		if !exists {
-			return fmt.Errorf("Bad: Dev Test Lab Global Schedule %q does not exist", targetResourceID)
-		}
-
-		return nil
-	}
-}
-
-func testCheckDevTestLabGlobalVMShutdownScheduleDestroy(s *terraform.State) error {
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_dev_test_global_vm_shutdown_schedule" {
-			continue
-		}
-
-		targetResourceID := rs.Primary.Attributes["virtual_machine_id"]
-		exists, err := testCheckDevTestLabGlobalVMShutdownScheduleExistsInternal(targetResourceID)
-		if err != nil {
-			return fmt.Errorf("Error checking if item has been destroyed: %s", err)
-		}
-		if exists {
-			return fmt.Errorf("Bad: Dev Test Lab Global Schedule %q still exists", targetResourceID)
-		}
-	}
-
-	return nil
-}
-
-func testCheckDevTestLabGlobalVMShutdownScheduleExistsInternal(vmID string) (bool, error) {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.GlobalLabSchedulesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	vm, err := computeParse.VirtualMachineID(vmID)
+func (DevTestGlobalVMShutdownScheduleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ScheduleID(state.ID)
 	if err != nil {
-		return false, fmt.Errorf("Bad: Failed to parse ID (id: %s): %+v", vmID, err)
+		return nil, err
 	}
 
-	vmName := vm.Name
-	name := "shutdown-computevm-" + vmName // Auto-shutdown schedule must use this naming format for Compute VMs
-	resourceGroup := vm.ResourceGroup
-
-	resp, err := client.Get(ctx, resourceGroup, name, "")
+	resp, err := clients.DevTestLabs.GlobalLabSchedulesClient.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return false, nil
-		}
-		return false, fmt.Errorf("Bad: Get on devTestLabsGlobalSchedules client (id: %s): %+v", vmID, err)
+		return nil, fmt.Errorf("retrieving Dev Test Lab Global Schedule %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return true, nil
+	return utils.Bool(resp.ScheduleProperties != nil), nil
 }
 
-func testAccDevTestLabGlobalVMShutdownSchedule_template(data acceptance.TestData) string {
+func (DevTestGlobalVMShutdownScheduleResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -238,8 +182,7 @@ resource "azurerm_linux_virtual_machine" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccDevTestLabGlobalVMShutdownSchedule_autoShutdownBasic(data acceptance.TestData) string {
-	template := testAccDevTestLabGlobalVMShutdownSchedule_template(data)
+func (r DevTestGlobalVMShutdownScheduleResource) autoShutdownBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -257,11 +200,10 @@ resource "azurerm_dev_test_global_vm_shutdown_schedule" "test" {
     environment = "Production"
   }
 }
-`, template)
+`, r.template(data))
 }
 
-func testAccDevTestLabGlobalVMShutdownSchedule_autoShutdownComplete(data acceptance.TestData) string {
-	template := testAccDevTestLabGlobalVMShutdownSchedule_template(data)
+func (r DevTestGlobalVMShutdownScheduleResource) autoShutdownComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -284,5 +226,5 @@ resource "azurerm_dev_test_global_vm_shutdown_schedule" "test" {
   }
 }
 
-`, template)
+`, r.template(data))
 }

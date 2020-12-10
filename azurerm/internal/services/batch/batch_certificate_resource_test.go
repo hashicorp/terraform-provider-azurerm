@@ -91,7 +91,7 @@ func (t BatchCertificateResource) Exists(ctx context.Context, clients *clients.C
 		return nil, err
 	}
 
-	resp, err := clients.Batch.CertificateClient.Get(ctx, id.Name, id.BatchAccountName, id.ResourceGroup)
+	resp, err := clients.Batch.CertificateClient.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Batch Certificate %q (Account Name %q / Resource Group %q) does not exist", id.Name, id.BatchAccountName, id.ResourceGroup)
 	}

@@ -24,12 +24,12 @@ import (
 
 var applicationGroupType = "azurerm_virtual_desktop_application_group"
 
-func resourceArmVirtualDesktopApplicationGroup() *schema.Resource {
+func resourceVirtualDesktopApplicationGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualDesktopApplicationGroupCreateUpdate,
-		Read:   resourceArmVirtualDesktopApplicationGroupRead,
-		Update: resourceArmVirtualDesktopApplicationGroupCreateUpdate,
-		Delete: resourceArmVirtualDesktopApplicationGroupDelete,
+		Create: resourceVirtualDesktopApplicationGroupCreateUpdate,
+		Read:   resourceVirtualDesktopApplicationGroupRead,
+		Update: resourceVirtualDesktopApplicationGroupCreateUpdate,
+		Delete: resourceVirtualDesktopApplicationGroupDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -83,7 +83,7 @@ func resourceArmVirtualDesktopApplicationGroup() *schema.Resource {
 			"host_pool_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.VirtualDesktopHostPoolID,
+				ValidateFunc: validate.HostPoolID,
 			},
 
 			"friendly_name": {
@@ -103,7 +103,7 @@ func resourceArmVirtualDesktopApplicationGroup() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualDesktopApplicationGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopApplicationGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.ApplicationGroupsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 
@@ -151,12 +151,11 @@ func resourceArmVirtualDesktopApplicationGroupCreateUpdate(d *schema.ResourceDat
 	}
 
 	d.SetId(resourceId)
-	return resourceArmVirtualDesktopApplicationGroupRead(d, meta)
+	return resourceVirtualDesktopApplicationGroupRead(d, meta)
 }
 
-func resourceArmVirtualDesktopApplicationGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopApplicationGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.ApplicationGroupsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -196,7 +195,7 @@ func resourceArmVirtualDesktopApplicationGroupRead(d *schema.ResourceData, meta 
 				return fmt.Errorf("parsing Host Pool ID %q: %+v", *props.HostPoolArmPath, err)
 			}
 
-			hostPoolIdStr = hostPoolId.ID(subscriptionId)
+			hostPoolIdStr = hostPoolId.ID("")
 		}
 		d.Set("host_pool_id", hostPoolIdStr)
 	}
@@ -204,7 +203,7 @@ func resourceArmVirtualDesktopApplicationGroupRead(d *schema.ResourceData, meta 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmVirtualDesktopApplicationGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceVirtualDesktopApplicationGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.ApplicationGroupsClient
 
 	id, err := parse.ApplicationGroupID(d.Id())

@@ -26,7 +26,7 @@ func dataSourceBlueprintDefinition() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.BlueprintName,
+				ValidateFunc: validate.DefinitionName,
 			},
 
 			"scope_id": {

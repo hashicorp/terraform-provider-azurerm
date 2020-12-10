@@ -56,14 +56,14 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.MsSqlServerID,
+				ValidateFunc: validate.ServerID,
 			},
 
 			"auto_pause_delay_in_minutes": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validate.MsSqlDatabaseAutoPauseDelay,
+				ValidateFunc: validate.DatabaseAutoPauseDelay,
 			},
 
 			"create_mode": {
@@ -90,13 +90,13 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.MsSqlDBCollation(),
+				ValidateFunc: validate.DatabaseCollation(),
 			},
 
 			"elastic_pool_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.MsSqlElasticPoolID,
+				ValidateFunc: validate.ElasticPoolID,
 			},
 
 			"extended_auditing_policy": helper.ExtendedAuditingSchema(),
@@ -140,13 +140,13 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 			"recover_database_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.MsSqlRecoverableDatabaseID,
+				ValidateFunc: validate.RecoverableDatabaseID,
 			},
 
 			"restore_dropped_database_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.MsSqlRestorableDatabaseID,
+				ValidateFunc: validate.RestorableDatabaseID,
 			},
 
 			"read_replica_count": {
@@ -175,7 +175,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				ValidateFunc:     validate.MsSqlDBSkuName(),
+				ValidateFunc:     validate.DatabaseSkuName(),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
@@ -184,7 +184,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				Computed:     true,
-				ValidateFunc: validate.MsSqlDatabaseID,
+				ValidateFunc: validate.DatabaseID,
 			},
 
 			"zone_redundant": {

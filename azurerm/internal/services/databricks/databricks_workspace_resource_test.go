@@ -222,7 +222,7 @@ func TestAccDatabricksWorkspace_updateSKU(t *testing.T) {
 	})
 }
 
-func (t DatabricksWorkspaceResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (DatabricksWorkspaceResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.WorkspaceID(state.ID)
 	if err != nil {
 		return nil, err

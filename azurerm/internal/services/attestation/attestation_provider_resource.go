@@ -45,7 +45,7 @@ func resourceAttestationProvider() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.AttestationName,
+				ValidateFunc: validate.AttestationProviderName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),

@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -24,6 +25,15 @@ func NewClusterPrincipalAssignmentID(subscriptionId, resourceGroup, clusterName,
 	}
 }
 
+func (id ClusterPrincipalAssignmentId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Cluster Name %q", id.ClusterName),
+		fmt.Sprintf("Principal Assignment Name %q", id.PrincipalAssignmentName),
+	}
+	return strings.Join(segments, " / ")
+}
+
 func (id ClusterPrincipalAssignmentId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Kusto/Clusters/%s/PrincipalAssignments/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ClusterName, id.PrincipalAssignmentName)
@@ -39,6 +49,14 @@ func ClusterPrincipalAssignmentID(input string) (*ClusterPrincipalAssignmentId, 
 	resourceId := ClusterPrincipalAssignmentId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.ClusterName, err = id.PopSegment("Clusters"); err != nil {

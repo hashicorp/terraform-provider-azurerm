@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -26,6 +27,16 @@ func NewDatabaseExtendedAuditingPolicyID(subscriptionId, resourceGroup, serverNa
 	}
 }
 
+func (id DatabaseExtendedAuditingPolicyId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Server Name %q", id.ServerName),
+		fmt.Sprintf("Database Name %q", id.DatabaseName),
+		fmt.Sprintf("Extended Auditing Setting Name %q", id.ExtendedAuditingSettingName),
+	}
+	return strings.Join(segments, " / ")
+}
+
 func (id DatabaseExtendedAuditingPolicyId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Sql/servers/%s/databases/%s/extendedAuditingSettings/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServerName, id.DatabaseName, id.ExtendedAuditingSettingName)
@@ -41,6 +52,14 @@ func DatabaseExtendedAuditingPolicyID(input string) (*DatabaseExtendedAuditingPo
 	resourceId := DatabaseExtendedAuditingPolicyId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.ServerName, err = id.PopSegment("servers"); err != nil {

@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -26,6 +27,16 @@ func NewSqlContainerID(subscriptionId, resourceGroup, databaseAccountName, sqlDa
 	}
 }
 
+func (id SqlContainerId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Database Account Name %q", id.DatabaseAccountName),
+		fmt.Sprintf("Sql Database Name %q", id.SqlDatabaseName),
+		fmt.Sprintf("Container Name %q", id.ContainerName),
+	}
+	return strings.Join(segments, " / ")
+}
+
 func (id SqlContainerId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/databaseAccounts/%s/sqlDatabases/%s/containers/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DatabaseAccountName, id.SqlDatabaseName, id.ContainerName)
@@ -41,6 +52,14 @@ func SqlContainerID(input string) (*SqlContainerId, error) {
 	resourceId := SqlContainerId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.DatabaseAccountName, err = id.PopSegment("databaseAccounts"); err != nil {

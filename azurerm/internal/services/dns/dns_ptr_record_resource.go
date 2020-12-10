@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDnsPtrRecord() *schema.Resource {
+func resourceDnsPtrRecord() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDnsPtrRecordCreateUpdate,
-		Read:   resourceArmDnsPtrRecordRead,
-		Update: resourceArmDnsPtrRecordCreateUpdate,
-		Delete: resourceArmDnsPtrRecordDelete,
+		Create: resourceDnsPtrRecordCreateUpdate,
+		Read:   resourceDnsPtrRecordRead,
+		Update: resourceDnsPtrRecordCreateUpdate,
+		Delete: resourceDnsPtrRecordDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -71,7 +71,7 @@ func resourceArmDnsPtrRecord() *schema.Resource {
 	}
 }
 
-func resourceArmDnsPtrRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsPtrRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -121,10 +121,10 @@ func resourceArmDnsPtrRecordCreateUpdate(d *schema.ResourceData, meta interface{
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDnsPtrRecordRead(d, meta)
+	return resourceDnsPtrRecordRead(d, meta)
 }
 
-func resourceArmDnsPtrRecordRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsPtrRecordRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client)
 	dnsClient := client.Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -157,7 +157,7 @@ func resourceArmDnsPtrRecordRead(d *schema.ResourceData, meta interface{}) error
 	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
-func resourceArmDnsPtrRecordDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsPtrRecordDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client)
 	dnsClient := client.Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)

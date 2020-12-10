@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -24,6 +25,15 @@ func NewDomainTopicID(subscriptionId, resourceGroup, domainName, topicName strin
 	}
 }
 
+func (id DomainTopicId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Domain Name %q", id.DomainName),
+		fmt.Sprintf("Topic Name %q", id.TopicName),
+	}
+	return strings.Join(segments, " / ")
+}
+
 func (id DomainTopicId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.EventGrid/domains/%s/topics/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DomainName, id.TopicName)
@@ -39,6 +49,14 @@ func DomainTopicID(input string) (*DomainTopicId, error) {
 	resourceId := DomainTopicId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.DomainName, err = id.PopSegment("domains"); err != nil {

@@ -1,7 +1,6 @@
 package client
 
 import (
-	networkLegacy "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
@@ -9,7 +8,6 @@ import (
 type Client struct {
 	ApplicationGatewaysClient            *network.ApplicationGatewaysClient
 	ApplicationSecurityGroupsClient      *network.ApplicationSecurityGroupsClient
-	AzureFirewallsClient                 *network.AzureFirewallsClient
 	BastionHostsClient                   *network.BastionHostsClient
 	ConnectionMonitorsClient             *network.ConnectionMonitorsClient
 	DDOSProtectionPlansClient            *network.DdosProtectionPlansClient
@@ -17,14 +15,10 @@ type Client struct {
 	ExpressRouteCircuitsClient           *network.ExpressRouteCircuitsClient
 	ExpressRouteGatewaysClient           *network.ExpressRouteGatewaysClient
 	ExpressRoutePeeringsClient           *network.ExpressRouteCircuitPeeringsClient
-	FirewallPolicyClient                 *network.FirewallPoliciesClient
-	FirewallPolicyRuleGroupClient        *network.FirewallPolicyRuleCollectionGroupsClient
 	HubRouteTableClient                  *network.HubRouteTablesClient
 	HubVirtualNetworkConnectionClient    *network.HubVirtualNetworkConnectionsClient
 	InterfacesClient                     *network.InterfacesClient
 	IPGroupsClient                       *network.IPGroupsClient
-	LoadBalancersClient                  *networkLegacy.LoadBalancersClient
-	LoadBalancerLoadBalancingRulesClient *networkLegacy.LoadBalancerLoadBalancingRulesClient
 	LocalNetworkGatewaysClient           *network.LocalNetworkGatewaysClient
 	PointToSiteVpnGatewaysClient         *network.P2sVpnGatewaysClient
 	ProfileClient                        *network.ProfilesClient
@@ -68,9 +62,6 @@ func NewClient(o *common.ClientOptions) *Client {
 	ApplicationSecurityGroupsClient := network.NewApplicationSecurityGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ApplicationSecurityGroupsClient.Client, o.ResourceManagerAuthorizer)
 
-	AzureFirewallsClient := network.NewAzureFirewallsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&AzureFirewallsClient.Client, o.ResourceManagerAuthorizer)
-
 	BastionHostsClient := network.NewBastionHostsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&BastionHostsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -92,12 +83,6 @@ func NewClient(o *common.ClientOptions) *Client {
 	ExpressRoutePeeringsClient := network.NewExpressRouteCircuitPeeringsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ExpressRoutePeeringsClient.Client, o.ResourceManagerAuthorizer)
 
-	FirewallPolicyClient := network.NewFirewallPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&FirewallPolicyClient.Client, o.ResourceManagerAuthorizer)
-
-	FirewallPolicyRuleGroupClient := network.NewFirewallPolicyRuleCollectionGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&FirewallPolicyRuleGroupClient.Client, o.ResourceManagerAuthorizer)
-
 	HubRouteTableClient := network.NewHubRouteTablesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&HubRouteTableClient.Client, o.ResourceManagerAuthorizer)
 
@@ -109,12 +94,6 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	IpGroupsClient := network.NewIPGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&IpGroupsClient.Client, o.ResourceManagerAuthorizer)
-
-	LoadBalancersClient := networkLegacy.NewLoadBalancersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&LoadBalancersClient.Client, o.ResourceManagerAuthorizer)
-
-	LoadBalancerLoadBalancingRulesClient := networkLegacy.NewLoadBalancerLoadBalancingRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&LoadBalancerLoadBalancingRulesClient.Client, o.ResourceManagerAuthorizer)
 
 	LocalNetworkGatewaysClient := network.NewLocalNetworkGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&LocalNetworkGatewaysClient.Client, o.ResourceManagerAuthorizer)
@@ -221,7 +200,6 @@ func NewClient(o *common.ClientOptions) *Client {
 	return &Client{
 		ApplicationGatewaysClient:            &ApplicationGatewaysClient,
 		ApplicationSecurityGroupsClient:      &ApplicationSecurityGroupsClient,
-		AzureFirewallsClient:                 &AzureFirewallsClient,
 		BastionHostsClient:                   &BastionHostsClient,
 		ConnectionMonitorsClient:             &ConnectionMonitorsClient,
 		DDOSProtectionPlansClient:            &DDOSProtectionPlansClient,
@@ -229,14 +207,10 @@ func NewClient(o *common.ClientOptions) *Client {
 		ExpressRouteCircuitsClient:           &ExpressRouteCircuitsClient,
 		ExpressRouteGatewaysClient:           &ExpressRouteGatewaysClient,
 		ExpressRoutePeeringsClient:           &ExpressRoutePeeringsClient,
-		FirewallPolicyClient:                 &FirewallPolicyClient,
-		FirewallPolicyRuleGroupClient:        &FirewallPolicyRuleGroupClient,
 		HubRouteTableClient:                  &HubRouteTableClient,
 		HubVirtualNetworkConnectionClient:    &HubVirtualNetworkConnectionClient,
 		InterfacesClient:                     &InterfacesClient,
 		IPGroupsClient:                       &IpGroupsClient,
-		LoadBalancersClient:                  &LoadBalancersClient,
-		LoadBalancerLoadBalancingRulesClient: &LoadBalancerLoadBalancingRulesClient,
 		LocalNetworkGatewaysClient:           &LocalNetworkGatewaysClient,
 		PointToSiteVpnGatewaysClient:         &pointToSiteVpnGatewaysClient,
 		ProfileClient:                        &ProfileClient,

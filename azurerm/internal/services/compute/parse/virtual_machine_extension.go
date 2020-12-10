@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -24,6 +25,15 @@ func NewVirtualMachineExtensionID(subscriptionId, resourceGroup, virtualMachineN
 	}
 }
 
+func (id VirtualMachineExtensionId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Virtual Machine Name %q", id.VirtualMachineName),
+		fmt.Sprintf("Extension Name %q", id.ExtensionName),
+	}
+	return strings.Join(segments, " / ")
+}
+
 func (id VirtualMachineExtensionId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachines/%s/extensions/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VirtualMachineName, id.ExtensionName)
@@ -39,6 +49,14 @@ func VirtualMachineExtensionID(input string) (*VirtualMachineExtensionId, error)
 	resourceId := VirtualMachineExtensionId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.VirtualMachineName, err = id.PopSegment("virtualMachines"); err != nil {

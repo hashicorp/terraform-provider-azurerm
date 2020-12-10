@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceproviders"
 )
 
 type ClientBuilder struct {
@@ -54,12 +55,8 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		return nil, err
 	}
 
-	if features.EnhancedValidationEnabled() {
-		location.CacheSupportedLocations(ctx, env)
-	}
-
 	// client declarations:
-	account, err := NewResourceManagerAccount(ctx, *builder.AuthConfig, *env)
+	account, err := NewResourceManagerAccount(ctx, *builder.AuthConfig, *env, builder.SkipProviderRegistration)
 	if err != nil {
 		return nil, fmt.Errorf("Error building account: %+v", err)
 	}
@@ -136,6 +133,11 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 
 	if err := client.Build(ctx, o); err != nil {
 		return nil, fmt.Errorf("Error building Client: %+v", err)
+	}
+
+	if features.EnhancedValidationEnabled() {
+		location.CacheSupportedLocations(ctx, env)
+		resourceproviders.CacheSupportedProviders(ctx, client.Resource.ProvidersClient)
 	}
 
 	return &client, nil
