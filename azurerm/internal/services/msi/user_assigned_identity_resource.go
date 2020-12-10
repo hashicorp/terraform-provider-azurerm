@@ -11,7 +11,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -22,9 +25,10 @@ func resourceArmUserAssignedIdentity() *schema.Resource {
 		Read:   resourceArmUserAssignedIdentityRead,
 		Update: resourceArmUserAssignedIdentityCreateUpdate,
 		Delete: resourceArmUserAssignedIdentityDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.UserAssignedIdentityID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -62,50 +66,40 @@ func resourceArmUserAssignedIdentity() *schema.Resource {
 
 func resourceArmUserAssignedIdentityCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSI.UserAssignedIdentitiesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM user identity creation.")
+	log.Printf("[INFO] preparing arguments for User Assigned Identity create/update.")
 
-	name := d.Get("name").(string)
 	location := d.Get("location").(string)
-	resGroup := d.Get("resource_group_name").(string)
 	t := d.Get("tags").(map[string]interface{})
 
+	resourceId := parse.NewUserAssignedIdentityID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name)
+		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing User Assigned Identity %q (Resource Group %q): %+v", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing User Assigned Identity %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_user_assigned_identity", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_user_assigned_identity", resourceId.ID(""))
 		}
 	}
 
 	identity := msi.Identity{
-		Name:     &name,
-		Location: &location,
+		Name:     utils.String(resourceId.Name),
+		Location: utils.String(location),
 		Tags:     tags.Expand(t),
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resGroup, name, identity); err != nil {
-		return fmt.Errorf("Error Creating/Updating User Assigned Identity %q (Resource Group %q): %+v", name, resGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.Name, identity); err != nil {
+		return fmt.Errorf("creating/updating User Assigned Identity %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, name)
-	if err != nil {
-		return err
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read User Assigned Identity %q ID (resource group %q) ID", name, resGroup)
-	}
-
-	d.SetId(*read.ID)
-
+	d.SetId(resourceId.ID(""))
 	return resourceArmUserAssignedIdentityRead(d, meta)
 }
 
@@ -114,25 +108,23 @@ func resourceArmUserAssignedIdentityRead(d *schema.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.UserAssignedIdentityID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Path["userAssignedIdentities"]
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on User Assigned Identity %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("retrieving User Assigned Identity %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
-	d.Set("location", resp.Location)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.IdentityProperties; props != nil {
 		if principalId := props.PrincipalID; principalId != nil {
@@ -152,17 +144,13 @@ func resourceArmUserAssignedIdentityDelete(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.UserAssignedIdentityID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Path["userAssignedIdentities"]
-
-	_, err = client.Delete(ctx, resGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error deleting User Assigned Identity %q (Resource Group %q): %+v", name, resGroup, err)
+	if _, err = client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
+		return fmt.Errorf("deleting User Assigned Identity %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil

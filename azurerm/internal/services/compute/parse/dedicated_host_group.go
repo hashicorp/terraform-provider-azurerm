@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -20,6 +21,14 @@ func NewDedicatedHostGroupID(subscriptionId, resourceGroup, hostGroupName string
 		ResourceGroup:  resourceGroup,
 		HostGroupName:  hostGroupName,
 	}
+}
+
+func (id DedicatedHostGroupId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Host Group Name %q", id.HostGroupName),
+	}
+	return strings.Join(segments, " / ")
 }
 
 func (id DedicatedHostGroupId) ID(_ string) string {

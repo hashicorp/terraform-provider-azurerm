@@ -1,36 +1,72 @@
 package validate
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import "testing"
 
 func TestScheduleID(t *testing.T) {
 	cases := []struct {
-		ID    string
+		Input string
 		Valid bool
 	}{
+
 		{
-			ID:    "",
+			// empty
+			Input: "",
 			Valid: false,
 		},
+
 		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/",
+			// missing SubscriptionId
+			Input: "/",
 			Valid: false,
 		},
+
 		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.DevTestLab/schedules/",
+			// missing value for SubscriptionId
+			Input: "/subscriptions/",
 			Valid: false,
 		},
+
 		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.DevTestLab/Schedules/schedule1",
+			// missing ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/",
 			Valid: false,
 		},
+
 		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.DevTestLab/schedules/schedule1",
+			// missing value for ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
+			Valid: false,
+		},
+
+		{
+			// missing Name
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.DevTestLab/",
+			Valid: false,
+		},
+
+		{
+			// missing value for Name
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.DevTestLab/schedules/",
+			Valid: false,
+		},
+
+		{
+			// valid
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.DevTestLab/schedules/schedule1",
 			Valid: true,
+		},
+
+		{
+			// upper-cased
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/GROUP1/PROVIDERS/MICROSOFT.DEVTESTLAB/SCHEDULES/SCHEDULE1",
+			Valid: false,
 		},
 	}
 	for _, tc := range cases {
-		t.Logf("[DEBUG] Testing Value %s", tc.ID)
-		_, errors := ScheduleID(tc.ID, "test")
+		t.Logf("[DEBUG] Testing Value %s", tc.Input)
+		_, errors := ScheduleID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {

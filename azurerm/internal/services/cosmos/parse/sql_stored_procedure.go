@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -26,6 +27,17 @@ func NewSqlStoredProcedureID(subscriptionId, resourceGroup, databaseAccountName,
 		ContainerName:       containerName,
 		StoredProcedureName: storedProcedureName,
 	}
+}
+
+func (id SqlStoredProcedureId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Database Account Name %q", id.DatabaseAccountName),
+		fmt.Sprintf("Sql Database Name %q", id.SqlDatabaseName),
+		fmt.Sprintf("Container Name %q", id.ContainerName),
+		fmt.Sprintf("Stored Procedure Name %q", id.StoredProcedureName),
+	}
+	return strings.Join(segments, " / ")
 }
 
 func (id SqlStoredProcedureId) ID(_ string) string {

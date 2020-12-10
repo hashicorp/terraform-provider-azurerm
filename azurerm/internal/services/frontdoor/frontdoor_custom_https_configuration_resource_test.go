@@ -40,7 +40,7 @@ func TestAccFrontDoorCustomHttpsConfiguration_CustomHttps(t *testing.T) {
 }
 
 func (FrontDoorCustomHttpsConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.FrontendEndpointID(state.ID)
+	id, err := parse.FrontendEndpointIDInsensitively(state.ID)
 	if err != nil {
 		return nil, err
 	}

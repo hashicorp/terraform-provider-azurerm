@@ -38,7 +38,6 @@ func dataSourceArmStorageSyncGroup() *schema.Resource {
 
 func dataSourceArmStorageSyncGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.SyncGroupsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -63,6 +62,6 @@ func dataSourceArmStorageSyncGroupRead(d *schema.ResourceData, meta interface{})
 	d.SetId(*resp.ID)
 
 	d.Set("name", name)
-	d.Set("storage_sync_id", storageSyncId.ID(subscriptionId))
+	d.Set("storage_sync_id", storageSyncId.ID(""))
 	return nil
 }

@@ -42,7 +42,7 @@ func ManagedIdentitySchema() *schema.Schema {
 					MinItems: 1,
 					Elem: &schema.Schema{
 						Type:         schema.TypeString,
-						ValidateFunc: validate.UserAssignedIdentityId,
+						ValidateFunc: validate.UserAssignedIdentityID,
 					},
 				},
 

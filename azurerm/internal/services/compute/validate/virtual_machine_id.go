@@ -1,22 +1,23 @@
 package validate
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 )
 
-func VirtualMachineID(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
+func VirtualMachineID(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
 	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
 
 	if _, err := parse.VirtualMachineID(v); err != nil {
-		errors = append(errors, fmt.Errorf("Can not parse %q as a resource id: %v", k, err))
-		return
+		errors = append(errors, err)
 	}
 
-	return warnings, errors
+	return
 }

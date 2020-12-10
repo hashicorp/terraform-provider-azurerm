@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -24,6 +25,16 @@ func NewGremlinGraphID(subscriptionId, resourceGroup, databaseAccountName, greml
 		GremlinDatabaseName: gremlinDatabaseName,
 		GraphName:           graphName,
 	}
+}
+
+func (id GremlinGraphId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Database Account Name %q", id.DatabaseAccountName),
+		fmt.Sprintf("Gremlin Database Name %q", id.GremlinDatabaseName),
+		fmt.Sprintf("Graph Name %q", id.GraphName),
+	}
+	return strings.Join(segments, " / ")
 }
 
 func (id GremlinGraphId) ID(_ string) string {

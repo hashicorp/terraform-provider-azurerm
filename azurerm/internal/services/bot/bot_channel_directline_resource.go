@@ -12,20 +12,24 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/parse"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmBotChannelDirectline() *schema.Resource {
+func resourceBotChannelDirectline() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmBotChannelDirectlineCreate,
-		Read:   resourceArmBotChannelDirectlineRead,
-		Delete: resourceArmBotChannelDirectlineDelete,
-		Update: resourceArmBotChannelDirectlineUpdate,
+		Create: resourceBotChannelDirectlineCreate,
+		Read:   resourceBotChannelDirectlineRead,
+		Delete: resourceBotChannelDirectlineDelete,
+		Update: resourceBotChannelDirectlineUpdate,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.BotChannelID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -42,6 +46,7 @@ func resourceArmBotChannelDirectline() *schema.Resource {
 			"bot_name": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -50,7 +55,6 @@ func resourceArmBotChannelDirectline() *schema.Resource {
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
@@ -113,23 +117,29 @@ func resourceArmBotChannelDirectline() *schema.Resource {
 	}
 }
 
-func resourceArmBotChannelDirectlineCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelDirectlineCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	botName := d.Get("bot_name").(string)
-
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, string(botservice.ChannelNameDirectLineChannel1), botName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of creating Channel Directline for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
-			}
+	resourceId := parse.NewBotChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("bot_name").(string), string(botservice.ChannelNameDirectLineChannel1))
+	existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, resourceId.ChannelName)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("checking for presence of existing Directline Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroup, err)
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_bot_channel_directline", *existing.ID)
+	}
+	if !utils.ResponseWasNotFound(existing.Response) {
+		// a "Default Site" site gets created and returned.. so let's check it's not just that
+		if props := existing.Properties; props != nil {
+			directLineChannel, ok := props.AsDirectLineChannel()
+			if ok && directLineChannel.Properties != nil {
+				sites := filterSites(directLineChannel.Properties.Sites)
+				if len(sites) != 0 {
+					return tf.ImportAsExistsError("azurerm_bot_channel_directline", resourceId.ID(""))
+				}
+			}
 		}
 	}
 
@@ -144,56 +154,49 @@ func resourceArmBotChannelDirectlineCreate(d *schema.ResourceData, meta interfac
 		Kind:     botservice.KindBot,
 	}
 
-	if _, err := client.Create(ctx, resourceGroup, botName, botservice.ChannelNameDirectLineChannel, channel); err != nil {
-		return fmt.Errorf("Error issuing create request for Channel Directline for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
+	if _, err := client.Create(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, botservice.ChannelNameDirectLineChannel, channel); err != nil {
+		return fmt.Errorf("creating Directline Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroup, err)
 	}
+	d.SetId(resourceId.ID(""))
 
 	// Unable to create a new site with enhanced_authentication_enabled in the same operation, so we need to make two calls
-	if _, err := client.Update(ctx, resourceGroup, botName, botservice.ChannelNameDirectLineChannel, channel); err != nil {
-		return fmt.Errorf("Error issuing create request for Channel Directline for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
+	if _, err := client.Update(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, botservice.ChannelNameDirectLineChannel, channel); err != nil {
+		return fmt.Errorf("updating Directline Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, botName, string(botservice.ChannelNameDirectLineChannel1))
-	if err != nil {
-		return fmt.Errorf("Error making get request for Channel Directline for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Channel Directline for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
-	}
-
-	d.SetId(*resp.ID)
-
-	return resourceArmBotChannelDirectlineRead(d, meta)
+	return resourceBotChannelDirectlineRead(d, meta)
 }
 
-func resourceArmBotChannelDirectlineRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelDirectlineRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.BotChannelID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	botName := id.Path["botServices"]
-	resp, err := client.Get(ctx, id.ResourceGroup, botName, string(botservice.ChannelNameDirectLineChannel1))
+	resp, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameDirectLineChannel1))
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Channel Directline for Bot %q (Resource Group %q) was not found - removing from state!", id.ResourceGroup, botName)
+			log.Printf("[INFO] Directline Channel for Bot %q (Resource Group %q) was not found - removing from state!", id.ResourceGroup, id.BotServiceName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Channel Directline for Bot %q (Resource Group %q): %+v", id.ResourceGroup, botName, err)
+		return fmt.Errorf("retrieving Channel Directline for Bot %q (Resource Group %q): %+v", id.ResourceGroup, id.BotServiceName, err)
 	}
 
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", resp.Location)
-	d.Set("bot_name", botName)
+	channelsResp, err := client.ListWithKeys(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameDirectLineChannel)
+	if err != nil {
+		return fmt.Errorf("listing Keys for Directline Channel for Bot %q (Resource Group %q): %+v", id.ResourceGroup, id.BotServiceName, err)
+	}
 
-	channelsResp, _ := client.ListWithKeys(ctx, id.ResourceGroup, botName, botservice.ChannelNameDirectLineChannel)
+	d.Set("bot_name", id.BotServiceName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("location", location.NormalizeNilable(resp.Location))
+
 	if props := channelsResp.Properties; props != nil {
 		if channel, ok := props.AsDirectLineChannel(); ok {
 			if channelProps := channel.Properties; channelProps != nil {
@@ -205,13 +208,15 @@ func resourceArmBotChannelDirectlineRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceArmBotChannelDirectlineUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelDirectlineUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	botName := d.Get("bot_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id, err := parse.BotChannelID(d.Id())
+	if err != nil {
+		return err
+	}
 
 	channel := botservice.BotChannel{
 		Properties: botservice.DirectLineChannel{
@@ -224,45 +229,27 @@ func resourceArmBotChannelDirectlineUpdate(d *schema.ResourceData, meta interfac
 		Kind:     botservice.KindBot,
 	}
 
-	if _, err := client.Update(ctx, resourceGroup, botName, botservice.ChannelNameDirectLineChannel, channel); err != nil {
-		return fmt.Errorf("Error issuing create request for Channel Directline for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
+	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameDirectLineChannel, channel); err != nil {
+		return fmt.Errorf("updating Directline Channel for Bot %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroup, err)
 	}
 
-	// Unable to create a new site with enhanced_authentication_enabled in the same operation, so we need to make two calls
-	if _, err := client.Update(ctx, resourceGroup, botName, botservice.ChannelNameDirectLineChannel, channel); err != nil {
-		return fmt.Errorf("Error issuing create request for Channel Directline for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
-	}
-
-	resp, err := client.Get(ctx, resourceGroup, botName, string(botservice.ChannelNameDirectLineChannel1))
-	if err != nil {
-		return fmt.Errorf("Error making get request for Channel Directline for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Channel Directline for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
-	}
-
-	d.SetId(*resp.ID)
-
-	return resourceArmBotChannelDirectlineRead(d, meta)
+	return resourceBotChannelDirectlineRead(d, meta)
 }
 
-func resourceArmBotChannelDirectlineDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelDirectlineDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.BotChannelID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	botName := id.Path["botServices"]
-
-	resp, err := client.Delete(ctx, id.ResourceGroup, botName, string(botservice.ChannelNameDirectLineChannel1))
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameDirectLineChannel1))
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting Channel Directline for Bot %q (Resource Group %q): %+v", id.ResourceGroup, botName, err)
+			return fmt.Errorf("deleting Directline Channel for Bot %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroup, err)
 		}
 	}
 

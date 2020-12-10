@@ -16,7 +16,7 @@ import (
 
 func dataSourceSynapseWorkspace() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmSynapseWorkspaceRead,
+		Read: dataSourceSynapseWorkspaceRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -46,7 +46,7 @@ func dataSourceSynapseWorkspace() *schema.Resource {
 	}
 }
 
-func dataSourceArmSynapseWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceSynapseWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

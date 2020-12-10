@@ -1,61 +1,64 @@
 package validate
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import "testing"
 
-func TestValidateResourceGroupID(t *testing.T) {
+func TestResourceGroupID(t *testing.T) {
 	cases := []struct {
-		ID     string
-		Errors int
+		Input string
+		Valid bool
 	}{
+
 		{
-			ID:     "",
-			Errors: 1,
+			// empty
+			Input: "",
+			Valid: false,
 		},
+
 		{
-			ID:     "nonsense",
-			Errors: 1,
+			// missing SubscriptionId
+			Input: "/",
+			Valid: false,
 		},
+
 		{
-			ID:     "/slash",
-			Errors: 1,
+			// missing value for SubscriptionId
+			Input: "/subscriptions/",
+			Valid: false,
 		},
+
 		{
-			ID:     "/path/to/nothing",
-			Errors: 1,
+			// missing ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/",
+			Valid: false,
 		},
+
 		{
-			ID:     "/subscriptions",
-			Errors: 1,
+			// missing value for ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
+			Valid: false,
 		},
+
 		{
-			ID:     "/providers",
-			Errors: 1,
+			// valid
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1",
+			Valid: true,
 		},
+
 		{
-			ID:     "/subscriptions/not-a-guid",
-			Errors: 0,
-		},
-		{
-			ID:     "/providers/test",
-			Errors: 0,
-		},
-		{
-			ID:     "/subscriptions/00000000-0000-0000-0000-00000000000/",
-			Errors: 0,
-		},
-		{
-			ID:     "/providers/provider.name/",
-			Errors: 0,
+			// upper-cased
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/GROUP1",
+			Valid: false,
 		},
 	}
-
 	for _, tc := range cases {
-		t.Run(tc.ID, func(t *testing.T) {
-			_, errors := ResourceGroupID(tc.ID, "test")
+		t.Logf("[DEBUG] Testing Value %s", tc.Input)
+		_, errors := ResourceGroupID(tc.Input, "test")
+		valid := len(errors) == 0
 
-			if len(errors) < tc.Errors {
-				t.Fatalf("Expected ResourceGroupID to have %d not %d errors for %q", tc.Errors, len(errors), tc.ID)
-			}
-		})
+		if tc.Valid != valid {
+			t.Fatalf("Expected %t but got %t", tc.Valid, valid)
+		}
 	}
 }
