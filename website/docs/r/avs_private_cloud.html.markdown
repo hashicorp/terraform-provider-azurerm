@@ -29,13 +29,13 @@ resource "azurerm_avs_private_cloud" "example" {
   sku_name            = "AV36"
 
   management_cluster {
-    cluster_size = 3
+    size = 3
   }
 
-  network_block      = "192.168.48.0/22"
-  internet_connected = false
-  nsxt_password      = "QazWsx13$Edc"
-  vcenter_password   = "QazWsx13$Edc"
+  network_subnet              = "192.168.48.0/22"
+  internet_connection_enabled = false
+  nsxt_password               = "QazWsx13$Edc"
+  vcenter_password            = "QazWsx13$Edc"
   tags = {
     foo = "bar"
   }
@@ -54,11 +54,11 @@ The following arguments are supported:
 
 * `management_cluster` - (Required) A `management_cluster` block as defined below.
 
-* `network_block` - (Required) The block of addresses which should be unique across virtual network in your subscription as well as on-premise. Changing this forces a new Azure Vmware Solution Private Cloud to be created.
+* `network_subnet` - (Required) The subnet which should be unique across virtual network in your subscription as well as on-premise. Changing this forces a new Azure Vmware Solution Private Cloud to be created.
 
-* `sku_name` - (Required) The name of the SKU. Changing this forces a new Azure Vmware Solution Private Cloud to be created. Possible values are "av20", "av36" and "av36t".
+* `sku_name` - (Required) The Name of the SKU used for this Private Cloud. Changing this forces a new Azure Vmware Solution Private Cloud to be created. Possible values are `av20`, `av36` and `av36t`.
 
-* `internet_connected` - (Optional) Is connected to the internet?
+* `internet_connection_enabled` - (Optional) Is the Private CLuster connected to the internet?
 
 * `nsxt_password` - (Optional) The password of the NSX-T Manager. Changing this forces a new Azure Vmware Solution Private Cloud to be created.
 
@@ -70,7 +70,7 @@ The following arguments are supported:
 
 A `management_cluster` block supports the following:
 
-* `cluster_size` - (Required) The size of the cluster.
+* `size` - (Required) The size of the cluster.
 
 ## Attributes Reference
 
@@ -92,9 +92,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `management_network` - The network used to access vCenter Server and NSX-T Manager.
 
-* `provisioning_network` - The network which isused for virtual machine cold migration, cloning, and snapshot migration.
+* `provisioning_subnet` - The network which is used for virtual machine cold migration, cloning, and snapshot migration.
 
-* `vmotion_network` - The network which is used for live migration of virtual machines.
+* `vmotion_subnet` - The network which is used for live migration of virtual machines.
 
 ---
 
@@ -104,17 +104,17 @@ A `circuit` block exports the following:
 
 * `express_route_private_peering_id` - The ID of the ExpressRoute Circuit private peering.
 
-* `primary_subnet` - The CIDR of primary subnet.
+* `primary_subnet` - The CIDR of the primary subnet.
 
-* `secondary_subnet` - The CIDR of secondary subnet.
+* `secondary_subnet` - The CIDR of the secondary subnet.
 
 ---
 
 A `management_cluster` block exports the following:
 
-* `cluster_id` - The ID of the cluster.
+* `id` - The ID of the cluster.
 
-* `hosts` - The set of the hosts in the cluster.
+* `hosts` - A set of hosts in the cluster.
 
 ## Timeouts
 

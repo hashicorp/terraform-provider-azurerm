@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
@@ -59,8 +58,7 @@ func resourceAvsPrivateCloud() *schema.Resource {
 					"av20",
 					"av36",
 					"av36t",
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, false),
 			},
 
 			"management_cluster": {
@@ -69,13 +67,13 @@ func resourceAvsPrivateCloud() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"cluster_size": {
+						"size": {
 							Type:         schema.TypeInt,
 							Required:     true,
 							ValidateFunc: validation.IntBetween(3, 16),
 						},
 
-						"cluster_id": {
+						"id": {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
@@ -91,14 +89,14 @@ func resourceAvsPrivateCloud() *schema.Resource {
 				},
 			},
 
-			"network_block": {
+			"network_subnet": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IsCIDR,
 			},
 
-			"internet_connected": {
+			"internet_connection_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -168,7 +166,7 @@ func resourceAvsPrivateCloud() *schema.Resource {
 				Computed: true,
 			},
 
-			"provisioning_network": {
+			"provisioning_subnet": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -183,7 +181,7 @@ func resourceAvsPrivateCloud() *schema.Resource {
 				Computed: true,
 			},
 
-			"vmotion_network": {
+			"vmotion_subnet": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -214,7 +212,7 @@ func resourceAvsPrivateCloudCreate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	internet := avs.Disabled
-	if d.Get("internet_connected").(bool) {
+	if d.Get("internet_connection_enabled").(bool) {
 		internet = avs.Enabled
 	}
 
@@ -225,9 +223,9 @@ func resourceAvsPrivateCloudCreate(d *schema.ResourceData, meta interface{}) err
 		},
 		PrivateCloudProperties: &avs.PrivateCloudProperties{
 			ManagementCluster: &avs.ManagementCluster{
-				ClusterSize: utils.Int32(int32(d.Get("management_cluster.0.cluster_size").(int))),
+				ClusterSize: utils.Int32(int32(d.Get("management_cluster.0.size").(int))),
 			},
-			NetworkBlock:    utils.String(d.Get("network_block").(string)),
+			NetworkBlock:    utils.String(d.Get("network_subnet").(string)),
 			Internet:        internet,
 			NsxtPassword:    utils.String(d.Get("nsxt_password").(string)),
 			VcenterPassword: utils.String(d.Get("vcenter_password").(string)),
@@ -279,20 +277,20 @@ func resourceAvsPrivateCloudRead(d *schema.ResourceData, meta interface{}) error
 		if err := d.Set("management_cluster", flattenArmPrivateCloudManagementCluster(props.ManagementCluster)); err != nil {
 			return fmt.Errorf("setting `management_cluster`: %+v", err)
 		}
-		d.Set("network_block", props.NetworkBlock)
+		d.Set("network_subnet", props.NetworkBlock)
 		if err := d.Set("circuit", flattenArmPrivateCloudCircuit(props.Circuit)); err != nil {
 			return fmt.Errorf("setting `circuit`: %+v", err)
 		}
 
-		d.Set("internet_connected", props.Internet == avs.Enabled)
+		d.Set("internet_connection_enabled", props.Internet == avs.Enabled)
 		d.Set("hcx_cloud_manager_endpoint", props.Endpoints.HcxCloudManager)
 		d.Set("nsxt_manager_endpoint", props.Endpoints.NsxtManager)
 		d.Set("vcsa_endpoint", props.Endpoints.Vcsa)
 		d.Set("management_network", props.ManagementNetwork)
 		d.Set("nsxt_certificate_thumbprint", props.NsxtCertificateThumbprint)
-		d.Set("provisioning_network", props.ProvisioningNetwork)
+		d.Set("provisioning_subnet", props.ProvisioningNetwork)
 		d.Set("vcenter_certificate_thumbprint", props.VcenterCertificateThumbprint)
-		d.Set("vmotion_network", props.VmotionNetwork)
+		d.Set("vmotion_subnet", props.VmotionNetwork)
 	}
 	d.Set("sku_name", resp.Sku.Name)
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -313,12 +311,12 @@ func resourceAvsPrivateCloudUpdate(d *schema.ResourceData, meta interface{}) err
 	}
 	if d.HasChange("management_cluster") {
 		privateCloudUpdate.PrivateCloudUpdateProperties.ManagementCluster = &avs.ManagementCluster{
-			ClusterSize: utils.Int32(int32(d.Get("management_cluster.0.cluster_size").(int))),
+			ClusterSize: utils.Int32(int32(d.Get("management_cluster.0.size").(int))),
 		}
 	}
-	if d.HasChange("internet_connected") {
+	if d.HasChange("internet_connection_enabled") {
 		internet := avs.Disabled
-		if d.Get("internet_connected").(bool) {
+		if d.Get("internet_connection_enabled").(bool) {
 			internet = avs.Enabled
 		}
 		privateCloudUpdate.PrivateCloudUpdateProperties.Internet = internet
@@ -376,9 +374,9 @@ func flattenArmPrivateCloudManagementCluster(input *avs.ManagementCluster) []int
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"cluster_size": clusterSize,
-			"cluster_id":   clusterId,
-			"hosts":        utils.FlattenStringSlice(input.Hosts),
+			"size":  clusterSize,
+			"id":    clusterId,
+			"hosts": utils.FlattenStringSlice(input.Hosts),
 		},
 	}
 }

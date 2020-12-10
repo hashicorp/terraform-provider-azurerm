@@ -20,11 +20,11 @@ func TestAccDataSourceAvsPrivateCloud_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("management_cluster.0.cluster_size").Exists(),
-				check.That(data.ResourceName).Key("management_cluster.0.cluster_id").Exists(),
+				check.That(data.ResourceName).Key("management_cluster.0.size").Exists(),
+				check.That(data.ResourceName).Key("management_cluster.0.id").Exists(),
 				check.That(data.ResourceName).Key("management_cluster.0.hosts.#").Exists(),
-				check.That(data.ResourceName).Key("network_block").Exists(),
-				check.That(data.ResourceName).Key("internet_connected").Exists(),
+				check.That(data.ResourceName).Key("network_subnet").Exists(),
+				check.That(data.ResourceName).Key("internet_connection_enabled").Exists(),
 				check.That(data.ResourceName).Key("circuit.0.express_route_id").Exists(),
 				check.That(data.ResourceName).Key("circuit.0.express_route_private_peering_id").Exists(),
 				check.That(data.ResourceName).Key("circuit.0.primary_subnet").Exists(),
@@ -33,10 +33,10 @@ func TestAccDataSourceAvsPrivateCloud_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("management_network").Exists(),
 				check.That(data.ResourceName).Key("nsxt_certificate_thumbprint").Exists(),
 				check.That(data.ResourceName).Key("nsxt_manager_endpoint").Exists(),
-				check.That(data.ResourceName).Key("provisioning_network").Exists(),
+				check.That(data.ResourceName).Key("provisioning_subnet").Exists(),
 				check.That(data.ResourceName).Key("vcenter_certificate_thumbprint").Exists(),
 				check.That(data.ResourceName).Key("vcsa_endpoint").Exists(),
-				check.That(data.ResourceName).Key("vmotion_network").Exists(),
+				check.That(data.ResourceName).Key("vmotion_subnet").Exists(),
 			),
 		},
 	})

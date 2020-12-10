@@ -26,7 +26,7 @@ func TestAccAvsPrivateCloud_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("management_cluster.0.cluster_id").Exists(),
+				check.That(data.ResourceName).Key("management_cluster.0.id").Exists(),
 				check.That(data.ResourceName).Key("management_cluster.0.hosts.#").Exists(),
 				check.That(data.ResourceName).Key("circuit.0.express_route_id").Exists(),
 				check.That(data.ResourceName).Key("circuit.0.express_route_private_peering_id").Exists(),
@@ -36,10 +36,10 @@ func TestAccAvsPrivateCloud_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("management_network").Exists(),
 				check.That(data.ResourceName).Key("nsxt_certificate_thumbprint").Exists(),
 				check.That(data.ResourceName).Key("nsxt_manager_endpoint").Exists(),
-				check.That(data.ResourceName).Key("provisioning_network").Exists(),
+				check.That(data.ResourceName).Key("provisioning_subnet").Exists(),
 				check.That(data.ResourceName).Key("vcenter_certificate_thumbprint").Exists(),
 				check.That(data.ResourceName).Key("vcsa_endpoint").Exists(),
-				check.That(data.ResourceName).Key("vmotion_network").Exists(),
+				check.That(data.ResourceName).Key("vmotion_subnet").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -70,7 +70,7 @@ func TestAccAvsPrivateCloud_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("management_cluster.0.cluster_id").Exists(),
+				check.That(data.ResourceName).Key("management_cluster.0.id").Exists(),
 				check.That(data.ResourceName).Key("management_cluster.0.hosts.#").Exists(),
 				check.That(data.ResourceName).Key("circuit.0.express_route_id").Exists(),
 				check.That(data.ResourceName).Key("circuit.0.express_route_private_peering_id").Exists(),
@@ -80,10 +80,10 @@ func TestAccAvsPrivateCloud_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("management_network").Exists(),
 				check.That(data.ResourceName).Key("nsxt_certificate_thumbprint").Exists(),
 				check.That(data.ResourceName).Key("nsxt_manager_endpoint").Exists(),
-				check.That(data.ResourceName).Key("provisioning_network").Exists(),
+				check.That(data.ResourceName).Key("provisioning_subnet").Exists(),
 				check.That(data.ResourceName).Key("vcenter_certificate_thumbprint").Exists(),
 				check.That(data.ResourceName).Key("vcsa_endpoint").Exists(),
-				check.That(data.ResourceName).Key("vmotion_network").Exists(),
+				check.That(data.ResourceName).Key("vmotion_subnet").Exists(),
 			),
 		},
 		data.ImportStep("nsxt_password", "vcenter_password"),
@@ -100,7 +100,7 @@ func TestAccAvsPrivateCloud_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("management_cluster.0.cluster_id").Exists(),
+				check.That(data.ResourceName).Key("management_cluster.0.id").Exists(),
 				check.That(data.ResourceName).Key("management_cluster.0.hosts.#").Exists(),
 				check.That(data.ResourceName).Key("circuit.0.express_route_id").Exists(),
 				check.That(data.ResourceName).Key("circuit.0.express_route_private_peering_id").Exists(),
@@ -110,10 +110,10 @@ func TestAccAvsPrivateCloud_update(t *testing.T) {
 				check.That(data.ResourceName).Key("management_network").Exists(),
 				check.That(data.ResourceName).Key("nsxt_certificate_thumbprint").Exists(),
 				check.That(data.ResourceName).Key("nsxt_manager_endpoint").Exists(),
-				check.That(data.ResourceName).Key("provisioning_network").Exists(),
+				check.That(data.ResourceName).Key("provisioning_subnet").Exists(),
 				check.That(data.ResourceName).Key("vcenter_certificate_thumbprint").Exists(),
 				check.That(data.ResourceName).Key("vcsa_endpoint").Exists(),
-				check.That(data.ResourceName).Key("vmotion_network").Exists(),
+				check.That(data.ResourceName).Key("vmotion_subnet").Exists(),
 			),
 		},
 		data.ImportStep("nsxt_password", "vcenter_password"),
@@ -121,7 +121,7 @@ func TestAccAvsPrivateCloud_update(t *testing.T) {
 			Config: r.update(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("management_cluster.0.cluster_id").Exists(),
+				check.That(data.ResourceName).Key("management_cluster.0.id").Exists(),
 				check.That(data.ResourceName).Key("management_cluster.0.hosts.#").Exists(),
 				check.That(data.ResourceName).Key("circuit.0.express_route_id").Exists(),
 				check.That(data.ResourceName).Key("circuit.0.express_route_private_peering_id").Exists(),
@@ -131,10 +131,10 @@ func TestAccAvsPrivateCloud_update(t *testing.T) {
 				check.That(data.ResourceName).Key("management_network").Exists(),
 				check.That(data.ResourceName).Key("nsxt_certificate_thumbprint").Exists(),
 				check.That(data.ResourceName).Key("nsxt_manager_endpoint").Exists(),
-				check.That(data.ResourceName).Key("provisioning_network").Exists(),
+				check.That(data.ResourceName).Key("provisioning_subnet").Exists(),
 				check.That(data.ResourceName).Key("vcenter_certificate_thumbprint").Exists(),
 				check.That(data.ResourceName).Key("vcsa_endpoint").Exists(),
-				check.That(data.ResourceName).Key("vmotion_network").Exists(),
+				check.That(data.ResourceName).Key("vmotion_subnet").Exists(),
 			),
 		},
 		data.ImportStep("nsxt_password", "vcenter_password"),
@@ -142,7 +142,7 @@ func TestAccAvsPrivateCloud_update(t *testing.T) {
 			Config: r.update2(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("management_cluster.0.cluster_id").Exists(),
+				check.That(data.ResourceName).Key("management_cluster.0.id").Exists(),
 				check.That(data.ResourceName).Key("management_cluster.0.hosts.#").Exists(),
 				check.That(data.ResourceName).Key("circuit.0.express_route_id").Exists(),
 				check.That(data.ResourceName).Key("circuit.0.express_route_private_peering_id").Exists(),
@@ -152,10 +152,10 @@ func TestAccAvsPrivateCloud_update(t *testing.T) {
 				check.That(data.ResourceName).Key("management_network").Exists(),
 				check.That(data.ResourceName).Key("nsxt_certificate_thumbprint").Exists(),
 				check.That(data.ResourceName).Key("nsxt_manager_endpoint").Exists(),
-				check.That(data.ResourceName).Key("provisioning_network").Exists(),
+				check.That(data.ResourceName).Key("provisioning_subnet").Exists(),
 				check.That(data.ResourceName).Key("vcenter_certificate_thumbprint").Exists(),
 				check.That(data.ResourceName).Key("vcsa_endpoint").Exists(),
-				check.That(data.ResourceName).Key("vmotion_network").Exists(),
+				check.That(data.ResourceName).Key("vmotion_subnet").Exists(),
 			),
 		},
 		data.ImportStep("nsxt_password", "vcenter_password"),
@@ -163,7 +163,7 @@ func TestAccAvsPrivateCloud_update(t *testing.T) {
 			Config: r.update3(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("management_cluster.0.cluster_id").Exists(),
+				check.That(data.ResourceName).Key("management_cluster.0.id").Exists(),
 				check.That(data.ResourceName).Key("management_cluster.0.hosts.#").Exists(),
 				check.That(data.ResourceName).Key("circuit.0.express_route_id").Exists(),
 				check.That(data.ResourceName).Key("circuit.0.express_route_private_peering_id").Exists(),
@@ -173,10 +173,10 @@ func TestAccAvsPrivateCloud_update(t *testing.T) {
 				check.That(data.ResourceName).Key("management_network").Exists(),
 				check.That(data.ResourceName).Key("nsxt_certificate_thumbprint").Exists(),
 				check.That(data.ResourceName).Key("nsxt_manager_endpoint").Exists(),
-				check.That(data.ResourceName).Key("provisioning_network").Exists(),
+				check.That(data.ResourceName).Key("provisioning_subnet").Exists(),
 				check.That(data.ResourceName).Key("vcenter_certificate_thumbprint").Exists(),
 				check.That(data.ResourceName).Key("vcsa_endpoint").Exists(),
-				check.That(data.ResourceName).Key("vmotion_network").Exists(),
+				check.That(data.ResourceName).Key("vmotion_subnet").Exists(),
 			),
 		},
 		data.ImportStep("nsxt_password", "vcenter_password"),
@@ -223,9 +223,9 @@ resource "azurerm_avs_private_cloud" "test" {
   sku_name            = "av36"
 
   management_cluster {
-    cluster_size = 3
+    size = 3
   }
-  network_block = "192.168.48.0/22"
+  network_subnet = "192.168.48.0/22"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -241,9 +241,9 @@ resource "azurerm_avs_private_cloud" "import" {
   sku_name            = azurerm_avs_private_cloud.test.sku_name
 
   management_cluster {
-    cluster_size = azurerm_avs_private_cloud.test.management_cluster.0.cluster_size
+    size = azurerm_avs_private_cloud.test.management_cluster.0.size
   }
-  network_block = azurerm_avs_private_cloud.test.network_block
+  network_subnet = azurerm_avs_private_cloud.test.network_subnet
 }
 `, r.basic(data))
 }
@@ -259,12 +259,12 @@ resource "azurerm_avs_private_cloud" "test" {
   sku_name            = "AV36"
 
   management_cluster {
-    cluster_size = 3
+    size = 3
   }
-  network_block      = "192.168.48.0/22"
-  internet_connected = false
-  nsxt_password      = "QazWsx13$Edc"
-  vcenter_password   = "QazWsx13$Edc"
+  network_subnet              = "192.168.48.0/22"
+  internet_connection_enabled = false
+  nsxt_password               = "QazWsx13$Edc"
+  vcenter_password            = "QazWsx13$Edc"
   tags = {
     ENV = "Test"
   }
@@ -283,12 +283,12 @@ resource "azurerm_avs_private_cloud" "test" {
   sku_name            = "AV36"
 
   management_cluster {
-    cluster_size = 4
+    size = 4
   }
-  network_block      = "192.168.48.0/22"
-  internet_connected = false
-  nsxt_password      = "QazWsx13$Edc"
-  vcenter_password   = "QazWsx13$Edc"
+  network_subnet              = "192.168.48.0/22"
+  internet_connection_enabled = false
+  nsxt_password               = "QazWsx13$Edc"
+  vcenter_password            = "QazWsx13$Edc"
   tags = {
     ENV = "Stage"
   }
@@ -307,12 +307,12 @@ resource "azurerm_avs_private_cloud" "test" {
   sku_name            = "AV36"
 
   management_cluster {
-    cluster_size = 4
+    size = 4
   }
-  network_block      = "192.168.48.0/22"
-  internet_connected = true
-  nsxt_password      = "QazWsx13$Edc"
-  vcenter_password   = "QazWsx13$Edc"
+  network_subnet              = "192.168.48.0/22"
+  internet_connection_enabled = true
+  nsxt_password               = "QazWsx13$Edc"
+  vcenter_password            = "QazWsx13$Edc"
   tags = {
     ENV = "Test"
   }
@@ -331,12 +331,12 @@ resource "azurerm_avs_private_cloud" "test" {
   sku_name            = "AV36"
 
   management_cluster {
-    cluster_size = 3
+    size = 3
   }
-  network_block      = "192.168.48.0/22"
-  internet_connected = true
-  nsxt_password      = "QazWsx13$Edc"
-  vcenter_password   = "QazWsx13$Edc"
+  network_subnet              = "192.168.48.0/22"
+  internet_connection_enabled = true
+  nsxt_password               = "QazWsx13$Edc"
+  vcenter_password            = "QazWsx13$Edc"
   tags = {
     ENV = "Test"
   }

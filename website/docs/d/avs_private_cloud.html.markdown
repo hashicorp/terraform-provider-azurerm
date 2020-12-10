@@ -41,11 +41,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `circuit` - A `circuit` block as defined below.
 
-* `internet_connected` - Is connected to the internet?
+* `internet_connection_enabled` - Is the Private CLuster connected to the internet?
 
 * `management_cluster` - A `management_cluster` block as defined below.
 
-* `network_block` - The block of addresses which should be unique across virtual network in your subscription as well as on-premise.
+* `network_subnet` - The subnet which should be unique across virtual network in your subscription as well as on-premise.
 
 * `hcx_cloud_manager_endpoint` - The endpoint for the HCX Cloud Manager.
 
@@ -53,7 +53,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `vcsa_endpoint` - The endpoint for Virtual Center Server Appliance.
 
-* `sku_name` - The name of the SKU.
+* `sku_name` - The Name of the SKU used for this Private Cloud.
 
 * `nsxt_certificate_thumbprint` - The thumbprint of the NSX-T Manager SSL certificate.
 
@@ -61,9 +61,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `management_network` - The network used to access vCenter Server and NSX-T Manager.
 
-* `provisioning_network` - The network which isused for virtual machine cold migration, cloning, and snapshot migration.
+* `provisioning_subnet` - The network which isused for virtual machine cold migration, cloning, and snapshot migration.
 
-* `vmotion_network` - The network which is used for live migration of virtual machines.
+* `vmotion_subnet` - The network which is used for live migration of virtual machines.
 
 * `tags` - A mapping of tags assigned to the Azure Vmware Solution Private Cloud.
 
@@ -75,17 +75,17 @@ A `circuit` block exports the following:
 
 * `express_route_private_peering_id` - The ID of the ExpressRoute Circuit private peering.
 
-* `primary_subnet` - The CIDR of primary subnet.
+* `primary_subnet` - The CIDR of the primary subnet.
 
-* `secondary_subnet` - The CIDR of secondary subnet.
+* `secondary_subnet` - The CIDR of the secondary subnet.
 
 ---
 
 A `management_cluster` block exports the following:
 
-* `cluster_id` - The ID of the cluster.
+* `id` - The ID of the cluster.
 
-* `cluster_size` - The size of the cluster.
+* `size` - The size of the cluster.
 
 * `hosts` - The set of the hosts in the cluster.
 

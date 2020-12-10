@@ -9,7 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/digitaltwins/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/avs/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -43,12 +43,12 @@ func dataSourceAvsPrivateCloud() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"cluster_size": {
+						"size": {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
 
-						"cluster_id": {
+						"id": {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
@@ -64,12 +64,12 @@ func dataSourceAvsPrivateCloud() *schema.Resource {
 				},
 			},
 
-			"network_block": {
+			"network_subnet": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"internet_connected": {
+			"internet_connection_enabled": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
@@ -122,7 +122,7 @@ func dataSourceAvsPrivateCloud() *schema.Resource {
 				Computed: true,
 			},
 
-			"provisioning_network": {
+			"provisioning_subnet": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -137,7 +137,7 @@ func dataSourceAvsPrivateCloud() *schema.Resource {
 				Computed: true,
 			},
 
-			"vmotion_network": {
+			"vmotion_subnet": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -156,7 +156,7 @@ func dataSourceAvsPrivateCloudRead(d *schema.ResourceData, meta interface{}) err
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := parse.NewDigitalTwinsInstanceID(subscriptionId, resourceGroup, name).ID("")
+	id := parse.NewPrivateCloudID(subscriptionId, resourceGroup, name).ID("")
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -174,19 +174,19 @@ func dataSourceAvsPrivateCloudRead(d *schema.ResourceData, meta interface{}) err
 		if err := d.Set("management_cluster", flattenArmPrivateCloudManagementCluster(props.ManagementCluster)); err != nil {
 			return fmt.Errorf("setting `management_cluster`: %+v", err)
 		}
-		d.Set("network_block", props.NetworkBlock)
+		d.Set("network_subnet", props.NetworkBlock)
 		if err := d.Set("circuit", flattenArmPrivateCloudCircuit(props.Circuit)); err != nil {
 			return fmt.Errorf("setting `circuit`: %+v", err)
 		}
-		d.Set("internet_connected", props.Internet == avs.Enabled)
+		d.Set("internet_connection_enabled", props.Internet == avs.Enabled)
 		d.Set("hcx_cloud_manager_endpoint", props.Endpoints.HcxCloudManager)
 		d.Set("nsxt_manager_endpoint", props.Endpoints.NsxtManager)
 		d.Set("vcsa_endpoint", props.Endpoints.Vcsa)
 		d.Set("management_network", props.ManagementNetwork)
 		d.Set("nsxt_certificate_thumbprint", props.NsxtCertificateThumbprint)
-		d.Set("provisioning_network", props.ProvisioningNetwork)
+		d.Set("provisioning_subnet", props.ProvisioningNetwork)
 		d.Set("vcenter_certificate_thumbprint", props.VcenterCertificateThumbprint)
-		d.Set("vmotion_network", props.VmotionNetwork)
+		d.Set("vmotion_subnet", props.VmotionNetwork)
 	}
 	d.Set("sku_name", resp.Sku.Name)
 	return tags.FlattenAndSet(d, resp.Tags)
