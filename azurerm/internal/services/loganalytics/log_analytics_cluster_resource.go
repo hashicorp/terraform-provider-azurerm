@@ -153,8 +153,7 @@ func resourceArmLogAnalyticsClusterCreate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("waiting for Log Analytics Cluster to finish updating %q (Resource Group %q): %v", id.ClusterName, id.ResourceGroup, err)
 	}
 
-	d.SetId(id.ID(subscriptionId))
-
+	d.SetId(id.ID(""))
 	return resourceArmLogAnalyticsClusterRead(d, meta)
 }
 
