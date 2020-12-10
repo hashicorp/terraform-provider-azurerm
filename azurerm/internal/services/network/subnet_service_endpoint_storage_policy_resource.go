@@ -100,23 +100,21 @@ func resourceArmSubnetServiceEndpointStoragePolicyCreateUpdate(d *schema.Resourc
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
-
+	resourceId := parse.NewSubnetServiceEndpointStoragePolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, resourceGroup, name, "")
+		resp, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.ServiceEndpointPolicyName, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("checking for existing Subnet Service Endpoint Storage Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for existing %s: %+v", resourceId, err)
 			}
 		}
 
-		if resp.ID != nil && *resp.ID != "" {
-			return tf.ImportAsExistsError("azurerm_subnet_service_endpoint_storage_policy", *resp.ID)
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return tf.ImportAsExistsError("azurerm_subnet_service_endpoint_storage_policy", resourceId.ID(""))
 		}
 	}
 
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	param := network.ServiceEndpointPolicy{
 		Location: &location,
 		ServiceEndpointPolicyPropertiesFormat: &network.ServiceEndpointPolicyPropertiesFormat{
@@ -125,28 +123,16 @@ func resourceArmSubnetServiceEndpointStoragePolicyCreateUpdate(d *schema.Resourc
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, param)
+	future, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.ServiceEndpointPolicyName, param)
 	if err != nil {
-		return fmt.Errorf("creating Subnet Service Endpoint Storage Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Subnet Service Endpoint Storage Policy %q (Resource Group %q): %+v", resourceId.ServiceEndpointPolicyName, resourceId.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Subnet Service Endpoint Storage Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of Subnet Service Endpoint Storage Policy %q (Resource Group %q): %+v", resourceId.ServiceEndpointPolicyName, resourceId.ResourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name, "")
-	if err != nil {
-		return fmt.Errorf("retrieving Subnet Service Endpoint Storage Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Subnet Service Endpoint Storage Policy %q (Resource Group %q) ID", name, resourceGroup)
-	}
-
-	id, err := parse.SubnetServiceEndpointStoragePolicyID(*resp.ID)
-	if err != nil {
-		return err
-	}
-	d.SetId(id.ID(subscriptionId))
+	d.SetId(resourceId.ID(""))
 
 	return resourceArmSubnetServiceEndpointStoragePolicyRead(d, meta)
 }
