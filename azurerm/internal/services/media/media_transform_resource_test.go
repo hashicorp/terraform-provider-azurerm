@@ -33,6 +33,22 @@ func TestAccMediaTransform_basic(t *testing.T) {
 	})
 }
 
+func TestAccMediaTransform_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_media_transform", "test")
+	r := MediaTransformResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).Key("name").HasValue("Transform-1"),
+				check.That(data.ResourceName).Key("output.#").HasValue("1"),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
 func TestAccMediaTransform_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_transform", "test")
 	r := MediaTransformResource{}
@@ -99,6 +115,7 @@ func (r MediaTransformResource) Exists(ctx context.Context, clients *clients.Cli
 }
 
 func (r MediaTransformResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -114,8 +131,28 @@ resource "azurerm_media_transform" "test" {
     }
   }
 }
+`, template)
+}
 
-`, r.template(data))
+func (r MediaTransformResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_media_transform" "import" {
+  name                        = azurerm_media_transform.test.name
+  resource_group_name         = azurerm_media_transform.test.resource_group_name
+  media_services_account_name = azurerm_media_transform.test.media_services_account_name
+
+  output {
+    relative_priority = "High"
+    on_error_action   = "ContinueJob"
+    builtin_preset {
+      preset_name = "AACGoodQualityAudio"
+    }
+  }
+}
+`, template)
 }
 
 func (r MediaTransformResource) complete(data acceptance.TestData) string {
@@ -162,7 +199,6 @@ resource "azurerm_media_transform" "test" {
     }
   }
 }
-
 `, r.template(data))
 }
 
