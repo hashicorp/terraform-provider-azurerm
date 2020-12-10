@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -181,28 +182,27 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 
 func resourceArmTrafficManagerProfileCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).TrafficManager.ProfilesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for TrafficManager Profile creation.")
+	log.Printf("[INFO] preparing arguments for Traffic Manager Profile creation.")
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	existing, err := client.Get(ctx, resourceGroup, name)
+	resourceId := parse.NewTrafficManagerProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of existing TrafficManager profile %s (resource group %s) ID", name, resourceGroup)
+			return fmt.Errorf("checking for presence of existing Traffic Manager Profile %q (Resource Group %q)", resourceId.Name, resourceId.ResourceGroup)
 		}
 	}
 
 	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_traffic_manager_profile", *existing.ID)
+		return tf.ImportAsExistsError("azurerm_traffic_manager_profile", resourceId.ID(""))
 	}
 
 	// No existing profile - start from a new struct.
 	profile := trafficmanager.Profile{
-		Name:     &name,
+		Name:     utils.String(resourceId.Name),
 		Location: utils.String("global"), // must be provided in request
 		ProfileProperties: &trafficmanager.ProfileProperties{
 			TrafficRoutingMethod: trafficmanager.TrafficRoutingMethod(d.Get("traffic_routing_method").(string)),
@@ -221,20 +221,11 @@ func resourceArmTrafficManagerProfileCreate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("`timeout_in_seconds` must be between `5` and `9` when `interval_in_seconds` is set to `10`")
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, profile); err != nil {
-		return err
+	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.Name, profile); err != nil {
+		return fmt.Errorf("creating Traffic Manager Profile %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error reading TrafficManager profile %s (resource group %s): %v", name, resourceGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read TrafficManager profile %s (resource group %s) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
-
+	d.SetId(resourceId.ID(""))
 	return resourceArmTrafficManagerProfileRead(d, meta)
 }
 
@@ -243,24 +234,22 @@ func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.TrafficManagerProfileID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["trafficManagerProfiles"]
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Traffic Manager Profile %s: %+v", name, err)
+		return fmt.Errorf("retrieving Traffic Manager Profile %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("name", resp.Name)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if profile := resp.ProfileProperties; profile != nil {
 		d.Set("profile_status", profile.ProfileStatus)
@@ -282,12 +271,10 @@ func resourceArmTrafficManagerProfileUpdate(d *schema.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.TrafficManagerProfileID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["trafficManagerProfiles"]
 
 	update := trafficmanager.Profile{
 		ProfileProperties: &trafficmanager.ProfileProperties{},
@@ -312,8 +299,8 @@ func resourceArmTrafficManagerProfileUpdate(d *schema.ResourceData, meta interfa
 		update.ProfileProperties.MonitorConfig = expandArmTrafficManagerMonitorConfig(d)
 	}
 
-	if _, err := client.Update(ctx, resourceGroup, name, update); err != nil {
-		return fmt.Errorf("Error updating TrafficManager profile %q (resource group %q): %+v", name, resourceGroup, err)
+	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, update); err != nil {
+		return fmt.Errorf("updating Traffic Manager Profile %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return resourceArmTrafficManagerProfileRead(d, meta)
@@ -324,14 +311,12 @@ func resourceArmTrafficManagerProfileDelete(d *schema.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.TrafficManagerProfileID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["trafficManagerProfiles"]
 
-	resp, err := client.Delete(ctx, resourceGroup, name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
 			return err

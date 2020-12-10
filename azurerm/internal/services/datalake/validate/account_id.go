@@ -1,21 +1,23 @@
 package validate
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
-	dataLakeParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake/parse"
 )
 
-func AccountID(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
+func AccountID(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
 	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return warnings, errors
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+		return
 	}
 
-	if _, err := dataLakeParse.AccountID(v); err != nil {
-		errors = append(errors, fmt.Errorf("can not parse %q as a Data Lake Store id: %v", k, err))
+	if _, err := parse.AccountID(v); err != nil {
+		errors = append(errors, err)
 	}
 
-	return warnings, errors
+	return
 }

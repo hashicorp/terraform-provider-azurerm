@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -20,6 +21,14 @@ func NewNetworkWatcherID(subscriptionId, resourceGroup, name string) NetworkWatc
 		ResourceGroup:  resourceGroup,
 		Name:           name,
 	}
+}
+
+func (id NetworkWatcherId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Name %q", id.Name),
+	}
+	return strings.Join(segments, " / ")
 }
 
 func (id NetworkWatcherId) ID(_ string) string {

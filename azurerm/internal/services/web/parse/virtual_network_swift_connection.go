@@ -4,29 +4,39 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 type VirtualNetworkSwiftConnectionId struct {
-	SubscriptionId    string
-	ResourceGroup     string
-	SiteName          string
-	NetworkConfigName string
+	SubscriptionId string
+	ResourceGroup  string
+	SiteName       string
+	ConfigName     string
 }
 
-func NewVirtualNetworkSwiftConnectionID(subscriptionId, resourceGroup, siteName, networkConfigName string) VirtualNetworkSwiftConnectionId {
+func NewVirtualNetworkSwiftConnectionID(subscriptionId, resourceGroup, siteName, configName string) VirtualNetworkSwiftConnectionId {
 	return VirtualNetworkSwiftConnectionId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroup:     resourceGroup,
-		SiteName:          siteName,
-		NetworkConfigName: networkConfigName,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		SiteName:       siteName,
+		ConfigName:     configName,
 	}
 }
 
+func (id VirtualNetworkSwiftConnectionId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Site Name %q", id.SiteName),
+		fmt.Sprintf("Config Name %q", id.ConfigName),
+	}
+	return strings.Join(segments, " / ")
+}
+
 func (id VirtualNetworkSwiftConnectionId) ID(_ string) string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s/networkConfig/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SiteName, id.NetworkConfigName)
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s/config/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SiteName, id.ConfigName)
 }
 
 // VirtualNetworkSwiftConnectionID parses a VirtualNetworkSwiftConnection ID into an VirtualNetworkSwiftConnectionId struct
@@ -52,7 +62,7 @@ func VirtualNetworkSwiftConnectionID(input string) (*VirtualNetworkSwiftConnecti
 	if resourceId.SiteName, err = id.PopSegment("sites"); err != nil {
 		return nil, err
 	}
-	if resourceId.NetworkConfigName, err = id.PopSegment("networkConfig"); err != nil {
+	if resourceId.ConfigName, err = id.PopSegment("config"); err != nil {
 		return nil, err
 	}
 

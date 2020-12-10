@@ -78,6 +78,13 @@ func resourceArmCosmosDbSQLContainer() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"partition_key_version": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IntBetween(1, 2),
+			},
+
 			"throughput": {
 				Type:         schema.TypeInt,
 				Optional:     true,
@@ -162,6 +169,10 @@ func resourceArmCosmosDbSQLContainerCreate(d *schema.ResourceData, meta interfac
 			Paths: &[]string{partitionkeypaths},
 			Kind:  documentdb.PartitionKindHash,
 		}
+
+		if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {
+			db.SQLContainerCreateUpdateProperties.Resource.PartitionKey.Version = utils.Int32(int32(partitionKeyVersion.(int)))
+		}
 	}
 
 	if keys := expandCosmosSQLContainerUniqueKeys(d.Get("unique_key").(*schema.Set)); keys != nil {
@@ -245,6 +256,10 @@ func resourceArmCosmosDbSQLContainerUpdate(d *schema.ResourceData, meta interfac
 			Paths: &[]string{partitionkeypaths},
 			Kind:  documentdb.PartitionKindHash,
 		}
+
+		if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {
+			db.SQLContainerCreateUpdateProperties.Resource.PartitionKey.Version = utils.Int32(int32(partitionKeyVersion.(int)))
+		}
 	}
 
 	if keys := expandCosmosSQLContainerUniqueKeys(d.Get("unique_key").(*schema.Set)); keys != nil {
@@ -320,6 +335,9 @@ func resourceArmCosmosDbSQLContainerRead(d *schema.ResourceData, meta interface{
 					} else if len(*paths) == 1 {
 						d.Set("partition_key_path", (*paths)[0])
 					}
+				}
+				if version := pk.Version; version != nil {
+					d.Set("partition_key_version", version)
 				}
 			}
 

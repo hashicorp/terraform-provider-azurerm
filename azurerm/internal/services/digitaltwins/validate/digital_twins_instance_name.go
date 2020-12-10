@@ -3,8 +3,6 @@ package validate
 import (
 	"fmt"
 	"regexp"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/digitaltwins/parse"
 )
 
 func DigitalTwinsInstanceName(i interface{}, k string) (warnings []string, errors []error) {
@@ -29,18 +27,4 @@ func DigitalTwinsInstanceName(i interface{}, k string) (warnings []string, error
 		return
 	}
 	return
-}
-
-func DigitalTwinsInstanceID(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return warnings, errors
-	}
-
-	if _, err := parse.DigitalTwinsInstanceID(v); err != nil {
-		errors = append(errors, fmt.Errorf("can not parse %q as a Digital Twins Instance resource id: %v", k, err))
-	}
-
-	return warnings, errors
 }

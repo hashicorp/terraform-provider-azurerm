@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -24,11 +25,21 @@ func NewDigitalTwinsEndpointID(subscriptionId, resourceGroup, digitalTwinsInstan
 	}
 }
 
+func (id DigitalTwinsEndpointId) String() string {
+	segments := []string{
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+		fmt.Sprintf("Digital Twins Instance Name %q", id.DigitalTwinsInstanceName),
+		fmt.Sprintf("Endpoint Name %q", id.EndpointName),
+	}
+	return strings.Join(segments, " / ")
+}
+
 func (id DigitalTwinsEndpointId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DigitalTwins/digitalTwinsInstances/%s/endpoints/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DigitalTwinsInstanceName, id.EndpointName)
 }
 
+// DigitalTwinsEndpointID parses a DigitalTwinsEndpoint ID into an DigitalTwinsEndpointId struct
 func DigitalTwinsEndpointID(input string) (*DigitalTwinsEndpointId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -38,6 +49,14 @@ func DigitalTwinsEndpointID(input string) (*DigitalTwinsEndpointId, error) {
 	resourceId := DigitalTwinsEndpointId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.DigitalTwinsInstanceName, err = id.PopSegment("digitalTwinsInstances"); err != nil {

@@ -140,6 +140,8 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Is the IotHub resource accessible from a public network? 
 
+* `min_tls_version` - (Optional) Specifies the minimum TLS version to support for this hub. The only valid value is `1.2`. Changing this forces a new resource to be created.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---

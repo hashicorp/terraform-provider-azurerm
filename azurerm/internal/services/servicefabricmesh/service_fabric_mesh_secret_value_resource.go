@@ -21,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmServiceFabricMeshSecretValue() *schema.Resource {
+func resourceServiceFabricMeshSecretValue() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceFabricMeshSecretValueCreateUpdate,
-		Read:   resourceArmServiceFabricMeshSecretValueRead,
-		Update: resourceArmServiceFabricMeshSecretValueCreateUpdate,
-		Delete: resourceArmServiceFabricMeshSecretValueDelete,
+		Create: resourceServiceFabricMeshSecretValueCreateUpdate,
+		Read:   resourceServiceFabricMeshSecretValueRead,
+		Update: resourceServiceFabricMeshSecretValueCreateUpdate,
+		Delete: resourceServiceFabricMeshSecretValueDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.SecretValueID(id)
 			return err
@@ -72,7 +72,7 @@ func resourceArmServiceFabricMeshSecretValue() *schema.Resource {
 	}
 }
 
-func resourceArmServiceFabricMeshSecretValueCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceFabricMeshSecretValueCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabricMesh.SecretValueClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -122,10 +122,10 @@ func resourceArmServiceFabricMeshSecretValueCreateUpdate(d *schema.ResourceData,
 
 	d.SetId(*resp.ID)
 
-	return resourceArmServiceFabricMeshSecretValueRead(d, meta)
+	return resourceServiceFabricMeshSecretValueRead(d, meta)
 }
 
-func resourceArmServiceFabricMeshSecretValueRead(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceFabricMeshSecretValueRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabricMesh.SecretValueClient
 	secretClient := meta.(*clients.Client).ServiceFabricMesh.SecretClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -165,7 +165,7 @@ func resourceArmServiceFabricMeshSecretValueRead(d *schema.ResourceData, meta in
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmServiceFabricMeshSecretValueDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceFabricMeshSecretValueDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabricMesh.SecretValueClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

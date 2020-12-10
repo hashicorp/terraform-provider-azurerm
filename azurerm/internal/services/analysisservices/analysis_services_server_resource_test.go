@@ -549,7 +549,7 @@ func (t AnalysisServicesServerResource) checkState(serverState analysisservices.
 		}
 
 		if resp.State != serverState {
-			return fmt.Errorf("Unexpected state. Expected %s but is %s", state, resp.State)
+			return fmt.Errorf("Unexpected state. Expected %s but is %s", serverState, resp.State)
 		}
 
 		return nil
