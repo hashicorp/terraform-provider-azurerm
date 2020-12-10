@@ -27,11 +27,12 @@ func NewTransformID(subscriptionId, resourceGroup, mediaserviceName, name string
 
 func (id TransformId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Mediaservice Name %q", id.MediaserviceName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Mediaservice Name %q", id.MediaserviceName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Transform", segmentsStr)
 }
 
 func (id TransformId) ID(_ string) string {
