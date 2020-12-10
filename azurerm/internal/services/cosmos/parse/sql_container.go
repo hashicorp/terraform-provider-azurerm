@@ -29,12 +29,13 @@ func NewSqlContainerID(subscriptionId, resourceGroup, databaseAccountName, sqlDa
 
 func (id SqlContainerId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Database Account Name %q", id.DatabaseAccountName),
-		fmt.Sprintf("Sql Database Name %q", id.SqlDatabaseName),
 		fmt.Sprintf("Container Name %q", id.ContainerName),
+		fmt.Sprintf("Sql Database Name %q", id.SqlDatabaseName),
+		fmt.Sprintf("Database Account Name %q", id.DatabaseAccountName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Sql Container", segmentsStr)
 }
 
 func (id SqlContainerId) ID(_ string) string {

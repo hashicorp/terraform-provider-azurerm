@@ -13,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmServiceBusSubscription() *schema.Resource {
+func dataSourceServiceBusSubscription() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmServiceBusSubscriptionRead,
+		Read: dataSourceServiceBusSubscriptionRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -94,7 +94,7 @@ func dataSourceArmServiceBusSubscription() *schema.Resource {
 	}
 }
 
-func dataSourceArmServiceBusSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceServiceBusSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.SubscriptionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

@@ -1,160 +1,115 @@
 package springcloud_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
+
+	parse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/parse"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMSpringCloudApp_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app", "test")
+type SpringCloudAppResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSpringCloudAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSpringCloudApp_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSpringCloudAppExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccSpringCloudApp_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app", "test")
+	r := SpringCloudAppResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMSpringCloudApp_requiresImport(t *testing.T) {
+func TestAccSpringCloudApp_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app", "test")
+	r := SpringCloudAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSpringCloudAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSpringCloudApp_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSpringCloudAppExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMSpringCloudApp_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMSpringCloudApp_complete(t *testing.T) {
+func TestAccSpringCloudApp_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app", "test")
+	r := SpringCloudAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSpringCloudAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSpringCloudApp_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSpringCloudAppExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.tenant_id"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMSpringCloudApp_update(t *testing.T) {
+func TestAccSpringCloudApp_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app", "test")
+	r := SpringCloudAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSpringCloudAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSpringCloudApp_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSpringCloudAppExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMSpringCloudApp_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSpringCloudAppExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMSpringCloudApp_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSpringCloudAppExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMSpringCloudAppExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Spring Cloud App not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serviceName := rs.Primary.Attributes["service_name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).AppPlatform.AppsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		if resp, err := client.Get(ctx, resourceGroup, serviceName, name, ""); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Spring Cloud App %q (Spring Cloud Name %q / Resource Group %q) does not exist", name, serviceName, resourceGroup)
-			}
-			return fmt.Errorf("bad: Get on AppPlatform.AppsClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMSpringCloudAppDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).AppPlatform.AppsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_spring_cloud_app" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resGroup := rs.Primary.Attributes["resource_group_name"]
-		serviceName := rs.Primary.Attributes["service_name"]
-
-		if resp, err := client.Get(ctx, resGroup, serviceName, name, ""); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Get on AppPlatform.AppsClient: %+v", err)
-			}
-		}
-
-		return nil
+func (t SpringCloudAppResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.SpringCloudAppID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.AppPlatform.AppsClient.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, "")
+	if err != nil {
+		return nil, fmt.Errorf("reading Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", id.AppName, id.SpringName, id.ResourceGroup, err)
+	}
+
+	return utils.Bool(resp.Properties != nil), nil
 }
 
-func testAccAzureRMSpringCloudApp_basic(data acceptance.TestData) string {
-	template := testAccAzureRMSpringCloudApp_template(data)
+func (SpringCloudAppResource) basic(data acceptance.TestData) string {
+	template := SpringCloudAppResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -166,8 +121,7 @@ resource "azurerm_spring_cloud_app" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMSpringCloudApp_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMSpringCloudApp_basic(data)
+func (r SpringCloudAppResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -176,11 +130,10 @@ resource "azurerm_spring_cloud_app" "import" {
   resource_group_name = azurerm_spring_cloud_app.test.resource_group_name
   service_name        = azurerm_spring_cloud_app.test.service_name
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMSpringCloudApp_complete(data acceptance.TestData) string {
-	template := testAccAzureRMSpringCloudApp_template(data)
+func (r SpringCloudAppResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -193,10 +146,10 @@ resource "azurerm_spring_cloud_app" "test" {
     type = "SystemAssigned"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMSpringCloudApp_template(data acceptance.TestData) string {
+func (SpringCloudAppResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

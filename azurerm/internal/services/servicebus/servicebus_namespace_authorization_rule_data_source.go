@@ -13,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmServiceBusNamespaceAuthorizationRule() *schema.Resource {
+func dataSourceServiceBusNamespaceAuthorizationRule() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmServiceBusNamespaceAuthorizationRuleRead,
+		Read: dataSourceServiceBusNamespaceAuthorizationRuleRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -62,7 +62,7 @@ func dataSourceArmServiceBusNamespaceAuthorizationRule() *schema.Resource {
 	}
 }
 
-func dataSourceArmServiceBusNamespaceAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceServiceBusNamespaceAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.NamespacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

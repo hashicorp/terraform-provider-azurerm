@@ -25,10 +25,11 @@ func NewAppServiceEnvironmentID(subscriptionId, resourceGroup, hostingEnvironmen
 
 func (id AppServiceEnvironmentId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Hosting Environment Name %q", id.HostingEnvironmentName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "App Service Environment", segmentsStr)
 }
 
 func (id AppServiceEnvironmentId) ID(_ string) string {

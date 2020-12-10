@@ -22,12 +22,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSpringCloudService() *schema.Resource {
+func resourceSpringCloudService() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSpringCloudServiceCreate,
-		Read:   resourceArmSpringCloudServiceRead,
-		Update: resourceArmSpringCloudServiceUpdate,
-		Delete: resourceArmSpringCloudServiceDelete,
+		Create: resourceSpringCloudServiceCreate,
+		Read:   resourceSpringCloudServiceRead,
+		Update: resourceSpringCloudServiceUpdate,
+		Delete: resourceSpringCloudServiceDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -221,7 +221,7 @@ func resourceArmSpringCloudService() *schema.Resource {
 	}
 }
 
-func resourceArmSpringCloudServiceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudServiceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.ServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -245,8 +245,8 @@ func resourceArmSpringCloudServiceCreate(d *schema.ResourceData, meta interface{
 	resource := appplatform.ServiceResource{
 		Location: utils.String(location),
 		Properties: &appplatform.ClusterResourceProperties{
-			Trace:          expandArmSpringCloudTrace(d.Get("trace").([]interface{})),
-			NetworkProfile: expandArmSpringCloudNetwork(d.Get("network").([]interface{})),
+			Trace:          expandSpringCloudTrace(d.Get("trace").([]interface{})),
+			NetworkProfile: expandSpringCloudNetwork(d.Get("network").([]interface{})),
 		},
 		Sku: &appplatform.Sku{
 			Name: utils.String(d.Get("sku_name").(string)),
@@ -254,7 +254,7 @@ func resourceArmSpringCloudServiceCreate(d *schema.ResourceData, meta interface{
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	gitProperty, err := expandArmSpringCloudConfigServerGitProperty(d.Get("config_server_git_setting").([]interface{}))
+	gitProperty, err := expandSpringCloudConfigServerGitProperty(d.Get("config_server_git_setting").([]interface{}))
 	if err != nil {
 		return err
 	}
@@ -299,10 +299,10 @@ func resourceArmSpringCloudServiceCreate(d *schema.ResourceData, meta interface{
 
 	d.SetId(resourceId)
 
-	return resourceArmSpringCloudServiceRead(d, meta)
+	return resourceSpringCloudServiceRead(d, meta)
 }
 
-func resourceArmSpringCloudServiceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudServiceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.ServicesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -311,7 +311,7 @@ func resourceArmSpringCloudServiceUpdate(d *schema.ResourceData, meta interface{
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	gitPropertyRaw := d.Get("config_server_git_setting").([]interface{})
-	gitProperty, err := expandArmSpringCloudConfigServerGitProperty(gitPropertyRaw)
+	gitProperty, err := expandSpringCloudConfigServerGitProperty(gitPropertyRaw)
 	if err != nil {
 		return err
 	}
@@ -323,7 +323,7 @@ func resourceArmSpringCloudServiceUpdate(d *schema.ResourceData, meta interface{
 					GitProperty: gitProperty,
 				},
 			},
-			Trace: expandArmSpringCloudTrace(d.Get("trace").([]interface{})),
+			Trace: expandSpringCloudTrace(d.Get("trace").([]interface{})),
 		},
 		Sku: &appplatform.Sku{
 			Name: utils.String(d.Get("sku_name").(string)),
@@ -349,10 +349,10 @@ func resourceArmSpringCloudServiceUpdate(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	return resourceArmSpringCloudServiceRead(d, meta)
+	return resourceSpringCloudServiceRead(d, meta)
 }
 
-func resourceArmSpringCloudServiceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.ServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -381,10 +381,10 @@ func resourceArmSpringCloudServiceRead(d *schema.ResourceData, meta interface{})
 		d.Set("sku_name", resp.Sku.Name)
 	}
 	if props := resp.Properties; props != nil {
-		if err := d.Set("trace", flattenArmSpringCloudTrace(props.Trace)); err != nil {
+		if err := d.Set("trace", flattenSpringCloudTrace(props.Trace)); err != nil {
 			return fmt.Errorf("failure setting `trace`: %+v", err)
 		}
-		if err := d.Set("network", flattenArmSpringCloudNetwork(props.NetworkProfile)); err != nil {
+		if err := d.Set("network", flattenSpringCloudNetwork(props.NetworkProfile)); err != nil {
 			return fmt.Errorf("setting `network`: %+v", err)
 		}
 
@@ -392,7 +392,7 @@ func resourceArmSpringCloudServiceRead(d *schema.ResourceData, meta interface{})
 		if err := d.Set("outbound_public_ip_addresses", outboundPublicIPAddresses); err != nil {
 			return fmt.Errorf("setting `outbound_public_ip_addresses`: %+v", err)
 		}
-		if err := d.Set("config_server_git_setting", flattenArmSpringCloudConfigServerGitProperty(props.ConfigServerProperties, d)); err != nil {
+		if err := d.Set("config_server_git_setting", flattenSpringCloudConfigServerGitProperty(props.ConfigServerProperties, d)); err != nil {
 			return fmt.Errorf("setting `config_server_git_setting`: %+v", err)
 		}
 	}
@@ -400,7 +400,7 @@ func resourceArmSpringCloudServiceRead(d *schema.ResourceData, meta interface{})
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmSpringCloudServiceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.ServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -424,7 +424,7 @@ func resourceArmSpringCloudServiceDelete(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func expandArmSpringCloudNetwork(input []interface{}) *appplatform.NetworkProfile {
+func expandSpringCloudNetwork(input []interface{}) *appplatform.NetworkProfile {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -444,7 +444,7 @@ func expandArmSpringCloudNetwork(input []interface{}) *appplatform.NetworkProfil
 	return network
 }
 
-func expandArmSpringCloudConfigServerGitProperty(input []interface{}) (*appplatform.ConfigServerGitProperty, error) {
+func expandSpringCloudConfigServerGitProperty(input []interface{}) (*appplatform.ConfigServerGitProperty, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
@@ -489,7 +489,7 @@ func expandArmSpringCloudConfigServerGitProperty(input []interface{}) (*appplatf
 	}
 
 	if v, ok := v["repository"]; ok {
-		repositories, err := expandArmSpringCloudGitPatternRepository(v.([]interface{}))
+		repositories, err := expandSpringCloudGitPatternRepository(v.([]interface{}))
 		if err != nil {
 			return nil, err
 		}
@@ -499,7 +499,7 @@ func expandArmSpringCloudConfigServerGitProperty(input []interface{}) (*appplatf
 	return &result, nil
 }
 
-func expandArmSpringCloudGitPatternRepository(input []interface{}) (*[]appplatform.GitPatternRepository, error) {
+func expandSpringCloudGitPatternRepository(input []interface{}) (*[]appplatform.GitPatternRepository, error) {
 	results := make([]appplatform.GitPatternRepository, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
@@ -547,7 +547,7 @@ func expandArmSpringCloudGitPatternRepository(input []interface{}) (*[]appplatfo
 	return &results, nil
 }
 
-func expandArmSpringCloudTrace(input []interface{}) *appplatform.TraceProperties {
+func expandSpringCloudTrace(input []interface{}) *appplatform.TraceProperties {
 	if len(input) == 0 || input[0] == nil {
 		return &appplatform.TraceProperties{
 			Enabled: utils.Bool(false),
@@ -560,7 +560,7 @@ func expandArmSpringCloudTrace(input []interface{}) *appplatform.TraceProperties
 	}
 }
 
-func flattenArmSpringCloudConfigServerGitProperty(input *appplatform.ConfigServerProperties, d *schema.ResourceData) []interface{} {
+func flattenSpringCloudConfigServerGitProperty(input *appplatform.ConfigServerProperties, d *schema.ResourceData) []interface{} {
 	if input == nil || input.ConfigServer == nil || input.ConfigServer.GitProperty == nil {
 		return []interface{}{}
 	}
@@ -647,12 +647,12 @@ func flattenArmSpringCloudConfigServerGitProperty(input *appplatform.ConfigServe
 			"search_paths":    searchPaths,
 			"http_basic_auth": httpBasicAuth,
 			"ssh_auth":        sshAuth,
-			"repository":      flattenArmSpringCloudGitPatternRepository(gitProperty.Repositories, d),
+			"repository":      flattenSpringCloudGitPatternRepository(gitProperty.Repositories, d),
 		},
 	}
 }
 
-func flattenArmSpringCloudGitPatternRepository(input *[]appplatform.GitPatternRepository, d *schema.ResourceData) []interface{} {
+func flattenSpringCloudGitPatternRepository(input *[]appplatform.GitPatternRepository, d *schema.ResourceData) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -759,7 +759,7 @@ func flattenArmSpringCloudGitPatternRepository(input *[]appplatform.GitPatternRe
 	return results
 }
 
-func flattenArmSpringCloudTrace(input *appplatform.TraceProperties) []interface{} {
+func flattenSpringCloudTrace(input *appplatform.TraceProperties) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -784,7 +784,7 @@ func flattenArmSpringCloudTrace(input *appplatform.TraceProperties) []interface{
 	}
 }
 
-func flattenArmSpringCloudNetwork(input *appplatform.NetworkProfile) []interface{} {
+func flattenSpringCloudNetwork(input *appplatform.NetworkProfile) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}

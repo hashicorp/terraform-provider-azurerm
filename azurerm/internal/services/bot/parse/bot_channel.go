@@ -27,11 +27,12 @@ func NewBotChannelID(subscriptionId, resourceGroup, botServiceName, channelName 
 
 func (id BotChannelId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Bot Service Name %q", id.BotServiceName),
 		fmt.Sprintf("Channel Name %q", id.ChannelName),
+		fmt.Sprintf("Bot Service Name %q", id.BotServiceName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Bot Channel", segmentsStr)
 }
 
 func (id BotChannelId) ID(_ string) string {

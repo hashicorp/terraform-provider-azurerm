@@ -18,11 +18,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSpringCloudCertificate() *schema.Resource {
+func resourceSpringCloudCertificate() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSpringCloudCertificateCreate,
-		Read:   resourceArmSpringCloudCertificateRead,
-		Delete: resourceArmSpringCloudCertificateDelete,
+		Create: resourceSpringCloudCertificateCreate,
+		Read:   resourceSpringCloudCertificateRead,
+		Delete: resourceSpringCloudCertificateDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.SpringCloudCertificateID(id)
@@ -62,7 +62,7 @@ func resourceArmSpringCloudCertificate() *schema.Resource {
 	}
 }
 
-func resourceArmSpringCloudCertificateCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudCertificateCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.CertificatesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -96,10 +96,10 @@ func resourceArmSpringCloudCertificateCreate(d *schema.ResourceData, meta interf
 	}
 
 	d.SetId(resourceId)
-	return resourceArmSpringCloudCertificateRead(d, meta)
+	return resourceSpringCloudCertificateRead(d, meta)
 }
 
-func resourceArmSpringCloudCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.CertificatesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -125,7 +125,7 @@ func resourceArmSpringCloudCertificateRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceArmSpringCloudCertificateDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudCertificateDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.CertificatesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

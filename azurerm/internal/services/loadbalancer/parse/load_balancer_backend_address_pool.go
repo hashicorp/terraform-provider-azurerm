@@ -27,11 +27,12 @@ func NewLoadBalancerBackendAddressPoolID(subscriptionId, resourceGroup, loadBala
 
 func (id LoadBalancerBackendAddressPoolId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Load Balancer Name %q", id.LoadBalancerName),
 		fmt.Sprintf("Backend Address Pool Name %q", id.BackendAddressPoolName),
+		fmt.Sprintf("Load Balancer Name %q", id.LoadBalancerName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Load Balancer Backend Address Pool", segmentsStr)
 }
 
 func (id LoadBalancerBackendAddressPoolId) ID(_ string) string {

@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmServiceBusTopic() *schema.Resource {
+func resourceServiceBusTopic() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceBusTopicCreateUpdate,
-		Read:   resourceArmServiceBusTopicRead,
-		Update: resourceArmServiceBusTopicCreateUpdate,
-		Delete: resourceArmServiceBusTopicDelete,
+		Create: resourceServiceBusTopicCreateUpdate,
+		Read:   resourceServiceBusTopicRead,
+		Update: resourceServiceBusTopicCreateUpdate,
+		Delete: resourceServiceBusTopicDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.TopicID(id)
@@ -125,7 +125,7 @@ func resourceArmServiceBusTopic() *schema.Resource {
 	}
 }
 
-func resourceArmServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.TopicsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -185,10 +185,10 @@ func resourceArmServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	d.SetId(resourceId.ID(""))
-	return resourceArmServiceBusTopicRead(d, meta)
+	return resourceServiceBusTopicRead(d, meta)
 }
 
-func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusTopicRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.TopicsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -251,7 +251,7 @@ func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceArmServiceBusTopicDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusTopicDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.TopicsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

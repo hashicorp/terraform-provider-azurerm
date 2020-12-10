@@ -27,11 +27,12 @@ func NewFirewallPolicyRuleCollectionGroupID(subscriptionId, resourceGroup, firew
 
 func (id FirewallPolicyRuleCollectionGroupId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Firewall Policy Name %q", id.FirewallPolicyName),
 		fmt.Sprintf("Rule Collection Group Name %q", id.RuleCollectionGroupName),
+		fmt.Sprintf("Firewall Policy Name %q", id.FirewallPolicyName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Firewall Policy Rule Collection Group", segmentsStr)
 }
 
 func (id FirewallPolicyRuleCollectionGroupId) ID(_ string) string {

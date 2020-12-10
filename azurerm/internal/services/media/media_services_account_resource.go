@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -119,22 +120,32 @@ func resourceMediaServicesAccount() *schema.Resource {
 
 func resourceMediaServicesAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.ServicesClient
-	subscription := meta.(*clients.Client).Account.SubscriptionId
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	accountName := d.Get("name").(string)
+	resourceId := parse.NewMediaServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.Name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for existing %s: %+v", resourceId, err)
+			}
+		}
+
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_media_services_account", resourceId.ID(""))
+		}
+	}
+
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
-	resourceGroup := d.Get("resource_group_name").(string)
-	id := parse.NewMediaServiceID(subscription, resourceGroup, accountName)
 
 	storageAccountsRaw := d.Get("storage_account").(*schema.Set).List()
 	storageAccounts, err := expandMediaServicesAccountStorageAccounts(storageAccountsRaw)
 	if err != nil {
 		return err
 	}
-
 	parameters := media.Service{
 		ServiceProperties: &media.ServiceProperties{
 			StorageAccounts: storageAccounts,
@@ -151,12 +162,11 @@ func resourceMediaServicesAccountCreateUpdate(d *schema.ResourceData, meta inter
 		parameters.StorageAuthentication = media.StorageAuthentication(v.(string))
 	}
 
-	if _, e := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters); e != nil {
-		return fmt.Errorf("creating Media Service Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, e)
+	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.Name, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", resourceId, err)
 	}
 
-	d.SetId(id.ID(""))
-
+	d.SetId(resourceId.ID(""))
 	return resourceMediaServicesAccountRead(d, meta)
 }
 

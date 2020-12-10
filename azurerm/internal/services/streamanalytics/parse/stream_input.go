@@ -27,11 +27,12 @@ func NewStreamInputID(subscriptionId, resourceGroup, streamingjobName, inputName
 
 func (id StreamInputId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Streamingjob Name %q", id.StreamingjobName),
 		fmt.Sprintf("Input Name %q", id.InputName),
+		fmt.Sprintf("Streamingjob Name %q", id.StreamingjobName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Stream Input", segmentsStr)
 }
 
 func (id StreamInputId) ID(_ string) string {

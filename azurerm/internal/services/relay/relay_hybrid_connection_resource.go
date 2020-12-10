@@ -131,7 +131,7 @@ func resourceArmHybridConnectionRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("retrieving Hybrid Connection %q (Namespace %q / Resource Group %q): %+v", id.Name, id.NamespaceName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", id.NamespaceName)
+	d.Set("name", id.Name)
 	d.Set("relay_namespace_name", id.NamespaceName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
