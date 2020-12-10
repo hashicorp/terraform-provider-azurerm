@@ -29,12 +29,13 @@ func NewStorageSyncCloudEndpointID(subscriptionId, resourceGroup, storageSyncSer
 
 func (id StorageSyncCloudEndpointId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Storage Sync Service Name %q", id.StorageSyncServiceName),
-		fmt.Sprintf("Sync Group Name %q", id.SyncGroupName),
 		fmt.Sprintf("Cloud Endpoint Name %q", id.CloudEndpointName),
+		fmt.Sprintf("Sync Group Name %q", id.SyncGroupName),
+		fmt.Sprintf("Storage Sync Service Name %q", id.StorageSyncServiceName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Storage Sync Cloud Endpoint", segmentsStr)
 }
 
 func (id StorageSyncCloudEndpointId) ID(_ string) string {

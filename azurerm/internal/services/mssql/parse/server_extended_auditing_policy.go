@@ -27,11 +27,12 @@ func NewServerExtendedAuditingPolicyID(subscriptionId, resourceGroup, serverName
 
 func (id ServerExtendedAuditingPolicyId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Server Name %q", id.ServerName),
 		fmt.Sprintf("Extended Auditing Setting Name %q", id.ExtendedAuditingSettingName),
+		fmt.Sprintf("Server Name %q", id.ServerName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Server Extended Auditing Policy", segmentsStr)
 }
 
 func (id ServerExtendedAuditingPolicyId) ID(_ string) string {

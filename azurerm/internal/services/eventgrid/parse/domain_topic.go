@@ -27,11 +27,12 @@ func NewDomainTopicID(subscriptionId, resourceGroup, domainName, topicName strin
 
 func (id DomainTopicId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Domain Name %q", id.DomainName),
 		fmt.Sprintf("Topic Name %q", id.TopicName),
+		fmt.Sprintf("Domain Name %q", id.DomainName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Domain Topic", segmentsStr)
 }
 
 func (id DomainTopicId) ID(_ string) string {

@@ -25,10 +25,11 @@ func NewCacheID(subscriptionId, resourceGroup, name string) CacheId {
 
 func (id CacheId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Cache", segmentsStr)
 }
 
 func (id CacheId) ID(_ string) string {

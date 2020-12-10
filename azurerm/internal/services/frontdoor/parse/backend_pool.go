@@ -27,11 +27,12 @@ func NewBackendPoolID(subscriptionId, resourceGroup, frontDoorName, name string)
 
 func (id BackendPoolId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Front Door Name %q", id.FrontDoorName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Front Door Name %q", id.FrontDoorName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Backend Pool", segmentsStr)
 }
 
 func (id BackendPoolId) ID(_ string) string {

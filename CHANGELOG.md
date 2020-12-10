@@ -6,11 +6,12 @@ FEATURES:
 * **New Resource:** `azurerm_digital_twins_endpoint_eventhub` [GH-9673]
 * **New Resource:** `azurerm_digital_twins_endpoint_servicebus`  [GH-9702]
 * **New Resource:** `azurerm_media_asset` [GH-9387]
+* **New Resource:** `azurerm_media_transform` [GH-9663]
 * **New Resource:** `azurerm_resource_provider` [GH-7951]
+* **New Resource:** `azurerm_stack_hci_cluster` [GH-9134]
 * **New Resource:** `azurerm_storage_share_file` [GH-9406]
-* **New resource:** `azurerm_storage_sync_cloud_endpoint` [GH-8540]
-* **New resource:** `azurerm_subnet_service_endpoint_storage_policy` [GH-8966]
-* **New Resource:** `azurerm_hci_cluster` [GH-9134]
+* **New Resource:** `azurerm_storage_sync_cloud_endpoint` [GH-8540]
+* **New Resource:** `azurerm_subnet_service_endpoint_storage_policy` [GH-8966]
 
 IMPROVEMENTS:
 
@@ -29,10 +30,10 @@ IMPROVEMENTS:
 * `azurerm_kusto_eventhub_data_connection` - support for `compression` [GH-9692]
 * `azurerm_iothub` - support for the `min_tls_version` property [GH-9670]
 * `azurerm_recovery_services_vault` - support for the `identity` block [GH-9689]
-* `azurerm_redis_cache` - adding Enhanced Import validation [GH-9771]
+* `azurerm_redis_cache` - adding enhanced import validation [GH-9771]
 * `azurerm_redis_cache` - adding validation that `subnet_id` is a valid Subnet ID [GH-9771]
-* `azurerm_redis_firewall_rule` - adding Enhanced Import validation [GH-9771]
-* `azurerm_redis_linked_server` - adding Enhanced Import validation [GH-9771]
+* `azurerm_redis_firewall_rule` - adding enhanced import validation [GH-9771]
+* `azurerm_redis_linked_server` - adding enhanced import validation [GH-9771]
 * `azurerm_redis_linked_server` - adding validation that `linked_redis_cache_id` is a valid Redis Cache ID [GH-9771]
 * `azurerm_security_center_automation` - support for the `description` and `tags` properties [GH-9676]
 * `azurerm_stream_analytics_reference_input_blob` - support for enhanced import validation [GH-9735]
@@ -44,6 +45,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_app_service_managed_certificate` - create certificate in service plan resource group to prevent diff loop [GH-9701]
 * `azurerm_bot_channel_directline` - the field `bot_name` is now ForceNew to match the documentation/API behaviour [GH-9690]
 * `azurerm_bot_channel_ms_teams` - the field `bot_name` is now ForceNew to match the documentation/API behaviour [GH-9690]
 * `azurerm_bot_channel_slack` - the field `bot_name` is now ForceNew to match the documentation/API behaviour [GH-9690]
@@ -51,9 +53,11 @@ BUG FIXES:
 * `azurerm_frontdoor` - working around an upstream API issue by rewriting the returned ID's within Terraform [GH-9750]
 * `azurerm_frontdoor_custom_https_configuration` - working around an upstream API issue by rewriting the returned ID's within Terraform [GH-9750]
 * `azurerm_frontdoor_firewall_policy` - working around an upstream API issue by rewriting the returned ID's within Terraform [GH-9750]
+* `azurerm_media_services_account` - fixing a bug where `storage_authentication_type` wasn't set [GH-9663]
+* `azurerm_media_service_account` - checking for the presence of an existing account during creation [GH-9802]
 * `azurerm_postgresql_server` - changing the `geo_redundant_backup_enabled` property now forces a new resource [GH-9694]
 * `azurerm_postgresql_server` - Fix issue when specifying empty threat detection list attributes [GH-9739]
-* `azurerm_signar_service` -  having an empty `allowed_origins` in the `cors` block will no longer cause a panic [GH-9671]
+* `azurerm_signar_service` - having an empty `allowed_origins` in the `cors` block will no longer cause a panic [GH-9671]
 
 ## 2.39.0 (December 04, 2020)
 
