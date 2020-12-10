@@ -25,7 +25,8 @@ func (id SubscriptionTemplateDeploymentId) String() string {
 	segments := []string{
 		fmt.Sprintf("Deployment Name %q", id.DeploymentName),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Subscription Template Deployment", segmentsStr)
 }
 
 func (id SubscriptionTemplateDeploymentId) ID(_ string) string {

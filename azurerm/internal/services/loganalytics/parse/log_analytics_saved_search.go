@@ -27,11 +27,12 @@ func NewLogAnalyticsSavedSearchID(subscriptionId, resourceGroup, workspaceName, 
 
 func (id LogAnalyticsSavedSearchId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Workspace Name %q", id.WorkspaceName),
 		fmt.Sprintf("Saved Searche Name %q", id.SavedSearcheName),
+		fmt.Sprintf("Workspace Name %q", id.WorkspaceName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Log Analytics Saved Search", segmentsStr)
 }
 
 func (id LogAnalyticsSavedSearchId) ID(_ string) string {

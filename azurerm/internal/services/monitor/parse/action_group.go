@@ -25,10 +25,11 @@ func NewActionGroupID(subscriptionId, resourceGroup, name string) ActionGroupId 
 
 func (id ActionGroupId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Action Group", segmentsStr)
 }
 
 func (id ActionGroupId) ID(_ string) string {

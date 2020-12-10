@@ -25,10 +25,11 @@ func NewLogAnalyticsClusterID(subscriptionId, resourceGroup, clusterName string)
 
 func (id LogAnalyticsClusterId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Cluster Name %q", id.ClusterName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Log Analytics Cluster", segmentsStr)
 }
 
 func (id LogAnalyticsClusterId) ID(_ string) string {
