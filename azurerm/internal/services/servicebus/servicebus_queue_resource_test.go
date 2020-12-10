@@ -251,7 +251,7 @@ func TestAccServiceBusQueue_forwardTo(t *testing.T) {
 		{
 			Config: r.forwardTo(data),
 			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("forward_to").HasValue(fmt.Sprintf("acctestservicebusqueue-forward_to-%d")),
+				check.That(data.ResourceName).Key("forward_to").HasValue(fmt.Sprintf("acctestservicebusqueue-forward_to-%d", data.RandomInteger)),
 			),
 		},
 		data.ImportStep(),
@@ -272,7 +272,7 @@ func TestAccServiceBusQueue_forwardDeadLetteredMessagesTo(t *testing.T) {
 		{
 			Config: r.forwardDeadLetteredMessagesTo(data),
 			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("forward_dead_lettered_messages_to").HasValue(fmt.Sprintf("acctestservicebusqueue-forward_dl_messages_to-%d")),
+				check.That(data.ResourceName).Key("forward_dead_lettered_messages_to").HasValue(fmt.Sprintf("acctestservicebusqueue-forward_dl_messages_to-%d", data.RandomInteger)),
 			),
 		},
 		data.ImportStep(),
