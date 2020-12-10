@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/parse"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -176,7 +177,9 @@ func resourceMediaTransform() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(media.High), string(media.Normal), string(media.Low),
+								string(media.High),
+								string(media.Normal),
+								string(media.Low),
 							}, true),
 						},
 					},
@@ -188,17 +191,27 @@ func resourceMediaTransform() *schema.Resource {
 
 func resourceMediaTransformCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.TransformsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	transformName := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	accountName := d.Get("media_services_account_name").(string)
-	description := d.Get("description").(string)
+	resourceId := parse.NewTransformID(subscriptionId, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("name").(string))
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.MediaserviceName, resourceId.Name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for existing %s: %+v", resourceId, err)
+			}
+		}
+
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_media_transform", resourceId.ID(""))
+		}
+	}
 
 	parameters := media.Transform{
 		TransformProperties: &media.TransformProperties{
-			Description: utils.String(description),
+			Description: utils.String(d.Get("description").(string)),
 		},
 	}
 
@@ -210,17 +223,11 @@ func resourceMediaTransformCreateUpdate(d *schema.ResourceData, meta interface{}
 		parameters.Outputs = transformOutput
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, accountName, transformName, parameters); err != nil {
-		return fmt.Errorf("Error creating Transform %q in Media Services Account %q (Resource Group %q): %+v", transformName, accountName, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.MediaserviceName, resourceId.Name, parameters); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", resourceId, err)
 	}
 
-	transform, err := client.Get(ctx, resourceGroup, accountName, transformName)
-	if err != nil {
-		return fmt.Errorf("Error retrieving Transform %q from Media Services Account %q (Resource Group %q): %+v", transformName, accountName, resourceGroup, err)
-	}
-
-	d.SetId(*transform.ID)
-
+	d.SetId(resourceId.ID(""))
 	return resourceMediaTransformRead(d, meta)
 }
 
