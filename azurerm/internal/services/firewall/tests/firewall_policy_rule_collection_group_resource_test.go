@@ -335,6 +335,7 @@ resource "azurerm_firewall_policy" "test" {
   location            = azurerm_resource_group.test.location
   dns {
     network_rule_fqdn_enabled = false
+    proxy_enabled             = true
   }
 }
 
