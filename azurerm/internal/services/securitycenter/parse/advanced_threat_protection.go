@@ -5,7 +5,10 @@ import (
 	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
+
+var _ resourceid.Formatter = AdvancedThreatProtectionId{}
 
 type AdvancedThreatProtectionId struct {
 	TargetResourceID string
