@@ -25,10 +25,11 @@ func NewLogAnalyticsSolutionID(subscriptionId, resourceGroup, solutionName strin
 
 func (id LogAnalyticsSolutionId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Solution Name %q", id.SolutionName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Log Analytics Solution", segmentsStr)
 }
 
 func (id LogAnalyticsSolutionId) ID(_ string) string {

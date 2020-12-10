@@ -27,11 +27,12 @@ func NewConnectionID(subscriptionId, resourceGroup, automationAccountName, name 
 
 func (id ConnectionId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Automation Account Name %q", id.AutomationAccountName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Automation Account Name %q", id.AutomationAccountName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Connection", segmentsStr)
 }
 
 func (id ConnectionId) ID(_ string) string {

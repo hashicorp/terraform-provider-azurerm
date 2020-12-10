@@ -29,12 +29,13 @@ func NewDatabaseExtendedAuditingPolicyID(subscriptionId, resourceGroup, serverNa
 
 func (id DatabaseExtendedAuditingPolicyId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Server Name %q", id.ServerName),
-		fmt.Sprintf("Database Name %q", id.DatabaseName),
 		fmt.Sprintf("Extended Auditing Setting Name %q", id.ExtendedAuditingSettingName),
+		fmt.Sprintf("Database Name %q", id.DatabaseName),
+		fmt.Sprintf("Server Name %q", id.ServerName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Database Extended Auditing Policy", segmentsStr)
 }
 
 func (id DatabaseExtendedAuditingPolicyId) ID(_ string) string {

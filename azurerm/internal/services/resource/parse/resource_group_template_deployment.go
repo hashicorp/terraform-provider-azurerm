@@ -25,10 +25,11 @@ func NewResourceGroupTemplateDeploymentID(subscriptionId, resourceGroup, deploym
 
 func (id ResourceGroupTemplateDeploymentId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Deployment Name %q", id.DeploymentName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Resource Group Template Deployment", segmentsStr)
 }
 
 func (id ResourceGroupTemplateDeploymentId) ID(_ string) string {

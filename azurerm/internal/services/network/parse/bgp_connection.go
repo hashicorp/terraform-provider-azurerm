@@ -27,11 +27,12 @@ func NewBgpConnectionID(subscriptionId, resourceGroup, virtualHubName, name stri
 
 func (id BgpConnectionId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Virtual Hub Name %q", id.VirtualHubName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Virtual Hub Name %q", id.VirtualHubName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Bgp Connection", segmentsStr)
 }
 
 func (id BgpConnectionId) ID(_ string) string {

@@ -27,11 +27,12 @@ func NewCertificateID(subscriptionId, resourceGroup, batchAccountName, name stri
 
 func (id CertificateId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Batch Account Name %q", id.BatchAccountName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Batch Account Name %q", id.BatchAccountName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Certificate", segmentsStr)
 }
 
 func (id CertificateId) ID(_ string) string {

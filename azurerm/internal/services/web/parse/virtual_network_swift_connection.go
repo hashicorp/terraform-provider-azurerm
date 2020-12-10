@@ -27,11 +27,12 @@ func NewVirtualNetworkSwiftConnectionID(subscriptionId, resourceGroup, siteName,
 
 func (id VirtualNetworkSwiftConnectionId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Site Name %q", id.SiteName),
 		fmt.Sprintf("Config Name %q", id.ConfigName),
+		fmt.Sprintf("Site Name %q", id.SiteName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Virtual Network Swift Connection", segmentsStr)
 }
 
 func (id VirtualNetworkSwiftConnectionId) ID(_ string) string {

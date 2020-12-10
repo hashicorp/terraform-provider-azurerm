@@ -31,13 +31,14 @@ func NewSubscriptionRuleID(subscriptionId, resourceGroup, namespaceName, topicNa
 
 func (id SubscriptionRuleId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Namespace Name %q", id.NamespaceName),
-		fmt.Sprintf("Topic Name %q", id.TopicName),
-		fmt.Sprintf("Subscription Name %q", id.SubscriptionName),
 		fmt.Sprintf("Rule Name %q", id.RuleName),
+		fmt.Sprintf("Subscription Name %q", id.SubscriptionName),
+		fmt.Sprintf("Topic Name %q", id.TopicName),
+		fmt.Sprintf("Namespace Name %q", id.NamespaceName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Subscription Rule", segmentsStr)
 }
 
 func (id SubscriptionRuleId) ID(_ string) string {

@@ -27,11 +27,12 @@ func NewLoadBalancerInboundNatPoolID(subscriptionId, resourceGroup, loadBalancer
 
 func (id LoadBalancerInboundNatPoolId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Load Balancer Name %q", id.LoadBalancerName),
 		fmt.Sprintf("Inbound Nat Pool Name %q", id.InboundNatPoolName),
+		fmt.Sprintf("Load Balancer Name %q", id.LoadBalancerName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Load Balancer Inbound Nat Pool", segmentsStr)
 }
 
 func (id LoadBalancerInboundNatPoolId) ID(_ string) string {
