@@ -102,6 +102,58 @@ func TestAccAzureRMSentinelAlertRuleMsSecurityIncident_requiresImport(t *testing
 	})
 }
 
+func TestAccAzureRMSentinelAlertRuleMsSecurityIncident_withAlertRuleTemplateName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_ms_security_incident", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMSentinelAlertRuleMsSecurityIncidentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSentinelAlertRuleMsSecurityIncident_withAlertRuleTemplateName(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSentinelAlertRuleMsSecurityIncidentExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMSentinelAlertRuleMsSecurityIncident_withDisplayNameExcludeFilter(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_ms_security_incident", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMSentinelAlertRuleMsSecurityIncidentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSentinelAlertRuleMsSecurityIncident_withDisplayNameExcludeFilter(data, "alert3"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSentinelAlertRuleMsSecurityIncidentExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMSentinelAlertRuleMsSecurityIncident_withDisplayNameExcludeFilter(data, "alert4"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSentinelAlertRuleMsSecurityIncidentExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMSentinelAlertRuleMsSecurityIncident_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSentinelAlertRuleMsSecurityIncidentExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMSentinelAlertRuleMsSecurityIncidentExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Sentinel.AlertRulesClient
@@ -199,6 +251,39 @@ resource "azurerm_sentinel_alert_rule_ms_security_incident" "import" {
   severity_filter            = azurerm_sentinel_alert_rule_ms_security_incident.test.severity_filter
 }
 `, template)
+}
+
+func testAccAzureRMSentinelAlertRuleMsSecurityIncident_withAlertRuleTemplateName(data acceptance.TestData) string {
+	template := testAccAzureRMSentinelAlertRuleMsSecurityIncident_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sentinel_alert_rule_ms_security_incident" "test" {
+  name                       = "acctest-SentinelAlertRule-MSI-%d"
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  product_filter             = "Microsoft Cloud App Security"
+  display_name               = "some rule"
+  severity_filter            = ["High"]
+  alert_rule_template_name   = "b3cfc7c0-092c-481c-a55b-34a3979758cb"
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMSentinelAlertRuleMsSecurityIncident_withDisplayNameExcludeFilter(data acceptance.TestData, displayNameExcludeFilter string) string {
+	template := testAccAzureRMSentinelAlertRuleMsSecurityIncident_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sentinel_alert_rule_ms_security_incident" "test" {
+  name                        = "acctest-SentinelAlertRule-MSI-%d"
+  log_analytics_workspace_id  = azurerm_log_analytics_workspace.test.id
+  product_filter              = "Microsoft Cloud App Security"
+  display_name                = "some rule"
+  severity_filter             = ["High"]
+  display_name_filter         = ["alert1"]
+  display_name_exclude_filter = ["%s"]
+}
+`, template, data.RandomInteger, displayNameExcludeFilter)
 }
 
 func testAccAzureRMSentinelAlertRuleMsSecurityIncident_template(data acceptance.TestData) string {

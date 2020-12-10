@@ -56,11 +56,17 @@ The following arguments are supported:
 
 ---
 
+* `alert_rule_template_name` - (Optional) The name of the alert rule template which is used to create this Sentinel Scheduled Alert Rule. Changing this forces a new Sentinel MS Security Incident Alert Rule to be created.
+
+-> **NOTE** `alert_rule_template_name` should be a valid GUID.
+
 * `description` - (Optional) The description of this Sentinel MS Security Incident Alert Rule.
 
 * `enabled` - (Optional) Should this Sentinel MS Security Incident Alert Rule be enabled? Defaults to `true`.
 
 * `display_name_filter` - (Optional) Only create incidents when the alert display name contain text from this list, leave empty to apply no filter.
+
+* `display_name_exclude_filter` - (Optional) Only create incidents when the alert display name doesn't contain text from this list.
 
 ## Attributes Reference
 
