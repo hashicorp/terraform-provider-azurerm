@@ -12,18 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMSearchService_basic(t *testing.T) {
+func TestAccSearchService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSearchServiceDestroy,
+		CheckDestroy: testCheckSearchServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSearchService_basic(data),
+				Config: testAccSearchService_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSearchServiceExists(data.ResourceName),
+					testCheckSearchServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 				),
 			},
@@ -32,37 +32,37 @@ func TestAccAzureRMSearchService_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSearchService_requiresImport(t *testing.T) {
+func TestAccSearchService_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSearchServiceDestroy,
+		CheckDestroy: testCheckSearchServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSearchService_basic(data),
+				Config: testAccSearchService_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSearchServiceExists(data.ResourceName),
+					testCheckSearchServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMSearchService_requiresImport),
+			data.RequiresImportErrorStep(testAccSearchService_requiresImport),
 		},
 	})
 }
 
-func TestAccAzureRMSearchService_complete(t *testing.T) {
+func TestAccSearchService_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSearchServiceDestroy,
+		CheckDestroy: testCheckSearchServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSearchService_complete(data),
+				Config: testAccSearchService_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSearchServiceExists(data.ResourceName),
+					testCheckSearchServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "replica_count", "2"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
@@ -76,27 +76,27 @@ func TestAccAzureRMSearchService_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSearchService_update(t *testing.T) {
+func TestAccSearchService_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSearchServiceDestroy,
+		CheckDestroy: testCheckSearchServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSearchService_basic(data),
+				Config: testAccSearchService_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSearchServiceExists(data.ResourceName),
+					testCheckSearchServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "staging"),
 					resource.TestCheckResourceAttr(data.ResourceName, "public_network_access_enabled", "true"),
 				),
 			},
 			{
-				Config: testAccAzureRMSearchService_complete(data),
+				Config: testAccSearchService_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSearchServiceExists(data.ResourceName),
+					testCheckSearchServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Production"),
 					resource.TestCheckResourceAttr(data.ResourceName, "public_network_access_enabled", "false"),
@@ -106,34 +106,34 @@ func TestAccAzureRMSearchService_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSearchService_ipRules(t *testing.T) {
+func TestAccSearchService_ipRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSearchServiceDestroy,
+		CheckDestroy: testCheckSearchServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSearchService_basic(data),
+				Config: testAccSearchService_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSearchServiceExists(data.ResourceName),
+					testCheckSearchServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMSearchService_ipRules(data),
+				Config: testAccSearchService_ipRules(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSearchServiceExists(data.ResourceName),
+					testCheckSearchServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMSearchService_basic(data),
+				Config: testAccSearchService_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSearchServiceExists(data.ResourceName),
+					testCheckSearchServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 				),
 			},
@@ -142,34 +142,34 @@ func TestAccAzureRMSearchService_ipRules(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSearchService_identity(t *testing.T) {
+func TestAccSearchService_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSearchServiceDestroy,
+		CheckDestroy: testCheckSearchServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSearchService_basic(data),
+				Config: testAccSearchService_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSearchServiceExists(data.ResourceName),
+					testCheckSearchServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMSearchService_identity(data),
+				Config: testAccSearchService_identity(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSearchServiceExists(data.ResourceName),
+					testCheckSearchServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMSearchService_basic(data),
+				Config: testAccSearchService_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSearchServiceExists(data.ResourceName),
+					testCheckSearchServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 				),
 			},
@@ -178,7 +178,7 @@ func TestAccAzureRMSearchService_identity(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMSearchServiceExists(resourceName string) resource.TestCheckFunc {
+func testCheckSearchServiceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Search.ServicesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -206,7 +206,7 @@ func testCheckAzureRMSearchServiceExists(resourceName string) resource.TestCheck
 	}
 }
 
-func testCheckAzureRMSearchServiceDestroy(s *terraform.State) error {
+func testCheckSearchServiceDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Search.ServicesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -235,7 +235,7 @@ func testCheckAzureRMSearchServiceDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMSearchService_basic(data acceptance.TestData) string {
+func testAccSearchService_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -259,8 +259,8 @@ resource "azurerm_search_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMSearchService_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMSearchService_basic(data)
+func testAccSearchService_requiresImport(data acceptance.TestData) string {
+	template := testAccSearchService_basic(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_search_service" "import" {
@@ -276,7 +276,7 @@ resource "azurerm_search_service" "import" {
 `, template)
 }
 
-func testAccAzureRMSearchService_complete(data acceptance.TestData) string {
+func testAccSearchService_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -305,7 +305,7 @@ resource "azurerm_search_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMSearchService_ipRules(data acceptance.TestData) string {
+func testAccSearchService_ipRules(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -331,7 +331,7 @@ resource "azurerm_search_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMSearchService_identity(data acceptance.TestData) string {
+func testAccSearchService_identity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
