@@ -175,7 +175,7 @@ func resourceDataBoxJob() *schema.Resource {
 						"postal_code": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.DataBoxJobPostCode,
+							ValidateFunc: validate.DataBoxJobPostalCode,
 						},
 
 						"state_or_province": {
@@ -210,7 +210,7 @@ func resourceDataBoxJob() *schema.Resource {
 						"postal_code_plus_four": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.DataBoxJobPostCode,
+							ValidateFunc: validate.DataBoxJobPostalCode,
 						},
 
 						"street_address_2": {
@@ -376,11 +376,14 @@ func resourceDataBoxJob() *schema.Resource {
 
 func resourceDataBoxJobCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataBox.JobClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+
+	id := parse.NewDataBoxJobId(subscriptionId, name, resourceGroup)
 
 	existing, err := client.Get(ctx, resourceGroup, name, "Details")
 	if err != nil {
@@ -488,15 +491,12 @@ func resourceDataBoxJobCreate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("waiting for creation of DataBox Job (DataBox Job Name %q / Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name, "Details")
+	_, err = client.Get(ctx, resourceGroup, name, "Details")
 	if err != nil {
 		return fmt.Errorf("retrieving DataBox Job (DataBox Job Name %q / Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Data Box Job %q (Resource Group %q) ID", name, resourceGroup)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID(""))
 
 	return resourceDataBoxJobRead(d, meta)
 }
@@ -522,7 +522,7 @@ func resourceDataBoxJobRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving Data Box Job %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("sku_name", resp.Sku.Name)
 	if location := resp.Location; location != nil {

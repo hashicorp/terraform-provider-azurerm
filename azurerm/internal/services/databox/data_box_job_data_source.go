@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databox/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databox/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -91,11 +92,14 @@ func dataSourceDataBoxJob() *schema.Resource {
 
 func dataSourceDataBoxJobRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataBox.JobClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+
+	id := parse.NewDataBoxJobId(subscriptionId, name, resourceGroup)
 
 	resp, err := client.Get(ctx, resourceGroup, name, "Details")
 	if err != nil {
@@ -150,10 +154,7 @@ func dataSourceDataBoxJobRead(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Data Box Job %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	d.SetId(*resp.ID)
+	d.SetId(id.ID(""))
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
