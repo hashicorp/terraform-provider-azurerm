@@ -35,7 +35,7 @@ func (id SparkPoolId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Spark Pool", segmentsStr)
 }
 
-func (id SparkPoolId) ID(_ string) string {
+func (id SparkPoolId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Synapse/workspaces/%s/bigDataPools/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.BigDataPoolName)
 }

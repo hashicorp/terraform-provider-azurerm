@@ -28,12 +28,12 @@ import (
 // default connection strings and keys
 var serviceBusNamespaceDefaultAuthorizationRule = "RootManageSharedAccessKey"
 
-func resourceArmServiceBusNamespace() *schema.Resource {
+func resourceServiceBusNamespace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceBusNamespaceCreateUpdate,
-		Read:   resourceArmServiceBusNamespaceRead,
-		Update: resourceArmServiceBusNamespaceCreateUpdate,
-		Delete: resourceArmServiceBusNamespaceDelete,
+		Create: resourceServiceBusNamespaceCreateUpdate,
+		Read:   resourceServiceBusNamespaceRead,
+		Update: resourceServiceBusNamespaceCreateUpdate,
+		Delete: resourceServiceBusNamespaceDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.NamespaceID(id)
@@ -116,7 +116,7 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 	}
 }
 
-func resourceArmServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.NamespacesClientPreview
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -138,7 +138,7 @@ func resourceArmServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta int
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_servicebus_namespace", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_servicebus_namespace", resourceId.ID())
 		}
 	}
 
@@ -173,11 +173,11 @@ func resourceArmServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta int
 		return fmt.Errorf("waiting for create/update of %s: %+v", resourceId, err)
 	}
 
-	d.SetId(resourceId.ID(""))
-	return resourceArmServiceBusNamespaceRead(d, meta)
+	d.SetId(resourceId.ID())
+	return resourceServiceBusNamespaceRead(d, meta)
 }
 
-func resourceArmServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.NamespacesClientPreview
 	clientStable := meta.(*clients.Client).ServiceBus.NamespacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -223,7 +223,7 @@ func resourceArmServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmServiceBusNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.NamespacesClientPreview
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

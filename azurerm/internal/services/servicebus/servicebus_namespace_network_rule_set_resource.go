@@ -114,7 +114,7 @@ func resourceServiceBusNamespaceNetworkRuleSetCreateUpdate(d *schema.ResourceDat
 		// This resource is unique to the corresponding service bus namespace.
 		// It will be created automatically along with the namespace, therefore we check whether this resource is identical to a "deleted" one
 		if !CheckNetworkRuleNullified(existing) {
-			return tf.ImportAsExistsError("azurerm_servicebus_namespace_network_rule_set", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_servicebus_namespace_network_rule_set", resourceId.ID())
 		}
 	}
 
@@ -130,7 +130,7 @@ func resourceServiceBusNamespaceNetworkRuleSetCreateUpdate(d *schema.ResourceDat
 		return fmt.Errorf("creating/updating %s: %+v", resourceId, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceServiceBusNamespaceNetworkRuleSetRead(d, meta)
 }
 

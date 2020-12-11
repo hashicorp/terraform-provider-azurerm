@@ -35,7 +35,7 @@ func (id AzureActiveDirectoryAdministratorId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Azure Active Directory Administrator", segmentsStr)
 }
 
-func (id AzureActiveDirectoryAdministratorId) ID(_ string) string {
+func (id AzureActiveDirectoryAdministratorId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DBforPostgreSQL/servers/%s/administrators/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServerName, id.AdministratorName)
 }

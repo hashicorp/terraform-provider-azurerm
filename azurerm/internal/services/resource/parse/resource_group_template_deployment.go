@@ -32,7 +32,7 @@ func (id ResourceGroupTemplateDeploymentId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Resource Group Template Deployment", segmentsStr)
 }
 
-func (id ResourceGroupTemplateDeploymentId) ID(_ string) string {
+func (id ResourceGroupTemplateDeploymentId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Resources/deployments/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DeploymentName)
 }

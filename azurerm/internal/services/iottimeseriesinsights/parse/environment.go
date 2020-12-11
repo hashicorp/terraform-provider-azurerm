@@ -32,7 +32,7 @@ func (id EnvironmentId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Environment", segmentsStr)
 }
 
-func (id EnvironmentId) ID(_ string) string {
+func (id EnvironmentId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.TimeSeriesInsights/environments/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

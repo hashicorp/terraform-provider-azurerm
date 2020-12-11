@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = StorageShareResourceManagerId{}
 
 func TestStorageShareResourceManagerIDFormatter(t *testing.T) {
-	actual := NewStorageShareResourceManagerID("12345678-1234-9876-4563-123456789012", "resGroup1", "storageAccount1", "fileService1", "share1").ID("")
+	actual := NewStorageShareResourceManagerID("12345678-1234-9876-4563-123456789012", "resGroup1", "storageAccount1", "fileService1", "share1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Storage/storageAccounts/storageAccount1/fileServices/fileService1/shares/share1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

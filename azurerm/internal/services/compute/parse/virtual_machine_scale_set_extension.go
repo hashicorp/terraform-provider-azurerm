@@ -35,7 +35,7 @@ func (id VirtualMachineScaleSetExtensionId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Virtual Machine Scale Set Extension", segmentsStr)
 }
 
-func (id VirtualMachineScaleSetExtensionId) ID(_ string) string {
+func (id VirtualMachineScaleSetExtensionId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachineScaleSets/%s/extensions/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VirtualMachineScaleSetName, id.ExtensionName)
 }

@@ -112,15 +112,16 @@ func resourceArmLoadBalancerProbe() *schema.Resource {
 
 func resourceArmLoadBalancerProbeCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
 	loadBalancerId, err := parse.LoadBalancerID(d.Get("loadbalancer_id").(string))
 	if err != nil {
 		return err
 	}
-	loadBalancerIDRaw := loadBalancerId.ID("")
+	loadBalancerIDRaw := loadBalancerId.ID()
+	id := parse.NewLoadBalancerProbeID(subscriptionId, loadBalancerId.ResourceGroup, loadBalancerId.Name, d.Get("name").(string))
 	locks.ByID(loadBalancerIDRaw)
 	defer locks.UnlockByID(loadBalancerIDRaw)
 
@@ -130,16 +131,16 @@ func resourceArmLoadBalancerProbeCreateUpdate(d *schema.ResourceData, meta inter
 	}
 	if !exists {
 		d.SetId("")
-		log.Printf("[INFO] Load Balancer %q not found. Removing from state", name)
+		log.Printf("[INFO] Load Balancer %q not found. Removing from state", id.ProbeName)
 		return nil
 	}
 
 	newProbe := expandAzureRmLoadBalancerProbe(d)
 	probes := append(*loadBalancer.LoadBalancerPropertiesFormat.Probes, *newProbe)
 
-	existingProbe, existingProbeIndex, exists := FindLoadBalancerProbeByName(loadBalancer, name)
+	existingProbe, existingProbeIndex, exists := FindLoadBalancerProbeByName(loadBalancer, id.ProbeName)
 	if exists {
-		if name == *existingProbe.Name {
+		if id.ProbeName == *existingProbe.Name {
 			if d.IsNewResource() {
 				return tf.ImportAsExistsError("azurerm_lb_probe", *existingProbe.ID)
 			}
@@ -160,26 +161,7 @@ func resourceArmLoadBalancerProbeCreateUpdate(d *schema.ResourceData, meta inter
 		return fmt.Errorf("Error waiting for completion of Load Balancer %q (Resource Group %q): %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
-	if err != nil {
-		return fmt.Errorf("Error retrieving Load Balancer %q (Resource Group %q): %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Load Balancer %q (resource group %q) ID", loadBalancerId.Name, loadBalancerId.ResourceGroup)
-	}
-
-	var createdProbeId string
-	for _, Probe := range *read.LoadBalancerPropertiesFormat.Probes {
-		if *Probe.Name == name {
-			createdProbeId = *Probe.ID
-		}
-	}
-
-	if createdProbeId == "" {
-		return fmt.Errorf("Cannot find created Load Balancer Probe ID %q", createdProbeId)
-	}
-
-	d.SetId(createdProbeId)
+	d.SetId(id.ID())
 
 	return resourceArmLoadBalancerProbeRead(d, meta)
 }
@@ -264,7 +246,7 @@ func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}
 	}
 
 	loadBalancerId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
-	loadBalancerID := loadBalancerId.ID("")
+	loadBalancerID := loadBalancerId.ID()
 	locks.ByID(loadBalancerID)
 	defer locks.UnlockByID(loadBalancerID)
 

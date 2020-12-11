@@ -32,7 +32,7 @@ func (id VirtualNetworkId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Virtual Network", segmentsStr)
 }
 
-func (id VirtualNetworkId) ID(_ string) string {
+func (id VirtualNetworkId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualNetworks/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

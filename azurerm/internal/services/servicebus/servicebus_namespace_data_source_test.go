@@ -6,60 +6,53 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMServiceBusNamespace_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_namespace", "test")
+type ServiceBusNamespaceDataSource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMServiceBusNamespace_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "sku"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "capacity"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "default_primary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "default_secondary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "default_primary_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "default_secondary_key"),
-				),
-			},
+func TestAccDataSourceServiceBusNamespace_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_namespace", "test")
+	r := ServiceBusNamespaceDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("location").Exists(),
+				check.That(data.ResourceName).Key("sku").Exists(),
+				check.That(data.ResourceName).Key("capacity").Exists(),
+				check.That(data.ResourceName).Key("default_primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("default_secondary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("default_primary_key").Exists(),
+				check.That(data.ResourceName).Key("default_secondary_key").Exists(),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMServiceBusNamespace_premium(t *testing.T) {
+func TestAccDataSourceServiceBusNamespace_premium(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_namespace", "test")
+	r := ServiceBusNamespaceDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMServiceBusNamespace_premium(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "sku"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "capacity"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "default_primary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "default_secondary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "default_primary_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "default_secondary_key"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.premium(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("location").Exists(),
+				check.That(data.ResourceName).Key("sku").Exists(),
+				check.That(data.ResourceName).Key("capacity").Exists(),
+				check.That(data.ResourceName).Key("default_primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("default_secondary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("default_primary_key").Exists(),
+				check.That(data.ResourceName).Key("default_secondary_key").Exists(),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMServiceBusNamespace_basic(data acceptance.TestData) string {
-	template := testAccAzureRMServiceBusNamespace_basic(data)
+func (ServiceBusNamespaceDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -67,11 +60,10 @@ data "azurerm_servicebus_namespace" "test" {
   name                = azurerm_servicebus_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, template)
+`, ServiceBusNamespaceResource{}.basic(data))
 }
 
-func testAccDataSourceAzureRMServiceBusNamespace_premium(data acceptance.TestData) string {
-	template := testAccAzureRMServiceBusNamespace_premium(data)
+func (ServiceBusNamespaceDataSource) premium(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -79,5 +71,5 @@ data "azurerm_servicebus_namespace" "test" {
   name                = azurerm_servicebus_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, template)
+`, ServiceBusNamespaceResource{}.premium(data))
 }

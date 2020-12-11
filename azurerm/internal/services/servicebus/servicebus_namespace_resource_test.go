@@ -1,226 +1,160 @@
 package servicebus_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"regexp"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
 )
+
+type ServiceBusNamespaceResource struct {
+}
 
 func TestAccAzureRMServiceBusNamespace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceBusNamespace_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := ServiceBusNamespaceResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMServiceBusNamespace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
+	r := ServiceBusNamespaceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceBusNamespace_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMServiceBusNamespace_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
 func TestAccAzureRMServiceBusNamespace_readDefaultKeys(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceBusNamespace_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceExists(data.ResourceName),
-					resource.TestMatchResourceAttr(
-						data.ResourceName, "default_primary_connection_string", regexp.MustCompile("Endpoint=.+")),
-					resource.TestMatchResourceAttr(
-						data.ResourceName, "default_secondary_connection_string", regexp.MustCompile("Endpoint=.+")),
-					resource.TestMatchResourceAttr(
-						data.ResourceName, "default_primary_key", regexp.MustCompile(".+")),
-					resource.TestMatchResourceAttr(
-						data.ResourceName, "default_secondary_key", regexp.MustCompile(".+")),
-				),
-			},
+	r := ServiceBusNamespaceResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				resource.TestMatchResourceAttr(
+					data.ResourceName, "default_primary_connection_string", regexp.MustCompile("Endpoint=.+")),
+				resource.TestMatchResourceAttr(
+					data.ResourceName, "default_secondary_connection_string", regexp.MustCompile("Endpoint=.+")),
+				resource.TestMatchResourceAttr(
+					data.ResourceName, "default_primary_key", regexp.MustCompile(".+")),
+				resource.TestMatchResourceAttr(
+					data.ResourceName, "default_secondary_key", regexp.MustCompile(".+")),
+			),
 		},
 	})
 }
 
 func TestAccAzureRMServiceBusNamespace_NonStandardCasing(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
+	r := ServiceBusNamespaceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceBusNamespaceNonStandardCasing(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceExists(data.ResourceName),
-				),
-			},
-			{
-				Config:             testAccAzureRMServiceBusNamespaceNonStandardCasing(data),
-				PlanOnly:           true,
-				ExpectNonEmptyPlan: false,
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.NonStandardCasing(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		{
+			Config:             r.NonStandardCasing(data),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: false,
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMServiceBusNamespace_premium(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceBusNamespace_premium(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := ServiceBusNamespaceResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.premium(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMServiceBusNamespace_basicCapacity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      testAccAzureRMServiceBusNamespace_basicCapacity(data),
-				ExpectError: regexp.MustCompile("Service Bus SKU \"Basic\" only supports `capacity` of 0"),
-			},
+	r := ServiceBusNamespaceResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config:      r.basicCapacity(data),
+			ExpectError: regexp.MustCompile("Service Bus SKU \"Basic\" only supports `capacity` of 0"),
 		},
 	})
 }
 
 func TestAccAzureRMServiceBusNamespace_premiumCapacity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      testAccAzureRMServiceBusNamespace_premiumCapacity(data),
-				ExpectError: regexp.MustCompile("Service Bus SKU \"Premium\" only supports `capacity` of 1, 2, 4 or 8"),
-			},
+	r := ServiceBusNamespaceResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config:      r.premiumCapacity(data),
+			ExpectError: regexp.MustCompile("Service Bus SKU \"Premium\" only supports `capacity` of 1, 2, 4 or 8"),
 		},
 	})
 }
 
 func TestAccAzureRMServiceBusNamespace_zoneRedundant(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceBusNamespace_zoneRedundant(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "zone_redundant", "true"),
-				),
-			},
-			data.ImportStep(),
+	r := ServiceBusNamespaceResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.zoneRedundant(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("zone_redundant").HasValue("true"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMServiceBusNamespaceDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.NamespacesClientPreview
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_servicebus_namespace" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("ServiceBus Namespace still exists:\n%+v", resp)
-		}
+func (t ServiceBusNamespaceResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.NamespaceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
-
-func testCheckAzureRMServiceBusNamespaceExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.NamespacesClientPreview
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		namespaceName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Service Bus Namespace: %s", namespaceName)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, namespaceName)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on serviceBusNamespacesClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Service Bus Namespace %q (resource group: %q) does not exist", namespaceName, resourceGroup)
-		}
-
-		return nil
+	resp, err := clients.ServiceBus.NamespacesClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Service Bus NameSpace (%s): %+v", id.String(), err)
 	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMServiceBusNamespace_basic(data acceptance.TestData) string {
+func (ServiceBusNamespaceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -240,7 +174,7 @@ resource "azurerm_servicebus_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMServiceBusNamespace_requiresImport(data acceptance.TestData) string {
+func (r ServiceBusNamespaceResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -250,10 +184,10 @@ resource "azurerm_servicebus_namespace" "import" {
   resource_group_name = azurerm_servicebus_namespace.test.resource_group_name
   sku                 = azurerm_servicebus_namespace.test.sku
 }
-`, testAccAzureRMServiceBusNamespace_basic(data))
+`, r.basic(data))
 }
 
-func testAccAzureRMServiceBusNamespaceNonStandardCasing(data acceptance.TestData) string {
+func (ServiceBusNamespaceResource) NonStandardCasing(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -273,7 +207,7 @@ resource "azurerm_servicebus_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMServiceBusNamespace_premium(data acceptance.TestData) string {
+func (ServiceBusNamespaceResource) premium(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -294,7 +228,7 @@ resource "azurerm_servicebus_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMServiceBusNamespace_basicCapacity(data acceptance.TestData) string {
+func (ServiceBusNamespaceResource) basicCapacity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -315,7 +249,7 @@ resource "azurerm_servicebus_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMServiceBusNamespace_premiumCapacity(data acceptance.TestData) string {
+func (ServiceBusNamespaceResource) premiumCapacity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -336,7 +270,7 @@ resource "azurerm_servicebus_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMServiceBusNamespace_zoneRedundant(data acceptance.TestData) string {
+func (ServiceBusNamespaceResource) zoneRedundant(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

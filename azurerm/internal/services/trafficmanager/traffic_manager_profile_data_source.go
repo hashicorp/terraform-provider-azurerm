@@ -147,7 +147,7 @@ func dataSourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interfa
 
 		return fmt.Errorf("retrieving Traffic Manager Profile %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 
 	if profile := resp.ProfileProperties; profile != nil {
 		d.Set("profile_status", profile.ProfileStatus)

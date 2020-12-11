@@ -35,7 +35,7 @@ func (id VpnSiteLinkId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Vpn Site Link", segmentsStr)
 }
 
-func (id VpnSiteLinkId) ID(_ string) string {
+func (id VpnSiteLinkId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/vpnSites/%s/vpnSiteLinks/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VpnSiteName, id.Name)
 }

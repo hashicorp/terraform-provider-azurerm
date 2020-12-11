@@ -44,7 +44,7 @@ func WorkspaceUpgradeV0ToV1(rawState map[string]interface{}, _ interface{}) (map
 	if err != nil {
 		return nil, err
 	}
-	newId := id.ID("")
+	newId := id.ID()
 
 	log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
 	rawState["id"] = newId

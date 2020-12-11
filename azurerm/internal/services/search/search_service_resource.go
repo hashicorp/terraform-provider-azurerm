@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSearchService() *schema.Resource {
+func resourceSearchService() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSearchServiceCreateUpdate,
-		Read:   resourceArmSearchServiceRead,
-		Update: resourceArmSearchServiceCreateUpdate,
-		Delete: resourceArmSearchServiceDelete,
+		Create: resourceSearchServiceCreateUpdate,
+		Read:   resourceSearchServiceRead,
+		Update: resourceSearchServiceCreateUpdate,
+		Delete: resourceSearchServiceDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -155,7 +155,7 @@ func resourceArmSearchService() *schema.Resource {
 	}
 }
 
-func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSearchServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Search.ServicesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -226,10 +226,10 @@ func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface
 
 	d.SetId(*resp.ID)
 
-	return resourceArmSearchServiceRead(d, meta)
+	return resourceSearchServiceRead(d, meta)
 }
 
-func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSearchServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Search.ServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -294,7 +294,7 @@ func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) erro
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmSearchServiceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSearchServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Search.ServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

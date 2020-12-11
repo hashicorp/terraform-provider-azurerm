@@ -112,7 +112,7 @@ func resourceStreamAnalyticsReferenceInputBlobCreate(d *schema.ResourceData, met
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_reference_input_blob", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_stream_analytics_reference_input_blob", resourceId.ID())
 		}
 	}
 
@@ -125,7 +125,7 @@ func resourceStreamAnalyticsReferenceInputBlobCreate(d *schema.ResourceData, met
 		return fmt.Errorf("creating %s: %+v", resourceId, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceStreamAnalyticsReferenceInputBlobRead(d, meta)
 }
 

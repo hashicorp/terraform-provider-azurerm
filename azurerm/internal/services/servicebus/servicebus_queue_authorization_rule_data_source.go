@@ -13,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmServiceBusQueueAuthorizationRule() *schema.Resource {
+func dataSourceServiceBusQueueAuthorizationRule() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmServiceBusQueueAuthorizationRuleRead,
+		Read: dataSourceServiceBusQueueAuthorizationRuleRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -84,7 +84,7 @@ func dataSourceArmServiceBusQueueAuthorizationRule() *schema.Resource {
 	}
 }
 
-func dataSourceArmServiceBusQueueAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceServiceBusQueueAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.QueuesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -104,7 +104,7 @@ func dataSourceArmServiceBusQueueAuthorizationRuleRead(d *schema.ResourceData, m
 		return fmt.Errorf("listing keys for %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 	d.Set("name", id.AuthorizationRuleName)
 	d.Set("queue_name", id.QueueName)
 	d.Set("namespace_name", id.NamespaceName)
