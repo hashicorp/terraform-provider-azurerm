@@ -61,7 +61,9 @@ func testAccSecurityCenterContact_requiresImport(t *testing.T) {
 				check.That(data.ResourceName).Key("alerts_to_admins").HasValue("true"),
 			),
 		},
-		data.RequiresImportErrorStepWithConfig(r.requiresImportCfg("email1@example.com", "+1-555-555-5555", true, true)),
+		data.RequiresImportErrorStep(func(data acceptance.TestData) string {
+			return r.requiresImportCfg("email1@example.com", "+1-555-555-5555", true, true)
+		}),
 	})
 }
 
