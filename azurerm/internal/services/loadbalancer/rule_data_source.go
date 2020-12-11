@@ -124,10 +124,10 @@ func dataSourceArmLoadBalancerRuleRead(d *schema.ResourceData, meta interface{})
 	resp, err := lbRuleClient.Get(ctx, resourceGroup, *loadBalancer.Name, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Load Balancer Rule %q was not found in Load Balancer %q (Resource Group: %q)", name, *loadBalancer.Name, resourceGroup)
+			return fmt.Errorf("Load Balancer Rule %q was not found in Load Balancer %q (Resource Group: %q)", name, loadBalancerId.Name, loadBalancerId.ResourceGroup)
 		}
 
-		return fmt.Errorf("retrieving Load Balancer %s: %s", name, err)
+		return fmt.Errorf("retrieving Load Balancer %s (resource group %q) for Rule %q: %s", loadBalancerId.Name, loadBalancerId.ResourceGroup, name, err)
 	}
 
 	d.SetId(*resp.ID)

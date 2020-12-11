@@ -129,10 +129,10 @@ func resourceArmLoadBalancerProbeCreateUpdate(d *schema.ResourceData, meta inter
 	if err != nil {
 		if utils.ResponseWasNotFound(loadBalancer.Response) {
 			d.SetId("")
-			log.Printf("[INFO] Load Balancer %q not found. Removing from state", id.LoadBalancerName)
+			log.Printf("[INFO] Load Balancer %q not found. Removing Proe %q from state", id.LoadBalancerName, id.ProbeName)
 			return nil
 		}
-		return fmt.Errorf("failed to retrieve Load Balancer %q (resource group %q) for Probe %q: %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, id.ProbeName, err)
+		return fmt.Errorf("failed to retrieve Load Balancer %q (resource group %q) for Probe %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.ProbeName, err)
 	}
 
 	newProbe := expandAzureRmLoadBalancerProbe(d)
@@ -154,11 +154,11 @@ func resourceArmLoadBalancerProbeCreateUpdate(d *schema.ResourceData, meta inter
 
 	future, err := client.CreateOrUpdate(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, loadBalancer)
 	if err != nil {
-		return fmt.Errorf("Error Creating/Updating Load Balancer %q (Resource Group %q): %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, err)
+		return fmt.Errorf("updating Load Balancer %q (Resource Group %q) for Probe %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.ProbeName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Load Balancer %q (Resource Group %q): %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, err)
+		return fmt.Errorf("waiting for update of Load Balancer %q (Resource Group %q) for Probe %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.ProbeName, err)
 	}
 
 	d.SetId(id.ID())
@@ -227,7 +227,7 @@ func resourceArmLoadBalancerProbeRead(d *schema.ResourceData, meta interface{}) 
 			}
 		}
 		if err := d.Set("load_balancer_rules", loadBalancerRules); err != nil {
-			return fmt.Errorf("Error setting `load_balancer_rules` (Load Balancer Probe %q): %+v", id.ProbeName, err)
+			return fmt.Errorf("setting `load_balancer_rules` (Load Balancer %q Probe %q): %+v", id.LoadBalancerName, id.ProbeName, err)
 		}
 	}
 
@@ -269,19 +269,11 @@ func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, loadBalancer)
 	if err != nil {
-		return fmt.Errorf("Error Creating/Updating Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
+		return fmt.Errorf("updating Load Balancer %q (Resource Group %q) for deletion of Probe %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.ProbeName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
-	}
-
-	read, err := client.Get(ctx, id.ResourceGroup, id.LoadBalancerName, "")
-	if err != nil {
-		return fmt.Errorf("Error Getting LoadBalancer: %+v", err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Load Balancer %s (resource group %s) ID", id.LoadBalancerName, id.ResourceGroup)
+		return fmt.Errorf("waiting for update of Load Balancer %q (Resource Group %q) for deletion of Probe %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.ProbeName, err)
 	}
 
 	return nil

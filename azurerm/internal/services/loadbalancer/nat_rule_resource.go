@@ -146,7 +146,7 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *schema.ResourceData, meta int
 			log.Printf("[INFO] Load Balancer %q not found. Removing from state", id.LoadBalancerName)
 			return nil
 		}
-		return fmt.Errorf("failed to retrieve Load Balancer %q (resource group %q) for Nat Rule %q: %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, id.InboundNatRuleName, err)
+		return fmt.Errorf("failed to retrieve Load Balancer %q (resource group %q) for Nat Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.InboundNatRuleName, err)
 	}
 
 	newNatRule, err := expandAzureRmLoadBalancerNatRule(d, &loadBalancer, *loadBalancerId)
@@ -172,11 +172,11 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *schema.ResourceData, meta int
 
 	future, err := client.CreateOrUpdate(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, loadBalancer)
 	if err != nil {
-		return fmt.Errorf("Creating / Updating Load Balancer %q (Resource Group %q): %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, err)
+		return fmt.Errorf("updating Load Balancer %q (Resource Group %q) for Nat Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.InboundNatRuleName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of Load Balancer %q (Resource Group %q): %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, err)
+		return fmt.Errorf("waiting for update of Load Balancer %q (Resource Group %q) for Nat Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.InboundNatRuleName, err)
 	}
 
 	d.SetId(id.ID())
@@ -299,14 +299,6 @@ func resourceArmLoadBalancerNatRuleDelete(d *schema.ResourceData, meta interface
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for the completion of Load Balancer updates for %q (Resource Group %q) %+v", id.LoadBalancerName, id.ResourceGroup, err)
-	}
-
-	read, err := client.Get(ctx, id.ResourceGroup, id.LoadBalancerName, "")
-	if err != nil {
-		return fmt.Errorf("retrieving Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("cannot read Load Balancer %q (resource group %q) ID", id.LoadBalancerName, id.ResourceGroup)
 	}
 
 	return nil
