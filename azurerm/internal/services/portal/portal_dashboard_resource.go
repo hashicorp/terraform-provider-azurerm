@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDashboard() *schema.Resource {
+func resourceDashboard() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDashboardCreateUpdate,
-		Read:   resourceArmDashboardRead,
-		Update: resourceArmDashboardCreateUpdate,
-		Delete: resourceArmDashboardDelete,
+		Create: resourceDashboardCreateUpdate,
+		Read:   resourceDashboardRead,
+		Update: resourceDashboardCreateUpdate,
+		Delete: resourceDashboardDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.DashboardID(id)
@@ -57,7 +57,7 @@ func resourceArmDashboard() *schema.Resource {
 	}
 }
 
-func resourceArmDashboardCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDashboardCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Portal.DashboardsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -88,10 +88,10 @@ func resourceArmDashboardCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	d.SetId(parse.NewDashboardID(subscriptionId, resourceGroup, name).ID(""))
-	return resourceArmDashboardRead(d, meta)
+	return resourceDashboardRead(d, meta)
 }
 
-func resourceArmDashboardRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDashboardRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Portal.DashboardsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -126,7 +126,7 @@ func resourceArmDashboardRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmDashboardDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDashboardDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Portal.DashboardsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
