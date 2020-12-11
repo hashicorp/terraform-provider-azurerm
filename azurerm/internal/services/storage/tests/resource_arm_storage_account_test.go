@@ -2,6 +2,7 @@ package tests
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"regexp"
 	"testing"
@@ -731,6 +732,14 @@ func TestAccAzureRMStorageAccount_sharePropertiesUpdate(t *testing.T) {
 
 func TestAccAzureRMStorageAccount_shareSoftDelete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	sourceBlob, err := ioutil.TempFile("", "")
+	if err != nil {
+		t.Fatalf("Failed to create local source blob file")
+	}
+
+	if err := testAccAzureRMStorageBlob_populateTempFile(sourceBlob); err != nil {
+		t.Fatalf("Error populating temp file: %s", err)
+	}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -738,7 +747,7 @@ func TestAccAzureRMStorageAccount_shareSoftDelete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageAccount_shareSoftDeleteWithShare(data),
+				Config: testAccAzureRMStorageAccount_shareSoftDeleteWithShareFile(data, sourceBlob.Name()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 				),
@@ -752,7 +761,7 @@ func TestAccAzureRMStorageAccount_shareSoftDelete(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMStorageAccount_shareSoftDeleteWithShare(data),
+				Config: testAccAzureRMStorageAccount_shareSoftDeleteWithShareFile(data, sourceBlob.Name()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 				),
@@ -2024,7 +2033,7 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_shareSoftDeleteWithShare(data acceptance.TestData) string {
+func testAccAzureRMStorageAccount_shareSoftDeleteWithShareFile(data acceptance.TestData, fileName string) string {
 	storageAcc := testAccAzureRMStorageAccount_shareSoftDelete(data)
 	return fmt.Sprintf(`
 %s
@@ -2033,7 +2042,18 @@ resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
   storage_account_name = azurerm_storage_account.test.name
 }
-`, storageAcc, data.RandomString)
+
+resource "azurerm_storage_share_file" "test" {
+  name             = "dir"
+  storage_share_id = azurerm_storage_share.test.id
+
+  source = "%s"
+
+  metadata = {
+    hello = "world"
+  }
+}
+`, storageAcc, data.RandomString, fileName)
 }
 
 func testAccAzureRMStorageAccount_shareSoftDelete(data acceptance.TestData) string {
@@ -2056,7 +2076,6 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   share_properties {
-
     delete_retention_policy {
       days = 3
     }
