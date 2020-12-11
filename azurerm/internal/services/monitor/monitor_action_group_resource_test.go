@@ -1053,7 +1053,7 @@ func testCheckAzureRMMonitorActionGroupExists(resourceName string) resource.Test
 	}
 }
 
-func testAccAzureRMMonitorActionGroup_secureWebhookReceiver(data acceptance.TestData) string {
+func testAccAzureRMMonitorActionGroup_secureWebhookReceiverTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1067,10 +1067,52 @@ resource "azurerm_resource_group" "test" {
 resource "azuread_application" "test" {
   name            = "acctestspa-%[1]d"
   identifier_uris = ["https://uri"]
+  app_role {
+    allowed_member_types = ["Application"]
+    description          = "This is a role for Action Groups to join"
+    display_name         = "ActionGroupsSecureWebhook"
+    is_enabled           = true
+    value                = "ActionGroupsSecureWebhook"
+  }
 }
 
+resource "azuread_application" "test_alt" {
+  name            = "acctestspa-alt-%[1]d"
+  identifier_uris = ["https://uri2"]
+  app_role {
+    allowed_member_types = ["Application"]
+    description          = "This is a role for Action Groups to join"
+    display_name         = "ActionGroupsSecureWebhook"
+    is_enabled           = true
+    value                = "ActionGroupsSecureWebhook"
+  }
+}
+
+resource "azuread_service_principal" "test" {
+  application_id = azuread_application.test.application_id
+}
+
+resource "azuread_service_principal" "test_alt" {
+  application_id = azuread_application.test_alt.application_id
+}
+
+data "azuread_service_principal" "action_group" {
+  application_id = "461e8683-5575-4561-ac7f-899cc907d62a"
+}
+
+# Here we miss one AAD resource to do New-AzureADServiceAppRoleAssignment -Id $myApp.AppRoles[0].Id -ResourceId $myServicePrincipal.ObjectId -ObjectId $actionGroupsSP.ObjectId -PrincipalId $actionGroupsSP.ObjectId
+# Details in https://docs.microsoft.com/en-us/azure/azure-monitor/platform/action-groups#secure-webhook
+
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func testAccAzureRMMonitorActionGroup_secureWebhookReceiver(data acceptance.TestData) string {
+	template := testAccAzureRMMonitorActionGroup_secureWebhookReceiverTemplate(data)
+	return fmt.Sprintf(`
+%s 
+
 resource "azurerm_monitor_action_group" "test" {
-  name                = "acctestActionGroup-%[1]d"
+  name                = "acctestActionGroup-%d"
   resource_group_name = azurerm_resource_group.test.name
   short_name          = "acctestag"
 
@@ -1089,32 +1131,16 @@ resource "azurerm_monitor_action_group" "test" {
     aad_auth_identifier_uri = azuread_application.test.identifier_uris[0]
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger)
 }
 
 func testAccAzureRMMonitorActionGroup_secureWebhookReceiverUpdate(data acceptance.TestData) string {
+	template := testAccAzureRMMonitorActionGroup_secureWebhookReceiverTemplate(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azuread_application" "test" {
-  name            = "acctestspa-%[1]d"
-  identifier_uris = ["https://uri"]
-}
-
-resource "azuread_application" "test_alt" {
-  name            = "acctestspa-alt-%[1]d"
-  identifier_uris = ["https://uri2"]
-}
+%s
 
 resource "azurerm_monitor_action_group" "test" {
-  name                = "acctestActionGroup-%[1]d"
+  name                = "acctestActionGroup-%d"
   resource_group_name = azurerm_resource_group.test.name
   short_name          = "acctestag"
 
@@ -1127,34 +1153,18 @@ resource "azurerm_monitor_action_group" "test" {
     aad_auth_identifier_uri = azuread_application.test_alt.identifier_uris[0]
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger)
 }
 
 func testAccAzureRMMonitorActionGroup_secureWebhookReceiverRestore(data acceptance.TestData) string {
+	template := testAccAzureRMMonitorActionGroup_secureWebhookReceiverTemplate(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azuread_application" "test" {
-  name            = "acctestspa-%[1]d"
-  identifier_uris = ["https://uri"]
-}
-
-resource "azuread_application" "test_alt" {
-  name            = "acctestspa-alt-%[1]d"
-  identifier_uris = ["https://uri2"]
-}
+%s
 
 resource "azurerm_monitor_action_group" "test" {
-  name                = "acctestActionGroup-%[1]d"
+  name                = "acctestActionGroup-%d"
   resource_group_name = azurerm_resource_group.test.name
   short_name          = "acctestag"
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, template, data.RandomInteger)
 }
