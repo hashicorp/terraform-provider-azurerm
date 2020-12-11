@@ -97,7 +97,7 @@ func resourceSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta in
 	contact := security.WorkspaceSetting{
 		WorkspaceSettingProperties: &security.WorkspaceSettingProperties{
 			Scope:       utils.String(d.Get("scope").(string)),
-			WorkspaceID: utils.String(workspaceID.ID("")),
+			WorkspaceID: utils.String(workspaceID.ID()),
 		},
 	}
 

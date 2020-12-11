@@ -35,7 +35,7 @@ func (id GremlinDatabaseId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Gremlin Database", segmentsStr)
 }
 
-func (id GremlinDatabaseId) ID(_ string) string {
+func (id GremlinDatabaseId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/databaseAccounts/%s/gremlinDatabases/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DatabaseAccountName, id.Name)
 }

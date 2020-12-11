@@ -85,7 +85,7 @@ func resourceArmUserAssignedIdentityCreateUpdate(d *schema.ResourceData, meta in
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_user_assigned_identity", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_user_assigned_identity", resourceId.ID())
 		}
 	}
 
@@ -99,7 +99,7 @@ func resourceArmUserAssignedIdentityCreateUpdate(d *schema.ResourceData, meta in
 		return fmt.Errorf("creating/updating User Assigned Identity %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceArmUserAssignedIdentityRead(d, meta)
 }
 

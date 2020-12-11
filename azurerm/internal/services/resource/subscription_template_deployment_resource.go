@@ -100,7 +100,7 @@ func subscriptionTemplateDeploymentResourceCreate(d *schema.ResourceData, meta i
 		}
 	}
 	if existing.Properties != nil {
-		return tf.ImportAsExistsError("azurerm_subscription_template_deployment", id.ID(""))
+		return tf.ImportAsExistsError("azurerm_subscription_template_deployment", id.ID())
 	}
 	template, err := expandTemplateDeploymentBody(d.Get("template_content").(string))
 	if err != nil {
@@ -141,7 +141,7 @@ func subscriptionTemplateDeploymentResourceCreate(d *schema.ResourceData, meta i
 		return fmt.Errorf("waiting for creation of Subscription Template Deployment %q: %+v", id.DeploymentName, err)
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 	return subscriptionTemplateDeploymentResourceRead(d, meta)
 }
 

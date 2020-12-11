@@ -155,7 +155,7 @@ func resourceArmOperationalinsightsDataExportRead(d *schema.ResourceData, meta i
 	}
 	d.Set("name", id.DataexportName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("workspace_resource_id", parse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID(""))
+	d.Set("workspace_resource_id", parse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID())
 	if props := resp.DataExportProperties; props != nil {
 		d.Set("export_rule_id", props.DataExportID)
 		d.Set("destination_resource_id", flattenArmDataExportDestination(props.Destination))

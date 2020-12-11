@@ -72,7 +72,7 @@ func resourceSpringCloudCertificateCreate(d *schema.ResourceData, meta interface
 	resourceGroup := d.Get("resource_group_name").(string)
 	serviceName := d.Get("service_name").(string)
 
-	resourceId := parse.NewSpringCloudCertificateID(subscriptionId, resourceGroup, serviceName, name).ID("")
+	resourceId := parse.NewSpringCloudCertificateID(subscriptionId, resourceGroup, serviceName, name).ID()
 	existing, err := client.Get(ctx, resourceGroup, serviceName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {

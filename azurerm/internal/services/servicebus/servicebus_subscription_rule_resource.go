@@ -168,7 +168,7 @@ func resourceServiceBusSubscriptionRuleCreateUpdate(d *schema.ResourceData, meta
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_servicebus_subscription_rule", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_servicebus_subscription_rule", resourceId.ID())
 		}
 	}
 
@@ -204,7 +204,7 @@ func resourceServiceBusSubscriptionRuleCreateUpdate(d *schema.ResourceData, meta
 		return fmt.Errorf("creating/updating %s: %+v", resourceId, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceServiceBusSubscriptionRuleRead(d, meta)
 }
 

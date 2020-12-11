@@ -153,7 +153,7 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *schema.ResourceData, meta interf
 
 	id := parse.NewLoadBalancingRuleID(subscriptionId, loadBalancerId.ResourceGroup, loadBalancerId.Name, d.Get("name").(string))
 
-	loadBalancerID := loadBalancerId.ID("")
+	loadBalancerID := loadBalancerId.ID()
 	locks.ByID(loadBalancerID)
 	defer locks.UnlockByID(loadBalancerID)
 
@@ -197,7 +197,7 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("Error waiting for completion for Load Balancer updates: %+v", err)
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 
 	return resourceArmLoadBalancerRuleRead(d, meta)
 }
@@ -260,7 +260,7 @@ func resourceArmLoadBalancerRuleRead(d *schema.ResourceData, meta interface{}) e
 			}
 
 			frontendIPConfigName = feid.FrontendIPConfigurationName
-			frontendIPConfigID = feid.ID("")
+			frontendIPConfigID = feid.ID()
 		}
 		d.Set("frontend_ip_configuration_name", frontendIPConfigName)
 		d.Set("frontend_ip_configuration_id", frontendIPConfigID)
@@ -304,7 +304,7 @@ func resourceArmLoadBalancerRuleDelete(d *schema.ResourceData, meta interface{})
 	}
 
 	loadBalancerId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
-	loadBalancerIDRaw := loadBalancerId.ID("")
+	loadBalancerIDRaw := loadBalancerId.ID()
 	locks.ByID(loadBalancerIDRaw)
 	defer locks.UnlockByID(loadBalancerIDRaw)
 

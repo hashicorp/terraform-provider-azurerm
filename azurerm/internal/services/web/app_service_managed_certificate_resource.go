@@ -189,7 +189,7 @@ func resourceArmAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData,
 		return fmt.Errorf("waiting for App Service Managed Certificate %q: %+v", id.CertificateName, err)
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 
 	return resourceArmAppServiceManagedCertificateRead(d, meta)
 }

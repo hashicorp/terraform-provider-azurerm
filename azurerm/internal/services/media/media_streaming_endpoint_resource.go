@@ -218,7 +218,7 @@ func resourceMediaStreamingEndpointCreate(d *schema.ResourceData, meta interface
 		}
 	}
 	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_media_streaming_endpoint", resourceId.ID(""))
+		return tf.ImportAsExistsError("azurerm_media_streaming_endpoint", resourceId.ID())
 	}
 
 	parameters := media.StreamingEndpoint{
@@ -277,7 +277,7 @@ func resourceMediaStreamingEndpointCreate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error waiting for creation of Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", streamingEndpointName, accountName, resourceGroup, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 
 	return resourceMediaStreamingEndpointRead(d, meta)
 }

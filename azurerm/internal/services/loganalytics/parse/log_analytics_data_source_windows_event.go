@@ -35,7 +35,7 @@ func (id LogAnalyticsDataSourceWindowsEventId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Log Analytics Data Source Windows Event", segmentsStr)
 }
 
-func (id LogAnalyticsDataSourceWindowsEventId) ID(_ string) string {
+func (id LogAnalyticsDataSourceWindowsEventId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.OperationalInsights/workspaces/%s/dataSources/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.DataSourceName)
 }

@@ -226,7 +226,7 @@ func resourceSentinelAlertRuleMsSecurityIncidentRead(d *schema.ResourceData, met
 	d.Set("name", id.Name)
 
 	workspaceId := loganalyticsParse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.Workspace)
-	d.Set("log_analytics_workspace_id", workspaceId.ID(""))
+	d.Set("log_analytics_workspace_id", workspaceId.ID())
 	if prop := rule.MicrosoftSecurityIncidentCreationAlertRuleProperties; prop != nil {
 		d.Set("product_filter", string(prop.ProductFilter))
 		d.Set("display_name", prop.DisplayName)

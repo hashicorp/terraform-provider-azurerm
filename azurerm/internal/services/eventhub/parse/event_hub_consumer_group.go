@@ -38,7 +38,7 @@ func (id EventHubConsumerGroupId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Event Hub Consumer Group", segmentsStr)
 }
 
-func (id EventHubConsumerGroupId) ID(_ string) string {
+func (id EventHubConsumerGroupId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.EventHub/namespaces/%s/eventhubs/%s/consumergroups/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.EventhubName, id.ConsumergroupName)
 }

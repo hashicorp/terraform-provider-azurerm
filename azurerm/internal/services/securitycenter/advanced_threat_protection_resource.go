@@ -64,7 +64,7 @@ func resourceAdvancedThreatProtectionCreateUpdate(d *schema.ResourceData, meta i
 		}
 
 		if server.ID != nil && *server.ID != "" && server.IsEnabled != nil && *server.IsEnabled {
-			return tf.ImportAsExistsError("azurerm_advanced_threat_protection", id.ID(""))
+			return tf.ImportAsExistsError("azurerm_advanced_threat_protection", id.ID())
 		}
 	}
 
@@ -78,7 +78,7 @@ func resourceAdvancedThreatProtectionCreateUpdate(d *schema.ResourceData, meta i
 		return fmt.Errorf("updating Advanced Threat protection for %q: %+v", id.TargetResourceID, err)
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 	return resourceAdvancedThreatProtectionRead(d, meta)
 }
 

@@ -32,7 +32,7 @@ func (id IntegrationAccountId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Integration Account", segmentsStr)
 }
 
-func (id IntegrationAccountId) ID(_ string) string {
+func (id IntegrationAccountId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Logic/integrationAccounts/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

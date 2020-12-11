@@ -111,7 +111,7 @@ func resourceFrontDoorCustomHttpsConfigurationCreateUpdate(d *schema.ResourceDat
 	}
 
 	if d.IsNewResource() {
-		d.SetId(id.ID(""))
+		d.SetId(id.ID())
 	}
 
 	return resourceFrontDoorCustomHttpsConfigurationRead(d, meta)
@@ -138,7 +138,7 @@ func resourceFrontDoorCustomHttpsConfigurationRead(d *schema.ResourceData, meta 
 		return fmt.Errorf("reading Front Door Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.Set("frontend_endpoint_id", id.ID(""))
+	d.Set("frontend_endpoint_id", id.ID())
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	flattenedHttpsConfig := flattenCustomHttpsConfiguration(resp.FrontendEndpointProperties)
@@ -199,7 +199,7 @@ type customHttpsConfigurationUpdateInput struct {
 
 func updateCustomHttpsConfiguration(ctx context.Context, client *frontdoor.FrontendEndpointsClient, input customHttpsConfigurationUpdateInput) error {
 	// Locking to prevent parallel changes causing issues
-	frontendEndpointResourceId := input.frontendEndpointId.ID("")
+	frontendEndpointResourceId := input.frontendEndpointId.ID()
 	locks.ByID(frontendEndpointResourceId)
 	defer locks.UnlockByID(frontendEndpointResourceId)
 

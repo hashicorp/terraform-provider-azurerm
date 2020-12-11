@@ -231,7 +231,7 @@ func dataSourceRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving Redis Cache %q (Resource Group %q): %+v", id.RediName, id.ResourceGroup, err)
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if zones := resp.Zones; zones != nil {

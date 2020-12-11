@@ -38,7 +38,7 @@ func (id ManagedPrivateEndpointId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Managed Private Endpoint", segmentsStr)
 }
 
-func (id ManagedPrivateEndpointId) ID(_ string) string {
+func (id ManagedPrivateEndpointId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Synapse/workspaces/%s/managedVirtualNetworks/%s/managedPrivateEndpoints/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.ManagedVirtualNetworkName, id.Name)
 }

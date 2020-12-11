@@ -35,7 +35,7 @@ func (id VirtualNetworkRuleId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Virtual Network Rule", segmentsStr)
 }
 
-func (id VirtualNetworkRuleId) ID(_ string) string {
+func (id VirtualNetworkRuleId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Sql/servers/%s/virtualNetworkRules/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServerName, id.Name)
 }

@@ -35,7 +35,7 @@ func (id LoggerId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Logger", segmentsStr)
 }
 
-func (id LoggerId) ID(_ string) string {
+func (id LoggerId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ApiManagement/service/%s/loggers/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServiceName, id.Name)
 }

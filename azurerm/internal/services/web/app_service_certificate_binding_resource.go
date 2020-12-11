@@ -129,7 +129,7 @@ func resourceArmAppServiceCertificateBindingCreate(d *schema.ResourceData, meta 
 	props := binding.HostNameBindingProperties
 	if props != nil {
 		if props.Thumbprint != nil && *props.Thumbprint == *thumbprint {
-			return tf.ImportAsExistsError("azurerm_app_service_certificate_binding", id.ID(""))
+			return tf.ImportAsExistsError("azurerm_app_service_certificate_binding", id.ID())
 		}
 	}
 
@@ -143,7 +143,7 @@ func resourceArmAppServiceCertificateBindingCreate(d *schema.ResourceData, meta 
 		return fmt.Errorf("creating/updating Custom Hostname Certificate Binding %q with certificate name %q (App Service %q / Resource Group %q): %+v", id.HostnameBindingId.Name, id.CertificateId.Name, id.HostnameBindingId.SiteName, id.HostnameBindingId.ResourceGroup, err)
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 
 	return resourceArmAppServiceCertificateBindingRead(d, meta)
 }
@@ -175,8 +175,8 @@ func resourceArmAppServiceCertificateBindingRead(d *schema.ResourceData, meta in
 		return nil
 	}
 
-	d.Set("hostname_binding_id", id.HostnameBindingId.ID(""))
-	d.Set("certificate_id", id.CertificateId.ID(""))
+	d.Set("hostname_binding_id", id.HostnameBindingId.ID())
+	d.Set("certificate_id", id.CertificateId.ID())
 	d.Set("ssl_state", string(props.SslState))
 	d.Set("thumbprint", props.Thumbprint)
 	d.Set("hostname", id.HostnameBindingId.Name)

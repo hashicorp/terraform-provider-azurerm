@@ -22,7 +22,7 @@ func NewAdvancedThreatProtectionId(targetResourceId string) AdvancedThreatProtec
 	}
 }
 
-func (id AdvancedThreatProtectionId) ID(_ string) string {
+func (id AdvancedThreatProtectionId) ID() string {
 	fmtString := "%s/providers/Microsoft.Security/advancedThreatProtectionSettings/%s"
 	return fmt.Sprintf(fmtString, id.TargetResourceID, id.SettingName)
 }

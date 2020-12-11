@@ -32,7 +32,7 @@ func (id FirewallPolicyId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Firewall Policy", segmentsStr)
 }
 
-func (id FirewallPolicyId) ID(_ string) string {
+func (id FirewallPolicyId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/firewallPolicies/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

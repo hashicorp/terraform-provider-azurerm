@@ -82,7 +82,7 @@ func resourceArmStorageEncryptionScopeCreate(d *schema.ResourceData, meta interf
 		return err
 	}
 
-	resourceId := parse.NewEncryptionScopeID(accountId.SubscriptionId, accountId.ResourceGroup, accountId.Name, name).ID("")
+	resourceId := parse.NewEncryptionScopeID(accountId.SubscriptionId, accountId.ResourceGroup, accountId.Name, name).ID()
 	existing, err := client.Get(ctx, accountId.ResourceGroup, accountId.Name, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
@@ -182,7 +182,7 @@ func resourceArmStorageEncryptionScopeRead(d *schema.ResourceData, meta interfac
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("storage_account_id", accountId.ID(""))
+	d.Set("storage_account_id", accountId.ID())
 	if props := resp.EncryptionScopeProperties; props != nil {
 		d.Set("source", flattenEncryptionScopeSource(props.Source))
 		var keyId string

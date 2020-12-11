@@ -125,7 +125,7 @@ func resourceArmLoadBalancerOutboundRuleCreateUpdate(d *schema.ResourceData, met
 	if err != nil {
 		return err
 	}
-	loadBalancerIDRaw := loadBalancerId.ID("")
+	loadBalancerIDRaw := loadBalancerId.ID()
 	id := parse.NewLoadBalancerOutboundRuleID(subscriptionId, loadBalancerId.ResourceGroup, loadBalancerId.Name, d.Get("name").(string))
 	locks.ByID(loadBalancerIDRaw)
 	defer locks.UnlockByID(loadBalancerIDRaw)
@@ -176,7 +176,7 @@ func resourceArmLoadBalancerOutboundRuleCreateUpdate(d *schema.ResourceData, met
 		return fmt.Errorf("Error waiting for completion for Load Balancer updates: %+v", err)
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 
 	return resourceArmLoadBalancerOutboundRuleRead(d, meta)
 }
@@ -226,7 +226,7 @@ func resourceArmLoadBalancerOutboundRuleRead(d *schema.ResourceData, meta interf
 				return err
 			}
 
-			backendAddressPoolId = bapid.ID("")
+			backendAddressPoolId = bapid.ID()
 		}
 		d.Set("backend_address_pool_id", backendAddressPoolId)
 		d.Set("enable_tcp_reset", props.EnableTCPReset)
@@ -242,7 +242,7 @@ func resourceArmLoadBalancerOutboundRuleRead(d *schema.ResourceData, meta interf
 			}
 
 			frontendIpConfigurations = append(frontendIpConfigurations, map[string]interface{}{
-				"id":   feid.ID(""),
+				"id":   feid.ID(),
 				"name": feid.FrontendIPConfigurationName,
 			})
 		}
@@ -270,7 +270,7 @@ func resourceArmLoadBalancerOutboundRuleDelete(d *schema.ResourceData, meta inte
 	}
 
 	loadBalancerId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
-	loadBalancerID := loadBalancerId.ID("")
+	loadBalancerID := loadBalancerId.ID()
 	locks.ByID(loadBalancerID)
 	defer locks.UnlockByID(loadBalancerID)
 

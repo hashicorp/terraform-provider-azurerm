@@ -35,7 +35,7 @@ func (id NamespaceAuthorizationRuleId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Namespace Authorization Rule", segmentsStr)
 }
 
-func (id NamespaceAuthorizationRuleId) ID(_ string) string {
+func (id NamespaceAuthorizationRuleId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ServiceBus/namespaces/%s/AuthorizationRules/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.AuthorizationRuleName)
 }

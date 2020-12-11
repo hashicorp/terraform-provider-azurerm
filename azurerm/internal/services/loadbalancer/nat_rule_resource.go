@@ -135,7 +135,7 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *schema.ResourceData, meta int
 	}
 	id := parse.NewLoadBalancerInboundNatRuleID(subscriptionId, loadBalancerId.ResourceGroup, loadBalancerId.Name, d.Get("name").(string))
 
-	loadBalancerIdRaw := loadBalancerId.ID("")
+	loadBalancerIdRaw := loadBalancerId.ID()
 	locks.ByID(loadBalancerIdRaw)
 	defer locks.UnlockByID(loadBalancerIdRaw)
 
@@ -179,7 +179,7 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *schema.ResourceData, meta int
 		return fmt.Errorf("waiting for completion of Load Balancer %q (Resource Group %q): %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, err)
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 
 	return resourceArmLoadBalancerNatRuleRead(d, meta)
 }
@@ -239,7 +239,7 @@ func resourceArmLoadBalancerNatRuleRead(d *schema.ResourceData, meta interface{}
 			}
 
 			frontendIPConfigName = feid.FrontendIPConfigurationName
-			frontendIPConfigID = feid.ID("")
+			frontendIPConfigID = feid.ID()
 		}
 		d.Set("frontend_ip_configuration_name", frontendIPConfigName)
 		d.Set("frontend_ip_configuration_id", frontendIPConfigID)
@@ -272,7 +272,7 @@ func resourceArmLoadBalancerNatRuleDelete(d *schema.ResourceData, meta interface
 	}
 
 	loadBalancerId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
-	loadBalancerID := loadBalancerId.ID("")
+	loadBalancerID := loadBalancerId.ID()
 	locks.ByID(loadBalancerID)
 	defer locks.UnlockByID(loadBalancerID)
 
@@ -335,7 +335,7 @@ func expandAzureRmLoadBalancerNatRule(d *schema.ResourceData, lb *network.LoadBa
 			return nil, fmt.Errorf("[ERROR] Cannot find FrontEnd IP Configuration with the name %s", v)
 		}
 
-		id := parse.NewLoadBalancerFrontendIpConfigurationID(loadBalancerId.SubscriptionId, loadBalancerId.ResourceGroup, loadBalancerId.Name, v).ID("")
+		id := parse.NewLoadBalancerFrontendIpConfigurationID(loadBalancerId.SubscriptionId, loadBalancerId.ResourceGroup, loadBalancerId.Name, v).ID()
 		properties.FrontendIPConfiguration = &network.SubResource{
 			ID: utils.String(id),
 		}
