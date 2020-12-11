@@ -91,7 +91,7 @@ func testAccSecurityCenterWorkspace_update(t *testing.T) {
 	})
 }
 
-func (t SecurityCenterWorkspaceResource) Exists(ctx context.Context, clients *clients.Client, _ *terraform.InstanceState) (*bool, error) {
+func (SecurityCenterWorkspaceResource) Exists(ctx context.Context, clients *clients.Client, _ *terraform.InstanceState) (*bool, error) {
 	workspaceSettingName := "default"
 
 	resp, err := clients.SecurityCenter.WorkspaceClient.Get(ctx, workspaceSettingName)

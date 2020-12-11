@@ -113,7 +113,7 @@ func testAccSecurityCenterContact_phoneOptional(t *testing.T) {
 	})
 }
 
-func (t SecurityCenterContactResource) Exists(ctx context.Context, clients *clients.Client, _ *terraform.InstanceState) (*bool, error) {
+func (SecurityCenterContactResource) Exists(ctx context.Context, clients *clients.Client, _ *terraform.InstanceState) (*bool, error) {
 	contactName := "default1"
 
 	resp, err := clients.SecurityCenter.ContactsClient.Get(ctx, contactName)

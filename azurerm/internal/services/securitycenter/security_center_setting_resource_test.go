@@ -62,7 +62,7 @@ func TestAccSecurityCenterSetting_update(t *testing.T) {
 	})
 }
 
-func (t SecurityCenterSettingResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (SecurityCenterSettingResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.SecurityCenterSettingID(state.ID)
 	if err != nil {
 		return nil, err

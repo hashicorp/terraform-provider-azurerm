@@ -42,7 +42,7 @@ func testAccSecurityCenterSubscriptionPricing_update(t *testing.T) {
 	})
 }
 
-func (t SecurityCenterSubscriptionPricingResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (SecurityCenterSubscriptionPricingResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.SecurityCenterSubscriptionPricingID(state.ID)
 	if err != nil {
 		return nil, err

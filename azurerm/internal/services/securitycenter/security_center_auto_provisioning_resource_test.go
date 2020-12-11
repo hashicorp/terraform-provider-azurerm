@@ -41,7 +41,7 @@ func TestAccSecurityCenterAutoProvision_update(t *testing.T) {
 	})
 }
 
-func (t SecurityCenterAutoProvisionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (SecurityCenterAutoProvisionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	securityCenterAutoProvisioningName := "default"
 
 	resp, err := clients.SecurityCenter.AutoProvisioningClient.Get(ctx, securityCenterAutoProvisioningName)

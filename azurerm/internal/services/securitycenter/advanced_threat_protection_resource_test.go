@@ -43,6 +43,8 @@ func TestAccAdvancedThreatProtection_storageAccount(t *testing.T) {
 
 func TestAccAdvancedThreatProtection_cosmosAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_advanced_threat_protection", "test")
+
+	// nolint unused
 	r := AdvancedThreatProtectionResource{}
 
 	// the API errors on deleting the cosmos DB account some of the time so lets skip this test for now
@@ -70,7 +72,7 @@ func TestAccAdvancedThreatProtection_cosmosAccount(t *testing.T) {
 		{
 			Config: r.cosmosAccount(data, false, false),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckAdvancedThreatProtectionIsFalse(data.ResourceName),
+				data.CheckWithClient(checkAdvancedThreatProtectionIsFalse),
 			),
 		},
 	})
@@ -93,7 +95,7 @@ func TestAccAdvancedThreatProtection_requiresImport(t *testing.T) {
 	})
 }
 
-func (t AdvancedThreatProtectionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (AdvancedThreatProtectionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.AdvancedThreatProtectionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -108,34 +110,26 @@ func (t AdvancedThreatProtectionResource) Exists(ctx context.Context, clients *c
 }
 
 // nolint unused
-func testCheckAdvancedThreatProtectionIsFalse(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).SecurityCenter.AdvancedThreatProtectionClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		targetResourceId := rs.Primary.Attributes["target_resource_id"]
-
-		resp, err := client.Get(ctx, targetResourceId)
-		if err != nil {
-			return fmt.Errorf("Failed reading Advanced Threat Protection for resource %q: %+v", targetResourceId, err)
-		}
-
-		if props := resp.AdvancedThreatProtectionProperties; props != nil {
-			if props.IsEnabled != nil {
-				if *props.IsEnabled {
-					return fmt.Errorf("Advanced Threat Protection is still true for resource %q: %+v", targetResourceId, err)
-				}
-			}
-		}
-
-		return nil
+func checkAdvancedThreatProtectionIsFalse(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+	id, err := parse.AdvancedThreatProtectionID(state.ID)
+	if err != nil {
+		return err
 	}
+
+	resp, err := clients.SecurityCenter.AdvancedThreatProtectionClient.Get(ctx, id.TargetResourceID)
+	if err != nil {
+		return fmt.Errorf("reading Advanced Threat Protection (%s): %+v", id.TargetResourceID, err)
+	}
+
+	if resp.AdvancedThreatProtectionProperties == nil || resp.AdvancedThreatProtectionProperties.IsEnabled == nil {
+		return fmt.Errorf("Advanced Threat Protection (%s) properties is nil", id.TargetResourceID)
+	}
+
+	if *resp.AdvancedThreatProtectionProperties.IsEnabled {
+		return fmt.Errorf("Advanced Threat Protection (%s) properties is still enabled", id.TargetResourceID)
+	}
+
+	return nil
 }
 
 func (AdvancedThreatProtectionResource) requiresImport(data acceptance.TestData) string {
