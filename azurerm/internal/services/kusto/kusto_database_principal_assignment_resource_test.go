@@ -1,123 +1,67 @@
 package kusto_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type KustoDatabasePrincipalAssignmentResource struct {
+}
+
 func TestAccKustoDatabasePrincipalAssignment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_database_principal_assignment", "test")
+	r := KustoDatabasePrincipalAssignmentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckKustoDatabasePrincipalAssignmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccKustoDatabasePrincipalAssignment_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckKustoDatabasePrincipalAssignmentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccKustoDatabasePrincipalAssignment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_database_principal_assignment", "test")
+	r := KustoDatabasePrincipalAssignmentResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckKustoDatabasePrincipalAssignmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccKustoDatabasePrincipalAssignment_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckKustoDatabasePrincipalAssignmentExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccKustoDatabasePrincipalAssignment_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckKustoDatabasePrincipalAssignmentDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.DatabasePrincipalAssignmentsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_kusto_database_principal_assignment" {
-			continue
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		clusterName := rs.Primary.Attributes["cluster_name"]
-		databaseName := rs.Primary.Attributes["database_name"]
-		name := rs.Primary.Attributes["name"]
-
-		resp, err := client.Get(ctx, resourceGroup, clusterName, databaseName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-			return err
-		}
-
-		return nil
+func (KustoDatabasePrincipalAssignmentResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.DatabasePrincipalAssignmentID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
-
-func testCheckKustoDatabasePrincipalAssignmentExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.DatabasePrincipalAssignmentsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Kusto Database Principal Assignment: %s", name)
-		}
-
-		clusterName, hasClusterName := rs.Primary.Attributes["cluster_name"]
-		if !hasClusterName {
-			return fmt.Errorf("Bad: no cluster found in state for Kusto Database Principal Assignment: %s", name)
-		}
-
-		databaseName, hasDatabaseName := rs.Primary.Attributes["database_name"]
-		if !hasDatabaseName {
-			return fmt.Errorf("Bad: no database found in state for Kusto Database Principal Assignment: %s", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, clusterName, databaseName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Kusto Database Principal Assignment %q (Resource Group %q, Cluster %q, Database %q) does not exist", name, resourceGroup, clusterName, databaseName)
-			}
-
-			return fmt.Errorf("Bad: Get on DatabasePrincipalAssignmentsClient: %+v", err)
-		}
-
-		return nil
+	resp, err := clients.Kusto.DatabasePrincipalAssignmentsClient.Get(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.PrincipalAssignmentName)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
+
+	return utils.Bool(resp.DatabasePrincipalProperties != nil), nil
 }
 
-func testAccKustoDatabasePrincipalAssignment_basic(data acceptance.TestData) string {
+func (KustoDatabasePrincipalAssignmentResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -162,8 +106,8 @@ resource "azurerm_kusto_database_principal_assignment" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccKustoDatabasePrincipalAssignment_requiresImport(data acceptance.TestData) string {
-	template := testAccKustoDatabasePrincipalAssignment_basic(data)
+func (KustoDatabasePrincipalAssignmentResource) requiresImport(data acceptance.TestData) string {
+	template := KustoDatabasePrincipalAssignmentResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
