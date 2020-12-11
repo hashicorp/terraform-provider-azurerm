@@ -21,11 +21,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmRedisLinkedServer() *schema.Resource {
+func resourceRedisLinkedServer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmRedisLinkedServerCreate,
-		Read:   resourceArmRedisLinkedServerRead,
-		Delete: resourceArmRedisLinkedServerDelete,
+		Create: resourceRedisLinkedServerCreate,
+		Read:   resourceRedisLinkedServerRead,
+		Delete: resourceRedisLinkedServerDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.LinkedServerID(id)
 			return err
@@ -77,7 +77,7 @@ func resourceArmRedisLinkedServer() *schema.Resource {
 	}
 }
 
-func resourceArmRedisLinkedServerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceRedisLinkedServerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Redis.LinkedServerClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -138,10 +138,10 @@ func resourceArmRedisLinkedServerCreate(d *schema.ResourceData, meta interface{}
 	}
 
 	d.SetId(resourceId.ID(""))
-	return resourceArmRedisLinkedServerRead(d, meta)
+	return resourceRedisLinkedServerRead(d, meta)
 }
 
-func resourceArmRedisLinkedServerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceRedisLinkedServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Redis.LinkedServerClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -184,7 +184,7 @@ func resourceArmRedisLinkedServerRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceArmRedisLinkedServerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceRedisLinkedServerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Redis.LinkedServerClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
