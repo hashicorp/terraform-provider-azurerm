@@ -71,7 +71,7 @@ func resourceMediaStreamingEndpoint() *schema.Resource {
 			},
 
 			"access_control": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -448,7 +448,7 @@ func resourceMediaStreamingEndpointDelete(d *schema.ResourceData, meta interface
 }
 
 func expandAccessControl(d *schema.ResourceData) (*media.StreamingEndpointAccessControl, error) {
-	accessControls := d.Get("access_control").(*schema.Set).List()
+	accessControls := d.Get("access_control").([]interface{})
 	if len(accessControls) == 0 {
 		return nil, nil
 	}
