@@ -1,4 +1,4 @@
-package avs
+package vmware
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/avs/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -49,7 +49,7 @@ func dataSourceAvsPrivateCloud() *schema.Resource {
 						},
 
 						"hosts": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
@@ -64,7 +64,7 @@ func dataSourceAvsPrivateCloud() *schema.Resource {
 				},
 			},
 
-			"network_subnet": {
+			"network_subnet_cidr": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -89,12 +89,12 @@ func dataSourceAvsPrivateCloud() *schema.Resource {
 							Computed: true,
 						},
 
-						"primary_subnet": {
+						"primary_subnet_cidr": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 
-						"secondary_subnet": {
+						"secondary_subnet_cidr": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -107,7 +107,7 @@ func dataSourceAvsPrivateCloud() *schema.Resource {
 				Computed: true,
 			},
 
-			"management_subnet": {
+			"management_subnet_cidr": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -122,7 +122,7 @@ func dataSourceAvsPrivateCloud() *schema.Resource {
 				Computed: true,
 			},
 
-			"provisioning_subnet": {
+			"provisioning_subnet_cidr": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -137,7 +137,7 @@ func dataSourceAvsPrivateCloud() *schema.Resource {
 				Computed: true,
 			},
 
-			"vmotion_subnet": {
+			"vmotion_subnet_cidr": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -148,7 +148,7 @@ func dataSourceAvsPrivateCloud() *schema.Resource {
 }
 
 func dataSourceAvsPrivateCloudRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Avs.PrivateCloudClient
+	client := meta.(*clients.Client).Vmware.PrivateCloudClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -161,9 +161,9 @@ func dataSourceAvsPrivateCloudRead(d *schema.ResourceData, meta interface{}) err
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Avs PrivateCloud %q does not exist", name)
+			return fmt.Errorf("VMware PrivateCloud %q does not exist", name)
 		}
-		return fmt.Errorf("retrieving Avs PrivateCloud %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving VMware PrivateCloud %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(id)
@@ -174,7 +174,7 @@ func dataSourceAvsPrivateCloudRead(d *schema.ResourceData, meta interface{}) err
 		if err := d.Set("management_cluster", flattenArmPrivateCloudManagementCluster(props.ManagementCluster)); err != nil {
 			return fmt.Errorf("setting `management_cluster`: %+v", err)
 		}
-		d.Set("network_subnet", props.NetworkBlock)
+		d.Set("network_subnet_cidr", props.NetworkBlock)
 		if err := d.Set("circuit", flattenArmPrivateCloudCircuit(props.Circuit)); err != nil {
 			return fmt.Errorf("setting `circuit`: %+v", err)
 		}
@@ -182,11 +182,11 @@ func dataSourceAvsPrivateCloudRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("hcx_cloud_manager_endpoint", props.Endpoints.HcxCloudManager)
 		d.Set("nsxt_manager_endpoint", props.Endpoints.NsxtManager)
 		d.Set("vcsa_endpoint", props.Endpoints.Vcsa)
-		d.Set("management_subnet", props.ManagementNetwork)
+		d.Set("management_subnet_cidr", props.ManagementNetwork)
 		d.Set("nsxt_certificate_thumbprint", props.NsxtCertificateThumbprint)
-		d.Set("provisioning_subnet", props.ProvisioningNetwork)
+		d.Set("provisioning_subnet_cidr", props.ProvisioningNetwork)
 		d.Set("vcenter_certificate_thumbprint", props.VcenterCertificateThumbprint)
-		d.Set("vmotion_subnet", props.VmotionNetwork)
+		d.Set("vmotion_subnet_cidr", props.VmotionNetwork)
 	}
 	d.Set("sku_name", resp.Sku.Name)
 	return tags.FlattenAndSet(d, resp.Tags)

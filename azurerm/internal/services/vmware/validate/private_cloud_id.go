@@ -5,7 +5,7 @@ package validate
 import (
 	"fmt"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/avs/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/vmware/parse"
 )
 
 func PrivateCloudID(input interface{}, key string) (warnings []string, errors []error) {

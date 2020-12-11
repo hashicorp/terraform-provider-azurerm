@@ -263,7 +263,7 @@ resource "azurerm_virtual_network" "vnet" {
   depends_on          = ["azurerm_virtual_network.vnet"]
 }
 
-resource "azurerm_subnet" "primary_subnet" {
+resource "azurerm_subnet" "primary_subnet_cidr" {
   name                 = "primarysubnet"
   virtual_network_name = "${azurerm_virtual_network.vnet.name}"
   resource_group_name  = "${azurerm_resource_group.rg.name}"
@@ -416,7 +416,7 @@ resource "azurerm_network_interface" "bastion_nic" {
 
   ip_configuration {
     name                          = "bastionip${count.index}"
-    subnet_id                     = "${azurerm_subnet.primary_subnet.id}"
+    subnet_id                     = "${azurerm_subnet.primary_subnet_cidr.id}"
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = "${azurerm_public_ip.bastion_pip.id}"
   }
@@ -431,7 +431,7 @@ resource "azurerm_network_interface" "primary_nic" {
 
   ip_configuration {
     name                                    = "primaryip${count.index}"
-    subnet_id                               = "${azurerm_subnet.primary_subnet.id}"
+    subnet_id                               = "${azurerm_subnet.primary_subnet_cidr.id}"
     private_ip_address_allocation           = "Dynamic"
     load_balancer_backend_address_pools_ids = ["${azurerm_lb_backend_address_pool.primary_lb.id}"]
     load_balancer_inbound_nat_rules_ids     = ["${element(azurerm_lb_nat_rule.primary_lb.*.id, count.index)}"]
@@ -447,7 +447,7 @@ resource "azurerm_network_interface" "infra_nic" {
 
   ip_configuration {
     name                                    = "infraip${count.index}"
-    subnet_id                               = "${azurerm_subnet.primary_subnet.id}"
+    subnet_id                               = "${azurerm_subnet.primary_subnet_cidr.id}"
     private_ip_address_allocation           = "Dynamic"
     load_balancer_backend_address_pools_ids = ["${azurerm_lb_backend_address_pool.infra_lb.id}"]
   }

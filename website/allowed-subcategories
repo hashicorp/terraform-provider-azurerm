@@ -7,7 +7,6 @@ Application Insights
 Attestation
 Authorization
 Automation
-Avs
 Azure Stack HCI
 Base
 Batch
@@ -70,3 +69,4 @@ Stream Analytics
 Synapse
 Template
 Time Series Insights
+VMware (AVS)
