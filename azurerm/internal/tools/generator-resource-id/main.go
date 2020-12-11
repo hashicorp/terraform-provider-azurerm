@@ -412,7 +412,7 @@ func (id ResourceIdGenerator) codeForFormatter() string {
 	}
 	formatKeysString := strings.Join(formatKeys, ", ")
 	return fmt.Sprintf(`
-func (id %[1]sId) ID(_ string) string {
+func (id %[1]sId) ID() string {
 	fmtString := %[2]q
 	return fmt.Sprintf(fmtString, %[3]s)
 }
