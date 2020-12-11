@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSentinelAlertRuleMsSecurityIncident() *schema.Resource {
+func resourceSentinelAlertRuleMsSecurityIncident() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSentinelAlertRuleMsSecurityIncidentCreateUpdate,
-		Read:   resourceArmSentinelAlertRuleMsSecurityIncidentRead,
-		Update: resourceArmSentinelAlertRuleMsSecurityIncidentCreateUpdate,
-		Delete: resourceArmSentinelAlertRuleMsSecurityIncidentDelete,
+		Create: resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate,
+		Read:   resourceSentinelAlertRuleMsSecurityIncidentRead,
+		Update: resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate,
+		Delete: resourceSentinelAlertRuleMsSecurityIncidentDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			_, err := parse.SentinelAlertRuleID(id)
@@ -125,7 +125,7 @@ func resourceArmSentinelAlertRuleMsSecurityIncident() *schema.Resource {
 	}
 }
 
-func resourceArmSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -194,10 +194,10 @@ func resourceArmSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *schema.Resour
 	}
 	d.SetId(*id)
 
-	return resourceArmSentinelAlertRuleMsSecurityIncidentRead(d, meta)
+	return resourceSentinelAlertRuleMsSecurityIncidentRead(d, meta)
 }
 
-func resourceArmSentinelAlertRuleMsSecurityIncidentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleMsSecurityIncidentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -247,7 +247,7 @@ func resourceArmSentinelAlertRuleMsSecurityIncidentRead(d *schema.ResourceData, 
 	return nil
 }
 
-func resourceArmSentinelAlertRuleMsSecurityIncidentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleMsSecurityIncidentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
