@@ -21,7 +21,7 @@ func NewRoleAssignmentId(workspace WorkspaceId, dataPlaneAssignmentId string) Ro
 	}
 }
 
-func (id RoleAssignmentId) ID(_ string) string {
+func (id RoleAssignmentId) ID() string {
 	workspaceId := id.Workspace.ID("")
 	return fmt.Sprintf("%s|%s", workspaceId, id.DataPlaneAssignmentId)
 }

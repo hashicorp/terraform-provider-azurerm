@@ -38,7 +38,7 @@ func NewEndpointId(subscriptionId, resourceGroup, trafficManagerProfile, endpoin
 	}, nil
 }
 
-func (id EndpointId) ID(_ string) string {
+func (id EndpointId) ID() string {
 	if id.endpointName == "azure" {
 		return NewAzureEndpointID(id.SubscriptionId, id.ResourceGroup, id.TrafficManagerProfileName, id.Name).ID("")
 	}
