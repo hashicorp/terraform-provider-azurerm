@@ -29,12 +29,13 @@ func NewManagedPrivateEndpointID(subscriptionId, resourceGroup, workspaceName, m
 
 func (id ManagedPrivateEndpointId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Workspace Name %q", id.WorkspaceName),
-		fmt.Sprintf("Managed Virtual Network Name %q", id.ManagedVirtualNetworkName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Managed Virtual Network Name %q", id.ManagedVirtualNetworkName),
+		fmt.Sprintf("Workspace Name %q", id.WorkspaceName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Managed Private Endpoint", segmentsStr)
 }
 
 func (id ManagedPrivateEndpointId) ID(_ string) string {
