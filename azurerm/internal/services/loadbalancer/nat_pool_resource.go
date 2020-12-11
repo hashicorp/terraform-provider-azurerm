@@ -108,14 +108,16 @@ func resourceArmLoadBalancerNatPool() *schema.Resource {
 
 func resourceArmLoadBalancerNatPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
 	loadBalancerId, err := parse.LoadBalancerID(d.Get("loadbalancer_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing Load Balancer Name and Group: %+v", err)
 	}
+
+	id := parse.NewLoadBalancerInboundNatPoolID(subscriptionId, loadBalancerId.ResourceGroup, loadBalancerId.Name, d.Get("name").(string))
 
 	loadBalancerID := loadBalancerId.ID("")
 	locks.ByID(loadBalancerID)
@@ -138,14 +140,14 @@ func resourceArmLoadBalancerNatPoolCreateUpdate(d *schema.ResourceData, meta int
 
 	natPools := append(*loadBalancer.LoadBalancerPropertiesFormat.InboundNatPools, *newNatPool)
 
-	existingNatPool, existingNatPoolIndex, exists := FindLoadBalancerNatPoolByName(loadBalancer, name)
+	existingNatPool, existingNatPoolIndex, exists := FindLoadBalancerNatPoolByName(loadBalancer, id.InboundNatPoolName)
 	if exists {
-		if name == *existingNatPool.Name {
+		if id.InboundNatPoolName == *existingNatPool.Name {
 			if d.IsNewResource() {
 				return tf.ImportAsExistsError("azurerm_lb_nat_pool", *existingNatPool.ID)
 			}
 
-			// this probe is being updated/reapplied remove old copy from the slice
+			// this pool is being updated/reapplied remove old copy from the slice
 			natPools = append(natPools[:existingNatPoolIndex], natPools[existingNatPoolIndex+1:]...)
 		}
 	}
@@ -161,26 +163,7 @@ func resourceArmLoadBalancerNatPoolCreateUpdate(d *schema.ResourceData, meta int
 		return fmt.Errorf("Error waiting for the completion of Load Balancer %q (Resource Group %q): %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
-	if err != nil {
-		return fmt.Errorf("Error retrieving Load Balancer %q (Resource Group %q): %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Load Balancer %q (Resource Group %q) ID", loadBalancerId.Name, loadBalancerId.ResourceGroup)
-	}
-
-	var natPoolId string
-	for _, InboundNatPool := range *read.LoadBalancerPropertiesFormat.InboundNatPools {
-		if *InboundNatPool.Name == name {
-			natPoolId = *InboundNatPool.ID
-		}
-	}
-
-	if natPoolId == "" {
-		return fmt.Errorf("Cannot find created Load Balancer NAT Pool ID %q", natPoolId)
-	}
-
-	d.SetId(natPoolId)
+	d.SetId(id.ID(""))
 
 	return resourceArmLoadBalancerNatPoolRead(d, meta)
 }

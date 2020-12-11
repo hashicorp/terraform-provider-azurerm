@@ -83,14 +83,16 @@ func resourceArmLoadBalancerBackendAddressPool() *schema.Resource {
 
 func resourceArmLoadBalancerBackendAddressPoolCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
 	loadBalancerId, err := parse.LoadBalancerID(d.Get("loadbalancer_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing Load Balancer Name and Group: %+v", err)
 	}
+
+	id := parse.NewLoadBalancerBackendAddressPoolID(subscriptionId, loadBalancerId.ResourceGroup, loadBalancerId.Name, d.Get("name").(string))
 
 	loadBalancerID := loadBalancerId.ID("")
 	locks.ByID(loadBalancerID)
@@ -102,16 +104,16 @@ func resourceArmLoadBalancerBackendAddressPoolCreate(d *schema.ResourceData, met
 	}
 	if !exists {
 		d.SetId("")
-		log.Printf("[INFO] Load Balancer %q not found. Removing from state", name)
+		log.Printf("[INFO] Load Balancer %q not found. Removing from state", id.BackendAddressPoolName)
 		return nil
 	}
 
 	backendAddressPools := append(*loadBalancer.LoadBalancerPropertiesFormat.BackendAddressPools, network.BackendAddressPool{
-		Name: utils.String(name),
+		Name: utils.String(id.BackendAddressPoolName),
 	})
-	existingPool, existingPoolIndex, exists := FindLoadBalancerBackEndAddressPoolByName(loadBalancer, name)
+	existingPool, existingPoolIndex, exists := FindLoadBalancerBackEndAddressPoolByName(loadBalancer, id.BackendAddressPoolName)
 	if exists {
-		if name == *existingPool.Name {
+		if id.BackendAddressPoolName == *existingPool.Name {
 			if d.IsNewResource() {
 				return tf.ImportAsExistsError("azurerm_lb_backend_address_pool", *existingPool.ID)
 			}
@@ -132,26 +134,7 @@ func resourceArmLoadBalancerBackendAddressPoolCreate(d *schema.ResourceData, met
 		return fmt.Errorf("Error Creating/Updating Load Balancer %q (Resource Group %q): %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
-	if err != nil {
-		return fmt.Errorf("retrieving Load Balancer %q (Resource Group %q): %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("reading ID for Load Balancer %q (Resource Group %q)", loadBalancerId.Name, loadBalancerId.ResourceGroup)
-	}
-
-	var poolId string
-	for _, BackendAddressPool := range *read.LoadBalancerPropertiesFormat.BackendAddressPools {
-		if *BackendAddressPool.Name == name {
-			poolId = *BackendAddressPool.ID
-		}
-	}
-
-	if poolId == "" {
-		return fmt.Errorf("Cannot find created Load Balancer Backend Address Pool ID %q", poolId)
-	}
-
-	d.SetId(poolId)
+	d.SetId(id.ID(""))
 
 	return resourceArmLoadBalancerBackendAddressPoolRead(d, meta)
 }
