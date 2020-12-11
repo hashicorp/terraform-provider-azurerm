@@ -122,7 +122,7 @@ resource "azurerm_sentinel_alert_rule_ms_security_incident" "test" {
   display_name               = "some rule"
   severity_filter            = ["High"]
 }
-`, r.basic(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r SentinelAlertRuleMsSecurityIncidentResource) complete(data acceptance.TestData) string {
@@ -138,7 +138,7 @@ resource "azurerm_sentinel_alert_rule_ms_security_incident" "test" {
   description                = "this is a alert rule"
   display_name_filter        = ["alert"]
 }
-`, r.basic(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r SentinelAlertRuleMsSecurityIncidentResource) requiresImport(data acceptance.TestData) string {

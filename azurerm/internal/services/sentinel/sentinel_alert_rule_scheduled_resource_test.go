@@ -169,7 +169,7 @@ resource "azurerm_sentinel_alert_rule_scheduled" "import" {
   severity                   = azurerm_sentinel_alert_rule_scheduled.test.severity
   query                      = azurerm_sentinel_alert_rule_scheduled.test.query
 }
-`, r.template(data))
+`, r.basic(data))
 }
 
 func (SentinelAlertRuleScheduledResource) template(data acceptance.TestData) string {
