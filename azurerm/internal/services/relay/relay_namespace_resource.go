@@ -23,12 +23,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmRelayNamespace() *schema.Resource {
+func resourceRelayNamespace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmRelayNamespaceCreateUpdate,
-		Read:   resourceArmRelayNamespaceRead,
-		Update: resourceArmRelayNamespaceCreateUpdate,
-		Delete: resourceArmRelayNamespaceDelete,
+		Create: resourceRelayNamespaceCreateUpdate,
+		Read:   resourceRelayNamespaceRead,
+		Update: resourceRelayNamespaceCreateUpdate,
+		Delete: resourceRelayNamespaceDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.NamespaceID(id)
 			return err
@@ -95,7 +95,7 @@ func resourceArmRelayNamespace() *schema.Resource {
 	}
 }
 
-func resourceArmRelayNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceRelayNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Relay.NamespacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -141,10 +141,10 @@ func resourceArmRelayNamespaceCreateUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	d.SetId(resourceId.ID(""))
-	return resourceArmRelayNamespaceRead(d, meta)
+	return resourceRelayNamespaceRead(d, meta)
 }
 
-func resourceArmRelayNamespaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceRelayNamespaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Relay.NamespacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -189,7 +189,7 @@ func resourceArmRelayNamespaceRead(d *schema.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmRelayNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceRelayNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Relay.NamespacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
