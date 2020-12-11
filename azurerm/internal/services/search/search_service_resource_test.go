@@ -1,241 +1,179 @@
 package search_test
 
 import (
+	`context`
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type SearchServiceResource struct {
+}
+
 func TestAccSearchService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
+	r := SearchServiceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckSearchServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccSearchService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckSearchServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccSearchService_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckSearchServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccSearchService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckSearchServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-				),
-			},
-			data.RequiresImportErrorStep(testAccSearchService_requiresImport),
+	r := SearchServiceResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
 func TestAccSearchService_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
+	r := SearchServiceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckSearchServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccSearchService_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckSearchServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "replica_count", "2"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
-					resource.TestCheckResourceAttr(data.ResourceName, "query_keys.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_network_access_enabled", "false"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+				check.That(data.ResourceName).Key("replica_count").HasValue("2"),
+				check.That(data.ResourceName).Key("primary_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_key").Exists(),
+				check.That(data.ResourceName).Key("query_keys.#").HasValue("1"),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccSearchService_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
+	r := SearchServiceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckSearchServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccSearchService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckSearchServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "staging"),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_network_access_enabled", "true"),
-				),
-			},
-			{
-				Config: testAccSearchService_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckSearchServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Production"),
-					resource.TestCheckResourceAttr(data.ResourceName, "public_network_access_enabled", "false"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("staging"),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("true"),
+			),
+		},
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
+			),
 		},
 	})
 }
 
 func TestAccSearchService_ipRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
+	r := SearchServiceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckSearchServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccSearchService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckSearchServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccSearchService_ipRules(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckSearchServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccSearchService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckSearchServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.ipRules(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccSearchService_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
+	r := SearchServiceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckSearchServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccSearchService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckSearchServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccSearchService_identity(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckSearchServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccSearchService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckSearchServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.identity(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckSearchServiceExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Search.ServicesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		id, err := parse.SearchServiceID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name, nil)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Search Service %q (resource group %q) was not found: %+v", id.Name, id.ResourceGroup, err)
-			}
-
-			return fmt.Errorf("Bad: GetSearchService: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckSearchServiceDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Search.ServicesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_search_service" {
-			continue
-		}
-
-		id, err := parse.SearchServiceID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name, nil)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("Bad: Search Service %q (resource group %q) still exists: %+v", id.Name, id.ResourceGroup, resp)
+func (t SearchServiceResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.SearchServiceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Search.ServicesClient.Get(ctx, id.ResourceGroup, id.Name, nil)
+	if err != nil {
+		return nil, fmt.Errorf("reading Search Service %q (resource group %q) was not found: %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	return utils.Bool(resp.ServiceProperties != nil), nil
 }
 
-func testAccSearchService_basic(data acceptance.TestData) string {
+func (SearchServiceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -259,8 +197,8 @@ resource "azurerm_search_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccSearchService_requiresImport(data acceptance.TestData) string {
-	template := testAccSearchService_basic(data)
+func (SearchServiceResource) requiresImport(data acceptance.TestData) string {
+	template := SearchServiceResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_search_service" "import" {
@@ -276,7 +214,7 @@ resource "azurerm_search_service" "import" {
 `, template)
 }
 
-func testAccSearchService_complete(data acceptance.TestData) string {
+func (SearchServiceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -305,7 +243,7 @@ resource "azurerm_search_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccSearchService_ipRules(data acceptance.TestData) string {
+func (SearchServiceResource) ipRules(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -331,7 +269,7 @@ resource "azurerm_search_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccSearchService_identity(data acceptance.TestData) string {
+func (SearchServiceResource) identity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
