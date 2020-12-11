@@ -9,6 +9,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* `azurerm_disk_encryption_set` - support for updating `key_vault_key_id` [GH-7913]
 * `azurerm_subnet` - support for the `service_endpoint_policy` block [GH-8966]
 
 ## 2.40.0 (December 10, 2020)
