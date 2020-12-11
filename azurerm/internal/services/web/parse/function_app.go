@@ -25,10 +25,11 @@ func NewFunctionAppID(subscriptionId, resourceGroup, siteName string) FunctionAp
 
 func (id FunctionAppId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Site Name %q", id.SiteName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Function App", segmentsStr)
 }
 
 func (id FunctionAppId) ID(_ string) string {

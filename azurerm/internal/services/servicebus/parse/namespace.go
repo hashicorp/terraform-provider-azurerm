@@ -25,10 +25,11 @@ func NewNamespaceID(subscriptionId, resourceGroup, name string) NamespaceId {
 
 func (id NamespaceId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Namespace", segmentsStr)
 }
 
 func (id NamespaceId) ID(_ string) string {

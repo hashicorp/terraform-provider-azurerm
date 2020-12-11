@@ -55,6 +55,7 @@ func resourceArmAppServiceCustomHostnameBinding() *schema.Resource {
 			"ssl_state": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(web.SslStateIPBasedEnabled),
@@ -65,6 +66,7 @@ func resourceArmAppServiceCustomHostnameBinding() *schema.Resource {
 			"thumbprint": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},

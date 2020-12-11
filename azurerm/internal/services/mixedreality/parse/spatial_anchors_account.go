@@ -25,10 +25,11 @@ func NewSpatialAnchorsAccountID(subscriptionId, resourceGroup, name string) Spat
 
 func (id SpatialAnchorsAccountId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Spatial Anchors Account", segmentsStr)
 }
 
 func (id SpatialAnchorsAccountId) ID(_ string) string {

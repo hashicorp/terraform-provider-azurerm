@@ -27,11 +27,12 @@ func NewVirtualHubIpConfigurationID(subscriptionId, resourceGroup, virtualHubNam
 
 func (id VirtualHubIpConfigurationId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Virtual Hub Name %q", id.VirtualHubName),
 		fmt.Sprintf("Ip Configuration Name %q", id.IpConfigurationName),
+		fmt.Sprintf("Virtual Hub Name %q", id.VirtualHubName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Virtual Hub Ip Configuration", segmentsStr)
 }
 
 func (id VirtualHubIpConfigurationId) ID(_ string) string {

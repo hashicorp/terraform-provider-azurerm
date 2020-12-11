@@ -30,7 +30,7 @@ func resourceFrontDoorFirewallPolicy() *schema.Resource {
 		Delete: resourceFrontDoorFirewallPolicyDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.WebApplicationFirewallPolicyID(id)
+			_, err := parse.WebApplicationFirewallPolicyIDInsensitively(id)
 			return err
 		}),
 
@@ -443,7 +443,7 @@ func resourceFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta in
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	id := parse.NewWebApplicationFirewallPolicyID(resourceGroup, name).ID(subscriptionId)
+	id := parse.NewWebApplicationFirewallPolicyID(subscriptionId, resourceGroup, name).ID("")
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
@@ -512,22 +512,22 @@ func resourceFrontDoorFirewallPolicyRead(d *schema.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.WebApplicationFirewallPolicyID(d.Id())
+	id, err := parse.WebApplicationFirewallPolicyIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.FrontDoorWebApplicationFirewallPolicyName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Front Door Firewall Policy %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Front Door Firewall Policy %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Front Door Firewall Policy %q (Resource Group %q): %+v", id.FrontDoorWebApplicationFirewallPolicyName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.FrontDoorWebApplicationFirewallPolicyName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	if location := resp.Location; location != nil {
@@ -564,22 +564,22 @@ func resourceFrontDoorFirewallPolicyDelete(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.WebApplicationFirewallPolicyID(d.Id())
+	id, err := parse.WebApplicationFirewallPolicyIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.FrontDoorWebApplicationFirewallPolicyName)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("deleting Front Door Firewall %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Front Door Firewall %q (Resource Group %q): %+v", id.FrontDoorWebApplicationFirewallPolicyName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deleting Front Door Firewall %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for deleting Front Door Firewall %q (Resource Group %q): %+v", id.FrontDoorWebApplicationFirewallPolicyName, id.ResourceGroup, err)
 		}
 	}
 

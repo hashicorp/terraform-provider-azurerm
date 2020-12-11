@@ -27,11 +27,12 @@ func NewAssetID(subscriptionId, resourceGroup, mediaserviceName, name string) As
 
 func (id AssetId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Mediaservice Name %q", id.MediaserviceName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Mediaservice Name %q", id.MediaserviceName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Asset", segmentsStr)
 }
 
 func (id AssetId) ID(_ string) string {

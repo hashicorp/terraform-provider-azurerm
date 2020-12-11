@@ -1,145 +1,100 @@
 package notificationhub_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMNotificationHub_basic(t *testing.T) {
+type NotificationHubResource struct {
+}
+
+func TestAccNotificationHub_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_notification_hub", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNotificationHubDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNotificationHub_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNotificationHubExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "apns_credential.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "gcm_credential.#", "0"),
-				),
-			},
-			data.ImportStep(),
+	r := NotificationHubResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("apns_credential.#").HasValue("0"),
+				check.That(data.ResourceName).Key("gcm_credential.#").HasValue("0"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMNotificationHub_updateTag(t *testing.T) {
+func TestAccNotificationHub_updateTag(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_notification_hub", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNotificationHubDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNotificationHub_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNotificationHubExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMNotificationHub_withoutTag(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNotificationHubExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMNotificationHub_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNotificationHubExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-				),
-			},
-			data.ImportStep(),
+	r := NotificationHubResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.withoutTag(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMNotificationHub_requiresImport(t *testing.T) {
+func TestAccNotificationHub_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_notification_hub", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNotificationHubDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNotificationHub_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNotificationHubExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "apns_credential.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "gcm_credential.#", "0"),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMNotificationHub_requiresImport),
+	r := NotificationHubResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("apns_credential.#").HasValue("0"),
+				check.That(data.ResourceName).Key("gcm_credential.#").HasValue("0"),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckAzureRMNotificationHubExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).NotificationHubs.HubsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("not found: %s", resourceName)
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		namespaceName := rs.Primary.Attributes["namespace_name"]
-		hubName := rs.Primary.Attributes["name"]
-
-		resp, err := client.Get(ctx, resourceGroup, namespaceName, hubName)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on notificationHubsClient: %s", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Notification Hub does not exist: %s", hubName)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMNotificationHubDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).NotificationHubs.HubsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_notification_hub" {
-			continue
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		namespaceName := rs.Primary.Attributes["namespace_name"]
-		hubName := rs.Primary.Attributes["name"]
-
-		resp, err := client.Get(ctx, resourceGroup, namespaceName, hubName)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Notification Hub still exists:%s", *resp.Name)
-		}
+func (NotificationHubResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.NotificationHubID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.NotificationHubs.HubsClient.Get(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Notification Hub (%s): %v", id.String(), err)
+	}
+
+	return utils.Bool(resp.Properties != nil), nil
 }
 
-func testAccAzureRMNotificationHub_basic(data acceptance.TestData) string {
+func (NotificationHubResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -171,7 +126,7 @@ resource "azurerm_notification_hub" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMNotificationHub_withoutTag(data acceptance.TestData) string {
+func (NotificationHubResource) withoutTag(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -199,8 +154,8 @@ resource "azurerm_notification_hub" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMNotificationHub_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMNotificationHub_basic(data)
+func (NotificationHubResource) requiresImport(data acceptance.TestData) string {
+	template := NotificationHubResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 

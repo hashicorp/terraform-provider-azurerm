@@ -29,12 +29,13 @@ func NewNotificationHubAuthorizationRuleID(subscriptionId, resourceGroup, namesp
 
 func (id NotificationHubAuthorizationRuleId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Namespace Name %q", id.NamespaceName),
-		fmt.Sprintf("Notification Hub Name %q", id.NotificationHubName),
 		fmt.Sprintf("Authorization Rule Name %q", id.AuthorizationRuleName),
+		fmt.Sprintf("Notification Hub Name %q", id.NotificationHubName),
+		fmt.Sprintf("Namespace Name %q", id.NamespaceName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Notification Hub Authorization Rule", segmentsStr)
 }
 
 func (id NotificationHubAuthorizationRuleId) ID(_ string) string {
