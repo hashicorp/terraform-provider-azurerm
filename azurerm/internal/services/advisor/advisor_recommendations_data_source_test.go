@@ -11,7 +11,7 @@ import (
 
 type AdvisorRecommendationsDataSourceTests struct{}
 
-func TestAdvisorRecommendationsDataSource_basic(t *testing.T) {
+func TestAccAdvisorRecommendationsDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_advisor_recommendations", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{
@@ -32,7 +32,7 @@ func TestAdvisorRecommendationsDataSource_basic(t *testing.T) {
 	})
 }
 
-func TestAdvisorRecommendationsDataSource_complete(t *testing.T) {
+func TestAccAdvisorRecommendationsDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_advisor_recommendations", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{
@@ -45,7 +45,7 @@ func TestAdvisorRecommendationsDataSource_complete(t *testing.T) {
 	})
 }
 
-func TestAdvisorRecommendationsDataSource_categoriesFilter(t *testing.T) {
+func TestAccAdvisorRecommendationsDataSource_categoriesFilter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_advisor_recommendations", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{

@@ -57,7 +57,7 @@ func resourceArmStorageSyncGroupCreate(d *schema.ResourceData, meta interface{})
 	defer cancel()
 
 	name := d.Get("name").(string)
-	ssId, _ := parse.ParseStorageSyncID(d.Get("storage_sync_id").(string))
+	ssId, _ := parse.StorageSyncServiceID(d.Get("storage_sync_id").(string))
 
 	existing, err := client.Get(ctx, ssId.ResourceGroup, ssId.Name, name)
 	if err != nil {
@@ -98,25 +98,25 @@ func resourceArmStorageSyncGroupRead(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.StorageSyncName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.StorageSyncServiceName, id.SyncGroupName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Storage Sync Group %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading Storage Sync Group (Storage Sync Group Name %q / Storage Sync Name %q /Resource Group %q): %+v", id.Name, id.StorageSyncName, id.ResourceGroup, err)
+		return fmt.Errorf("reading Storage Sync Group (Storage Sync Group Name %q / Storage Sync Name %q /Resource Group %q): %+v", id.SyncGroupName, id.StorageSyncServiceName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
 
-	ssResp, err := ssClient.Get(ctx, id.ResourceGroup, id.StorageSyncName)
+	ssResp, err := ssClient.Get(ctx, id.ResourceGroup, id.StorageSyncServiceName)
 	if err != nil {
-		return fmt.Errorf("reading Storage Sync %q (Resource Group %q): %+v", id.StorageSyncName, id.ResourceGroup, err)
+		return fmt.Errorf("reading Storage Sync %q (Resource Group %q): %+v", id.StorageSyncServiceName, id.ResourceGroup, err)
 	}
 
 	if ssResp.ID == nil || *ssResp.ID == "" {
-		return fmt.Errorf("reading Storage Sync %q (Resource Group %q) ID is empty or nil", id.StorageSyncName, id.ResourceGroup)
+		return fmt.Errorf("reading Storage Sync %q (Resource Group %q) ID is empty or nil", id.StorageSyncServiceName, id.ResourceGroup)
 	}
 
 	d.Set("storage_sync_id", ssResp.ID)
@@ -134,8 +134,8 @@ func resourceArmStorageSyncGroupDelete(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.StorageSyncName, id.Name); err != nil {
-		return fmt.Errorf("deleting Storage Sync Group (Storage Sync Group Name %q / Storage Sync Name %q /Resource Group %q): %+v", id.Name, id.StorageSyncName, id.ResourceGroup, err)
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.StorageSyncServiceName, id.SyncGroupName); err != nil {
+		return fmt.Errorf("deleting Storage Sync Group (Storage Sync Group Name %q / Storage Sync Name %q /Resource Group %q): %+v", id.SyncGroupName, id.StorageSyncServiceName, id.ResourceGroup, err)
 	}
 
 	return nil

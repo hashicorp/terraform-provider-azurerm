@@ -1,3 +1,139 @@
+
+## 2.41.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource:** `azurerm_media_streaming_endpoint` [GH-9537]
+* **New Resource:** `azurerm_subnet_service_endpoint_storage_policy` [GH-8966]
+* **New Resource:** `azurerm_synapse_managed_private_endpoint` [GH-9260]
+
+IMPROVEMENTS:
+
+* `azurerm_subnet` - support for the `service_endpoint_policy` block [GH-8966]
+
+## 2.40.0 (December 10, 2020)
+
+FEATURES:
+
+* **New Resource:** `azurerm_app_service_certificate_binding` ([#9415](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9415))
+* **New Resource:** `azurerm_digital_twins_endpoint_eventhub` ([#9673](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9673))
+* **New Resource:** `azurerm_digital_twins_endpoint_servicebus`  ([#9702](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9702))
+* **New Resource:** `azurerm_media_asset` ([#9387](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9387))
+* **New Resource:** `azurerm_media_transform` ([#9663](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9663))
+* **New Resource:** `azurerm_resource_provider` ([#7951](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7951))
+* **New Resource:** `azurerm_stack_hci_cluster` ([#9134](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9134))
+* **New Resource:** `azurerm_storage_share_file` ([#9406](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9406))
+* **New Resource:** `azurerm_storage_sync_cloud_endpoint` ([#8540](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8540))
+
+IMPROVEMENTS:
+
+* dependencies: upgrading `github.com/Azure/go-autorest/validation` to `v0.3.1` ([#9783](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9783))
+* dependencies: updating Log Analytics to API version `2020-08-01` ([#9764](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9764))
+* internal: disabling the Azure SDK's validation since it's superfluous ([#9783](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9783))
+* `azurerm_app_service` - support for PHP version `7.4` ([#9727](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9727))
+* `azurerm_bot_channel_directline` - support for enhanced import validation ([#9690](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9690))
+* `azurerm_bot_channel_email` - support for enhanced import validation ([#9690](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9690))
+* `azurerm_bot_channel_ms_teams` - support for enhanced import validation ([#9690](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9690))
+* `azurerm_bot_channel_slack` - support for enhanced import validation ([#9690](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9690))
+* `azurerm_bot_channels_registration` - support for enhanced import validation ([#9690](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9690))
+* `azurerm_bot_connection` - support for enhanced import validation ([#9690](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9690))
+* `azurerm_bot_web_app` - support for enhanced import validation ([#9690](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9690))
+* `azurerm_cosmosdb_sql_container` - support for the `partition_key_version` property ([#9496](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9496))
+* `azurerm_kusto_cluster` - support for the `engine` property ([#9696](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9696))
+* `azurerm_kusto_eventhub_data_connection` - support for `compression` ([#9692](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9692))
+* `azurerm_iothub` - support for the `min_tls_version` property ([#9670](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9670))
+* `azurerm_recovery_services_vault` - support for the `identity` block ([#9689](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9689))
+* `azurerm_redis_cache` - adding enhanced import validation ([#9771](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9771))
+* `azurerm_redis_cache` - adding validation that `subnet_id` is a valid Subnet ID ([#9771](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9771))
+* `azurerm_redis_firewall_rule` - adding enhanced import validation ([#9771](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9771))
+* `azurerm_redis_linked_server` - adding enhanced import validation ([#9771](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9771))
+* `azurerm_redis_linked_server` - adding validation that `linked_redis_cache_id` is a valid Redis Cache ID ([#9771](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9771))
+* `azurerm_security_center_automation` - support for the `description` and `tags` properties ([#9676](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9676))
+* `azurerm_stream_analytics_reference_input_blob` - support for enhanced import validation ([#9735](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9735))
+* `azurerm_stream_analytics_stream_input_blob` - support for enhanced import validation ([#9735](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9735))
+* `azurerm_stream_analytics_stream_input_iothub` - support for enhanced import validation ([#9735](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9735))
+* `azurerm_stream_analytics_stream_input_eventhub` - support for enhanced import validation ([#9735](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9735))
+* `azurerm_storage_account` - enable the `allow_blob_public_access` and `azurerm_storage_account` properties in US Government Cloud ([#9540](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9540))
+
+BUG FIXES:
+
+* `azurerm_app_service_managed_certificate` - create certificate in service plan resource group to prevent diff loop ([#9701](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9701))
+* `azurerm_bot_channel_directline` - the field `bot_name` is now ForceNew to match the documentation/API behaviour ([#9690](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9690))
+* `azurerm_bot_channel_ms_teams` - the field `bot_name` is now ForceNew to match the documentation/API behaviour ([#9690](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9690))
+* `azurerm_bot_channel_slack` - the field `bot_name` is now ForceNew to match the documentation/API behaviour ([#9690](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9690))
+* `azurerm_bot_connection` - the field `bot_name` is now ForceNew to match the documentation/API behaviour ([#9690](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9690))
+* `azurerm_frontdoor` - working around an upstream API issue by rewriting the returned ID's within Terraform ([#9750](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9750))
+* `azurerm_frontdoor_custom_https_configuration` - working around an upstream API issue by rewriting the returned ID's within Terraform ([#9750](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9750))
+* `azurerm_frontdoor_firewall_policy` - working around an upstream API issue by rewriting the returned ID's within Terraform ([#9750](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9750))
+* `azurerm_media_services_account` - fixing a bug where `storage_authentication_type` wasn't set ([#9663](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9663))
+* `azurerm_media_service_account` - checking for the presence of an existing account during creation ([#9802](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9802))
+* `azurerm_postgresql_server` - changing the `geo_redundant_backup_enabled` property now forces a new resource ([#9694](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9694))
+* `azurerm_postgresql_server` - Fix issue when specifying empty threat detection list attributes ([#9739](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9739))
+* `azurerm_signar_service` - having an empty `allowed_origins` in the `cors` block will no longer cause a panic ([#9671](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9671))
+
+## 2.39.0 (December 04, 2020)
+
+FEATURES:
+
+* **New Resource:** `azurerm_api_management_policy` ([#9215](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9215))
+* **New Resource:** `azurerm_digital_twins_endpoint_eventgrid` ([#9489](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9489))
+* **New Resource:** `azurerm_iot_time_series_insights_gen2_environment` ([#9616](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9616))
+
+IMPROVEMENTS: 
+
+* `azurerm_dashboard` - adding validation at import time to ensure the ID is for a Dashboard ([#9530](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9530))
+* `azurerm_keyvault_certificate` - add `3072` to allowed values for `key_size` ([#9524](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9524))
+* `azurerm_media_services_account` - support for the `identity`, `tags`, and `storage_authentication` properties ([#9457](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9457))
+* `azurerm_notification_hub_authorization_rule` - adding validation at import time to ensure the ID is for a Notification Hub Authorization Rule ([#9529](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9529))
+* `azurerm_notification_hub_namespace` - adding validation at import time to ensure the ID is for a Notification Hub Namespace ([#9529](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9529))
+* `azurerm_postgresql_active_directory_administrator` - validating during import that the ID is for a PostgreSQL Active Directory Administrator ([#9532](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9532))
+* `azurerm_postgresql_configuration` - validating during import that the ID is for a PostgreSQL Configuration ([#9532](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9532))
+* `azurerm_postgresql_database` - validating during import that the ID is for a PostgreSQL Database ([#9532](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9532))
+* `azurerm_postgresql_firewall_rule` - validating during import that the ID is for a PostgreSQL Firewall Rule ([#9532](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9532))
+* `azurerm_postgresql_virtual_network_rule` - validating during import that the ID is for a PostgreSQL Virtual Network Rule ([#9532](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9532))
+* `azurerm_traffic_manager_profile` - allow up to `2147483647` for the `ttl` property ([#9522](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9522))
+
+BUG FIXES:
+
+* `azurerm_security_center_workspace` - fixing the casing on the `workspace_id` ([#9651](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9651))
+* `azurerm_eventhub_dedicated_cluster` - the `sku_name` capacity can be greater then `1` ([#9649](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9649))
+
+## 2.38.0 (November 27, 2020)
+
+FEATURES:
+
+* **New Resource** `azurerm_app_service_managed_certificate` ([#9378](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9378))
+* **New Data Source:** `azurerm_digital_twins_instance` ([#9430](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9430))
+* **New Data Source:** `azurerm_virtual_wan` ([#9382](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9382))
+* **New Resource:** `azurerm_digital_twins_instance` ([#9430](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9430))
+
+IMPROVEMENTS: 
+
+* dependencies: updating App Service to API version `2020-06-01` ([#9409](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9409))
+* Data Source `azurerm_app_service` now exports the `custom_domain_verification_id` attribute ([#9378](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9378))
+* Data Source`azurerm_function_app` now exports the `custom_domain_verification_id` attribute ([#9378](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9378))
+* Data Source: `azurerm_spring_cloud_service` - now exports the `outbound_public_ip_addresses` attribute ([#9261](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9261))
+* `azurerm_app_service` now exports `custom_domain_verification_id` ([#9378](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9378))
+* `azurerm_application_insights` - validating the resource ID is correct during import ([#9446](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9446))
+* `azurerm_application_insights_web_test` - validating the resource ID is correct during import ([#9446](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9446))
+* `azurerm_express_route_circuit_peering` - support for the `ipv6` block  ([#9235](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9235))
+* `azurerm_function_app` now exports the `custom_domain_verification_id` attribute ([#9378](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9378))
+* `azurerm_vpn_server_configuration` - deprecate the `radius_server` block in favour of the `radius` block which supports multiple servers ([#9308](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9308))
+* `azurerm_spring_cloud_service` - now exports the `outbound_public_ip_addresses` attribute ([#9261](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9261))
+* `azurerm_virtual_network_gateway` - support for the `dpd_timeout_seconds` and `local_azure_ip_address_enabled` properties ([#9330](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9330))
+* `azurerm_virtual_network_gateway_connection` - support for the `private_ip_address_enabled` propeties and the `custom_route` block ([#9330](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9330))
+
+BUG FIXES:
+
+* `azurerm_api_management` - fixing an issue where developer portal certificates are updated on every apply ([#7299](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7299))
+* `azurerm_cosmosdb_account` - corrently updates the `zone_redundant` property during updates ([#9485](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9485))
+* `azurerm_search_service` - `allowed_ips` now supports specifying a CIDR Block in addition to an IPv4 address ([#9493](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9493))
+* `azurerm_virtual_desktop_application_group` - adding a state migration to avoid a breaking change when upgrading from `v2.35.0` or later ([#9495](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9495))
+* `azurerm_virtual_desktop_host_pool` - adding a state migration to avoid a breaking change when upgrading from `v2.35.0` or later ([#9495](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9495))
+* `azurerm_virtual_desktop_workspace` - adding a state migration to avoid a breaking change when upgrading from `v2.35.0` or later ([#9495](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9495))
+* `azurerm_virtual_desktop_workspace_application_group_association` - adding a state migration to avoid a breaking change when upgrading from `v2.35.0` or later ([#9495](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9495))
+* `azurerm_windows_virtual_machine` - no longer sets `patch_mode` on creation if it is the default value ([#9495](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9432))
+
 ## 2.37.0 (November 20, 2020)
 
 FEATURES:
@@ -309,4 +445,4 @@ BUG FIXES:
 
 For information on changes between the v2.30.0 and v2.0.0 releases, please see [the previous v2.x changelog entries](https://github.com/terraform-providers/terraform-provider-azurerm/blob/master/CHANGELOG-v2.md).
 
-For information on changes in version v1.44.0 and prior releases, please see [the v1.44.0 changelog](https://github.com/terraform-providers/terraform-provider-azurerm/blob/master/CHANGELOG-v1.md).
+For information on changes in version v1.44.0 and prior releases, please see [the v1.x changelog](https://github.com/terraform-providers/terraform-provider-azurerm/blob/master/CHANGELOG-v1.md).

@@ -14,13 +14,13 @@ Version 2.0 of the AzureRM Provider requires Terraform 0.12.x and later.
 provider "azurerm" {
   # We recommend pinning to the specific version of the Azure Provider you're using
   # since new versions are released frequently
-  version = "=2.20.0"
+  version = "=2.39.0"
 
   features {}
 
   # More information on the authentication methods supported by
   # the AzureRM Provider can be found here:
-  # http://terraform.io/docs/providers/azurerm/index.html
+  # https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs
 
   # subscription_id = "..."
   # client_id       = "..."
@@ -37,8 +37,8 @@ resource "azurerm_resource_group" "example" {
 # Create a virtual network in the production-resources resource group
 resource "azurerm_virtual_network" "test" {
   name                = "production-network"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   address_space       = ["10.0.0.0/16"]
 }
 ```
@@ -122,6 +122,24 @@ The following Environment Variables must be set in your shell prior to running a
 - `ARM_TEST_LOCATION_ALT2`
 
 **Note:** Acceptance tests create real resources in Azure which often cost money to run.
+
+---
+
+## Developer: Generating Resource ID Formatters, Parsers and Validators
+
+You can generate a Resource ID Formatter, Parser and Validator by adding the following line to a `resourceids.go` within each Service Package (for example `./azurerm/internal/services/someservice/resourceids.go`):
+
+```go
+//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=Server -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.AnalysisServices/servers/Server1
+```
+
+Where `name` is the name of the Resource ID Type - and `id` is an example Resource ID with placeholder data. 
+
+When `make generate` is run, this will then generate the following for this Resource ID:
+
+* Resource ID Struct, containing the fields and a Formatter to convert this into a string - and the associated Unit Tests.
+* Resource ID Parser (`./parse/{name}.go`) - to be able to parse a Resource ID into said struct - and the associated Unit Tests.
+* Resource ID Validator (`./validate/{name}_id.go`) - to validate the Resource ID is what's expected (and not for a different resource) - and the associated Unit Tests.
 
 ---
 

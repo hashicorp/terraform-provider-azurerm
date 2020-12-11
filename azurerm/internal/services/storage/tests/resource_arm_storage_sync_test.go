@@ -109,7 +109,7 @@ func testCheckAzureRMStorageSyncExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("storage Sync Service not found: %s", resourceName)
 		}
 
-		id, err := parse.ParseStorageSyncID(rs.Primary.ID)
+		id, err := parse.StorageSyncServiceID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -137,7 +137,7 @@ func testCheckAzureRMStorageSyncDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.ParseStorageSyncID(rs.Primary.ID)
+		id, err := parse.StorageSyncServiceID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

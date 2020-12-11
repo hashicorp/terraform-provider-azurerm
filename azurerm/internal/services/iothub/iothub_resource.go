@@ -417,6 +417,15 @@ func resourceArmIotHub() *schema.Resource {
 				},
 			},
 
+			"min_tls_version": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"1.2",
+				}, false),
+			},
+
 			"public_network_access_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -552,6 +561,10 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
+	if v, ok := d.GetOk("min_tls_version"); ok {
+		props.Properties.MinTLSVersion = utils.String(v.(string))
+	}
+
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, props, "")
 	if err != nil {
 		return fmt.Errorf("Error creating/updating IotHub %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -651,6 +664,8 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 		if enabled := properties.PublicNetworkAccess; enabled != "" {
 			d.Set("public_network_access_enabled", enabled == devices.Enabled)
 		}
+
+		d.Set("min_tls_version", properties.MinTLSVersion)
 	}
 
 	d.Set("name", id.Name)

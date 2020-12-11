@@ -6,24 +6,27 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2018-07-01/media"
+	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2020-05-01/media"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMediaServicesAccount() *schema.Resource {
+func resourceMediaServicesAccount() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMediaServicesAccountCreateUpdate,
-		Read:   resourceArmMediaServicesAccountRead,
-		Update: resourceArmMediaServicesAccountCreateUpdate,
-		Delete: resourceArmMediaServicesAccountDelete,
+		Create: resourceMediaServicesAccountCreateUpdate,
+		Read:   resourceMediaServicesAccountRead,
+		Update: resourceMediaServicesAccountCreateUpdate,
+		Delete: resourceMediaServicesAccountDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -33,7 +36,7 @@ func resourceArmMediaServicesAccount() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.MediaServicesAccountID(id)
+			_, err := parse.MediaServiceID(id)
 			return err
 		}),
 
@@ -72,54 +75,107 @@ func resourceArmMediaServicesAccount() *schema.Resource {
 				},
 			},
 
-			// TODO: support Tags when this bug is fixed:
-			// https://github.com/Azure/azure-rest-api-specs/issues/5249
-			// "tags": tags.Schema(),
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"type": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc: validation.StringInSlice([]string{
+								"SystemAssigned",
+							}, true),
+						},
+					},
+				},
+			},
+
+			"storage_authentication_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"ManagedIdentity",
+				}, true),
+			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
 
-func resourceArmMediaServicesAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMediaServicesAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.ServicesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	accountName := d.Get("name").(string)
+	resourceId := parse.NewMediaServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.Name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for existing %s: %+v", resourceId, err)
+			}
+		}
+
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_media_services_account", resourceId.ID(""))
+		}
+	}
+
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	resourceGroup := d.Get("resource_group_name").(string)
+	t := d.Get("tags").(map[string]interface{})
 
 	storageAccountsRaw := d.Get("storage_account").(*schema.Set).List()
 	storageAccounts, err := expandMediaServicesAccountStorageAccounts(storageAccountsRaw)
 	if err != nil {
 		return err
 	}
-
 	parameters := media.Service{
 		ServiceProperties: &media.ServiceProperties{
 			StorageAccounts: storageAccounts,
 		},
 		Location: utils.String(location),
+		Tags:     tags.Expand(t),
 	}
 
-	if _, e := client.CreateOrUpdate(ctx, resourceGroup, accountName, parameters); e != nil {
-		return fmt.Errorf("Error creating Media Service Account %q (Resource Group %q): %+v", accountName, resourceGroup, e)
+	if _, ok := d.GetOk("identity"); ok {
+		parameters.Identity = expandAzureRmMediaServiceIdentity(d)
 	}
 
-	service, err := client.Get(ctx, resourceGroup, accountName)
-	if err != nil {
-		return fmt.Errorf("Error retrieving Media Service Account %q (Resource Group %q): %+v", accountName, resourceGroup, err)
+	if v, ok := d.GetOk("storage_authentication_type"); ok {
+		parameters.StorageAuthentication = media.StorageAuthentication(v.(string))
 	}
-	d.SetId(*service.ID)
 
-	return resourceArmMediaServicesAccountRead(d, meta)
+	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.Name, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", resourceId, err)
+	}
+
+	d.SetId(resourceId.ID(""))
+	return resourceMediaServicesAccountRead(d, meta)
 }
 
-func resourceArmMediaServicesAccountRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMediaServicesAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.ServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MediaServicesAccountID(d.Id())
+	id, err := parse.MediaServiceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -132,7 +188,7 @@ func resourceArmMediaServicesAccountRead(d *schema.ResourceData, meta interface{
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Media Services Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Media Services Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -141,25 +197,28 @@ func resourceArmMediaServicesAccountRead(d *schema.ResourceData, meta interface{
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if props := resp.ServiceProperties; props != nil {
+	props := resp.ServiceProperties
+	if props != nil {
 		accounts := flattenMediaServicesAccountStorageAccounts(props.StorageAccounts)
 		if e := d.Set("storage_account", accounts); e != nil {
-			return fmt.Errorf("Error flattening `storage_account`: %s", e)
+			return fmt.Errorf("flattening `storage_account`: %s", e)
 		}
+		d.Set("storage_authentication_type", string(props.StorageAuthentication))
 	}
 
-	// TODO: support Tags when this bug is fixed:
-	// https://github.com/Azure/azure-rest-api-specs/issues/5249
-	// return tags.FlattenAndSet(d, resp.Tags)
-	return nil
+	if err := d.Set("identity", flattenAzureRmMediaServicedentity(resp.Identity)); err != nil {
+		return fmt.Errorf("flattening `identity`: %s", err)
+	}
+
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmMediaServicesAccountDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMediaServicesAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.ServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MediaServicesAccountID(d.Id())
+	id, err := parse.MediaServiceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -169,7 +228,7 @@ func resourceArmMediaServicesAccountDelete(d *schema.ResourceData, meta interfac
 		if response.WasNotFound(resp.Response) {
 			return nil
 		}
-		return fmt.Errorf("Error issuing AzureRM delete request for Media Services Account '%s': %+v", id.Name, err)
+		return fmt.Errorf("issuing AzureRM delete request for Media Services Account '%s': %+v", id.Name, err)
 	}
 
 	return nil
@@ -224,4 +283,30 @@ func flattenMediaServicesAccountStorageAccounts(input *[]media.StorageAccount) [
 	}
 
 	return results
+}
+
+func expandAzureRmMediaServiceIdentity(d *schema.ResourceData) *media.ServiceIdentity {
+	identities := d.Get("identity").([]interface{})
+	identity := identities[0].(map[string]interface{})
+	identityType := identity["type"].(string)
+	return &media.ServiceIdentity{
+		Type: media.ManagedIdentityType(identityType),
+	}
+}
+
+func flattenAzureRmMediaServicedentity(identity *media.ServiceIdentity) []interface{} {
+	if identity == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+	result["type"] = string(identity.Type)
+	if identity.PrincipalID != nil {
+		result["principal_id"] = *identity.PrincipalID
+	}
+	if identity.TenantID != nil {
+		result["tenant_id"] = *identity.TenantID
+	}
+
+	return []interface{}{result}
 }

@@ -1,50 +1,69 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 type LogAnalyticsStorageInsightsId struct {
-	ResourceGroup string
-	WorkspaceName string
-	WorkspaceID   string
-	Name          string
+	SubscriptionId           string
+	ResourceGroup            string
+	WorkspaceName            string
+	StorageInsightConfigName string
 }
 
-func (id LogAnalyticsStorageInsightsId) ID(subscriptionId string) string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.OperationalInsights/workspaces/%s/storageInsightConfigs/%s"
-	return fmt.Sprintf(fmtString, subscriptionId, id.ResourceGroup, id.WorkspaceName, id.Name)
-}
-
-func NewLogAnalyticsStorageInsightsId(resourceGroup, workspaceId, name string) LogAnalyticsStorageInsightsId {
-	// (@jackofallops) ignoring error here as already passed through validation in schema
-	workspace, _ := LogAnalyticsWorkspaceID(workspaceId)
+func NewLogAnalyticsStorageInsightsID(subscriptionId, resourceGroup, workspaceName, storageInsightConfigName string) LogAnalyticsStorageInsightsId {
 	return LogAnalyticsStorageInsightsId{
-		ResourceGroup: resourceGroup,
-		WorkspaceName: workspace.Name,
-		WorkspaceID:   workspaceId,
-		Name:          name,
+		SubscriptionId:           subscriptionId,
+		ResourceGroup:            resourceGroup,
+		WorkspaceName:            workspaceName,
+		StorageInsightConfigName: storageInsightConfigName,
 	}
 }
 
+func (id LogAnalyticsStorageInsightsId) String() string {
+	segments := []string{
+		fmt.Sprintf("Storage Insight Config Name %q", id.StorageInsightConfigName),
+		fmt.Sprintf("Workspace Name %q", id.WorkspaceName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Log Analytics Storage Insights", segmentsStr)
+}
+
+func (id LogAnalyticsStorageInsightsId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.OperationalInsights/workspaces/%s/storageInsightConfigs/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.StorageInsightConfigName)
+}
+
+// LogAnalyticsStorageInsightsID parses a LogAnalyticsStorageInsights ID into an LogAnalyticsStorageInsightsId struct
 func LogAnalyticsStorageInsightsID(input string) (*LogAnalyticsStorageInsightsId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing Log Analytics Storage Insights ID %q: %+v", input, err)
-	}
-
-	logAnalyticsStorageInsight := LogAnalyticsStorageInsightsId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if logAnalyticsStorageInsight.WorkspaceName, err = id.PopSegment("workspaces"); err != nil {
 		return nil, err
 	}
 
-	logAnalyticsStorageInsight.WorkspaceID = NewLogAnalyticsWorkspaceID(logAnalyticsStorageInsight.WorkspaceName, id.ResourceGroup).ID(id.SubscriptionID)
-	if logAnalyticsStorageInsight.Name, err = id.PopSegment("storageInsightConfigs"); err != nil {
+	resourceId := LogAnalyticsStorageInsightsId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.WorkspaceName, err = id.PopSegment("workspaces"); err != nil {
+		return nil, err
+	}
+	if resourceId.StorageInsightConfigName, err = id.PopSegment("storageInsightConfigs"); err != nil {
 		return nil, err
 	}
 
@@ -52,5 +71,5 @@ func LogAnalyticsStorageInsightsID(input string) (*LogAnalyticsStorageInsightsId
 		return nil, err
 	}
 
-	return &logAnalyticsStorageInsight, nil
+	return &resourceId, nil
 }

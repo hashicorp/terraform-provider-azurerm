@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestSqlFilterValidateFunc(t *testing.T) {
+func TestValidateSqlFilter(t *testing.T) {
 	cases := []struct {
 		Value       string
 		ShouldError bool
