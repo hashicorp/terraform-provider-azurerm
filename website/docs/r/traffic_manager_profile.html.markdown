@@ -74,7 +74,9 @@ The following arguments are supported:
 
 * `monitor_config` - (Required) This block specifies the Endpoint monitoring configuration for the Profile, it supports the fields documented below.
 
-* `max_return` - (Optional) How many endpoints to return for DNS queries to this profile. Necessary when the `traffic_routing_method` is `MultiValue`, and ignored otherwise. Must be an integer between 1 and 8, with the default being 8.
+* `max_return` - (Optional) The amount of endpoints to return for DNS queries to this Profile. Possible values range from `1` to `8`.
+
+~> **NOTE**: `max_return` must be set when the `traffic_routing_method` is `MultiValue`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

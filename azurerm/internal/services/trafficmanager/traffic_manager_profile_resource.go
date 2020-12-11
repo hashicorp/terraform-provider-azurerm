@@ -219,8 +219,7 @@ func resourceArmTrafficManagerProfileCreate(d *schema.ResourceData, meta interfa
 	}
 
 	if maxReturn, ok := d.GetOk("max_return"); ok {
-		maxReturnInt := int64(maxReturn.(int))
-		profile.ProfileProperties.MaxReturn = &maxReturnInt
+		profile.MaxReturn = utils.Int64(int64(maxReturn.(int)))
 	}
 
 	if status, ok := d.GetOk("profile_status"); ok {
@@ -323,10 +322,7 @@ func resourceArmTrafficManagerProfileUpdate(d *schema.ResourceData, meta interfa
 
 	if d.HasChange("max_return") {
 		if maxReturn, ok := d.GetOk("max_return"); ok {
-			maxReturnInt := int64(maxReturn.(int))
-			update.ProfileProperties.MaxReturn = &maxReturnInt
-		} else {
-			update.ProfileProperties.MaxReturn = nil
+			update.MaxReturn = utils.Int64(int64(maxReturn.(int)))
 		}
 	}
 
