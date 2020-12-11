@@ -1,172 +1,126 @@
-package tests
+package databox_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databox/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type DataBoxJobResource struct {
+}
+
 func TestAccDataBoxJob_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_box_job", "test")
+	r := DataBoxJobResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDataBoxJobDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataBoxJob_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataBoxJobExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccDataBoxJob_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_box_job", "test")
+	r := DataBoxJobResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDataBoxJobDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataBoxJob_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataBoxJobExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("databox_disk_passkey", "expected_data_size_in_tb"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("databox_disk_passkey", "expected_data_size_in_tb"),
 	})
 }
 
 func TestAccDataBoxJob_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_box_job", "test")
+	r := DataBoxJobResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDataBoxJobDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataBoxJob_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataBoxJobExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccDataBoxJob_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.requiresImport(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
 func TestAccDataBoxJob_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_box_job", "test")
+	r := DataBoxJobResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDataBoxJobDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataBoxJob_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataBoxJobExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("databox_disk_passkey", "expected_data_size_in_tb"),
-			{
-				Config: testAccDataBoxJob_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataBoxJobExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("databox_disk_passkey", "expected_data_size_in_tb"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("databox_disk_passkey", "expected_data_size_in_tb"),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("databox_disk_passkey", "expected_data_size_in_tb"),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("databox_disk_passkey", "expected_data_size_in_tb"),
 	})
 }
 
 func TestAccDataBoxJob_withCustomerManaged(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_box_job", "test")
+	r := DataBoxJobResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDataBoxJobDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataBoxJob_withCustomerManaged(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckDataBoxJobExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withCustomerManaged(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckDataBoxJobExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).DataBox.JobClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Data Box Job not found: %s", resourceName)
-		}
-
-		id, err := parse.DataBoxJobID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name, ""); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Data Box Job %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on DataBox.JobClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckDataBoxJobDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).DataBox.JobClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_data_box_job" {
-			continue
-		}
-
-		id, err := parse.DataBoxJobID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name, ""); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on DataBox.JobClient: %+v", err)
-			}
-		}
-
-		return nil
+func (DataBoxJobResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.DataBoxJobID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.DataBox.JobClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	if err != nil {
+		return nil, fmt.Errorf("retrieving DataBoxJob %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+	}
+
+	return utils.Bool(resp.JobProperties != nil), nil
 }
 
-func testAccDataBoxJob_basic(data acceptance.TestData) string {
+func (DataBoxJobResource) basic(data acceptance.TestData) string {
 	template := testAccDataBoxJob_template(data)
 	return fmt.Sprintf(`
 %s
@@ -201,7 +155,7 @@ resource "azurerm_data_box_job" "test" {
 `, template, data.RandomString)
 }
 
-func testAccDataBoxJob_requiresImport(data acceptance.TestData) string {
+func (r DataBoxJobResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -232,10 +186,10 @@ resource "azurerm_data_box_job" "import" {
 
   sku_name = "DataBox"
 }
-`, testAccDataBoxJob_basic(data))
+`, r.basic(data))
 }
 
-func testAccDataBoxJob_complete(data acceptance.TestData) string {
+func (DataBoxJobResource) complete(data acceptance.TestData) string {
 	template := testAccDataBoxJob_template(data)
 	return fmt.Sprintf(`
 %s
@@ -284,17 +238,16 @@ resource "azurerm_data_box_job" "test" {
   }
 
   shipping_address {
-    city              = "Redmond"
-    country           = "US"
-    postal_code       = "98052"
-    state_or_province = "WA"
-    street_address_1  = "One Microsoft Way"
-    // Wating to hear back from PM if these are allowed
-    // address_type          = "Commercial"
-    // company_name          = "Microsoft"
-    // street_address_2      = "17 TOWNSEND ST"
-    // street_address_3      = "18 TOWNSEND ST"
-    // postal_code_plus_four = "94107"
+    city                  = "Redmond"
+    country               = "US"
+    postal_code           = "98052"
+    state_or_province     = "WA"
+    street_address_1      = "One Microsoft Way"
+    address_type          = "Commercial"
+		company_name          = "Microsoft"
+    street_address_2      = "Two Microsoft Way"
+    street_address_3      = "Three Microsoft Way"
+    postal_code_plus_four = "6399"
   }
 
   expected_data_size_in_tb = 5
@@ -317,7 +270,7 @@ resource "azurerm_data_box_job" "test" {
 `, template, data.RandomString, data.RandomString, data.RandomString)
 }
 
-func testAccDataBoxJob_update(data acceptance.TestData) string {
+func (DataBoxJobResource) update(data acceptance.TestData) string {
 	template := testAccDataBoxJob_template(data)
 	return fmt.Sprintf(`
 %s
@@ -366,17 +319,16 @@ resource "azurerm_data_box_job" "test" {
   }
 
   shipping_address {
-    city              = "Redmond"
-    country           = "US"
-    postal_code       = "98052"
-    state_or_province = "WA"
-    street_address_1  = "One Microsoft Way"
-    // Wating to hear back from PM if these are allowed
-    // address_type          = "Residential"
-    // company_name          = "Intel"
-    // street_address_2      = "6902 SUN STREET"
-    // street_address_3      = "6903 SUN STREET"
-    // postal_code_plus_four = "92111"
+    city                  = "Redmond"
+    country               = "US"
+    postal_code           = "98052"
+    state_or_province     = "WA"
+    street_address_1      = "One Microsoft Way"
+    address_type          = "Residential"
+    company_name          = "Microsoft"
+    street_address_2      = "Four Microsoft Way"
+    street_address_3      = "Five Microsoft Way"
+    postal_code_plus_four = "6399"
   }
 
   expected_data_size_in_tb = 5
@@ -399,7 +351,7 @@ resource "azurerm_data_box_job" "test" {
 `, template, data.RandomString, data.RandomString, data.RandomString)
 }
 
-func testAccDataBoxJob_withCustomerManaged(data acceptance.TestData) string {
+func (DataBoxJobResource) withCustomerManaged(data acceptance.TestData) string {
 	template := testAccDataBoxJob_template(data)
 	return fmt.Sprintf(`
 %s
