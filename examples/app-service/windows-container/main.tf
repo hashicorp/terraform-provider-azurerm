@@ -15,8 +15,8 @@ resource "azurerm_app_service_plan" "example" {
   is_xenon            = true
 
   sku {
-    tier = "PremiumV3"
-    size = "P1V3"
+    tier = "PremiumContainer"
+    size = "PC2"
   }
 }
 

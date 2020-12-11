@@ -110,7 +110,6 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 		attestation.Registration{},
 		authorization.Registration{},
 		automation.Registration{},
-		vmware.Registration{},
 		azurestackhci.Registration{},
 		batch.Registration{},
 		blueprints.Registration{},

@@ -19,7 +19,7 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_vmware_private_cloud": dataSourceAvsPrivateCloud(),
+		"azurerm_vmware_private_cloud": dataSourceVmwarePrivateCloud(),
 	}
 }
 

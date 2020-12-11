@@ -67,7 +67,7 @@ The following arguments are supported:
 
 A `management_cluster` block supports the following:
 
-* `size` - (Required) The size of the cluster.
+* `size` - (Required) The size of the management cluster.
 
 ## Attributes Reference
 

@@ -15,9 +15,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceAvsPrivateCloud() *schema.Resource {
+func dataSourceVmwarePrivateCloud() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAvsPrivateCloudRead,
+		Read: dataSourceVmwarePrivateCloudRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -147,7 +147,7 @@ func dataSourceAvsPrivateCloud() *schema.Resource {
 	}
 }
 
-func dataSourceAvsPrivateCloudRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceVmwarePrivateCloudRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Vmware.PrivateCloudClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -188,6 +188,10 @@ func dataSourceAvsPrivateCloudRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("vcenter_certificate_thumbprint", props.VcenterCertificateThumbprint)
 		d.Set("vmotion_subnet_cidr", props.VmotionNetwork)
 	}
-	d.Set("sku_name", resp.Sku.Name)
+
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku_name", sku.Name)
+	}
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
