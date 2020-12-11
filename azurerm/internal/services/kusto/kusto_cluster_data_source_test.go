@@ -8,18 +8,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMKustoCluster_basic(t *testing.T) {
+func TestAccDataSourceKustoCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kusto_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
+		CheckDestroy: testCheckKustoClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMKustoCluster_basic(data),
+				Config: testAccDataSourceKustoCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					testCheckKustoClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "uri"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "data_ingestion_uri"),
 				),
@@ -28,8 +28,8 @@ func TestAccDataSourceAzureRMKustoCluster_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceAzureRMKustoCluster_basic(data acceptance.TestData) string {
-	template := testAccAzureRMKustoCluster_basic(data)
+func testAccDataSourceKustoCluster_basic(data acceptance.TestData) string {
+	template := testAccKustoCluster_basic(data)
 	return fmt.Sprintf(`
 %s
 

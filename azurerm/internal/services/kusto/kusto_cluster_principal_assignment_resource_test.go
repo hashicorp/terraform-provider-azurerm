@@ -11,18 +11,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMKustoClusterPrincipalAssignment_basic(t *testing.T) {
+func TestAccKustoClusterPrincipalAssignment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster_principal_assignment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoClusterPrincipalAssignmentDestroy,
+		CheckDestroy: testCheckKustoClusterPrincipalAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKustoClusterPrincipalAssignment_basic(data),
+				Config: testAccKustoClusterPrincipalAssignment_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoClusterPrincipalAssignmentExists(data.ResourceName),
+					testCheckKustoClusterPrincipalAssignmentExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -30,7 +30,7 @@ func TestAccAzureRMKustoClusterPrincipalAssignment_basic(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMKustoClusterPrincipalAssignmentDestroy(s *terraform.State) error {
+func testCheckKustoClusterPrincipalAssignmentDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.ClusterPrincipalAssignmentsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -57,7 +57,7 @@ func testCheckAzureRMKustoClusterPrincipalAssignmentDestroy(s *terraform.State) 
 	return nil
 }
 
-func testCheckAzureRMKustoClusterPrincipalAssignmentExists(resourceName string) resource.TestCheckFunc {
+func testCheckKustoClusterPrincipalAssignmentExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.ClusterPrincipalAssignmentsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -92,7 +92,7 @@ func testCheckAzureRMKustoClusterPrincipalAssignmentExists(resourceName string) 
 	}
 }
 
-func testAccAzureRMKustoClusterPrincipalAssignment_basic(data acceptance.TestData) string {
+func testAccKustoClusterPrincipalAssignment_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -11,18 +11,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMKustoDatabasePrincipal_basic(t *testing.T) {
+func TestAccKustoDatabasePrincipal_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_database_principal", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoDatabasePrincipalDestroy,
+		CheckDestroy: testCheckKustoDatabasePrincipalDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKustoDatabasePrincipal_basic(data),
+				Config: testAccKustoDatabasePrincipal_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoDatabasePrincipalExists(data.ResourceName),
+					testCheckKustoDatabasePrincipalExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -30,7 +30,7 @@ func TestAccAzureRMKustoDatabasePrincipal_basic(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMKustoDatabasePrincipalDestroy(s *terraform.State) error {
+func testCheckKustoDatabasePrincipalDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.DatabasesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -72,7 +72,7 @@ func testCheckAzureRMKustoDatabasePrincipalDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMKustoDatabasePrincipalExists(resourceName string) resource.TestCheckFunc {
+func testCheckKustoDatabasePrincipalExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.DatabasesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -127,7 +127,7 @@ func testCheckAzureRMKustoDatabasePrincipalExists(resourceName string) resource.
 	}
 }
 
-func testAccAzureRMKustoDatabasePrincipal_basic(data acceptance.TestData) string {
+func testAccKustoDatabasePrincipal_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

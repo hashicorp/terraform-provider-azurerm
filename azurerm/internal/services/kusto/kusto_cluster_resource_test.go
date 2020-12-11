@@ -12,18 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMKustoCluster_basic(t *testing.T) {
+func TestAccKustoCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
+		CheckDestroy: testCheckKustoClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKustoCluster_basic(data),
+				Config: testAccKustoCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					testCheckKustoClusterExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -31,18 +31,18 @@ func TestAccAzureRMKustoCluster_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKustoCluster_update(t *testing.T) {
+func TestAccKustoCluster_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
+		CheckDestroy: testCheckKustoClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKustoCluster_basic(data),
+				Config: testAccKustoCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					testCheckKustoClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_disk_encryption", "false"),
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_streaming_ingest", "false"),
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_purge", "false"),
@@ -50,9 +50,9 @@ func TestAccAzureRMKustoCluster_update(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMKustoCluster_update(data),
+				Config: testAccKustoCluster_update(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					testCheckKustoClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_disk_encryption", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_streaming_ingest", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_purge", "true"),
@@ -60,9 +60,9 @@ func TestAccAzureRMKustoCluster_update(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMKustoCluster_basic(data),
+				Config: testAccKustoCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					testCheckKustoClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_disk_encryption", "false"),
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_streaming_ingest", "false"),
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_purge", "false"),
@@ -73,26 +73,26 @@ func TestAccAzureRMKustoCluster_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKustoCluster_withTags(t *testing.T) {
+func TestAccKustoCluster_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
+		CheckDestroy: testCheckKustoClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKustoCluster_withTags(data),
+				Config: testAccKustoCluster_withTags(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					testCheckKustoClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.label", "test"),
 				),
 			},
 			{
-				Config: testAccAzureRMKustoCluster_withTagsUpdate(data),
+				Config: testAccKustoCluster_withTagsUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					testCheckKustoClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.label", "test1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.ENV", "prod"),
@@ -102,26 +102,26 @@ func TestAccAzureRMKustoCluster_withTags(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKustoCluster_sku(t *testing.T) {
+func TestAccKustoCluster_sku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
+		CheckDestroy: testCheckKustoClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKustoCluster_basic(data),
+				Config: testAccKustoCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					testCheckKustoClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Dev(No SLA)_Standard_D11_v2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "1"),
 				),
 			},
 			{
-				Config: testAccAzureRMKustoCluster_skuUpdate(data),
+				Config: testAccKustoCluster_skuUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					testCheckKustoClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Standard_D11_v2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "2"),
 				),
@@ -130,18 +130,18 @@ func TestAccAzureRMKustoCluster_sku(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKustoCluster_zones(t *testing.T) {
+func TestAccKustoCluster_zones(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
+		CheckDestroy: testCheckKustoClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKustoCluster_withZones(data),
+				Config: testAccKustoCluster_withZones(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					testCheckKustoClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "zones.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "zones.0", "1"),
 				),
@@ -150,18 +150,18 @@ func TestAccAzureRMKustoCluster_zones(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKustoCluster_identitySystemAssigned(t *testing.T) {
+func TestAccKustoCluster_identitySystemAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
+		CheckDestroy: testCheckKustoClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKustoCluster_identitySystemAssigned(data),
+				Config: testAccKustoCluster_identitySystemAssigned(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					testCheckKustoClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
 					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.identity_ids.#", "0"),
 					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
@@ -172,18 +172,18 @@ func TestAccAzureRMKustoCluster_identitySystemAssigned(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKustoCluster_vnet(t *testing.T) {
+func TestAccKustoCluster_vnet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
+		CheckDestroy: testCheckKustoClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKustoCluster_vnet(data),
+				Config: testAccKustoCluster_vnet(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					testCheckKustoClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "virtual_network_configuration.#", "1"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_network_configuration.0.subnet_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_network_configuration.0.engine_public_ip_id"),
@@ -195,18 +195,18 @@ func TestAccAzureRMKustoCluster_vnet(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKustoCluster_languageExtensions(t *testing.T) {
+func TestAccKustoCluster_languageExtensions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
+		CheckDestroy: testCheckKustoClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKustoCluster_languageExtensions(data),
+				Config: testAccKustoCluster_languageExtensions(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					testCheckKustoClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "language_extensions.#", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "language_extensions.0", "PYTHON"),
 					resource.TestCheckResourceAttr(data.ResourceName, "language_extensions.1", "R"),
@@ -214,9 +214,9 @@ func TestAccAzureRMKustoCluster_languageExtensions(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMKustoCluster_languageExtensionsRemove(data),
+				Config: testAccKustoCluster_languageExtensionsRemove(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					testCheckKustoClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "language_extensions.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "language_extensions.0", "R"),
 				),
@@ -226,18 +226,18 @@ func TestAccAzureRMKustoCluster_languageExtensions(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKustoCluster_optimizedAutoScale(t *testing.T) {
+func TestAccKustoCluster_optimizedAutoScale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
+		CheckDestroy: testCheckKustoClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKustoCluster_optimizedAutoScale(data),
+				Config: testAccKustoCluster_optimizedAutoScale(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					testCheckKustoClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "optimized_auto_scale.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "optimized_auto_scale.0.minimum_instances", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "optimized_auto_scale.0.maximum_instances", "3"),
@@ -245,9 +245,9 @@ func TestAccAzureRMKustoCluster_optimizedAutoScale(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMKustoCluster_optimizedAutoScaleUpdate(data),
+				Config: testAccKustoCluster_optimizedAutoScaleUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					testCheckKustoClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "optimized_auto_scale.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "optimized_auto_scale.0.minimum_instances", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "optimized_auto_scale.0.maximum_instances", "4"),
@@ -255,9 +255,9 @@ func TestAccAzureRMKustoCluster_optimizedAutoScale(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMKustoCluster_basic(data),
+				Config: testAccKustoCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					testCheckKustoClusterExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -265,18 +265,18 @@ func TestAccAzureRMKustoCluster_optimizedAutoScale(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKustoCluster_engineV3(t *testing.T) {
+func TestAccKustoCluster_engineV3(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
+		CheckDestroy: testCheckKustoClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKustoCluster_engineV3(data),
+				Config: testAccKustoCluster_engineV3(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					testCheckKustoClusterExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -284,7 +284,7 @@ func TestAccAzureRMKustoCluster_engineV3(t *testing.T) {
 	})
 }
 
-func testAccAzureRMKustoCluster_basic(data acceptance.TestData) string {
+func testAccKustoCluster_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -308,7 +308,7 @@ resource "azurerm_kusto_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMKustoCluster_withTags(data acceptance.TestData) string {
+func testAccKustoCluster_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -336,7 +336,7 @@ resource "azurerm_kusto_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMKustoCluster_withTagsUpdate(data acceptance.TestData) string {
+func testAccKustoCluster_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -365,7 +365,7 @@ resource "azurerm_kusto_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMKustoCluster_skuUpdate(data acceptance.TestData) string {
+func testAccKustoCluster_skuUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -389,7 +389,7 @@ resource "azurerm_kusto_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMKustoCluster_withZones(data acceptance.TestData) string {
+func testAccKustoCluster_withZones(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -415,7 +415,7 @@ resource "azurerm_kusto_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMKustoCluster_update(data acceptance.TestData) string {
+func testAccKustoCluster_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -442,7 +442,7 @@ resource "azurerm_kusto_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMKustoCluster_identitySystemAssigned(data acceptance.TestData) string {
+func testAccKustoCluster_identitySystemAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -470,7 +470,7 @@ resource "azurerm_kusto_cluster" "test" {
   `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMKustoCluster_languageExtensions(data acceptance.TestData) string {
+func testAccKustoCluster_languageExtensions(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -496,7 +496,7 @@ resource "azurerm_kusto_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMKustoCluster_languageExtensionsRemove(data acceptance.TestData) string {
+func testAccKustoCluster_languageExtensionsRemove(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -522,7 +522,7 @@ resource "azurerm_kusto_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMKustoCluster_optimizedAutoScale(data acceptance.TestData) string {
+func testAccKustoCluster_optimizedAutoScale(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -550,7 +550,7 @@ resource "azurerm_kusto_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMKustoCluster_optimizedAutoScaleUpdate(data acceptance.TestData) string {
+func testAccKustoCluster_optimizedAutoScaleUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -578,7 +578,7 @@ resource "azurerm_kusto_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMKustoCluster_vnet(data acceptance.TestData) string {
+func testAccKustoCluster_vnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -663,7 +663,7 @@ resource "azurerm_kusto_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
 }
 
-func testAccAzureRMKustoCluster_engineV3(data acceptance.TestData) string {
+func testAccKustoCluster_engineV3(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -688,7 +688,7 @@ resource "azurerm_kusto_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testCheckAzureRMKustoClusterDestroy(s *terraform.State) error {
+func testCheckKustoClusterDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.ClustersClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -714,7 +714,7 @@ func testCheckAzureRMKustoClusterDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMKustoClusterExists(resourceName string) resource.TestCheckFunc {
+func testCheckKustoClusterExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.ClustersClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext

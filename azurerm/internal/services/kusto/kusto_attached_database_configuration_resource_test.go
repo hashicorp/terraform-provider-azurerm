@@ -11,18 +11,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMKustoAttachedDatabaseConfiguration_basic(t *testing.T) {
+func TestAccKustoAttachedDatabaseConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_attached_database_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoAttachedDatabaseConfigurationDestroy,
+		CheckDestroy: testCheckKustoAttachedDatabaseConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKustoAttachedDatabaseConfiguration_basic(data),
+				Config: testAccKustoAttachedDatabaseConfiguration_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoAttachedDatabaseConfigurationExists(data.ResourceName),
+					testCheckKustoAttachedDatabaseConfigurationExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -30,7 +30,7 @@ func TestAccAzureRMKustoAttachedDatabaseConfiguration_basic(t *testing.T) {
 	})
 }
 
-func testAccAzureRMKustoAttachedDatabaseConfiguration_basic(data acceptance.TestData) string {
+func testAccKustoAttachedDatabaseConfiguration_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -81,7 +81,7 @@ resource "azurerm_kusto_attached_database_configuration" "configuration1" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testCheckAzureRMKustoAttachedDatabaseConfigurationDestroy(s *terraform.State) error {
+func testCheckKustoAttachedDatabaseConfigurationDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.AttachedDatabaseConfigurationsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -108,7 +108,7 @@ func testCheckAzureRMKustoAttachedDatabaseConfigurationDestroy(s *terraform.Stat
 	return nil
 }
 
-func testCheckAzureRMKustoAttachedDatabaseConfigurationExists(resourceName string) resource.TestCheckFunc {
+func testCheckKustoAttachedDatabaseConfigurationExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.AttachedDatabaseConfigurationsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext

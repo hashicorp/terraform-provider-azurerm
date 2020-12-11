@@ -11,18 +11,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMKustoDatabasePrincipalAssignment_basic(t *testing.T) {
+func TestAccKustoDatabasePrincipalAssignment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_database_principal_assignment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoDatabasePrincipalAssignmentDestroy,
+		CheckDestroy: testCheckKustoDatabasePrincipalAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKustoDatabasePrincipalAssignment_basic(data),
+				Config: testAccKustoDatabasePrincipalAssignment_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoDatabasePrincipalAssignmentExists(data.ResourceName),
+					testCheckKustoDatabasePrincipalAssignmentExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -30,26 +30,26 @@ func TestAccAzureRMKustoDatabasePrincipalAssignment_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKustoDatabasePrincipalAssignment_requiresImport(t *testing.T) {
+func TestAccKustoDatabasePrincipalAssignment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_database_principal_assignment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoDatabasePrincipalAssignmentDestroy,
+		CheckDestroy: testCheckKustoDatabasePrincipalAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKustoDatabasePrincipalAssignment_basic(data),
+				Config: testAccKustoDatabasePrincipalAssignment_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoDatabasePrincipalAssignmentExists(data.ResourceName),
+					testCheckKustoDatabasePrincipalAssignmentExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMKustoDatabasePrincipalAssignment_requiresImport),
+			data.RequiresImportErrorStep(testAccKustoDatabasePrincipalAssignment_requiresImport),
 		},
 	})
 }
 
-func testCheckAzureRMKustoDatabasePrincipalAssignmentDestroy(s *terraform.State) error {
+func testCheckKustoDatabasePrincipalAssignmentDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.DatabasePrincipalAssignmentsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -77,7 +77,7 @@ func testCheckAzureRMKustoDatabasePrincipalAssignmentDestroy(s *terraform.State)
 	return nil
 }
 
-func testCheckAzureRMKustoDatabasePrincipalAssignmentExists(resourceName string) resource.TestCheckFunc {
+func testCheckKustoDatabasePrincipalAssignmentExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.DatabasePrincipalAssignmentsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -117,7 +117,7 @@ func testCheckAzureRMKustoDatabasePrincipalAssignmentExists(resourceName string)
 	}
 }
 
-func testAccAzureRMKustoDatabasePrincipalAssignment_basic(data acceptance.TestData) string {
+func testAccKustoDatabasePrincipalAssignment_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -162,8 +162,8 @@ resource "azurerm_kusto_database_principal_assignment" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMKustoDatabasePrincipalAssignment_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMKustoDatabasePrincipalAssignment_basic(data)
+func testAccKustoDatabasePrincipalAssignment_requiresImport(data acceptance.TestData) string {
+	template := testAccKustoDatabasePrincipalAssignment_basic(data)
 	return fmt.Sprintf(`
 %s
 

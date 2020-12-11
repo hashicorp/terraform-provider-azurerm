@@ -11,18 +11,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMKustoEventHubDataConnection_basic(t *testing.T) {
+func TestAccKustoEventHubDataConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_eventhub_data_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoEventHubDataConnectionDestroy,
+		CheckDestroy: testCheckKustoEventHubDataConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKustoEventHubDataConnection_basic(data),
+				Config: testAccKustoEventHubDataConnection_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoEventHubDataConnectionExists(data.ResourceName),
+					testCheckKustoEventHubDataConnectionExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -30,7 +30,7 @@ func TestAccAzureRMKustoEventHubDataConnection_basic(t *testing.T) {
 	})
 }
 
-func testAccAzureRMKustoEventHubDataConnection_basic(data acceptance.TestData) string {
+func testAccKustoEventHubDataConnection_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -94,7 +94,7 @@ resource "azurerm_kusto_eventhub_data_connection" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testCheckAzureRMKustoEventHubDataConnectionDestroy(s *terraform.State) error {
+func testCheckKustoEventHubDataConnectionDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.DataConnectionsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -122,7 +122,7 @@ func testCheckAzureRMKustoEventHubDataConnectionDestroy(s *terraform.State) erro
 	return nil
 }
 
-func testCheckAzureRMKustoEventHubDataConnectionExists(resourceName string) resource.TestCheckFunc {
+func testCheckKustoEventHubDataConnectionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.DataConnectionsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext

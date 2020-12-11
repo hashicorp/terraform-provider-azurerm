@@ -11,18 +11,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMKustoDatabase_basic(t *testing.T) {
+func TestAccKustoDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoDatabaseDestroy,
+		CheckDestroy: testCheckKustoDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKustoDatabase_basic(data),
+				Config: testAccKustoDatabase_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoDatabaseExists(data.ResourceName),
+					testCheckKustoDatabaseExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -30,25 +30,25 @@ func TestAccAzureRMKustoDatabase_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKustoDatabase_softDeletePeriod(t *testing.T) {
+func TestAccKustoDatabase_softDeletePeriod(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoDatabaseDestroy,
+		CheckDestroy: testCheckKustoDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKustoDatabase_softDeletePeriod(data),
+				Config: testAccKustoDatabase_softDeletePeriod(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoDatabaseExists(data.ResourceName),
+					testCheckKustoDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_period", "P7D"),
 				),
 			},
 			{
-				Config: testAccAzureRMKustoDatabase_softDeletePeriodUpdate(data),
+				Config: testAccKustoDatabase_softDeletePeriodUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoDatabaseExists(data.ResourceName),
+					testCheckKustoDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_period", "P31D"),
 				),
 			},
@@ -56,25 +56,25 @@ func TestAccAzureRMKustoDatabase_softDeletePeriod(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKustoDatabase_hotCachePeriod(t *testing.T) {
+func TestAccKustoDatabase_hotCachePeriod(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoDatabaseDestroy,
+		CheckDestroy: testCheckKustoDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKustoDatabase_hotCachePeriod(data),
+				Config: testAccKustoDatabase_hotCachePeriod(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoDatabaseExists(data.ResourceName),
+					testCheckKustoDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "hot_cache_period", "P7D"),
 				),
 			},
 			{
-				Config: testAccAzureRMKustoDatabase_hotCachePeriodUpdate(data),
+				Config: testAccKustoDatabase_hotCachePeriodUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoDatabaseExists(data.ResourceName),
+					testCheckKustoDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "hot_cache_period", "P14DT12H"),
 				),
 			},
@@ -82,7 +82,7 @@ func TestAccAzureRMKustoDatabase_hotCachePeriod(t *testing.T) {
 	})
 }
 
-func testAccAzureRMKustoDatabase_basic(data acceptance.TestData) string {
+func testAccKustoDatabase_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -113,7 +113,7 @@ resource "azurerm_kusto_database" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMKustoDatabase_softDeletePeriod(data acceptance.TestData) string {
+func testAccKustoDatabase_softDeletePeriod(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -146,7 +146,7 @@ resource "azurerm_kusto_database" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMKustoDatabase_softDeletePeriodUpdate(data acceptance.TestData) string {
+func testAccKustoDatabase_softDeletePeriodUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -179,7 +179,7 @@ resource "azurerm_kusto_database" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMKustoDatabase_hotCachePeriod(data acceptance.TestData) string {
+func testAccKustoDatabase_hotCachePeriod(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -212,7 +212,7 @@ resource "azurerm_kusto_database" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMKustoDatabase_hotCachePeriodUpdate(data acceptance.TestData) string {
+func testAccKustoDatabase_hotCachePeriodUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -245,7 +245,7 @@ resource "azurerm_kusto_database" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func testCheckAzureRMKustoDatabaseDestroy(s *terraform.State) error {
+func testCheckKustoDatabaseDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.DatabasesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -272,7 +272,7 @@ func testCheckAzureRMKustoDatabaseDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMKustoDatabaseExists(resourceName string) resource.TestCheckFunc {
+func testCheckKustoDatabaseExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.DatabasesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
