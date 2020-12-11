@@ -21,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmHybridConnection() *schema.Resource {
+func resourceArmRelayHybridConnection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmHybridConnectionCreateUpdate,
-		Read:   resourceArmHybridConnectionRead,
-		Update: resourceArmHybridConnectionCreateUpdate,
-		Delete: resourceArmHybridConnectionDelete,
+		Create: resourceArmRelayHybridConnectionCreateUpdate,
+		Read:   resourceArmRelayHybridConnectionRead,
+		Update: resourceArmRelayHybridConnectionCreateUpdate,
+		Delete: resourceArmRelayHybridConnectionDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.HybridConnectionID(id)
 			return err
@@ -71,7 +71,7 @@ func resourceArmHybridConnection() *schema.Resource {
 	}
 }
 
-func resourceArmHybridConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmRelayHybridConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Relay.HybridConnectionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -108,10 +108,10 @@ func resourceArmHybridConnectionCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	d.SetId(resourceId.ID(""))
-	return resourceArmHybridConnectionRead(d, meta)
+	return resourceArmRelayHybridConnectionRead(d, meta)
 }
 
-func resourceArmHybridConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmRelayHybridConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Relay.HybridConnectionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -143,7 +143,7 @@ func resourceArmHybridConnectionRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceArmHybridConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmRelayHybridConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Relay.HybridConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

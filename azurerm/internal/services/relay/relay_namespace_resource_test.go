@@ -1,144 +1,98 @@
 package relay_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMRelayNamespace_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_relay_namespace", "test")
+type RelayNamespaceResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRelayNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMRelayNamespace_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRelayNamespaceExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "metric_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Standard"),
-				),
-			},
-			data.ImportStep(),
+func TestAccRelayNamespace_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_relay_namespace", "test")
+	r := RelayNamespaceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("metric_id").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("primary_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_key").Exists(),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Standard"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMRelayNamespace_requiresImport(t *testing.T) {
+func TestAccRelayNamespace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_relay_namespace", "test")
+	r := RelayNamespaceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRelayNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMRelayNamespace_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRelayNamespaceExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "metric_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMRelayNamespace_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("metric_id").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("primary_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_key").Exists(),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMRelayNamespace_complete(t *testing.T) {
+func TestAccRelayNamespace_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_relay_namespace", "test")
+	r := RelayNamespaceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRelayNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMRelayNamespace_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRelayNamespaceExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "metric_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("metric_id").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("primary_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_key").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMRelayNamespaceExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Relay.NamespacesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		name := rs.Primary.Attributes["name"]
-
-		// Ensure resource group exists in API
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on relayNamespacesClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Relay Namespace %q (Resource Group: %q) does not exist", name, resourceGroup)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMRelayNamespaceDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Relay.NamespacesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_relay_namespace" {
-			continue
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		name := rs.Primary.Attributes["name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Relay Namespace still exists:\n%#v", resp)
-		}
+func (t RelayNamespaceResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.NamespaceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Relay.NamespacesClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Relay Namespace (%s): %+v", id.String(), err)
+	}
+
+	return utils.Bool(resp.NamespaceProperties != nil), nil
 }
 
-func testAccAzureRMRelayNamespace_basic(data acceptance.TestData) string {
+func (RelayNamespaceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -159,8 +113,7 @@ resource "azurerm_relay_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMRelayNamespace_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMRelayNamespace_basic(data)
+func (r RelayNamespaceResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -171,10 +124,10 @@ resource "azurerm_relay_namespace" "import" {
 
   sku_name = "Standard"
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMRelayNamespace_complete(data acceptance.TestData) string {
+func (RelayNamespaceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
