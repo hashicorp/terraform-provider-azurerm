@@ -11,7 +11,6 @@ import (
 
 func TestAccAzureRMDataSourceLoadBalancerBackEndAddressPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_lb_backend_address_pool", "test")
-	addressPoolName := fmt.Sprintf("%d-address-pool", data.RandomInteger)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -19,7 +18,7 @@ func TestAccAzureRMDataSourceLoadBalancerBackEndAddressPool_basic(t *testing.T) 
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataSourceLoadBalancerBackEndAddressPool_basic(data, addressPoolName),
+				Config: testAccAzureRMDataSourceLoadBalancerBackEndAddressPool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
 				),
@@ -28,8 +27,8 @@ func TestAccAzureRMDataSourceLoadBalancerBackEndAddressPool_basic(t *testing.T) 
 	})
 }
 
-func testAccAzureRMDataSourceLoadBalancerBackEndAddressPool_basic(data acceptance.TestData, name string) string {
-	resource := testAccAzureRMLoadBalancerBackEndAddressPool_basic(data, name)
+func testAccAzureRMDataSourceLoadBalancerBackEndAddressPool_basic(data acceptance.TestData) string {
+	resource := testAccAzureRMLoadBalancerBackEndAddressPool_basic(data)
 	return fmt.Sprintf(`
 %s
 

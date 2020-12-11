@@ -200,7 +200,7 @@ func TestAccAzureRMLoadBalancerRule_inconsistentReads(t *testing.T) {
 				Config: testAccAzureRMLoadBalancerRule_inconsistentRead(data, backendPoolName, probeName, lbRuleName),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
-					testCheckAzureRMLoadBalancerBackEndAddressPoolExists(backendPoolName, &lb),
+					testCheckAzureRMLoadBalancerBackEndAddressPoolExists(data.ResourceName),
 					testCheckAzureRMLoadBalancerRuleExists(lbRuleName, &lb),
 					testCheckAzureRMLoadBalancerProbeExists(probeName, &lb),
 				),
