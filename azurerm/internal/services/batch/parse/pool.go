@@ -35,7 +35,7 @@ func (id PoolId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Pool", segmentsStr)
 }
 
-func (id PoolId) ID(_ string) string {
+func (id PoolId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Batch/batchAccounts/%s/pools/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.BatchAccountName, id.Name)
 }

@@ -35,7 +35,7 @@ func (id QueueId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Queue", segmentsStr)
 }
 
-func (id QueueId) ID(_ string) string {
+func (id QueueId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ServiceBus/namespaces/%s/queues/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.Name)
 }

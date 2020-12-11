@@ -35,7 +35,7 @@ func (id CapacityPoolId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Capacity Pool", segmentsStr)
 }
 
-func (id CapacityPoolId) ID(_ string) string {
+func (id CapacityPoolId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.NetApp/netAppAccounts/%s/capacityPools/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.NetAppAccountName, id.Name)
 }

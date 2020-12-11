@@ -35,7 +35,7 @@ func (id BgpConnectionId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Bgp Connection", segmentsStr)
 }
 
-func (id BgpConnectionId) ID(_ string) string {
+func (id BgpConnectionId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualHubs/%s/bgpConnections/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VirtualHubName, id.Name)
 }

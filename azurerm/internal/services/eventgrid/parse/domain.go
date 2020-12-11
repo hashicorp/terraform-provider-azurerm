@@ -32,7 +32,7 @@ func (id DomainId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Domain", segmentsStr)
 }
 
-func (id DomainId) ID(_ string) string {
+func (id DomainId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.EventGrid/domains/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

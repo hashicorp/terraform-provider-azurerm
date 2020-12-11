@@ -35,7 +35,7 @@ func (id LoadBalancerInboundNatPoolId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Load Balancer Inbound Nat Pool", segmentsStr)
 }
 
-func (id LoadBalancerInboundNatPoolId) ID(_ string) string {
+func (id LoadBalancerInboundNatPoolId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/loadBalancers/%s/inboundNatPools/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName, id.InboundNatPoolName)
 }

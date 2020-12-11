@@ -32,7 +32,7 @@ func (id SmartDetectorAlertRuleId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Smart Detector Alert Rule", segmentsStr)
 }
 
-func (id SmartDetectorAlertRuleId) ID(_ string) string {
+func (id SmartDetectorAlertRuleId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.AlertsManagement/smartdetectoralertrules/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

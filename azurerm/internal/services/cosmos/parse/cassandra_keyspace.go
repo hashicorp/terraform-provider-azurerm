@@ -35,7 +35,7 @@ func (id CassandraKeyspaceId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Cassandra Keyspace", segmentsStr)
 }
 
-func (id CassandraKeyspaceId) ID(_ string) string {
+func (id CassandraKeyspaceId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/databaseAccounts/%s/cassandraKeyspaces/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DatabaseAccountName, id.Name)
 }

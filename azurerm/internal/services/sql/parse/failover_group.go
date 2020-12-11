@@ -35,7 +35,7 @@ func (id FailoverGroupId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Failover Group", segmentsStr)
 }
 
-func (id FailoverGroupId) ID(_ string) string {
+func (id FailoverGroupId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Sql/servers/%s/failoverGroups/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServerName, id.Name)
 }

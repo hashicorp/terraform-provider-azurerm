@@ -32,7 +32,7 @@ func (id UserAssignedIdentityId) String() string {
 	return fmt.Sprintf("%s: (%s)", "User Assigned Identity", segmentsStr)
 }
 
-func (id UserAssignedIdentityId) ID(_ string) string {
+func (id UserAssignedIdentityId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ManagedIdentity/userAssignedIdentities/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

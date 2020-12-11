@@ -35,7 +35,7 @@ func (id LoadBalancerFrontendIpConfigurationId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Load Balancer Frontend Ip Configuration", segmentsStr)
 }
 
-func (id LoadBalancerFrontendIpConfigurationId) ID(_ string) string {
+func (id LoadBalancerFrontendIpConfigurationId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/loadBalancers/%s/frontendIPConfigurations/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName, id.FrontendIPConfigurationName)
 }

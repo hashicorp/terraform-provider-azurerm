@@ -35,7 +35,7 @@ func (id NestedEndpointId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Nested Endpoint", segmentsStr)
 }
 
-func (id NestedEndpointId) ID(_ string) string {
+func (id NestedEndpointId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/trafficManagerProfiles/%s/nestedEndpoints/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.TrafficManagerProfileName, id.Name)
 }

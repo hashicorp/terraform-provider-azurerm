@@ -35,7 +35,7 @@ func (id LogAnalyticsDataExportId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Log Analytics Data Export", segmentsStr)
 }
 
-func (id LogAnalyticsDataExportId) ID(_ string) string {
+func (id LogAnalyticsDataExportId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.OperationalInsights/workspaces/%s/dataexports/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.DataexportName)
 }
