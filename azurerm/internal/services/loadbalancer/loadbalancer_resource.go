@@ -237,7 +237,7 @@ func resourceArmLoadBalancerCreateUpdate(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("creating/Updating Load Balancer %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 
 	return resourceArmLoadBalancerRead(d, meta)
 }

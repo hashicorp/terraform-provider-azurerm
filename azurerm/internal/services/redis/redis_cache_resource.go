@@ -304,7 +304,7 @@ func resourceRedisCacheCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_redis_cache", id.ID(""))
+		return tf.ImportAsExistsError("azurerm_redis_cache", id.ID())
 	}
 
 	patchSchedule := expandRedisPatchSchedule(d)
@@ -378,7 +378,7 @@ func resourceRedisCacheCreate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("waiting for Redis Cache %q (Resource Group %q) to become available: %s", id.RediName, id.ResourceGroup, err)
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 
 	if patchSchedule != nil {
 		if _, err = patchClient.CreateOrUpdate(ctx, id.ResourceGroup, id.RediName, *patchSchedule); err != nil {
@@ -537,7 +537,7 @@ func resourceRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 				return err
 			}
 
-			subnetId = parsed.ID("")
+			subnetId = parsed.ID()
 		}
 		d.Set("subnet_id", subnetId)
 	}

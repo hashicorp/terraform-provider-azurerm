@@ -180,7 +180,7 @@ func resourceArmVirtualHubIPRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	d.Set("name", id.IpConfigurationName)
-	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName).ID(""))
+	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName).ID())
 
 	if props := resp.HubIPConfigurationPropertiesFormat; props != nil {
 		d.Set("private_ip_address", props.PrivateIPAddress)

@@ -87,7 +87,7 @@ func resourceDashboardCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("creating/updating Dashboard %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	d.SetId(parse.NewDashboardID(subscriptionId, resourceGroup, name).ID(""))
+	d.SetId(parse.NewDashboardID(subscriptionId, resourceGroup, name).ID())
 	return resourceDashboardRead(d, meta)
 }
 

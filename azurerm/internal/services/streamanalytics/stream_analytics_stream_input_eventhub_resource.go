@@ -106,7 +106,7 @@ func resourceStreamAnalyticsStreamInputEventHubCreateUpdate(d *schema.ResourceDa
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_stream_input_eventhub", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_stream_analytics_stream_input_eventhub", resourceId.ID())
 		}
 	}
 
@@ -145,7 +145,7 @@ func resourceStreamAnalyticsStreamInputEventHubCreateUpdate(d *schema.ResourceDa
 			return fmt.Errorf("creating %s: %+v", resourceId, err)
 		}
 
-		d.SetId(resourceId.ID(""))
+		d.SetId(resourceId.ID())
 	} else if _, err := client.Update(ctx, props, resourceId.ResourceGroup, resourceId.StreamingjobName, resourceId.InputName, ""); err != nil {
 		return fmt.Errorf("updating %s: %+v", resourceId, err)
 	}

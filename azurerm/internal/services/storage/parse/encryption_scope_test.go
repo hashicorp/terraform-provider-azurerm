@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = EncryptionScopeId{}
 
 func TestEncryptionScopeIDFormatter(t *testing.T) {
-	actual := NewEncryptionScopeID("12345678-1234-9876-4563-123456789012", "resGroup1", "storageAccount1", "encryptionScope1").ID("")
+	actual := NewEncryptionScopeID("12345678-1234-9876-4563-123456789012", "resGroup1", "storageAccount1", "encryptionScope1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Storage/storageAccounts/storageAccount1/encryptionScopes/encryptionScope1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

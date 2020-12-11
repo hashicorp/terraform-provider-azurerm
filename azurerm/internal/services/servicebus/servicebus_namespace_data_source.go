@@ -97,7 +97,7 @@ func dataSourceServiceBusNamespaceRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if sku := resp.Sku; sku != nil {

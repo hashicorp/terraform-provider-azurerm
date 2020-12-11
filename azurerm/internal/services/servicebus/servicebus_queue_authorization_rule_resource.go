@@ -83,7 +83,7 @@ func resourceServiceBusQueueAuthorizationRuleCreateUpdate(d *schema.ResourceData
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_servicebus_queue_authorization_rule", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_servicebus_queue_authorization_rule", resourceId.ID())
 		}
 	}
 
@@ -98,7 +98,7 @@ func resourceServiceBusQueueAuthorizationRuleCreateUpdate(d *schema.ResourceData
 		return fmt.Errorf("creating/updating %s: %+v", resourceId, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceServiceBusQueueAuthorizationRuleRead(d, meta)
 }
 

@@ -76,7 +76,7 @@ func resourceServiceBusNamespaceAuthorizationRuleCreateUpdate(d *schema.Resource
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_servicebus_namespace_authorization_rule", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_servicebus_namespace_authorization_rule", resourceId.ID())
 		}
 	}
 
@@ -91,7 +91,7 @@ func resourceServiceBusNamespaceAuthorizationRuleCreateUpdate(d *schema.Resource
 		return fmt.Errorf("creating/updating %s: %+v", resourceId, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 
 	return resourceServiceBusNamespaceAuthorizationRuleRead(d, meta)
 }

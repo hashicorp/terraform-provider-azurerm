@@ -82,7 +82,7 @@ func resourceServiceBusTopicAuthorizationRuleCreateUpdate(d *schema.ResourceData
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_servicebus_topic_authorization_rule", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_servicebus_topic_authorization_rule", resourceId.ID())
 		}
 	}
 
@@ -97,7 +97,7 @@ func resourceServiceBusTopicAuthorizationRuleCreateUpdate(d *schema.ResourceData
 		return fmt.Errorf("creating/updating %s: %+v", resourceId, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceServiceBusTopicAuthorizationRuleRead(d, meta)
 }
 

@@ -83,7 +83,7 @@ func dataSourceServiceBusNamespaceAuthorizationRuleRead(d *schema.ResourceData, 
 		return fmt.Errorf("listing keys for %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 	d.Set("primary_key", keysResp.PrimaryKey)
 	d.Set("primary_connection_string", keysResp.PrimaryConnectionString)
 	d.Set("secondary_key", keysResp.SecondaryKey)

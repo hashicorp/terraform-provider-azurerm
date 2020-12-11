@@ -176,7 +176,7 @@ func resourceArmLogAnalyticsSavedSearchRead(d *schema.ResourceData, meta interfa
 	if err != nil {
 		return err
 	}
-	workspaceId := parse.NewLogAnalyticsWorkspaceID(subscriptionId, id.ResourceGroup, id.WorkspaceName).ID("")
+	workspaceId := parse.NewLogAnalyticsWorkspaceID(subscriptionId, id.ResourceGroup, id.WorkspaceName).ID()
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.SavedSearcheName)
 	if err != nil {

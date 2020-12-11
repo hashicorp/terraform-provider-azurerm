@@ -89,7 +89,7 @@ func resourceArmRelayHybridConnectionCreateUpdate(d *schema.ResourceData, meta i
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_relay_hybrid_connection", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_relay_hybrid_connection", resourceId.ID())
 		}
 	}
 
@@ -107,7 +107,7 @@ func resourceArmRelayHybridConnectionCreateUpdate(d *schema.ResourceData, meta i
 		return fmt.Errorf("creating/updating Hybrid Connection %q (Namespace %q Resource Group %q): %+v", resourceId.Name, resourceId.NamespaceName, resourceId.ResourceGroup, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceArmRelayHybridConnectionRead(d, meta)
 }
 

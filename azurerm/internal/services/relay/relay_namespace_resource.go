@@ -117,7 +117,7 @@ func resourceRelayNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_relay_namespace", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_relay_namespace", resourceId.ID())
 		}
 	}
 
@@ -140,7 +140,7 @@ func resourceRelayNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("waiting for create/update of Relay Namespace %q (Resource Group %q) creation: %+v", resourceId.Name, resourceId.ResourceGroup, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceRelayNamespaceRead(d, meta)
 }
 

@@ -92,7 +92,7 @@ func resourceRedisFirewallRuleCreateUpdate(d *schema.ResourceData, meta interfac
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_redis_firewall_rule", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_redis_firewall_rule", resourceId.ID())
 		}
 	}
 
@@ -109,7 +109,7 @@ func resourceRedisFirewallRuleCreateUpdate(d *schema.ResourceData, meta interfac
 
 	// TODO: confirm if we need to re-add the poller here
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceRedisFirewallRuleRead(d, meta)
 }
 

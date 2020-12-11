@@ -63,7 +63,7 @@ func dataSourceCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)

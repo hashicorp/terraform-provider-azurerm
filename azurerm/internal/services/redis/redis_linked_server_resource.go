@@ -103,7 +103,7 @@ func resourceRedisLinkedServerCreate(d *schema.ResourceData, meta interface{}) e
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_redis_linked_server", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_redis_linked_server", resourceId.ID())
 		}
 	}
 
@@ -137,7 +137,7 @@ func resourceRedisLinkedServerCreate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("waiting for Linked Server %q (Redis Cache %q / Resource Group %q) to become available: %+v", resourceId.Name, resourceId.RediName, resourceId.ResourceGroup, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceRedisLinkedServerRead(d, meta)
 }
 
@@ -173,7 +173,7 @@ func resourceRedisLinkedServerRead(d *schema.ResourceData, meta interface{}) err
 				return err
 			}
 
-			linkedRedisCacheId = cacheId.ID("")
+			linkedRedisCacheId = cacheId.ID()
 		}
 		d.Set("linked_redis_cache_id", linkedRedisCacheId)
 

@@ -230,7 +230,7 @@ func resourceSpringCloudServiceCreate(d *schema.ResourceData, meta interface{}) 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	resourceId := parse.NewSpringCloudServiceID(subscriptionId, resourceGroup, name).ID("")
+	resourceId := parse.NewSpringCloudServiceID(subscriptionId, resourceGroup, name).ID()
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {

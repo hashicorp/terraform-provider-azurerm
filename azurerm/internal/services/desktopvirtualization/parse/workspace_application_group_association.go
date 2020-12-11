@@ -15,8 +15,8 @@ type WorkspaceApplicationGroupAssociationId struct {
 }
 
 func (id WorkspaceApplicationGroupAssociationId) ID() string {
-	workspaceId := id.Workspace.ID("")
-	applicationGroupId := id.ApplicationGroup.ID("")
+	workspaceId := id.Workspace.ID()
+	applicationGroupId := id.ApplicationGroup.ID()
 	return fmt.Sprintf("%s|%s", workspaceId, applicationGroupId)
 }
 

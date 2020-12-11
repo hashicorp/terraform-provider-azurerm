@@ -151,7 +151,7 @@ func resourceServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interface{
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_service_fabric_cluster", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_service_fabric_cluster", resourceId.ID())
 		}
 	}
 
@@ -184,7 +184,7 @@ func resourceServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("creating/updating %s: %v", resourceId, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceServiceBusTopicRead(d, meta)
 }
 

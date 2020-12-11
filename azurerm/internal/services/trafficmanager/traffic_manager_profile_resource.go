@@ -197,7 +197,7 @@ func resourceArmTrafficManagerProfileCreate(d *schema.ResourceData, meta interfa
 	}
 
 	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_traffic_manager_profile", resourceId.ID(""))
+		return tf.ImportAsExistsError("azurerm_traffic_manager_profile", resourceId.ID())
 	}
 
 	// No existing profile - start from a new struct.
@@ -225,7 +225,7 @@ func resourceArmTrafficManagerProfileCreate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("creating Traffic Manager Profile %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceArmTrafficManagerProfileRead(d, meta)
 }
 
