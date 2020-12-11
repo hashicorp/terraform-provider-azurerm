@@ -244,7 +244,7 @@ resource "azurerm_data_box_job" "test" {
     state_or_province     = "WA"
     street_address_1      = "One Microsoft Way"
     address_type          = "Commercial"
-		company_name          = "Microsoft"
+    company_name          = "Microsoft"
     street_address_2      = "Two Microsoft Way"
     street_address_3      = "Three Microsoft Way"
     postal_code_plus_four = "6399"
