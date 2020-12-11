@@ -27,11 +27,12 @@ func NewVirtualMachineScaleSetExtensionID(subscriptionId, resourceGroup, virtual
 
 func (id VirtualMachineScaleSetExtensionId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Virtual Machine Scale Set Name %q", id.VirtualMachineScaleSetName),
 		fmt.Sprintf("Extension Name %q", id.ExtensionName),
+		fmt.Sprintf("Virtual Machine Scale Set Name %q", id.VirtualMachineScaleSetName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Virtual Machine Scale Set Extension", segmentsStr)
 }
 
 func (id VirtualMachineScaleSetExtensionId) ID(_ string) string {

@@ -15,9 +15,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmServiceBusNamespace() *schema.Resource {
+func dataSourceServiceBusNamespace() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmServiceBusNamespaceRead,
+		Read: dataSourceServiceBusNamespaceRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -80,7 +80,7 @@ func dataSourceArmServiceBusNamespace() *schema.Resource {
 	}
 }
 
-func dataSourceArmServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.NamespacesClientPreview
 	clientStable := meta.(*clients.Client).ServiceBus.NamespacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId

@@ -27,11 +27,12 @@ func NewLoggerID(subscriptionId, resourceGroup, serviceName, name string) Logger
 
 func (id LoggerId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Service Name %q", id.ServiceName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Service Name %q", id.ServiceName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Logger", segmentsStr)
 }
 
 func (id LoggerId) ID(_ string) string {

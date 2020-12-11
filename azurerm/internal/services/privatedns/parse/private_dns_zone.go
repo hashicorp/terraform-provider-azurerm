@@ -25,10 +25,11 @@ func NewPrivateDnsZoneID(subscriptionId, resourceGroup, name string) PrivateDnsZ
 
 func (id PrivateDnsZoneId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Private Dns Zone", segmentsStr)
 }
 
 func (id PrivateDnsZoneId) ID(_ string) string {

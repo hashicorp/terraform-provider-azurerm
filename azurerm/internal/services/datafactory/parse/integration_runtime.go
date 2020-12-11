@@ -27,11 +27,12 @@ func NewIntegrationRuntimeID(subscriptionId, resourceGroup, factoryName, name st
 
 func (id IntegrationRuntimeId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Factory Name %q", id.FactoryName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Factory Name %q", id.FactoryName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Integration Runtime", segmentsStr)
 }
 
 func (id IntegrationRuntimeId) ID(_ string) string {

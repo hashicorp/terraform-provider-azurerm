@@ -27,11 +27,12 @@ func NewLinkedServerID(subscriptionId, resourceGroup, rediName, name string) Lin
 
 func (id LinkedServerId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Redi Name %q", id.RediName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Redi Name %q", id.RediName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Linked Server", segmentsStr)
 }
 
 func (id LinkedServerId) ID(_ string) string {

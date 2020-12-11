@@ -29,12 +29,13 @@ func NewSubscriptionID(subscriptionId, resourceGroup, namespaceName, topicName, 
 
 func (id SubscriptionId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Namespace Name %q", id.NamespaceName),
-		fmt.Sprintf("Topic Name %q", id.TopicName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Topic Name %q", id.TopicName),
+		fmt.Sprintf("Namespace Name %q", id.NamespaceName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Subscription", segmentsStr)
 }
 
 func (id SubscriptionId) ID(_ string) string {

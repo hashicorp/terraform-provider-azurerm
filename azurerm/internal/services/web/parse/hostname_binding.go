@@ -27,11 +27,12 @@ func NewHostnameBindingID(subscriptionId, resourceGroup, siteName, name string) 
 
 func (id HostnameBindingId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Site Name %q", id.SiteName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Site Name %q", id.SiteName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Hostname Binding", segmentsStr)
 }
 
 func (id HostnameBindingId) ID(_ string) string {

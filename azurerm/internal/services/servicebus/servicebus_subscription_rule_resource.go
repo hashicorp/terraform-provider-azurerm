@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmServiceBusSubscriptionRule() *schema.Resource {
+func resourceServiceBusSubscriptionRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceBusSubscriptionRuleCreateUpdate,
-		Read:   resourceArmServiceBusSubscriptionRuleRead,
-		Update: resourceArmServiceBusSubscriptionRuleCreateUpdate,
-		Delete: resourceArmServiceBusSubscriptionRuleDelete,
+		Create: resourceServiceBusSubscriptionRuleCreateUpdate,
+		Read:   resourceServiceBusSubscriptionRuleRead,
+		Update: resourceServiceBusSubscriptionRuleCreateUpdate,
+		Delete: resourceServiceBusSubscriptionRuleDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.SubscriptionRuleID(id)
@@ -144,7 +144,7 @@ func resourceArmServiceBusSubscriptionRule() *schema.Resource {
 	}
 }
 
-func resourceArmServiceBusSubscriptionRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusSubscriptionRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.SubscriptionRulesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -156,8 +156,8 @@ func resourceArmServiceBusSubscriptionRuleCreateUpdate(d *schema.ResourceData, m
 	resourceId := parse.NewSubscriptionRuleID(subscriptionId,
 		d.Get("resource_group_name").(string),
 		d.Get("namespace_name").(string),
-		d.Get("subscription_name").(string),
 		d.Get("topic_name").(string),
+		d.Get("subscription_name").(string),
 		d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.TopicName, resourceId.SubscriptionName, resourceId.RuleName)
@@ -205,10 +205,10 @@ func resourceArmServiceBusSubscriptionRuleCreateUpdate(d *schema.ResourceData, m
 	}
 
 	d.SetId(resourceId.ID(""))
-	return resourceArmServiceBusSubscriptionRuleRead(d, meta)
+	return resourceServiceBusSubscriptionRuleRead(d, meta)
 }
 
-func resourceArmServiceBusSubscriptionRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusSubscriptionRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.SubscriptionRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -252,7 +252,7 @@ func resourceArmServiceBusSubscriptionRuleRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceArmServiceBusSubscriptionRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusSubscriptionRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.SubscriptionRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

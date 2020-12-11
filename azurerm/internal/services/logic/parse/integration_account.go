@@ -25,10 +25,11 @@ func NewIntegrationAccountID(subscriptionId, resourceGroup, name string) Integra
 
 func (id IntegrationAccountId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Integration Account", segmentsStr)
 }
 
 func (id IntegrationAccountId) ID(_ string) string {

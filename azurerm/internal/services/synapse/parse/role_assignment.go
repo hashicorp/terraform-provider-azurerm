@@ -3,7 +3,11 @@ package parse
 import (
 	"fmt"
 	"strings"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
+
+var _ resourceid.Formatter = RoleAssignmentId{}
 
 type RoleAssignmentId struct {
 	Workspace             WorkspaceId
