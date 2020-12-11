@@ -30,12 +30,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmRedisCache() *schema.Resource {
+func resourceRedisCache() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmRedisCacheCreate,
-		Read:   resourceArmRedisCacheRead,
-		Update: resourceArmRedisCacheUpdate,
-		Delete: resourceArmRedisCacheDelete,
+		Create: resourceRedisCacheCreate,
+		Read:   resourceRedisCacheRead,
+		Update: resourceRedisCacheUpdate,
+		Delete: resourceRedisCacheDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.CacheID(id)
 			return err
@@ -278,7 +278,7 @@ func resourceArmRedisCache() *schema.Resource {
 	}
 }
 
-func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceRedisCacheCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Redis.Client
 	patchClient := meta.(*clients.Client).Redis.PatchSchedulesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -386,10 +386,10 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	return resourceArmRedisCacheRead(d, meta)
+	return resourceRedisCacheRead(d, meta)
 }
 
-func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Redis.Client
 	patchClient := meta.(*clients.Client).Redis.PatchSchedulesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -469,10 +469,10 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	return resourceArmRedisCacheRead(d, meta)
+	return resourceRedisCacheRead(d, meta)
 }
 
-func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
+func resourceRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Redis.Client
 	patchSchedulesClient := meta.(*clients.Client).Redis.PatchSchedulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -562,7 +562,7 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceRedisCacheDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Redis.Client
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
