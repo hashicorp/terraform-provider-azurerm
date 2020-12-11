@@ -2,6 +2,7 @@ package loadbalancer
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -101,17 +102,19 @@ func dataSourceArmLoadBalancerRuleRead(d *schema.ResourceData, meta interface{})
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	loadBalancerID, err := parse.LoadBalancerID(d.Get("loadbalancer_id").(string))
+	loadBalancerId, err := parse.LoadBalancerID(d.Get("loadbalancer_id").(string))
 	if err != nil {
 		return err
 	}
 
-	loadBalancer, exists, err := retrieveLoadBalancerById(ctx, client, *loadBalancerID)
+	loadBalancer, err := client.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
 	if err != nil {
-		return fmt.Errorf("retrieving Load Balancer by ID: %+v", err)
-	}
-	if !exists {
-		return fmt.Errorf("Load Balancer %q (Resource Group %q) was not found", loadBalancerID.Name, loadBalancerID.ResourceGroup)
+		if utils.ResponseWasNotFound(loadBalancer.Response) {
+			d.SetId("")
+			log.Printf("[INFO] Load Balancer %q not found. Removing from state", loadBalancerId.Name)
+			return nil
+		}
+		return fmt.Errorf("failed to retrieve Load Balancer %q (resource group %q) for Rule %q: %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, name, err)
 	}
 
 	lbRuleClient := meta.(*clients.Client).LoadBalancers.LoadBalancingRulesClient
