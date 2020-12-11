@@ -15,21 +15,21 @@ type SSHPublicKeyId struct {
 	Name           string
 }
 
-func NewSSHPublicKeyId(subscriptionId, resourceGroup, Name string) SSHPublicKeyId {
+func NewSSHPublicKeyID(subscriptionId, resourceGroup, name string) SSHPublicKeyId {
 	return SSHPublicKeyId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
-		Name:           Name,
+		Name:           name,
 	}
 }
 
 func (id SSHPublicKeyId) String() string {
 	segments := []string{
-		fmt.Sprintf("Key Name %q", id.Name),
+		fmt.Sprintf("Name %q", id.Name),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "SSH Public Key", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "S S H Public Key", segmentsStr)
 }
 
 func (id SSHPublicKeyId) ID() string {
