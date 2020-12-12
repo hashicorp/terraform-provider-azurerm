@@ -54,10 +54,9 @@ func resourceSshPublicKey() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			// Optional
 			"public_key": {
 				Type:         schema.TypeString,
-				Optional:     true,
+				Required:     true,
 				ForceNew:     false,
 				ValidateFunc: ValidateSSHKey,
 			},
