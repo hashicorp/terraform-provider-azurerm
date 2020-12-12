@@ -37,6 +37,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_snapshot":                  dataSourceArmSnapshot(),
 		"azurerm_virtual_machine":           dataSourceArmVirtualMachine(),
 		"azurerm_virtual_machine_scale_set": dataSourceArmVirtualMachineScaleSet(),
+		"azurerm_ssh_public_key":            dataSourceArmSshPublicKey(),
 	}
 }
 
