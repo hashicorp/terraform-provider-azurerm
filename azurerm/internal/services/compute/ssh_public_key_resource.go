@@ -182,7 +182,6 @@ func resourceSshPublicKeyUpdate(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	if d.HasChange("tags") {
-
 		tagsRaw := d.Get("tags").(map[string]interface{})
 		update.Tags = tags.Expand(tagsRaw)
 	}
