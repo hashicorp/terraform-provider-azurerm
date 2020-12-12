@@ -3,16 +3,19 @@ package compute
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -23,10 +26,11 @@ func resourceSshPublicKey() *schema.Resource {
 		Read:   resourceSshPublicKeyRead,
 		Update: resourceSshPublicKeyUpdate,
 		Delete: resourceSshPublicKeyDelete,
-		// Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
-		// 	_, err := parse.SSHPublicKeyID(id)
-		// 	return err
-		// }, importVirtualMachine(compute.Linux, "azurerm_ssh_key")),
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.SSHPublicKeyID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(45 * time.Minute),
@@ -37,10 +41,13 @@ func resourceSshPublicKey() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: ValidateVmName,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile("^[-a-zA-Z0-9(_)]{1,128}$"),
+					"Public SSH Key name must be 1 - 128 characters long, can contain letters, numbers, underscores, and hyphens (but the first and last character must be a letter or number).",
+				),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -48,8 +55,12 @@ func resourceSshPublicKey() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			// Optional
-
-			"public_key": SSHKeysSchema(true),
+			"public_key": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     false,
+				ValidateFunc: ValidateSSHKey,
+			},
 
 			"tags": tags.Schema(),
 		},
@@ -63,6 +74,7 @@ func resourceSshPublicKeyCreate(d *schema.ResourceData, meta interface{}) error 
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+	public_key := d.Get("public_key").(string)
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -79,22 +91,18 @@ func resourceSshPublicKeyCreate(d *schema.ResourceData, meta interface{}) error 
 
 	t := d.Get("tags").(map[string]interface{})
 
-	// sshKeysRaw := d.Get("public_key").(*schema.Set).List()
-	// sshKeys := ExpandSSHKeys(sshKeysRaw)
-
 	params := compute.SSHPublicKeyResource{
 		Name:     utils.String(name),
 		Location: utils.String(location),
 		Tags:     tags.Expand(t),
+		SSHPublicKeyResourceProperties: &compute.SSHPublicKeyResourceProperties{
+			PublicKey: utils.String(public_key),
+		},
 	}
 
 	if _, err := client.Create(ctx, resourceGroup, name, params); err != nil {
 		return fmt.Errorf("creating SSH Public Key %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
-
-	// if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-	// 	return fmt.Errorf("waiting for creation of SSH Public Key %q (Resource Group %q): %+v", name, resourceGroup, err)
-	// }
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -162,8 +170,14 @@ func resourceSshPublicKeyUpdate(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("retrieving SSH Public Key %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
+	props := compute.SSHPublicKeyResourceProperties{}
+
+	if d.HasChange("public_key") {
+		props.PublicKey = utils.String(d.Get("public_key").(string))
+	}
+
 	update := compute.SSHPublicKeyUpdateResource{
-		SSHPublicKeyResourceProperties: &compute.SSHPublicKeyResourceProperties{},
+		SSHPublicKeyResourceProperties: &props,
 	}
 
 	if d.HasChange("tags") {
@@ -180,7 +194,7 @@ func resourceSshPublicKeyUpdate(d *schema.ResourceData, meta interface{}) error 
 
 	log.Printf("[DEBUG] Updated SSH Public Key %q (Resource Group %q).", id.Name, id.ResourceGroup)
 
-	return resourceLinuxVirtualMachineRead(d, meta)
+	return resourceSshPublicKeyRead(d, meta)
 }
 
 func resourceSshPublicKeyDelete(d *schema.ResourceData, meta interface{}) error {
