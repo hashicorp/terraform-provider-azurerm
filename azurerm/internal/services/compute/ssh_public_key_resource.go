@@ -144,8 +144,6 @@ func resourceSshPublicKeyRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	d.Set("id", resp.ID)
-
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
