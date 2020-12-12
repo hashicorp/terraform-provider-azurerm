@@ -144,6 +144,10 @@ func resourceSshPublicKeyRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
+	if props := resp.SSHPublicKeyResourceProperties; props != nil {
+		d.Set("public_key", props.PublicKey)
+	}
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
