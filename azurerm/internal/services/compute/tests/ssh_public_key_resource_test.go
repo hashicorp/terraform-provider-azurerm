@@ -104,19 +104,19 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-	name     = "ACCTESTRG-%d"
-	location = "%s"
-  }
+  name     = "ACCTESTRG-%d"
+  location = "%s"
+}
 
 resource "azurerm_ssh_public_key" "test" {
-	name                = "test-public-key-%d"
-	resource_group_name = azurerm_resource_group.test.name
-	location            = azurerm_resource_group.test.location
-	public_key = "%s"
-	tags = {
-	  test-tag: "test-value-%d"
-	}
-  
+  name                = "test-public-key-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  public_key          = "%s"
+  tags = {
+    test-tag : "test-value-%d"
   }
+
+}
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sshKey, data.RandomInteger)
 }

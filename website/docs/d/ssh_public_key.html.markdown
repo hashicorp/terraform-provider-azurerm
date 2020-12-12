@@ -14,7 +14,7 @@ Use this data source to access information about an existing SSH Public Key.
 
 ```hcl
 data "azurerm_ssh_public_key" "example" {
-  name = "existing"
+  name                = "existing"
   resource_group_name = "existing"
 }
 
