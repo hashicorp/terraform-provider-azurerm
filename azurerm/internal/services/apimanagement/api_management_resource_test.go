@@ -1371,4 +1371,3 @@ resource "azurerm_api_management" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
-
