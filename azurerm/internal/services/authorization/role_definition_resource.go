@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization/azuresdkhacks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization/parse"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -20,9 +21,9 @@ import (
 
 func resourceArmRoleDefinition() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmRoleDefinitionCreateUpdate,
+		Create: resourceArmRoleDefinitionCreate,
 		Read:   resourceArmRoleDefinitionRead,
-		Update: resourceArmRoleDefinitionCreateUpdate,
+		Update: resourceArmRoleDefinitionUpdate,
 		Delete: resourceArmRoleDefinitionDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
@@ -127,9 +128,9 @@ func resourceArmRoleDefinition() *schema.Resource {
 	}
 }
 
-func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmRoleDefinitionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Authorization.RoleDefinitionsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	roleDefinitionId := d.Get("role_definition_id").(string)
@@ -215,6 +216,68 @@ func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interfac
 	return resourceArmRoleDefinitionRead(d, meta)
 }
 
+func resourceArmRoleDefinitionUpdate(d *schema.ResourceData, meta interface{}) error {
+	sdkClient := meta.(*clients.Client).Authorization.RoleDefinitionsClient
+	client := azuresdkhacks.NewRoleDefinitionsWorkaroundClient(sdkClient)
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	roleDefinitionId, err := parse.RoleDefinitionId(d.Id())
+	if err != nil {
+		return err
+	}
+
+	name := d.Get("name").(string)
+	description := d.Get("description").(string)
+	roleType := "CustomRole"
+
+	permissionsRaw := d.Get("permissions").([]interface{})
+	permissions := expandRoleDefinitionPermissions(permissionsRaw)
+	assignableScopes := expandRoleDefinitionAssignableScopes(d)
+
+	properties := authorization.RoleDefinition{
+		RoleDefinitionProperties: &authorization.RoleDefinitionProperties{
+			RoleName:         utils.String(name),
+			Description:      utils.String(description),
+			RoleType:         utils.String(roleType),
+			Permissions:      &permissions,
+			AssignableScopes: &assignableScopes,
+		},
+	}
+
+	resp, err := client.CreateOrUpdate(ctx, roleDefinitionId.Scope, roleDefinitionId.RoleID, properties)
+	if err != nil {
+		return fmt.Errorf("updating Role Definition %q (Scope %q): %+v", roleDefinitionId.RoleID, roleDefinitionId.Scope, err)
+	}
+	if resp.RoleDefinitionProperties == nil {
+		return fmt.Errorf("updating Role Definition %q (Scope %q): `properties` was nil", roleDefinitionId.RoleID, roleDefinitionId.Scope)
+	}
+	updatedOn := resp.RoleDefinitionProperties.UpdatedOn
+	if updatedOn == nil {
+		return fmt.Errorf("updating Role Definition %q (Scope %q): `properties.UpdatedOn` was nil", roleDefinitionId.RoleID, roleDefinitionId.Scope)
+	}
+
+	// "Updating" a role definition actually creates a new one and these get consolidated a few seconds later
+	// where the "create date" and "update date" match for the newly created record
+	// but eventually switch to being the old create date and the new update date
+	// ergo we can can for the old create date and the new updated date
+	log.Printf("[DEBUG] Waiting for Role Definition %q (Scope %q) to settle down..", roleDefinitionId.RoleID, roleDefinitionId.Scope)
+	stateConf := &resource.StateChangeConf{
+		ContinuousTargetOccurence: 5,
+		Delay:                     10 * time.Second,
+		MinTimeout:                10 * time.Second,
+		Pending:                   []string{"Pending"},
+		Target:                    []string{"Updated"},
+		Refresh:                   roleDefinitionEventualConsistencyUpdate(ctx, client, *roleDefinitionId, *updatedOn),
+		Timeout:                   d.Timeout(schema.TimeoutUpdate),
+	}
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for Role Definition %q (Scope %q) to settle down: %+v", roleDefinitionId.RoleID, roleDefinitionId.Scope, err)
+	}
+
+	return resourceArmRoleDefinitionRead(d, meta)
+}
+
 func resourceArmRoleDefinitionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Authorization.RoleDefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -293,6 +356,34 @@ func resourceArmRoleDefinitionDelete(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
+func roleDefinitionEventualConsistencyUpdate(ctx context.Context, client azuresdkhacks.RoleDefinitionsWorkaroundClient, id parse.RoleDefinitionID, expectedUpdateDate string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.Get(ctx, id.Scope, id.RoleID)
+		if err != nil {
+			return resp, "Failed", err
+		}
+		if resp.RoleDefinitionProperties == nil {
+			return resp, "Failed", fmt.Errorf("`properties` was nil")
+		}
+		if resp.RoleDefinitionProperties.CreatedOn == nil {
+			return resp, "Failed", fmt.Errorf("`properties.CreatedOn` was nil")
+		}
+
+		respCreatedOn := *resp.RoleDefinitionProperties.CreatedOn
+		respUpdatedOn := *resp.RoleDefinitionProperties.UpdatedOn
+		if respCreatedOn == expectedUpdateDate {
+			// a new role definition is created and eventually (~5s) reconciled
+			return resp, "Pending", nil
+		}
+		if respUpdatedOn != expectedUpdateDate {
+			// however the updatedOn should match the new date, to show this has been reconciled
+			return resp, "Pending", nil
+		}
+
+		return resp, "Updated", nil
+	}
+}
+
 func expandRoleDefinitionPermissions(input []interface{}) []authorization.Permission {
 	output := make([]authorization.Permission, 0)
 	if len(input) == 0 {
@@ -304,32 +395,32 @@ func expandRoleDefinitionPermissions(input []interface{}) []authorization.Permis
 			continue
 		}
 
-		input := v.(map[string]interface{})
+		raw := v.(map[string]interface{})
 		permission := authorization.Permission{}
 
 		actionsOutput := make([]string, 0)
-		actions := input["actions"].([]interface{})
+		actions := raw["actions"].([]interface{})
 		for _, a := range actions {
 			actionsOutput = append(actionsOutput, a.(string))
 		}
 		permission.Actions = &actionsOutput
 
 		dataActionsOutput := make([]string, 0)
-		dataActions := input["data_actions"].(*schema.Set)
+		dataActions := raw["data_actions"].(*schema.Set)
 		for _, a := range dataActions.List() {
 			dataActionsOutput = append(dataActionsOutput, a.(string))
 		}
 		permission.DataActions = &dataActionsOutput
 
 		notActionsOutput := make([]string, 0)
-		notActions := input["not_actions"].([]interface{})
+		notActions := raw["not_actions"].([]interface{})
 		for _, a := range notActions {
 			notActionsOutput = append(notActionsOutput, a.(string))
 		}
 		permission.NotActions = &notActionsOutput
 
 		notDataActionsOutput := make([]string, 0)
-		notDataActions := input["not_data_actions"].(*schema.Set)
+		notDataActions := raw["not_data_actions"].(*schema.Set)
 		for _, a := range notDataActions.List() {
 			notDataActionsOutput = append(notDataActionsOutput, a.(string))
 		}
@@ -366,9 +457,9 @@ func flattenRoleDefinitionPermissions(input *[]authorization.Permission) []inter
 	for _, permission := range *input {
 		permissions = append(permissions, map[string]interface{}{
 			"actions":          utils.FlattenStringSlice(permission.Actions),
-			"data_actions":     utils.FlattenStringSlice(permission.DataActions),
+			"data_actions":     schema.NewSet(schema.HashString, utils.FlattenStringSlice(permission.DataActions)),
 			"not_actions":      utils.FlattenStringSlice(permission.NotActions),
-			"not_data_actions": utils.FlattenStringSlice(permission.NotDataActions),
+			"not_data_actions": schema.NewSet(schema.HashString, utils.FlattenStringSlice(permission.NotDataActions)),
 		})
 	}
 
