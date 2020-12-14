@@ -101,7 +101,7 @@ func resourceSpringCloudAppCreateUpdate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("unable to retrieve Spring Cloud Service %q (Resource Group %q): %+v", serviceName, resourceGroup, err)
 	}
 
-	resourceId := parse.NewSpringCloudAppID(subscriptionId, resourceGroup, serviceName, name).ID("")
+	resourceId := parse.NewSpringCloudAppID(subscriptionId, resourceGroup, serviceName, name).ID()
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, name, "")
 		if err != nil {

@@ -8,9 +8,10 @@ import (
 )
 
 type SentinelAlertRuleId struct {
-	ResourceGroup string
-	Workspace     string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Workspace      string
+	Name           string
 }
 
 func SentinelAlertRuleID(input string) (*SentinelAlertRuleId, error) {
@@ -27,8 +28,9 @@ func SentinelAlertRuleID(input string) (*SentinelAlertRuleId, error) {
 		return nil, fmt.Errorf("parsing workspace part of Sentinel Alert Rule ID %q: %+v", input, err)
 	}
 	return &SentinelAlertRuleId{
-		ResourceGroup: workspaceId.ResourceGroup,
-		Workspace:     workspaceId.WorkspaceName,
-		Name:          name,
+		SubscriptionId: workspaceId.SubscriptionId,
+		ResourceGroup:  workspaceId.ResourceGroup,
+		Workspace:      workspaceId.WorkspaceName,
+		Name:           name,
 	}, nil
 }

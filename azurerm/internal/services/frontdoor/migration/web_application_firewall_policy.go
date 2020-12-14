@@ -309,7 +309,7 @@ func WebApplicationFirewallPolicyV0ToV1(rawState map[string]interface{}, _ inter
 	}
 
 	newId := parse.NewWebApplicationFirewallPolicyID(oldParsedId.SubscriptionID, resourceGroup, policyName)
-	newIdStr := newId.ID("")
+	newIdStr := newId.ID()
 
 	log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newIdStr)
 

@@ -294,7 +294,7 @@ func resourceArmStorageShareFileRead(d *schema.ResourceData, meta interface{}) e
 
 	d.Set("name", id.FileName)
 	d.Set("path", id.DirectoryName)
-	d.Set("storage_share_id", parse.NewStorageShareDataPlaneId(id.AccountName, storageClient.Environment.StorageEndpointSuffix, id.ShareName).ID(""))
+	d.Set("storage_share_id", parse.NewStorageShareDataPlaneId(id.AccountName, storageClient.Environment.StorageEndpointSuffix, id.ShareName).ID())
 
 	if err := d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
 		return fmt.Errorf("setting `metadata`: %s", err)

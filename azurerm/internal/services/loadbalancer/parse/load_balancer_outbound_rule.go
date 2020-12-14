@@ -35,7 +35,7 @@ func (id LoadBalancerOutboundRuleId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Load Balancer Outbound Rule", segmentsStr)
 }
 
-func (id LoadBalancerOutboundRuleId) ID(_ string) string {
+func (id LoadBalancerOutboundRuleId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/loadBalancers/%s/outboundRules/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName, id.OutboundRuleName)
 }

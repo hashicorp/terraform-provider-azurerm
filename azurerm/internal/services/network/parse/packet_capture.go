@@ -35,7 +35,7 @@ func (id PacketCaptureId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Packet Capture", segmentsStr)
 }
 
-func (id PacketCaptureId) ID(_ string) string {
+func (id PacketCaptureId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/networkWatchers/%s/packetCaptures/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.NetworkWatcherName, id.Name)
 }

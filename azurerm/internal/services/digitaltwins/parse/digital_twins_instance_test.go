@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = DigitalTwinsInstanceId{}
 
 func TestDigitalTwinsInstanceIDFormatter(t *testing.T) {
-	actual := NewDigitalTwinsInstanceID("12345678-1234-9876-4563-123456789012", "group1", "instance1").ID("")
+	actual := NewDigitalTwinsInstanceID("12345678-1234-9876-4563-123456789012", "group1", "instance1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.DigitalTwins/digitalTwinsInstances/instance1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

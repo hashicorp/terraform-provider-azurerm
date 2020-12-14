@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = StreamInputId{}
 
 func TestStreamInputIDFormatter(t *testing.T) {
-	actual := NewStreamInputID("12345678-1234-9876-4563-123456789012", "resGroup1", "streamingJob1", "streamInput1").ID("")
+	actual := NewStreamInputID("12345678-1234-9876-4563-123456789012", "resGroup1", "streamingJob1", "streamInput1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.StreamAnalytics/streamingjobs/streamingJob1/inputs/streamInput1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

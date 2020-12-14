@@ -5,10 +5,12 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/shares"
 )
 
 // TODO: tests for this
+var _ resourceid.Formatter = StorageShareDataPlaneId{}
 
 type StorageShareDataPlaneId struct {
 	AccountName  string
@@ -17,7 +19,7 @@ type StorageShareDataPlaneId struct {
 }
 
 // only present to comply with the interface
-func (id StorageShareDataPlaneId) ID(_ string) string {
+func (id StorageShareDataPlaneId) ID() string {
 	return fmt.Sprintf("https://%s.file.%s/%s", id.AccountName, id.DomainSuffix, id.Name)
 }
 

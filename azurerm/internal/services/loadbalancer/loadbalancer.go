@@ -130,7 +130,7 @@ func loadBalancerSubResourceImporter(parser func(input string) (*parse.LoadBalan
 				return nil, err
 			}
 
-			d.Set("loadbalancer_id", lbId.ID(""))
+			d.Set("loadbalancer_id", lbId.ID())
 			return []*schema.ResourceData{d}, nil
 		},
 	}

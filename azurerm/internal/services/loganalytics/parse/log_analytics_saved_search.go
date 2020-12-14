@@ -35,7 +35,7 @@ func (id LogAnalyticsSavedSearchId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Log Analytics Saved Search", segmentsStr)
 }
 
-func (id LogAnalyticsSavedSearchId) ID(_ string) string {
+func (id LogAnalyticsSavedSearchId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.OperationalInsights/workspaces/%s/savedSearches/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.SavedSearcheName)
 }

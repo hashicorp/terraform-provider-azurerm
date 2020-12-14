@@ -134,7 +134,7 @@ func resourceMediaServicesAccountCreateUpdate(d *schema.ResourceData, meta inter
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_media_services_account", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_media_services_account", resourceId.ID())
 		}
 	}
 
@@ -166,7 +166,7 @@ func resourceMediaServicesAccountCreateUpdate(d *schema.ResourceData, meta inter
 		return fmt.Errorf("creating %s: %+v", resourceId, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceMediaServicesAccountRead(d, meta)
 }
 
