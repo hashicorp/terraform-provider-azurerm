@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSentinelAlertRuleFusion() *schema.Resource {
+func resourceSentinelAlertRuleFusion() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSentinelAlertRuleFusionCreateUpdate,
-		Read:   resourceArmSentinelAlertRuleFusionRead,
-		Update: resourceArmSentinelAlertRuleFusionCreateUpdate,
-		Delete: resourceArmSentinelAlertRuleFusionDelete,
+		Create: resourceSentinelAlertRuleFusionCreateUpdate,
+		Read:   resourceSentinelAlertRuleFusionRead,
+		Update: resourceSentinelAlertRuleFusionCreateUpdate,
+		Delete: resourceSentinelAlertRuleFusionDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			_, err := parse.SentinelAlertRuleID(id)
@@ -52,7 +52,7 @@ func resourceArmSentinelAlertRuleFusion() *schema.Resource {
 				ValidateFunc: loganalyticsValidate.LogAnalyticsWorkspaceID,
 			},
 
-			"alert_rule_template_name": {
+			"alert_rule_template_guid": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -68,7 +68,7 @@ func resourceArmSentinelAlertRuleFusion() *schema.Resource {
 	}
 }
 
-func resourceArmSentinelAlertRuleFusionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleFusionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -97,7 +97,7 @@ func resourceArmSentinelAlertRuleFusionCreateUpdate(d *schema.ResourceData, meta
 	params := securityinsight.FusionAlertRule{
 		Kind: securityinsight.KindFusion,
 		FusionAlertRuleProperties: &securityinsight.FusionAlertRuleProperties{
-			AlertRuleTemplateName: utils.String(d.Get("alert_rule_template_name").(string)),
+			AlertRuleTemplateName: utils.String(d.Get("alert_rule_template_guid").(string)),
 			Enabled:               utils.Bool(d.Get("enabled").(bool)),
 		},
 	}
@@ -129,11 +129,10 @@ func resourceArmSentinelAlertRuleFusionCreateUpdate(d *schema.ResourceData, meta
 	}
 	d.SetId(*id)
 
-	return resourceArmSentinelAlertRuleFusionRead(d, meta)
+	return resourceSentinelAlertRuleFusionRead(d, meta)
 }
 
-func resourceArmSentinelAlertRuleFusionRead(d *schema.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+func resourceSentinelAlertRuleFusionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -161,18 +160,18 @@ func resourceArmSentinelAlertRuleFusionRead(d *schema.ResourceData, meta interfa
 
 	d.Set("name", id.Name)
 
-	logAnalyticsWorkspaceId := loganalyticsParse.NewLogAnalyticsWorkspaceID(subscriptionId, id.ResourceGroup, id.Workspace)
-	d.Set("log_analytics_workspace_id", logAnalyticsWorkspaceId.ID(subscriptionId))
+	workspaceId := loganalyticsParse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.Workspace)
+	d.Set("log_analytics_workspace_id", workspaceId.ID())
 
 	if prop := rule.FusionAlertRuleProperties; prop != nil {
 		d.Set("enabled", prop.Enabled)
-		d.Set("alert_rule_template_name", prop.AlertRuleTemplateName)
+		d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
 	}
 
 	return nil
 }
 
-func resourceArmSentinelAlertRuleFusionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleFusionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

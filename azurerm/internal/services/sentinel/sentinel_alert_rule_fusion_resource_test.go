@@ -16,7 +16,7 @@ import (
 
 type SentinelAlertRuleFusionResource struct{}
 
-func TestAccAzureRMSentinelAlertRuleFusion_basic(t *testing.T) {
+func TestAccSentinelAlertRuleFusion_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_fusion", "test")
 	r := SentinelAlertRuleFusionResource{}
 
@@ -31,7 +31,7 @@ func TestAccAzureRMSentinelAlertRuleFusion_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSentinelAlertRuleFusion_complete(t *testing.T) {
+func TestAccSentinelAlertRuleFusion_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_fusion", "test")
 	r := SentinelAlertRuleFusionResource{}
 
@@ -46,7 +46,7 @@ func TestAccAzureRMSentinelAlertRuleFusion_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSentinelAlertRuleFusion_update(t *testing.T) {
+func TestAccSentinelAlertRuleFusion_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_fusion", "test")
 	r := SentinelAlertRuleFusionResource{}
 
@@ -75,7 +75,7 @@ func TestAccAzureRMSentinelAlertRuleFusion_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSentinelAlertRuleFusion_requiresImport(t *testing.T) {
+func TestAccSentinelAlertRuleFusion_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_fusion", "test")
 	r := SentinelAlertRuleFusionResource{}
 
@@ -103,7 +103,7 @@ func (r SentinelAlertRuleFusionResource) Exists(ctx context.Context, client *cli
 			return utils.Bool(false), nil
 		}
 
-		return nil, fmt.Errorf("retrieving Sentinel Alert Rule Fusion %q: %+v", state.ID, err)
+		return nil, fmt.Errorf("retrieving Sentinel Alert Rule Fusion (%q): %+v", state.String(), err)
 	}
 
 	return utils.Bool(resp.Value != nil), nil
@@ -116,7 +116,7 @@ func (r SentinelAlertRuleFusionResource) basic(data acceptance.TestData) string 
 resource "azurerm_sentinel_alert_rule_fusion" "test" {
   name                       = "acctest-SentinelAlertRule-Fusion-%d"
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-  alert_rule_template_name   = "f71aba3d-28fb-450b-b192-4e76a83015c8"
+  alert_rule_template_guid   = "f71aba3d-28fb-450b-b192-4e76a83015c8"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -128,7 +128,7 @@ func (r SentinelAlertRuleFusionResource) complete(data acceptance.TestData) stri
 resource "azurerm_sentinel_alert_rule_fusion" "test" {
   name                       = "acctest-SentinelAlertRule-Fusion-%d"
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-  alert_rule_template_name   = "f71aba3d-28fb-450b-b192-4e76a83015c8"
+  alert_rule_template_guid   = "f71aba3d-28fb-450b-b192-4e76a83015c8"
   enabled                    = false
 }
 `, r.template(data), data.RandomInteger)
@@ -141,7 +141,7 @@ func (r SentinelAlertRuleFusionResource) requiresImport(data acceptance.TestData
 resource "azurerm_sentinel_alert_rule_fusion" "import" {
   name                       = azurerm_sentinel_alert_rule_fusion.test.name
   log_analytics_workspace_id = azurerm_sentinel_alert_rule_fusion.test.log_analytics_workspace_id
-  alert_rule_template_name   = azurerm_sentinel_alert_rule_fusion.test.alert_rule_template_name
+  alert_rule_template_guid   = azurerm_sentinel_alert_rule_fusion.test.alert_rule_template_guid
 }
 `, r.basic(data))
 }

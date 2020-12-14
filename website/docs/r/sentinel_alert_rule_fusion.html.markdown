@@ -28,7 +28,7 @@ resource "azurerm_log_analytics_workspace" "example" {
 resource "azurerm_sentinel_alert_rule_fusion" "example" {
   name                       = "example-fusion-alert-rule"
   log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
-  alert_rule_template_name   = "f71aba3d-28fb-450b-b192-4e76a83015c8"
+  alert_rule_template_guid   = "f71aba3d-28fb-450b-b192-4e76a83015c8"
 }
 ```
 
@@ -40,9 +40,7 @@ The following arguments are supported:
 
 * `log_analytics_workspace_id` - (Required) The ID of the Log Analytics Workspace this Sentinel Fusion Alert Rule belongs to. Changing this forces a new Sentinel Fusion Alert Rule to be created.
 
-* `alert_rule_template_name` - (Required) The name of the alert rule template which is used for this Sentinel Fusion Alert Rule. Changing this forces a new Sentinel Fusion Alert Rule to be created.
-
--> **NOTE** `alert_rule_template_name` should be a valid GUID.
+* `alert_rule_template_guid` - (Required) The GUID of the alert rule template which is used for this Sentinel Fusion Alert Rule. Changing this forces a new Sentinel Fusion Alert Rule to be created.
 
 * `enabled` - (Optional) Should this Sentinel Fusion Alert Rule be enabled? Defaults to `true`.
 
