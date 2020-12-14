@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -22,11 +23,21 @@ func NewDatabaseAccountID(subscriptionId, resourceGroup, name string) DatabaseAc
 	}
 }
 
-func (id DatabaseAccountId) ID(_ string) string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/DatabaseAccounts/%s"
+func (id DatabaseAccountId) String() string {
+	segments := []string{
+		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Database Account", segmentsStr)
+}
+
+func (id DatabaseAccountId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/databaseAccounts/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
+// DatabaseAccountID parses a DatabaseAccount ID into an DatabaseAccountId struct
 func DatabaseAccountID(input string) (*DatabaseAccountId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -38,7 +49,15 @@ func DatabaseAccountID(input string) (*DatabaseAccountId, error) {
 		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if resourceId.Name, err = id.PopSegment("DatabaseAccounts"); err != nil {
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.Name, err = id.PopSegment("databaseAccounts"); err != nil {
 		return nil, err
 	}
 

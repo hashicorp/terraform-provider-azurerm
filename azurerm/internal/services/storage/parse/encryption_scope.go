@@ -1,50 +1,69 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 type EncryptionScopeId struct {
-	Name           string
-	AccountName    string
-	ResourceGroup  string
-	SubscriptionId string
+	SubscriptionId     string
+	ResourceGroup      string
+	StorageAccountName string
+	Name               string
 }
 
-// the subscriptionId isn't used here, this is just to comply with the interface for now..
-func (id EncryptionScopeId) ID(_ string) string {
-	fmtString := "%s/encryptionScopes/%s"
-	accountId := NewAccountId(id.SubscriptionId, id.ResourceGroup, id.AccountName).ID("")
-	return fmt.Sprintf(fmtString, accountId, id.Name)
-}
-
-func NewEncryptionScopeId(storageAccount AccountId, name string) EncryptionScopeId {
+func NewEncryptionScopeID(subscriptionId, resourceGroup, storageAccountName, name string) EncryptionScopeId {
 	return EncryptionScopeId{
-		Name:           name,
-		AccountName:    storageAccount.Name,
-		ResourceGroup:  storageAccount.ResourceGroup,
-		SubscriptionId: storageAccount.SubscriptionId,
+		SubscriptionId:     subscriptionId,
+		ResourceGroup:      resourceGroup,
+		StorageAccountName: storageAccountName,
+		Name:               name,
 	}
 }
 
+func (id EncryptionScopeId) String() string {
+	segments := []string{
+		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Storage Account Name %q", id.StorageAccountName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Encryption Scope", segmentsStr)
+}
+
+func (id EncryptionScopeId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Storage/storageAccounts/%s/encryptionScopes/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.StorageAccountName, id.Name)
+}
+
+// EncryptionScopeID parses a EncryptionScope ID into an EncryptionScopeId struct
 func EncryptionScopeID(input string) (*EncryptionScopeId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	es := EncryptionScopeId{
-		ResourceGroup:  id.ResourceGroup,
+	resourceId := EncryptionScopeId{
 		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if es.AccountName, err = id.PopSegment("storageAccounts"); err != nil {
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.StorageAccountName, err = id.PopSegment("storageAccounts"); err != nil {
 		return nil, err
 	}
-
-	if es.Name, err = id.PopSegment("encryptionScopes"); err != nil {
+	if resourceId.Name, err = id.PopSegment("encryptionScopes"); err != nil {
 		return nil, err
 	}
 
@@ -52,5 +71,5 @@ func EncryptionScopeID(input string) (*EncryptionScopeId, error) {
 		return nil, err
 	}
 
-	return &es, nil
+	return &resourceId, nil
 }

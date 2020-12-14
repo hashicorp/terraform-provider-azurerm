@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -22,11 +23,21 @@ func NewProfileID(subscriptionId, resourceGroup, name string) ProfileId {
 	}
 }
 
-func (id ProfileId) ID(_ string) string {
+func (id ProfileId) String() string {
+	segments := []string{
+		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Profile", segmentsStr)
+}
+
+func (id ProfileId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cdn/profiles/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
+// ProfileID parses a Profile ID into an ProfileId struct
 func ProfileID(input string) (*ProfileId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -36,6 +47,14 @@ func ProfileID(input string) (*ProfileId, error) {
 	resourceId := ProfileId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.Name, err = id.PopSegment("profiles"); err != nil {

@@ -137,6 +137,7 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 										ForceNew: true,
 										ValidateFunc: validation.IntInSlice([]int{
 											2048,
+											3072,
 											4096,
 										}),
 									},

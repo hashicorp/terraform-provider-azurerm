@@ -11,8 +11,8 @@ import (
 var _ resourceid.Formatter = MongodbCollectionId{}
 
 func TestMongodbCollectionIDFormatter(t *testing.T) {
-	actual := NewMongodbCollectionID("12345678-1234-9876-4563-123456789012", "resGroup1", "acc1", "db1", "coll1").ID("")
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/acc1/mongodbDatabases/db1/collections/coll1"
+	actual := NewMongodbCollectionID("12345678-1234-9876-4563-123456789012", "resGroup1", "acc1", "db1", "coll1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/mongodbDatabases/db1/collections/coll1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -63,37 +63,37 @@ func TestMongodbCollectionID(t *testing.T) {
 
 		{
 			// missing value for DatabaseAccountName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/",
 			Error: true,
 		},
 
 		{
 			// missing MongodbDatabaseName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/acc1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/",
 			Error: true,
 		},
 
 		{
 			// missing value for MongodbDatabaseName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/acc1/mongodbDatabases/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/mongodbDatabases/",
 			Error: true,
 		},
 
 		{
 			// missing CollectionName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/acc1/mongodbDatabases/db1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/mongodbDatabases/db1/",
 			Error: true,
 		},
 
 		{
 			// missing value for CollectionName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/acc1/mongodbDatabases/db1/collections/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/mongodbDatabases/db1/collections/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/acc1/mongodbDatabases/db1/collections/coll1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/mongodbDatabases/db1/collections/coll1",
 			Expected: &MongodbCollectionId{
 				SubscriptionId:      "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:       "resGroup1",

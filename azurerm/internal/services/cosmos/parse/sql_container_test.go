@@ -11,8 +11,8 @@ import (
 var _ resourceid.Formatter = SqlContainerId{}
 
 func TestSqlContainerIDFormatter(t *testing.T) {
-	actual := NewSqlContainerID("12345678-1234-9876-4563-123456789012", "resGroup1", "acc1", "db1", "container1").ID("")
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/acc1/sqlDatabases/db1/containers/container1"
+	actual := NewSqlContainerID("12345678-1234-9876-4563-123456789012", "resGroup1", "acc1", "db1", "container1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/sqlDatabases/db1/containers/container1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -63,37 +63,37 @@ func TestSqlContainerID(t *testing.T) {
 
 		{
 			// missing value for DatabaseAccountName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/",
 			Error: true,
 		},
 
 		{
 			// missing SqlDatabaseName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/acc1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/",
 			Error: true,
 		},
 
 		{
 			// missing value for SqlDatabaseName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/acc1/sqlDatabases/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/sqlDatabases/",
 			Error: true,
 		},
 
 		{
 			// missing ContainerName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/acc1/sqlDatabases/db1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/sqlDatabases/db1/",
 			Error: true,
 		},
 
 		{
 			// missing value for ContainerName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/acc1/sqlDatabases/db1/containers/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/sqlDatabases/db1/containers/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/acc1/sqlDatabases/db1/containers/container1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/sqlDatabases/db1/containers/container1",
 			Expected: &SqlContainerId{
 				SubscriptionId:      "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:       "resGroup1",

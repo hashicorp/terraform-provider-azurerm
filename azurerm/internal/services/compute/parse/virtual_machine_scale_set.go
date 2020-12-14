@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -22,11 +23,21 @@ func NewVirtualMachineScaleSetID(subscriptionId, resourceGroup, name string) Vir
 	}
 }
 
-func (id VirtualMachineScaleSetId) ID(_ string) string {
+func (id VirtualMachineScaleSetId) String() string {
+	segments := []string{
+		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Virtual Machine Scale Set", segmentsStr)
+}
+
+func (id VirtualMachineScaleSetId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachineScaleSets/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
+// VirtualMachineScaleSetID parses a VirtualMachineScaleSet ID into an VirtualMachineScaleSetId struct
 func VirtualMachineScaleSetID(input string) (*VirtualMachineScaleSetId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -36,6 +47,14 @@ func VirtualMachineScaleSetID(input string) (*VirtualMachineScaleSetId, error) {
 	resourceId := VirtualMachineScaleSetId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.Name, err = id.PopSegment("virtualMachineScaleSets"); err != nil {

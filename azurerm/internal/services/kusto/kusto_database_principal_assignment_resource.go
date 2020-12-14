@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-02-15/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -174,24 +174,24 @@ func resourceArmKustoDatabasePrincipalAssignmentRead(d *schema.ResourceData, met
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KustoDatabasePrincipalAssignmentID(d.Id())
+	id, err := parse.DatabasePrincipalAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Cluster, id.Database, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.PrincipalAssignmentName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("failed to retrieve Kusto Database Principal Assignment %q (Resource Group %q, Cluster %q, Database %q): %+v", id.Name, id.ResourceGroup, id.Cluster, id.Database, err)
+		return fmt.Errorf("failed to retrieve Kusto Database Principal Assignment %q (Resource Group %q, Cluster %q, Database %q): %+v", id.PrincipalAssignmentName, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
 	}
 
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("cluster_name", id.Cluster)
-	d.Set("database_name", id.Database)
-	d.Set("name", id.Name)
+	d.Set("cluster_name", id.ClusterName)
+	d.Set("database_name", id.DatabaseName)
+	d.Set("name", id.PrincipalAssignmentName)
 
 	tenantID := ""
 	if resp.TenantID != nil {
@@ -231,18 +231,18 @@ func resourceArmKustoDatabasePrincipalAssignmentDelete(d *schema.ResourceData, m
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KustoDatabasePrincipalAssignmentID(d.Id())
+	id, err := parse.DatabasePrincipalAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Cluster, id.Database, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.PrincipalAssignmentName)
 	if err != nil {
-		return fmt.Errorf("Error deleting Kusto Database Principal Assignment %q (Resource Group %q, Cluster %q, Database %q): %+v", id.Name, id.ResourceGroup, id.Cluster, id.Database, err)
+		return fmt.Errorf("Error deleting Kusto Database Principal Assignment %q (Resource Group %q, Cluster %q, Database %q): %+v", id.PrincipalAssignmentName, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Kusto Database Principal Assignment %q (Resource Group %q, Cluster %q, Database %q): %+v", id.Name, id.ResourceGroup, id.Cluster, id.Database, err)
+		return fmt.Errorf("Error waiting for deletion of Kusto Database Principal Assignment %q (Resource Group %q, Cluster %q, Database %q): %+v", id.PrincipalAssignmentName, id.ResourceGroup, id.ClusterName, id.DatabaseName, err)
 	}
 
 	return nil

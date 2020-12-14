@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApplicationInsights() *schema.Resource {
+func resourceApplicationInsights() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApplicationInsightsCreateUpdate,
-		Read:   resourceArmApplicationInsightsRead,
-		Update: resourceArmApplicationInsightsCreateUpdate,
-		Delete: resourceArmApplicationInsightsDelete,
+		Create: resourceApplicationInsightsCreateUpdate,
+		Read:   resourceApplicationInsightsRead,
+		Update: resourceApplicationInsightsCreateUpdate,
+		Delete: resourceApplicationInsightsDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.ComponentID(id)
 			return err
@@ -129,7 +129,7 @@ func resourceArmApplicationInsights() *schema.Resource {
 	}
 }
 
-func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.ComponentsClient
 	billingClient := meta.(*clients.Client).AppInsights.BillingClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -141,7 +141,7 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	resourceId := parse.NewComponentID(subscriptionId, resGroup, name).ID("")
+	resourceId := parse.NewComponentID(subscriptionId, resGroup, name).ID()
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
@@ -217,10 +217,10 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 
 	d.SetId(resourceId)
 
-	return resourceArmApplicationInsightsRead(d, meta)
+	return resourceApplicationInsightsRead(d, meta)
 }
 
-func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.ComponentsClient
 	billingClient := meta.(*clients.Client).AppInsights.BillingClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -273,7 +273,7 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmApplicationInsightsDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.ComponentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

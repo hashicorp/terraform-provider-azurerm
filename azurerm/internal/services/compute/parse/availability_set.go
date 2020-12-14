@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -22,11 +23,21 @@ func NewAvailabilitySetID(subscriptionId, resourceGroup, name string) Availabili
 	}
 }
 
-func (id AvailabilitySetId) ID(_ string) string {
+func (id AvailabilitySetId) String() string {
+	segments := []string{
+		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Availability Set", segmentsStr)
+}
+
+func (id AvailabilitySetId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/availabilitySets/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
+// AvailabilitySetID parses a AvailabilitySet ID into an AvailabilitySetId struct
 func AvailabilitySetID(input string) (*AvailabilitySetId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -36,6 +47,14 @@ func AvailabilitySetID(input string) (*AvailabilitySetId, error) {
 	resourceId := AvailabilitySetId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.Name, err = id.PopSegment("availabilitySets"); err != nil {

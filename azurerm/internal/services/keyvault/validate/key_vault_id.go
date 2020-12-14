@@ -13,7 +13,7 @@ func KeyVaultID(i interface{}, k string) (warnings []string, errors []error) {
 		return
 	}
 
-	if _, err := parse.KeyVaultID(v); err != nil {
+	if _, err := parse.VaultID(v); err != nil {
 		errors = append(errors, fmt.Errorf("Can not parse %q as a resource id: %v", k, err))
 		return
 	}

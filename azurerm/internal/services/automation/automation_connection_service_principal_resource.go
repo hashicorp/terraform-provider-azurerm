@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAutomationConnectionServicePrincipal() *schema.Resource {
+func resourceAutomationConnectionServicePrincipal() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAutomationConnectionServicePrincipalCreateUpdate,
-		Read:   resourceArmAutomationConnectionServicePrincipalRead,
-		Update: resourceArmAutomationConnectionServicePrincipalCreateUpdate,
-		Delete: resourceArmAutomationConnectionServicePrincipalDelete,
+		Create: resourceAutomationConnectionServicePrincipalCreateUpdate,
+		Read:   resourceAutomationConnectionServicePrincipalRead,
+		Update: resourceAutomationConnectionServicePrincipalCreateUpdate,
+		Delete: resourceAutomationConnectionServicePrincipalDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			_, err := parse.ConnectionID(id)
@@ -42,7 +42,7 @@ func resourceArmAutomationConnectionServicePrincipal() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.AutomationConnectionName,
+				ValidateFunc: validate.ConnectionName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -51,7 +51,7 @@ func resourceArmAutomationConnectionServicePrincipal() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.AutomationAccountName(),
+				ValidateFunc: validate.AutomationAccount(),
 			},
 
 			"application_id": {
@@ -86,7 +86,7 @@ func resourceArmAutomationConnectionServicePrincipal() *schema.Resource {
 	}
 }
 
-func resourceArmAutomationConnectionServicePrincipalCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionServicePrincipalCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.ConnectionClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -141,10 +141,10 @@ func resourceArmAutomationConnectionServicePrincipalCreateUpdate(d *schema.Resou
 
 	d.SetId(*read.ID)
 
-	return resourceArmAutomationConnectionServicePrincipalRead(d, meta)
+	return resourceAutomationConnectionServicePrincipalRead(d, meta)
 }
 
-func resourceArmAutomationConnectionServicePrincipalRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionServicePrincipalRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.ConnectionClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -187,7 +187,7 @@ func resourceArmAutomationConnectionServicePrincipalRead(d *schema.ResourceData,
 	return nil
 }
 
-func resourceArmAutomationConnectionServicePrincipalDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionServicePrincipalDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.ConnectionClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

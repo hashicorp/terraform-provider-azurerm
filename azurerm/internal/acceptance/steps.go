@@ -63,8 +63,15 @@ func (td TestData) CheckWithClient(check ClientCheckFunc) resource.TestCheckFunc
 // ignoring any fields which may not be imported (for example, as they're
 // not returned from the API)
 func (td TestData) ImportStep(ignore ...string) resource.TestStep {
+	return td.ImportStepFor(td.ResourceName, ignore...)
+}
+
+// ImportStepFor returns a Test Step which Imports a given resource by name,
+// optionally ignoring any fields which may not be imported (for example, as they're
+// not returned from the API)
+func (td TestData) ImportStepFor(resourceName string, ignore ...string) resource.TestStep {
 	step := resource.TestStep{
-		ResourceName:      td.ResourceName,
+		ResourceName:      resourceName,
 		ImportState:       true,
 		ImportStateVerify: true,
 	}

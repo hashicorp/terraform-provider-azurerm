@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmCustomProvider() *schema.Resource {
+func resourceCustomProvider() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCustomProviderCreateUpdate,
-		Read:   resourceArmCustomProviderRead,
-		Update: resourceArmCustomProviderCreateUpdate,
-		Delete: resourceArmCustomProviderDelete,
+		Create: resourceCustomProviderCreateUpdate,
+		Read:   resourceCustomProviderRead,
+		Update: resourceCustomProviderCreateUpdate,
+		Delete: resourceCustomProviderDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.ResourceProviderID(id)
 			return err
@@ -116,7 +116,7 @@ func resourceArmCustomProvider() *schema.Resource {
 	}
 }
 
-func resourceArmCustomProviderCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCustomProviderCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).CustomProviders.CustomProviderClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -167,10 +167,10 @@ func resourceArmCustomProviderCreateUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	d.SetId(*resp.ID)
-	return resourceArmCustomProviderRead(d, meta)
+	return resourceCustomProviderRead(d, meta)
 }
 
-func resourceArmCustomProviderRead(d *schema.ResourceData, meta interface{}) error {
+func resourceCustomProviderRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).CustomProviders.CustomProviderClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -211,7 +211,7 @@ func resourceArmCustomProviderRead(d *schema.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmCustomProviderDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceCustomProviderDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).CustomProviders.CustomProviderClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

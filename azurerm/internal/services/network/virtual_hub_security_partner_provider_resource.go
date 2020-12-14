@@ -35,7 +35,7 @@ func resourceArmVirtualHubSecurityPartnerProvider() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.VirtualHubSecurityPartnerProviderID(id)
+			_, err := parse.SecurityPartnerProviderID(id)
 			return err
 		}),
 
@@ -65,7 +65,7 @@ func resourceArmVirtualHubSecurityPartnerProvider() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.ValidateVirtualHubID,
+				ValidateFunc: networkValidate.VirtualHubID,
 			},
 
 			"tags": tags.Schema(),
@@ -134,7 +134,7 @@ func resourceArmVirtualHubSecurityPartnerProviderRead(d *schema.ResourceData, me
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualHubSecurityPartnerProviderID(d.Id())
+	id, err := parse.SecurityPartnerProviderID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -169,7 +169,7 @@ func resourceArmVirtualHubSecurityPartnerProviderUpdate(d *schema.ResourceData, 
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualHubSecurityPartnerProviderID(d.Id())
+	id, err := parse.SecurityPartnerProviderID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -192,7 +192,7 @@ func resourceArmVirtualHubSecurityPartnerProviderDelete(d *schema.ResourceData, 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualHubSecurityPartnerProviderID(d.Id())
+	id, err := parse.SecurityPartnerProviderID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -21,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDnsCaaRecord() *schema.Resource {
+func resourceDnsCaaRecord() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDnsCaaRecordCreateUpdate,
-		Read:   resourceArmDnsCaaRecordRead,
-		Update: resourceArmDnsCaaRecordCreateUpdate,
-		Delete: resourceArmDnsCaaRecordDelete,
+		Create: resourceDnsCaaRecordCreateUpdate,
+		Read:   resourceDnsCaaRecordRead,
+		Update: resourceDnsCaaRecordCreateUpdate,
+		Delete: resourceDnsCaaRecordDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -81,7 +81,7 @@ func resourceArmDnsCaaRecord() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmDnsCaaRecordHash,
+				Set: resourceDnsCaaRecordHash,
 			},
 
 			"ttl": {
@@ -99,7 +99,7 @@ func resourceArmDnsCaaRecord() *schema.Resource {
 	}
 }
 
-func resourceArmDnsCaaRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsCaaRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -150,10 +150,10 @@ func resourceArmDnsCaaRecordCreateUpdate(d *schema.ResourceData, meta interface{
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDnsCaaRecordRead(d, meta)
+	return resourceDnsCaaRecordRead(d, meta)
 }
 
-func resourceArmDnsCaaRecordRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsCaaRecordRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -185,7 +185,7 @@ func resourceArmDnsCaaRecordRead(d *schema.ResourceData, meta interface{}) error
 	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
-func resourceArmDnsCaaRecordDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDnsCaaRecordDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.RecordSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -241,7 +241,7 @@ func expandAzureRmDnsCaaRecords(d *schema.ResourceData) *[]dns.CaaRecord {
 	return &records
 }
 
-func resourceArmDnsCaaRecordHash(v interface{}) int {
+func resourceDnsCaaRecordHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {

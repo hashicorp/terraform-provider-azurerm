@@ -20,14 +20,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmServiceFabricMeshSecret() *schema.Resource {
+func resourceServiceFabricMeshSecret() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceFabricMeshSecretCreateUpdate,
-		Read:   resourceArmServiceFabricMeshSecretRead,
-		Update: resourceArmServiceFabricMeshSecretCreateUpdate,
-		Delete: resourceArmServiceFabricMeshSecretDelete,
+		Create: resourceServiceFabricMeshSecretCreateUpdate,
+		Read:   resourceServiceFabricMeshSecretRead,
+		Update: resourceServiceFabricMeshSecretCreateUpdate,
+		Delete: resourceServiceFabricMeshSecretDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.ServiceFabricMeshSecretID(id)
+			_, err := parse.SecretID(id)
 			return err
 		}),
 
@@ -69,7 +69,7 @@ func resourceArmServiceFabricMeshSecret() *schema.Resource {
 	}
 }
 
-func resourceArmServiceFabricMeshSecretCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceFabricMeshSecretCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabricMesh.SecretClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -117,15 +117,15 @@ func resourceArmServiceFabricMeshSecretCreateUpdate(d *schema.ResourceData, meta
 
 	d.SetId(*resp.ID)
 
-	return resourceArmServiceFabricMeshSecretRead(d, meta)
+	return resourceServiceFabricMeshSecretRead(d, meta)
 }
 
-func resourceArmServiceFabricMeshSecretRead(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceFabricMeshSecretRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabricMesh.SecretClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServiceFabricMeshSecretID(d.Id())
+	id, err := parse.SecretID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -155,12 +155,12 @@ func resourceArmServiceFabricMeshSecretRead(d *schema.ResourceData, meta interfa
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmServiceFabricMeshSecretDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceFabricMeshSecretDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabricMesh.SecretClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ServiceFabricMeshSecretID(d.Id())
+	id, err := parse.SecretID(d.Id())
 	if err != nil {
 		return err
 	}

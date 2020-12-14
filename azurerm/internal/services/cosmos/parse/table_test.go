@@ -11,8 +11,8 @@ import (
 var _ resourceid.Formatter = TableId{}
 
 func TestTableIDFormatter(t *testing.T) {
-	actual := NewTableID("12345678-1234-9876-4563-123456789012", "resGroup1", "acc1", "table1").ID("")
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/acc1/tables/table1"
+	actual := NewTableID("12345678-1234-9876-4563-123456789012", "resGroup1", "acc1", "table1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/tables/table1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -63,25 +63,25 @@ func TestTableID(t *testing.T) {
 
 		{
 			// missing value for DatabaseAccountName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/",
 			Error: true,
 		},
 
 		{
 			// missing Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/acc1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/",
 			Error: true,
 		},
 
 		{
 			// missing value for Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/acc1/tables/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/tables/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/acc1/tables/table1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/tables/table1",
 			Expected: &TableId{
 				SubscriptionId:      "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:       "resGroup1",

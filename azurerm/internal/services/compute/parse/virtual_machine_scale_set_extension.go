@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -24,11 +25,22 @@ func NewVirtualMachineScaleSetExtensionID(subscriptionId, resourceGroup, virtual
 	}
 }
 
-func (id VirtualMachineScaleSetExtensionId) ID(_ string) string {
+func (id VirtualMachineScaleSetExtensionId) String() string {
+	segments := []string{
+		fmt.Sprintf("Extension Name %q", id.ExtensionName),
+		fmt.Sprintf("Virtual Machine Scale Set Name %q", id.VirtualMachineScaleSetName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Virtual Machine Scale Set Extension", segmentsStr)
+}
+
+func (id VirtualMachineScaleSetExtensionId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachineScaleSets/%s/extensions/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VirtualMachineScaleSetName, id.ExtensionName)
 }
 
+// VirtualMachineScaleSetExtensionID parses a VirtualMachineScaleSetExtension ID into an VirtualMachineScaleSetExtensionId struct
 func VirtualMachineScaleSetExtensionID(input string) (*VirtualMachineScaleSetExtensionId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -38,6 +50,14 @@ func VirtualMachineScaleSetExtensionID(input string) (*VirtualMachineScaleSetExt
 	resourceId := VirtualMachineScaleSetExtensionId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.VirtualMachineScaleSetName, err = id.PopSegment("virtualMachineScaleSets"); err != nil {

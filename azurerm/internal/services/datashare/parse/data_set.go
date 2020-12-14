@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -26,11 +27,23 @@ func NewDataSetID(subscriptionId, resourceGroup, accountName, shareName, name st
 	}
 }
 
-func (id DataSetId) ID(_ string) string {
+func (id DataSetId) String() string {
+	segments := []string{
+		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Share Name %q", id.ShareName),
+		fmt.Sprintf("Account Name %q", id.AccountName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Data Set", segmentsStr)
+}
+
+func (id DataSetId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataShare/accounts/%s/shares/%s/dataSets/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.AccountName, id.ShareName, id.Name)
 }
 
+// DataSetID parses a DataSet ID into an DataSetId struct
 func DataSetID(input string) (*DataSetId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -40,6 +53,14 @@ func DataSetID(input string) (*DataSetId, error) {
 	resourceId := DataSetId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.AccountName, err = id.PopSegment("accounts"); err != nil {

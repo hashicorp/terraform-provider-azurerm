@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -28,11 +29,24 @@ func NewSqlStoredProcedureID(subscriptionId, resourceGroup, databaseAccountName,
 	}
 }
 
-func (id SqlStoredProcedureId) ID(_ string) string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/DatabaseAccounts/%s/sqlDatabases/%s/containers/%s/storedProcedures/%s"
+func (id SqlStoredProcedureId) String() string {
+	segments := []string{
+		fmt.Sprintf("Stored Procedure Name %q", id.StoredProcedureName),
+		fmt.Sprintf("Container Name %q", id.ContainerName),
+		fmt.Sprintf("Sql Database Name %q", id.SqlDatabaseName),
+		fmt.Sprintf("Database Account Name %q", id.DatabaseAccountName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Sql Stored Procedure", segmentsStr)
+}
+
+func (id SqlStoredProcedureId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/databaseAccounts/%s/sqlDatabases/%s/containers/%s/storedProcedures/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DatabaseAccountName, id.SqlDatabaseName, id.ContainerName, id.StoredProcedureName)
 }
 
+// SqlStoredProcedureID parses a SqlStoredProcedure ID into an SqlStoredProcedureId struct
 func SqlStoredProcedureID(input string) (*SqlStoredProcedureId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -44,7 +58,15 @@ func SqlStoredProcedureID(input string) (*SqlStoredProcedureId, error) {
 		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if resourceId.DatabaseAccountName, err = id.PopSegment("DatabaseAccounts"); err != nil {
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.DatabaseAccountName, err = id.PopSegment("databaseAccounts"); err != nil {
 		return nil, err
 	}
 	if resourceId.SqlDatabaseName, err = id.PopSegment("sqlDatabases"); err != nil {
