@@ -185,7 +185,7 @@ func testCheckAzureRMLoadBalancerNatRuleExists(resourceName string) resource.Tes
 		}
 		props := lb.LoadBalancerPropertiesFormat
 		if props == nil || props.InboundNatRules == nil || len(*props.InboundNatRules) == 0 {
-			return fmt.Errorf("Backend Pool %q not found in Load Balancer %q (resource group %q)", id.InboundNatRuleName, id.LoadBalancerName, id.ResourceGroup)
+			return fmt.Errorf("Nat Rule %q not found in Load Balancer %q (resource group %q)", id.InboundNatRuleName, id.LoadBalancerName, id.ResourceGroup)
 		}
 
 		found := false
@@ -195,10 +195,9 @@ func testCheckAzureRMLoadBalancerNatRuleExists(resourceName string) resource.Tes
 			}
 		}
 		if !found {
-			return fmt.Errorf("Backend Pool %q not found in Load Balancer %q (resource group %q)", id.InboundNatRuleName, id.LoadBalancerName, id.ResourceGroup)
+			return fmt.Errorf("Nat Rule %q not found in Load Balancer %q (resource group %q)", id.InboundNatRuleName, id.LoadBalancerName, id.ResourceGroup)
 		}
 		return nil
-
 	}
 }
 
