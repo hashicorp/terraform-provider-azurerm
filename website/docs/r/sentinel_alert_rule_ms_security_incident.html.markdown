@@ -56,7 +56,7 @@ The following arguments are supported:
 
 ---
 
-* `alert_rule_template_guid` - (Optional) The name of the alert rule template which is used to create this Sentinel Scheduled Alert Rule. Changing this forces a new Sentinel MS Security Incident Alert Rule to be created.
+* `alert_rule_template_guid` - (Optional) The guid of the alert rule template which is used to create this Sentinel Scheduled Alert Rule. Changing this forces a new Sentinel MS Security Incident Alert Rule to be created.
 
 * `description` - (Optional) The description of this Sentinel MS Security Incident Alert Rule.
 
