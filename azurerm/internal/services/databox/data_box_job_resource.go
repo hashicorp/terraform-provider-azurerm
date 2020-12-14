@@ -638,7 +638,7 @@ func resourceDataBoxJobRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-// nolint deadcode unused
+// nolint: deadcode unused
 func resourceDataBoxJobUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataBox.JobClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
