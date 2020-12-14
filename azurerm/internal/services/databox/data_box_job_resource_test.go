@@ -131,7 +131,7 @@ resource "azurerm_data_box_job" "test" {
   location            = azurerm_resource_group.test.location
 
   contact_details {
-    name         = "Terraform Test"
+    name         = "TerraForm Test"
     emails       = ["some.user@example.com"]
     phone_number = "+11234567891"
   }
@@ -165,7 +165,7 @@ resource "azurerm_data_box_job" "import" {
   resource_group_name = azurerm_data_box_job.test.resource_group_name
 
   contact_details {
-    name         = "Terraform Test"
+    name         = "TerraForm Test"
     emails       = ["some.user@example.com"]
     phone_number = "+11234567891"
   }
@@ -212,7 +212,7 @@ resource "azurerm_data_box_job" "test" {
   location            = azurerm_resource_group.test.location
 
   contact_details {
-    name         = "Terraform Test"
+    name         = "TerraForm Test"
     emails       = ["some.user@example.com"]
     phone_number = "+11234567891"
     phone_mobile = "+11234567891"
@@ -293,7 +293,7 @@ resource "azurerm_data_box_job" "test" {
   location            = azurerm_resource_group.test.location
 
   contact_details {
-    name         = "Terraform Test"
+    name         = "TerraForm Test"
     emails       = ["some.user@example.com", "some.user2@example.com"]
     phone_number = "+11234567892"
     phone_mobile = "+11234567892"
@@ -362,7 +362,7 @@ resource "azurerm_data_box_job" "test" {
   location            = azurerm_resource_group.test.location
 
   contact_details {
-    name         = "Terraform Test"
+    name         = "TerraForm Test"
     emails       = ["some.user@example.com"]
     phone_number = "+11234567891"
   }
@@ -387,6 +387,10 @@ resource "azurerm_data_box_job" "test" {
 `, template, data.RandomString)
 }
 
+// NOTE: We had to hardcoad the location for these test cases due to
+//       to a limitation in the provider see: https://docs.microsoft.com/en-us/azure/databox/data-box-faq
+//       List of available regions: 'westeurope, southeastasia, eastasia, southindia, australiaeast, canadacentral,
+//       koreacentral, japaneast, southafricanorth, brazilsouth, uksouth, westus, westcentralus, eastus2euap, centraluseuap'.
 func testAccDataBoxJob_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -403,9 +407,14 @@ resource "azurerm_storage_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
+	network_rules {
+    bypass         = ["AzureServices"]
+    default_action = "Deny"
+  }
+
   account_kind             = "StorageV2"
   account_tier             = "Standard"
   account_replication_type = "RAGRS"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, "WestUS", data.RandomString)
 }
