@@ -201,15 +201,15 @@ func testCheckAzureRMLoadBalancerOutboundRuleIsMissing(loadBalancerName string, 
 			if utils.ResponseWasNotFound(lb.Response) {
 				return fmt.Errorf("Load Balancer %q (resource group %q) not found while checking for Outbound Rule removal", id.Name, id.ResourceGroup)
 			}
-			return fmt.Errorf("failed reading Load Balancer %q (resource group %q) for Nat Rule removal", id.Name, id.ResourceGroup)
+			return fmt.Errorf("failed reading Load Balancer %q (resource group %q) for Outbound Rule removal", id.Name, id.ResourceGroup)
 		}
 		props := lb.LoadBalancerPropertiesFormat
-		if props == nil || props.InboundNatRules == nil {
+		if props == nil || props.OutboundRules == nil {
 			return fmt.Errorf("Outbound Rule %q not found in Load Balancer %q (resource group %q)", outboundRuleName, id.Name, id.ResourceGroup)
 		}
 
 		found := false
-		for _, v := range *props.InboundNatRules {
+		for _, v := range *props.OutboundRules {
 			if v.Name != nil && *v.Name == outboundRuleName {
 				found = true
 			}
