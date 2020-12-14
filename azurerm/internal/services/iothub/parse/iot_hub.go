@@ -32,7 +32,7 @@ func (id IotHubId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Iot Hub", segmentsStr)
 }
 
-func (id IotHubId) ID(_ string) string {
+func (id IotHubId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Devices/IotHubs/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

@@ -195,7 +195,7 @@ func resourceServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interface{
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_servicebus_queue", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_servicebus_queue", resourceId.ID())
 		}
 	}
 
@@ -256,7 +256,7 @@ func resourceServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceServiceBusQueueRead(d, meta)
 }
 

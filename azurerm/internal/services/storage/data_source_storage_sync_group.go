@@ -62,6 +62,6 @@ func dataSourceArmStorageSyncGroupRead(d *schema.ResourceData, meta interface{})
 	d.SetId(*resp.ID)
 
 	d.Set("name", name)
-	d.Set("storage_sync_id", storageSyncId.ID(""))
+	d.Set("storage_sync_id", storageSyncId.ID())
 	return nil
 }

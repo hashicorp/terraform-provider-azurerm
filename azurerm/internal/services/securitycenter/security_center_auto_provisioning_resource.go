@@ -17,12 +17,12 @@ import (
 // No other names can be created and the 'default' resource can not be destroyed
 const securityCenterAutoProvisioningName = "default"
 
-func resourceArmSecurityCenterAutoProvisioning() *schema.Resource {
+func resourceSecurityCenterAutoProvisioning() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSecurityCenterAutoProvisioningUpdate,
-		Read:   resourceArmSecurityCenterAutoProvisioningRead,
-		Update: resourceArmSecurityCenterAutoProvisioningUpdate,
-		Delete: resourceArmSecurityCenterAutoProvisioningDelete,
+		Create: resourceSecurityCenterAutoProvisioningUpdate,
+		Read:   resourceSecurityCenterAutoProvisioningRead,
+		Update: resourceSecurityCenterAutoProvisioningUpdate,
+		Delete: resourceSecurityCenterAutoProvisioningDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -49,7 +49,7 @@ func resourceArmSecurityCenterAutoProvisioning() *schema.Resource {
 	}
 }
 
-func resourceArmSecurityCenterAutoProvisioningUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterAutoProvisioningUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.AutoProvisioningClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -79,10 +79,10 @@ func resourceArmSecurityCenterAutoProvisioningUpdate(d *schema.ResourceData, met
 
 	d.SetId(*resp.ID)
 
-	return resourceArmSecurityCenterAutoProvisioningRead(d, meta)
+	return resourceSecurityCenterAutoProvisioningRead(d, meta)
 }
 
-func resourceArmSecurityCenterAutoProvisioningRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterAutoProvisioningRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.AutoProvisioningClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -105,7 +105,7 @@ func resourceArmSecurityCenterAutoProvisioningRead(d *schema.ResourceData, meta 
 	return nil
 }
 
-func resourceArmSecurityCenterAutoProvisioningDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterAutoProvisioningDelete(d *schema.ResourceData, meta interface{}) error {
 	// The API has no delete operation
 	// Instead we reset back to 'Off' which is the default
 

@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = LoadBalancingId{}
 
 func TestLoadBalancingIDFormatter(t *testing.T) {
-	actual := NewLoadBalancingID("12345678-1234-9876-4563-123456789012", "resGroup1", "frontdoor1", "setting1").ID("")
+	actual := NewLoadBalancingID("12345678-1234-9876-4563-123456789012", "resGroup1", "frontdoor1", "setting1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/frontDoors/frontdoor1/loadBalancingSettings/setting1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

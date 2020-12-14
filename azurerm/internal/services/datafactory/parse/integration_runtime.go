@@ -35,7 +35,7 @@ func (id IntegrationRuntimeId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Integration Runtime", segmentsStr)
 }
 
-func (id IntegrationRuntimeId) ID(_ string) string {
+func (id IntegrationRuntimeId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataFactory/factories/%s/integrationruntimes/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.FactoryName, id.Name)
 }

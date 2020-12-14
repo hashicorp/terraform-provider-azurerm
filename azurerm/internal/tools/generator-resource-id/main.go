@@ -412,7 +412,7 @@ func (id ResourceIdGenerator) codeForFormatter() string {
 	}
 	formatKeysString := strings.Join(formatKeys, ", ")
 	return fmt.Sprintf(`
-func (id %[1]sId) ID(_ string) string {
+func (id %[1]sId) ID() string {
 	fmtString := %[2]q
 	return fmt.Sprintf(fmtString, %[3]s)
 }
@@ -571,7 +571,7 @@ func (id ResourceIdGenerator) testCodeForFormatter() string {
 var _ resourceid.Formatter = %[1]sId{}
 
 func Test%[1]sIDFormatter(t *testing.T) {
-	actual := New%[1]sID(%[2]s).ID("")
+	actual := New%[1]sID(%[2]s).ID()
 	expected := %[3]q
 	if actual != expected {
 		t.Fatalf("Expected %%q but got %%q", expected, actual)

@@ -202,7 +202,7 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 		return err
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 
 	return resourceArmLogAnalyticsWorkspaceRead(d, meta)
 }

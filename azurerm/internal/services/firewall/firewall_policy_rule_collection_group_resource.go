@@ -429,7 +429,7 @@ func resourceArmFirewallPolicyRuleCollectionGroupCreateUpdate(d *schema.Resource
 	if err != nil {
 		return err
 	}
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 
 	return resourceArmFirewallPolicyRuleCollectionGroupRead(d, meta)
 }
@@ -458,7 +458,7 @@ func resourceArmFirewallPolicyRuleCollectionGroupRead(d *schema.ResourceData, me
 
 	d.Set("name", resp.Name)
 	d.Set("priority", resp.Priority)
-	d.Set("firewall_policy_id", parse.NewFirewallPolicyID(subscriptionId, id.ResourceGroup, id.FirewallPolicyName).ID(""))
+	d.Set("firewall_policy_id", parse.NewFirewallPolicyID(subscriptionId, id.ResourceGroup, id.FirewallPolicyName).ID())
 
 	applicationRuleCollections, networkRuleCollections, natRuleCollections, err := flattenAzureRmFirewallPolicyRuleCollection(resp.RuleCollections)
 	if err != nil {

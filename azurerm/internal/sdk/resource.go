@@ -139,6 +139,6 @@ func (rmd ResourceMetaData) MarkAsGone() error {
 // ResourceRequiresImport returns an error saying that this resource must be imported with instructions
 // on how to do this (namely, using `terraform import`
 func (rmd ResourceMetaData) ResourceRequiresImport(resourceName string, idFormatter resourceid.Formatter) error {
-	resourceId := idFormatter.ID("") // TODO: remove the dependency on ID in the interface
+	resourceId := idFormatter.ID()
 	return tf.ImportAsExistsError(resourceName, resourceId)
 }

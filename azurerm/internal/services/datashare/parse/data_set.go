@@ -38,7 +38,7 @@ func (id DataSetId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Data Set", segmentsStr)
 }
 
-func (id DataSetId) ID(_ string) string {
+func (id DataSetId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataShare/accounts/%s/shares/%s/dataSets/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.AccountName, id.ShareName, id.Name)
 }

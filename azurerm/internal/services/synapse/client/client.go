@@ -3,6 +3,7 @@ package client
 import (
 	"fmt"
 
+	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/2019-06-01-preview/managedvirtualnetwork"
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/2020-02-01-preview/accesscontrol"
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/2019-06-01-preview/synapse"
 	"github.com/Azure/go-autorest/autorest"
@@ -60,4 +61,14 @@ func (client Client) AccessControlClient(workspaceName, synapseEndpointSuffix st
 	accessControlClient := accesscontrol.New(endpoint)
 	accessControlClient.Client.Authorizer = client.synapseAuthorizer
 	return &accessControlClient, nil
+}
+
+func (client Client) ManagedPrivateEndpointsClient(workspaceName, synapseEndpointSuffix string) (*managedvirtualnetwork.ManagedPrivateEndpointsClient, error) {
+	if client.synapseAuthorizer == nil {
+		return nil, fmt.Errorf("Synapse is not supported in this Azure Environment")
+	}
+	endpoint := fmt.Sprintf("https://%s.%s", workspaceName, synapseEndpointSuffix)
+	managedPrivateEndpointsClient := managedvirtualnetwork.NewManagedPrivateEndpointsClient(endpoint)
+	managedPrivateEndpointsClient.Client.Authorizer = client.synapseAuthorizer
+	return &managedPrivateEndpointsClient, nil
 }

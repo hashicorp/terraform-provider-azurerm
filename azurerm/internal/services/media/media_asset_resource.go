@@ -112,7 +112,7 @@ func resourceMediaAssetCreateUpdate(d *schema.ResourceData, meta interface{}) er
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_media_asset", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_media_asset", resourceId.ID())
 		}
 	}
 
@@ -138,7 +138,7 @@ func resourceMediaAssetCreateUpdate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("creating %s: %+v", resourceId, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceMediaAssetRead(d, meta)
 }
 

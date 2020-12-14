@@ -32,7 +32,7 @@ func (id SubnetServiceEndpointStoragePolicyId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Subnet Service Endpoint Storage Policy", segmentsStr)
 }
 
-func (id SubnetServiceEndpointStoragePolicyId) ID(_ string) string {
+func (id SubnetServiceEndpointStoragePolicyId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/serviceEndpointPolicies/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServiceEndpointPolicyName)
 }

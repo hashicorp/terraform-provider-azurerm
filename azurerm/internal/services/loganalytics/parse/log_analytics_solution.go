@@ -32,7 +32,7 @@ func (id LogAnalyticsSolutionId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Log Analytics Solution", segmentsStr)
 }
 
-func (id LogAnalyticsSolutionId) ID(_ string) string {
+func (id LogAnalyticsSolutionId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.OperationsManagement/solutions/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SolutionName)
 }

@@ -1,77 +1,58 @@
 package securitycenter_test
 
 import (
+	"context"
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMSecurityCenterAutoProvision_update(t *testing.T) {
+type SecurityCenterAutoProvisionResource struct {
+}
+
+func TestAccSecurityCenterAutoProvision_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_auto_provisioning", "test")
+	r := SecurityCenterAutoProvisionResource{}
 
 	// lintignore:AT001
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSecurityCenterAutoProvisioning_setting("On"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSecurityCenterAutoProvisioningExists(data.ResourceName, "On"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_provision", "On"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMSecurityCenterAutoProvisioning_setting("Off"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSecurityCenterAutoProvisioningExists(data.ResourceName, "Off"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_provision", "Off"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.setting("On"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auto_provision").HasValue("On"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.setting("Off"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auto_provision").HasValue("Off"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMSecurityCenterAutoProvisioningExists(resourceName string, expectedSetting string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).SecurityCenter.AutoProvisioningClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (SecurityCenterAutoProvisionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	securityCenterAutoProvisioningName := "default"
 
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		idSplit := strings.Split(rs.Primary.Attributes["id"], "/")
-		autoProvisionResourceName := idSplit[len(idSplit)-1]
-
-		resp, err := client.Get(ctx, autoProvisionResourceName)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Security Center auto provision %q was not found: %+v", autoProvisionResourceName, err)
-			}
-
-			return fmt.Errorf("Bad: GetAutoProvisioning: %+v", err)
-		}
-
-		// Check expected value
-		if string(resp.AutoProvision) != expectedSetting {
-			return fmt.Errorf("Security Center auto provision not expected, wanted %s, but got %s", expectedSetting, string(resp.AutoProvision))
-		}
-
-		return nil
+	resp, err := clients.SecurityCenter.AutoProvisioningClient.Get(ctx, securityCenterAutoProvisioningName)
+	if err != nil {
+		return nil, fmt.Errorf("reading Security Center auto provision (%s): %+v", securityCenterAutoProvisioningName, err)
 	}
+
+	return utils.Bool(resp.AutoProvisioningSettingProperties != nil), nil
 }
 
-func testAccAzureRMSecurityCenterAutoProvisioning_setting(setting string) string {
+func (SecurityCenterAutoProvisionResource) setting(setting string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = DedicatedHardwareSecurityModuleId{}
 
 func TestDedicatedHardwareSecurityModuleIDFormatter(t *testing.T) {
-	actual := NewDedicatedHardwareSecurityModuleID("12345678-1234-9876-4563-123456789012", "group1", "hsm1").ID("")
+	actual := NewDedicatedHardwareSecurityModuleID("12345678-1234-9876-4563-123456789012", "group1", "hsm1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.HardwareSecurityModules/dedicatedHSMs/hsm1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

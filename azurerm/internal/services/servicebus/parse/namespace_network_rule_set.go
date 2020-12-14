@@ -35,7 +35,7 @@ func (id NamespaceNetworkRuleSetId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Namespace Network Rule Set", segmentsStr)
 }
 
-func (id NamespaceNetworkRuleSetId) ID(_ string) string {
+func (id NamespaceNetworkRuleSetId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ServiceBus/namespaces/%s/networkrulesets/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.NetworkrulesetName)
 }

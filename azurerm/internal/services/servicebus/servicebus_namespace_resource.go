@@ -138,7 +138,7 @@ func resourceServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta interf
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_servicebus_namespace", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_servicebus_namespace", resourceId.ID())
 		}
 	}
 
@@ -173,7 +173,7 @@ func resourceServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("waiting for create/update of %s: %+v", resourceId, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceServiceBusNamespaceRead(d, meta)
 }
 

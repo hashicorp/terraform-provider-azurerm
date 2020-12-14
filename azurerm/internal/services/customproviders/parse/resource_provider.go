@@ -32,7 +32,7 @@ func (id ResourceProviderId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Resource Provider", segmentsStr)
 }
 
-func (id ResourceProviderId) ID(_ string) string {
+func (id ResourceProviderId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.CustomProviders/resourceproviders/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
