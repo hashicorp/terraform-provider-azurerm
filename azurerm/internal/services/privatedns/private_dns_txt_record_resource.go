@@ -102,7 +102,7 @@ func resourceArmPrivateDnsTxtRecordCreateUpdate(d *schema.ResourceData, meta int
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_private_dns_txt_record", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_private_dns_txt_record", resourceId.ID())
 		}
 	}
 
@@ -119,7 +119,7 @@ func resourceArmPrivateDnsTxtRecordCreateUpdate(d *schema.ResourceData, meta int
 		return fmt.Errorf("creating/updating %s: %+v", resourceId, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceArmPrivateDnsTxtRecordRead(d, meta)
 }
 

@@ -97,7 +97,7 @@ func resourceArmPrivateDnsZoneVirtualNetworkLinkCreateUpdate(d *schema.ResourceD
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_private_dns_zone_virtual_network_link", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_private_dns_zone_virtual_network_link", resourceId.ID())
 		}
 	}
 
@@ -127,7 +127,7 @@ func resourceArmPrivateDnsZoneVirtualNetworkLinkCreateUpdate(d *schema.ResourceD
 		return fmt.Errorf("waiting for Virtual Network Link %q (Private DNS Zone %q / Resource Group %q) to become available: %+v", resourceId.Name, resourceId.PrivateDnsZoneName, resourceId.ResourceGroup, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceArmPrivateDnsZoneVirtualNetworkLinkRead(d, meta)
 }
 

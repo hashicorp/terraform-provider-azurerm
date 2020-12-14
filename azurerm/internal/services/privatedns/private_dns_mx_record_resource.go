@@ -129,7 +129,7 @@ func resourceArmPrivateDnsMxRecordCreateUpdate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("creating/updating %s: %+v", resourceId, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceArmPrivateDnsMxRecordRead(d, meta)
 }
 

@@ -119,7 +119,7 @@ func resourceArmPrivateDnsSrvRecordCreateUpdate(d *schema.ResourceData, meta int
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_private_dns_srv_record", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_private_dns_srv_record", resourceId.ID())
 		}
 	}
 
@@ -139,7 +139,7 @@ func resourceArmPrivateDnsSrvRecordCreateUpdate(d *schema.ResourceData, meta int
 		return fmt.Errorf("creating/updating %s: %+v", resourceId, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceArmPrivateDnsSrvRecordRead(d, meta)
 }
 

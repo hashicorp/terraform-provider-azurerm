@@ -118,7 +118,7 @@ func resourceArmPrivateDnsCNameRecordCreateUpdate(d *schema.ResourceData, meta i
 		return fmt.Errorf("creating/updating %s: %+v", resourceId, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceArmPrivateDnsCNameRecordRead(d, meta)
 }
 
