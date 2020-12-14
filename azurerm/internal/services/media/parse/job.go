@@ -38,7 +38,7 @@ func (id JobId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Job", segmentsStr)
 }
 
-func (id JobId) ID(_ string) string {
+func (id JobId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Media/mediaservices/%s/transforms/%s/jobs/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.MediaserviceName, id.TransformName, id.Name)
 }

@@ -156,7 +156,7 @@ func resourceMediaJobCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_media_job", resourceId.ID(""))
+		return tf.ImportAsExistsError("azurerm_media_job", resourceId.ID())
 	}
 
 	parameters := media.Job{
@@ -186,7 +186,7 @@ func resourceMediaJobCreate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("creating %s: %+v", resourceId, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 
 	return resourceMediaJobRead(d, meta)
 }
