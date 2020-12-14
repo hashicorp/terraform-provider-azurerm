@@ -5,16 +5,15 @@ import (
 	"io/ioutil"
 	"net/http"
 	"regexp"
+	"strings"
 	"testing"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 )
 
 func TestValidateArmStorageAccountName(t *testing.T) {
@@ -747,7 +746,7 @@ func TestAccAzureRMStorageAccount_shareSoftDelete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageAccount_shareSoftDeleteWithShareFile(data, sourceBlob.Name()),
+				Config: testAccAzureRMStorageAccount_shareSoftDeleteWithShareFile(data, strings.ReplaceAll(sourceBlob.Name(), "\\", "\\\\")),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 				),
@@ -761,7 +760,7 @@ func TestAccAzureRMStorageAccount_shareSoftDelete(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMStorageAccount_shareSoftDeleteWithShareFile(data, sourceBlob.Name()),
+				Config: testAccAzureRMStorageAccount_shareSoftDeleteWithShareFile(data, strings.ReplaceAll(sourceBlob.Name(), "\\", "\\\\")),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 				),
