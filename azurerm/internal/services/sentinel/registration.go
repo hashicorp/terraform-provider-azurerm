@@ -28,7 +28,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_sentinel_alert_rule_fusion":               resourceArmSentinelAlertRuleFusion(),
+		"azurerm_sentinel_alert_rule_fusion":               resourceSentinelAlertRuleFusion(),
 		"azurerm_sentinel_alert_rule_ms_security_incident": resourceSentinelAlertRuleMsSecurityIncident(),
 		"azurerm_sentinel_alert_rule_scheduled":            resourceSentinelAlertRuleScheduled(),
 	}
