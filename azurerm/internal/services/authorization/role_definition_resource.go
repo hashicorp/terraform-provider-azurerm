@@ -73,7 +73,7 @@ func resourceArmRoleDefinition() *schema.Resource {
 
 			"permissions": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"actions": {
@@ -146,7 +146,9 @@ func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interfac
 	scope := d.Get("scope").(string)
 	description := d.Get("description").(string)
 	roleType := "CustomRole"
-	permissions := expandRoleDefinitionPermissions(d)
+
+	permissionsRaw := d.Get("permissions").([]interface{})
+	permissions := expandRoleDefinitionPermissions(permissionsRaw)
 	assignableScopes := expandRoleDefinitionAssignableScopes(d)
 
 	if d.IsNewResource() {
@@ -291,11 +293,13 @@ func resourceArmRoleDefinitionDelete(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func expandRoleDefinitionPermissions(d *schema.ResourceData) []authorization.Permission {
+func expandRoleDefinitionPermissions(input []interface{}) []authorization.Permission {
 	output := make([]authorization.Permission, 0)
+	if len(input) == 0 {
+		return output
+	}
 
-	permissions := d.Get("permissions").([]interface{})
-	for _, v := range permissions {
+	for _, v := range input {
 		input := v.(map[string]interface{})
 		permission := authorization.Permission{}
 
@@ -356,37 +360,12 @@ func flattenRoleDefinitionPermissions(input *[]authorization.Permission) []inter
 	}
 
 	for _, permission := range *input {
-		output := make(map[string]interface{})
-
-		actions := make([]string, 0)
-		if s := permission.Actions; s != nil {
-			actions = *s
-		}
-		output["actions"] = actions
-
-		dataActions := make([]interface{}, 0)
-		if permission.DataActions != nil {
-			for _, dataAction := range *permission.DataActions {
-				dataActions = append(dataActions, dataAction)
-			}
-		}
-		output["data_actions"] = schema.NewSet(schema.HashString, dataActions)
-
-		notActions := make([]string, 0)
-		if s := permission.NotActions; s != nil {
-			notActions = *s
-		}
-		output["not_actions"] = notActions
-
-		notDataActions := make([]interface{}, 0)
-		if permission.NotDataActions != nil {
-			for _, dataAction := range *permission.NotDataActions {
-				notDataActions = append(notDataActions, dataAction)
-			}
-		}
-		output["not_data_actions"] = schema.NewSet(schema.HashString, notDataActions)
-
-		permissions = append(permissions, output)
+		permissions = append(permissions, map[string]interface{}{
+			"actions":          utils.FlattenStringSlice(permission.Actions),
+			"data_actions":     utils.FlattenStringSlice(permission.DataActions),
+			"not_actions":      utils.FlattenStringSlice(permission.NotActions),
+			"not_data_actions": utils.FlattenStringSlice(permission.NotDataActions),
+		})
 	}
 
 	return permissions
