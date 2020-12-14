@@ -29,7 +29,6 @@ func resourceDataBoxJob() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceDataBoxJobCreate,
 		Read:   resourceDataBoxJobRead,
-		Update: resourceDataBoxJobUpdate,
 		Delete: resourceDataBoxJobDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
@@ -636,39 +635,6 @@ func resourceDataBoxJobRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
-}
-
-// nolint: deadcode unused
-func resourceDataBoxJobUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataBox.JobClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := parse.DataBoxJobID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	parameters := databox.JobResourceUpdateParameter{
-		UpdateJobProperties: &databox.UpdateJobProperties{
-			Details: &databox.UpdateJobDetails{
-				ContactDetails:  expandArmDataBoxJobContactDetails(d.Get("contact_details").([]interface{})),
-				ShippingAddress: expandArmDataBoxJobShippingAddress(d.Get("shipping_address").([]interface{})),
-			},
-		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
-	}
-
-	future, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters, "")
-	if err != nil {
-		return fmt.Errorf("updating DataBox Job %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of DataBox Job %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-
-	return resourceDataBoxJobRead(d, meta)
 }
 
 func resourceDataBoxJobDelete(d *schema.ResourceData, meta interface{}) error {
