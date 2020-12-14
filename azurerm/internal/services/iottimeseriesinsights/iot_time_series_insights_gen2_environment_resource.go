@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iottimeseriesinsights/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -94,6 +95,11 @@ func resourceIoTTimeSeriesInsightsGen2Environment() *schema.Resource {
 						},
 					},
 				},
+			},
+
+			"data_access_fqdn": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"tags": tags.Schema(),
@@ -207,9 +213,8 @@ func resourceIoTTimeSeriesInsightsGen2EnvironmentRead(d *schema.ResourceData, me
 	d.Set("name", environment.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("sku_name", environment.Sku.Name)
-	if location := environment.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(environment.Location))
+	d.Set("data_access_fqdn", environment.DataAccessFqdn)
 	if err := d.Set("id_properties", flattenIdProperties(environment.TimeSeriesIDProperties)); err != nil {
 		return fmt.Errorf("setting `id_properties`: %+v", err)
 	}
