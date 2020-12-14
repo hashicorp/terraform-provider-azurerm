@@ -103,7 +103,7 @@ func TestAccSentinelAlertRuleScheduled_withAlertRuleTemplateGuid(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.RequiresImportErrorStep(r.requiresImport),
+		data.ImportStep(),
 	})
 }
 
