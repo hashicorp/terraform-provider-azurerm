@@ -35,7 +35,7 @@ func (id ExternalEndpointId) String() string {
 	return fmt.Sprintf("%s: (%s)", "External Endpoint", segmentsStr)
 }
 
-func (id ExternalEndpointId) ID(_ string) string {
+func (id ExternalEndpointId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/trafficManagerProfiles/%s/externalEndpoints/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.TrafficManagerProfileName, id.Name)
 }

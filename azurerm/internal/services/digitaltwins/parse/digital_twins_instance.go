@@ -32,7 +32,7 @@ func (id DigitalTwinsInstanceId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Digital Twins Instance", segmentsStr)
 }
 
-func (id DigitalTwinsInstanceId) ID(_ string) string {
+func (id DigitalTwinsInstanceId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DigitalTwins/digitalTwinsInstances/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

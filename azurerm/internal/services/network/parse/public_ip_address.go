@@ -32,7 +32,7 @@ func (id PublicIpAddressId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Public Ip Address", segmentsStr)
 }
 
-func (id PublicIpAddressId) ID(_ string) string {
+func (id PublicIpAddressId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/publicIPAddresses/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

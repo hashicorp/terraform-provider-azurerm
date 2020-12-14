@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSentinelAlertRuleScheduled() *schema.Resource {
+func resourceSentinelAlertRuleScheduled() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSentinelAlertRuleScheduledCreateUpdate,
-		Read:   resourceArmSentinelAlertRuleScheduledRead,
-		Update: resourceArmSentinelAlertRuleScheduledCreateUpdate,
-		Delete: resourceArmSentinelAlertRuleScheduledDelete,
+		Create: resourceSentinelAlertRuleScheduledCreateUpdate,
+		Read:   resourceSentinelAlertRuleScheduledRead,
+		Update: resourceSentinelAlertRuleScheduledCreateUpdate,
+		Delete: resourceSentinelAlertRuleScheduledDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			_, err := parse.SentinelAlertRuleID(id)
@@ -60,7 +60,7 @@ func resourceArmSentinelAlertRuleScheduled() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"alert_rule_template_name": {
+			"alert_rule_template_guid": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
@@ -166,7 +166,7 @@ func resourceArmSentinelAlertRuleScheduled() *schema.Resource {
 	}
 }
 
-func resourceArmSentinelAlertRuleScheduledCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleScheduledCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -231,7 +231,7 @@ func resourceArmSentinelAlertRuleScheduledCreateUpdate(d *schema.ResourceData, m
 		},
 	}
 
-	if v, ok := d.GetOk("alert_rule_template_name"); ok {
+	if v, ok := d.GetOk("alert_rule_template_guid"); ok {
 		param.ScheduledAlertRuleProperties.AlertRuleTemplateName = utils.String(v.(string))
 	}
 
@@ -263,11 +263,10 @@ func resourceArmSentinelAlertRuleScheduledCreateUpdate(d *schema.ResourceData, m
 	}
 	d.SetId(*id)
 
-	return resourceArmSentinelAlertRuleScheduledRead(d, meta)
+	return resourceSentinelAlertRuleScheduledRead(d, meta)
 }
 
-func resourceArmSentinelAlertRuleScheduledRead(d *schema.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+func resourceSentinelAlertRuleScheduledRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -295,8 +294,8 @@ func resourceArmSentinelAlertRuleScheduledRead(d *schema.ResourceData, meta inte
 
 	d.Set("name", id.Name)
 
-	logAnalyticsWorkspaceId := loganalyticsParse.NewLogAnalyticsWorkspaceID(subscriptionId, id.Workspace, id.ResourceGroup)
-	d.Set("log_analytics_workspace_id", logAnalyticsWorkspaceId.ID(subscriptionId))
+	workspaceId := loganalyticsParse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.Workspace)
+	d.Set("log_analytics_workspace_id", workspaceId.ID())
 
 	if prop := rule.ScheduledAlertRuleProperties; prop != nil {
 		d.Set("description", prop.Description)
@@ -319,13 +318,13 @@ func resourceArmSentinelAlertRuleScheduledRead(d *schema.ResourceData, meta inte
 		d.Set("trigger_threshold", int(threshold))
 		d.Set("suppression_enabled", prop.SuppressionEnabled)
 		d.Set("suppression_duration", prop.SuppressionDuration)
-		d.Set("alert_rule_template_name", prop.AlertRuleTemplateName)
+		d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
 	}
 
 	return nil
 }
 
-func resourceArmSentinelAlertRuleScheduledDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleScheduledDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

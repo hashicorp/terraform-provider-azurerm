@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = PolicyId{}
 
 func TestPolicyIDFormatter(t *testing.T) {
-	actual := NewPolicyID("12345678-1234-9876-4563-123456789012", "resGroup1", "service1", "policy1").ID("")
+	actual := NewPolicyID("12345678-1234-9876-4563-123456789012", "resGroup1", "service1", "policy1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/service1/policies/policy1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

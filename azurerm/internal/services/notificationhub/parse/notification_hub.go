@@ -35,7 +35,7 @@ func (id NotificationHubId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Notification Hub", segmentsStr)
 }
 
-func (id NotificationHubId) ID(_ string) string {
+func (id NotificationHubId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.NotificationHubs/namespaces/%s/notificationHubs/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.Name)
 }

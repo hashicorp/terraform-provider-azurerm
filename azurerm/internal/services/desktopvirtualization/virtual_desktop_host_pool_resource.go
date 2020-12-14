@@ -171,7 +171,7 @@ func resourceVirtualDesktopHostPoolCreateUpdate(d *schema.ResourceData, meta int
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	resourceId := parse.NewHostPoolID(subscriptionId, resourceGroup, name).ID("")
+	resourceId := parse.NewHostPoolID(subscriptionId, resourceGroup, name).ID()
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {

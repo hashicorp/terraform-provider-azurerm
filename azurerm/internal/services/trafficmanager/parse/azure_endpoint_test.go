@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = AzureEndpointId{}
 
 func TestAzureEndpointIDFormatter(t *testing.T) {
-	actual := NewAzureEndpointID("12345678-1234-9876-4563-123456789012", "resGroup1", "trafficManagerProfile1", "azureEndpoint1").ID("")
+	actual := NewAzureEndpointID("12345678-1234-9876-4563-123456789012", "resGroup1", "trafficManagerProfile1", "azureEndpoint1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/trafficManagerProfiles/trafficManagerProfile1/azureEndpoints/azureEndpoint1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

@@ -66,7 +66,7 @@ func dataSourceArmStorageEncryptionScopeRead(d *schema.ResourceData, meta interf
 		return fmt.Errorf("retrieving Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q): %+v", name, accountId.Name, accountId.ResourceGroup, err)
 	}
 
-	d.SetId(parse.NewEncryptionScopeID(accountId.SubscriptionId, accountId.ResourceGroup, accountId.Name, name).ID(""))
+	d.SetId(parse.NewEncryptionScopeID(accountId.SubscriptionId, accountId.ResourceGroup, accountId.Name, name).ID())
 
 	if props := resp.EncryptionScopeProperties; props != nil {
 		d.Set("source", flattenEncryptionScopeSource(props.Source))

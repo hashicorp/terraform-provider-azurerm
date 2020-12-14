@@ -32,7 +32,7 @@ func (id DashboardId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Dashboard", segmentsStr)
 }
 
-func (id DashboardId) ID(_ string) string {
+func (id DashboardId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Portal/dashboards/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

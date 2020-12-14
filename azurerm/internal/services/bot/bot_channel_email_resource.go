@@ -81,7 +81,7 @@ func resourceBotChannelEmailCreate(d *schema.ResourceData, meta interface{}) err
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_bot_channel_email", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_bot_channel_email", resourceId.ID())
 		}
 	}
 
@@ -102,7 +102,7 @@ func resourceBotChannelEmailCreate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("creating Email Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroup, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceBotChannelEmailRead(d, meta)
 }
 

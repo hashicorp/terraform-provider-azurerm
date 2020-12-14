@@ -13,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmSentinelAlertRule() *schema.Resource {
+func dataSourceSentinelAlertRule() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmSentinelAlertRuleRead,
+		Read: dataSourceSentinelAlertRuleRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -37,7 +37,7 @@ func dataSourceArmSentinelAlertRule() *schema.Resource {
 	}
 }
 
-func dataSourceArmSentinelAlertRuleRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceSentinelAlertRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

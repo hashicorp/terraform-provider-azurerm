@@ -119,7 +119,7 @@ func resourceArmLogAnalyticsStorageInsightsCreateUpdate(d *schema.ResourceData, 
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_log_analytics_storage_insights", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_log_analytics_storage_insights", id.ID())
 		}
 	}
 
@@ -142,7 +142,7 @@ func resourceArmLogAnalyticsStorageInsightsCreateUpdate(d *schema.ResourceData, 
 		return fmt.Errorf("creating/updating Log Analytics Storage Insights %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, id.WorkspaceName, err)
 	}
 
-	d.SetId(id.ID(subscriptionId))
+	d.SetId(id.ID())
 	return resourceArmLogAnalyticsStorageInsightsRead(d, meta)
 }
 
@@ -168,7 +168,7 @@ func resourceArmLogAnalyticsStorageInsightsRead(d *schema.ResourceData, meta int
 
 	d.Set("name", id.StorageInsightConfigName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("workspace_id", parse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID(""))
+	d.Set("workspace_id", parse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID())
 
 	if props := resp.StorageInsightProperties; props != nil {
 		d.Set("blob_container_names", utils.FlattenStringSlice(props.Containers))

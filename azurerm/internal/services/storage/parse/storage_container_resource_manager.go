@@ -38,7 +38,7 @@ func (id StorageContainerResourceManagerId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Storage Container Resource Manager", segmentsStr)
 }
 
-func (id StorageContainerResourceManagerId) ID(_ string) string {
+func (id StorageContainerResourceManagerId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Storage/storageAccounts/%s/blobServices/%s/containers/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.StorageAccountName, id.BlobServiceName, id.ContainerName)
 }

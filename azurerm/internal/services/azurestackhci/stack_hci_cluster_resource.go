@@ -91,7 +91,7 @@ func resourceArmStackHCIClusterCreate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_stack_hci_cluster", id.ID(""))
+		return tf.ImportAsExistsError("azurerm_stack_hci_cluster", id.ID())
 	}
 
 	cluster := azurestackhci.Cluster{
@@ -112,7 +112,7 @@ func resourceArmStackHCIClusterCreate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("creating Azure Stack HCI Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 
 	return resourceArmStackHCIClusterRead(d, meta)
 }

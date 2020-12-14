@@ -35,7 +35,7 @@ func (id HubRouteTableId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Hub Route Table", segmentsStr)
 }
 
-func (id HubRouteTableId) ID(_ string) string {
+func (id HubRouteTableId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualHubs/%s/hubRouteTables/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VirtualHubName, id.Name)
 }

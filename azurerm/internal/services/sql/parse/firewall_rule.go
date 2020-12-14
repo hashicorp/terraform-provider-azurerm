@@ -35,7 +35,7 @@ func (id FirewallRuleId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Firewall Rule", segmentsStr)
 }
 
-func (id FirewallRuleId) ID(_ string) string {
+func (id FirewallRuleId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Sql/servers/%s/firewallRules/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServerName, id.Name)
 }

@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = UserAssignedIdentityId{}
 
 func TestUserAssignedIdentityIDFormatter(t *testing.T) {
-	actual := NewUserAssignedIdentityID("12345678-1234-9876-4563-123456789012", "group1", "identity1").ID("")
+	actual := NewUserAssignedIdentityID("12345678-1234-9876-4563-123456789012", "group1", "identity1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.ManagedIdentity/userAssignedIdentities/identity1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
