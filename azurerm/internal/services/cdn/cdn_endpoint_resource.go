@@ -320,7 +320,7 @@ func resourceCdnEndpointCreate(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 
 	return resourceCdnEndpointRead(d, meta)
 }

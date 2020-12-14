@@ -142,16 +142,18 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 
 func resourceArmLoadBalancerRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
 	loadBalancerId, err := parse.LoadBalancerID(d.Get("loadbalancer_id").(string))
 	if err != nil {
 		return err
 	}
 
-	loadBalancerID := loadBalancerId.ID("")
+	id := parse.NewLoadBalancingRuleID(subscriptionId, loadBalancerId.ResourceGroup, loadBalancerId.Name, d.Get("name").(string))
+
+	loadBalancerID := loadBalancerId.ID()
 	locks.ByID(loadBalancerID)
 	defer locks.UnlockByID(loadBalancerID)
 
@@ -161,7 +163,7 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *schema.ResourceData, meta interf
 	}
 	if !exists {
 		d.SetId("")
-		log.Printf("[INFO] Load Balancer %q not found. Removing from state", name)
+		log.Printf("[INFO] Load Balancer %q not found. Removing from state", id.Name)
 		return nil
 	}
 
@@ -172,9 +174,9 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *schema.ResourceData, meta interf
 
 	lbRules := append(*loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules, *newLbRule)
 
-	existingRule, existingRuleIndex, exists := FindLoadBalancerRuleByName(loadBalancer, name)
+	existingRule, existingRuleIndex, exists := FindLoadBalancerRuleByName(loadBalancer, id.Name)
 	if exists {
-		if name == *existingRule.Name {
+		if id.Name == *existingRule.Name {
 			if d.IsNewResource() {
 				return tf.ImportAsExistsError("azurerm_lb_rule", *existingRule.ID)
 			}
@@ -195,26 +197,7 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("Error waiting for completion for Load Balancer updates: %+v", err)
 	}
 
-	read, err := client.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
-	if err != nil {
-		return fmt.Errorf("Error Getting LoadBalancer: %+v", err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Load Balancer %s (resource group %s) ID", loadBalancerId.Name, loadBalancerId.ResourceGroup)
-	}
-
-	var ruleId string
-	for _, LoadBalancingRule := range *read.LoadBalancerPropertiesFormat.LoadBalancingRules {
-		if *LoadBalancingRule.Name == name {
-			ruleId = *LoadBalancingRule.ID
-		}
-	}
-
-	if ruleId == "" {
-		return fmt.Errorf("Cannot find created Load Balancer Rule ID %q", ruleId)
-	}
-
-	d.SetId(ruleId)
+	d.SetId(id.ID())
 
 	return resourceArmLoadBalancerRuleRead(d, meta)
 }
@@ -277,7 +260,7 @@ func resourceArmLoadBalancerRuleRead(d *schema.ResourceData, meta interface{}) e
 			}
 
 			frontendIPConfigName = feid.FrontendIPConfigurationName
-			frontendIPConfigID = feid.ID("")
+			frontendIPConfigID = feid.ID()
 		}
 		d.Set("frontend_ip_configuration_name", frontendIPConfigName)
 		d.Set("frontend_ip_configuration_id", frontendIPConfigID)
@@ -321,7 +304,7 @@ func resourceArmLoadBalancerRuleDelete(d *schema.ResourceData, meta interface{})
 	}
 
 	loadBalancerId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
-	loadBalancerIDRaw := loadBalancerId.ID("")
+	loadBalancerIDRaw := loadBalancerId.ID()
 	locks.ByID(loadBalancerIDRaw)
 	defer locks.UnlockByID(loadBalancerIDRaw)
 

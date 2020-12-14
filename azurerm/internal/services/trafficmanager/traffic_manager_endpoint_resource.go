@@ -204,7 +204,7 @@ func resourceArmTrafficManagerEndpointCreateUpdate(d *schema.ResourceData, meta 
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_traffic_manager_endpoint", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_traffic_manager_endpoint", resourceId.ID())
 		}
 	}
 
@@ -218,7 +218,7 @@ func resourceArmTrafficManagerEndpointCreateUpdate(d *schema.ResourceData, meta 
 		return fmt.Errorf("creating/updating %s Endpoint %q (Traffic Manager Profile %q / Resource Group %q): %+v", resourceId.EndpointType(), resourceId.Name, resourceId.TrafficManagerProfileName, resourceId.ResourceGroup, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceArmTrafficManagerEndpointRead(d, meta)
 }
 

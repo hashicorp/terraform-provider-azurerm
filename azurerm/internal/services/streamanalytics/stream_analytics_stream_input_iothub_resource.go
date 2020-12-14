@@ -107,7 +107,7 @@ func resourceStreamAnalyticsStreamInputIoTHubCreateUpdate(d *schema.ResourceData
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_stream_input_iothub", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_stream_analytics_stream_input_iothub", resourceId.ID())
 		}
 	}
 
@@ -146,7 +146,7 @@ func resourceStreamAnalyticsStreamInputIoTHubCreateUpdate(d *schema.ResourceData
 			return fmt.Errorf("creating %s: %+v", resourceId, err)
 		}
 
-		d.SetId(resourceId.ID(""))
+		d.SetId(resourceId.ID())
 	} else if _, err := client.Update(ctx, props, resourceId.ResourceGroup, resourceId.StreamingjobName, resourceId.InputName, ""); err != nil {
 		return fmt.Errorf("updating %s: %+v", resourceId, err)
 	}

@@ -95,6 +95,41 @@ func TestAccAzureRMDiskEncryptionSet_update(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMDiskEncryptionSet_keyRotate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_disk_encryption_set", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMDiskEncryptionSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDiskEncryptionSet_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDiskEncryptionSetExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			// we have to first grant the permission for DiskEncryptionSet to access the KeyVault
+			{
+				Config: testAccAzureRMDiskEncryptionSet_grantAccessToKeyVault(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDiskEncryptionSetExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			// after the access is granted, we can rotate the key in DiskEncryptionSet
+			{
+				Config: testAccAzureRMDiskEncryptionSet_keyRotate(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDiskEncryptionSetExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMDiskEncryptionSetExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -148,10 +183,6 @@ func testCheckAzureRMDiskEncryptionSetDestroy(s *terraform.State) error {
 }
 
 func testAccAzureRMDiskEncryptionSet_dependencies(data acceptance.TestData) string {
-	// whilst this is in Preview it's only supported in: West Central US, Canada Central, North Europe
-	// TODO: switch back to default location
-	location := "northeurope"
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -165,32 +196,33 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
+  name                        = "acctestkv-%s"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  sku_name                    = "premium"
+  soft_delete_enabled         = true
+  purge_protection_enabled    = true
+  enabled_for_disk_encryption = true
+}
 
-  purge_protection_enabled = true
-  soft_delete_enabled      = true
+resource "azurerm_key_vault_access_policy" "service-principal" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
 
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
+  key_permissions = [
+    "create",
+    "delete",
+    "get",
+    "update",
+  ]
 
-    key_permissions = [
-      "create",
-      "delete",
-      "get",
-      "update",
-    ]
-
-    secret_permissions = [
-      "get",
-      "delete",
-      "set",
-    ]
-  }
+  secret_permissions = [
+    "get",
+    "delete",
+    "set",
+  ]
 }
 
 resource "azurerm_key_vault_key" "test" {
@@ -207,8 +239,10 @@ resource "azurerm_key_vault_key" "test" {
     "verify",
     "wrapKey",
   ]
+
+  depends_on = ["azurerm_key_vault_access_policy.service-principal"]
 }
-`, data.RandomInteger, location, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func testAccAzureRMDiskEncryptionSet_basic(data acceptance.TestData) string {
@@ -264,6 +298,86 @@ resource "azurerm_disk_encryption_set" "test" {
 
   tags = {
     Hello = "woRld"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMDiskEncryptionSet_grantAccessToKeyVault(data acceptance.TestData) string {
+	template := testAccAzureRMDiskEncryptionSet_dependencies(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_key_vault_access_policy" "disk-encryption" {
+  key_vault_id = azurerm_key_vault.test.id
+
+  key_permissions = [
+    "get",
+    "wrapkey",
+    "unwrapkey",
+  ]
+
+  tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id
+  object_id = azurerm_disk_encryption_set.test.identity.0.principal_id
+}
+
+resource "azurerm_disk_encryption_set" "test" {
+  name                = "acctestDES-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  key_vault_key_id    = azurerm_key_vault_key.test.id
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMDiskEncryptionSet_keyRotate(data acceptance.TestData) string {
+	template := testAccAzureRMDiskEncryptionSet_dependencies(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_key_vault_key" "new" {
+  name         = "newKey"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  depends_on = ["azurerm_key_vault_access_policy.service-principal"]
+}
+
+resource "azurerm_key_vault_access_policy" "disk-encryption" {
+  key_vault_id = azurerm_key_vault.test.id
+
+  key_permissions = [
+    "get",
+    "wrapkey",
+    "unwrapkey",
+  ]
+
+  tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id
+  object_id = azurerm_disk_encryption_set.test.identity.0.principal_id
+}
+
+resource "azurerm_disk_encryption_set" "test" {
+  name                = "acctestDES-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  key_vault_key_id    = azurerm_key_vault_key.new.id
+
+  identity {
+    type = "SystemAssigned"
   }
 }
 `, template, data.RandomInteger)

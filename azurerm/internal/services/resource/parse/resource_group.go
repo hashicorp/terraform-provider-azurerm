@@ -25,10 +25,11 @@ func (id ResourceGroupId) String() string {
 	segments := []string{
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Resource Group", segmentsStr)
 }
 
-func (id ResourceGroupId) ID(_ string) string {
+func (id ResourceGroupId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup)
 }

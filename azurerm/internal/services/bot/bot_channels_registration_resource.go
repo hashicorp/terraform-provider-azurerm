@@ -146,7 +146,7 @@ func resourceBotChannelsRegistrationCreate(d *schema.ResourceData, meta interfac
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_bot_channels_registration", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_bot_channels_registration", resourceId.ID())
 		}
 	}
 
@@ -176,7 +176,7 @@ func resourceBotChannelsRegistrationCreate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("creating Bot Channels Registration %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceBotChannelsRegistrationRead(d, meta)
 }
 

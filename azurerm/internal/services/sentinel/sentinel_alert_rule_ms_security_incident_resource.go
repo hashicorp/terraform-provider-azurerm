@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSentinelAlertRuleMsSecurityIncident() *schema.Resource {
+func resourceSentinelAlertRuleMsSecurityIncident() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSentinelAlertRuleMsSecurityIncidentCreateUpdate,
-		Read:   resourceArmSentinelAlertRuleMsSecurityIncidentRead,
-		Update: resourceArmSentinelAlertRuleMsSecurityIncidentCreateUpdate,
-		Delete: resourceArmSentinelAlertRuleMsSecurityIncidentDelete,
+		Create: resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate,
+		Read:   resourceSentinelAlertRuleMsSecurityIncidentRead,
+		Update: resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate,
+		Delete: resourceSentinelAlertRuleMsSecurityIncidentDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			_, err := parse.SentinelAlertRuleID(id)
@@ -85,7 +85,7 @@ func resourceArmSentinelAlertRuleMsSecurityIncident() *schema.Resource {
 				},
 			},
 
-			"alert_rule_template_name": {
+			"alert_rule_template_guid": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
@@ -142,7 +142,7 @@ func resourceArmSentinelAlertRuleMsSecurityIncident() *schema.Resource {
 	}
 }
 
-func resourceArmSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -178,7 +178,7 @@ func resourceArmSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *schema.Resour
 		},
 	}
 
-	if v, ok := d.GetOk("alert_rule_template_name"); ok {
+	if v, ok := d.GetOk("alert_rule_template_guid"); ok {
 		param.MicrosoftSecurityIncidentCreationAlertRuleProperties.AlertRuleTemplateName = utils.String(v.(string))
 	}
 
@@ -219,11 +219,10 @@ func resourceArmSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *schema.Resour
 	}
 	d.SetId(*id)
 
-	return resourceArmSentinelAlertRuleMsSecurityIncidentRead(d, meta)
+	return resourceSentinelAlertRuleMsSecurityIncidentRead(d, meta)
 }
 
-func resourceArmSentinelAlertRuleMsSecurityIncidentRead(d *schema.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+func resourceSentinelAlertRuleMsSecurityIncidentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -251,15 +250,14 @@ func resourceArmSentinelAlertRuleMsSecurityIncidentRead(d *schema.ResourceData, 
 
 	d.Set("name", id.Name)
 
-	logAnalyticsWorkspaceId := loganalyticsParse.NewLogAnalyticsWorkspaceID(subscriptionId, id.ResourceGroup, id.Workspace)
-	d.Set("log_analytics_workspace_id", logAnalyticsWorkspaceId.ID(subscriptionId))
-
+	workspaceId := loganalyticsParse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.Workspace)
+	d.Set("log_analytics_workspace_id", workspaceId.ID())
 	if prop := rule.MicrosoftSecurityIncidentCreationAlertRuleProperties; prop != nil {
 		d.Set("product_filter", string(prop.ProductFilter))
 		d.Set("display_name", prop.DisplayName)
 		d.Set("description", prop.Description)
 		d.Set("enabled", prop.Enabled)
-		d.Set("alert_rule_template_name", prop.AlertRuleTemplateName)
+		d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
 
 		if err := d.Set("text_whitelist", utils.FlattenStringSlice(prop.DisplayNamesFilter)); err != nil {
 			return fmt.Errorf(`setting "text_whitelist": %+v`, err)
@@ -278,7 +276,7 @@ func resourceArmSentinelAlertRuleMsSecurityIncidentRead(d *schema.ResourceData, 
 	return nil
 }
 
-func resourceArmSentinelAlertRuleMsSecurityIncidentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleMsSecurityIncidentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

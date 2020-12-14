@@ -118,7 +118,7 @@ func resourceVirtualDesktopApplicationGroupCreateUpdate(d *schema.ResourceData, 
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceId := parse.NewApplicationGroupID(subscriptionId, resourceGroup, name).ID("")
+	resourceId := parse.NewApplicationGroupID(subscriptionId, resourceGroup, name).ID()
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -195,7 +195,7 @@ func resourceVirtualDesktopApplicationGroupRead(d *schema.ResourceData, meta int
 				return fmt.Errorf("parsing Host Pool ID %q: %+v", *props.HostPoolArmPath, err)
 			}
 
-			hostPoolIdStr = hostPoolId.ID("")
+			hostPoolIdStr = hostPoolId.ID()
 		}
 		d.Set("host_pool_id", hostPoolIdStr)
 	}

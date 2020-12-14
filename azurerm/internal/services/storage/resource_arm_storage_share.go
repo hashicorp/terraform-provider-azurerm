@@ -147,7 +147,7 @@ func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error building File Share Client: %s", err)
 	}
 
-	id := parse.NewStorageShareDataPlaneId(accountName, storageClient.Environment.StorageEndpointSuffix, shareName).ID("")
+	id := parse.NewStorageShareDataPlaneId(accountName, storageClient.Environment.StorageEndpointSuffix, shareName).ID()
 
 	exists, err := client.Exists(ctx, account.ResourceGroup, accountName, shareName)
 	if err != nil {
@@ -213,7 +213,7 @@ func resourceArmStorageShareRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("name", id.Name)
 	d.Set("storage_account_name", id.AccountName)
 	d.Set("quota", props.QuotaGB)
-	d.Set("url", id.ID(""))
+	d.Set("url", id.ID())
 
 	if err := d.Set("acl", flattenStorageShareACLs(props.ACLs)); err != nil {
 		return fmt.Errorf("flattening `acl`: %+v", err)
@@ -224,7 +224,7 @@ func resourceArmStorageShareRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	resourceManagerId := parse.NewStorageShareResourceManagerID(storageClient.SubscriptionId, account.ResourceGroup, id.AccountName, "default", id.Name)
-	d.Set("resource_manager_id", resourceManagerId.ID(""))
+	d.Set("resource_manager_id", resourceManagerId.ID())
 
 	return nil
 }

@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmHCICluster() *schema.Resource {
+func resourceArmStackHCICluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmHCIClusterCreate,
-		Read:   resourceArmHCIClusterRead,
-		Update: resourceArmHCIClusterUpdate,
-		Delete: resourceArmHCIClusterDelete,
+		Create: resourceArmStackHCIClusterCreate,
+		Read:   resourceArmStackHCIClusterRead,
+		Update: resourceArmStackHCIClusterUpdate,
+		Delete: resourceArmStackHCIClusterDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -60,7 +60,8 @@ func resourceArmHCICluster() *schema.Resource {
 
 			"tenant_id": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
+				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
@@ -69,9 +70,11 @@ func resourceArmHCICluster() *schema.Resource {
 		},
 	}
 }
-func resourceArmHCIClusterCreate(d *schema.ResourceData, meta interface{}) error {
+
+func resourceArmStackHCIClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AzureStackHCI.ClusterClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	tenantId := meta.(*clients.Client).Account.TenantId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -83,33 +86,38 @@ func resourceArmHCIClusterCreate(d *schema.ResourceData, meta interface{}) error
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for present of existing HCI Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for present of existing Azure Stack HCI Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
 	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_hci_cluster", *existing.ID)
+		return tf.ImportAsExistsError("azurerm_stack_hci_cluster", id.ID())
 	}
 
 	cluster := azurestackhci.Cluster{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		ClusterProperties: &azurestackhci.ClusterProperties{
 			AadClientID: utils.String(d.Get("client_id").(string)),
-			AadTenantID: utils.String(d.Get("tenant_id").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err := client.Create(ctx, resourceGroup, name, cluster); err != nil {
-		return fmt.Errorf("creating HCI Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if v, ok := d.GetOk("tenant_id"); ok {
+		cluster.ClusterProperties.AadTenantID = utils.String(v.(string))
+	} else {
+		cluster.ClusterProperties.AadTenantID = utils.String(tenantId)
 	}
 
-	d.SetId(id.ID(""))
+	if _, err := client.Create(ctx, resourceGroup, name, cluster); err != nil {
+		return fmt.Errorf("creating Azure Stack HCI Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
 
-	return resourceArmHCIClusterRead(d, meta)
+	d.SetId(id.ID())
+
+	return resourceArmStackHCIClusterRead(d, meta)
 }
 
-func resourceArmHCIClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmStackHCIClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AzureStackHCI.ClusterClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -122,12 +130,12 @@ func resourceArmHCIClusterRead(d *schema.ResourceData, meta interface{}) error {
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] HCI Cluster %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] Azure Stack HCI Cluster %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving HCI Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Azure Stack HCI Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -142,7 +150,7 @@ func resourceArmHCIClusterRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmHCIClusterUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmStackHCIClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AzureStackHCI.ClusterClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -159,13 +167,13 @@ func resourceArmHCIClusterUpdate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, cluster); err != nil {
-		return fmt.Errorf("updating HCI Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("updating Azure Stack HCI Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return resourceArmHCIClusterRead(d, meta)
+	return resourceArmStackHCIClusterRead(d, meta)
 }
 
-func resourceArmHCIClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmStackHCIClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AzureStackHCI.ClusterClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -176,7 +184,7 @@ func resourceArmHCIClusterDelete(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-		return fmt.Errorf("deleting HCI Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Azure Stack HCI Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil
