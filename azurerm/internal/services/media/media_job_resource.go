@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/parse"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -102,6 +103,12 @@ func resourceMediaJob() *schema.Resource {
 								"Asset name must be 1 - 128 characters long, contain only letters, hyphen and numbers.",
 							),
 						},
+						"label": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
 					},
 				},
 			},
@@ -121,6 +128,12 @@ func resourceMediaJob() *schema.Resource {
 								"Asset name must be 1 - 128 characters long, contain only letters, hyphen and numbers.",
 							),
 						},
+						"label": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
 					},
 				},
 			},
@@ -130,18 +143,25 @@ func resourceMediaJob() *schema.Resource {
 
 func resourceMediaJobCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.JobsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	jobName := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	accountName := d.Get("media_services_account_name").(string)
-	transformName := d.Get("transform_name").(string)
-	description := d.Get("description").(string)
+	resourceId := parse.NewJobID(subscriptionId, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("transform_name").(string), d.Get("name").(string))
+	existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.MediaserviceName, resourceId.TransformName, resourceId.Name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("checking for existing %s: %+v", resourceId, err)
+		}
+	}
+
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_media_job", resourceId.ID(""))
+	}
 
 	parameters := media.Job{
 		JobProperties: &media.JobProperties{
-			Description: utils.String(description),
+			Description: utils.String(d.Get("description").(string)),
 		},
 	}
 
@@ -150,10 +170,7 @@ func resourceMediaJobCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if v, ok := d.GetOk("input_asset"); ok {
-		inputAsset, err := expandInputAsset(v.([]interface{}))
-		if err != nil {
-			return err
-		}
+		inputAsset := expandInputAsset(v.([]interface{}))
 		parameters.JobProperties.Input = inputAsset
 	}
 
@@ -165,16 +182,11 @@ func resourceMediaJobCreate(d *schema.ResourceData, meta interface{}) error {
 		parameters.JobProperties.Outputs = outputAssets
 	}
 
-	if _, err := client.Create(ctx, resourceGroup, accountName, transformName, jobName, parameters); err != nil {
-		return fmt.Errorf("Error creating Job %q in Media Services Account %q (Resource Group %q): %+v", jobName, accountName, resourceGroup, err)
+	if _, err := client.Create(ctx, resourceId.ResourceGroup, resourceId.MediaserviceName, resourceId.TransformName, resourceId.Name, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", resourceId, err)
 	}
 
-	job, err := client.Get(ctx, resourceGroup, accountName, transformName, jobName)
-	if err != nil {
-		return fmt.Errorf("Error retrieving Job %q from Media Services Account %q (Resource Group %q): %+v", jobName, accountName, resourceGroup, err)
-	}
-
-	d.SetId(*job.ID)
+	d.SetId(resourceId.ID(""))
 
 	return resourceMediaJobRead(d, meta)
 }
@@ -190,11 +202,11 @@ func resourceMediaJobRead(d *schema.ResourceData, meta interface{}) error {
 	resp, err := client.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.TransformName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Job %q was not found in Media Services Account %q and Resource Group %q - removing from state", id.Name, id.MediaserviceName, id.ResourceGroup)
+			log.Printf("[INFO] %s was not found - removing from state", id)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Job %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -203,17 +215,21 @@ func resourceMediaJobRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("transform_name", id.TransformName)
 
 	if props := resp.JobProperties; props != nil {
-		if description := props.Description; description != nil {
-			d.Set("description", description)
-		}
+		d.Set("description", props.Description)
 		d.Set("priority", string(props.Priority))
-		inputAsset := flattenInputAsset(props.Input)
-		if err := d.Set("input_asset", inputAsset); err != nil {
+		inputAsset, err := flattenInputAsset(props.Input)
+		if err != nil {
+			return err
+		}
+		if err = d.Set("input_asset", inputAsset); err != nil {
 			return fmt.Errorf("Error flattening `input_asset`: %s", err)
 		}
 
-		outputAssets := flattenOutputAssets(props.Outputs)
-		if err := d.Set("output_asset", outputAssets); err != nil {
+		outputAssets, err := flattenOutputAssets(props.Outputs)
+		if err != nil {
+			return err
+		}
+		if err = d.Set("output_asset", outputAssets); err != nil {
 			return fmt.Errorf("Error flattening `output_asset`: %s", err)
 		}
 	}
@@ -225,10 +241,10 @@ func resourceMediaJobUpdate(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	jobName := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	accountName := d.Get("media_services_account_name").(string)
-	transformName := d.Get("transform_name").(string)
+	id, err := parse.JobID(d.Id())
+	if err != nil {
+		return err
+	}
 	description := d.Get("description").(string)
 
 	parameters := media.Job{
@@ -242,10 +258,7 @@ func resourceMediaJobUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if v, ok := d.GetOk("input_asset"); ok {
-		inputAsset, err := expandInputAsset(v.([]interface{}))
-		if err != nil {
-			return err
-		}
+		inputAsset := expandInputAsset(v.([]interface{}))
 		parameters.JobProperties.Input = inputAsset
 	}
 
@@ -257,16 +270,9 @@ func resourceMediaJobUpdate(d *schema.ResourceData, meta interface{}) error {
 		parameters.JobProperties.Outputs = outputAssets
 	}
 
-	if _, err := client.Update(ctx, resourceGroup, accountName, transformName, jobName, parameters); err != nil {
-		return fmt.Errorf("Error creating Job %q in Media Services Account %q (Resource Group %q): %+v", jobName, accountName, resourceGroup, err)
+	if _, err := client.Update(ctx, id.ResourceGroup, id.MediaserviceName, id.TransformName, id.Name, parameters); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
-
-	job, err := client.Get(ctx, resourceGroup, accountName, transformName, jobName)
-	if err != nil {
-		return fmt.Errorf("Error retrieving Job %q from Media Services Account %q (Resource Group %q): %+v", jobName, accountName, resourceGroup, err)
-	}
-
-	d.SetId(*job.ID)
 
 	return resourceMediaJobRead(d, meta)
 }
@@ -286,44 +292,61 @@ func resourceMediaJobDelete(d *schema.ResourceData, meta interface{}) error {
 		if response.WasNotFound(resp.Response) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting Job %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func expandInputAsset(input []interface{}) (media.BasicJobInput, error) {
+func expandInputAsset(input []interface{}) media.BasicJobInput {
 	inputAsset := input[0].(map[string]interface{})
 	assetName := inputAsset["asset_name"].(string)
+	label := inputAsset["label"].(string)
 	return &media.JobInputAsset{
 		AssetName: utils.String(assetName),
+		Label:     utils.String(label),
+	}
+}
+
+func flattenInputAsset(input media.BasicJobInput) ([]interface{}, error) {
+	if input == nil {
+		return make([]interface{}, 0), nil
+	}
+
+	asset, ok := input.AsJobInputAsset()
+	if !ok {
+		return nil, fmt.Errorf("Unexpected type for Input Asset. Currently only JobInputAsset is supported.")
+	}
+	assetName := ""
+	if asset.AssetName != nil {
+		assetName = *asset.AssetName
+	}
+
+	label := ""
+	if asset.Label != nil {
+		label = *asset.Label
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"asset_name": assetName,
+			"label":      label,
+		},
 	}, nil
 }
 
-func flattenInputAsset(input media.BasicJobInput) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	asset, _ := input.AsJobInputAsset()
-	result := make(map[string]interface{})
-	if asset.AssetName != nil {
-		result["asset_name"] = *asset.AssetName
-	}
-	return []interface{}{result}
-}
-
-func expandOutputAssets(outputs []interface{}) (*[]media.BasicJobOutput, error) {
-	if len(outputs) == 0 {
+func expandOutputAssets(input []interface{}) (*[]media.BasicJobOutput, error) {
+	if len(input) == 0 {
 		return nil, fmt.Errorf("Job must contain at least one output_asset.")
 	}
-	outputAssets := make([]media.BasicJobOutput, len(outputs))
-	for index, output := range outputs {
+	outputAssets := make([]media.BasicJobOutput, len(input))
+	for index, output := range input {
 		outputAsset := output.(map[string]interface{})
 		assetName := outputAsset["asset_name"].(string)
-
+		label := outputAsset["label"].(string)
 		jobOutputAsset := media.JobOutputAsset{
 			AssetName: utils.String(assetName),
+			Label:     utils.String(label),
 		}
 		outputAssets[index] = jobOutputAsset
 	}
@@ -331,22 +354,31 @@ func expandOutputAssets(outputs []interface{}) (*[]media.BasicJobOutput, error) 
 	return &outputAssets, nil
 }
 
-func flattenOutputAssets(outputs *[]media.BasicJobOutput) []interface{} {
-	if outputs == nil || len(*outputs) == 0 {
-		return []interface{}{}
+func flattenOutputAssets(input *[]media.BasicJobOutput) ([]interface{}, error) {
+	if input == nil || len(*input) == 0 {
+		return []interface{}{}, nil
 	}
 
-	outputAssets := make([]interface{}, len(*outputs))
-	for i, output := range *outputs {
-		outputAsset := make(map[string]interface{})
-		outputAssetJob, _ := output.AsJobOutputAsset()
+	outputAssets := make([]interface{}, len(*input))
+	for i, output := range *input {
+		outputAssetJob, ok := output.AsJobOutputAsset()
+		if !ok {
+			return nil, fmt.Errorf("unexpected type for output_asset. Currently only JobOutputAsset is supported.")
+		}
+		assetName := ""
 		if outputAssetJob.AssetName != nil {
-			outputAsset["asset_name"] = outputAssetJob.AssetName
+			assetName = *outputAssetJob.AssetName
 		}
-		if outputAsset != nil {
-			outputAssets[i] = outputAsset
+
+		label := ""
+		if outputAssetJob.Label != nil {
+			label = *outputAssetJob.Label
+		}
+
+		outputAssets[i] = map[string]interface{}{
+			"asset_name": assetName,
+			"label":      label,
 		}
 	}
-
-	return outputAssets
+	return outputAssets, nil
 }

@@ -29,12 +29,13 @@ func NewJobID(subscriptionId, resourceGroup, mediaserviceName, transformName, na
 
 func (id JobId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Mediaservice Name %q", id.MediaserviceName),
-		fmt.Sprintf("Transform Name %q", id.TransformName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Transform Name %q", id.TransformName),
+		fmt.Sprintf("Mediaservice Name %q", id.MediaserviceName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Job", segmentsStr)
 }
 
 func (id JobId) ID(_ string) string {
