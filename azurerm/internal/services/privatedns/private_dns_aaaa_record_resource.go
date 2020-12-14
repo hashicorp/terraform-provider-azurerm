@@ -132,7 +132,7 @@ func resourceArmPrivateDnsAaaaRecordRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.PrivateDnsZoneName)
+	d.Set("name", id.AAAAName)
 	d.Set("zone_name", id.PrivateDnsZoneName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
