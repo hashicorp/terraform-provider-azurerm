@@ -143,6 +143,22 @@ func resourceManagedDisk() *schema.Resource {
 
 			"encryption_settings": encryptionSettingsSchema(),
 
+			"network_access_policy": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.AllowAll),
+					string(compute.AllowPrivate),
+					string(compute.DenyAll),
+				}, true),
+			},
+
+			"disk_access_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -254,6 +270,20 @@ func resourceManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}) e
 			Type:                compute.EncryptionTypeEncryptionAtRestWithCustomerKey,
 			DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 		}
+	}
+
+	if networkAccessPolicy, ok := d.GetOk("network_access_policy"); ok {
+		props.NetworkAccessPolicy = compute.NetworkAccessPolicy(networkAccessPolicy.(string))
+	}
+
+	if props.NetworkAccessPolicy == compute.AllowPrivate {
+		if d.HasChange("disk_access_id") {
+			v := d.Get("disk_access_id")
+			diskAccessID := v.(string)
+			props.DiskAccessID = &diskAccessID
+		}
+	} else if d.HasChange("disk_access_id") {
+		return fmt.Errorf("[ERROR] disk_access_id are only available for when network_access_policy is set to AllowPrivate")
 	}
 
 	createDisk := compute.Disk{
@@ -371,6 +401,20 @@ func resourceManagedDiskUpdate(d *schema.ResourceData, meta interface{}) error {
 		} else {
 			return fmt.Errorf("Once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
 		}
+	}
+
+	if d.HasChange("network_access_policy") {
+		diskUpdate.NetworkAccessPolicy = compute.NetworkAccessPolicy(d.Get("network_access_policy").(string))
+	}
+
+	if diskUpdate.NetworkAccessPolicy == compute.AllowPrivate {
+		if d.HasChange("disk_access_id") {
+			v := d.Get("disk_access_id")
+			diskAccessID := v.(string)
+			diskUpdate.DiskAccessID = &diskAccessID
+		}
+	} else if d.HasChange("disk_access_id") {
+		return fmt.Errorf("[ERROR] disk_access_id are only available for when network_access_policy is set to AllowPrivate")
 	}
 
 	// whilst we need to shut this down, if we're not attached to anything there's no point
@@ -544,6 +588,8 @@ func resourceManagedDiskRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("disk_iops_read_write", props.DiskIOPSReadWrite)
 		d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
 		d.Set("os_type", props.OsType)
+		d.Set("network_access_policy", props.NetworkAccessPolicy)
+		d.Set("disk_access_id", props.DiskAccessID)
 
 		diskEncryptionSetId := ""
 		if props.Encryption != nil && props.Encryption.DiskEncryptionSetID != nil {

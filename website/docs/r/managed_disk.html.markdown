@@ -121,6 +121,10 @@ The following arguments are supported:
 
 * `zones` - (Optional) A collection containing the availability zone to allocate the Managed Disk in.
 
+* `network_access_policy` - Policy for accessing the disk via network. Accepted values: AllowAll, AllowPrivate, DenyAll
+
+* `disk_access_id` - The ID of the disk access resource for using private endpoints on disks.
+
 -> **Note**: Availability Zones are [only supported in select regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).
 
 For more information on managed disks, such as sizing options and pricing, please check out the [Azure Documentation](https://docs.microsoft.com/en-us/azure/storage/storage-managed-disks-overview).
