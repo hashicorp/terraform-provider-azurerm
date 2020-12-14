@@ -300,6 +300,10 @@ func expandRoleDefinitionPermissions(input []interface{}) []authorization.Permis
 	}
 
 	for _, v := range input {
+		if v == nil {
+			continue
+		}
+
 		input := v.(map[string]interface{})
 		permission := authorization.Permission{}
 
