@@ -51,7 +51,7 @@ func TestAccAzureRMLoadBalancerOutboundRule_requiresImport(t *testing.T) {
 					testCheckAzureRMLoadBalancerOutboundRuleExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMLoadBalancerBackEndAddressPool_requiresImport),
+			data.RequiresImportErrorStep(testAccAzureRMLoadBalancerOutboundRule_requiresImport),
 		},
 	})
 }
@@ -262,7 +262,7 @@ resource "azurerm_lb_outbound_rule" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMLoadBalancerOutboundRule_requiresImport(data acceptance.TestData, name string) string {
+func testAccAzureRMLoadBalancerOutboundRule_requiresImport(data acceptance.TestData) string {
 	template := testAccAzureRMLoadBalancerOutboundRule_basic(data)
 	return fmt.Sprintf(`
 %s
