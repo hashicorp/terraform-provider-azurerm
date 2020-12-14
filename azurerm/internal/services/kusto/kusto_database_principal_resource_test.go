@@ -46,7 +46,7 @@ func (KustoDatabasePrincipalResource) Exists(ctx context.Context, clients *clien
 	databasePrincipals, err := client.ListPrincipals(ctx, id.ResourceGroup, id.ClusterName, id.DatabaseName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(databasePrincipals.Response) {
-			return nil, fmt.Errorf("retrieving principals for %s: $v", id.String(), err)
+			return nil, fmt.Errorf("retrieving principals for %s: %v", id.String(), err)
 		}
 	}
 
