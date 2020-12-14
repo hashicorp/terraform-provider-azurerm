@@ -4,14 +4,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccAzureRMDataSourceLoadBalancerRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_lb_rule", "test")
-	lbRuleName := fmt.Sprintf("LbRule-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -19,7 +17,7 @@ func TestAccAzureRMDataSourceLoadBalancerRule_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataSourceLoadBalancerRule_basic(data, lbRuleName),
+				Config: testAccAzureRMDataSourceLoadBalancerRule_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "frontend_ip_configuration_name"),
@@ -61,8 +59,8 @@ func TestAccAzureRMDataSourceLoadBalancerRule_complete(t *testing.T) {
 	})
 }
 
-func testAccAzureRMDataSourceLoadBalancerRule_basic(data acceptance.TestData, name string) string {
-	resource := testAccAzureRMLoadBalancerRule_basic(data, "Basic")
+func testAccAzureRMDataSourceLoadBalancerRule_basic(data acceptance.TestData) string {
+	template := testAccAzureRMLoadBalancerRule_basic(data, "Basic")
 	return fmt.Sprintf(`
 %s
 
@@ -71,7 +69,7 @@ data "azurerm_lb_rule" "test" {
   resource_group_name = azurerm_lb_rule.test.resource_group_name
   loadbalancer_id     = azurerm_lb_rule.test.loadbalancer_id
 }
-`, resource)
+`, template)
 }
 
 func testAccAzureRMDataSourceLoadBalancerRule_complete(data acceptance.TestData) string {

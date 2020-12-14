@@ -182,7 +182,6 @@ func testCheckAzureRMLoadBalancerNatPoolExists(resourceName string) resource.Tes
 			return fmt.Errorf("Nat Pool %q not found in Load Balancer %q (resource group %q)", id.InboundNatPoolName, id.LoadBalancerName, id.ResourceGroup)
 		}
 		return nil
-
 	}
 }
 
