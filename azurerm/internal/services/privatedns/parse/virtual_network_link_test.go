@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = VirtualNetworkLinkId{}
 
 func TestVirtualNetworkLinkIDFormatter(t *testing.T) {
-	actual := NewVirtualNetworkLinkID("12345678-1234-9876-4563-123456789012", "resGroup1", "privateDnsZone1", "virtualNetworkLink1").ID("")
+	actual := NewVirtualNetworkLinkID("12345678-1234-9876-4563-123456789012", "resGroup1", "privateDnsZone1", "virtualNetworkLink1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/privateDnsZones/privateDnsZone1/virtualNetworkLinks/virtualNetworkLink1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

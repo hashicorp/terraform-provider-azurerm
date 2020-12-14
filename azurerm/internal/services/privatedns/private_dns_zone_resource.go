@@ -164,7 +164,7 @@ func resourceArmPrivateDnsZoneCreateUpdate(d *schema.ResourceData, meta interfac
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_private_dns_zone", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_private_dns_zone", resourceId.ID())
 		}
 	}
 
@@ -208,7 +208,7 @@ func resourceArmPrivateDnsZoneCreateUpdate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceArmPrivateDnsZoneRead(d, meta)
 }
 

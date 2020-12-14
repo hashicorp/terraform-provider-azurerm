@@ -35,7 +35,7 @@ func (id PtrRecordId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Ptr Record", segmentsStr)
 }
 
-func (id PtrRecordId) ID(_ string) string {
+func (id PtrRecordId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/privateDnsZones/%s/PTR/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.PrivateDnsZoneName, id.PTRName)
 }

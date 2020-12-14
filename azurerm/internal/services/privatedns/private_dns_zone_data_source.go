@@ -96,7 +96,7 @@ func dataSourceArmPrivateDnsZoneRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	resourceId := parse.NewPrivateDnsZoneID(subscriptionId, resourceGroup, name)
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
