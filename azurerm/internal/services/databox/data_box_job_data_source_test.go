@@ -12,6 +12,7 @@ func TestAccDataBoxJobDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_box_job", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
+		// nolint missing CheckDestroy
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{

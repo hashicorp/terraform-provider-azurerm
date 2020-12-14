@@ -419,7 +419,7 @@ func resourceDataBoxJobCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	var expectedDataSizeInTB *int32
-	// nolint: staticcheck
+	// nolint staticcheck
 	if v, ok := d.GetOkExists("expected_data_size_in_tb"); ok {
 		expectedDataSizeInTB = utils.Int32(int32(v.(int)))
 	}
@@ -531,7 +531,7 @@ func resourceDataBoxJobRead(d *schema.ResourceData, meta interface{}) error {
 
 	if props := resp.JobProperties; props != nil {
 		if props.DeliveryInfo != nil && props.DeliveryInfo.ScheduledDateTime != nil {
-			// nolint: gocritic
+			// nolint gocritic
 			d.Set("delivery_scheduled_date_time", (*props.DeliveryInfo.ScheduledDateTime).Format(time.RFC3339))
 		}
 		d.Set("delivery_type", props.DeliveryType)
@@ -638,6 +638,7 @@ func resourceDataBoxJobRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
+// nolint deadcode unused
 func resourceDataBoxJobUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataBox.JobClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
