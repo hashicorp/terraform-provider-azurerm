@@ -2,7 +2,6 @@ package loadbalancer_test
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -41,13 +40,6 @@ func TestAccAzureRMLoadBalancerOutboundRule_basic(t *testing.T) {
 func TestAccAzureRMLoadBalancerOutboundRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_outbound_rule", "test")
 
-	outboundRuleName := fmt.Sprintf("OutboundRule-%d", data.RandomInteger)
-
-	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	outboundRuleId := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/outboundRules/%s",
-		subscriptionID, data.RandomInteger, data.RandomInteger, outboundRuleName)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
@@ -57,8 +49,6 @@ func TestAccAzureRMLoadBalancerOutboundRule_requiresImport(t *testing.T) {
 				Config: testAccAzureRMLoadBalancerOutboundRule_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerOutboundRuleExists(data.ResourceName),
-					resource.TestCheckResourceAttr(
-						"azurerm_lb_outbound_rule.test", "id", outboundRuleId),
 				),
 			},
 			data.RequiresImportErrorStep(testAccAzureRMLoadBalancerBackEndAddressPool_requiresImport),

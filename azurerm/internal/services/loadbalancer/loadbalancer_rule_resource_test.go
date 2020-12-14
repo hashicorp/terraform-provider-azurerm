@@ -84,7 +84,7 @@ func TestAccAzureRMLoadBalancerRule_update(t *testing.T) {
 }
 
 func TestAccAzureRMLoadBalancerRule_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
+	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
