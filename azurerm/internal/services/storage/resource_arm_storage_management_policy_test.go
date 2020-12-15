@@ -6,9 +6,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMStorageManagementPolicy_basic(t *testing.T) {
@@ -354,17 +355,14 @@ func testCheckAzureRMStorageAccountManagementPolicyExistsInternal(storageAccount
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).Storage.ManagementPoliciesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-	rid, err := azure.ParseAzureResourceID(storageAccountID)
+	rid, err := parse.StorageAccountID(storageAccountID)
 	if err != nil {
 		return false, fmt.Errorf("Bad: Failed to parse ID (id: %s): %+v", storageAccountID, err)
 	}
 
-	resourceGroupName := rid.ResourceGroup
-	storageAccountName := rid.Path["storageAccounts"]
-
-	response, err := conn.Get(ctx, resourceGroupName, storageAccountName)
+	response, err := conn.Get(ctx, rid.ResourceGroup, rid.Name)
 	if err != nil {
-		if response.Response.IsHTTPStatus(404) {
+		if utils.ResponseWasNotFound(response.Response) {
 			return false, nil
 		}
 		return false, fmt.Errorf("Bad: Get on storageAccount ManagementPolicy client (id: %s): %+v", storageAccountID, err)

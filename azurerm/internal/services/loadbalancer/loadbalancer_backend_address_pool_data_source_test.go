@@ -1,4 +1,4 @@
-package tests
+package loadbalancer_test
 
 import (
 	"fmt"
