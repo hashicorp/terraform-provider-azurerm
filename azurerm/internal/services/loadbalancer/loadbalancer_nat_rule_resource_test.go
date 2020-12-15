@@ -135,8 +135,8 @@ func TestAccAzureRMLoadBalancerNatRule_updateMultipleRules(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data2.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("frontend_port").HasValue("3391"),
-				check.That(data.ResourceName).Key("backend_port").HasValue("3391"),
+				check.That(data2.ResourceName).Key("frontend_port").HasValue("3391"),
+				check.That(data2.ResourceName).Key("backend_port").HasValue("3391"),
 			),
 		},
 		data.ImportStep(),

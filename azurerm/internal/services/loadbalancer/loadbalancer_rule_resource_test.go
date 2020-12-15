@@ -135,7 +135,7 @@ func TestAccAzureRMLoadBalancerRule_inconsistentReads(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerRule_updateMultipleRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
-	data2 := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
+	data2 := acceptance.BuildTestData(t, "azurerm_lb_rule", "test2")
 	r := LoadBalancerRule{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
