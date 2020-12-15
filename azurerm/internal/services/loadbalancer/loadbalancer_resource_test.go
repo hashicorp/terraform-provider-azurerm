@@ -182,32 +182,6 @@ func (r LoadBalancer) Exists(ctx context.Context, client *clients.Client, state 
 	return utils.Bool(resp.ID != nil), nil
 }
 
-// TODO - Remove this when other sub resources are shimmed
-func testCheckAzureRMLoadBalancerDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).LoadBalancers.LoadBalancersClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_lb" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name, "")
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("LoadBalancer still exists:\n%#v", resp.LoadBalancerPropertiesFormat)
-		}
-	}
-
-	return nil
-}
-
 func (r LoadBalancer) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

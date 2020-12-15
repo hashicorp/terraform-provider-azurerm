@@ -4,20 +4,18 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
 func TestAccAzureRMDataSourceLoadBalancerBackEndAddressPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_lb_backend_address_pool", "test")
-	d := LoadBalancerBackendAddressPool{}
+	r := LoadBalancerBackendAddressPool{}
 
 	data.DataSourceTest(t, []resource.TestStep{
 		{
-			Config: d.dataSourceBasic(data),
+			Config: r.dataSourceBasic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("id").Exists(),
 			),
@@ -25,8 +23,8 @@ func TestAccAzureRMDataSourceLoadBalancerBackEndAddressPool_basic(t *testing.T) 
 	})
 }
 
-func (d LoadBalancerBackendAddressPool) dataSourceBasic(data acceptance.TestData) string {
-	resource := d.basic(data)
+func (r LoadBalancerBackendAddressPool) dataSourceBasic(data acceptance.TestData) string {
+	resource := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
