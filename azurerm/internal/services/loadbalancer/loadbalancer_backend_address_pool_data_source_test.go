@@ -2,6 +2,7 @@ package loadbalancer_test
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -11,24 +12,21 @@ import (
 
 func TestAccAzureRMDataSourceLoadBalancerBackEndAddressPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_lb_backend_address_pool", "test")
+	d := LoadBalancerBackendAddressPool{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDataSourceLoadBalancerBackEndAddressPool_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
-				),
-			},
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: d.dataSourceBasic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("id").Exists(),
+			),
 		},
 	})
 }
 
-func testAccAzureRMDataSourceLoadBalancerBackEndAddressPool_basic(data acceptance.TestData) string {
-	resource := testAccAzureRMLoadBalancerBackEndAddressPool_basic(data)
+func (d LoadBalancerBackendAddressPool) dataSourceBasic(data acceptance.TestData) string {
+	resource := d.basic(data)
 	return fmt.Sprintf(`
 %s
 
