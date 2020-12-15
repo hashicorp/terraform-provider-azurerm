@@ -11,6 +11,7 @@ IMPROVEMENTS:
 * `azurerm_disk_encryption_set` - support for updating `key_vault_key_id` [GH-7913]
 * `azurerm_iot_time_series_insights_gen2_environment` - exposing `data_access_fqdn` [GH-9848]
 * `azurerm_subnet` - support for the `service_endpoint_policy` block [GH-8966]
+* `azurerm_traffic_manager_profile` - support for new field `max_return` and support for `traffic_routing_method` to be `MultiValue` [GH-9487]
 
 ---
 
