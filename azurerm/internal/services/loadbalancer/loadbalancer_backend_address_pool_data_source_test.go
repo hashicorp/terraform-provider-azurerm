@@ -2,8 +2,9 @@ package loadbalancer_test
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 
@@ -13,7 +14,6 @@ import (
 func TestAccAzureRMDataSourceLoadBalancerBackEndAddressPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_lb_backend_address_pool", "test")
 	d := LoadBalancerBackendAddressPool{}
-
 
 	data.DataSourceTest(t, []resource.TestStep{
 		{

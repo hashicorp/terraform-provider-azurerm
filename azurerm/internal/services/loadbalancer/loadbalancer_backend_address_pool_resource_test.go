@@ -76,33 +76,33 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_removal(t *testing.T) {
 }
 
 func (r LoadBalancerBackendAddressPool) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-		id, err := parse.LoadBalancerBackendAddressPoolID(state.ID)
-		if err != nil {
-			return nil, err
-		}
+	id, err := parse.LoadBalancerBackendAddressPoolID(state.ID)
+	if err != nil {
+		return nil, err
+	}
 
-		lb, err := client.LoadBalancers.LoadBalancersClient.Get(ctx, id.ResourceGroup, id.LoadBalancerName, "")
-		if err != nil {
-			if utils.ResponseWasNotFound(lb.Response) {
-				return nil, fmt.Errorf("Load Balancer %q (resource group %q) not found for Backend Address Pool %q", id.LoadBalancerName, id.ResourceGroup, id.BackendAddressPoolName)
-			}
-			return nil, fmt.Errorf("failed reading Load Balancer %q (resource group %q) for Backend Address Pool %q", id.LoadBalancerName, id.ResourceGroup, id.BackendAddressPoolName)
+	lb, err := client.LoadBalancers.LoadBalancersClient.Get(ctx, id.ResourceGroup, id.LoadBalancerName, "")
+	if err != nil {
+		if utils.ResponseWasNotFound(lb.Response) {
+			return nil, fmt.Errorf("Load Balancer %q (resource group %q) not found for Backend Address Pool %q", id.LoadBalancerName, id.ResourceGroup, id.BackendAddressPoolName)
 		}
-		props := lb.LoadBalancerPropertiesFormat
-		if props == nil || props.BackendAddressPools == nil || len(*props.BackendAddressPools) == 0 {
-			return nil, fmt.Errorf("Backend Pool %q not found in Load Balancer %q (resource group %q)", id.BackendAddressPoolName, id.LoadBalancerName, id.ResourceGroup)
-		}
+		return nil, fmt.Errorf("failed reading Load Balancer %q (resource group %q) for Backend Address Pool %q", id.LoadBalancerName, id.ResourceGroup, id.BackendAddressPoolName)
+	}
+	props := lb.LoadBalancerPropertiesFormat
+	if props == nil || props.BackendAddressPools == nil || len(*props.BackendAddressPools) == 0 {
+		return nil, fmt.Errorf("Backend Pool %q not found in Load Balancer %q (resource group %q)", id.BackendAddressPoolName, id.LoadBalancerName, id.ResourceGroup)
+	}
 
-		found := false
-		for _, v := range *props.BackendAddressPools {
-			if v.Name != nil && *v.Name == id.BackendAddressPoolName {
-				found = true
-			}
+	found := false
+	for _, v := range *props.BackendAddressPools {
+		if v.Name != nil && *v.Name == id.BackendAddressPoolName {
+			found = true
 		}
-		if !found {
-			return nil, fmt.Errorf("Backend Pool %q not found in Load Balancer %q (resource group %q)", id.BackendAddressPoolName, id.LoadBalancerName, id.ResourceGroup)
-		}
-		return utils.Bool(true), nil
+	}
+	if !found {
+		return nil, fmt.Errorf("Backend Pool %q not found in Load Balancer %q (resource group %q)", id.BackendAddressPoolName, id.LoadBalancerName, id.ResourceGroup)
+	}
+	return utils.Bool(true), nil
 }
 
 func (r LoadBalancerBackendAddressPool) IsMissing(loadBalancerName string, backendPoolName string) resource.TestCheckFunc {
