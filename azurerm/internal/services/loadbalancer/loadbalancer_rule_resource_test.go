@@ -62,7 +62,6 @@ func TestAccAzureRMLoadBalancerRule_update(t *testing.T) {
 		{
 			Config: r.complete(data),
 			Check: resource.ComposeTestCheckFunc(
-				// TODO - More attributes?
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
