@@ -1,88 +1,82 @@
 package kusto_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMKustoDatabase_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kusto_database", "test")
+type KustoDatabaseResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoDatabaseDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKustoDatabase_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoDatabaseExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccKustoDatabase_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_database", "test")
+	r := KustoDatabaseResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKustoDatabase_softDeletePeriod(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_database", "test")
+	r := KustoDatabaseResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.softDeletePeriod(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("soft_delete_period").HasValue("P7D"),
+			),
+		},
+		{
+			Config: r.softDeletePeriodUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("soft_delete_period").HasValue("P31D"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMKustoDatabase_softDeletePeriod(t *testing.T) {
+func TestAccKustoDatabase_hotCachePeriod(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_database", "test")
+	r := KustoDatabaseResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoDatabaseDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKustoDatabase_softDeletePeriod(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoDatabaseExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_period", "P7D"),
-				),
-			},
-			{
-				Config: testAccAzureRMKustoDatabase_softDeletePeriodUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoDatabaseExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_period", "P31D"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.hotCachePeriod(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("hot_cache_period").HasValue("P7D"),
+			),
+		},
+		{
+			Config: r.hotCachePeriodUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("hot_cache_period").HasValue("P14DT12H"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMKustoDatabase_hotCachePeriod(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kusto_database", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoDatabaseDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKustoDatabase_hotCachePeriod(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoDatabaseExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "hot_cache_period", "P7D"),
-				),
-			},
-			{
-				Config: testAccAzureRMKustoDatabase_hotCachePeriodUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoDatabaseExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "hot_cache_period", "P14DT12H"),
-				),
-			},
-		},
-	})
-}
-
-func testAccAzureRMKustoDatabase_basic(data acceptance.TestData) string {
+func (KustoDatabaseResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -113,7 +107,7 @@ resource "azurerm_kusto_database" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMKustoDatabase_softDeletePeriod(data acceptance.TestData) string {
+func (KustoDatabaseResource) softDeletePeriod(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -146,7 +140,7 @@ resource "azurerm_kusto_database" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMKustoDatabase_softDeletePeriodUpdate(data acceptance.TestData) string {
+func (KustoDatabaseResource) softDeletePeriodUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -179,7 +173,7 @@ resource "azurerm_kusto_database" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMKustoDatabase_hotCachePeriod(data acceptance.TestData) string {
+func (KustoDatabaseResource) hotCachePeriod(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -212,7 +206,7 @@ resource "azurerm_kusto_database" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMKustoDatabase_hotCachePeriodUpdate(data acceptance.TestData) string {
+func (KustoDatabaseResource) hotCachePeriodUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -245,64 +239,21 @@ resource "azurerm_kusto_database" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func testCheckAzureRMKustoDatabaseDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.DatabasesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_kusto_database" {
-			continue
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		clusterName := rs.Primary.Attributes["cluster_name"]
-		name := rs.Primary.Attributes["name"]
-
-		resp, err := client.Get(ctx, resourceGroup, clusterName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-			return err
-		}
-
-		return nil
+func (KustoDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.DatabaseID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
-
-func testCheckAzureRMKustoDatabaseExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.DatabasesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		kustoDatabase := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Kusto Database: %s", kustoDatabase)
-		}
-
-		clusterName, hasClusterName := rs.Primary.Attributes["cluster_name"]
-		if !hasClusterName {
-			return fmt.Errorf("Bad: no resource group found in state for Kusto Database: %s", kustoDatabase)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, clusterName, kustoDatabase)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Kusto Database %q (resource group: %q, cluster: %q) does not exist", kustoDatabase, resourceGroup, clusterName)
-			}
-
-			return fmt.Errorf("Bad: Get on DatabasesClient: %+v", err)
-		}
-
-		return nil
+	resp, err := clients.Kusto.DatabasesClient.Get(ctx, id.ResourceGroup, id.ClusterName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
+
+	value, ok := resp.Value.AsReadWriteDatabase()
+	if !ok {
+		return nil, fmt.Errorf("%s is not a ReadWriteDatabase", id.String())
+	}
+
+	return utils.Bool(value.ReadWriteDatabaseProperties != nil), nil
 }
