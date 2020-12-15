@@ -76,7 +76,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-datashare-%[1]d"
+  name     = "acctestRG-datashare-%[1]d"
   location = "%[2]s"
 }
 
