@@ -4,31 +4,30 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
 func TestAccAzureRMDataSourceLoadBalancer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_lb", "test")
+	d := LoadBalancer{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDataSourceLoadBalancer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: d.dataSourceBasic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("sku").HasValue("Basic"),
+				check.That(data.ResourceName).Key("location").Exists(),
+				check.That(data.ResourceName).Key("tags.Environment").HasValue("production"),
+				check.That(data.ResourceName).Key("tags.Purpose").HasValue("AcceptanceTests"),
+			),
 		},
 	})
 }
 
-func testAccAzureRMDataSourceLoadBalancer_basic(data acceptance.TestData) string {
-	resource := testAccAzureRMLoadBalancer_basic(data)
+func (r LoadBalancer) dataSourceBasic(data acceptance.TestData) string {
+	resource := r.basic(data)
 	return fmt.Sprintf(`
 %s
 

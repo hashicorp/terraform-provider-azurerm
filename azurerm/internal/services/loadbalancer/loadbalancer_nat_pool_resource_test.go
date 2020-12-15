@@ -1,8 +1,11 @@
 package loadbalancer_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -12,65 +15,56 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type LoadBalancerNatPool struct {
+}
+
 func TestAccAzureRMLoadBalancerNatPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_nat_pool", "test")
+	r := LoadBalancerNatPool{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLoadBalancerNatPool_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerNatPoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMLoadBalancerNatPool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_nat_pool", "test")
+	r := LoadBalancerNatPool{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLoadBalancerNatPool_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerNatPoolExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMLoadBalancerNatPool_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
 func TestAccAzureRMLoadBalancerNatPool_removal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_nat_pool", "test")
+	r := LoadBalancerNatPool{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLoadBalancerNatPool_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerNatPoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMLoadBalancerNatPool_removal(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerNatPoolIsMissing("azurerm_lb.test", fmt.Sprintf("NatPool-%d", data.RandomInteger)),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.removal(data),
+			Check: resource.ComposeTestCheckFunc(
+				r.IsMissing("azurerm_lb.test", fmt.Sprintf("NatPool-%d", data.RandomInteger)),
+			),
 		},
 	})
 }
@@ -79,33 +73,31 @@ func TestAccAzureRMLoadBalancerNatPool_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_nat_pool", "test")
 	data2 := acceptance.BuildTestData(t, "azurerm_lb_nat_pool", "test2")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLoadBalancerNatPool_multiplePools(data, data2),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerNatPoolExists(data.ResourceName),
-					testCheckAzureRMLoadBalancerNatPoolExists(data2.ResourceName),
-					resource.TestCheckResourceAttr(data2.ResourceName, "backend_port", "3390"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMLoadBalancerNatPool_multiplePoolsUpdate(data, data2),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerNatPoolExists(data.ResourceName),
-					testCheckAzureRMLoadBalancerNatPoolExists(data2.ResourceName),
-					resource.TestCheckResourceAttr(data2.ResourceName, "backend_port", "3391"),
-				),
-			},
+	r := LoadBalancerNatPool{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.multiplePools(data, data2),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data2.ResourceName).ExistsInAzure(r),
+				check.That(data2.ResourceName).Key("backend_port").HasValue("3390"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.multiplePoolsUpdate(data, data2),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data2.ResourceName).ExistsInAzure(r),
+				check.That(data2.ResourceName).Key("backend_port").HasValue("3391"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMLoadBalancerNatPoolIsMissing(loadBalancerName string, natPoolName string) resource.TestCheckFunc {
+func (r LoadBalancerNatPool) IsMissing(loadBalancerName string, natPoolName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).LoadBalancers.LoadBalancersClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -145,47 +137,38 @@ func testCheckAzureRMLoadBalancerNatPoolIsMissing(loadBalancerName string, natPo
 	}
 }
 
-func testCheckAzureRMLoadBalancerNatPoolExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).LoadBalancers.LoadBalancersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("not found: %q", resourceName)
-		}
-
-		id, err := parse.LoadBalancerInboundNatPoolID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		lb, err := client.Get(ctx, id.ResourceGroup, id.LoadBalancerName, "")
-		if err != nil {
-			if utils.ResponseWasNotFound(lb.Response) {
-				return fmt.Errorf("Load Balancer %q (resource group %q) not found for Nat Pool %q", id.LoadBalancerName, id.ResourceGroup, id.InboundNatPoolName)
-			}
-			return fmt.Errorf("failed reading Load Balancer %q (resource group %q) for Nat Pool %q", id.LoadBalancerName, id.ResourceGroup, id.InboundNatPoolName)
-		}
-		props := lb.LoadBalancerPropertiesFormat
-		if props == nil || props.InboundNatPools == nil || len(*props.InboundNatPools) == 0 {
-			return fmt.Errorf("Nat Pool %q not found in Load Balancer %q (resource group %q)", id.InboundNatPoolName, id.LoadBalancerName, id.ResourceGroup)
-		}
-
-		found := false
-		for _, v := range *props.InboundNatPools {
-			if v.Name != nil && *v.Name == id.InboundNatPoolName {
-				found = true
-			}
-		}
-		if !found {
-			return fmt.Errorf("Nat Pool %q not found in Load Balancer %q (resource group %q)", id.InboundNatPoolName, id.LoadBalancerName, id.ResourceGroup)
-		}
-		return nil
+func (r LoadBalancerNatPool) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.LoadBalancerInboundNatPoolID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	lb, err := client.LoadBalancers.LoadBalancersClient.Get(ctx, id.ResourceGroup, id.LoadBalancerName, "")
+	if err != nil {
+		if utils.ResponseWasNotFound(lb.Response) {
+			return nil, fmt.Errorf("Load Balancer %q (resource group %q) not found for Nat Pool %q", id.LoadBalancerName, id.ResourceGroup, id.InboundNatPoolName)
+		}
+		return nil, fmt.Errorf("failed reading Load Balancer %q (resource group %q) for Nat Pool %q", id.LoadBalancerName, id.ResourceGroup, id.InboundNatPoolName)
+	}
+	props := lb.LoadBalancerPropertiesFormat
+	if props == nil || props.InboundNatPools == nil || len(*props.InboundNatPools) == 0 {
+		return nil, fmt.Errorf("Nat Pool %q not found in Load Balancer %q (resource group %q)", id.InboundNatPoolName, id.LoadBalancerName, id.ResourceGroup)
+	}
+
+	found := false
+	for _, v := range *props.InboundNatPools {
+		if v.Name != nil && *v.Name == id.InboundNatPoolName {
+			found = true
+		}
+	}
+	if !found {
+		return nil, fmt.Errorf("Nat Pool %q not found in Load Balancer %q (resource group %q)", id.InboundNatPoolName, id.LoadBalancerName, id.ResourceGroup)
+	}
+
+	return utils.Bool(found), nil
 }
 
-func testAccAzureRMLoadBalancerNatPool_basic(data acceptance.TestData) string {
+func (r LoadBalancerNatPool) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -227,8 +210,8 @@ resource "azurerm_lb_nat_pool" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMLoadBalancerNatPool_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMLoadBalancerNatPool_basic(data)
+func (r LoadBalancerNatPool) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -245,7 +228,7 @@ resource "azurerm_lb_nat_pool" "import" {
 `, template)
 }
 
-func testAccAzureRMLoadBalancerNatPool_removal(data acceptance.TestData) string {
+func (r LoadBalancerNatPool) removal(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -276,7 +259,7 @@ resource "azurerm_lb" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMLoadBalancerNatPool_multiplePools(data, data2 acceptance.TestData) string {
+func (r LoadBalancerNatPool) multiplePools(data, data2 acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -332,7 +315,7 @@ resource "azurerm_lb_nat_pool" "test2" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data2.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMLoadBalancerNatPool_multiplePoolsUpdate(data, data2 acceptance.TestData) string {
+func (r LoadBalancerNatPool) multiplePoolsUpdate(data, data2 acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

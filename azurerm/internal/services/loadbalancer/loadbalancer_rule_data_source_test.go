@@ -6,61 +6,54 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
 func TestAccAzureRMDataSourceLoadBalancerRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_lb_rule", "test")
+	r := LoadBalancerRule{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDataSourceLoadBalancerRule_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "frontend_ip_configuration_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "protocol"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "frontend_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "backend_port"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basicDataSource(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("id").Exists(),
+				check.That(data.ResourceName).Key("frontend_ip_configuration_name").Exists(),
+				check.That(data.ResourceName).Key("protocol").Exists(),
+				check.That(data.ResourceName).Key("frontend_port").Exists(),
+				check.That(data.ResourceName).Key("backend_port").Exists(),
+			),
 		},
 	})
 }
 
 func TestAccAzureRMDataSourceLoadBalancerRule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_lb_rule", "test")
+	r := LoadBalancerRule{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDataSourceLoadBalancerRule_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "frontend_ip_configuration_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "protocol"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "frontend_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "backend_port"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "backend_address_pool_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "probe_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "enable_floating_ip"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "enable_tcp_reset"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "disable_outbound_snat"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "idle_timeout_in_minutes"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "load_distribution"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.completeDataSource(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("id").Exists(),
+				check.That(data.ResourceName).Key("frontend_ip_configuration_name").Exists(),
+				check.That(data.ResourceName).Key("protocol").Exists(),
+				check.That(data.ResourceName).Key("frontend_port").Exists(),
+				check.That(data.ResourceName).Key("backend_port").Exists(),
+				check.That(data.ResourceName).Key("backend_address_pool_id").Exists(),
+				check.That(data.ResourceName).Key("probe_id").Exists(),
+				check.That(data.ResourceName).Key("enable_floating_ip").Exists(),
+				check.That(data.ResourceName).Key("enable_tcp_reset").Exists(),
+				check.That(data.ResourceName).Key("disable_outbound_snat").Exists(),
+				check.That(data.ResourceName).Key("idle_timeout_in_minutes").Exists(),
+				check.That(data.ResourceName).Key("load_distribution").Exists(),
+			),
 		},
 	})
 }
 
-func testAccAzureRMDataSourceLoadBalancerRule_basic(data acceptance.TestData) string {
-	template := testAccAzureRMLoadBalancerRule_basic(data, "Basic")
+func (r LoadBalancerRule) basicDataSource(data acceptance.TestData) string {
+	template := r.basic(data, "Basic")
 	return fmt.Sprintf(`
 %s
 
@@ -72,7 +65,8 @@ data "azurerm_lb_rule" "test" {
 `, template)
 }
 
-func testAccAzureRMDataSourceLoadBalancerRule_complete(data acceptance.TestData) string {
+func (r LoadBalancerRule) completeDataSource(data acceptance.TestData) string {
+	template := r.template(data, "Standard")
 	return fmt.Sprintf(`
 %s
 resource "azurerm_lb_backend_address_pool" "test" {
@@ -114,5 +108,5 @@ data "azurerm_lb_rule" "test" {
   resource_group_name = azurerm_lb_rule.test.resource_group_name
   loadbalancer_id     = azurerm_lb_rule.test.loadbalancer_id
 }
-`, testAccAzureRMLoadBalancerRule_template(data, "Standard"), data.RandomStringOfLength(8), data.RandomStringOfLength(8), data.RandomStringOfLength(8))
+`, template, data.RandomStringOfLength(8), data.RandomStringOfLength(8), data.RandomStringOfLength(8))
 }
