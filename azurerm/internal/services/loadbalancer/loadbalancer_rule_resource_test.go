@@ -117,7 +117,7 @@ func TestAccAzureRMLoadBalancerRule_removal(t *testing.T) {
 func TestAccAzureRMLoadBalancerRule_inconsistentReads(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
 	r := LoadBalancerRule{}
-	//p := LoadBalancerProbe{}
+	p := LoadBalancerProbe{}
 	b := LoadBalancerBackendAddressPool{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
@@ -125,8 +125,7 @@ func TestAccAzureRMLoadBalancerRule_inconsistentReads(t *testing.T) {
 			Config: r.inconsistentRead(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				// TODO - refactor with probe
-				testCheckAzureRMLoadBalancerProbeExists("azurerm_lb_probe.test"),
+				check.That("azurerm_lb_probe.test").ExistsInAzure(p),
 				check.That("azurerm_lb_backend_address_pool.test").ExistsInAzure(b),
 			),
 		},
