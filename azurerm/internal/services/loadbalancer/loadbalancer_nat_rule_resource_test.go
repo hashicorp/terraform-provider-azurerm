@@ -2,28 +2,18 @@ package loadbalancer_test
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMLoadBalancerNatRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
-
-	var lb network.LoadBalancer
-	natRuleName := fmt.Sprintf("NatRule-%d", data.RandomInteger)
-
-	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	natRuleId := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestRG-lb-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/inboundNatRules/%s",
-		subscriptionID, data.RandomInteger, data.RandomInteger, natRuleName)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -31,11 +21,9 @@ func TestAccAzureRMLoadBalancerNatRule_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerNatRule_basic(data, natRuleName, "Basic"),
+				Config: testAccAzureRMLoadBalancerNatRule_basic(data, "Basic"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
-					testCheckAzureRMLoadBalancerNatRuleExists(natRuleName, &lb),
-					resource.TestCheckResourceAttr(data.ResourceName, "id", natRuleId),
+					testCheckAzureRMLoadBalancerNatRuleExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -46,25 +34,15 @@ func TestAccAzureRMLoadBalancerNatRule_basic(t *testing.T) {
 func TestAccAzureRMLoadBalancerNatRule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
 
-	var lb network.LoadBalancer
-	natRuleName := fmt.Sprintf("NatRule-%d", data.RandomInteger)
-
-	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	natRuleId := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestRG-lb-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/inboundNatRules/%s",
-		subscriptionID, data.RandomInteger, data.RandomInteger, natRuleName)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerNatRule_complete(data, natRuleName),
+				Config: testAccAzureRMLoadBalancerNatRule_complete(data, "Standard"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
-					testCheckAzureRMLoadBalancerNatRuleExists(natRuleName, &lb),
-					resource.TestCheckResourceAttr(data.ResourceName, "id", natRuleId),
+					testCheckAzureRMLoadBalancerNatRuleExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -75,44 +53,29 @@ func TestAccAzureRMLoadBalancerNatRule_complete(t *testing.T) {
 func TestAccAzureRMLoadBalancerNatRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
 
-	var lb network.LoadBalancer
-	natRuleName := fmt.Sprintf("NatRule-%d", data.RandomInteger)
-
-	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	natRuleId := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestRG-lb-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/inboundNatRules/%s",
-		subscriptionID, data.RandomInteger, data.RandomInteger, natRuleName)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerNatRule_basic(data, natRuleName, "Standard"),
+				Config: testAccAzureRMLoadBalancerNatRule_basic(data, "Standard"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
-					testCheckAzureRMLoadBalancerNatRuleExists(natRuleName, &lb),
-					resource.TestCheckResourceAttr(data.ResourceName, "id", natRuleId),
+					testCheckAzureRMLoadBalancerNatRuleExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMLoadBalancerNatRule_complete(data, natRuleName),
+				Config: testAccAzureRMLoadBalancerNatRule_complete(data, "Standard"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
-					testCheckAzureRMLoadBalancerNatRuleExists(natRuleName, &lb),
-					resource.TestCheckResourceAttr(
-						"azurerm_lb_nat_rule.test", "id", natRuleId),
+					testCheckAzureRMLoadBalancerNatRuleExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMLoadBalancerNatRule_basic(data, natRuleName, "Standard"),
+				Config: testAccAzureRMLoadBalancerNatRule_basic(data, "Standard"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
-					testCheckAzureRMLoadBalancerNatRuleExists(natRuleName, &lb),
-					resource.TestCheckResourceAttr(data.ResourceName, "id", natRuleId),
+					testCheckAzureRMLoadBalancerNatRuleExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -123,29 +86,19 @@ func TestAccAzureRMLoadBalancerNatRule_update(t *testing.T) {
 func TestAccAzureRMLoadBalancerNatRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
 
-	var lb network.LoadBalancer
-	natRuleName := fmt.Sprintf("NatRule-%d", data.RandomInteger)
-
-	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	natRuleId := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestRG-lb-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/inboundNatRules/%s",
-		subscriptionID, data.RandomInteger, data.RandomInteger, natRuleName)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerNatRule_basic(data, natRuleName, "Basic"),
+				Config: testAccAzureRMLoadBalancerNatRule_basic(data, "Basic"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
-					testCheckAzureRMLoadBalancerNatRuleExists(natRuleName, &lb),
-					resource.TestCheckResourceAttr(data.ResourceName, "id", natRuleId),
+					testCheckAzureRMLoadBalancerNatRuleExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMLoadBalancerNatRule_requiresImport(data, natRuleName),
+				Config:      testAccAzureRMLoadBalancerNatRule_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_lb_nat_rule"),
 			},
 		},
@@ -154,8 +107,6 @@ func TestAccAzureRMLoadBalancerNatRule_requiresImport(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerNatRule_removal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
-	var lb network.LoadBalancer
-	natRuleName := fmt.Sprintf("NatRule-%d", data.RandomInteger)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -163,17 +114,16 @@ func TestAccAzureRMLoadBalancerNatRule_removal(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerNatRule_basic(data, natRuleName, "Basic"),
+				Config: testAccAzureRMLoadBalancerNatRule_basic(data, "Basic"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
-					testCheckAzureRMLoadBalancerNatRuleExists(natRuleName, &lb),
+					testCheckAzureRMLoadBalancerNatRuleExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMLoadBalancerNatRule_template(data, "Basic"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
-					testCheckAzureRMLoadBalancerNatRuleNotExists(natRuleName, &lb),
+					testCheckAzureRMLoadBalancerNatRuleIsMissing("azurerm_lb.test", fmt.Sprintf("NatRule-%d", data.RandomInteger)),
 				),
 			},
 		},
@@ -181,11 +131,8 @@ func TestAccAzureRMLoadBalancerNatRule_removal(t *testing.T) {
 }
 
 func TestAccAzureRMLoadBalancerNatRule_updateMultipleRules(t *testing.T) {
-	data1 := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
 	data2 := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test2")
-	var lb network.LoadBalancer
-	natRuleName := fmt.Sprintf("NatRule-%d", data1.RandomInteger)
-	natRule2Name := fmt.Sprintf("NatRule-%d", data2.RandomInteger)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -193,21 +140,19 @@ func TestAccAzureRMLoadBalancerNatRule_updateMultipleRules(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerNatRule_multipleRules(data1, natRuleName, natRule2Name),
+				Config: testAccAzureRMLoadBalancerNatRule_multipleRules(data, data2),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
-					testCheckAzureRMLoadBalancerNatRuleExists(natRuleName, &lb),
-					testCheckAzureRMLoadBalancerNatRuleExists(natRule2Name, &lb),
+					testCheckAzureRMLoadBalancerNatRuleExists(data.ResourceName),
+					testCheckAzureRMLoadBalancerNatRuleExists(data2.ResourceName),
 					resource.TestCheckResourceAttr(data2.ResourceName, "frontend_port", "3390"),
 					resource.TestCheckResourceAttr(data2.ResourceName, "backend_port", "3390"),
 				),
 			},
 			{
-				Config: testAccAzureRMLoadBalancerNatRule_multipleRulesUpdate(data1, natRuleName, natRule2Name),
+				Config: testAccAzureRMLoadBalancerNatRule_multipleRulesUpdate(data, data2),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
-					testCheckAzureRMLoadBalancerNatRuleExists(natRuleName, &lb),
-					testCheckAzureRMLoadBalancerNatRuleExists(natRule2Name, &lb),
+					testCheckAzureRMLoadBalancerNatRuleExists(data.ResourceName),
+					testCheckAzureRMLoadBalancerNatRuleExists(data2.ResourceName),
 					resource.TestCheckResourceAttr(data2.ResourceName, "frontend_port", "3391"),
 					resource.TestCheckResourceAttr(data2.ResourceName, "backend_port", "3391"),
 				),
@@ -216,82 +161,83 @@ func TestAccAzureRMLoadBalancerNatRule_updateMultipleRules(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLoadBalancerNatRule_disappears(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
-
-	var lb network.LoadBalancer
-	natRuleName := fmt.Sprintf("NatRule-%d", data.RandomInteger)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLoadBalancerNatRule_basic(data, natRuleName, "Basic"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
-					testCheckAzureRMLoadBalancerNatRuleExists(natRuleName, &lb),
-					testCheckAzureRMLoadBalancerNatRuleDisappears(natRuleName, &lb),
-				),
-				ExpectNonEmptyPlan: true,
-			},
-		},
-	})
-}
-
-func testCheckAzureRMLoadBalancerNatRuleExists(natRuleName string, lb *network.LoadBalancer) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		_, _, exists := loadbalancer.FindLoadBalancerNatRuleByName(lb, natRuleName)
-		if !exists {
-			return fmt.Errorf("A NAT Rule with name %q cannot be found.", natRuleName)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMLoadBalancerNatRuleNotExists(natRuleName string, lb *network.LoadBalancer) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		_, _, exists := loadbalancer.FindLoadBalancerNatRuleByName(lb, natRuleName)
-		if exists {
-			return fmt.Errorf("A NAT Rule with name %q has been found.", natRuleName)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMLoadBalancerNatRuleDisappears(natRuleName string, lb *network.LoadBalancer) resource.TestCheckFunc {
+func testCheckAzureRMLoadBalancerNatRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).LoadBalancers.LoadBalancersClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-		_, i, exists := loadbalancer.FindLoadBalancerNatRuleByName(lb, natRuleName)
-		if !exists {
-			return fmt.Errorf("A Nat Rule with name %q cannot be found.", natRuleName)
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("not found: %q", resourceName)
 		}
 
-		currentRules := *lb.LoadBalancerPropertiesFormat.InboundNatRules
-		rules := append(currentRules[:i], currentRules[i+1:]...)
-		lb.LoadBalancerPropertiesFormat.InboundNatRules = &rules
-
-		id, err := azure.ParseAzureResourceID(*lb.ID)
+		id, err := parse.LoadBalancerInboundNatRuleID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, *lb.Name, *lb)
+		lb, err := client.Get(ctx, id.ResourceGroup, id.LoadBalancerName, "")
 		if err != nil {
-			return fmt.Errorf("Error Creating/Updating Load Balancer %+v", err)
+			if utils.ResponseWasNotFound(lb.Response) {
+				return fmt.Errorf("Load Balancer %q (resource group %q) not found for Nat Rule %q", id.LoadBalancerName, id.ResourceGroup, id.InboundNatRuleName)
+			}
+			return fmt.Errorf("failed reading Load Balancer %q (resource group %q) for Nat Rule %q", id.LoadBalancerName, id.ResourceGroup, id.InboundNatRuleName)
+		}
+		props := lb.LoadBalancerPropertiesFormat
+		if props == nil || props.InboundNatRules == nil || len(*props.InboundNatRules) == 0 {
+			return fmt.Errorf("Nat Rule %q not found in Load Balancer %q (resource group %q)", id.InboundNatRuleName, id.LoadBalancerName, id.ResourceGroup)
 		}
 
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for the completion of Load Balancer %q (Resource Group %q): %+v", *lb.Name, id.ResourceGroup, err)
+		found := false
+		for _, v := range *props.InboundNatRules {
+			if v.Name != nil && *v.Name == id.InboundNatRuleName {
+				found = true
+			}
+		}
+		if !found {
+			return fmt.Errorf("Nat Rule %q not found in Load Balancer %q (resource group %q)", id.InboundNatRuleName, id.LoadBalancerName, id.ResourceGroup)
+		}
+		return nil
+	}
+}
+
+func testCheckAzureRMLoadBalancerNatRuleIsMissing(loadBalancerName string, natRuleName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).LoadBalancers.LoadBalancersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		rs, ok := s.RootModule().Resources[loadBalancerName]
+		if !ok {
+			return fmt.Errorf("not found: %q", loadBalancerName)
 		}
 
-		_, err = client.Get(ctx, id.ResourceGroup, *lb.Name, "")
-		return err
+		id, err := parse.LoadBalancerID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+
+		lb, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+		if err != nil {
+			if utils.ResponseWasNotFound(lb.Response) {
+				return fmt.Errorf("Load Balancer %q (resource group %q) not found while checking for Nat Rule removal", id.Name, id.ResourceGroup)
+			}
+			return fmt.Errorf("failed reading Load Balancer %q (resource group %q) for Nat Rule removal", id.Name, id.ResourceGroup)
+		}
+		props := lb.LoadBalancerPropertiesFormat
+		if props == nil || props.InboundNatRules == nil {
+			return fmt.Errorf("Nat Rule %q not found in Load Balancer %q (resource group %q)", natRuleName, id.Name, id.ResourceGroup)
+		}
+
+		found := false
+		for _, v := range *props.InboundNatRules {
+			if v.Name != nil && *v.Name == natRuleName {
+				found = true
+			}
+		}
+		if found {
+			return fmt.Errorf("Nat Rule %q not removed from Load Balancer %q (resource group %q)", natRuleName, id.Name, id.ResourceGroup)
+		}
+		return nil
 	}
 }
 
@@ -328,28 +274,30 @@ resource "azurerm_lb" "test" {
 `, data.RandomInteger, data.Locations.Primary, sku)
 }
 
-func testAccAzureRMLoadBalancerNatRule_basic(data acceptance.TestData, natRuleName string, sku string) string {
+func testAccAzureRMLoadBalancerNatRule_basic(data acceptance.TestData, sku string) string {
+	template := testAccAzureRMLoadBalancerNatRule_template(data, sku)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_lb_nat_rule" "test" {
   resource_group_name            = "${azurerm_resource_group.test.name}"
   loadbalancer_id                = "${azurerm_lb.test.id}"
-  name                           = "%s"
+  name                           = "NatRule-%d"
   protocol                       = "Tcp"
   frontend_port                  = 3389
   backend_port                   = 3389
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
-`, testAccAzureRMLoadBalancerNatRule_template(data, sku), natRuleName)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMLoadBalancerNatRule_complete(data acceptance.TestData, natRuleName string) string {
+func testAccAzureRMLoadBalancerNatRule_complete(data acceptance.TestData, sku string) string {
+	template := testAccAzureRMLoadBalancerNatRule_template(data, sku)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_lb_nat_rule" "test" {
-  name                = "%s"
+  name                = "NatRule-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   loadbalancer_id     = "${azurerm_lb.test.id}"
 
@@ -363,11 +311,11 @@ resource "azurerm_lb_nat_rule" "test" {
 
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
-`, testAccAzureRMLoadBalancerNatRule_template(data, "Standard"), natRuleName)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMLoadBalancerNatRule_requiresImport(data acceptance.TestData, name string) string {
-	template := testAccAzureRMLoadBalancerNatRule_basic(data, name, "Basic")
+func testAccAzureRMLoadBalancerNatRule_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMLoadBalancerNatRule_basic(data, "Basic")
 	return fmt.Sprintf(`
 %s
 
@@ -383,14 +331,14 @@ resource "azurerm_lb_nat_rule" "import" {
 `, template)
 }
 
-func testAccAzureRMLoadBalancerNatRule_multipleRules(data acceptance.TestData, natRuleName, natRule2Name string) string {
+func testAccAzureRMLoadBalancerNatRule_multipleRules(data, data2 acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_lb_nat_rule" "test" {
   resource_group_name            = "${azurerm_resource_group.test.name}"
   loadbalancer_id                = "${azurerm_lb.test.id}"
-  name                           = "%s"
+  name                           = "NatRule-%d"
   protocol                       = "Tcp"
   frontend_port                  = 3389
   backend_port                   = 3389
@@ -400,22 +348,22 @@ resource "azurerm_lb_nat_rule" "test" {
 resource "azurerm_lb_nat_rule" "test2" {
   resource_group_name            = "${azurerm_resource_group.test.name}"
   loadbalancer_id                = "${azurerm_lb.test.id}"
-  name                           = "%s"
+  name                           = "NatRule-%d"
   protocol                       = "Tcp"
   frontend_port                  = 3390
   backend_port                   = 3390
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
-`, testAccAzureRMLoadBalancerNatRule_template(data, "Basic"), natRuleName, natRule2Name)
+`, testAccAzureRMLoadBalancerNatRule_template(data, "Basic"), data.RandomInteger, data2.RandomInteger)
 }
 
-func testAccAzureRMLoadBalancerNatRule_multipleRulesUpdate(data acceptance.TestData, natRuleName, natRule2Name string) string {
+func testAccAzureRMLoadBalancerNatRule_multipleRulesUpdate(data, data2 acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_lb_nat_rule" "test" {
   resource_group_name            = "${azurerm_resource_group.test.name}"
   loadbalancer_id                = "${azurerm_lb.test.id}"
-  name                           = "%s"
+  name                           = "NatRule-%d"
   protocol                       = "Tcp"
   frontend_port                  = 3389
   backend_port                   = 3389
@@ -425,11 +373,11 @@ resource "azurerm_lb_nat_rule" "test" {
 resource "azurerm_lb_nat_rule" "test2" {
   resource_group_name            = "${azurerm_resource_group.test.name}"
   loadbalancer_id                = "${azurerm_lb.test.id}"
-  name                           = "%s"
+  name                           = "NatRule-%d"
   protocol                       = "Tcp"
   frontend_port                  = 3391
   backend_port                   = 3391
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
-`, testAccAzureRMLoadBalancerNatRule_template(data, "Basic"), natRuleName, natRule2Name)
+`, testAccAzureRMLoadBalancerNatRule_template(data, "Basic"), data.RandomInteger, data2.RandomInteger)
 }
