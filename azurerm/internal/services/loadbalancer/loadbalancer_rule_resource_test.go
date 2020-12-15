@@ -1,127 +1,114 @@
 package loadbalancer_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type LoadBalancerRule struct {
+}
+
 func TestAccAzureRMLoadBalancerRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
+	r := LoadBalancerRule{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLoadBalancerRule_basic(data, "Basic"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerRuleExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "Basic"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMLoadBalancerRule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
+	r := LoadBalancerRule{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLoadBalancerRule_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerRuleExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMLoadBalancerRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
+	r := LoadBalancerRule{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLoadBalancerRule_basic(data, "Basic"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerRuleExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMLoadBalancerRule_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerRuleExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMLoadBalancerRule_basic(data, "Basic"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerRuleExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "Basic"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				// TODO - More attributes?
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data, "Basic"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMLoadBalancerRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
+	r := LoadBalancerRule{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLoadBalancerRule_basic(data, "Basic"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerRuleExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMLoadBalancerRule_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "Basic"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
 func TestAccAzureRMLoadBalancerRule_removal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
+	r := LoadBalancerRule{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLoadBalancerRule_basic(data, "Basic"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerRuleExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMLoadBalancerRule_template(data, "Basic"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerRuleNotExists("azurerm_lb.test", fmt.Sprintf("LbRule-%s", data.RandomStringOfLength(8))),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "Basic"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.template(data, "Basic"),
+			Check: resource.ComposeTestCheckFunc(
+				r.IsMissing("azurerm_lb.test", fmt.Sprintf("LbRule-%s", data.RandomStringOfLength(8))),
+			),
 		},
 	})
 }
@@ -129,102 +116,86 @@ func TestAccAzureRMLoadBalancerRule_removal(t *testing.T) {
 // https://github.com/hashicorp/terraform/issues/9424
 func TestAccAzureRMLoadBalancerRule_inconsistentReads(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
+	r := LoadBalancerRule{}
+	//p := LoadBalancerProbe{}
+	b := LoadBalancerBackendAddressPool{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLoadBalancerRule_inconsistentRead(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerRuleExists(data.ResourceName),
-					testCheckAzureRMLoadBalancerProbeExists("azurerm_lb_probe.test"),
-					// TODO - cross child resource test
-					// testCheckAzureRMLoadBalancerBackEndAddressPoolExists("azurerm_lb_backend_address_pool.test"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.inconsistentRead(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				// TODO - refactor with probe
+				testCheckAzureRMLoadBalancerProbeExists("azurerm_lb_probe.test"),
+				check.That("azurerm_lb_backend_address_pool.test").ExistsInAzure(b),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMLoadBalancerRule_updateMultipleRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
 	data2 := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
+	r := LoadBalancerRule{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLoadBalancerRule_multipleRules(data, data2),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerRuleExists(data.ResourceName),
-					testCheckAzureRMLoadBalancerRuleExists(data2.ResourceName),
-					resource.TestCheckResourceAttr("azurerm_lb_rule.test2", "frontend_port", "3390"),
-					resource.TestCheckResourceAttr("azurerm_lb_rule.test2", "backend_port", "3390"),
-				),
-			},
-			data.ImportStep(),
-			data2.ImportStep(),
-			{
-				Config: testAccAzureRMLoadBalancerRule_multipleRulesUpdate(data, data2),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerRuleExists(data.ResourceName),
-					testCheckAzureRMLoadBalancerRuleExists(data2.ResourceName),
-					resource.TestCheckResourceAttr("azurerm_lb_rule.test2", "frontend_port", "3391"),
-					resource.TestCheckResourceAttr("azurerm_lb_rule.test2", "backend_port", "3391"),
-				),
-			},
-			data.ImportStep(),
-			data2.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.multipleRules(data, data2),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data2.ResourceName).ExistsInAzure(r),
+				check.That(data2.ResourceName).Key("frontend_port").HasValue("3390"),
+				check.That(data2.ResourceName).Key("backend_port").HasValue("3390"),
+			),
 		},
+		data.ImportStep(),
+		data2.ImportStep(),
+		{
+			Config: r.multipleRulesUpdate(data, data2),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data2.ResourceName).ExistsInAzure(r),
+				check.That(data2.ResourceName).Key("frontend_port").HasValue("3391"),
+				check.That(data2.ResourceName).Key("backend_port").HasValue("3391"),
+			),
+		},
+		data.ImportStep(),
+		data2.ImportStep(),
 	})
 }
 
-func testCheckAzureRMLoadBalancerRuleExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).LoadBalancers.LoadBalancersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("not found: %q", resourceName)
-		}
-
-		id, err := parse.LoadBalancingRuleID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		lb, err := client.Get(ctx, id.ResourceGroup, id.LoadBalancerName, "")
-		if err != nil {
-			if utils.ResponseWasNotFound(lb.Response) {
-				return fmt.Errorf("Load Balancer %q (resource group %q) not found for Load Balancing Rule %q", id.LoadBalancerName, id.ResourceGroup, id.Name)
-			}
-			return fmt.Errorf("failed reading Load Balancer %q (resource group %q) for Load Balancing Rule %q", id.LoadBalancerName, id.ResourceGroup, id.Name)
-		}
-		props := lb.LoadBalancerPropertiesFormat
-		if props == nil || props.LoadBalancingRules == nil || len(*props.LoadBalancingRules) == 0 {
-			return fmt.Errorf("Load Balancing Rule %q not found in Load Balancer %q (resource group %q)", id.Name, id.LoadBalancerName, id.ResourceGroup)
-		}
-
-		found := false
-		for _, v := range *props.LoadBalancingRules {
-			if v.Name != nil && *v.Name == id.Name {
-				found = true
-			}
-		}
-		if !found {
-			return fmt.Errorf("Load Balancing Rule %q not found in Load Balancer %q (resource group %q)", id.Name, id.LoadBalancerName, id.ResourceGroup)
-		}
-		return nil
+func (r LoadBalancerRule) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.LoadBalancingRuleID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	lb, err := client.LoadBalancers.LoadBalancersClient.Get(ctx, id.ResourceGroup, id.LoadBalancerName, "")
+	if err != nil {
+		if utils.ResponseWasNotFound(lb.Response) {
+			return nil, fmt.Errorf("Load Balancer %q (resource group %q) not found for Load Balancing Rule %q", id.LoadBalancerName, id.ResourceGroup, id.Name)
+		}
+		return nil, fmt.Errorf("failed reading Load Balancer %q (resource group %q) for Load Balancing Rule %q", id.LoadBalancerName, id.ResourceGroup, id.Name)
+	}
+	props := lb.LoadBalancerPropertiesFormat
+	if props == nil || props.LoadBalancingRules == nil || len(*props.LoadBalancingRules) == 0 {
+		return nil, fmt.Errorf("Load Balancing Rule %q not found in Load Balancer %q (resource group %q)", id.Name, id.LoadBalancerName, id.ResourceGroup)
+	}
+
+	found := false
+	for _, v := range *props.LoadBalancingRules {
+		if v.Name != nil && *v.Name == id.Name {
+			found = true
+		}
+	}
+	if !found {
+		return nil, fmt.Errorf("Load Balancing Rule %q not found in Load Balancer %q (resource group %q)", id.Name, id.LoadBalancerName, id.ResourceGroup)
+	}
+	return utils.Bool(found), nil
 }
 
-func testCheckAzureRMLoadBalancerRuleNotExists(loadBalancerName string, loadBalancingRuleName string) resource.TestCheckFunc {
+func (r LoadBalancerRule) IsMissing(loadBalancerName string, loadBalancingRuleName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).LoadBalancers.LoadBalancersClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -264,7 +235,7 @@ func testCheckAzureRMLoadBalancerRuleNotExists(loadBalancerName string, loadBala
 	}
 }
 
-func testAccAzureRMLoadBalancerRule_template(data acceptance.TestData, sku string) string {
+func (r LoadBalancerRule) template(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -298,8 +269,8 @@ resource "azurerm_lb" "test" {
 }
 
 // nolint: unparam
-func testAccAzureRMLoadBalancerRule_basic(data acceptance.TestData, sku string) string {
-	template := testAccAzureRMLoadBalancerRule_template(data, sku)
+func (r LoadBalancerRule) basic(data acceptance.TestData, sku string) string {
+	template := r.template(data, sku)
 	return fmt.Sprintf(`
 %s
 
@@ -315,8 +286,8 @@ resource "azurerm_lb_rule" "test" {
 `, template, data.RandomStringOfLength(8))
 }
 
-func testAccAzureRMLoadBalancerRule_complete(data acceptance.TestData) string {
-	template := testAccAzureRMLoadBalancerRule_template(data, "Standard")
+func (r LoadBalancerRule) complete(data acceptance.TestData) string {
+	template := r.template(data, "Standard")
 	return fmt.Sprintf(`
 %s
 
@@ -339,8 +310,8 @@ resource "azurerm_lb_rule" "test" {
 `, template, data.RandomStringOfLength(8))
 }
 
-func testAccAzureRMLoadBalancerRule_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMLoadBalancerRule_basic(data, "Basic")
+func (r LoadBalancerRule) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data, "Basic")
 	return fmt.Sprintf(`
 %s
 
@@ -357,8 +328,8 @@ resource "azurerm_lb_rule" "import" {
 }
 
 // https://github.com/hashicorp/terraform/issues/9424
-func testAccAzureRMLoadBalancerRule_inconsistentRead(data acceptance.TestData) string {
-	template := testAccAzureRMLoadBalancerRule_template(data, "Basic")
+func (r LoadBalancerRule) inconsistentRead(data acceptance.TestData) string {
+	template := r.template(data, "Basic")
 	return fmt.Sprintf(`
 %s
 
@@ -388,8 +359,8 @@ resource "azurerm_lb_rule" "test" {
 `, template, data.RandomInteger, data.RandomInteger, data.RandomStringOfLength(8))
 }
 
-func testAccAzureRMLoadBalancerRule_multipleRules(data, data2 acceptance.TestData) string {
-	template := testAccAzureRMLoadBalancerRule_template(data, "Basic")
+func (r LoadBalancerRule) multipleRules(data, data2 acceptance.TestData) string {
+	template := r.template(data, "Basic")
 	return fmt.Sprintf(`
 %s
 
@@ -415,7 +386,8 @@ resource "azurerm_lb_rule" "test2" {
 `, template, data.RandomStringOfLength(8), data2.RandomStringOfLength(8))
 }
 
-func testAccAzureRMLoadBalancerRule_multipleRulesUpdate(data, data2 acceptance.TestData) string {
+func (r LoadBalancerRule) multipleRulesUpdate(data, data2 acceptance.TestData) string {
+	template := r.template(data, "Basic")
 	return fmt.Sprintf(`
 %s
 
@@ -438,5 +410,5 @@ resource "azurerm_lb_rule" "test2" {
   backend_port                   = 3391
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
-`, testAccAzureRMLoadBalancerRule_template(data, "Basic"), data.RandomStringOfLength(8), data2.RandomStringOfLength(8))
+`, template, data.RandomStringOfLength(8), data2.RandomStringOfLength(8))
 }
