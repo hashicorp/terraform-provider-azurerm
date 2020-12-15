@@ -13,10 +13,6 @@ import (
 )
 
 func TestAccAzureRMVirtualHubBgpConnection_basic(t *testing.T) {
-	if true {
-		t.Skip("Skipping due to API issue preventing deletion")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_bgp_connection", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -35,10 +31,6 @@ func TestAccAzureRMVirtualHubBgpConnection_basic(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualHubBgpConnection_requiresImport(t *testing.T) {
-	if true {
-		t.Skip("Skipping due to API issue preventing deletion")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_bgp_connection", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -148,6 +140,13 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.5.1.0/24"
 }
 
+resource "azurerm_subnet" "gateway" {
+  name                 = "GatewaySubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.5.0.0/24"
+}
+
 resource "azurerm_virtual_hub_ip" "test" {
   name                         = "acctest-VHub-IP-%d"
   virtual_hub_id               = azurerm_virtual_hub.test.id
@@ -155,6 +154,8 @@ resource "azurerm_virtual_hub_ip" "test" {
   private_ip_allocation_method = "Static"
   public_ip_address_id         = azurerm_public_ip.test.id
   subnet_id                    = azurerm_subnet.test.id
+
+  depends_on = [azurerm_subnet.gateway]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

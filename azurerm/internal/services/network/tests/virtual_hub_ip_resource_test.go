@@ -13,10 +13,6 @@ import (
 )
 
 func TestAccAzureRMVirtualHubIP_basic(t *testing.T) {
-	if true {
-		t.Skip("Skipping due to API issue preventing deletion")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_ip", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -36,10 +32,6 @@ func TestAccAzureRMVirtualHubIP_basic(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualHubIP_requiresImport(t *testing.T) {
-	if true {
-		t.Skip("Skipping due to API issue preventing deletion")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_ip", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -62,10 +54,6 @@ func TestAccAzureRMVirtualHubIP_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualHubIP_complete(t *testing.T) {
-	if true {
-		t.Skip("Skipping due to API issue preventing deletion")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_ip", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -85,10 +73,6 @@ func TestAccAzureRMVirtualHubIP_complete(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualHubIP_update(t *testing.T) {
-	if true {
-		t.Skip("Skipping due to API issue preventing deletion")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_ip", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -175,6 +159,8 @@ resource "azurerm_virtual_hub_ip" "test" {
   name           = "acctest-vhubipconfig-%d"
   virtual_hub_id = azurerm_virtual_hub.test.id
   subnet_id      = azurerm_subnet.test.id
+
+  depends_on = [azurerm_subnet.gateway]
 }
 `, template, data.RandomInteger)
 }
@@ -188,6 +174,8 @@ resource "azurerm_virtual_hub_ip" "import" {
   name           = azurerm_virtual_hub_ip.test.name
   virtual_hub_id = azurerm_virtual_hub_ip.test.virtual_hub_id
   subnet_id      = azurerm_virtual_hub_ip.test.subnet_id
+
+  depends_on = [azurerm_subnet.gateway]
 }
 `, template)
 }
@@ -204,6 +192,8 @@ resource "azurerm_virtual_hub_ip" "test" {
   private_ip_allocation_method = "Static"
   public_ip_address_id         = azurerm_public_ip.test.id
   subnet_id                    = azurerm_subnet.test.id
+
+  depends_on = [azurerm_subnet.gateway]
 }
 `, template, data.RandomInteger)
 }
@@ -245,6 +235,13 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.5.1.0/24"
+}
+
+resource "azurerm_subnet" "gateway" {
+  name                 = "GatewaySubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.5.0.0/24"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
