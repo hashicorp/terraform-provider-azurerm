@@ -30,7 +30,6 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_basic(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
-
 }
 
 func TestAccAzureRMLoadBalancerBackEndAddressPool_requiresImport(t *testing.T) {
