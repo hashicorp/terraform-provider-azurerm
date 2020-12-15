@@ -46,6 +46,13 @@ resource "azurerm_subnet" "example" {
   address_prefix       = "10.5.1.0/24"
 }
 
+resource "azurerm_subnet" "gateway" {
+  name                 = "GatewaySubnet"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefix       = "10.5.0.0/24"
+}
+
 resource "azurerm_virtual_hub_ip" "example" {
   name                         = "example-vhubip"
   virtual_hub_id               = azurerm_virtual_hub.example.id
@@ -53,6 +60,8 @@ resource "azurerm_virtual_hub_ip" "example" {
   private_ip_allocation_method = "Static"
   public_ip_address_id         = azurerm_public_ip.example.id
   subnet_id                    = azurerm_subnet.example.id
+
+  depends_on = [azurerm_subnet.gateway]
 }
 
 resource "azurerm_virtual_hub_bgp_connection" "example" {
