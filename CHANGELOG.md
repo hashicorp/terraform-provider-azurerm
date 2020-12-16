@@ -8,6 +8,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* `azurerm_app_service` - Add support for `outbound_ip_address_list` and `possible_outbound_ip_address_list` [GH-9871]
 * `azurerm_disk_encryption_set` - support for updating `key_vault_key_id` [GH-7913]
 * `azurerm_iot_time_series_insights_gen2_environment` - exposing `data_access_fqdn` [GH-9848]
 * `azurerm_subnet` - support for the `service_endpoint_policy` block [GH-8966]
