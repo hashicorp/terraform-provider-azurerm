@@ -112,6 +112,7 @@ func testCheckAzureRMLogAnalyticsLinkedServiceDestroy(s *terraform.State) error 
 		}
 
 		resp, err := conn.Get(ctx, resourceGroup, workspace.Name, parse.LogAnalyticsLinkedServiceType(readAccess))
+
 		if err != nil {
 			return nil
 		}
@@ -120,7 +121,7 @@ func testCheckAzureRMLogAnalyticsLinkedServiceDestroy(s *terraform.State) error 
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Bad: Log Analytics Linked Service still exists:\n%#v", resp)
+			return fmt.Errorf("Log Analytics Linked Service still exists:\n%#v", resp)
 		}
 	}
 

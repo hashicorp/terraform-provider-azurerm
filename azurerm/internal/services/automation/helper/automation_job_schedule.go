@@ -24,7 +24,7 @@ func JobScheduleSchema() *schema.Schema {
 				"schedule_name": {
 					Type:         schema.TypeString,
 					Required:     true,
-					ValidateFunc: validate.AutomationScheduleName(),
+					ValidateFunc: validate.ScheduleName(),
 				},
 
 				"parameters": {

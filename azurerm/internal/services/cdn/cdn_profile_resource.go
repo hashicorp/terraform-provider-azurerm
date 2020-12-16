@@ -22,12 +22,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmCdnProfile() *schema.Resource {
+func resourceCdnProfile() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCdnProfileCreate,
-		Read:   resourceArmCdnProfileRead,
-		Update: resourceArmCdnProfileUpdate,
-		Delete: resourceArmCdnProfileDelete,
+		Create: resourceCdnProfileCreate,
+		Read:   resourceCdnProfileRead,
+		Update: resourceCdnProfileUpdate,
+		Delete: resourceCdnProfileDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -37,7 +37,7 @@ func resourceArmCdnProfile() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.CdnProfileID(id)
+			_, err := parse.ProfileID(id)
 			return err
 		}),
 
@@ -80,8 +80,7 @@ func resourceArmCdnProfile() *schema.Resource {
 	}
 }
 
-func resourceArmCdnProfileCreate(d *schema.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+func resourceCdnProfileCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.ProfilesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -133,17 +132,17 @@ func resourceArmCdnProfileCreate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Cannot read CDN Profile %s (resource group %s) ID", name, resGroup)
 	}
 
-	id, err := parse.CdnProfileID(*read.ID)
+	id, err := parse.ProfileID(*read.ID)
 	if err != nil {
 		return err
 	}
 
-	d.SetId(id.ID(subscriptionId))
+	d.SetId(id.ID())
 
-	return resourceArmCdnProfileRead(d, meta)
+	return resourceCdnProfileRead(d, meta)
 }
 
-func resourceArmCdnProfileUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCdnProfileUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.ProfilesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -152,7 +151,7 @@ func resourceArmCdnProfileUpdate(d *schema.ResourceData, meta interface{}) error
 		return nil
 	}
 
-	id, err := parse.CdnProfileID(d.Id())
+	id, err := parse.ProfileID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -174,15 +173,15 @@ func resourceArmCdnProfileUpdate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error waiting for the update of CDN Profile %q (Resource Group %q) to commplete: %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return resourceArmCdnProfileRead(d, meta)
+	return resourceCdnProfileRead(d, meta)
 }
 
-func resourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
+func resourceCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.ProfilesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CdnProfileID(d.Id())
+	id, err := parse.ProfileID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -209,31 +208,29 @@ func resourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmCdnProfileDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceCdnProfileDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.ProfilesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ProfileID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Path["profiles"]
-	future, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error issuing delete request for CDN Profile %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting CDN Profile %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error waiting for CDN Profile %q (Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for deletion of CDN Profile %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return err

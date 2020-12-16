@@ -11,7 +11,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -22,9 +24,10 @@ func resourceArmPrivateDnsSrvRecord() *schema.Resource {
 		Read:   resourceArmPrivateDnsSrvRecordRead,
 		Update: resourceArmPrivateDnsSrvRecordCreateUpdate,
 		Delete: resourceArmPrivateDnsSrvRecordDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.SrvRecordID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -102,23 +105,21 @@ func resourceArmPrivateDnsSrvRecord() *schema.Resource {
 
 func resourceArmPrivateDnsSrvRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PrivateDns.RecordSetsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
-	zoneName := d.Get("zone_name").(string)
-
+	resourceId := parse.NewSrvRecordID(subscriptionId, d.Get("resource_group_name").(string), d.Get("zone_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, zoneName, privatedns.SRV, name)
+		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.PrivateDnsZoneName, privatedns.SRV, resourceId.SRVName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Private DNS SRV Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+				return fmt.Errorf("checking for presence of %s: %+v", resourceId, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_private_dns_srv_record", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_private_dns_srv_record", resourceId.ID())
 		}
 	}
 
@@ -126,7 +127,7 @@ func resourceArmPrivateDnsSrvRecordCreateUpdate(d *schema.ResourceData, meta int
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := privatedns.RecordSet{
-		Name: &name,
+		Name: utils.String(resourceId.SRVName),
 		RecordSetProperties: &privatedns.RecordSetProperties{
 			Metadata:   tags.Expand(t),
 			TTL:        &ttl,
@@ -134,21 +135,11 @@ func resourceArmPrivateDnsSrvRecordCreateUpdate(d *schema.ResourceData, meta int
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, privatedns.SRV, name, parameters, "", ""); err != nil {
-		return fmt.Errorf("Error creating/updating Private DNS SRV Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.PrivateDnsZoneName, privatedns.SRV, resourceId.SRVName, parameters, "", ""); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", resourceId, err)
 	}
 
-	resp, err := client.Get(ctx, resGroup, zoneName, privatedns.SRV, name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving Private DNS SRV Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Private DNS SRV Record %s (resource group %s) ID", name, resGroup)
-	}
-
-	d.SetId(*resp.ID)
-
+	d.SetId(resourceId.ID())
 	return resourceArmPrivateDnsSrvRecordRead(d, meta)
 }
 
@@ -157,27 +148,24 @@ func resourceArmPrivateDnsSrvRecordRead(d *schema.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SrvRecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Path["SRV"]
-	zoneName := id.Path["privateDnsZones"]
-
-	resp, err := dnsClient.Get(ctx, resGroup, zoneName, privatedns.SRV, name)
+	resp, err := dnsClient.Get(ctx, id.ResourceGroup, id.PrivateDnsZoneName, privatedns.SRV, id.SRVName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Private DNS SRV record %s: %+v", name, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resGroup)
-	d.Set("zone_name", zoneName)
+	d.Set("name", id.SRVName)
+	d.Set("zone_name", id.PrivateDnsZoneName)
+	d.Set("resource_group_name", id.ResourceGroup)
+
 	d.Set("ttl", resp.TTL)
 	d.Set("fqdn", resp.Fqdn)
 
@@ -193,18 +181,13 @@ func resourceArmPrivateDnsSrvRecordDelete(d *schema.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SrvRecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Path["SRV"]
-	zoneName := id.Path["privateDnsZones"]
-
-	_, err = dnsClient.Delete(ctx, resGroup, zoneName, privatedns.SRV, name, "")
-	if err != nil {
-		return fmt.Errorf("Error deleting Private DNS SRV Record %s: %+v", name, err)
+	if _, err = dnsClient.Delete(ctx, id.ResourceGroup, id.PrivateDnsZoneName, privatedns.SRV, id.SRVName, ""); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil

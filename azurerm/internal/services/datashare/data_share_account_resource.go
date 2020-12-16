@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataShareAccount() *schema.Resource {
+func resourceDataShareAccount() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataShareAccountCreate,
-		Read:   resourceArmDataShareAccountRead,
-		Update: resourceArmDataShareAccountUpdate,
-		Delete: resourceArmDataShareAccountDelete,
+		Create: resourceDataShareAccountCreate,
+		Read:   resourceDataShareAccountRead,
+		Update: resourceDataShareAccountUpdate,
+		Delete: resourceDataShareAccountDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -35,7 +35,7 @@ func resourceArmDataShareAccount() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DataShareAccountID(id)
+			_, err := parse.AccountID(id)
 			return err
 		}),
 
@@ -44,7 +44,7 @@ func resourceArmDataShareAccount() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DataShareAccountName(),
+				ValidateFunc: validate.AccountName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -83,7 +83,7 @@ func resourceArmDataShareAccount() *schema.Resource {
 	}
 }
 
-func resourceArmDataShareAccountCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataShareAccountCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.AccountClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -128,15 +128,15 @@ func resourceArmDataShareAccountCreate(d *schema.ResourceData, meta interface{})
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataShareAccountRead(d, meta)
+	return resourceDataShareAccountRead(d, meta)
 }
 
-func resourceArmDataShareAccountRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDataShareAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.AccountClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataShareAccountID(d.Id())
+	id, err := parse.AccountID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -160,12 +160,12 @@ func resourceArmDataShareAccountRead(d *schema.ResourceData, meta interface{}) e
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmDataShareAccountUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDataShareAccountUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.AccountClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataShareAccountID(d.Id())
+	id, err := parse.AccountID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -181,15 +181,15 @@ func resourceArmDataShareAccountUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("updating DataShare Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return resourceArmDataShareAccountRead(d, meta)
+	return resourceDataShareAccountRead(d, meta)
 }
 
-func resourceArmDataShareAccountDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDataShareAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.AccountClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataShareAccountID(d.Id())
+	id, err := parse.AccountID(d.Id())
 	if err != nil {
 		return err
 	}

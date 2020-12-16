@@ -96,7 +96,7 @@ func resourceArmEventHubNamespace() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ValidateEventHubDedicatedClusterID,
+				ValidateFunc: validate.ClusterID,
 			},
 
 			"identity": {

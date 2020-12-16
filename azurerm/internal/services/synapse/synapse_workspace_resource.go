@@ -23,12 +23,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSynapseWorkspace() *schema.Resource {
+func resourceSynapseWorkspace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSynapseWorkspaceCreate,
-		Read:   resourceArmSynapseWorkspaceRead,
-		Update: resourceArmSynapseWorkspaceUpdate,
-		Delete: resourceArmSynapseWorkspaceDelete,
+		Create: resourceSynapseWorkspaceCreate,
+		Read:   resourceSynapseWorkspaceRead,
+		Update: resourceSynapseWorkspaceUpdate,
+		Delete: resourceSynapseWorkspaceDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -38,7 +38,7 @@ func resourceArmSynapseWorkspace() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.SynapseWorkspaceID(id)
+			_, err := parse.WorkspaceID(id)
 			return err
 		}),
 
@@ -47,7 +47,7 @@ func resourceArmSynapseWorkspace() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.SynapseWorkspaceName,
+				ValidateFunc: validate.WorkspaceName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -148,7 +148,7 @@ func resourceArmSynapseWorkspace() *schema.Resource {
 	}
 }
 
-func resourceArmSynapseWorkspaceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseWorkspaceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceClient
 	aadAdminClient := meta.(*clients.Client).Synapse.WorkspaceAadAdminsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -217,16 +217,16 @@ func resourceArmSynapseWorkspaceCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	d.SetId(*resp.ID)
-	return resourceArmSynapseWorkspaceRead(d, meta)
+	return resourceSynapseWorkspaceRead(d, meta)
 }
 
-func resourceArmSynapseWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceClient
 	aadAdminClient := meta.(*clients.Client).Synapse.WorkspaceAadAdminsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SynapseWorkspaceID(d.Id())
+	id, err := parse.WorkspaceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -272,13 +272,13 @@ func resourceArmSynapseWorkspaceRead(d *schema.ResourceData, meta interface{}) e
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmSynapseWorkspaceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseWorkspaceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceClient
 	aadAdminClient := meta.(*clients.Client).Synapse.WorkspaceAadAdminsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SynapseWorkspaceID(d.Id())
+	id, err := parse.WorkspaceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -325,15 +325,15 @@ func resourceArmSynapseWorkspaceUpdate(d *schema.ResourceData, meta interface{})
 			}
 		}
 	}
-	return resourceArmSynapseWorkspaceRead(d, meta)
+	return resourceSynapseWorkspaceRead(d, meta)
 }
 
-func resourceArmSynapseWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SynapseWorkspaceID(d.Id())
+	id, err := parse.WorkspaceID(d.Id())
 	if err != nil {
 		return err
 	}

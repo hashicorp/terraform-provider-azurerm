@@ -37,7 +37,7 @@ func resourceArmStorageTableEntity() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.TableName,
+				ValidateFunc: validate.StorageTableName,
 			},
 			"storage_account_name": {
 				Type:         schema.TypeString,

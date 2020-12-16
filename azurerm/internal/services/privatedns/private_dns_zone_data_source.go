@@ -8,8 +8,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -62,6 +62,7 @@ func dataSourceArmPrivateDnsZone() *schema.Resource {
 
 func dataSourceArmPrivateDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PrivateDns.PrivateZonesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -94,10 +95,9 @@ func dataSourceArmPrivateDnsZoneRead(d *schema.ResourceData, meta interface{}) e
 		resourceGroup = zone.resourceGroup
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("retrieving Private DNS Zone %q (Resource Group %q)", name, resourceGroup)
-	}
-	d.SetId(*resp.ID)
+	resourceId := parse.NewPrivateDnsZoneID(subscriptionId, resourceGroup, name)
+	d.SetId(resourceId.ID())
+
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 
@@ -132,14 +132,14 @@ func findPrivateZone(ctx context.Context, client *privatedns.PrivateZonesClient,
 			continue
 		}
 
-		id, err := azure.ParseAzureResourceID(*z.ID)
+		id, err := parse.PrivateDnsZoneID(*z.ID)
 		if err != nil {
 			continue
 		}
 
-		zone, err := client.Get(ctx, id.ResourceGroup, name)
+		zone, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			return nil, fmt.Errorf("Error retrieving Private DNS Zone %q in resource group %q: %+v", name, id.ResourceGroup, err)
+			return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 
 		return &privateDnsZone{
