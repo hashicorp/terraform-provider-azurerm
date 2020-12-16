@@ -1112,12 +1112,12 @@ resource "azurerm_cdn_profile" "test" {
 }
 
 resource "azurerm_cdn_endpoint" "test" {
-  name                = "acctestcdnend%d"
-  profile_name        = azurerm_cdn_profile.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  is_http_allowed     = false
-  is_https_allowed    = true
+  name                          = "acctestcdnend%d"
+  profile_name                  = azurerm_cdn_profile.test.name
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  is_http_allowed               = false
+  is_https_allowed              = true
   querystring_caching_behaviour = "NotSet"
 
   origin {
