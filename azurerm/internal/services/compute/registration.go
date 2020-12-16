@@ -49,6 +49,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_disk_encryption_set":                    resourceArmDiskEncryptionSet(),
 		"azurerm_image":                                  resourceArmImage(),
 		"azurerm_managed_disk":                           resourceArmManagedDisk(),
+		"azurerm_disk_access":                            resourceArmDiskAccess(),
 		"azurerm_marketplace_agreement":                  resourceArmMarketplaceAgreement(),
 		"azurerm_proximity_placement_group":              resourceArmProximityPlacementGroup(),
 		"azurerm_shared_image_gallery":                   resourceArmSharedImageGallery(),
