@@ -103,7 +103,7 @@ func resourceArmKeyVault() *schema.Resource {
 						"application_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validation.IsUUID,
+							ValidateFunc: validate.IsUUIDOrEmpty,
 						},
 						"certificate_permissions": azure.SchemaKeyVaultCertificatePermissions(),
 						"key_permissions":         azure.SchemaKeyVaultKeyPermissions(),
