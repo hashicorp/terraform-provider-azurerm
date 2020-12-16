@@ -2179,19 +2179,23 @@ func testAccAzureRMStorageAccount_azureFilesIdentityBasedAuthenticationAADDS(dat
 provider "azurerm" {
   features {}
 }
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
 }
+
 resource "azurerm_storage_account" "test" {
-  name                = "unlikely23exst2acct%s"
-  resource_group_name = azurerm_resource_group.test.name
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
+
   azure_files_identity_based_authentication {
     directory_service_options = "AADDS"
   }
+
   tags = {
     environment = "production"
   }
@@ -2204,16 +2208,19 @@ func testAccAzureRMStorageAccount_azureFilesIdentityBasedAuthenticationAD(data a
 provider "azurerm" {
   features {}
 }
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
 }
+
 resource "azurerm_storage_account" "test" {
-  name                = "unlikely23exst2acct%s"
-  resource_group_name = azurerm_resource_group.test.name
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
+
   azure_files_identity_based_authentication {
     directory_service_options = "AD"
     active_directory {
@@ -2225,6 +2232,7 @@ resource "azurerm_storage_account" "test" {
       net_bios_domain_name = "adtest.com"
     }
   }
+
   tags = {
     environment = "production"
   }
@@ -2237,16 +2245,19 @@ func testAccAzureRMStorageAccount_azureFilesIdentityBasedAuthenticationADUpdate(
 provider "azurerm" {
   features {}
 }
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
 }
+
 resource "azurerm_storage_account" "test" {
-  name                = "unlikely23exst2acct%s"
-  resource_group_name = azurerm_resource_group.test.name
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
+
   azure_files_identity_based_authentication {
     directory_service_options = "AD"
     active_directory {
@@ -2258,6 +2269,7 @@ resource "azurerm_storage_account" "test" {
       net_bios_domain_name = "adtest2.com"
     }
   }
+
   tags = {
     environment = "production"
   }
@@ -2270,13 +2282,15 @@ func testAccAzureRMStorageAccount_routingPreference(data acceptance.TestData) st
 provider "azurerm" {
   features {}
 }
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
 }
+
 resource "azurerm_storage_account" "test" {
-  name                = "unlikely23exst2acct%s"
-  resource_group_name = azurerm_resource_group.test.name
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
@@ -2296,20 +2310,24 @@ func testAccAzureRMStorageAccount_routingPreferenceUpdate(data acceptance.TestDa
 provider "azurerm" {
   features {}
 }
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
 }
+
 resource "azurerm_storage_account" "test" {
-  name                = "unlikely23exst2acct%s"
-  resource_group_name = azurerm_resource_group.test.name
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
+
   routing_preference {
     routing_choice             = "MicrosoftRouting"
     publish_internet_endpoints = true
   }
+
   tags = {
     environment = "production"
   }
