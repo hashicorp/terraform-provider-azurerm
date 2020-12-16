@@ -1,11 +1,15 @@
 package compute
 
 import (
+	"bytes"
 	"crypto/rsa"
 	"encoding/base64"
 	"fmt"
 	"regexp"
 	"strings"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 
 	"golang.org/x/crypto/ssh"
 
@@ -23,13 +27,15 @@ func SSHKeysSchema(isVirtualMachine bool) *schema.Schema {
 		Type:     schema.TypeSet,
 		Optional: true,
 		ForceNew: isVirtualMachine,
+		Set:      SSHKeySchemaHash,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"public_key": {
-					Type:         schema.TypeString,
-					Required:     true,
-					ForceNew:     isVirtualMachine,
-					ValidateFunc: ValidateSSHKey,
+					Type:             schema.TypeString,
+					Required:         true,
+					ForceNew:         isVirtualMachine,
+					ValidateFunc:     ValidateSSHKey,
+					DiffSuppressFunc: SSHKeyDiffSuppress,
 				},
 
 				"username": {
@@ -154,4 +160,34 @@ func ValidateSSHKey(i interface{}, k string) (warnings []string, errors []error)
 	}
 
 	return warnings, errors
+}
+
+func SSHKeyDiffSuppress(_, old, new string, _ *schema.ResourceData) bool {
+	oldNormalised, err := azure.NormaliseSSHKey(old)
+	if err != nil {
+		return false
+	}
+
+	newNormalised, err := azure.NormaliseSSHKey(new)
+	if err != nil {
+		return false
+	}
+
+	if *oldNormalised == *newNormalised {
+		return true
+	}
+
+	return false
+}
+
+func SSHKeySchemaHash(v interface{}) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]interface{}); ok {
+		normalisedKey, _ := azure.NormaliseSSHKey(m["public_key"].(string))
+		buf.WriteString(fmt.Sprintf("%s-", *normalisedKey))
+		buf.WriteString(fmt.Sprintf("%s", m["username"].(string)))
+	}
+
+	return hashcode.String(buf.String())
 }
