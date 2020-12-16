@@ -236,7 +236,7 @@ func resourceMediaContentKeyPolicy() *schema.Resource {
 									"primary_symmetric_token_key": {
 										Type:         schema.TypeString,
 										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
+										ValidateFunc: validation.StringIsBase64,
 									},
 									"primary_rsa_token_key_exponent": {
 										Type:         schema.TypeString,
@@ -535,17 +535,22 @@ func flattenRestriction(input media.BasicContentKeyPolicyRestriction, option map
 
 		requiredClaims := flattenRequiredClaims(token.RequiredClaims)
 
-		option["token_restriction"] = []interface{}{
-			map[string]interface{}{
-				"audience":                           audience,
-				"issuer":                             issuer,
-				"token_type":                         string(token.RestrictionTokenType),
-				"open_id_connect_discovery_document": openIDConnectDiscoveryDocument,
-				"required_claim":                     requiredClaims,
-			},
+		tokenRestriction := map[string]interface{}{
+			"audience":                           audience,
+			"issuer":                             issuer,
+			"token_type":                         string(token.RestrictionTokenType),
+			"open_id_connect_discovery_document": openIDConnectDiscoveryDocument,
+			"required_claim":                     requiredClaims,
 		}
 
-		option = flattenVerificationKey(token.PrimaryVerificationKey, option)
+		tokenRestriction, err := flattenVerificationKey(token.PrimaryVerificationKey, tokenRestriction)
+		if err != nil {
+			return nil, err
+		}
+
+		option["token_restriction"] = []interface{}{
+			tokenRestriction,
+		}
 	}
 
 	return option, nil
@@ -628,7 +633,7 @@ func expandVerificationKey(input map[string]interface{}) (media.BasicContentKeyP
 	}
 
 	if verificationKeyCount > 1 {
-		return nil, fmt.Errorf("more than one type of token key in the same token_restriction is not allowed.", verificationKeyType)
+		return nil, fmt.Errorf("more than one type of token key in the same token_restriction is not allowed.")
 	}
 
 	switch verificationKeyType {
@@ -670,19 +675,25 @@ func expandVerificationKey(input map[string]interface{}) (media.BasicContentKeyP
 	}
 }
 
-func flattenVerificationKey(input media.BasicContentKeyPolicyRestrictionTokenKey, key map[string]interface{}) map[string]interface{} {
+func flattenVerificationKey(input media.BasicContentKeyPolicyRestrictionTokenKey, key map[string]interface{}) (map[string]interface{}, error) {
+	return nil, fmt.Errorf("error %q", input)
 	if input == nil {
-		return key
+		return key, nil
 	}
 
 	switch input.(type) {
 	case media.ContentKeyPolicySymmetricTokenKey:
 		symmetricTokenKey, _ := input.AsContentKeyPolicySymmetricTokenKey()
-		keyValue := ""
+
 		if symmetricTokenKey.KeyValue != nil {
-			keyValue = string(*symmetricTokenKey.KeyValue)
+			//keyValueRaw := *symmetricTokenKey.KeyValue
+			//keyValueBytes, _ := base64.StdEncoding.DecodeString(string(keyValueRaw))
+			//keyValue := string(keyValueBytes)
+			//key["primary_symmetric_token_key"] = string(keyValueBytes)
+
 		}
-		key["primary_symmetric_token_key"] = keyValue
+		return nil, fmt.Errorf("error %q", symmetricTokenKey.KeyValue)
+
 	case media.ContentKeyPolicyRsaTokenKey:
 		rsaTokenKey, _ := input.AsContentKeyPolicyRsaTokenKey()
 		exponent := ""
@@ -703,7 +714,7 @@ func flattenVerificationKey(input media.BasicContentKeyPolicyRestrictionTokenKey
 		}
 		key["primary_x509_token_key_raw"] = rawBody
 	}
-	return key
+	return key, nil
 }
 
 func expandRequiredClaims(input []interface{}) *[]media.ContentKeyPolicyTokenClaim {

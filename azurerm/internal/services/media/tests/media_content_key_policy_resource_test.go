@@ -25,7 +25,7 @@ func TestAccMediaContentKeyPolicy_clearKeyWithTokenRestriction(t *testing.T) {
 		{
 			Config: r.clearKeyWithTokenRestriction(data),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				check.That(data.ResourceName).Key("name").HasValue("Transform-1"),
+				check.That(data.ResourceName).Key("name").HasValue("Policy-1"),
 				check.That(data.ResourceName).Key("policy_option.0.clear_key_configuration_enabled").HasValue("true"),
 			),
 		},
