@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/parse"
@@ -17,12 +18,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func PossibleEventSubscriptionEndpointTypes() []string {
+func PossibleSystemTopicEventSubscriptionEndpointTypes() []string {
 	return []string{
 		string(AzureFunctionEndpoint),
-		string(EventHubEndpoint),
 		string(EventHubEndpointID),
-		string(HybridConnectionEndpoint),
 		string(HybridConnectionEndpointID),
 		string(ServiceBusQueueEndpointID),
 		string(ServiceBusTopicEndpointID),
@@ -31,12 +30,12 @@ func PossibleEventSubscriptionEndpointTypes() []string {
 	}
 }
 
-func resourceEventGridEventSubscription() *schema.Resource {
+func resourceEventGridSystemTopicEventSubscription() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceEventGridEventSubscriptionCreateUpdate,
-		Read:   resourceEventGridEventSubscriptionRead,
-		Update: resourceEventGridEventSubscriptionCreateUpdate,
-		Delete: resourceEventGridEventSubscriptionDelete,
+		Create: resourceEventGridSystemTopicEventSubscriptionCreateUpdate,
+		Read:   resourceEventGridSystemTopicEventSubscriptionRead,
+		Update: resourceEventGridSystemTopicEventSubscriptionCreateUpdate,
+		Delete: resourceEventGridSystemTopicEventSubscriptionDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -46,90 +45,71 @@ func resourceEventGridEventSubscription() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.EventSubscriptionID(id)
+			_, err := parse.SystemTopicEventSubscriptionID(id)
 			return err
 		}),
 
 		Schema: map[string]*schema.Schema{
 			"name": eventSubscriptionSchemaEventSubscriptionName(),
 
-			"scope": {
+			"system_topic": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"resource_group_name": azure.SchemaResourceGroupName(),
+
 			"event_delivery_schema": eventSubscriptionSchemaEventDeliverySchema(),
 
 			"expiration_time_utc": eventSubscriptionSchemaExpirationTimeUTC(),
 
-			"topic_name": {
-				Type:       schema.TypeString,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "This field has been updated to readonly field since Apr 25, 2019 so no longer has any affect and will be removed in version 3.0 of the provider.",
-			},
-
 			"azure_function_endpoint": eventSubscriptionSchemaAzureFunctionEndpoint(
 				utils.RemoveFromStringArray(
-					PossibleEventSubscriptionEndpointTypes(),
+					PossibleSystemTopicEventSubscriptionEndpointTypes(),
 					string(AzureFunctionEndpoint),
 				),
 			),
 
 			"eventhub_endpoint_id": eventSubscriptionSchemaEventHubEndpointID(
 				utils.RemoveFromStringArray(
-					PossibleEventSubscriptionEndpointTypes(),
+					PossibleSystemTopicEventSubscriptionEndpointTypes(),
 					string(EventHubEndpointID),
-				),
-			),
-
-			"eventhub_endpoint": eventSubscriptionSchemaEventHubEndpoint(
-				utils.RemoveFromStringArray(
-					PossibleEventSubscriptionEndpointTypes(),
-					string(EventHubEndpoint),
 				),
 			),
 
 			"hybrid_connection_endpoint_id": eventSubscriptionSchemaHybridConnectionEndpointID(
 				utils.RemoveFromStringArray(
-					PossibleEventSubscriptionEndpointTypes(),
+					PossibleSystemTopicEventSubscriptionEndpointTypes(),
 					string(HybridConnectionEndpointID),
-				),
-			),
-
-			"hybrid_connection_endpoint": eventSubscriptionSchemaHybridEndpoint(
-				utils.RemoveFromStringArray(
-					PossibleEventSubscriptionEndpointTypes(),
-					string(HybridConnectionEndpoint),
 				),
 			),
 
 			"service_bus_queue_endpoint_id": eventSubscriptionSchemaServiceBusQueueEndpointID(
 				utils.RemoveFromStringArray(
-					PossibleEventSubscriptionEndpointTypes(),
+					PossibleSystemTopicEventSubscriptionEndpointTypes(),
 					string(ServiceBusQueueEndpointID),
 				),
 			),
 
 			"service_bus_topic_endpoint_id": eventSubscriptionSchemaServiceBusTopicEndpointID(
 				utils.RemoveFromStringArray(
-					PossibleEventSubscriptionEndpointTypes(),
+					PossibleSystemTopicEventSubscriptionEndpointTypes(),
 					string(ServiceBusTopicEndpointID),
 				),
 			),
 
 			"storage_queue_endpoint": eventSubscriptionSchemaStorageQueueEndpoint(
 				utils.RemoveFromStringArray(
-					PossibleEventSubscriptionEndpointTypes(),
+					PossibleSystemTopicEventSubscriptionEndpointTypes(),
 					string(StorageQueueEndpoint),
 				),
 			),
 
 			"webhook_endpoint": eventSubscriptionSchemaWebHookEndpoint(
 				utils.RemoveFromStringArray(
-					PossibleEventSubscriptionEndpointTypes(),
+					PossibleSystemTopicEventSubscriptionEndpointTypes(),
 					string(WebHookEndpoint),
 				),
 			),
@@ -149,40 +129,41 @@ func resourceEventGridEventSubscription() *schema.Resource {
 	}
 }
 
-func resourceEventGridEventSubscriptionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).EventGrid.EventSubscriptionsClient
+func resourceEventGridSystemTopicEventSubscriptionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).EventGrid.SystemTopicEventSubscriptionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
-	scope := d.Get("scope").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+	systemTopic := d.Get("system_topic").(string)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, scope, name)
+		existing, err := client.Get(ctx, resourceGroup, systemTopic, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
+				return fmt.Errorf("Error checking for presence of existing EventGrid System Topic Event Subscription %q (System Topic %q): %s", name, systemTopic, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_eventgrid_event_subscription", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_eventgrid_system_topic_event_subscription", *existing.ID)
 		}
 	}
 
 	destination := expandEventGridEventSubscriptionDestination(d)
 	if destination == nil {
-		return fmt.Errorf("One of the following endpoint types must be specificed to create an EventGrid Event Subscription: %q", PossibleEventSubscriptionEndpointTypes())
+		return fmt.Errorf("One of the following endpoint types must be specificed to create an EventGrid System Topic Event Subscription: %q", PossibleSystemTopicEventSubscriptionEndpointTypes())
 	}
 
 	filter, err := expandEventGridEventSubscriptionFilter(d)
 	if err != nil {
-		return fmt.Errorf("expanding filters for EventGrid Event Subscription %q (Scope %q): %+v", name, scope, err)
+		return fmt.Errorf("expanding filters for EventGrid System Topic Event Subscription %q (System Topic %q): %+v", name, systemTopic, err)
 	}
 
 	expirationTime, err := expandEventGridExpirationTime(d)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
+		return fmt.Errorf("Error creating/updating EventGrid System Topic Event Subscription %q (System Topic %q): %s", name, systemTopic, err)
 	}
 
 	eventSubscriptionProperties := eventgrid.EventSubscriptionProperties{
@@ -199,53 +180,54 @@ func resourceEventGridEventSubscriptionCreateUpdate(d *schema.ResourceData, meta
 		EventSubscriptionProperties: &eventSubscriptionProperties,
 	}
 
-	log.Printf("[INFO] preparing arguments for AzureRM EventGrid Event Subscription creation with Properties: %+v.", eventSubscription)
+	log.Printf("[INFO] preparing arguments for AzureRM EventGrid System Topic Event Subscription creation with Properties: %+v.", eventSubscription)
 
-	future, err := client.CreateOrUpdate(ctx, scope, name, eventSubscription)
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, systemTopic, name, eventSubscription)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
+		return fmt.Errorf("Error creating/updating EventGrid System Topic Event Subscription %q (System Topic %q): %s", name, systemTopic, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for EventGrid Event Subscription %q (Scope %q) to become available: %s", name, scope, err)
+		return fmt.Errorf("Error waiting for EventGrid System Topic Event Subscription %q (System Topic %q) to become available: %s", name, systemTopic, err)
 	}
 
-	read, err := client.Get(ctx, scope, name)
+	read, err := client.Get(ctx, resourceGroup, systemTopic, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
+		return fmt.Errorf("Error retrieving EventGrid System Topic Event Subscription %q (System Topic %q): %s", name, systemTopic, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read EventGrid Event Subscription %s (Scope %s) ID", name, scope)
+		return fmt.Errorf("Cannot read EventGrid System Topic Event Subscription %s (System Topic %s) ID", name, systemTopic)
 	}
 
 	d.SetId(*read.ID)
 
-	return resourceEventGridEventSubscriptionRead(d, meta)
+	return resourceEventGridSystemTopicEventSubscriptionRead(d, meta)
 }
 
-func resourceEventGridEventSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).EventGrid.EventSubscriptionsClient
+func resourceEventGridSystemTopicEventSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).EventGrid.SystemTopicEventSubscriptionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EventSubscriptionID(d.Id())
+	id, err := parse.SystemTopicEventSubscriptionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.Scope, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.SystemTopic, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] EventGrid Event Subscription '%s' was not found (resource group '%s')", id.Name, id.Scope)
+			log.Printf("[WARN] EventGrid System Topic Event Subscription '%q' was not found (System Topic %q)", id.Name, id.SystemTopic)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on EventGrid Event Subscription '%s': %+v", id.Name, err)
+		return fmt.Errorf("Error making Read request on EventGrid System Topic Event Subscription '%q' (System Topic %q): %+v", id.Name, id.SystemTopic, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("scope", id.Scope)
+	d.Set("system_topic", id.SystemTopic)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.EventSubscriptionProperties; props != nil {
 		if props.ExpirationTimeUtc != nil {
@@ -256,107 +238,99 @@ func resourceEventGridEventSubscriptionRead(d *schema.ResourceData, meta interfa
 
 		if azureFunctionEndpoint, ok := props.Destination.AsAzureFunctionEventSubscriptionDestination(); ok {
 			if err := d.Set("azure_function_endpoint", flattenEventGridEventSubscriptionAzureFunctionEndpoint(azureFunctionEndpoint)); err != nil {
-				return fmt.Errorf("Error setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", "azure_function_endpoint", id.Name, id.Scope, err)
+				return fmt.Errorf("Error setting `%q` for EventGrid System Topic Event Subscription %q (System Topic %q): %s", "azure_function_endpoint", id.Name, id.SystemTopic, err)
 			}
 		}
 		if v, ok := props.Destination.AsEventHubEventSubscriptionDestination(); ok {
 			if err := d.Set("eventhub_endpoint_id", v.ResourceID); err != nil {
-				return fmt.Errorf("Error setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", "eventhub_endpoint_id", id.Name, id.Scope, err)
-			}
-
-			if err := d.Set("eventhub_endpoint", flattenEventGridEventSubscriptionEventhubEndpoint(v)); err != nil {
-				return fmt.Errorf("Error setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", "eventhub_endpoint", id.Name, id.Scope, err)
+				return fmt.Errorf("Error setting `%q` for EventGrid System Topic Event Subscription %q (System Topic %q): %s", "eventhub_endpoint_id", id.Name, id.SystemTopic, err)
 			}
 		}
 		if v, ok := props.Destination.AsHybridConnectionEventSubscriptionDestination(); ok {
 			if err := d.Set("hybrid_connection_endpoint_id", v.ResourceID); err != nil {
-				return fmt.Errorf("Error setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", "hybrid_connection_endpoint_id", id.Name, id.Scope, err)
-			}
-
-			if err := d.Set("hybrid_connection_endpoint", flattenEventGridEventSubscriptionHybridConnectionEndpoint(v)); err != nil {
-				return fmt.Errorf("Error setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", "hybrid_connection_endpoint", id.Name, id.Scope, err)
+				return fmt.Errorf("Error setting `%q` for EventGrid System Topic Event Subscription %q (System Topic %q): %s", "hybrid_connection_endpoint_id", id.Name, id.SystemTopic, err)
 			}
 		}
 		if serviceBusQueueEndpoint, ok := props.Destination.AsServiceBusQueueEventSubscriptionDestination(); ok {
 			if err := d.Set("service_bus_queue_endpoint_id", serviceBusQueueEndpoint.ResourceID); err != nil {
-				return fmt.Errorf("Error setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", "service_bus_queue_endpoint_id", id.Name, id.Scope, err)
+				return fmt.Errorf("Error setting `%q` for EventGrid System Topic Event Subscription %q (System Topic %q): %s", "service_bus_queue_endpoint_id", id.Name, id.SystemTopic, err)
 			}
 		}
 		if serviceBusTopicEndpoint, ok := props.Destination.AsServiceBusTopicEventSubscriptionDestination(); ok {
 			if err := d.Set("service_bus_topic_endpoint_id", serviceBusTopicEndpoint.ResourceID); err != nil {
-				return fmt.Errorf("Error setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", "service_bus_topic_endpoint_id", id.Name, id.Scope, err)
+				return fmt.Errorf("Error setting `%q` for EventGrid System Topic Event Subscription %q (System Topic %q): %s", "service_bus_topic_endpoint_id", id.Name, id.SystemTopic, err)
 			}
 		}
 		if v, ok := props.Destination.AsStorageQueueEventSubscriptionDestination(); ok {
 			if err := d.Set("storage_queue_endpoint", flattenEventGridEventSubscriptionStorageQueueEndpoint(v)); err != nil {
-				return fmt.Errorf("Error setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", "storage_queue_endpoint", id.Name, id.Scope, err)
+				return fmt.Errorf("Error setting `%q` for EventGrid System Topic Event Subscription %q (System Topic %q): %s", "storage_queue_endpoint", id.Name, id.SystemTopic, err)
 			}
 		}
 		if v, ok := props.Destination.AsWebHookEventSubscriptionDestination(); ok {
-			fullURL, err := client.GetFullURL(ctx, id.Scope, id.Name)
+			fullURL, err := client.GetFullURL(ctx, id.ResourceGroup, id.SystemTopic, id.Name)
 			if err != nil {
-				return fmt.Errorf("Error making Read request on EventGrid Event Subscription full URL '%s': %+v", id.Name, err)
+				return fmt.Errorf("Error making Read request on EventGrid System Topic Event Subscription full URL '%s': %+v", id.Name, err)
 			}
 			if err := d.Set("webhook_endpoint", flattenEventGridEventSubscriptionWebhookEndpoint(v, &fullURL)); err != nil {
-				return fmt.Errorf("Error setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", "webhook_endpoint", id.Name, id.Scope, err)
+				return fmt.Errorf("Error setting `%q` for EventGrid System Topic Event Subscription %q (System Topic %q): %s", "webhook_endpoint", id.Name, id.SystemTopic, err)
 			}
 		}
 
 		if filter := props.Filter; filter != nil {
 			d.Set("included_event_types", filter.IncludedEventTypes)
 			if err := d.Set("subject_filter", flattenEventGridEventSubscriptionSubjectFilter(filter)); err != nil {
-				return fmt.Errorf("Error setting `subject_filter` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
+				return fmt.Errorf("Error setting `subject_filter` for EventGrid System Topic Event Subscription %q (System Topic %q): %s", id.Name, id.SystemTopic, err)
 			}
 			if err := d.Set("advanced_filter", flattenEventGridEventSubscriptionAdvancedFilter(filter)); err != nil {
-				return fmt.Errorf("Error setting `advanced_filter` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
+				return fmt.Errorf("Error setting `advanced_filter` for EventGrid System Topic Event Subscription %q (System Topic %q): %s", id.Name, id.SystemTopic, err)
 			}
 		}
 
 		if props.DeadLetterDestination != nil {
 			if storageBlobDeadLetterDestination, ok := props.DeadLetterDestination.AsStorageBlobDeadLetterDestination(); ok {
 				if err := d.Set("storage_blob_dead_letter_destination", flattenEventGridEventSubscriptionStorageBlobDeadLetterDestination(storageBlobDeadLetterDestination)); err != nil {
-					return fmt.Errorf("Error setting `storage_blob_dead_letter_destination` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
+					return fmt.Errorf("Error setting `storage_blob_dead_letter_destination` for EventGrid System Topic Event Subscription %q (System Topic %q): %s", id.Name, id.SystemTopic, err)
 				}
 			}
 		}
 
 		if retryPolicy := props.RetryPolicy; retryPolicy != nil {
 			if err := d.Set("retry_policy", flattenEventGridEventSubscriptionRetryPolicy(retryPolicy)); err != nil {
-				return fmt.Errorf("Error setting `retry_policy` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
+				return fmt.Errorf("Error setting `retry_policy` for EventGrid System Topic Event Subscription %q (System Topic %q): %s", id.Name, id.SystemTopic, err)
 			}
 		}
 
 		if err := d.Set("labels", props.Labels); err != nil {
-			return fmt.Errorf("Error setting `labels` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
+			return fmt.Errorf("Error setting `labels` for EventGrid System Topic Event Subscription %q (System Topic %q): %s", id.Name, id.SystemTopic, err)
 		}
 	}
 
 	return nil
 }
 
-func resourceEventGridEventSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).EventGrid.EventSubscriptionsClient
+func resourceEventGridSystemTopicEventSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).EventGrid.SystemTopicEventSubscriptionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EventSubscriptionID(d.Id())
+	id, err := parse.SystemTopicEventSubscriptionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.Scope, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.SystemTopic, id.Name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting Event Grid Event Subscription %q: %+v", id.Name, err)
+		return fmt.Errorf("Error deleting Event Grid System Topic Event Subscription %q (System Topic %q): %+v", id.Name, id.SystemTopic, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting Event Grid Event Subscription %q: %+v", id.Name, err)
+		return fmt.Errorf("Error deleting Event Grid System Topic  Event Subscription %q (System Topic %q): %+v", id.Name, id.SystemTopic, err)
 	}
 
 	return nil
