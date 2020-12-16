@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -39,26 +40,54 @@ func resourceArmLogAnalyticsLinkedService() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
+			"workspace_name": {
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc:     validate.LogAnalyticsWorkspaceName,
+				ConflictsWith:    []string{"workspace_id"},
+				Deprecated:       "This field has been deprecated in favour of `workspace_id` and will be removed in a future version of the provider",
+			},
+
 			"workspace_id": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc:     azure.ValidateResourceID,
+				ConflictsWith:    []string{"workspace_name"},
+			},
+
+			"linked_service_name": {
+				Type:         schema.TypeString,
+				Computed:     true,
+				Optional:     true,
+				ValidateFunc: validate.LogAnalyticsLinkedServiceName,
+				Deprecated:   "This field has been deprecated and will be removed in a future version of the provider",
+			},
+
+			"resource_id": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ValidateFunc:  azure.ValidateResourceID,
+				ConflictsWith: []string{"read_access_id"},
+				Deprecated:    "This field has been deprecated in favour of `read_access_id` and will be removed in a future version of the provider",
 			},
 
 			"read_access_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
-				ExactlyOneOf: []string{"read_access_id", "write_access_id"},
+				Type:          schema.TypeString,
+				Optional:      true,
+				ValidateFunc:  azure.ValidateResourceID,
+				ExactlyOneOf:  []string{"read_access_id", "write_access_id", "resource_id"},
+				ConflictsWith: []string{"resource_id"},
 			},
 
 			"write_access_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: azure.ValidateResourceID,
-				ExactlyOneOf: []string{"read_access_id", "write_access_id"},
+				ExactlyOneOf: []string{"read_access_id", "write_access_id", "resource_id"},
 			},
 
 			// Exported properties
