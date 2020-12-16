@@ -1,4 +1,4 @@
-package tests
+package media_test
 
 import (
 	"fmt"
