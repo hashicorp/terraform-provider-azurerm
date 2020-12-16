@@ -164,12 +164,12 @@ resource "azurerm_media_job" "test" {
   description                 = "Job description"
   priority                    = "Normal"
   input_asset {
-    name = azurerm_media_asset.input.name
-    label      = "Input"
+    name  = azurerm_media_asset.input.name
+    label = "Input"
   }
   output_asset {
-    name = azurerm_media_asset.output.name
-    label      = "Output"
+    name  = azurerm_media_asset.output.name
+    label = "Output"
   }
 }
 
