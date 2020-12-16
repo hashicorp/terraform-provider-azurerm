@@ -72,10 +72,56 @@ func resourceMediaJob() *schema.Resource {
 				),
 			},
 
-			"description": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+			"input_asset": {
+				Type:     schema.TypeList,
+				Required: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+							ValidateFunc: validation.StringMatch(
+								regexp.MustCompile("^[-a-zA-Z0-9]{1,128}$"),
+								"Asset name must be 1 - 128 characters long, contain only letters, hyphen and numbers.",
+							),
+						},
+						"label": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
+			"output_asset": {
+				Type:     schema.TypeList,
+				Required: true,
+				ForceNew: true,
+				MinItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+							ValidateFunc: validation.StringMatch(
+								regexp.MustCompile("^[-a-zA-Z0-9]{1,128}$"),
+								"Asset name must be 1 - 128 characters long, contain only letters, hyphen and numbers.",
+							),
+						},
+						"label": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
 			},
 
 			"priority": {
@@ -84,58 +130,14 @@ func resourceMediaJob() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(media.High), string(media.Normal), string(media.Low),
-				}, true),
+				}, false),
+				Default: string(media.Normal),
 			},
 
-			"input_asset": {
-				Type:     schema.TypeList,
-				Required: true,
-				ForceNew: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"asset_name": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringMatch(
-								regexp.MustCompile("^[-a-zA-Z0-9]{1,128}$"),
-								"Asset name must be 1 - 128 characters long, contain only letters, hyphen and numbers.",
-							),
-						},
-						"label": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
-			},
-			"output_asset": {
-				Type:     schema.TypeList,
-				Required: true,
-				ForceNew: true,
-				MinItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"asset_name": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringMatch(
-								regexp.MustCompile("^[-a-zA-Z0-9]{1,128}$"),
-								"Asset name must be 1 - 128 characters long, contain only letters, hyphen and numbers.",
-							),
-						},
-						"label": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
+			"description": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 		},
 	}
@@ -148,15 +150,17 @@ func resourceMediaJobCreate(d *schema.ResourceData, meta interface{}) error {
 	defer cancel()
 
 	resourceId := parse.NewJobID(subscriptionId, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("transform_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.MediaserviceName, resourceId.TransformName, resourceId.Name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for existing %s: %+v", resourceId, err)
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.MediaserviceName, resourceId.TransformName, resourceId.Name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Media Job %q (Media Service account %q) (ResourceGroup %q): %s", resourceId.ResourceGroup, resourceId.MediaserviceName, resourceId.Name, err)
+			}
 		}
-	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_media_job", resourceId.ID())
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_media_job", *existing.ID)
+		}
 	}
 
 	parameters := media.Job{
@@ -170,8 +174,7 @@ func resourceMediaJobCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if v, ok := d.GetOk("input_asset"); ok {
-		inputAsset := expandInputAsset(v.([]interface{}))
-		parameters.JobProperties.Input = inputAsset
+		parameters.JobProperties.Input = expandInputAsset(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("output_asset"); ok {
@@ -195,10 +198,12 @@ func resourceMediaJobRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Media.JobsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
+
 	id, err := parse.JobID(d.Id())
 	if err != nil {
 		return err
 	}
+
 	resp, err := client.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.TransformName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -217,6 +222,7 @@ func resourceMediaJobRead(d *schema.ResourceData, meta interface{}) error {
 	if props := resp.JobProperties; props != nil {
 		d.Set("description", props.Description)
 		d.Set("priority", string(props.Priority))
+
 		inputAsset, err := flattenInputAsset(props.Input)
 		if err != nil {
 			return err
@@ -300,7 +306,7 @@ func resourceMediaJobDelete(d *schema.ResourceData, meta interface{}) error {
 
 func expandInputAsset(input []interface{}) media.BasicJobInput {
 	inputAsset := input[0].(map[string]interface{})
-	assetName := inputAsset["asset_name"].(string)
+	assetName := inputAsset["name"].(string)
 	label := inputAsset["label"].(string)
 	return &media.JobInputAsset{
 		AssetName: utils.String(assetName),
@@ -329,8 +335,8 @@ func flattenInputAsset(input media.BasicJobInput) ([]interface{}, error) {
 
 	return []interface{}{
 		map[string]interface{}{
-			"asset_name": assetName,
-			"label":      label,
+			"name":  assetName,
+			"label": label,
 		},
 	}, nil
 }
@@ -342,7 +348,7 @@ func expandOutputAssets(input []interface{}) (*[]media.BasicJobOutput, error) {
 	outputAssets := make([]media.BasicJobOutput, len(input))
 	for index, output := range input {
 		outputAsset := output.(map[string]interface{})
-		assetName := outputAsset["asset_name"].(string)
+		assetName := outputAsset["name"].(string)
 		label := outputAsset["label"].(string)
 		jobOutputAsset := media.JobOutputAsset{
 			AssetName: utils.String(assetName),
@@ -376,8 +382,8 @@ func flattenOutputAssets(input *[]media.BasicJobOutput) ([]interface{}, error) {
 		}
 
 		outputAssets[i] = map[string]interface{}{
-			"asset_name": assetName,
-			"label":      label,
+			"name":  assetName,
+			"label": label,
 		}
 	}
 	return outputAssets, nil

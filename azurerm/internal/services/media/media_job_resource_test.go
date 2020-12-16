@@ -26,7 +26,8 @@ func TestAccMediaJob_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue("Job-1"),
-				check.That(data.ResourceName).Key("description").HasValue("Job description"),
+				check.That(data.ResourceName).Key("input_asset.0.name").HasValue("inputAsset"),
+				check.That(data.ResourceName).Key("output_asset.0.name").HasValue("outputAsset"),
 			),
 		},
 		data.ImportStep(),
@@ -42,21 +43,24 @@ func TestAccMediaJob_requiresImport(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue("Job-1"),
-				check.That(data.ResourceName).Key("description").HasValue("Job description"),
+				check.That(data.ResourceName).Key("input_asset.0.name").HasValue("inputAsset"),
+				check.That(data.ResourceName).Key("output_asset.0.name").HasValue("outputAsset"),
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccMediaJob_label(t *testing.T) {
+func TestAccMediaJob_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_job", "test")
 	r := MediaJobResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.label(data),
+			Config: r.complete(data),
 			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).Key("description").HasValue("Job description"),
+				check.That(data.ResourceName).Key("priority").HasValue("Normal"),
 				check.That(data.ResourceName).Key("input_asset.0.label").HasValue("Input"),
 				check.That(data.ResourceName).Key("output_asset.0.label").HasValue("Output"),
 			),
@@ -74,21 +78,27 @@ func TestAccMediaJob_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue("Job-1"),
-				check.That(data.ResourceName).Key("description").HasValue("Job description"),
+				check.That(data.ResourceName).Key("input_asset.0.name").HasValue("inputAsset"),
+				check.That(data.ResourceName).Key("output_asset.0.name").HasValue("outputAsset"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.update(data),
+			Config: r.complete(data),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				check.That(data.ResourceName).Key("description").HasValue("Updated description"),
+				check.That(data.ResourceName).Key("description").HasValue("Job description"),
+				check.That(data.ResourceName).Key("priority").HasValue("Normal"),
+				check.That(data.ResourceName).Key("input_asset.0.label").HasValue("Input"),
+				check.That(data.ResourceName).Key("output_asset.0.label").HasValue("Output"),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeAggregateTestCheckFunc(
-				check.That(data.ResourceName).Key("description").HasValue("Job description"),
+				check.That(data.ResourceName).Key("name").HasValue("Job-1"),
+				check.That(data.ResourceName).Key("input_asset.0.name").HasValue("inputAsset"),
+				check.That(data.ResourceName).Key("output_asset.0.name").HasValue("outputAsset"),
 			),
 		},
 		data.ImportStep(),
@@ -118,13 +128,11 @@ resource "azurerm_media_job" "test" {
   resource_group_name         = azurerm_resource_group.test.name
   media_services_account_name = azurerm_media_services_account.test.name
   transform_name              = azurerm_media_transform.test.name
-  description                 = "Job description"
-  priority                    = "Normal"
   input_asset {
-    asset_name = azurerm_media_asset.input.name
+    name = azurerm_media_asset.input.name
   }
   output_asset {
-    asset_name = azurerm_media_asset.output.name
+    name = azurerm_media_asset.output.name
   }
 }
 
@@ -144,29 +152,7 @@ resource "azurerm_media_job" "import" {
 `, r.basic(data))
 }
 
-func (r MediaJobResource) update(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_media_job" "test" {
-  name                        = "Job-1"
-  resource_group_name         = azurerm_resource_group.test.name
-  media_services_account_name = azurerm_media_services_account.test.name
-  transform_name              = azurerm_media_transform.test.name
-  description                 = "Updated description"
-  priority                    = "Low"
-  input_asset {
-    asset_name = azurerm_media_asset.input.name
-  }
-  output_asset {
-    asset_name = azurerm_media_asset.output.name
-  }
-}
-
-`, r.template(data))
-}
-
-func (r MediaJobResource) label(data acceptance.TestData) string {
+func (r MediaJobResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -178,11 +164,11 @@ resource "azurerm_media_job" "test" {
   description                 = "Job description"
   priority                    = "Normal"
   input_asset {
-    asset_name = azurerm_media_asset.input.name
+    name = azurerm_media_asset.input.name
     label      = "Input"
   }
   output_asset {
-    asset_name = azurerm_media_asset.output.name
+    name = azurerm_media_asset.output.name
     label      = "Output"
   }
 }
@@ -234,14 +220,14 @@ resource "azurerm_media_transform" "test" {
 }
 
 resource "azurerm_media_asset" "input" {
-  name                        = "input"
+  name                        = "inputAsset"
   resource_group_name         = azurerm_resource_group.test.name
   media_services_account_name = azurerm_media_services_account.test.name
   description                 = "Input Asset description"
 }
 
 resource "azurerm_media_asset" "output" {
-  name                        = "output"
+  name                        = "outputAsset"
   resource_group_name         = azurerm_resource_group.test.name
   media_services_account_name = azurerm_media_services_account.test.name
   description                 = "Output Asset description"
