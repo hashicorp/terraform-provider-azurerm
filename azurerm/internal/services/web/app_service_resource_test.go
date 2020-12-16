@@ -29,9 +29,9 @@ func TestAccAzureRMAppService_basic(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("outbound_ip_addresses").Exists(),
-				check.That(data.ResourceName).Key("outbound_ip_address_list").Exists(),
+				check.That(data.ResourceName).Key("outbound_ip_address_list.#").Exists(),
 				check.That(data.ResourceName).Key("possible_outbound_ip_addresses").Exists(),
-				check.That(data.ResourceName).Key("possible_outbound_ip_address_list").Exists(),
+				check.That(data.ResourceName).Key("possible_outbound_ip_address_list.#").Exists(),
 				check.That(data.ResourceName).Key("custom_domain_verification_id").Exists(),
 			),
 		},
