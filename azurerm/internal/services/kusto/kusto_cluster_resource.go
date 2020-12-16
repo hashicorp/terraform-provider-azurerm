@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-02-15/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKustoCluster() *schema.Resource {
+func resourceKustoCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKustoClusterCreateUpdate,
-		Read:   resourceArmKustoClusterRead,
-		Update: resourceArmKustoClusterCreateUpdate,
-		Delete: resourceArmKustoClusterDelete,
+		Create: resourceKustoClusterCreateUpdate,
+		Read:   resourceKustoClusterRead,
+		Update: resourceKustoClusterCreateUpdate,
+		Delete: resourceKustoClusterDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -178,6 +178,17 @@ func resourceArmKustoCluster() *schema.Resource {
 				},
 			},
 
+			"engine": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(kusto.V2),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(kusto.V2),
+					string(kusto.V3),
+				}, false),
+			},
+
 			"uri": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -195,7 +206,7 @@ func resourceArmKustoCluster() *schema.Resource {
 	}
 }
 
-func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClustersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -230,9 +241,12 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 	optimizedAutoScale := expandOptimizedAutoScale(d.Get("optimized_auto_scale").([]interface{}))
 
 	if optimizedAutoScale != nil && *optimizedAutoScale.IsEnabled {
-		// if Capacity has not been set use min instances
-		if *sku.Capacity == 0 {
+		// Ensure that requested Capcity is always between min and max to support updating to not overlapping autoscale ranges
+		if *sku.Capacity < *optimizedAutoScale.Minimum {
 			sku.Capacity = utils.Int32(*optimizedAutoScale.Minimum)
+		}
+		if *sku.Capacity > *optimizedAutoScale.Maximum {
+			sku.Capacity = utils.Int32(*optimizedAutoScale.Maximum)
 		}
 
 		// Capacity must be set for the initial creation when using OptimizedAutoScaling but cannot be updated
@@ -245,11 +259,14 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 		}
 	}
 
+	engine := kusto.EngineType(d.Get("engine").(string))
+
 	clusterProperties := kusto.ClusterProperties{
 		OptimizedAutoscale:    optimizedAutoScale,
 		EnableDiskEncryption:  utils.Bool(d.Get("enable_disk_encryption").(bool)),
 		EnableStreamingIngest: utils.Bool(d.Get("enable_streaming_ingest").(bool)),
 		EnablePurge:           utils.Bool(d.Get("enable_purge").(bool)),
+		EngineType:            engine,
 	}
 
 	if v, ok := d.GetOk("virtual_network_configuration"); ok {
@@ -339,15 +356,15 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	return resourceArmKustoClusterRead(d, meta)
+	return resourceKustoClusterRead(d, meta)
 }
 
-func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClustersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KustoClusterID(d.Id())
+	id, err := parse.ClusterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -392,17 +409,18 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("language_extensions", flattenKustoClusterLanguageExtensions(clusterProperties.LanguageExtensions))
 		d.Set("uri", clusterProperties.URI)
 		d.Set("data_ingestion_uri", clusterProperties.DataIngestionURI)
+		d.Set("engine", clusterProperties.EngineType)
 	}
 
 	return tags.FlattenAndSet(d, clusterResponse.Tags)
 }
 
-func resourceArmKustoClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClustersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KustoClusterID(d.Id())
+	id, err := parse.ClusterID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -108,7 +108,7 @@ func testCheckAzureRMVirtualHubRouteTableExists(resourceName string) resource.Te
 			return fmt.Errorf("network HubRouteTable not found: %s", resourceName)
 		}
 
-		id, err := parse.VirtualHubRouteTableID(rs.Primary.ID)
+		id, err := parse.HubRouteTableID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -134,7 +134,7 @@ func testCheckAzureRMVirtualHubRouteTableDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.VirtualHubRouteTableID(rs.Primary.ID)
+		id, err := parse.HubRouteTableID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

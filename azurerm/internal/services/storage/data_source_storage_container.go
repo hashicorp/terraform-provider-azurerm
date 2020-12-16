@@ -76,7 +76,7 @@ func dataSourceArmStorageContainerRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("building Containers Client for Storage Account %q (Resource Group %q): %s", accountName, account.ResourceGroup, err)
 	}
 
-	id := parse.NewStorageContainerDataPlaneId(accountName, storageClient.Environment.StorageEndpointSuffix, containerName).ID("")
+	id := parse.NewStorageContainerDataPlaneId(accountName, storageClient.Environment.StorageEndpointSuffix, containerName).ID()
 	d.SetId(id)
 
 	props, err := client.Get(ctx, account.ResourceGroup, accountName, containerName)
@@ -98,8 +98,8 @@ func dataSourceArmStorageContainerRead(d *schema.ResourceData, meta interface{})
 	d.Set("has_immutability_policy", props.HasImmutabilityPolicy)
 	d.Set("has_legal_hold", props.HasLegalHold)
 
-	resourceManagerId := parse.NewStorageContainerResourceManagerId(account.ResourceGroup, accountName, containerName)
-	d.Set("resource_manager_id", resourceManagerId.ID(storageClient.SubscriptionId))
+	resourceManagerId := parse.NewStorageContainerResourceManagerID(storageClient.SubscriptionId, account.ResourceGroup, accountName, "default", containerName)
+	d.Set("resource_manager_id", resourceManagerId.ID())
 
 	return nil
 }

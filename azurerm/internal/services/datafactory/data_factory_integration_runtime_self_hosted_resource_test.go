@@ -229,18 +229,18 @@ func testCheckAzureRMDataFactoryIntegrationRuntimeSelfHostedExists(name string) 
 		if !ok {
 			return fmt.Errorf("Not found: %s", name)
 		}
-		id, err := parse.DataFactoryIntegrationRuntimeID(rs.Primary.ID)
+		id, err := parse.IntegrationRuntimeID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := client.Get(ctx, id.ResourceGroup, id.DataFactory, id.Name, "")
+		resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get on IntegrationRuntimesClient: %+v", err)
 		}
 
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Data Factory Self-hosted Integration Runtime %q (Resource Group: %q, Data Factory %q) does not exist", id.Name, id.DataFactory, id.ResourceGroup)
+			return fmt.Errorf("Bad: Data Factory Self-hosted Integration Runtime %q (Resource Group: %q, Data Factory %q) does not exist", id.Name, id.FactoryName, id.ResourceGroup)
 		}
 
 		return nil
@@ -256,12 +256,12 @@ func testCheckAzureRMDataFactoryIntegrationRuntimeSelfHostedDestroy(s *terraform
 			continue
 		}
 
-		id, err := parse.DataFactoryIntegrationRuntimeID(rs.Primary.ID)
+		id, err := parse.IntegrationRuntimeID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := client.Get(ctx, id.ResourceGroup, id.DataFactory, id.Name, "")
+		resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get on IntegrationRuntimesClient: %+v", err)
 		}

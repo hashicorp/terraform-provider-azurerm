@@ -14,9 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmDnsZone() *schema.Resource {
+func dataSourceDnsZone() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmDnsZoneRead,
+		Read: dataSourceDnsZoneRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -56,7 +56,7 @@ func dataSourceArmDnsZone() *schema.Resource {
 	}
 }
 
-func dataSourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Dns.ZonesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

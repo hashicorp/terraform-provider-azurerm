@@ -41,9 +41,11 @@ The following attributes are exported:
 
 * `id` - The ID of Spring Cloud Service.
 
+* `config_server_git_setting` - A `config_server_git_setting` block as defined below.
+
 * `location` - The location of Spring Cloud Service.
 
-* `config_server_git_setting` - A `config_server_git_setting` block as defined below.
+* `outbound_public_ip_addresses` - A list of the outbound Public IP Addresses used by this Spring Cloud Service.
 
 * `tags` - A mapping of tags assigned to Spring Cloud Service.
 

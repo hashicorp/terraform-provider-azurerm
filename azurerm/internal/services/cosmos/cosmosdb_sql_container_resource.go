@@ -78,6 +78,13 @@ func resourceArmCosmosDbSQLContainer() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"partition_key_version": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IntBetween(1, 2),
+			},
+
 			"throughput": {
 				Type:         schema.TypeInt,
 				Optional:     true,
@@ -162,6 +169,10 @@ func resourceArmCosmosDbSQLContainerCreate(d *schema.ResourceData, meta interfac
 			Paths: &[]string{partitionkeypaths},
 			Kind:  documentdb.PartitionKindHash,
 		}
+
+		if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {
+			db.SQLContainerCreateUpdateProperties.Resource.PartitionKey.Version = utils.Int32(int32(partitionKeyVersion.(int)))
+		}
 	}
 
 	if keys := expandCosmosSQLContainerUniqueKeys(d.Get("unique_key").(*schema.Set)); keys != nil {
@@ -219,7 +230,7 @@ func resourceArmCosmosDbSQLContainerUpdate(d *schema.ResourceData, meta interfac
 
 	err = common.CheckForChangeFromAutoscaleAndManualThroughput(d)
 	if err != nil {
-		return fmt.Errorf("Error updating Cosmos SQL Container %q (Account: %q, Database: %q): %+v", id.Name, id.Account, id.Database, err)
+		return fmt.Errorf("Error updating Cosmos SQL Container %q (Account: %q, Database: %q): %+v", id.ContainerName, id.DatabaseAccountName, id.SqlDatabaseName, err)
 	}
 
 	partitionkeypaths := d.Get("partition_key_path").(string)
@@ -227,13 +238,13 @@ func resourceArmCosmosDbSQLContainerUpdate(d *schema.ResourceData, meta interfac
 	indexingPolicy := common.ExpandAzureRmCosmosDbIndexingPolicy(d)
 	err = common.ValidateAzureRmCosmosDbIndexingPolicy(indexingPolicy)
 	if err != nil {
-		return fmt.Errorf("Error updating Cosmos SQL Container %q (Account: %q, Database: %q): %+v", id.Name, id.Account, id.Database, err)
+		return fmt.Errorf("Error updating Cosmos SQL Container %q (Account: %q, Database: %q): %+v", id.ContainerName, id.DatabaseAccountName, id.SqlDatabaseName, err)
 	}
 
 	db := documentdb.SQLContainerCreateUpdateParameters{
 		SQLContainerCreateUpdateProperties: &documentdb.SQLContainerCreateUpdateProperties{
 			Resource: &documentdb.SQLContainerResource{
-				ID:             &id.Name,
+				ID:             &id.ContainerName,
 				IndexingPolicy: indexingPolicy,
 			},
 			Options: &documentdb.CreateUpdateOptions{},
@@ -244,6 +255,10 @@ func resourceArmCosmosDbSQLContainerUpdate(d *schema.ResourceData, meta interfac
 		db.SQLContainerCreateUpdateProperties.Resource.PartitionKey = &documentdb.ContainerPartitionKey{
 			Paths: &[]string{partitionkeypaths},
 			Kind:  documentdb.PartitionKindHash,
+		}
+
+		if partitionKeyVersion, ok := d.GetOk("partition_key_version"); ok {
+			db.SQLContainerCreateUpdateProperties.Resource.PartitionKey.Version = utils.Int32(int32(partitionKeyVersion.(int)))
 		}
 	}
 
@@ -257,27 +272,27 @@ func resourceArmCosmosDbSQLContainerUpdate(d *schema.ResourceData, meta interfac
 		db.SQLContainerCreateUpdateProperties.Resource.DefaultTTL = utils.Int32(int32(defaultTTL.(int)))
 	}
 
-	future, err := client.CreateUpdateSQLContainer(ctx, id.ResourceGroup, id.Account, id.Database, id.Name, db)
+	future, err := client.CreateUpdateSQLContainer(ctx, id.ResourceGroup, id.DatabaseAccountName, id.SqlDatabaseName, id.ContainerName, db)
 	if err != nil {
-		return fmt.Errorf("Error issuing create/update request for Cosmos SQL Container %q (Account: %q, Database: %q): %+v", id.Name, id.Account, id.Database, err)
+		return fmt.Errorf("Error issuing create/update request for Cosmos SQL Container %q (Account: %q, Database: %q): %+v", id.ContainerName, id.DatabaseAccountName, id.SqlDatabaseName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting on create/update future for Cosmos SQL Container %q (Account: %q, Database: %q): %+v", id.Name, id.Account, id.Database, err)
+		return fmt.Errorf("Error waiting on create/update future for Cosmos SQL Container %q (Account: %q, Database: %q): %+v", id.ContainerName, id.DatabaseAccountName, id.SqlDatabaseName, err)
 	}
 
 	if common.HasThroughputChange(d) {
 		throughputParameters := common.ExpandCosmosDBThroughputSettingsUpdateParameters(d)
-		throughputFuture, err := client.UpdateSQLContainerThroughput(ctx, id.ResourceGroup, id.Account, id.Database, id.Name, *throughputParameters)
+		throughputFuture, err := client.UpdateSQLContainerThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.SqlDatabaseName, id.ContainerName, *throughputParameters)
 		if err != nil {
 			if response.WasNotFound(throughputFuture.Response()) {
 				return fmt.Errorf("Error setting Throughput for Cosmos SQL Container %q (Account: %q, Database: %q): %+v - "+
-					"If the collection has not been created with an initial throughput, you cannot configure it later.", id.Name, id.Account, id.Database, err)
+					"If the collection has not been created with an initial throughput, you cannot configure it later.", id.ContainerName, id.DatabaseAccountName, id.SqlDatabaseName, err)
 			}
 		}
 
 		if err = throughputFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting on ThroughputUpdate future for Cosmos Container %q (Account: %q, Database: %q): %+v", id.Name, id.Account, id.Database, err)
+			return fmt.Errorf("Error waiting on ThroughputUpdate future for Cosmos Container %q (Account: %q, Database: %q): %+v", id.ContainerName, id.DatabaseAccountName, id.SqlDatabaseName, err)
 		}
 	}
 
@@ -295,21 +310,21 @@ func resourceArmCosmosDbSQLContainerRead(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	resp, err := client.GetSQLContainer(ctx, id.ResourceGroup, id.Account, id.Database, id.Name)
+	resp, err := client.GetSQLContainer(ctx, id.ResourceGroup, id.DatabaseAccountName, id.SqlDatabaseName, id.ContainerName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading Cosmos SQL Container %q (Account: %q) - removing from state", id.Database, id.Name)
+			log.Printf("[INFO] Error reading Cosmos SQL Container %q (Account: %q) - removing from state", id.SqlDatabaseName, id.ContainerName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Cosmos SQL Container %q (Account: %q): %+v", id.Database, id.Name, err)
+		return fmt.Errorf("Error reading Cosmos SQL Container %q (Account: %q): %+v", id.SqlDatabaseName, id.ContainerName, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.ContainerName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("account_name", id.Account)
-	d.Set("database_name", id.Database)
+	d.Set("account_name", id.DatabaseAccountName)
+	d.Set("database_name", id.SqlDatabaseName)
 
 	if props := resp.SQLContainerGetProperties; props != nil {
 		if res := props.Resource; res != nil {
@@ -320,6 +335,9 @@ func resourceArmCosmosDbSQLContainerRead(d *schema.ResourceData, meta interface{
 					} else if len(*paths) == 1 {
 						d.Set("partition_key_path", (*paths)[0])
 					}
+				}
+				if version := pk.Version; version != nil {
+					d.Set("partition_key_version", version)
 				}
 			}
 
@@ -339,13 +357,13 @@ func resourceArmCosmosDbSQLContainerRead(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	accResp, err := accountClient.Get(ctx, id.ResourceGroup, id.Account)
+	accResp, err := accountClient.Get(ctx, id.ResourceGroup, id.DatabaseAccountName)
 	if err != nil {
-		return fmt.Errorf("reading CosmosDB Account %q (Resource Group %q): %+v", id.Account, id.ResourceGroup, err)
+		return fmt.Errorf("reading CosmosDB Account %q (Resource Group %q): %+v", id.DatabaseAccountName, id.ResourceGroup, err)
 	}
 
 	if accResp.ID == nil || *accResp.ID == "" {
-		return fmt.Errorf("cosmosDB Account %q (Resource Group %q) ID is empty or nil", id.Account, id.ResourceGroup)
+		return fmt.Errorf("cosmosDB Account %q (Resource Group %q) ID is empty or nil", id.DatabaseAccountName, id.ResourceGroup)
 	}
 
 	if props := accResp.DatabaseAccountGetProperties; props != nil && props.Capabilities != nil {
@@ -357,10 +375,10 @@ func resourceArmCosmosDbSQLContainerRead(d *schema.ResourceData, meta interface{
 		}
 
 		if !serverless {
-			throughputResp, err := client.GetSQLContainerThroughput(ctx, id.ResourceGroup, id.Account, id.Database, id.Name)
+			throughputResp, err := client.GetSQLContainerThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.SqlDatabaseName, id.ContainerName)
 			if err != nil {
 				if !utils.ResponseWasNotFound(throughputResp.Response) {
-					return fmt.Errorf("Error reading Throughput on Cosmos SQL Container %s (Account: %q, Database: %q) ID: %v", id.Name, id.Account, id.Database, err)
+					return fmt.Errorf("Error reading Throughput on Cosmos SQL Container %s (Account: %q, Database: %q) ID: %v", id.ContainerName, id.DatabaseAccountName, id.SqlDatabaseName, err)
 				} else {
 					d.Set("throughput", nil)
 					d.Set("autoscale_settings", nil)
@@ -384,16 +402,16 @@ func resourceArmCosmosDbSQLContainerDelete(d *schema.ResourceData, meta interfac
 		return err
 	}
 
-	future, err := client.DeleteSQLContainer(ctx, id.ResourceGroup, id.Account, id.Database, id.Name)
+	future, err := client.DeleteSQLContainer(ctx, id.ResourceGroup, id.DatabaseAccountName, id.SqlDatabaseName, id.ContainerName)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error deleting Cosmos SQL Container %q (Account: %q): %+v", id.Database, id.Name, err)
+			return fmt.Errorf("Error deleting Cosmos SQL Container %q (Account: %q): %+v", id.SqlDatabaseName, id.ContainerName, err)
 		}
 	}
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Error waiting on delete future for Cosmos SQL Container %q (Account: %q): %+v", id.Database, id.Account, err)
+		return fmt.Errorf("Error waiting on delete future for Cosmos SQL Container %q (Account: %q): %+v", id.SqlDatabaseName, id.DatabaseAccountName, err)
 	}
 
 	return nil

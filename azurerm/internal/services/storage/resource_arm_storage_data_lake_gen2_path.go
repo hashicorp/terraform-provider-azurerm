@@ -147,7 +147,7 @@ func resourceArmStorageDataLakeGen2PathCreate(d *schema.ResourceData, meta inter
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	storageID, err := parse.AccountID(d.Get("storage_account_id").(string))
+	storageID, err := parse.StorageAccountID(d.Get("storage_account_id").(string))
 	if err != nil {
 		return err
 	}
@@ -241,7 +241,7 @@ func resourceArmStorageDataLakeGen2PathUpdate(d *schema.ResourceData, meta inter
 		return err
 	}
 
-	storageID, err := parse.AccountID(d.Get("storage_account_id").(string))
+	storageID, err := parse.StorageAccountID(d.Get("storage_account_id").(string))
 	if err != nil {
 		return err
 	}
@@ -287,7 +287,7 @@ func resourceArmStorageDataLakeGen2PathUpdate(d *schema.ResourceData, meta inter
 			Group: group,
 		}
 		if _, err := client.SetAccessControl(ctx, id.AccountName, id.FileSystemName, path, accessControlInput); err != nil {
-			return fmt.Errorf("Error setting access control for Path %q in File System %q in Storage Account %q: %s", id.FileSystemName, path, id.AccountName, err)
+			return fmt.Errorf("Error setting access control for Path %q in File System %q in Storage Account %q: %s", path, id.FileSystemName, id.AccountName, err)
 		}
 	}
 
