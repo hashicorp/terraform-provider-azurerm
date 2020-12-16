@@ -20,9 +20,9 @@ import (
 
 func resourceMediaContentKeyPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceMediaContentKeyPolicyCreate,
+		Create: resourceMediaContentKeyPolicyCreateUpdate,
 		Read:   resourceMediaContentKeyPolicyRead,
-		Update: resourceMediaContentKeyPolicyUpdate,
+		Update: resourceMediaContentKeyPolicyCreateUpdate,
 		Delete: resourceMediaContentKeyPolicyDelete,
 
 		Timeouts: &schema.ResourceTimeout{
@@ -72,11 +72,6 @@ func resourceMediaContentKeyPolicy() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"id": {
-							Type:         schema.TypeString,
-							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"clear_key_configuration_enabled": {
@@ -243,11 +238,6 @@ func resourceMediaContentKeyPolicy() *schema.Resource {
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
-									"alternative_symmetric_token_key": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
 									"primary_rsa_token_key_exponent": {
 										Type:         schema.TypeString,
 										Optional:     true,
@@ -258,22 +248,7 @@ func resourceMediaContentKeyPolicy() *schema.Resource {
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
-									"alternate_rsa_token_key_exponent": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-									"alternate_rsa_token_key_modulus": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
 									"primary_x509_token_key_raw": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-									"alternate_x509_token_key_raw": {
 										Type:         schema.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
@@ -315,178 +290,57 @@ func resourceMediaContentKeyPolicy() *schema.Resource {
 	}
 }
 
-func resourceMediaContentKeyPolicyCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.StreamingEndpointsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+func resourceMediaContentKeyPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Media.ContentKeyPoliciesClient
+	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	streamingEndpointName := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	accountName := d.Get("media_services_account_name").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	scaleUnits := d.Get("scale_units").(int)
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	resourceId := parse.NewStreamingEndpointID(subscriptionId, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.MediaserviceName, resourceId.Name)
-	if err != nil {
+	resourceID := parse.NewContentKeyPolicyID(subscriptionID, d.Get("resource_group_name").(string), d.Get("media_services_account_name").(string), d.Get("name").(string))
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceID.ResourceGroup, resourceID.MediaserviceName, resourceID.Name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of %s: %+v", resourceID, err)
+			}
+		}
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of %s: %+v", resourceId, err)
+			return tf.ImportAsExistsError("azurerm_media_content_key_policy", resourceID.ID())
 		}
 	}
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_media_streaming_endpoint", resourceId.ID())
-	}
 
-	parameters := media.StreamingEndpoint{
-		StreamingEndpointProperties: &media.StreamingEndpointProperties{
-			ScaleUnits: utils.Int32(int32(scaleUnits)),
-		},
-		Location: utils.String(location),
-	}
-
-	autoStart := utils.Bool(false)
-	if _, ok := d.GetOk("auto_start_enabled"); ok {
-		autoStart = utils.Bool(d.Get("auto_start_enabled").(bool))
-	}
-	if _, ok := d.GetOk("access_control"); ok {
-		accessControl, err := expandAccessControl(d)
-		if err != nil {
-			return err
-		}
-		parameters.StreamingEndpointProperties.AccessControl = accessControl
-	}
-	if cdnEnabled, ok := d.GetOk("cdn_enabled"); ok {
-		parameters.StreamingEndpointProperties.CdnEnabled = utils.Bool(cdnEnabled.(bool))
-	}
-
-	if cdnProfile, ok := d.GetOk("cdn_profile"); ok {
-		parameters.StreamingEndpointProperties.CdnProfile = utils.String(cdnProfile.(string))
-	}
-
-	if cdnProvider, ok := d.GetOk("cdn_provider"); ok {
-		parameters.StreamingEndpointProperties.CdnProvider = utils.String(cdnProvider.(string))
-	}
-
-	if crossSite, ok := d.GetOk("cross_site_access_policy"); ok {
-		parameters.StreamingEndpointProperties.CrossSiteAccessPolicies = expandCrossSiteAccessPolicies(crossSite.([]interface{}))
-	}
-
-	if _, ok := d.GetOk("custom_host_names"); ok {
-		customHostNames := d.Get("custom_host_names").([]interface{})
-		parameters.StreamingEndpointProperties.CustomHostNames = utils.ExpandStringSlice(customHostNames)
+	parameters := media.ContentKeyPolicy{
+		ContentKeyPolicyProperties: &media.ContentKeyPolicyProperties{},
 	}
 
 	if description, ok := d.GetOk("description"); ok {
-		parameters.StreamingEndpointProperties.Description = utils.String(description.(string))
+		parameters.ContentKeyPolicyProperties.Description = utils.String(description.(string))
 	}
 
-	if maxCacheAge, ok := d.GetOk("max_cache_age_seconds"); ok {
-		parameters.StreamingEndpointProperties.MaxCacheAge = utils.Int64(int64(maxCacheAge.(int)))
-	}
-
-	future, err := client.Create(ctx, resourceGroup, accountName, streamingEndpointName, parameters, autoStart)
-	if err != nil {
-		return fmt.Errorf("Error creating Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", streamingEndpointName, accountName, resourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", streamingEndpointName, accountName, resourceGroup, err)
-	}
-
-	d.SetId(resourceId.ID())
-
-	return resourceMediaContentKeyPolicyRead(d, meta)
-}
-
-func resourceMediaContentKeyPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.StreamingEndpointsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := parse.StreamingEndpointID(d.Id())
-	if err != nil {
-		return err
-	}
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	scaleUnits := d.Get("scale_units").(int)
-
-	parameters := media.StreamingEndpoint{
-		StreamingEndpointProperties: &media.StreamingEndpointProperties{
-			ScaleUnits: utils.Int32(int32(scaleUnits)),
-		},
-		Location: utils.String(location),
-	}
-
-	if d.HasChange("scale_units") {
-		scaleParamaters := media.StreamingEntityScaleUnit{
-			ScaleUnit: utils.Int32(int32(scaleUnits)),
-		}
-
-		future, err := client.Scale(ctx, id.ResourceGroup, id.MediaserviceName, id.Name, scaleParamaters)
-		if err != nil {
-			return fmt.Errorf("Error scaling units in Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for scaling of Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
-		}
-	}
-
-	if _, ok := d.GetOk("access_control"); ok {
-		accessControl, err := expandAccessControl(d)
+	if v, ok := d.GetOk("policy_option"); ok {
+		options, err := expandPolicyOptions(v.([]interface{}))
 		if err != nil {
 			return err
 		}
-		parameters.StreamingEndpointProperties.AccessControl = accessControl
+		parameters.ContentKeyPolicyProperties.Options = options
 	}
 
-	if cdnEnabled, ok := d.GetOk("cdn_enabled"); ok {
-		parameters.StreamingEndpointProperties.CdnEnabled = utils.Bool(cdnEnabled.(bool))
-	}
-
-	if cdnProfile, ok := d.GetOk("cdn_profile"); ok {
-		parameters.StreamingEndpointProperties.CdnProfile = utils.String(cdnProfile.(string))
-	}
-
-	if cdnProvider, ok := d.GetOk("cdn_provider"); ok {
-		parameters.StreamingEndpointProperties.CdnProvider = utils.String(cdnProvider.(string))
-	}
-
-	if crossSitePolicies, ok := d.GetOk("cross_site_access_policy"); ok {
-		parameters.StreamingEndpointProperties.CrossSiteAccessPolicies = expandCrossSiteAccessPolicies(crossSitePolicies.([]interface{}))
-	}
-
-	if _, ok := d.GetOk("custom_host_names"); ok {
-		customHostNames := d.Get("custom_host_names").([]interface{})
-		parameters.StreamingEndpointProperties.CustomHostNames = utils.ExpandStringSlice(customHostNames)
-	}
-
-	if description, ok := d.GetOk("description"); ok {
-		parameters.StreamingEndpointProperties.Description = utils.String(description.(string))
-	}
-
-	if maxCacheAge, ok := d.GetOk("max_cache_age_seconds"); ok {
-		parameters.StreamingEndpointProperties.MaxCacheAge = utils.Int64(int64(maxCacheAge.(int)))
-	}
-
-	future, err := client.Update(ctx, id.ResourceGroup, id.MediaserviceName, id.Name, parameters)
+	_, err := client.CreateOrUpdate(ctx, resourceID.ResourceGroup, resourceID.MediaserviceName, resourceID.Name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+		return fmt.Errorf("creating/updating %s: %+v", resourceID, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
-	}
+	d.SetId(resourceID.ID())
 
 	return resourceMediaContentKeyPolicyRead(d, meta)
 }
 
 func resourceMediaContentKeyPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.StreamingEndpointsClient
+	client := meta.(*clients.Client).Media.ContentKeyPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.StreamingEndpointID(d.Id())
+	id, err := parse.ContentKeyPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -494,71 +348,403 @@ func resourceMediaContentKeyPolicyRead(d *schema.ResourceData, meta interface{})
 	resp, err := client.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Streaming Endpoint %q was not found in Media Services Account %q and Resource Group %q - removing from state", id.Name, id.MediaserviceName, id.ResourceGroup)
+			log.Printf("[INFO] %s was not found - removing from state", id)
 			d.SetId("")
 			return nil
 		}
-
-		return fmt.Errorf("Error retrieving Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("media_services_account_name", id.MediaserviceName)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
 
-	if props := resp.StreamingEndpointProperties; props != nil {
-		if scaleUnits := props.ScaleUnits; scaleUnits != nil {
-			d.Set("scale_units", scaleUnits)
-		}
-
-		accessControl := flattenAccessControl(props.AccessControl)
-		if err := d.Set("access_control", accessControl); err != nil {
-			return fmt.Errorf("Error flattening `access_control`: %s", err)
-		}
-
-		d.Set("cdn_enabled", props.CdnEnabled)
-		d.Set("cdn_profile", props.CdnProfile)
-		d.Set("cdn_provider", props.CdnProvider)
-
-		crossSiteAccessPolicies := flattenCrossSiteAccessPolicies(resp.CrossSiteAccessPolicies)
-		if err := d.Set("cross_site_access_policy", crossSiteAccessPolicies); err != nil {
-			return fmt.Errorf("Error flattening `cross_site_access_policy`: %s", err)
-		}
-
-		d.Set("custom_host_names", props.CustomHostNames)
+	if props := resp.ContentKeyPolicyProperties; props != nil {
 		d.Set("description", props.Description)
 
-		maxCacheAge := 0
-		if props.MaxCacheAge != nil {
-			maxCacheAge = int(*props.MaxCacheAge)
+		options := flattenPolicyOptions(resp.Options)
+		if err := d.Set("policy_option", options); err != nil {
+			return fmt.Errorf("Error flattening `policy_option`: %s", err)
 		}
-		d.Set("max_cache_age_seconds", maxCacheAge)
 	}
 
 	return nil
 }
 
 func resourceMediaContentKeyPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Media.StreamingEndpointsClient
+	client := meta.(*clients.Client).Media.ContentKeyPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.StreamingEndpointID(d.Id())
+	id, err := parse.ContentKeyPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
+	_, err = client.Delete(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Streaming Endpoint %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
+}
+
+func expandPolicyOptions(input []interface{}) (*[]media.ContentKeyPolicyOption, error) {
+	results := make([]media.ContentKeyPolicyOption, 0)
+
+	for _, policyOptionRaw := range input {
+		policyOption := policyOptionRaw.(map[string]interface{})
+
+		restriction, err := expandRestriction(policyOption)
+		if err != nil {
+			return nil, err
+		}
+
+		configuration, err := expandConfiguration(policyOption)
+		if err != nil {
+			return nil, err
+		}
+
+		contentKeyPolicyOption := media.ContentKeyPolicyOption{
+			Restriction:   restriction,
+			Configuration: configuration,
+		}
+
+		if v := policyOption["name"]; v != nil {
+			contentKeyPolicyOption.Name = utils.String(v.(string))
+		}
+
+		results = append(results, contentKeyPolicyOption)
+	}
+
+	return &results, nil
+}
+
+func flattenPolicyOptions(input *[]media.ContentKeyPolicyOption) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	results := make([]interface{}, 0)
+	for _, option := range *input {
+		policyOption := make(map[string]interface{})
+		policyOption["name"] = option.Name
+
+		configuration, err := flattenConfiguration(option.Configuration, policyOption)
+		if err != nil {
+
+		}
+		policyOption = configuration
+
+		restriction, err := flattenRestriction(option.Restriction, policyOption)
+		if err != nil {
+
+		}
+		policyOption = restriction
+
+		results = append(results, policyOption)
+	}
+
+	return results
+}
+
+func expandRestriction(option map[string]interface{}) (media.BasicContentKeyPolicyRestriction, error) {
+	restrictionCount := 0
+	restrictionType := ""
+	if option["open_restriction_enabled"] != nil && option["open_restriction_enabled"].(bool) {
+		restrictionCount++
+		restrictionType = string(media.OdataTypeMicrosoftMediaContentKeyPolicyOpenRestriction)
+	}
+	if option["token_restriction"] != nil && len(option["token_restriction"].([]interface{})) > 0 {
+		restrictionCount++
+		restrictionType = string(media.OdataTypeMicrosoftMediaContentKeyPolicyTokenRestriction)
+	}
+
+	if restrictionCount == 0 {
+		return nil, fmt.Errorf("policy_option must contain at least one type of restriction: open_restriction_enabled or token_restriction.")
+	}
+
+	if restrictionCount > 1 {
+		return nil, fmt.Errorf("more than one type of restriction in the same policy_option is not allowed.")
+	}
+
+	switch restrictionType {
+	case string(media.OdataTypeMicrosoftMediaContentKeyPolicyOpenRestriction):
+		openRestriction := &media.ContentKeyPolicyOpenRestriction{
+			OdataType: media.OdataTypeMicrosoftMediaContentKeyPolicyOpenRestriction,
+		}
+		return openRestriction, nil
+	case string(media.OdataTypeMicrosoftMediaContentKeyPolicyTokenRestriction):
+		tokenRestrictions := option["token_restriction"].([]interface{})
+		tokenRestriction := tokenRestrictions[0].(map[string]interface{})
+		contentKeyPolicyTokenRestriction := &media.ContentKeyPolicyTokenRestriction{
+			OdataType: media.OdataTypeMicrosoftMediaContentKeyPolicyTokenRestriction,
+		}
+		if tokenRestriction["audience"] != nil && tokenRestriction["audience"].(string) != "" {
+			contentKeyPolicyTokenRestriction.Audience = utils.String(tokenRestriction["audience"].(string))
+		}
+		if tokenRestriction["issuer"] != nil && tokenRestriction["issuer"].(string) != "" {
+			contentKeyPolicyTokenRestriction.Issuer = utils.String(tokenRestriction["issuer"].(string))
+		}
+		if tokenRestriction["token_type"] != nil && tokenRestriction["token_type"].(string) != "" {
+			contentKeyPolicyTokenRestriction.RestrictionTokenType = media.ContentKeyPolicyRestrictionTokenType(tokenRestriction["token_type"].(string))
+		}
+		if tokenRestriction["open_id_connect_discovery_document"] != nil && tokenRestriction["open_id_connect_discovery_document"].(string) != "" {
+			contentKeyPolicyTokenRestriction.OpenIDConnectDiscoveryDocument = utils.String(tokenRestriction["open_id_connect_discovery_document"].(string))
+		}
+		if v := tokenRestriction["required_claim"]; v != nil {
+			contentKeyPolicyTokenRestriction.RequiredClaims = expandRequiredClaims(v.([]interface{}))
+		}
+		primaryVerificationKey, err := expandVerificationKey(tokenRestriction)
+		if err != nil {
+			return nil, err
+		}
+		contentKeyPolicyTokenRestriction.PrimaryVerificationKey = primaryVerificationKey
+
+		return contentKeyPolicyTokenRestriction, nil
+	default:
+		return nil, fmt.Errorf("policy_option must contain at least one type of restriction: open_restriction_enabled or token_restriction.")
+	}
+}
+
+func flattenRestriction(input media.BasicContentKeyPolicyRestriction, option map[string]interface{}) (map[string]interface{}, error) {
+	if input == nil {
+		return option, nil
+	}
+
+	switch input.(type) {
+	case media.ContentKeyPolicyOpenRestriction:
+		option["open_restriction_enabled"] = true
+	case media.ContentKeyPolicyTokenRestriction:
+		token, _ := input.AsContentKeyPolicyTokenRestriction()
+
+		audience := ""
+		if token.Audience != nil {
+			audience = *token.Audience
+		}
+
+		issuer := ""
+		if token.Issuer != nil {
+			issuer = *token.Issuer
+		}
+
+		openIDConnectDiscoveryDocument := ""
+		if token.OpenIDConnectDiscoveryDocument != nil {
+			openIDConnectDiscoveryDocument = *token.OpenIDConnectDiscoveryDocument
+		}
+
+		requiredClaims := flattenRequiredClaims(token.RequiredClaims)
+
+		option["token_restriction"] = []interface{}{
+			map[string]interface{}{
+				"audience":                           audience,
+				"issuer":                             issuer,
+				"token_type":                         string(token.RestrictionTokenType),
+				"open_id_connect_discovery_document": openIDConnectDiscoveryDocument,
+				"required_claim":                     requiredClaims,
+			},
+		}
+
+		option = flattenVerificationKey(token.PrimaryVerificationKey, option)
+	}
+
+	return option, nil
+}
+
+func expandConfiguration(input map[string]interface{}) (media.BasicContentKeyPolicyConfiguration, error) {
+	configurationCount := 0
+	configurationType := ""
+	if input["clear_key_configuration_enabled"] != nil && input["clear_key_configuration_enabled"].(bool) {
+		configurationCount++
+		configurationType = string(media.OdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration)
+	}
+	if input["widevine_configuration_template"] != nil && input["widevine_configuration_template"].(string) != "" {
+		configurationCount++
+		configurationType = string(media.OdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration)
+	}
+
+	if configurationCount == 0 {
+		return nil, fmt.Errorf("policy_option must contain at least one type of configuration: clear_key_configuration_enabled , widevine_configuration_template, playready_configuration_license or fairplay_configuration.")
+	}
+
+	if configurationCount > 1 {
+		return nil, fmt.Errorf("more than one type of configuration in the same policy_option is not allowed.")
+	}
+
+	switch configurationType {
+	case string(media.OdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration):
+		clearKeyConfiguration := &media.ContentKeyPolicyClearKeyConfiguration{
+			OdataType: media.OdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration,
+		}
+		return clearKeyConfiguration, nil
+	case string(media.OdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration):
+		wideVineConfiguration := &media.ContentKeyPolicyWidevineConfiguration{
+			OdataType:        media.OdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration,
+			WidevineTemplate: utils.String(input["widevine_configuration_template"].(string)),
+		}
+		return wideVineConfiguration, nil
+	default:
+		return nil, fmt.Errorf("policy_option must contain at least one type of configuration: clear_key_configuration_enabled , widevine_configuration_template, playready_configuration_license or fairplay_configuration.")
+	}
+}
+
+func flattenConfiguration(input media.BasicContentKeyPolicyConfiguration, option map[string]interface{}) (map[string]interface{}, error) {
+	if input == nil {
+		return option, nil
+	}
+
+	switch input.(type) {
+	case media.ContentKeyPolicyClearKeyConfiguration:
+		option["clear_key_configuration_enabled"] = true
+	case media.ContentKeyPolicyWidevineConfiguration:
+		wideVineConfiguration, _ := input.AsContentKeyPolicyWidevineConfiguration()
+
+		template := ""
+		if wideVineConfiguration.WidevineTemplate != nil {
+			template = *wideVineConfiguration.WidevineTemplate
+		}
+
+		option["widevine_configuration_template"] = template
+	}
+
+	return option, nil
+}
+
+func expandVerificationKey(input map[string]interface{}) (media.BasicContentKeyPolicyRestrictionTokenKey, error) {
+	verificationKeyCount := 0
+	verificationKeyType := ""
+	if input["primary_symmetric_token_key"] != nil && input["primary_symmetric_token_key"].(string) != "" {
+		verificationKeyCount++
+		verificationKeyType = string(media.OdataTypeMicrosoftMediaContentKeyPolicySymmetricTokenKey)
+	}
+	if (input["primary_rsa_token_key_exponent"] != nil && input["primary_rsa_token_key_exponent"].(string) != "") || (input["primary_rsa_token_key_modulus"] != nil && input["primary_rsa_token_key_modulus"].(string) != "") {
+		verificationKeyCount++
+		verificationKeyType = string(media.OdataTypeMicrosoftMediaContentKeyPolicyRsaTokenKey)
+	}
+
+	if input["primary_x509_token_key_raw"] != nil && input["primary_x509_token_key_raw"].(string) != "" {
+		verificationKeyCount++
+		verificationKeyType = string(media.OdataTypeMicrosoftMediaContentKeyPolicyX509CertificateTokenKey)
+	}
+
+	if verificationKeyCount > 1 {
+		return nil, fmt.Errorf("more than one type of token key in the same token_restriction is not allowed.", verificationKeyType)
+	}
+
+	switch verificationKeyType {
+	case string(media.OdataTypeMicrosoftMediaContentKeyPolicySymmetricTokenKey):
+		symmetricTokenKey := &media.ContentKeyPolicySymmetricTokenKey{
+			OdataType: media.OdataTypeMicrosoftMediaContentKeyPolicySymmetricTokenKey,
+		}
+
+		if input["primary_symmetric_token_key"] != nil && input["primary_symmetric_token_key"].(string) != "" {
+			keyValue := []byte(input["primary_symmetric_token_key"].(string))
+			symmetricTokenKey.KeyValue = &keyValue
+		}
+		return symmetricTokenKey, nil
+	case string(media.OdataTypeMicrosoftMediaContentKeyPolicyRsaTokenKey):
+		rsaTokenKey := &media.ContentKeyPolicyRsaTokenKey{
+			OdataType: media.OdataTypeMicrosoftMediaContentKeyPolicyRsaTokenKey,
+		}
+		if input["primary_rsa_token_key_exponent"] != nil && input["primary_rsa_token_key_exponent"].(string) != "" {
+			exponent := []byte(input["primary_rsa_token_key_exponent"].(string))
+			rsaTokenKey.Exponent = &exponent
+		}
+		if input["primary_rsa_token_key_modulus"] != nil && input["primary_rsa_token_key_modulus"].(string) != "" {
+			modulus := []byte(input["primary_rsa_token_key_modulus"].(string))
+			rsaTokenKey.Modulus = &modulus
+		}
+		return rsaTokenKey, nil
+	case string(media.OdataTypeMicrosoftMediaContentKeyPolicyX509CertificateTokenKey):
+		x509CertificateTokenKey := &media.ContentKeyPolicyX509CertificateTokenKey{
+			OdataType: media.OdataTypeMicrosoftMediaContentKeyPolicyX509CertificateTokenKey,
+		}
+
+		if input["primary_x509_token_key_raw"] != nil && input["primary_x509_token_key_raw"].(string) != "" {
+			rawBody := []byte(input["primary_x509_token_key_raw"].(string))
+			x509CertificateTokenKey.RawBody = &rawBody
+		}
+		return x509CertificateTokenKey, nil
+	default:
+		return nil, nil
+	}
+}
+
+func flattenVerificationKey(input media.BasicContentKeyPolicyRestrictionTokenKey, key map[string]interface{}) map[string]interface{} {
+	if input == nil {
+		return key
+	}
+
+	switch input.(type) {
+	case media.ContentKeyPolicySymmetricTokenKey:
+		symmetricTokenKey, _ := input.AsContentKeyPolicySymmetricTokenKey()
+		keyValue := ""
+		if symmetricTokenKey.KeyValue != nil {
+			keyValue = string(*symmetricTokenKey.KeyValue)
+		}
+		key["primary_symmetric_token_key"] = keyValue
+	case media.ContentKeyPolicyRsaTokenKey:
+		rsaTokenKey, _ := input.AsContentKeyPolicyRsaTokenKey()
+		exponent := ""
+		if rsaTokenKey.Exponent != nil {
+			exponent = string(*rsaTokenKey.Exponent)
+		}
+		modulus := ""
+		if rsaTokenKey.Modulus != nil {
+			modulus = string(*rsaTokenKey.Modulus)
+		}
+		key["primary_rsa_token_key_exponent"] = exponent
+		key["primary_rsa_token_key_modulus"] = modulus
+	case media.ContentKeyPolicyX509CertificateTokenKey:
+		x509CertificateTokenKey, _ := input.AsContentKeyPolicyX509CertificateTokenKey()
+		rawBody := ""
+		if x509CertificateTokenKey.RawBody != nil {
+			rawBody = string(*x509CertificateTokenKey.RawBody)
+		}
+		key["primary_x509_token_key_raw"] = rawBody
+	}
+	return key
+}
+
+func expandRequiredClaims(input []interface{}) *[]media.ContentKeyPolicyTokenClaim {
+	results := make([]media.ContentKeyPolicyTokenClaim, 0)
+
+	for _, tokenClaimRaw := range input {
+		tokenClaim := tokenClaimRaw.(map[string]interface{})
+
+		claimType := ""
+		if v := tokenClaim["type"]; v != nil {
+			claimType = v.(string)
+		}
+
+		claimValue := ""
+		if v := tokenClaim["value"]; v != nil {
+			claimValue = v.(string)
+		}
+
+		contentPolicyTokenClaim := media.ContentKeyPolicyTokenClaim{
+			ClaimType:  &claimType,
+			ClaimValue: &claimValue,
+		}
+
+		results = append(results, contentPolicyTokenClaim)
+	}
+
+	return &results
+}
+
+func flattenRequiredClaims(input *[]media.ContentKeyPolicyTokenClaim) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	results := make([]interface{}, 0)
+	for _, tokenClaim := range *input {
+		claim := make(map[string]interface{})
+		claim["value"] = tokenClaim.ClaimValue
+		claim["type"] = tokenClaim.ClaimType
+		results = append(results, claim)
+	}
+
+	return results
 }
