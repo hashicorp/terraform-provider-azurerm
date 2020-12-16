@@ -1,4 +1,4 @@
-package tests
+package loganalytics_test
 
 import (
 	"fmt"
@@ -85,9 +85,9 @@ func testCheckAzureRMLogAnalyticsClusterExists(resourceName string) resource.Tes
 		if err != nil {
 			return err
 		}
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: log analytics Cluster %q does not exist", id.Name)
+				return fmt.Errorf("bad: log analytics Cluster %q does not exist", id.ClusterName)
 			}
 			return fmt.Errorf("bad: Get on LogAnalytics.ClusterClient: %+v", err)
 		}
@@ -107,7 +107,7 @@ func testCheckAzureRMLogAnalyticsClusterDestroy(s *terraform.State) error {
 		if err != nil {
 			return err
 		}
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("bad: Get on LogAnalytics.ClusterClient: %+v", err)
 			}

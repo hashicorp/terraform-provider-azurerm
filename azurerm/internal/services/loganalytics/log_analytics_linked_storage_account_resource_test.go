@@ -1,10 +1,10 @@
-package tests
+package loganalytics_test
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2020-03-01-preview/operationalinsights"
+	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -111,9 +111,9 @@ func testCheckAzureRMoperationalinsightsLinkedStorageAccountExists(resourceName 
 		if err != nil {
 			return err
 		}
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, operationalinsights.DataSourceType(id.Name)); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, operationalinsights.DataSourceType(id.LinkedStorageAccountName)); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Operationalinsights LinkedStorageAccount %q does not exist", id.Name)
+				return fmt.Errorf("bad: Operationalinsights LinkedStorageAccount %q does not exist", id.LinkedStorageAccountName)
 			}
 			return fmt.Errorf("bad: Get on Operationalinsights.LinkedStorageAccountClient: %+v", err)
 		}
@@ -133,7 +133,7 @@ func testCheckAzureRMoperationalinsightsLinkedStorageAccountDestroy(s *terraform
 		if err != nil {
 			return err
 		}
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, operationalinsights.DataSourceType(id.Name)); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, operationalinsights.DataSourceType(id.LinkedStorageAccountName)); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("bad: Get on LogAnalytics.LinkedStorageAccountClient: %+v", err)
 			}

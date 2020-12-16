@@ -1,4 +1,4 @@
-package tests
+package loganalytics_test
 
 import (
 	"fmt"
@@ -45,7 +45,7 @@ func testCheckAzureRMLogAnalyticsClusterCustomerManagedKeyExists(resourceName st
 		if err != nil {
 			return err
 		}
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("bad: get on Log Analytics Cluster for CMK: %+v", err)
@@ -77,7 +77,7 @@ func testCheckAzureRMLogAnalyticsClusterCustomerManagedKeyDestroy(s *terraform.S
 		if err != nil {
 			return err
 		}
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("bad: get on Log Analytics Cluster for CMK: %+v", err)

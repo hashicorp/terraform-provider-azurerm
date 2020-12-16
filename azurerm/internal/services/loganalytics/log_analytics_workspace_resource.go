@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2020-03-01-preview/operationalinsights"
+	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -83,7 +83,7 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 					string(operationalinsights.WorkspaceSkuNameEnumStandard),
 					"Unlimited", // TODO check if this is actually no longer valid, removed in v28.0.0 of the SDK
 				}, true),
-				DiffSuppressFunc: logAnalyticsLinkedServiceSkuChangeCaseDifference,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"retention_in_days": {
@@ -138,7 +138,7 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	id := parse.NewLogAnalyticsWorkspaceID(name, resourceGroup)
+	id := parse.NewLogAnalyticsWorkspaceID(subscriptionId, resourceGroup, name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
@@ -157,20 +157,6 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 	skuName := d.Get("sku").(string)
 	sku := &operationalinsights.WorkspaceSku{
 		Name: operationalinsights.WorkspaceSkuNameEnum(skuName),
-	}
-
-	// (@WodansSon) - If the workspace is connected to a cluster via the linked service resource
-	// the workspace cannot be modified since the linked service changes the sku value within
-	// the workspace
-	if !d.IsNewResource() {
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-		if err == nil {
-			if azSku := resp.Sku; azSku != nil {
-				if strings.EqualFold(string(azSku.Name), "lacluster") {
-					return fmt.Errorf("Log Analytics Workspace %q (Resource Group %q): cannot be modified while it is connected to a Log Analytics cluster", name, resourceGroup)
-				}
-			}
-		}
 	}
 
 	internetIngestionEnabled := operationalinsights.Disabled
@@ -216,7 +202,7 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 		return err
 	}
 
-	d.SetId(id.ID(subscriptionId))
+	d.SetId(id.ID())
 
 	return resourceArmLogAnalyticsWorkspaceRead(d, meta)
 }
@@ -231,13 +217,13 @@ func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM Log Analytics workspaces '%s': %+v", id.Name, err)
+		return fmt.Errorf("Error making Read request on AzureRM Log Analytics workspaces '%s': %+v", id.WorkspaceName, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -264,9 +250,9 @@ func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface
 		d.Set("daily_quota_gb", utils.Float(-1))
 	}
 
-	sharedKeys, err := sharedKeysClient.GetSharedKeys(ctx, id.ResourceGroup, id.Name)
+	sharedKeys, err := sharedKeysClient.GetSharedKeys(ctx, id.ResourceGroup, id.WorkspaceName)
 	if err != nil {
-		log.Printf("[ERROR] Unable to List Shared keys for Log Analytics workspaces %s: %+v", id.Name, err)
+		log.Printf("[ERROR] Unable to List Shared keys for Log Analytics workspaces %s: %+v", id.WorkspaceName, err)
 	} else {
 		d.Set("primary_shared_key", sharedKeys.PrimarySharedKey)
 		d.Set("secondary_shared_key", sharedKeys.SecondarySharedKey)
@@ -285,14 +271,14 @@ func resourceArmLogAnalyticsWorkspaceDelete(d *schema.ResourceData, meta interfa
 	}
 
 	force := false
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, utils.Bool(force))
+	future, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, utils.Bool(force))
 	if err != nil {
-		return fmt.Errorf("issuing AzureRM delete request for Log Analytics Workspaces '%s': %+v", id.Name, err)
+		return fmt.Errorf("issuing AzureRM delete request for Log Analytics Workspaces '%s': %+v", id.WorkspaceName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deletion of Log Analytics Worspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for deletion of Log Analytics Worspace %q (Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroup, err)
 		}
 	}
 
@@ -306,15 +292,4 @@ func dailyQuotaGbDiffSuppressFunc(_, _, _ string, d *schema.ResourceData) bool {
 	}
 
 	return false
-}
-
-func logAnalyticsLinkedServiceSkuChangeCaseDifference(k, old, new string, d *schema.ResourceData) bool {
-	// (@WodansSon) - This is needed because if you connect your workspace to a log analytics linked service resource it
-	// will modify the value of your sku to "lacluster". We are currently in negotiations with the service team to
-	// see if there is another way of doing this, for now this is the workaround
-	if old == "lacluster" {
-		old = new
-	}
-
-	return suppress.CaseDifference(k, old, new, d)
 }

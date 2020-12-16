@@ -29,8 +29,8 @@ func workspaceStateMigrateV0toV1(is *terraform.InstanceState, meta interface{}) 
 	name := is.Attributes["name"]
 	resourceGroup := is.Attributes["resource_group"]
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	id := parse.NewLogAnalyticsWorkspaceID(name, resourceGroup)
-	is.ID = id.ID(subscriptionId)
+	id := parse.NewLogAnalyticsWorkspaceID(subscriptionId, resourceGroup, name)
+	is.ID = id.ID()
 
 	return is, nil
 }

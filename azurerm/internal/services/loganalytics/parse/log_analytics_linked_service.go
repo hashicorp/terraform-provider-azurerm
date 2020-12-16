@@ -1,45 +1,69 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 type LogAnalyticsLinkedServiceId struct {
-	ResourceGroup string
-	WorkspaceName string
-	Type          string
+	SubscriptionId    string
+	ResourceGroup     string
+	WorkspaceName     string
+	LinkedServiceName string
 }
 
-func NewLogAnalyticsLinkedServiceID(resourceGroup, serviceType, workspaceName string) LogAnalyticsLinkedServiceId {
+func NewLogAnalyticsLinkedServiceID(subscriptionId, resourceGroup, workspaceName, linkedServiceName string) LogAnalyticsLinkedServiceId {
 	return LogAnalyticsLinkedServiceId{
-		ResourceGroup: resourceGroup,
-		WorkspaceName: workspaceName,
-		Type:          serviceType,
+		SubscriptionId:    subscriptionId,
+		ResourceGroup:     resourceGroup,
+		WorkspaceName:     workspaceName,
+		LinkedServiceName: linkedServiceName,
 	}
 }
 
-func (id LogAnalyticsLinkedServiceId) ID(subscriptionId string) string {
-	// Log Analytics ID ignores casing
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.OperationalInsights/workspaces/%s/linkedServices/%s", subscriptionId, id.ResourceGroup, id.WorkspaceName, id.Type)
+func (id LogAnalyticsLinkedServiceId) String() string {
+	segments := []string{
+		fmt.Sprintf("Linked Service Name %q", id.LinkedServiceName),
+		fmt.Sprintf("Workspace Name %q", id.WorkspaceName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Log Analytics Linked Service", segmentsStr)
 }
 
+func (id LogAnalyticsLinkedServiceId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.OperationalInsights/workspaces/%s/linkedServices/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.LinkedServiceName)
+}
+
+// LogAnalyticsLinkedServiceID parses a LogAnalyticsLinkedService ID into an LogAnalyticsLinkedServiceId struct
 func LogAnalyticsLinkedServiceID(input string) (*LogAnalyticsLinkedServiceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing Log Analytics Linked Service ID %q: %+v", input, err)
-	}
-
-	linkedService := LogAnalyticsLinkedServiceId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if linkedService.WorkspaceName, err = id.PopSegment("workspaces"); err != nil {
 		return nil, err
 	}
 
-	if linkedService.Type, err = id.PopSegment("linkedServices"); err != nil {
+	resourceId := LogAnalyticsLinkedServiceId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+	}
+
+	if resourceId.WorkspaceName, err = id.PopSegment("workspaces"); err != nil {
+		return nil, err
+	}
+	if resourceId.LinkedServiceName, err = id.PopSegment("linkedServices"); err != nil {
 		return nil, err
 	}
 
@@ -47,13 +71,5 @@ func LogAnalyticsLinkedServiceID(input string) (*LogAnalyticsLinkedServiceId, er
 		return nil, err
 	}
 
-	return &linkedService, nil
-}
-
-func LogAnalyticsLinkedServiceType(readAccessId string) string {
-	if readAccessId != "" {
-		return "Automation"
-	}
-
-	return "Cluster"
+	return &resourceId, nil
 }

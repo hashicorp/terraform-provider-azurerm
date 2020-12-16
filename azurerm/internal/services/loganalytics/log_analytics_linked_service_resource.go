@@ -5,16 +5,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2020-03-01-preview/operationalinsights"
+	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -46,48 +46,23 @@ func resourceArmLogAnalyticsLinkedService() *schema.Resource {
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc:     validate.LogAnalyticsWorkspaceName,
-				ConflictsWith:    []string{"workspace_id"},
-				Deprecated:       "This field has been deprecated in favour of `workspace_id` and will be removed in a future version of the provider",
-			},
-
-			"workspace_id": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     azure.ValidateResourceID,
-				ConflictsWith:    []string{"workspace_name"},
 			},
 
 			"linked_service_name": {
-				Type:         schema.TypeString,
-				Computed:     true,
-				Optional:     true,
-				ValidateFunc: validate.LogAnalyticsLinkedServiceName,
-				Deprecated:   "This field has been deprecated and will be removed in a future version of the provider",
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  "automation",
+				ValidateFunc: validation.StringInSlice([]string{
+					"automation",
+				}, false),
 			},
 
 			"resource_id": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ValidateFunc:  azure.ValidateResourceID,
-				ConflictsWith: []string{"read_access_id"},
-				Deprecated:    "This field has been deprecated in favour of `read_access_id` and will be removed in a future version of the provider",
-			},
-
-			"read_access_id": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ValidateFunc:  azure.ValidateResourceID,
-				ExactlyOneOf:  []string{"read_access_id", "write_access_id", "resource_id"},
-				ConflictsWith: []string{"resource_id"},
-			},
-
-			"write_access_id": {
 				Type:         schema.TypeString,
-				Optional:     true,
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
-				ExactlyOneOf: []string{"read_access_id", "write_access_id", "resource_id"},
 			},
 
 			// Exported properties
@@ -103,38 +78,20 @@ func resourceArmLogAnalyticsLinkedService() *schema.Resource {
 
 func resourceArmLogAnalyticsLinkedServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.LinkedServicesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics Linked Services creation.")
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	workspaceId := d.Get("workspace_id").(string)
-	readAccess := d.Get("read_access_id").(string)
-	writeAccess := d.Get("write_access_id").(string)
-	t := d.Get("tags").(map[string]interface{})
-
-	workspace, err := parse.LogAnalyticsWorkspaceID(workspaceId)
-	if err != nil {
-		return fmt.Errorf("Linked Service (Resource Group %q) unable to parse workspace id: %+v", resourceGroup, err)
-	}
-
-	id := parse.NewLogAnalyticsLinkedServiceID(resourceGroup, parse.LogAnalyticsLinkedServiceType(readAccess), workspace.Name)
-
-	if id.Type == "Cluster" && writeAccess == "" {
-		return fmt.Errorf("Linked Service '%s/%s' (Resource Group %q): A linked Log Analytics Cluster requires the 'write_access_id' attribute to be set", workspace.Name, id.Type, resourceGroup)
-	}
-
-	if id.Type == "Automation" && readAccess == "" {
-		return fmt.Errorf("Linked Service '%s/%s' (Resource Group %q): A linked Automation Account requires the 'read_access_id' attribute to be set", workspace.Name, id.Type, resourceGroup)
-	}
+	resGroup := d.Get("resource_group_name").(string)
+	workspaceName := d.Get("workspace_name").(string)
+	lsName := d.Get("linked_service_name").(string)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, workspace.Name, id.Type)
+		existing, err := client.Get(ctx, resGroup, workspaceName, lsName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Linked Service '%s/%s' (Resource Group %q): %+v", workspace.Name, id.Type, resourceGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Linked Service %q (Workspace %q / Resource Group %q): %s", lsName, workspaceName, resGroup, err)
 			}
 		}
 
@@ -143,41 +100,35 @@ func resourceArmLogAnalyticsLinkedServiceCreateUpdate(d *schema.ResourceData, me
 		}
 	}
 
+	resourceId := d.Get("resource_id").(string)
+	t := d.Get("tags").(map[string]interface{})
+
 	parameters := operationalinsights.LinkedService{
-		LinkedServiceProperties: &operationalinsights.LinkedServiceProperties{},
-		Tags:                    tags.Expand(t),
+		LinkedServiceProperties: &operationalinsights.LinkedServiceProperties{
+			ResourceID: utils.String(resourceId),
+		},
+		Tags: tags.Expand(t),
 	}
 
-	if id.Type == "Automation" {
-		parameters.LinkedServiceProperties.ResourceID = utils.String(readAccess)
+	if _, err := client.CreateOrUpdate(ctx, resGroup, workspaceName, lsName, parameters); err != nil {
+		return fmt.Errorf("Error creating Linked Service %q (Workspace %q / Resource Group %q): %+v", lsName, workspaceName, resGroup, err)
 	}
 
-	if id.Type == "Cluster" {
-		parameters.LinkedServiceProperties.WriteAccessResourceID = utils.String(writeAccess)
-	}
-
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, workspace.Name, id.Type, parameters)
+	read, err := client.Get(ctx, resGroup, workspaceName, lsName)
 	if err != nil {
-		return fmt.Errorf("creating Linked Service '%s/%s' (Resource Group %q): %+v", workspace.Name, id.Type, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Linked Service %q (Worksppce %q / Resource Group %q): %+v", lsName, workspaceName, resGroup, err)
+	}
+	if read.ID == nil {
+		return fmt.Errorf("Cannot read Linked Service %q (Workspace %q / Resource Group %q) ID", lsName, workspaceName, resGroup)
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on creating future for Linked Service '%s/%s' (Resource Group %q): %+v", workspace.Name, id.Type, resourceGroup, err)
-	}
-
-	_, err = client.Get(ctx, resourceGroup, workspace.Name, id.Type)
-	if err != nil {
-		return fmt.Errorf("retrieving Linked Service '%s/%s' (Resource Group %q): %+v", workspace.Name, id.Type, resourceGroup, err)
-	}
-
-	d.SetId(id.ID(subscriptionId))
+	d.SetId(*read.ID)
 
 	return resourceArmLogAnalyticsLinkedServiceRead(d, meta)
 }
 
 func resourceArmLogAnalyticsLinkedServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.LinkedServicesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -186,27 +137,26 @@ func resourceArmLogAnalyticsLinkedServiceRead(d *schema.ResourceData, meta inter
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
+	resGroup := id.ResourceGroup
 	workspaceName := id.Path["workspaces"]
-	serviceType := id.Path["linkedServices"]
-	workspace := parse.NewLogAnalyticsWorkspaceID(workspaceName, resourceGroup)
+	lsName := id.Path["linkedservices"]
 
-	resp, err := client.Get(ctx, resourceGroup, workspaceName, serviceType)
+	resp, err := client.Get(ctx, resGroup, workspaceName, lsName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on AzureRM Log Analytics Linked Service '%s/%s' (Resource Group %q): %+v", workspace.Name, serviceType, resourceGroup, err)
+		return fmt.Errorf("Error making Read request on AzureRM Log Analytics Linked Service '%s': %+v", lsName, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("workspace_id", workspace.ID(subscriptionId))
+	d.Set("resource_group_name", resGroup)
+	d.Set("workspace_name", workspaceName)
+	d.Set("linked_service_name", lsName)
 
 	if props := resp.LinkedServiceProperties; props != nil {
-		d.Set("read_access_id", props.ResourceID)
-		d.Set("write_access_id", props.WriteAccessResourceID)
+		d.Set("resource_id", props.ResourceID)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -222,27 +172,19 @@ func resourceArmLogAnalyticsLinkedServiceDelete(d *schema.ResourceData, meta int
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
+	resGroup := id.ResourceGroup
 	workspaceName := id.Path["workspaces"]
-	serviceType := id.Path["linkedServices"]
+	lsName := id.Path["linkedservices"]
 
-	future, err := client.Delete(ctx, resourceGroup, workspaceName, serviceType)
+	future, err := client.Delete(ctx, resGroup, workspaceName, lsName)
 	if err != nil {
-		return fmt.Errorf("deleting Log Analytics Linked Service '%s/%s' (Resource Group %q): %+v", workspaceName, serviceType, resourceGroup, err)
+		return fmt.Errorf("error deleting Log Analytics Linked Service %q (Workspace %q / Resource Group %q): %+v", lsName, workspaceName, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deletion of Log Analytics Linked Service '%s/%s' (Resource Group %q): %+v", workspaceName, serviceType, resourceGroup, err)
+			return fmt.Errorf("waiting for deletion of Log Analytics Linked Service %q (Workspace %q / Resource Group %q): %+v", lsName, workspaceName, resGroup, err)
 		}
-	}
-
-	// (@WodansSon) - This is a bug in the service API, it returns instantly from the delete call with a 200
-	// so we must wait for the state to change before we return from the delete function
-	deleteWait := logAnalyticsLinkedServiceDeleteWaitForState(ctx, meta, d.Timeout(schema.TimeoutDelete), resourceGroup, workspaceName, serviceType)
-
-	if _, err := deleteWait.WaitForState(); err != nil {
-		return fmt.Errorf("waiting for Log Analytics Cluster to finish deleting '%s/%s' (Resource Group %q): %+v", workspaceName, serviceType, resourceGroup, err)
 	}
 
 	return nil

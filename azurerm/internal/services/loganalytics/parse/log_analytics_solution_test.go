@@ -8,21 +8,21 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = LogAnalyticsClusterId{}
+var _ resourceid.Formatter = LogAnalyticsSolutionId{}
 
-func TestLogAnalyticsClusterIDFormatter(t *testing.T) {
-	actual := NewLogAnalyticsClusterID("12345678-1234-9876-4563-123456789012", "resGroup1", "cluster1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/clusters/cluster1"
+func TestLogAnalyticsSolutionIDFormatter(t *testing.T) {
+	actual := NewLogAnalyticsSolutionID("12345678-1234-9876-4563-123456789012", "resGroup1", "solution1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationsManagement/solutions/solution1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestLogAnalyticsClusterID(t *testing.T) {
+func TestLogAnalyticsSolutionID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *LogAnalyticsClusterId
+		Expected *LogAnalyticsSolutionId
 	}{
 
 		{
@@ -56,30 +56,30 @@ func TestLogAnalyticsClusterID(t *testing.T) {
 		},
 
 		{
-			// missing ClusterName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/",
+			// missing SolutionName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationsManagement/",
 			Error: true,
 		},
 
 		{
-			// missing value for ClusterName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/clusters/",
+			// missing value for SolutionName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationsManagement/solutions/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/clusters/cluster1",
-			Expected: &LogAnalyticsClusterId{
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationsManagement/solutions/solution1",
+			Expected: &LogAnalyticsSolutionId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
-				ClusterName:    "cluster1",
+				SolutionName:   "solution1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.OPERATIONALINSIGHTS/CLUSTERS/CLUSTER1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.OPERATIONSMANAGEMENT/SOLUTIONS/SOLUTION1",
 			Error: true,
 		},
 	}
@@ -87,7 +87,7 @@ func TestLogAnalyticsClusterID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := LogAnalyticsClusterID(v.Input)
+		actual, err := LogAnalyticsSolutionID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -105,8 +105,8 @@ func TestLogAnalyticsClusterID(t *testing.T) {
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
-		if actual.ClusterName != v.Expected.ClusterName {
-			t.Fatalf("Expected %q but got %q for ClusterName", v.Expected.ClusterName, actual.ClusterName)
+		if actual.SolutionName != v.Expected.SolutionName {
+			t.Fatalf("Expected %q but got %q for SolutionName", v.Expected.SolutionName, actual.SolutionName)
 		}
 	}
 }

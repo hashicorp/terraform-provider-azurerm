@@ -9,42 +9,42 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type LogAnalyticsClusterId struct {
+type LogAnalyticsSolutionId struct {
 	SubscriptionId string
 	ResourceGroup  string
-	ClusterName    string
+	SolutionName   string
 }
 
-func NewLogAnalyticsClusterID(subscriptionId, resourceGroup, clusterName string) LogAnalyticsClusterId {
-	return LogAnalyticsClusterId{
+func NewLogAnalyticsSolutionID(subscriptionId, resourceGroup, solutionName string) LogAnalyticsSolutionId {
+	return LogAnalyticsSolutionId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
-		ClusterName:    clusterName,
+		SolutionName:   solutionName,
 	}
 }
 
-func (id LogAnalyticsClusterId) String() string {
+func (id LogAnalyticsSolutionId) String() string {
 	segments := []string{
-		fmt.Sprintf("Cluster Name %q", id.ClusterName),
+		fmt.Sprintf("Solution Name %q", id.SolutionName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Log Analytics Cluster", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Log Analytics Solution", segmentsStr)
 }
 
-func (id LogAnalyticsClusterId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.OperationalInsights/clusters/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ClusterName)
+func (id LogAnalyticsSolutionId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.OperationsManagement/solutions/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SolutionName)
 }
 
-// LogAnalyticsClusterID parses a LogAnalyticsCluster ID into an LogAnalyticsClusterId struct
-func LogAnalyticsClusterID(input string) (*LogAnalyticsClusterId, error) {
+// LogAnalyticsSolutionID parses a LogAnalyticsSolution ID into an LogAnalyticsSolutionId struct
+func LogAnalyticsSolutionID(input string) (*LogAnalyticsSolutionId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := LogAnalyticsClusterId{
+	resourceId := LogAnalyticsSolutionId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -57,7 +57,7 @@ func LogAnalyticsClusterID(input string) (*LogAnalyticsClusterId, error) {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.ClusterName, err = id.PopSegment("clusters"); err != nil {
+	if resourceId.SolutionName, err = id.PopSegment("solutions"); err != nil {
 		return nil, err
 	}
 

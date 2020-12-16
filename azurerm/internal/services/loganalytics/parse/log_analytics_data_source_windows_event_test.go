@@ -8,21 +8,21 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = LogAnalyticsStorageInsightsId{}
+var _ resourceid.Formatter = LogAnalyticsDataSourceWindowsEventId{}
 
-func TestLogAnalyticsStorageInsightsIDFormatter(t *testing.T) {
-	actual := NewLogAnalyticsStorageInsightsID("12345678-1234-9876-4563-123456789012", "resGroup1", "workspace1", "storageInsight1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/storageInsightConfigs/storageInsight1"
+func TestLogAnalyticsDataSourceWindowsEventIDFormatter(t *testing.T) {
+	actual := NewLogAnalyticsDataSourceWindowsEventID("12345678-1234-9876-4563-123456789012", "resGroup1", "workspace1", "dataSource1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/dataSources/dataSource1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestLogAnalyticsStorageInsightsID(t *testing.T) {
+func TestLogAnalyticsDataSourceWindowsEventID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *LogAnalyticsStorageInsightsId
+		Expected *LogAnalyticsDataSourceWindowsEventId
 	}{
 
 		{
@@ -68,31 +68,31 @@ func TestLogAnalyticsStorageInsightsID(t *testing.T) {
 		},
 
 		{
-			// missing StorageInsightConfigName
+			// missing DataSourceName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/",
 			Error: true,
 		},
 
 		{
-			// missing value for StorageInsightConfigName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/storageInsightConfigs/",
+			// missing value for DataSourceName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/dataSources/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/storageInsightConfigs/storageInsight1",
-			Expected: &LogAnalyticsStorageInsightsId{
-				SubscriptionId:           "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:            "resGroup1",
-				WorkspaceName:            "workspace1",
-				StorageInsightConfigName: "storageInsight1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/dataSources/dataSource1",
+			Expected: &LogAnalyticsDataSourceWindowsEventId{
+				SubscriptionId: "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:  "resGroup1",
+				WorkspaceName:  "workspace1",
+				DataSourceName: "dataSource1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.OPERATIONALINSIGHTS/WORKSPACES/WORKSPACE1/STORAGEINSIGHTCONFIGS/STORAGEINSIGHT1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.OPERATIONALINSIGHTS/WORKSPACES/WORKSPACE1/DATASOURCES/DATASOURCE1",
 			Error: true,
 		},
 	}
@@ -100,7 +100,7 @@ func TestLogAnalyticsStorageInsightsID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := LogAnalyticsStorageInsightsID(v.Input)
+		actual, err := LogAnalyticsDataSourceWindowsEventID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -121,8 +121,8 @@ func TestLogAnalyticsStorageInsightsID(t *testing.T) {
 		if actual.WorkspaceName != v.Expected.WorkspaceName {
 			t.Fatalf("Expected %q but got %q for WorkspaceName", v.Expected.WorkspaceName, actual.WorkspaceName)
 		}
-		if actual.StorageInsightConfigName != v.Expected.StorageInsightConfigName {
-			t.Fatalf("Expected %q but got %q for StorageInsightConfigName", v.Expected.StorageInsightConfigName, actual.StorageInsightConfigName)
+		if actual.DataSourceName != v.Expected.DataSourceName {
+			t.Fatalf("Expected %q but got %q for DataSourceName", v.Expected.DataSourceName, actual.DataSourceName)
 		}
 	}
 }

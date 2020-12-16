@@ -1,4 +1,4 @@
-package tests
+package loganalytics_test
 
 import (
 	"fmt"
@@ -222,7 +222,7 @@ func testCheckAzureRMLogAnalyticsWorkspaceDestroy(s *terraform.State) error {
 			return err
 		}
 
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.WorkspaceName)
 		if err != nil {
 			return nil
 		}
@@ -251,13 +251,13 @@ func testCheckAzureRMLogAnalyticsWorkspaceExists(resourceName string) resource.T
 			return err
 		}
 
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.WorkspaceName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on Log Analytics Workspace Client: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Log Analytics Workspace '%s' (resource group: '%s') does not exist", id.Name, id.ResourceGroup)
+			return fmt.Errorf("Bad: Log Analytics Workspace '%s' (resource group: '%s') does not exist", id.WorkspaceName, id.ResourceGroup)
 		}
 
 		return nil
@@ -280,6 +280,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "PerGB2018"
+  retention_in_days   = 30
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -359,6 +360,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctestLAW-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  retention_in_days   = 30
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -431,6 +433,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   internet_ingestion_enabled = true
   sku                        = "PerGB2018"
+  retention_in_days          = 30
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -452,6 +455,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   internet_ingestion_enabled = false
   sku                        = "PerGB2018"
+  retention_in_days          = 30
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -473,6 +477,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   resource_group_name    = azurerm_resource_group.test.name
   internet_query_enabled = true
   sku                    = "PerGB2018"
+  retention_in_days      = 30
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -494,6 +499,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   resource_group_name    = azurerm_resource_group.test.name
   internet_query_enabled = false
   sku                    = "PerGB2018"
+  retention_in_days      = 30
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

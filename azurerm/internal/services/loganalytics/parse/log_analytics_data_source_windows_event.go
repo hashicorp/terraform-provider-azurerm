@@ -9,45 +9,45 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type LogAnalyticsDataExportId struct {
+type LogAnalyticsDataSourceWindowsEventId struct {
 	SubscriptionId string
 	ResourceGroup  string
 	WorkspaceName  string
-	DataexportName string
+	DataSourceName string
 }
 
-func NewLogAnalyticsDataExportID(subscriptionId, resourceGroup, workspaceName, dataexportName string) LogAnalyticsDataExportId {
-	return LogAnalyticsDataExportId{
+func NewLogAnalyticsDataSourceWindowsEventID(subscriptionId, resourceGroup, workspaceName, dataSourceName string) LogAnalyticsDataSourceWindowsEventId {
+	return LogAnalyticsDataSourceWindowsEventId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
 		WorkspaceName:  workspaceName,
-		DataexportName: dataexportName,
+		DataSourceName: dataSourceName,
 	}
 }
 
-func (id LogAnalyticsDataExportId) String() string {
+func (id LogAnalyticsDataSourceWindowsEventId) String() string {
 	segments := []string{
-		fmt.Sprintf("Dataexport Name %q", id.DataexportName),
+		fmt.Sprintf("Data Source Name %q", id.DataSourceName),
 		fmt.Sprintf("Workspace Name %q", id.WorkspaceName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "Log Analytics Data Export", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Log Analytics Data Source Windows Event", segmentsStr)
 }
 
-func (id LogAnalyticsDataExportId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.OperationalInsights/workspaces/%s/dataexports/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.DataexportName)
+func (id LogAnalyticsDataSourceWindowsEventId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.OperationalInsights/workspaces/%s/dataSources/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.DataSourceName)
 }
 
-// LogAnalyticsDataExportID parses a LogAnalyticsDataExport ID into an LogAnalyticsDataExportId struct
-func LogAnalyticsDataExportID(input string) (*LogAnalyticsDataExportId, error) {
+// LogAnalyticsDataSourceWindowsEventID parses a LogAnalyticsDataSourceWindowsEvent ID into an LogAnalyticsDataSourceWindowsEventId struct
+func LogAnalyticsDataSourceWindowsEventID(input string) (*LogAnalyticsDataSourceWindowsEventId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := LogAnalyticsDataExportId{
+	resourceId := LogAnalyticsDataSourceWindowsEventId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -63,7 +63,7 @@ func LogAnalyticsDataExportID(input string) (*LogAnalyticsDataExportId, error) {
 	if resourceId.WorkspaceName, err = id.PopSegment("workspaces"); err != nil {
 		return nil, err
 	}
-	if resourceId.DataexportName, err = id.PopSegment("dataexports"); err != nil {
+	if resourceId.DataSourceName, err = id.PopSegment("dataSources"); err != nil {
 		return nil, err
 	}
 
