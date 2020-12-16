@@ -3,6 +3,7 @@ package loganalytics
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
@@ -114,6 +115,11 @@ func resourceArmLogAnalyticsLinkedServiceCreateUpdate(d *schema.ResourceData, me
 
 	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics Linked Services creation.")
 
+	// TODO: Add legacy attributes here
+	// Convert workspace name to workspace id
+	// Convert linked_service_name to id.LinkedServiceName which is actually linked service type
+	// Convert resource_id to read_access_id
+
 	resourceGroup := d.Get("resource_group_name").(string)
 	workspaceId := d.Get("workspace_id").(string)
 	readAccess := d.Get("read_access_id").(string)
@@ -127,11 +133,11 @@ func resourceArmLogAnalyticsLinkedServiceCreateUpdate(d *schema.ResourceData, me
 
 	id := parse.NewLogAnalyticsLinkedServiceID(subscriptionId, resourceGroup, workspace.WorkspaceName, LogAnalyticsLinkedServiceType(readAccess))
 
-	if id.LinkedServiceName == "Cluster" && writeAccess == "" {
+	if strings.EqualFold(id.LinkedServiceName, "Cluster") && writeAccess == "" {
 		return fmt.Errorf("Linked Service '%s/%s' (Resource Group %q): A linked Log Analytics Cluster requires the 'write_access_id' attribute to be set", workspace.WorkspaceName, id.LinkedServiceName, resourceGroup)
 	}
 
-	if id.LinkedServiceName == "Automation" && readAccess == "" {
+	if strings.EqualFold(id.LinkedServiceName, "Automation") && readAccess == "" {
 		return fmt.Errorf("Linked Service '%s/%s' (Resource Group %q): A linked Automation Account requires the 'read_access_id' attribute to be set", workspace.WorkspaceName, id.LinkedServiceName, resourceGroup)
 	}
 
