@@ -12,31 +12,31 @@ import (
 type DiskAccessId struct {
 	SubscriptionId string
 	ResourceGroup  string
-	DiskAccessName string
+	Name           string
 }
 
-func NewDiskAccessID(subscriptionId, resourceGroup, diskAccessName string) DiskAccessId {
+func NewDiskAccessID(subscriptionId, resourceGroup, name string) DiskAccessId {
 	return DiskAccessId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
-		DiskAccessName: diskAccessName,
+		Name:           name,
 	}
 }
 
 func (id DiskAccessId) String() string {
 	segments := []string{
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Disk Access Name %q", id.DiskAccessName),
+		fmt.Sprintf("Name %q", id.Name),
 	}
 	return strings.Join(segments, " / ")
 }
 
 func (id DiskAccessId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/diskAccesses/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DiskAccessName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
-// DiskAccessID parses a DiskAccess ID into an DiskAccessID struct
+// DiskAccessID parses a DiskAccess ID into an DiskAccessId struct
 func DiskAccessID(input string) (*DiskAccessId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -56,7 +56,7 @@ func DiskAccessID(input string) (*DiskAccessId, error) {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.DiskAccessName, err = id.PopSegment("diskAccesses"); err != nil {
+	if resourceId.Name, err = id.PopSegment("diskAccesses"); err != nil {
 		return nil, err
 	}
 
