@@ -59,11 +59,11 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Messaging. Changing this forces a new Messaging to be created.
+* `name` - (Required) The name which should be used for this Event Subscription. Changing this forces a new Event Subscription to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Messaging should exist. Changing this forces a new Messaging to be created.
+* `system_topic` - (Required) The System Topic where the Event Subscription should be created in. Changing this forces a new Event Subscription to be created.
 
-* `system_topic` - (Required) TODO. Changing this forces a new Messaging to be created.
+* `resource_group_name` - (Required) The name of the Resource Group where the System Topic exists. Changing this forces a new Event Subscription to be created.
 
 * `expiration_time_utc` - (Optional) Specifies the expiration time of the event subscription (Datetime Format `RFC 3339`).
 
