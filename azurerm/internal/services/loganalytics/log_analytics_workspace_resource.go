@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -34,9 +35,11 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 			return err
 		}),
 
-		SchemaVersion: 1,
-
-		MigrateState: WorkspaceMigrateState,
+		SchemaVersion: 2,
+		StateUpgraders: []schema.StateUpgrader{
+			migration.WorkspaceV0ToV1(),
+			migration.WorkspaceV1ToV2(),
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
