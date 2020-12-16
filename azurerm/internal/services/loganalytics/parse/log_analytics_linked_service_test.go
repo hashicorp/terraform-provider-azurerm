@@ -81,18 +81,18 @@ func TestLogAnalyticsLinkedServiceID(t *testing.T) {
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/linkedServices/Cluster",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/linkedServices/linkedService1",
 			Expected: &LogAnalyticsLinkedServiceId{
 				SubscriptionId:    "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:     "resGroup1",
 				WorkspaceName:     "workspace1",
-				LinkedServiceName: "Cluster",
+				LinkedServiceName: "linkedService1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.OPERATIONALINSIGHTS/WORKSPACES/WORKSPACE1/LINKEDSERVICES/AUTOMATION",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.OPERATIONALINSIGHTS/WORKSPACES/WORKSPACE1/LINKEDSERVICES/LINKEDSERVICE1",
 			Error: true,
 		},
 	}

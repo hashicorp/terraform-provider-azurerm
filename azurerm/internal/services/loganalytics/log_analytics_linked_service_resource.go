@@ -61,7 +61,7 @@ func resourceArmLogAnalyticsLinkedService() *schema.Resource {
 				ConflictsWith:    []string{"workspace_name"},
 			},
 
-			// TODO: Add Defualt value to Automation if empty
+			// TODO: Add Default value to Automation if empty
 			"linked_service_name": {
 				Type:     schema.TypeString,
 				Computed: true,
