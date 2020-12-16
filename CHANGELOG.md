@@ -14,6 +14,10 @@ IMPROVEMENTS:
 * `azurerm_subnet` - support for the `service_endpoint_policy` block [GH-8966]
 * `azurerm_traffic_manager_profile` - support for new field `max_return` and support for `traffic_routing_method` to be `MultiValue` [GH-9487]
 
+BUG FIXES:
+
+* `azurerm_log_analytics_workspace` - adding a state migration to correctly update the Resource ID [GH-9853]
+
 ---
 
 For information on changes between the v2.40.0 and v2.0.0 releases, please see [the previous v2.x changelog entries](https://github.com/terraform-providers/terraform-provider-azurerm/blob/master/CHANGELOG-v2.md).
