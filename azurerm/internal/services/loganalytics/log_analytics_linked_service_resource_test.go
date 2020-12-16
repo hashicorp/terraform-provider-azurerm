@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 )
 
@@ -111,7 +112,7 @@ func testCheckAzureRMLogAnalyticsLinkedServiceDestroy(s *terraform.State) error 
 			return fmt.Errorf("Bad: Log Analytics Linked Service Destroy unable to parse workspace id: %+v", err)
 		}
 
-		resp, err := conn.Get(ctx, resourceGroup, workspace.Name, parse.LogAnalyticsLinkedServiceType(readAccess))
+		resp, err := conn.Get(ctx, resourceGroup, workspace.WorkspaceName, loganalytics.LogAnalyticsLinkedServiceType(readAccess))
 
 		if err != nil {
 			return nil
@@ -139,27 +140,28 @@ func testCheckAzureRMLogAnalyticsLinkedServiceExists(resourceName string) resour
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
+		// TODO: Legacy backwards compat It May only have a workspace Name
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		workspaceId := rs.Primary.Attributes["workspace_id"]
-		serviceType := rs.Primary.Attributes["linked_service_type"]
-		name := rs.Primary.Attributes["name"]
-
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Log Analytics Linked Service: '%s'", name)
-		}
+		readAccessId := rs.Primary.Attributes["read_access_id"]
+		serviceType := loganalytics.LogAnalyticsLinkedServiceType(readAccessId)
 
 		workspace, err := parse.LogAnalyticsWorkspaceID(workspaceId)
 		if err != nil {
 			return fmt.Errorf("Bad: Log Analytics Linked Service Exists: %+v", err)
 		}
 
-		resp, err := conn.Get(ctx, resourceGroup, workspace.Name, serviceType)
+		if !hasResourceGroup {
+			return fmt.Errorf("Bad: no resource group found in state for Log Analytics Linked Service: '%q/%q'", workspace.WorkspaceName, serviceType)
+		}
+
+		resp, err := conn.Get(ctx, resourceGroup, workspace.WorkspaceName, serviceType)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on Log Analytics Linked Service Client: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Log Analytics Linked Service '%s' (resource group: '%s') does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: Log Analytics Linked Service '%q/%q' (resource group: '%s') does not exist", workspace.WorkspaceName, serviceType, resourceGroup)
 		}
 
 		return nil

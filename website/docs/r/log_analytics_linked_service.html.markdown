@@ -50,13 +50,19 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the Log Analytics Linked Service is created. Changing this forces a new resource to be created.
 
+* `workspace_name` - (Deprecated) The name of the Log Analytics Workspace that will contain the Log Analytics Linked Service resource. Changing this forces a new resource to be created.
+
 * `workspace_id` - (Required) The ID of the Log Analytics Workspace that will contain the Log Analytics Linked Service resource. Changing this forces a new resource to be created.
 
-* `read_access_id` - (Optional) The ID of the Resource that will be linked to the workspace. This should be used for linking to an Automation Account resource.
+* `linked_service_name` - (Deprecated) Name of the type of linkedServices resource to connect to the Log Analytics Workspace specified in workspace_name. Accepted values are `automation` and `cluster`. Defaults to `automation`. Changing this forces a new resource to be created.
 
-* `write_access_id` - (Optional) The ID of the Resource that will be linked to the workspace. This should be used for linking to a Log Analytics Cluster resource.
+* `resource_id` - (Deprecated) The ID of the Resource that will be linked to the workspace. This should be used for linking to an Automation Account resource.
 
-~> **NOTE:** You must define at least one of the above access resource id attributes (e.g. `read_access_resource_id` or `write_access_resource_id`).
+* `read_access_id` - (Optional) The ID of the readable Resource that will be linked to the workspace. This should be used for linking to an Automation Account resource.
+
+* `write_access_id` - (Optional) The ID of the writable Resource that will be linked to the workspace. This should be used for linking to a Log Analytics Cluster resource.
+
+~> **NOTE:** You must define at least one of the above access resource id attributes (e.g. `read_access_resource_id`/`resouce_id` or `write_access_resource_id`).
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

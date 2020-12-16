@@ -67,6 +67,12 @@ func LogAnalyticsLinkedServiceID(input string) (*LogAnalyticsLinkedServiceId, er
 		return nil, err
 	}
 
+	if strings.EqualFold("Automation", resourceId.LinkedServiceName) {
+		resourceId.LinkedServiceName = "Automation"
+	} else {
+		resourceId.LinkedServiceName = "Cluster"
+	}
+
 	if err := id.ValidateNoEmptySegments(input); err != nil {
 		return nil, err
 	}

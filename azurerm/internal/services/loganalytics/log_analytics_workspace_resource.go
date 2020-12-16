@@ -163,7 +163,7 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 	// the workspace cannot be modified since the linked service changes the sku value within
 	// the workspace
 	if !d.IsNewResource() {
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName)
 		if err == nil {
 			if azSku := resp.Sku; azSku != nil {
 				if strings.EqualFold(string(azSku.Name), "lacluster") {
