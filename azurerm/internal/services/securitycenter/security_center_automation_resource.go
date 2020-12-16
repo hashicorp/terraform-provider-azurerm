@@ -194,6 +194,7 @@ func resourceSecurityCenterAutomation() *schema.Resource {
 
 func resourceSecurityCenterAutomationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.AutomationsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -202,6 +203,7 @@ func resourceSecurityCenterAutomationCreateUpdate(d *schema.ResourceData, meta i
 	resourceGroup := d.Get("resource_group_name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 
+	id := parse.NewSecurityCenterAutomationID(subscriptionId, name)
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -240,13 +242,13 @@ func resourceSecurityCenterAutomationCreateUpdate(d *schema.ResourceData, meta i
 		return err
 	}
 
-	resp, err := client.CreateOrUpdate(ctx, resourceGroup, name, automation)
+	_, err = client.CreateOrUpdate(ctx, resourceGroup, name, automation)
 	if err != nil {
 		return fmt.Errorf("Error creating Security Center automation: %+v", err)
 	}
 
 	// Important steps
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 	return resourceSecurityCenterAutomationRead(d, meta)
 }
 
@@ -260,7 +262,7 @@ func resourceSecurityCenterAutomationRead(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
+	resourceGroup := d.Get("resource_group_name").(string)
 	name := id.AutomationName
 
 	resp, err := client.Get(ctx, resourceGroup, name)
@@ -322,7 +324,7 @@ func resourceSecurityCenterAutomationDelete(d *schema.ResourceData, meta interfa
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
+	resourceGroup := d.Get("resource_group_name").(string)
 	name := id.AutomationName
 
 	resp, err := client.Delete(ctx, resourceGroup, name)

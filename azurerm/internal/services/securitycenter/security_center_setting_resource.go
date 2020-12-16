@@ -51,11 +51,15 @@ func resourceSecurityCenterSetting() *schema.Resource {
 
 func resourceSecurityCenterSettingUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.SettingClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	settingName := d.Get("setting_name").(string)
 	enabled := d.Get("enabled").(bool)
+
+	id := parse.NewSecurityCenterSettingID(subscriptionId, settingName)
+
 	setting := security.DataExportSettings{
 		DataExportSettingProperties: &security.DataExportSettingProperties{
 			Enabled: &enabled,
@@ -77,7 +81,7 @@ func resourceSecurityCenterSettingUpdate(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Nil/empty ID returned for Security Center setting %q", settingName)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceSecurityCenterSettingRead(d, meta)
 }

@@ -51,15 +51,17 @@ func resourceAdvancedThreatProtection() *schema.Resource {
 
 func resourceAdvancedThreatProtectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.AdvancedThreatProtectionClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewAdvancedThreatProtectionId(d.Get("target_resource_id").(string))
+	target_resource := d.Get("target_resource_id").(string)
+	id := parse.NewAdvancedThreatProtectionID(subscriptionId, target_resource)
 	if d.IsNewResource() {
-		server, err := client.Get(ctx, id.TargetResourceID)
+		server, err := client.Get(ctx, target_resource)
 		if err != nil {
 			if !utils.ResponseWasNotFound(server.Response) {
-				return fmt.Errorf("checking for presence of existing Advanced Threat Protection for %q: %+v", id.TargetResourceID, err)
+				return fmt.Errorf("checking for presence of existing Advanced Threat Protection for %q: %+v", id.ID(), err)
 			}
 		}
 
@@ -74,8 +76,8 @@ func resourceAdvancedThreatProtectionCreateUpdate(d *schema.ResourceData, meta i
 		},
 	}
 
-	if _, err := client.Create(ctx, id.TargetResourceID, setting); err != nil {
-		return fmt.Errorf("updating Advanced Threat protection for %q: %+v", id.TargetResourceID, err)
+	if _, err := client.Create(ctx, id.ID(), setting); err != nil {
+		return fmt.Errorf("updating Advanced Threat protection for %q: %+v", id.ID(), err)
 	}
 
 	d.SetId(id.ID())
@@ -92,18 +94,18 @@ func resourceAdvancedThreatProtectionRead(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.TargetResourceID)
+	resp, err := client.Get(ctx, id.ID())
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("Advanced Threat Protection was not found for %q: %+v", id.TargetResourceID, err)
+			log.Printf("Advanced Threat Protection was not found for %q: %+v", id.ID(), err)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Advanced Threat Protection status for %q: %+v", id.TargetResourceID, err)
+		return fmt.Errorf("retrieving Advanced Threat Protection status for %q: %+v", id.ID(), err)
 	}
 
-	d.Set("target_resource_id", id.TargetResourceID)
+	d.Set("target_resource_id", id.ID())
 	if atpp := resp.AdvancedThreatProtectionProperties; atpp != nil {
 		d.Set("enabled", resp.IsEnabled)
 	}
@@ -128,8 +130,8 @@ func resourceAdvancedThreatProtectionDelete(d *schema.ResourceData, meta interfa
 		},
 	}
 
-	if _, err := client.Create(ctx, id.TargetResourceID, setting); err != nil {
-		return fmt.Errorf("removing Advanced Threat Protection for %q: %+v", id.TargetResourceID, err)
+	if _, err := client.Create(ctx, id.ID(), setting); err != nil {
+		return fmt.Errorf("removing Advanced Threat Protection for %q: %+v", id.ID(), err)
 	}
 
 	return nil

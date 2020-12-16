@@ -6,7 +6,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
+	laparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/parse"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -60,10 +62,13 @@ func resourceSecurityCenterWorkspace() *schema.Resource {
 func resourceSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	priceClient := meta.(*clients.Client).SecurityCenter.PricingClient
 	client := meta.(*clients.Client).SecurityCenter.WorkspaceClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := securityCenterWorkspaceName
+
+	id := parse.NewSecurityCenterWorkspaceID(subscriptionId, name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, name)
@@ -89,7 +94,7 @@ func resourceSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta in
 		return fmt.Errorf("Security Center Subscription workspace cannot be set when pricing tier is `Free`")
 	}
 
-	workspaceID, err := parse.LogAnalyticsWorkspaceID(d.Get("workspace_id").(string))
+	workspaceID, err := laparse.LogAnalyticsWorkspaceID(d.Get("workspace_id").(string))
 	if err != nil {
 		return err
 	}
@@ -136,13 +141,13 @@ func resourceSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta in
 		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
 	}
 
-	resp, err := stateConf.WaitForState()
+	_, err = stateConf.WaitForState()
 	if err != nil {
 		return fmt.Errorf("Waiting: %+v", err)
 	}
 
 	if d.IsNewResource() {
-		d.SetId(*resp.(security.WorkspaceSetting).ID)
+		d.SetId(id.ID())
 	}
 
 	return resourceSecurityCenterWorkspaceRead(d, meta)

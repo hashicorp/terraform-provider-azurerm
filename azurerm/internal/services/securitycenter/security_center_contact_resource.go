@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -67,11 +69,12 @@ func resourceSecurityCenterContact() *schema.Resource {
 
 func resourceSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.ContactsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := securityCenterContactName
-
+	id := parse.NewSecurityCenterContactID(subscriptionId, name)
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, name)
 		if err != nil {
@@ -119,7 +122,7 @@ func resourceSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta inte
 			return fmt.Errorf("Security Center Contact ID is nil")
 		}
 
-		d.SetId(*resp.ID)
+		d.SetId(id.ID())
 	} else if _, err := client.Update(ctx, name, contact); err != nil {
 		return fmt.Errorf("Updating Security Center Contact: %+v", err)
 	}

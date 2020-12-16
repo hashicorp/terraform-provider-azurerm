@@ -1,45 +1,61 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = AdvancedThreatProtectionId{}
-
 type AdvancedThreatProtectionId struct {
-	TargetResourceID string
-	SettingName      string
+	SubscriptionId                      string
+	AdvancedThreatProtectionSettingName string
 }
 
-func NewAdvancedThreatProtectionId(targetResourceId string) AdvancedThreatProtectionId {
+func NewAdvancedThreatProtectionID(subscriptionId, advancedThreatProtectionSettingName string) AdvancedThreatProtectionId {
 	return AdvancedThreatProtectionId{
-		TargetResourceID: targetResourceId,
-		SettingName:      "current",
+		SubscriptionId:                      subscriptionId,
+		AdvancedThreatProtectionSettingName: advancedThreatProtectionSettingName,
 	}
+}
+
+func (id AdvancedThreatProtectionId) String() string {
+	segments := []string{
+		fmt.Sprintf("Advanced Threat Protection Setting Name %q", id.AdvancedThreatProtectionSettingName),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Advanced Threat Protection", segmentsStr)
 }
 
 func (id AdvancedThreatProtectionId) ID() string {
-	fmtString := "%s/providers/Microsoft.Security/advancedThreatProtectionSettings/%s"
-	return fmt.Sprintf(fmtString, id.TargetResourceID, id.SettingName)
+	fmtString := "/subscriptions/%s/providers/Microsoft.Security/advancedThreatProtectionSettings/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.AdvancedThreatProtectionSettingName)
 }
 
+// AdvancedThreatProtectionID parses a AdvancedThreatProtection ID into an AdvancedThreatProtectionId struct
 func AdvancedThreatProtectionID(input string) (*AdvancedThreatProtectionId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Advanced Threat Protection Set ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	parts := strings.Split(input, "/providers/Microsoft.Security/advancedThreatProtectionSettings/")
-	if len(parts) != 2 {
-		return nil, fmt.Errorf("Determining target resource ID, resource ID in unexpected format: %q", id)
+	resourceId := AdvancedThreatProtectionId{
+		SubscriptionId: id.SubscriptionID,
 	}
 
-	return &AdvancedThreatProtectionId{
-		TargetResourceID: parts[0],
-		SettingName:      parts[1],
-	}, nil
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.AdvancedThreatProtectionSettingName, err = id.PopSegment("advancedThreatProtectionSettings"); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
 }

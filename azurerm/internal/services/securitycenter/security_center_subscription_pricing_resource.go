@@ -73,6 +73,7 @@ func resourceSecurityCenterSubscriptionPricing() *schema.Resource {
 
 func resourceSecurityCenterSubscriptionPricingUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.PricingClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -87,6 +88,8 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *schema.ResourceData, met
 
 	resource_type := d.Get("resource_type").(string)
 
+	id := parse.NewSecurityCenterSubscriptionPricingID(subscriptionId, resource_type)
+
 	if _, err := client.Update(ctx, resource_type, pricing); err != nil {
 		return fmt.Errorf("Creating/updating Security Center Subscription pricing: %+v", err)
 	}
@@ -99,7 +102,7 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *schema.ResourceData, met
 		return fmt.Errorf("Security Center Subscription pricing ID is nil")
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceSecurityCenterSubscriptionPricingRead(d, meta)
 }
@@ -114,21 +117,21 @@ func resourceSecurityCenterSubscriptionPricingRead(d *schema.ResourceData, meta 
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceType)
+	resp, err := client.Get(ctx, id.PricingName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] %q Security Center Subscription was not found: %v", id.ResourceType, err)
+			log.Printf("[DEBUG] %q Security Center Subscription was not found: %v", id.PricingName, err)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Reading %q Security Center Subscription pricing: %+v", id.ResourceType, err)
+		return fmt.Errorf("Reading %q Security Center Subscription pricing: %+v", id.PricingName, err)
 	}
 
 	if properties := resp.PricingProperties; properties != nil {
 		d.Set("tier", properties.PricingTier)
 	}
-	d.Set("resource_type", id.ResourceType)
+	d.Set("resource_type", id.PricingName)
 
 	return nil
 }

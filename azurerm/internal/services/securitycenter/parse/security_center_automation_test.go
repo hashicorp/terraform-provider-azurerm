@@ -1,51 +1,78 @@
 package parse
 
-import "testing"
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
 
-func TestSecurityCentreAutomationID(t *testing.T) {
+import (
+	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
+)
+
+var _ resourceid.Formatter = SecurityCenterAutomationId{}
+
+func TestSecurityCenterAutomationIDFormatter(t *testing.T) {
+	actual := NewSecurityCenterAutomationID("12345678-1234-9876-4563-123456789012", "automation1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.Security/automations/automation1"
+	if actual != expected {
+		t.Fatalf("Expected %q but got %q", expected, actual)
+	}
+}
+
+func TestSecurityCenterAutomationID(t *testing.T) {
 	testData := []struct {
-		Name   string
-		Input  string
-		Error  bool
-		Expect *SecurityCenterAutomationId
+		Input    string
+		Error    bool
+		Expected *SecurityCenterAutomationId
 	}{
+
 		{
-			Name:  "Empty",
+			// empty
 			Input: "",
 			Error: true,
 		},
+
 		{
-			Name:  "No Resource Group",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/",
+			// missing SubscriptionId
+			Input: "/",
 			Error: true,
 		},
+
 		{
-			Name:  "No Automation Segment",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/testRG1/providers/Microsoft.Security/",
+			// missing value for SubscriptionId
+			Input: "/subscriptions/",
 			Error: true,
 		},
+
 		{
-			Name:  "No Automation Value",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/testRG1/providers/Microsoft.Security/automations/",
+			// missing AutomationName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.Security/",
 			Error: true,
 		},
+
 		{
-			Name:  "Security Center Automation ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/testRG1/providers/Microsoft.Security/automations/testAutomation",
-			Expect: &SecurityCenterAutomationId{
-				ResourceGroup:  "testRG1",
-				AutomationName: "testAutomation",
+			// missing value for AutomationName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.Security/automations/",
+			Error: true,
+		},
+
+		{
+			// valid
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.Security/automations/automation1",
+			Expected: &SecurityCenterAutomationId{
+				SubscriptionId: "12345678-1234-9876-4563-123456789012",
+				AutomationName: "automation1",
 			},
 		},
+
 		{
-			Name:  "Wrong Case",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/testRG1/providers/Microsoft.Security/Automations/testAutomation",
+			// upper-cased
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/PROVIDERS/MICROSOFT.SECURITY/AUTOMATIONS/AUTOMATION1",
 			Error: true,
 		},
 	}
 
 	for _, v := range testData {
-		t.Logf("[DEBUG] Testing %q", v.Name)
+		t.Logf("[DEBUG] Testing %q", v.Input)
 
 		actual, err := SecurityCenterAutomationID(v.Input)
 		if err != nil {
@@ -53,15 +80,17 @@ func TestSecurityCentreAutomationID(t *testing.T) {
 				continue
 			}
 
-			t.Fatalf("Expected a value but got an error: %s", err)
+			t.Fatalf("Expect a value but got an error: %s", err)
+		}
+		if v.Error {
+			t.Fatal("Expect an error but didn't get one")
 		}
 
-		if actual.AutomationName != v.Expect.AutomationName {
-			t.Fatalf("Expected %q but got %q for Automation Name", v.Expect.AutomationName, actual.AutomationName)
+		if actual.SubscriptionId != v.Expected.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
 		}
-
-		if actual.ResourceGroup != v.Expect.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for Resource Group Name", v.Expect.ResourceGroup, actual.ResourceGroup)
+		if actual.AutomationName != v.Expected.AutomationName {
+			t.Fatalf("Expected %q but got %q for AutomationName", v.Expected.AutomationName, actual.AutomationName)
 		}
 	}
 }

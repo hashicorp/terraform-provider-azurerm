@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -51,8 +53,11 @@ func resourceSecurityCenterAutoProvisioning() *schema.Resource {
 
 func resourceSecurityCenterAutoProvisioningUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.AutoProvisioningClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
+
+	id := parse.NewSecurityCenterAutoProvisioningID(subscriptionId, securityCenterAutoProvisioningName)
 
 	// No need for import check as there's always single resource called 'default'
 	// - it cannot be deleted, all this does is set a string property to: "on" or "off"
@@ -77,7 +82,7 @@ func resourceSecurityCenterAutoProvisioningUpdate(d *schema.ResourceData, meta i
 		return fmt.Errorf("Security Center auto provisioning ID is nil or empty")
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceSecurityCenterAutoProvisioningRead(d, meta)
 }
