@@ -16,6 +16,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_key_vault_certificate` - reading `dns_names` and `emails` within the `subject_alternative_names` block from the Certificate if not returned from the API [GH-8631]
 * `azurerm_log_analytics_workspace` - adding a state migration to correctly update the Resource ID [GH-9853]
 
 ---
