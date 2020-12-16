@@ -26,6 +26,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_dedicated_host_group":      dataSourceArmDedicatedHostGroup(),
 		"azurerm_disk_encryption_set":       dataSourceArmDiskEncryptionSet(),
 		"azurerm_managed_disk":              dataSourceArmManagedDisk(),
+		"azurerm_data_access":               dataSourceArmDiskAccess(),
 		"azurerm_image":                     dataSourceArmImage(),
 		"azurerm_images":                    dataSourceArmImages(),
 		"azurerm_platform_image":            dataSourceArmPlatformImage(),
