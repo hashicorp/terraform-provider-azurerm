@@ -35,7 +35,7 @@ func (id StreamingEndpointId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Streaming Endpoint", segmentsStr)
 }
 
-func (id StreamingEndpointId) ID(_ string) string {
+func (id StreamingEndpointId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Media/mediaservices/%s/streamingendpoints/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.MediaserviceName, id.Name)
 }

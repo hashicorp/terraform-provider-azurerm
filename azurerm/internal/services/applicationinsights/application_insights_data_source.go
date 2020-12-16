@@ -92,7 +92,7 @@ func dataSourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("retrieving Application Insights %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	d.SetId(parse.NewComponentID(subscriptionId, resGroup, name).ID(""))
+	d.SetId(parse.NewComponentID(subscriptionId, resGroup, name).ID())
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	if props := resp.ApplicationInsightsComponentProperties; props != nil {
 		d.Set("app_id", props.AppID)

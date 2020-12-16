@@ -104,7 +104,7 @@ func dataSourceServiceBusQueueAuthorizationRuleRead(d *schema.ResourceData, meta
 		return fmt.Errorf("listing keys for %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 	d.Set("name", id.AuthorizationRuleName)
 	d.Set("queue_name", id.QueueName)
 	d.Set("namespace_name", id.NamespaceName)

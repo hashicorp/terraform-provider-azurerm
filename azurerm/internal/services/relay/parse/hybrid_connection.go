@@ -35,7 +35,7 @@ func (id HybridConnectionId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Hybrid Connection", segmentsStr)
 }
 
-func (id HybridConnectionId) ID(_ string) string {
+func (id HybridConnectionId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Relay/namespaces/%s/hybridConnections/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.Name)
 }

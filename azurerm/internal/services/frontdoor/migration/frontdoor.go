@@ -412,7 +412,7 @@ func FrontDoorV1ToV2(rawState map[string]interface{}, _ interface{}) (map[string
 	}
 
 	newId := parse.NewFrontDoorID(oldParsedId.SubscriptionID, resourceGroup, frontDoorName)
-	newIdStr := newId.ID("")
+	newIdStr := newId.ID()
 
 	log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newIdStr)
 

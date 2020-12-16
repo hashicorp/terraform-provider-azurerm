@@ -110,7 +110,7 @@ func resourceArmSubnetServiceEndpointStoragePolicyCreateUpdate(d *schema.Resourc
 		}
 
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return tf.ImportAsExistsError("azurerm_subnet_service_endpoint_storage_policy", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_subnet_service_endpoint_storage_policy", resourceId.ID())
 		}
 	}
 
@@ -132,7 +132,7 @@ func resourceArmSubnetServiceEndpointStoragePolicyCreateUpdate(d *schema.Resourc
 		return fmt.Errorf("waiting for creation of Subnet Service Endpoint Storage Policy %q (Resource Group %q): %+v", resourceId.ServiceEndpointPolicyName, resourceId.ResourceGroup, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 
 	return resourceArmSubnetServiceEndpointStoragePolicyRead(d, meta)
 }

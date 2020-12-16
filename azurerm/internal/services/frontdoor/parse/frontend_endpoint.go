@@ -35,7 +35,7 @@ func (id FrontendEndpointId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Frontend Endpoint", segmentsStr)
 }
 
-func (id FrontendEndpointId) ID(_ string) string {
+func (id FrontendEndpointId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/frontDoors/%s/frontendEndpoints/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.FrontDoorName, id.Name)
 }

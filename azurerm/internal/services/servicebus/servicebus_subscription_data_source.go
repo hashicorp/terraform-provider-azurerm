@@ -110,7 +110,7 @@ func dataSourceServiceBusSubscriptionRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 
 	if props := existing.SBSubscriptionProperties; props != nil {
 		d.Set("auto_delete_on_idle", props.AutoDeleteOnIdle)

@@ -104,7 +104,7 @@ func dataSourceServiceBusTopicAuthorizationRuleRead(d *schema.ResourceData, meta
 		return fmt.Errorf("listing keys for %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 	d.Set("name", id.AuthorizationRuleName)
 	d.Set("topic_name", id.TopicName)
 	d.Set("namespace_name", id.NamespaceName)

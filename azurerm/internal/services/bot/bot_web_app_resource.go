@@ -161,7 +161,7 @@ func resourceBotWebAppCreate(d *schema.ResourceData, meta interface{}) error {
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_bot_web_app", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_bot_web_app", resourceId.ID())
 		}
 	}
 
@@ -195,7 +195,7 @@ func resourceBotWebAppCreate(d *schema.ResourceData, meta interface{}) error {
 
 	// TODO: in 3.0 we should remove the "Default Site" on the Directline resource at this point if we can
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceBotWebAppRead(d, meta)
 }
 

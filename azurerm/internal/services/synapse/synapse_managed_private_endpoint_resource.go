@@ -151,7 +151,7 @@ func resourceSynapseManagedPrivateEndpointRead(d *schema.ResourceData, meta inte
 		return fmt.Errorf("retrieving Synapse Managed Private Endpoint (Workspace %q / Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroup, err)
 	}
 
-	workspaceId := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID("")
+	workspaceId := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID()
 	d.Set("synapse_workspace_id", workspaceId)
 	d.Set("name", id.Name)
 

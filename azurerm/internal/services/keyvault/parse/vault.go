@@ -32,7 +32,7 @@ func (id VaultId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Vault", segmentsStr)
 }
 
-func (id VaultId) ID(_ string) string {
+func (id VaultId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.KeyVault/vaults/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

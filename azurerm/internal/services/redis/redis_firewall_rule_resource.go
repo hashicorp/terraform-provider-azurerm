@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmRedisFirewallRule() *schema.Resource {
+func resourceRedisFirewallRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmRedisFirewallRuleCreateUpdate,
-		Read:   resourceArmRedisFirewallRuleRead,
-		Update: resourceArmRedisFirewallRuleCreateUpdate,
-		Delete: resourceArmRedisFirewallRuleDelete,
+		Create: resourceRedisFirewallRuleCreateUpdate,
+		Read:   resourceRedisFirewallRuleRead,
+		Update: resourceRedisFirewallRuleCreateUpdate,
+		Delete: resourceRedisFirewallRuleDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.FirewallRuleID(id)
 			return err
@@ -73,7 +73,7 @@ func resourceArmRedisFirewallRule() *schema.Resource {
 	}
 }
 
-func resourceArmRedisFirewallRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceRedisFirewallRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Redis.FirewallRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -92,7 +92,7 @@ func resourceArmRedisFirewallRuleCreateUpdate(d *schema.ResourceData, meta inter
 			}
 		}
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_redis_firewall_rule", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_redis_firewall_rule", resourceId.ID())
 		}
 	}
 
@@ -109,11 +109,11 @@ func resourceArmRedisFirewallRuleCreateUpdate(d *schema.ResourceData, meta inter
 
 	// TODO: confirm if we need to re-add the poller here
 
-	d.SetId(resourceId.ID(""))
-	return resourceArmRedisFirewallRuleRead(d, meta)
+	d.SetId(resourceId.ID())
+	return resourceRedisFirewallRuleRead(d, meta)
 }
 
-func resourceArmRedisFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceRedisFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Redis.FirewallRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -145,7 +145,7 @@ func resourceArmRedisFirewallRuleRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceArmRedisFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceRedisFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Redis.FirewallRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -99,7 +99,7 @@ func resourceIoTTimeSeriesInsightsAccessPolicyCreateUpdate(d *schema.ResourceDat
 		return err
 	}
 
-	resourceId := parse.NewAccessPolicyID(subscriptionId, environmentId.ResourceGroup, environmentId.Name, name).ID("")
+	resourceId := parse.NewAccessPolicyID(subscriptionId, environmentId.ResourceGroup, environmentId.Name, name).ID()
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, environmentId.ResourceGroup, environmentId.Name, name)
 		if err != nil {
@@ -149,7 +149,7 @@ func resourceIoTTimeSeriesInsightsAccessPolicyRead(d *schema.ResourceData, meta 
 		return fmt.Errorf("retrieving IoT Time Series Insights Access Policy %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	environmentId := parse.NewEnvironmentID(id.SubscriptionId, id.ResourceGroup, id.EnvironmentName).ID("")
+	environmentId := parse.NewEnvironmentID(id.SubscriptionId, id.ResourceGroup, id.EnvironmentName).ID()
 
 	d.Set("name", resp.Name)
 	d.Set("time_series_insights_environment_id", environmentId)
