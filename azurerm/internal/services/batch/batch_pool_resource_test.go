@@ -1122,6 +1122,8 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
+  allow_blob_public_access = true
+
   tags = {
     environment = "Dev"
   }

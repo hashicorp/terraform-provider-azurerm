@@ -181,7 +181,7 @@ resource "azurerm_hpc_cache_nfs_target" "test" {
     target_path    = ""
   }
 }
-`, r.basic(data), data.RandomString)
+`, r.template(data), data.RandomString)
 }
 
 func (r HPCCacheNFSTargetResource) requiresImport(data acceptance.TestData) string {

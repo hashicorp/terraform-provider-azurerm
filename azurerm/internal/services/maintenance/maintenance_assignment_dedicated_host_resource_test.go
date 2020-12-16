@@ -58,7 +58,7 @@ func (MaintenanceAssignmentDedicatedHostResource) Exists(ctx context.Context, cl
 		return nil, fmt.Errorf("retrieving Maintenance Assignment Dedicated Host (target resource id: %q): %v", id.DedicatedHostIdRaw, err)
 	}
 
-	return utils.Bool(resp.Value == nil || len(*resp.Value) == 0), nil
+	return utils.Bool(resp.Value != nil && len(*resp.Value) != 0), nil
 }
 
 func (r MaintenanceAssignmentDedicatedHostResource) basic(data acceptance.TestData) string {
@@ -114,7 +114,7 @@ resource "azurerm_dedicated_host" "test" {
   name                    = "acctest-DH-%[1]d"
   location                = azurerm_resource_group.test.location
   dedicated_host_group_id = azurerm_dedicated_host_group.test.id
-  sku_name                = "DSv3-Type1"
+  sku_name                = "Standard_G5"
   platform_fault_domain   = 1
 }
 `, data.RandomInteger, data.Locations.Primary)

@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -17,6 +18,7 @@ type MariaDbConfigurationResource struct {
 }
 
 func TestAccMariaDbConfiguration_characterSetServer(t *testing.T) {
+	srv := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_configuration", "test")
 	r := MariaDbConfigurationResource{}
 
@@ -32,13 +34,14 @@ func TestAccMariaDbConfiguration_characterSetServer(t *testing.T) {
 			Config: r.empty(data),
 			Check: resource.ComposeTestCheckFunc(
 				// "delete" resets back to the default value
-				data.CheckWithClient(checkValueIsReset),
+				srv.CheckWithClient(checkValueIsReset("character_set_server")),
 			),
 		},
 	})
 }
 
 func TestAccMariaDbConfiguration_interactiveTimeout(t *testing.T) {
+	srv := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_configuration", "test")
 	r := MariaDbConfigurationResource{}
 
@@ -54,13 +57,14 @@ func TestAccMariaDbConfiguration_interactiveTimeout(t *testing.T) {
 			Config: r.empty(data),
 			Check: resource.ComposeTestCheckFunc(
 				// "delete" resets back to the default value
-				data.CheckWithClient(checkValueIsReset),
+				srv.CheckWithClient(checkValueIsReset("interactive_timeout")),
 			),
 		},
 	})
 }
 
 func TestAccMariaDbConfiguration_logSlowAdminStatements(t *testing.T) {
+	srv := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_configuration", "test")
 	r := MariaDbConfigurationResource{}
 
@@ -76,7 +80,7 @@ func TestAccMariaDbConfiguration_logSlowAdminStatements(t *testing.T) {
 			Config: r.empty(data),
 			Check: resource.ComposeTestCheckFunc(
 				// "delete" resets back to the default value
-				data.CheckWithClient(checkValueIsReset),
+				srv.CheckWithClient(checkValueIsReset("log_slow_admin_statements")),
 			),
 		},
 	})
@@ -128,35 +132,34 @@ func checkValueIs(value string) acceptance.ClientCheckFunc {
 	}
 }
 
-func checkValueIsReset(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
-	id, err := azure.ParseAzureResourceID(state.ID)
-	if err != nil {
-		return err
+func checkValueIsReset(configurationName string) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+		id, err := parse.ServerID(state.ID)
+		if err != nil {
+			return err
+		}
+
+		resp, err := clients.MariaDB.ConfigurationsClient.Get(ctx, id.ResourceGroup, id.Name, configurationName)
+		if err != nil {
+			return fmt.Errorf("retrieving MariaDB Configuration %q (Server %q / Resource Group %q): %v", configurationName, id.Name, id.ResourceGroup, err)
+		}
+
+		if resp.Value == nil {
+			return fmt.Errorf("MariaDB Configuration %q (Server %q / Resource Group %q) Value is nil", configurationName, id.Name, id.ResourceGroup)
+		}
+
+		if resp.DefaultValue == nil {
+			return fmt.Errorf("MariaDB Configuration %q (Server %q / Resource Group %q) Default Value is nil", configurationName, id.Name, id.ResourceGroup)
+		}
+		actualValue := *resp.Value
+		defaultValue := *resp.DefaultValue
+
+		if defaultValue != actualValue {
+			return fmt.Errorf("MariaDB Configuration %q (Server %q / Resource Group %q) Value (%s) != Default (%s)", configurationName, id.Name, id.ResourceGroup, actualValue, defaultValue)
+		}
+
+		return nil
 	}
-
-	serverName := id.Path["servers"]
-	name := id.Path["configurations"]
-
-	resp, err := clients.MariaDB.ConfigurationsClient.Get(ctx, id.ResourceGroup, serverName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving MariaDB Configuration %q (Server %q / Resource Group %q): %v", name, serverName, id.ResourceGroup, err)
-	}
-
-	if resp.Value == nil {
-		return fmt.Errorf("MariaDB Configuration %q (Server %q / Resource Group %q) Value is nil", name, serverName, id.ResourceGroup)
-	}
-
-	if resp.DefaultValue == nil {
-		return fmt.Errorf("MariaDB Configuration %q (Server %q / Resource Group %q) Default Value is nil", name, serverName, id.ResourceGroup)
-	}
-	actualValue := *resp.Value
-	defaultValue := *resp.DefaultValue
-
-	if defaultValue != actualValue {
-		return fmt.Errorf("MariaDB Configuration %q (Server %q / Resource Group %q) Value (%s) != Default (%s)", name, serverName, id.ResourceGroup, actualValue, defaultValue)
-	}
-
-	return nil
 }
 
 func (r MariaDbConfigurationResource) characterSetServer(data acceptance.TestData) string {
