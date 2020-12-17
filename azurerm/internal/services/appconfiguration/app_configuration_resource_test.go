@@ -200,7 +200,7 @@ resource "azurerm_app_configuration" "test" {
 }
 
 func (r AppConfigurationResource) requiresImport(data acceptance.TestData) string {
-	template := r.free(data)
+	template := r.standard(data)
 	return fmt.Sprintf(`
 %s
 
@@ -228,7 +228,7 @@ resource "azurerm_app_configuration" "test" {
   name                = "testaccappconf%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "free"
+  sku                 = "standard"
 
   tags = {
     environment = "development"
@@ -259,7 +259,7 @@ resource "azurerm_app_configuration" "test" {
   }
 
   tags = {
-    environment = "development"
+    ENVironment = "DEVelopment"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -280,10 +280,10 @@ resource "azurerm_app_configuration" "test" {
   name                = "testaccappconf%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "free"
+  sku                 = "standard"
 
   tags = {
-    environment = "production"
+    Environment = "Production"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

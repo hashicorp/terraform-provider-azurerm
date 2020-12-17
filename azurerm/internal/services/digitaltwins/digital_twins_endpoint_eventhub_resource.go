@@ -86,7 +86,7 @@ func resourceDigitalTwinsEndpointEventHubCreateUpdate(d *schema.ResourceData, me
 		return err
 	}
 
-	id := parse.NewDigitalTwinsEndpointID(subscriptionId, digitalTwinsId.ResourceGroup, digitalTwinsId.Name, name).ID("")
+	id := parse.NewDigitalTwinsEndpointID(subscriptionId, digitalTwinsId.ResourceGroup, digitalTwinsId.Name, name).ID()
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, digitalTwinsId.ResourceGroup, digitalTwinsId.Name, name)
@@ -148,7 +148,7 @@ func resourceDigitalTwinsEndpointEventHubRead(d *schema.ResourceData, meta inter
 		return fmt.Errorf("retrieving Digital Twins Endpoint EventHub %q (Resource Group %q / Instance %q): %+v", id.EndpointName, id.ResourceGroup, id.DigitalTwinsInstanceName, err)
 	}
 	d.Set("name", id.EndpointName)
-	d.Set("digital_twins_id", parse.NewDigitalTwinsInstanceID(subscriptionId, id.ResourceGroup, id.DigitalTwinsInstanceName).ID(""))
+	d.Set("digital_twins_id", parse.NewDigitalTwinsInstanceID(subscriptionId, id.ResourceGroup, id.DigitalTwinsInstanceName).ID())
 	if resp.Properties != nil {
 		if _, ok := resp.Properties.AsEventHub(); !ok {
 			return fmt.Errorf("retrieving Digital Twins Endpoint %q (Resource Group %q / Instance %q) is not type EventHub", id.EndpointName, id.ResourceGroup, id.DigitalTwinsInstanceName)

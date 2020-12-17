@@ -175,6 +175,12 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 				Computed: true,
 			},
 
+			"max_return": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(1, 8),
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -197,7 +203,7 @@ func resourceArmTrafficManagerProfileCreate(d *schema.ResourceData, meta interfa
 	}
 
 	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_traffic_manager_profile", resourceId.ID(""))
+		return tf.ImportAsExistsError("azurerm_traffic_manager_profile", resourceId.ID())
 	}
 
 	// No existing profile - start from a new struct.
@@ -212,8 +218,17 @@ func resourceArmTrafficManagerProfileCreate(d *schema.ResourceData, meta interfa
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	if maxReturn, ok := d.GetOk("max_return"); ok {
+		profile.MaxReturn = utils.Int64(int64(maxReturn.(int)))
+	}
+
 	if status, ok := d.GetOk("profile_status"); ok {
 		profile.ProfileStatus = trafficmanager.ProfileStatus(status.(string))
+	}
+
+	if profile.ProfileProperties.TrafficRoutingMethod == trafficmanager.MultiValue &&
+		profile.ProfileProperties.MaxReturn == nil {
+		return fmt.Errorf("`max_return` must be specified when `traffic_routing_method` is set to `MultiValue`")
 	}
 
 	if *profile.ProfileProperties.MonitorConfig.IntervalInSeconds == int64(10) &&
@@ -225,7 +240,7 @@ func resourceArmTrafficManagerProfileCreate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("creating Traffic Manager Profile %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceArmTrafficManagerProfileRead(d, meta)
 }
 
@@ -254,6 +269,7 @@ func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface
 	if profile := resp.ProfileProperties; profile != nil {
 		d.Set("profile_status", profile.ProfileStatus)
 		d.Set("traffic_routing_method", profile.TrafficRoutingMethod)
+		d.Set("max_return", profile.MaxReturn)
 
 		d.Set("dns_config", flattenAzureRMTrafficManagerProfileDNSConfig(profile.DNSConfig))
 		d.Set("monitor_config", flattenAzureRMTrafficManagerProfileMonitorConfig(profile.MonitorConfig))
@@ -289,6 +305,12 @@ func resourceArmTrafficManagerProfileUpdate(d *schema.ResourceData, meta interfa
 
 	if d.HasChange("traffic_routing_method") {
 		update.ProfileProperties.TrafficRoutingMethod = trafficmanager.TrafficRoutingMethod(d.Get("traffic_routing_method").(string))
+	}
+
+	if d.HasChange("max_return") {
+		if maxReturn, ok := d.GetOk("max_return"); ok {
+			update.MaxReturn = utils.Int64(int64(maxReturn.(int)))
+		}
 	}
 
 	if d.HasChange("dns_config") {

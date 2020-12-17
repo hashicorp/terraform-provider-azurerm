@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSentinelAlertRuleScheduled() *schema.Resource {
+func resourceSentinelAlertRuleScheduled() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSentinelAlertRuleScheduledCreateUpdate,
-		Read:   resourceArmSentinelAlertRuleScheduledRead,
-		Update: resourceArmSentinelAlertRuleScheduledCreateUpdate,
-		Delete: resourceArmSentinelAlertRuleScheduledDelete,
+		Create: resourceSentinelAlertRuleScheduledCreateUpdate,
+		Read:   resourceSentinelAlertRuleScheduledRead,
+		Update: resourceSentinelAlertRuleScheduledCreateUpdate,
+		Delete: resourceSentinelAlertRuleScheduledDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			_, err := parse.SentinelAlertRuleID(id)
@@ -159,7 +159,7 @@ func resourceArmSentinelAlertRuleScheduled() *schema.Resource {
 	}
 }
 
-func resourceArmSentinelAlertRuleScheduledCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleScheduledCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -171,10 +171,10 @@ func resourceArmSentinelAlertRuleScheduledCreateUpdate(d *schema.ResourceData, m
 	}
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, workspaceID.ResourceGroup, "Microsoft.OperationalInsights", workspaceID.Name, name)
+		resp, err := client.Get(ctx, workspaceID.ResourceGroup, "Microsoft.OperationalInsights", workspaceID.WorkspaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("checking for existing Sentinel Alert Rule Scheduled %q (Resource Group %q / Workspace %q): %+v", name, workspaceID.ResourceGroup, workspaceID.Name, err)
+				return fmt.Errorf("checking for existing Sentinel Alert Rule Scheduled %q (Resource Group %q / Workspace %q): %+v", name, workspaceID.ResourceGroup, workspaceID.WorkspaceName, err)
 			}
 		}
 
@@ -226,38 +226,37 @@ func resourceArmSentinelAlertRuleScheduledCreateUpdate(d *schema.ResourceData, m
 
 	// Service avoid concurrent update of this resource via checking the "etag" to guarantee it is the same value as last Read.
 	if !d.IsNewResource() {
-		resp, err := client.Get(ctx, workspaceID.ResourceGroup, "Microsoft.OperationalInsights", workspaceID.Name, name)
+		resp, err := client.Get(ctx, workspaceID.ResourceGroup, "Microsoft.OperationalInsights", workspaceID.WorkspaceName, name)
 		if err != nil {
-			return fmt.Errorf("retrieving Sentinel Alert Rule Scheduled %q (Resource Group %q / Workspace %q): %+v", name, workspaceID.ResourceGroup, workspaceID.Name, err)
+			return fmt.Errorf("retrieving Sentinel Alert Rule Scheduled %q (Resource Group %q / Workspace %q): %+v", name, workspaceID.ResourceGroup, workspaceID.WorkspaceName, err)
 		}
 
 		if err := assertAlertRuleKind(resp.Value, securityinsight.Scheduled); err != nil {
-			return fmt.Errorf("asserting alert rule of %q (Resource Group %q / Workspace %q): %+v", name, workspaceID.ResourceGroup, workspaceID.Name, err)
+			return fmt.Errorf("asserting alert rule of %q (Resource Group %q / Workspace %q): %+v", name, workspaceID.ResourceGroup, workspaceID.WorkspaceName, err)
 		}
 		param.Etag = resp.Value.(securityinsight.ScheduledAlertRule).Etag
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, workspaceID.ResourceGroup, "Microsoft.OperationalInsights", workspaceID.Name, name, param); err != nil {
-		return fmt.Errorf("creating Sentinel Alert Rule Scheduled %q (Resource Group %q / Workspace %q): %+v", name, workspaceID.ResourceGroup, workspaceID.Name, err)
+	if _, err := client.CreateOrUpdate(ctx, workspaceID.ResourceGroup, "Microsoft.OperationalInsights", workspaceID.WorkspaceName, name, param); err != nil {
+		return fmt.Errorf("creating Sentinel Alert Rule Scheduled %q (Resource Group %q / Workspace %q): %+v", name, workspaceID.ResourceGroup, workspaceID.WorkspaceName, err)
 	}
 
-	resp, err := client.Get(ctx, workspaceID.ResourceGroup, "Microsoft.OperationalInsights", workspaceID.Name, name)
+	resp, err := client.Get(ctx, workspaceID.ResourceGroup, "Microsoft.OperationalInsights", workspaceID.WorkspaceName, name)
 	if err != nil {
-		return fmt.Errorf("retrieving Sentinel Alert Rule Scheduled %q (Resource Group %q / Workspace %q): %+v", name, workspaceID.ResourceGroup, workspaceID.Name, err)
+		return fmt.Errorf("retrieving Sentinel Alert Rule Scheduled %q (Resource Group %q / Workspace %q): %+v", name, workspaceID.ResourceGroup, workspaceID.WorkspaceName, err)
 	}
 
 	id := alertRuleID(resp.Value)
 	if id == nil || *id == "" {
-		return fmt.Errorf("empty or nil ID returned for Sentinel Alert Rule Scheduled %q (Resource Group %q / Workspace %q) ID", name, workspaceID.ResourceGroup, workspaceID.Name)
+		return fmt.Errorf("empty or nil ID returned for Sentinel Alert Rule Scheduled %q (Resource Group %q / Workspace %q) ID", name, workspaceID.ResourceGroup, workspaceID.WorkspaceName)
 	}
 	d.SetId(*id)
 
-	return resourceArmSentinelAlertRuleScheduledRead(d, meta)
+	return resourceSentinelAlertRuleScheduledRead(d, meta)
 }
 
-func resourceArmSentinelAlertRuleScheduledRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleScheduledRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
-	workspaceClient := meta.(*clients.Client).LogAnalytics.WorkspacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -284,11 +283,8 @@ func resourceArmSentinelAlertRuleScheduledRead(d *schema.ResourceData, meta inte
 
 	d.Set("name", id.Name)
 
-	workspaceResp, err := workspaceClient.Get(ctx, id.ResourceGroup, id.Workspace)
-	if err != nil {
-		return fmt.Errorf("retrieving Log Analytics Workspace %q (Resource Group: %q) where this Alert Rule belongs to: %+v", id.Workspace, id.ResourceGroup, err)
-	}
-	d.Set("log_analytics_workspace_id", workspaceResp.ID)
+	workspaceId := loganalyticsParse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.Workspace)
+	d.Set("log_analytics_workspace_id", workspaceId.ID())
 
 	if prop := rule.ScheduledAlertRuleProperties; prop != nil {
 		d.Set("description", prop.Description)
@@ -316,7 +312,7 @@ func resourceArmSentinelAlertRuleScheduledRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceArmSentinelAlertRuleScheduledDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleScheduledDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

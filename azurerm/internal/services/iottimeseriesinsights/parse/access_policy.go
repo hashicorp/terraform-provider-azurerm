@@ -27,14 +27,15 @@ func NewAccessPolicyID(subscriptionId, resourceGroup, environmentName, name stri
 
 func (id AccessPolicyId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Environment Name %q", id.EnvironmentName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Environment Name %q", id.EnvironmentName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Access Policy", segmentsStr)
 }
 
-func (id AccessPolicyId) ID(_ string) string {
+func (id AccessPolicyId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.TimeSeriesInsights/environments/%s/accessPolicies/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.EnvironmentName, id.Name)
 }

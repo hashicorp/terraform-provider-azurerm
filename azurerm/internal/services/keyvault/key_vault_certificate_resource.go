@@ -2,6 +2,7 @@ package keyvault
 
 import (
 	"context"
+	"crypto/x509"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
@@ -539,7 +540,7 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 
 	d.Set("name", id.Name)
 
-	certificatePolicy := flattenKeyVaultCertificatePolicy(cert.Policy)
+	certificatePolicy := flattenKeyVaultCertificatePolicy(cert.Policy, cert.Cer)
 	if err := d.Set("certificate_policy", certificatePolicy); err != nil {
 		return fmt.Errorf("Error setting Key Vault Certificate Policy: %+v", err)
 	}
@@ -722,7 +723,7 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 	return policy
 }
 
-func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []interface{} {
+func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy, certData *[]byte) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -805,6 +806,17 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []inter
 			}
 
 			sanOutputs = append(sanOutputs, sanOutput)
+		} else if certData != nil && len(*certData) > 0 {
+			sanOutput := make(map[string]interface{})
+			cert, err := x509.ParseCertificate(*certData)
+			if err != nil {
+				log.Printf("[DEBUG] Unable to read certificate data: %v", err)
+			} else {
+				sanOutput["emails"] = set.FromStringSlice(cert.EmailAddresses)
+				sanOutput["dns_names"] = set.FromStringSlice(cert.DNSNames)
+				sanOutput["upns"] = set.FromStringSlice([]string{})
+				sanOutputs = append(sanOutputs, sanOutput)
+			}
 		}
 
 		certProps["key_usage"] = usages

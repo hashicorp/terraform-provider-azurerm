@@ -27,14 +27,15 @@ func NewSharedImageID(subscriptionId, resourceGroup, galleryName, imageName stri
 
 func (id SharedImageId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Gallery Name %q", id.GalleryName),
 		fmt.Sprintf("Image Name %q", id.ImageName),
+		fmt.Sprintf("Gallery Name %q", id.GalleryName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Shared Image", segmentsStr)
 }
 
-func (id SharedImageId) ID(_ string) string {
+func (id SharedImageId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/galleries/%s/images/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.GalleryName, id.ImageName)
 }

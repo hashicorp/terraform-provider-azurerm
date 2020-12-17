@@ -99,11 +99,11 @@ The following arguments are supported:
 
 * `min_tls_version` - (Optional) The minimum supported TLS version for the storage account. Possible values are `TLS1_0`, `TLS1_1`, and `TLS1_2`. Defaults to `TLS1_0` for new storage accounts.
 
--> **NOTE:** At this time `min_tls_version` is only supported in the Public Cloud.
+-> **NOTE:** At this time `min_tls_version` is only supported in the Public Cloud and US Government Cloud.
 
 * `allow_blob_public_access` - Allow or disallow public access to all blobs or containers in the storage account. Defaults to `false`.
 
--> **NOTE:** At this time `allow_blob_public_access` is only supported in the Public Cloud.
+-> **NOTE:** At this time `allow_blob_public_access` is only supported in the Public Cloud and US Government Cloud.
 
 * `is_hns_enabled` - (Optional) Is Hierarchical Namespace enabled? This can be used with Azure Data Lake Storage Gen 2 ([see here for more information](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-quickstart-create-account/)). Changing this forces a new resource to be created.
 

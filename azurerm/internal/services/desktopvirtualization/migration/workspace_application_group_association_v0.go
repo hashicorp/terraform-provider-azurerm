@@ -32,18 +32,18 @@ func WorkspaceApplicationGroupAssociationUpgradeV0ToV1(rawState map[string]inter
 	if err != nil {
 		return nil, err
 	}
-	newId := id.ID("")
+	newId := id.ID()
 
 	log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
 	rawState["id"] = newId
 
 	oldApplicationGroupId := rawState["application_group_id"].(string)
-	newApplicationGroupId := id.ApplicationGroup.ID("")
+	newApplicationGroupId := id.ApplicationGroup.ID()
 	log.Printf("[DEBUG] Updating Application Group ID from %q to %q", oldApplicationGroupId, newApplicationGroupId)
 	rawState["application_group_id"] = newApplicationGroupId
 
 	oldWorkspaceId := rawState["workspace_id"].(string)
-	newWorkspaceId := id.Workspace.ID("")
+	newWorkspaceId := id.Workspace.ID()
 	log.Printf("[DEBUG] Updating Workspace ID from %q to %q", oldWorkspaceId, newWorkspaceId)
 	rawState["workspace_id"] = newWorkspaceId
 

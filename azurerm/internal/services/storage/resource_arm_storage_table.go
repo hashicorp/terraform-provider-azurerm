@@ -124,7 +124,7 @@ func resourceArmStorageTableCreate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("building Table Client: %s", err)
 	}
 
-	id := parse.NewStorageTableDataPlaneId(accountName, storageClient.Environment.StorageEndpointSuffix, tableName).ID("")
+	id := parse.NewStorageTableDataPlaneId(accountName, storageClient.Environment.StorageEndpointSuffix, tableName).ID()
 
 	exists, err := client.Exists(ctx, account.ResourceGroup, accountName, tableName)
 	if err != nil {

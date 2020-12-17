@@ -3,7 +3,11 @@ package parse
 import (
 	"fmt"
 	"strings"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
+
+var _ resourceid.Formatter = RoleAssignmentId{}
 
 type RoleAssignmentId struct {
 	Workspace             WorkspaceId
@@ -17,8 +21,8 @@ func NewRoleAssignmentId(workspace WorkspaceId, dataPlaneAssignmentId string) Ro
 	}
 }
 
-func (id RoleAssignmentId) ID(_ string) string {
-	workspaceId := id.Workspace.ID("")
+func (id RoleAssignmentId) ID() string {
+	workspaceId := id.Workspace.ID()
 	return fmt.Sprintf("%s|%s", workspaceId, id.DataPlaneAssignmentId)
 }
 

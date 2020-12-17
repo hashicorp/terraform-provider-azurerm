@@ -29,15 +29,16 @@ func NewSlotVirtualNetworkSwiftConnectionID(subscriptionId, resourceGroup, siteN
 
 func (id SlotVirtualNetworkSwiftConnectionId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Site Name %q", id.SiteName),
-		fmt.Sprintf("Slot Name %q", id.SlotName),
 		fmt.Sprintf("Config Name %q", id.ConfigName),
+		fmt.Sprintf("Slot Name %q", id.SlotName),
+		fmt.Sprintf("Site Name %q", id.SiteName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Slot Virtual Network Swift Connection", segmentsStr)
 }
 
-func (id SlotVirtualNetworkSwiftConnectionId) ID(_ string) string {
+func (id SlotVirtualNetworkSwiftConnectionId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s/slots/%s/config/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SiteName, id.SlotName, id.ConfigName)
 }

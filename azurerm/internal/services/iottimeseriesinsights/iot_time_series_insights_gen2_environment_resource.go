@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iottimeseriesinsights/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -19,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmIoTTimeSeriesInsightsGen2Environment() *schema.Resource {
+func resourceIoTTimeSeriesInsightsGen2Environment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIoTTimeSeriesInsightsGen2EnvironmentCreateUpdate,
-		Read:   resourceArmIoTTimeSeriesInsightsGen2EnvironmentRead,
-		Update: resourceArmIoTTimeSeriesInsightsGen2EnvironmentCreateUpdate,
-		Delete: resourceArmIoTTimeSeriesInsightsGen2EnvironmentDelete,
+		Create: resourceIoTTimeSeriesInsightsGen2EnvironmentCreateUpdate,
+		Read:   resourceIoTTimeSeriesInsightsGen2EnvironmentRead,
+		Update: resourceIoTTimeSeriesInsightsGen2EnvironmentCreateUpdate,
+		Delete: resourceIoTTimeSeriesInsightsGen2EnvironmentDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.EnvironmentID(id)
 			return err
@@ -96,12 +97,17 @@ func resourceArmIoTTimeSeriesInsightsGen2Environment() *schema.Resource {
 				},
 			},
 
+			"data_access_fqdn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
 }
 
-func resourceArmIoTTimeSeriesInsightsGen2EnvironmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIoTTimeSeriesInsightsGen2EnvironmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTTimeSeriesInsights.EnvironmentsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -176,10 +182,10 @@ func resourceArmIoTTimeSeriesInsightsGen2EnvironmentCreateUpdate(d *schema.Resou
 
 	d.SetId(*resource.ID)
 
-	return resourceArmIoTTimeSeriesInsightsGen2EnvironmentRead(d, meta)
+	return resourceIoTTimeSeriesInsightsGen2EnvironmentRead(d, meta)
 }
 
-func resourceArmIoTTimeSeriesInsightsGen2EnvironmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIoTTimeSeriesInsightsGen2EnvironmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTTimeSeriesInsights.EnvironmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -207,9 +213,8 @@ func resourceArmIoTTimeSeriesInsightsGen2EnvironmentRead(d *schema.ResourceData,
 	d.Set("name", environment.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("sku_name", environment.Sku.Name)
-	if location := environment.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", location.NormalizeNilable(environment.Location))
+	d.Set("data_access_fqdn", environment.DataAccessFqdn)
 	if err := d.Set("id_properties", flattenIdProperties(environment.TimeSeriesIDProperties)); err != nil {
 		return fmt.Errorf("setting `id_properties`: %+v", err)
 	}
@@ -223,7 +228,7 @@ func resourceArmIoTTimeSeriesInsightsGen2EnvironmentRead(d *schema.ResourceData,
 	return tags.FlattenAndSet(d, environment.Tags)
 }
 
-func resourceArmIoTTimeSeriesInsightsGen2EnvironmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIoTTimeSeriesInsightsGen2EnvironmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTTimeSeriesInsights.EnvironmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

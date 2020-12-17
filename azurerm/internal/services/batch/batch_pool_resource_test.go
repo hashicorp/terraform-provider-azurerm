@@ -387,7 +387,7 @@ func (t BatchPoolResource) Exists(ctx context.Context, clients *clients.Client, 
 		return nil, err
 	}
 
-	resp, err := clients.Batch.PoolClient.Get(ctx, id.Name, id.BatchAccountName, id.ResourceGroup)
+	resp, err := clients.Batch.PoolClient.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Batch Pool %q (Account Name %q / Resource Group %q) does not exist", id.Name, id.BatchAccountName, id.ResourceGroup)
 	}
@@ -1121,6 +1121,8 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
+
+  allow_blob_public_access = true
 
   tags = {
     environment = "Dev"

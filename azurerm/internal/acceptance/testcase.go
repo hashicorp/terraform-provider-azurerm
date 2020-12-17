@@ -32,7 +32,7 @@ func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, s
 		PreCheck: func() { PreCheck(t) },
 		CheckDestroy: func(s *terraform.State) error {
 			client := buildClient()
-			return helpers.CheckDestroyedFunc(client, testResource, td.ResourceType, td.resourceLabel)(s)
+			return helpers.CheckDestroyedFunc(client, testResource, td.ResourceType, td.ResourceName)(s)
 		},
 		Steps: steps,
 	}

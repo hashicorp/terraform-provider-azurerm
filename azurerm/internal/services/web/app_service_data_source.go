@@ -2,6 +2,7 @@ package web
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -122,9 +123,25 @@ func dataSourceArmAppService() *schema.Resource {
 				Computed: true,
 			},
 
+			"outbound_ip_address_list": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
 			"possible_outbound_ip_addresses": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+
+			"possible_outbound_ip_address_list": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"source_control": schemaDataSourceAppServiceSiteSourceControl(),
@@ -197,7 +214,13 @@ func dataSourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("client_cert_enabled", props.ClientCertEnabled)
 		d.Set("default_site_hostname", props.DefaultHostName)
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
+		if props.OutboundIPAddresses != nil {
+			d.Set("outbound_ip_address_list", strings.Split(*props.OutboundIPAddresses, ","))
+		}
 		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
+		if props.PossibleOutboundIPAddresses != nil {
+			d.Set("possible_outbound_ip_address_list", strings.Split(*props.PossibleOutboundIPAddresses, ","))
+		}
 		d.Set("custom_domain_verification_id", props.CustomDomainVerificationID)
 	}
 

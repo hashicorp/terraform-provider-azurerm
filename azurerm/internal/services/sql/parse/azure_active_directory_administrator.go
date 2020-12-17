@@ -27,14 +27,15 @@ func NewAzureActiveDirectoryAdministratorID(subscriptionId, resourceGroup, serve
 
 func (id AzureActiveDirectoryAdministratorId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Server Name %q", id.ServerName),
 		fmt.Sprintf("Administrator Name %q", id.AdministratorName),
+		fmt.Sprintf("Server Name %q", id.ServerName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Azure Active Directory Administrator", segmentsStr)
 }
 
-func (id AzureActiveDirectoryAdministratorId) ID(_ string) string {
+func (id AzureActiveDirectoryAdministratorId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.SQL/servers/%s/administrators/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServerName, id.AdministratorName)
 }

@@ -13,21 +13,24 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/validate"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmServiceBusTopic() *schema.Resource {
+func resourceServiceBusTopic() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceBusTopicCreateUpdate,
-		Read:   resourceArmServiceBusTopicRead,
-		Update: resourceArmServiceBusTopicCreateUpdate,
-		Delete: resourceArmServiceBusTopicDelete,
+		Create: resourceServiceBusTopicCreateUpdate,
+		Read:   resourceServiceBusTopicRead,
+		Update: resourceServiceBusTopicCreateUpdate,
+		Delete: resourceServiceBusTopicDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.TopicID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -41,7 +44,7 @@ func resourceArmServiceBusTopic() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateServiceBusTopicName(),
+				ValidateFunc: azValidate.TopicName(),
 			},
 
 			"namespace_name": {
@@ -122,15 +125,12 @@ func resourceArmServiceBusTopic() *schema.Resource {
 	}
 }
 
-func resourceArmServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.TopicsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for Azure ServiceBus Topic creation.")
 
-	name := d.Get("name").(string)
-	namespaceName := d.Get("namespace_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
 	status := d.Get("status").(string)
 
 	enableBatchedOps := d.Get("enable_batched_operations").(bool)
@@ -140,21 +140,23 @@ func resourceArmServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interfa
 	requiresDuplicateDetection := d.Get("requires_duplicate_detection").(bool)
 	supportOrdering := d.Get("support_ordering").(bool)
 
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	resourceId := parse.NewTopicID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, namespaceName, name)
+		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing ServiceBus Topic %q (resource group %q, namespace %q): %v", name, resourceGroup, namespaceName, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", resourceId, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_service_fabric_cluster", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_service_fabric_cluster", resourceId.ID())
 		}
 	}
 
 	parameters := servicebus.SBTopic{
-		Name: &name,
+		Name: utils.String(resourceId.Name),
 		SBTopicProperties: &servicebus.SBTopicProperties{
 			Status:                     servicebus.EntityStatus(status),
 			EnableBatchedOperations:    utils.Bool(enableBatchedOps),
@@ -178,48 +180,36 @@ func resourceArmServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interfa
 		parameters.SBTopicProperties.DuplicateDetectionHistoryTimeWindow = utils.String(duplicateWindow)
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters); err != nil {
-		return fmt.Errorf("Error issuing create/update request for ServiceBus Topic %q (resource group %q, namespace %q): %v", name, resourceGroup, namespaceName, err)
+	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.Name, parameters); err != nil {
+		return fmt.Errorf("creating/updating %s: %v", resourceId, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, namespaceName, name)
-	if err != nil {
-		return fmt.Errorf("Error issuing get request for ServiceBus Topic %q (resource group %q, namespace %q): %v", name, resourceGroup, namespaceName, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read ServiceBus Topic %s (resource group %s) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
-
-	return resourceArmServiceBusTopicRead(d, meta)
+	d.SetId(resourceId.ID())
+	return resourceServiceBusTopicRead(d, meta)
 }
 
-func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusTopicRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.TopicsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.TopicID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	namespaceName := id.Path["namespaces"]
-	name := id.Path["topics"]
 
-	resp, err := client.Get(ctx, resourceGroup, namespaceName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure ServiceBus Topic %s: %+v", name, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("namespace_name", namespaceName)
+	d.Set("name", id.Name)
+	d.Set("namespace_name", id.NamespaceName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.SBTopicProperties; props != nil {
 		d.Set("status", string(props.Status))
@@ -243,7 +233,7 @@ func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) er
 			// max size returned by the API will be 16 times greater than the value set
 			if partitioning := props.EnablePartitioning; partitioning != nil && *partitioning {
 				namespacesClient := meta.(*clients.Client).ServiceBus.NamespacesClient
-				namespace, err := namespacesClient.Get(ctx, resourceGroup, namespaceName)
+				namespace, err := namespacesClient.Get(ctx, id.ResourceGroup, id.NamespaceName)
 				if err != nil {
 					return err
 				}
@@ -261,23 +251,20 @@ func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceArmServiceBusTopicDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusTopicDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.TopicsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.TopicID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	namespaceName := id.Path["namespaces"]
-	name := id.Path["topics"]
 
-	resp, err := client.Delete(ctx, resourceGroup, namespaceName, name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.NamespaceName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return err
+			return fmt.Errorf("deleting %s: %+v", id, err)
 		}
 	}
 

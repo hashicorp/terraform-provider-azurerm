@@ -76,7 +76,7 @@ func resourceArmStorageQueueCreate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("building Queues Client: %s", err)
 	}
 
-	resourceId := parse.NewStorageQueueDataPlaneId(accountName, storageClient.Environment.StorageEndpointSuffix, queueName).ID("")
+	resourceId := parse.NewStorageQueueDataPlaneId(accountName, storageClient.Environment.StorageEndpointSuffix, queueName).ID()
 
 	exists, err := client.Exists(ctx, account.ResourceGroup, accountName, queueName)
 	if err != nil {

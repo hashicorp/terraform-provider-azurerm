@@ -29,15 +29,16 @@ func NewGremlinGraphID(subscriptionId, resourceGroup, databaseAccountName, greml
 
 func (id GremlinGraphId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Database Account Name %q", id.DatabaseAccountName),
-		fmt.Sprintf("Gremlin Database Name %q", id.GremlinDatabaseName),
 		fmt.Sprintf("Graph Name %q", id.GraphName),
+		fmt.Sprintf("Gremlin Database Name %q", id.GremlinDatabaseName),
+		fmt.Sprintf("Database Account Name %q", id.DatabaseAccountName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Gremlin Graph", segmentsStr)
 }
 
-func (id GremlinGraphId) ID(_ string) string {
+func (id GremlinGraphId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/databaseAccounts/%s/gremlinDatabases/%s/graphs/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DatabaseAccountName, id.GremlinDatabaseName, id.GraphName)
 }

@@ -25,13 +25,14 @@ func NewVpnSiteID(subscriptionId, resourceGroup, name string) VpnSiteId {
 
 func (id VpnSiteId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Vpn Site", segmentsStr)
 }
 
-func (id VpnSiteId) ID(_ string) string {
+func (id VpnSiteId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/vpnSites/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

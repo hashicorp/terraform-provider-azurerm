@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmBotChannelMsTeams() *schema.Resource {
+func resourceBotChannelMsTeams() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmBotChannelMsTeamsCreate,
-		Read:   resourceArmBotChannelMsTeamsRead,
-		Delete: resourceArmBotChannelMsTeamsDelete,
-		Update: resourceArmBotChannelMsTeamsUpdate,
+		Create: resourceBotChannelMsTeamsCreate,
+		Read:   resourceBotChannelMsTeamsRead,
+		Delete: resourceBotChannelMsTeamsDelete,
+		Update: resourceBotChannelMsTeamsUpdate,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.BotChannelID(id)
@@ -69,7 +69,7 @@ func resourceArmBotChannelMsTeams() *schema.Resource {
 	}
 }
 
-func resourceArmBotChannelMsTeamsCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelMsTeamsCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -84,7 +84,7 @@ func resourceArmBotChannelMsTeamsCreate(d *schema.ResourceData, meta interface{}
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_bot_channel_ms_teams", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_bot_channel_ms_teams", resourceId.ID())
 		}
 	}
 
@@ -109,11 +109,11 @@ func resourceArmBotChannelMsTeamsCreate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("creating MS Teams Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroup, err)
 	}
 
-	d.SetId(resourceId.ID(""))
-	return resourceArmBotChannelMsTeamsRead(d, meta)
+	d.SetId(resourceId.ID())
+	return resourceBotChannelMsTeamsRead(d, meta)
 }
 
-func resourceArmBotChannelMsTeamsRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelMsTeamsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -150,7 +150,7 @@ func resourceArmBotChannelMsTeamsRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceArmBotChannelMsTeamsUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelMsTeamsUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -177,10 +177,10 @@ func resourceArmBotChannelMsTeamsUpdate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("updating MS Teams Channel for Bot %q (Resource Group %q): %+v", id.BotServiceName, id.ResourceGroup, err)
 	}
 
-	return resourceArmBotChannelMsTeamsRead(d, meta)
+	return resourceBotChannelMsTeamsRead(d, meta)
 }
 
-func resourceArmBotChannelMsTeamsDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelMsTeamsDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

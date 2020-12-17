@@ -27,14 +27,15 @@ func NewSqlPoolID(subscriptionId, resourceGroup, workspaceName, name string) Sql
 
 func (id SqlPoolId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Workspace Name %q", id.WorkspaceName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Workspace Name %q", id.WorkspaceName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Sql Pool", segmentsStr)
 }
 
-func (id SqlPoolId) ID(_ string) string {
+func (id SqlPoolId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Synapse/workspaces/%s/sqlPools/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.Name)
 }

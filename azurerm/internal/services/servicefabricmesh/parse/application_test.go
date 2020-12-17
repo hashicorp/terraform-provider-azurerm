@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = ApplicationId{}
 
 func TestApplicationIDFormatter(t *testing.T) {
-	actual := NewApplicationID("12345678-1234-9876-4563-123456789012", "resGroup1", "application1").ID("")
+	actual := NewApplicationID("12345678-1234-9876-4563-123456789012", "resGroup1", "application1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ServiceFabricMesh/applications/application1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
