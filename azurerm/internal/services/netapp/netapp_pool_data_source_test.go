@@ -39,5 +39,5 @@ data "azurerm_netapp_pool" "test" {
   account_name        = azurerm_netapp_pool.test.account_name
   name                = azurerm_netapp_pool.test.name
 }
-`, NetAppPoolResource.basic(data))
+`, NetAppPoolResource{}.basic(data))
 }
