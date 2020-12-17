@@ -141,6 +141,7 @@ resource "azurerm_key_vault" "example" {
       "listissuers",
       "managecontacts",
       "manageissuers",
+      "purge",
       "setissuers",
       "update",
     ]
