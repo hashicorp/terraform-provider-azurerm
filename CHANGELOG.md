@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Resource:** `azurerm_eventgrid_system_topic_event_subscription` [GH-9852]
+* **New Resource:** `azurerm_media_job` [GH-9859]
 * **New Resource:** `azurerm_media_streaming_endpoint` [GH-9537]
 * **New Resource:** `azurerm_subnet_service_endpoint_storage_policy` [GH-8966]
 * **New Resource:** `azurerm_synapse_managed_private_endpoint` [GH-9260]
