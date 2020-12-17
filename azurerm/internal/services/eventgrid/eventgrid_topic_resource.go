@@ -57,7 +57,7 @@ func resourceEventGridTopic() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"identity": EventGridTopicIdentitySchema(),
+			"identity": IdentitySchema(),
 
 			"input_schema": {
 				Type:     schema.TypeString,
@@ -196,7 +196,7 @@ func resourceEventGridTopicCreateUpdate(d *schema.ResourceData, meta interface{}
 	}
 
 	identityRaw := d.Get("identity").([]interface{})
-	identity, err := expandEventGridTopicIdentity(identityRaw)
+	identity, err := expandIdentity(identityRaw)
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -299,7 +299,7 @@ func resourceEventGridTopicRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("endpoint", props.Endpoint)
 	}
 
-	if err := d.Set("identity", flattenEventGridTopicIdentity(resp.Identity)); err != nil {
+	if err := d.Set("identity", flattenIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
