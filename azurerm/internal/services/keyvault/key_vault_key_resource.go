@@ -28,7 +28,7 @@ func resourceArmKeyVaultKey() *schema.Resource {
 		Update: resourceArmKeyVaultKeyUpdate,
 		Delete: resourceArmKeyVaultKeyDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceArmKeyVaultChildResourceImporter,
+			State: nestedItemResourceImporter,
 		},
 
 		Timeouts: &schema.ResourceTimeout{

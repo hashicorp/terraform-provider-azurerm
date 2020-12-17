@@ -25,27 +25,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-// todo refactor and find a home for this wayward func
-func resourceArmKeyVaultChildResourceImporter(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	client := meta.(*clients.Client).KeyVault.VaultsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := azure.ParseKeyVaultChildID(d.Id())
-	if err != nil {
-		return []*schema.ResourceData{d}, fmt.Errorf("Error Unable to parse ID (%s) for Key Vault Child import: %v", d.Id(), err)
-	}
-
-	kvid, err := azure.GetKeyVaultIDFromBaseUrl(ctx, client, id.KeyVaultBaseUrl)
-	if err != nil {
-		return []*schema.ResourceData{d}, fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
-	}
-
-	d.Set("key_vault_id", kvid)
-
-	return []*schema.ResourceData{d}, nil
-}
-
 func resourceArmKeyVaultCertificate() *schema.Resource {
 	return &schema.Resource{
 		// TODO: support Updating once we have more information about what can be updated
@@ -54,7 +33,7 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 		Delete: resourceArmKeyVaultCertificateDelete,
 
 		Importer: &schema.ResourceImporter{
-			State: resourceArmKeyVaultChildResourceImporter,
+			State: nestedItemResourceImporter,
 		},
 
 		Timeouts: &schema.ResourceTimeout{

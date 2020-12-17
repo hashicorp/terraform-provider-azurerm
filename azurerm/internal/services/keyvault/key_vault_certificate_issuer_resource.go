@@ -24,7 +24,7 @@ func resourceArmKeyVaultCertificateIssuer() *schema.Resource {
 		Read:   resourceArmKeyVaultCertificateIssuerRead,
 		Delete: resourceArmKeyVaultCertificateIssuerDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceArmKeyVaultChildResourceImporter,
+			State: nestedItemResourceImporter,
 		},
 
 		Timeouts: &schema.ResourceTimeout{
