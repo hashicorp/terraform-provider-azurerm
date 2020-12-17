@@ -75,6 +75,26 @@ func TestAccAzureRMLogAnalyticsLinkedService_complete(t *testing.T) {
 	})
 }
 
+// TODO: Remove in 3.0
+func TestAccAzureRMLogAnalyticsLinkedService_legacy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_service", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLogAnalyticsLinkedServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLogAnalyticsLinkedService_legacy(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogAnalyticsLinkedServiceExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMLogAnalyticsLinkedService_withWriteAccessResourceId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_service", "test")
 
@@ -203,6 +223,21 @@ resource "azurerm_log_analytics_linked_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
   workspace_id        = azurerm_log_analytics_workspace.test.id
   read_access_id      = azurerm_automation_account.test.id
+}
+`, template)
+}
+
+// TODO: Remove in 3.0
+func testAccAzureRMLogAnalyticsLinkedService_legacy(data acceptance.TestData) string {
+	template := testAccAzureRMLogAnalyticsLinkedService_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_linked_service" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  workspace_name      = azurerm_log_analytics_workspace.test.name
+  linked_service_name = "automation"
+  resource_id         = azurerm_automation_account.test.id
 }
 `, template)
 }
