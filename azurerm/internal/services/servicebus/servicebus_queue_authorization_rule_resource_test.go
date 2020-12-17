@@ -1,182 +1,134 @@
 package servicebus_test
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"testing"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMServiceBusQueueAuthorizationRule_listen(t *testing.T) {
-	testAccAzureRMServiceBusQueueAuthorizationRule(t, true, false, false)
+type ServiceBusQueueAuthorizationRuleResource struct {
 }
 
-func TestAccAzureRMServiceBusQueueAuthorizationRule_send(t *testing.T) {
-	testAccAzureRMServiceBusQueueAuthorizationRule(t, false, true, false)
+func TestAccServiceBusQueueAuthorizationRule_listen(t *testing.T) {
+	testAccServiceBusQueueAuthorizationRule(t, true, false, false)
 }
 
-func TestAccAzureRMServiceBusQueueAuthorizationRule_listensend(t *testing.T) {
-	testAccAzureRMServiceBusQueueAuthorizationRule(t, true, true, false)
+func TestAccServiceBusQueueAuthorizationRule_send(t *testing.T) {
+	testAccServiceBusQueueAuthorizationRule(t, false, true, false)
 }
 
-func TestAccAzureRMServiceBusQueueAuthorizationRule_manage(t *testing.T) {
-	testAccAzureRMServiceBusQueueAuthorizationRule(t, true, true, true)
+func TestAccServiceBusQueueAuthorizationRule_listensend(t *testing.T) {
+	testAccServiceBusQueueAuthorizationRule(t, true, true, false)
 }
 
-func testAccAzureRMServiceBusQueueAuthorizationRule(t *testing.T, listen, send, manage bool) {
+func TestAccServiceBusQueueAuthorizationRule_manage(t *testing.T) {
+	testAccServiceBusQueueAuthorizationRule(t, true, true, true)
+}
+
+func testAccServiceBusQueueAuthorizationRule(t *testing.T, listen, send, manage bool) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue_authorization_rule", "test")
+	r := ServiceBusQueueAuthorizationRuleResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusQueueAuthorizationRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceBusQueueAuthorizationRule_base(data, listen, send, manage),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusQueueAuthorizationRuleExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "namespace_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "queue_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
-					resource.TestCheckResourceAttr(data.ResourceName, "listen", strconv.FormatBool(listen)),
-					resource.TestCheckResourceAttr(data.ResourceName, "send", strconv.FormatBool(send)),
-					resource.TestCheckResourceAttr(data.ResourceName, "manage", strconv.FormatBool(manage)),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.base(data, listen, send, manage),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("namespace_name").Exists(),
+				check.That(data.ResourceName).Key("queue_name").Exists(),
+				check.That(data.ResourceName).Key("primary_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("listen").HasValue(strconv.FormatBool(listen)),
+				check.That(data.ResourceName).Key("send").HasValue(strconv.FormatBool(send)),
+				check.That(data.ResourceName).Key("manage").HasValue(strconv.FormatBool(manage)),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccServiceBusQueueAuthorizationRule_rightsUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue_authorization_rule", "test")
+	r := ServiceBusQueueAuthorizationRuleResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.base(data, true, false, false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("listen").HasValue("true"),
+				check.That(data.ResourceName).Key("send").HasValue("false"),
+				check.That(data.ResourceName).Key("manage").HasValue("false"),
+			),
+		},
+		{
+			Config: r.base(data, true, true, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("namespace_name").Exists(),
+				check.That(data.ResourceName).Key("primary_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("listen").HasValue("true"),
+				check.That(data.ResourceName).Key("send").HasValue("true"),
+				check.That(data.ResourceName).Key("manage").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccServiceBusQueueAuthorizationRule_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue_authorization_rule", "test")
+	r := ServiceBusQueueAuthorizationRuleResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.base(data, true, false, false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("listen").HasValue("true"),
+				check.That(data.ResourceName).Key("send").HasValue("false"),
+				check.That(data.ResourceName).Key("manage").HasValue("false"),
+			),
+		},
+		{
+			Config:      r.requiresImport(data, true, false, false),
+			ExpectError: acceptance.RequiresImportError("azurerm_servicebus_queue_authorization_rule"),
 		},
 	})
 }
 
-func TestAccAzureRMServiceBusQueueAuthorizationRule_rightsUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue_authorization_rule", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusQueueAuthorizationRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceBusQueueAuthorizationRule_base(data, true, false, false),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusQueueAuthorizationRuleExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "listen", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "send", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "manage", "false"),
-				),
-			},
-			{
-				Config: testAccAzureRMServiceBusQueueAuthorizationRule_base(data, true, true, true),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusQueueAuthorizationRuleExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "namespace_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
-					resource.TestCheckResourceAttr(data.ResourceName, "listen", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "send", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "manage", "true"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMServiceBusQueueAuthorizationRule_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue_authorization_rule", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusQueueAuthorizationRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceBusQueueAuthorizationRule_base(data, true, false, false),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusQueueAuthorizationRuleExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "listen", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "send", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "manage", "false"),
-				),
-			},
-			{
-				Config:      testAccAzureRMServiceBusQueueAuthorizationRule_requiresImport(data, true, false, false),
-				ExpectError: acceptance.RequiresImportError("azurerm_servicebus_queue_authorization_rule"),
-			},
-		},
-	})
-}
-
-func testCheckAzureRMServiceBusQueueAuthorizationRuleDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.QueuesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_servicebus_queue_authorization_rule" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		namespaceName := rs.Primary.Attributes["namespace_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		queueName := rs.Primary.Attributes["queue_name"]
-
-		resp, err := conn.GetAuthorizationRule(ctx, resourceGroup, namespaceName, queueName, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return err
-			}
-		}
+func (t ServiceBusQueueAuthorizationRuleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.QueueAuthorizationRuleID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
-
-func testCheckAzureRMServiceBusQueueAuthorizationRuleExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.QueuesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		namespaceName := rs.Primary.Attributes["namespace_name"]
-		queueName := rs.Primary.Attributes["queue_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for ServiceBus Queue Authorization Rule: %s", name)
-		}
-
-		resp, err := conn.GetAuthorizationRule(ctx, resourceGroup, namespaceName, queueName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: ServiceBus Queue Authorization Rule %q (Queue %q / Namespace %q / Resource Group: %q) does not exist", name, queueName, namespaceName, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on ServiceBus Queue: %+v", err)
-		}
-
-		return nil
+	resp, err := clients.ServiceBus.QueuesClient.GetAuthorizationRule(ctx, id.ResourceGroup, id.NamespaceName, id.QueueName, id.AuthorizationRuleName)
+	if err != nil {
+		return nil, fmt.Errorf("reading Service Bus NameSpace Queue Authorization Rule (%s): %+v", id.String(), err)
 	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMServiceBusQueueAuthorizationRule_base(data acceptance.TestData, listen, send, manage bool) string {
+func (ServiceBusQueueAuthorizationRuleResource) base(data acceptance.TestData, listen, send, manage bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -215,7 +167,7 @@ resource "azurerm_servicebus_queue_authorization_rule" "test" {
 `, data.RandomInteger, data.Locations.Primary, listen, send, manage)
 }
 
-func testAccAzureRMServiceBusQueueAuthorizationRule_requiresImport(data acceptance.TestData, listen, send, manage bool) string {
+func (r ServiceBusQueueAuthorizationRuleResource) requiresImport(data acceptance.TestData, listen, send, manage bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -229,5 +181,5 @@ resource "azurerm_servicebus_queue_authorization_rule" "import" {
   send   = azurerm_servicebus_queue_authorization_rule.test.send
   manage = azurerm_servicebus_queue_authorization_rule.test.manage
 }
-`, testAccAzureRMServiceBusQueueAuthorizationRule_base(data, listen, send, manage))
+`, r.base(data, listen, send, manage))
 }

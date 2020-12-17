@@ -27,14 +27,15 @@ func NewCapacityPoolID(subscriptionId, resourceGroup, netAppAccountName, name st
 
 func (id CapacityPoolId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Net App Account Name %q", id.NetAppAccountName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Net App Account Name %q", id.NetAppAccountName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Capacity Pool", segmentsStr)
 }
 
-func (id CapacityPoolId) ID(_ string) string {
+func (id CapacityPoolId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.NetApp/netAppAccounts/%s/capacityPools/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.NetAppAccountName, id.Name)
 }

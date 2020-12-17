@@ -526,7 +526,7 @@ func resourceArmNetworkConnectionMonitorRead(d *schema.ResourceData, meta interf
 	d.Set("name", id.Name)
 
 	networkWatcherId := parse.NewNetworkWatcherID(id.SubscriptionId, id.ResourceGroup, id.NetworkWatcherName)
-	d.Set("network_watcher_id", networkWatcherId.ID(""))
+	d.Set("network_watcher_id", networkWatcherId.ID())
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))

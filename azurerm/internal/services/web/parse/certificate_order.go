@@ -25,13 +25,14 @@ func NewCertificateOrderID(subscriptionId, resourceGroup, name string) Certifica
 
 func (id CertificateOrderId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Certificate Order", segmentsStr)
 }
 
-func (id CertificateOrderId) ID(_ string) string {
+func (id CertificateOrderId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/certificateOrders/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

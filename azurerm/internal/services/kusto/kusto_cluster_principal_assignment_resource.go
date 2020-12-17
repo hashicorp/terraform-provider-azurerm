@@ -17,11 +17,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKustoClusterPrincipalAssignment() *schema.Resource {
+func resourceKustoClusterPrincipalAssignment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKustoClusterPrincipalAssignmentCreateUpdate,
-		Read:   resourceArmKustoClusterPrincipalAssignmentRead,
-		Delete: resourceArmKustoClusterPrincipalAssignmentDelete,
+		Create: resourceKustoClusterPrincipalAssignmentCreateUpdate,
+		Read:   resourceKustoClusterPrincipalAssignmentRead,
+		Delete: resourceKustoClusterPrincipalAssignmentDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -99,7 +99,7 @@ func resourceArmKustoClusterPrincipalAssignment() *schema.Resource {
 	}
 }
 
-func resourceArmKustoClusterPrincipalAssignmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterPrincipalAssignmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClusterPrincipalAssignmentsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -157,10 +157,10 @@ func resourceArmKustoClusterPrincipalAssignmentCreateUpdate(d *schema.ResourceDa
 
 	d.SetId(*resp.ID)
 
-	return resourceArmKustoClusterPrincipalAssignmentRead(d, meta)
+	return resourceKustoClusterPrincipalAssignmentRead(d, meta)
 }
 
-func resourceArmKustoClusterPrincipalAssignmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterPrincipalAssignmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClusterPrincipalAssignmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -216,7 +216,7 @@ func resourceArmKustoClusterPrincipalAssignmentRead(d *schema.ResourceData, meta
 	return nil
 }
 
-func resourceArmKustoClusterPrincipalAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterPrincipalAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClusterPrincipalAssignmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -1,199 +1,152 @@
 package springcloud_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/parse"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMSpringCloudService_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_service", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSpringCloudServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSpringCloudService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSpringCloudServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
+type SpringCloudServiceResource struct {
 }
 
-func TestAccAzureRMSpringCloudService_update(t *testing.T) {
+func TestAccSpringCloudService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_service", "test")
+	r := SpringCloudServiceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSpringCloudServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSpringCloudService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSpringCloudServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMSpringCloudService_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSpringCloudServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				// those field returned by api are "*"
-				// import state verify ignore those fields
-				"config_server_git_setting.0.ssh_auth.0.private_key",
-				"config_server_git_setting.0.ssh_auth.0.host_key",
-				"config_server_git_setting.0.ssh_auth.0.host_key_algorithm",
-				"config_server_git_setting.0.repository.0.http_basic_auth.0.username",
-				"config_server_git_setting.0.repository.0.http_basic_auth.0.password",
-			),
-			{
-				Config: testAccAzureRMSpringCloudService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSpringCloudServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMSpringCloudService_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_service", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSpringCloudServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSpringCloudService_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSpringCloudServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				// those field returned by api are "*"
-				// import state verify ignore those fields
-				"config_server_git_setting.0.ssh_auth.0.private_key",
-				"config_server_git_setting.0.ssh_auth.0.host_key",
-				"config_server_git_setting.0.ssh_auth.0.host_key_algorithm",
-				"config_server_git_setting.0.repository.0.http_basic_auth.0.username",
-				"config_server_git_setting.0.repository.0.http_basic_auth.0.password",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMSpringCloudService_virtualNetwork(t *testing.T) {
+func TestAccSpringCloudService_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_service", "test")
+	r := SpringCloudServiceResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSpringCloudServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSpringCloudService_virtualNetwork(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSpringCloudServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "network.0.service_runtime_network_resource_group"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "network.0.app_network_resource_group"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "outbound_public_ip_addresses.0"),
-				),
-			},
-			data.ImportStep(
-				// those field returned by api are "*"
-				// import state verify ignore those fields
-				"config_server_git_setting.0.ssh_auth.0.private_key",
-				"config_server_git_setting.0.ssh_auth.0.host_key",
-				"config_server_git_setting.0.ssh_auth.0.host_key_algorithm",
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-	})
-}
-
-func TestAccAzureRMSpringCloudService_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_service", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSpringCloudServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSpringCloudService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSpringCloudServiceExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMSpringCloudService_requiresImport),
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(
+			// those field returned by api are "*"
+			// import state verify ignore those fields
+			"config_server_git_setting.0.ssh_auth.0.private_key",
+			"config_server_git_setting.0.ssh_auth.0.host_key",
+			"config_server_git_setting.0.ssh_auth.0.host_key_algorithm",
+			"config_server_git_setting.0.repository.0.http_basic_auth.0.username",
+			"config_server_git_setting.0.repository.0.http_basic_auth.0.password",
+		),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMSpringCloudServiceExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Spring Cloud not found: %s", resourceName)
-		}
+func TestAccSpringCloudService_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_service", "test")
+	r := SpringCloudServiceResource{}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).AppPlatform.ServicesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Spring Cloud Service %q (Resource Group %q) does not exist", name, resourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on AppPlatform.ServicesClient: %+v", err)
-		}
-
-		return nil
-	}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			// those field returned by api are "*"
+			// import state verify ignore those fields
+			"config_server_git_setting.0.ssh_auth.0.private_key",
+			"config_server_git_setting.0.ssh_auth.0.host_key",
+			"config_server_git_setting.0.ssh_auth.0.host_key_algorithm",
+			"config_server_git_setting.0.repository.0.http_basic_auth.0.username",
+			"config_server_git_setting.0.repository.0.http_basic_auth.0.password",
+		),
+	})
 }
 
-func testCheckAzureRMSpringCloudServiceDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).AppPlatform.ServicesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func TestAccSpringCloudService_virtualNetwork(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_service", "test")
+	r := SpringCloudServiceResource{}
 
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_spring_cloud_service" {
-			continue
-		}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.virtualNetwork(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network.0.service_runtime_network_resource_group").Exists(),
+				check.That(data.ResourceName).Key("network.0.app_network_resource_group").Exists(),
+				check.That(data.ResourceName).Key("outbound_public_ip_addresses.0").Exists(),
+			),
+		},
+		data.ImportStep(
+			// those field returned by api are "*"
+			// import state verify ignore those fields
+			"config_server_git_setting.0.ssh_auth.0.private_key",
+			"config_server_git_setting.0.ssh_auth.0.host_key",
+			"config_server_git_setting.0.ssh_auth.0.host_key_algorithm",
+		),
+	})
+}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+func TestAccSpringCloudService_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_service", "test")
+	r := SpringCloudServiceResource{}
 
-		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on AppPlatform.ServicesClient: %+v", err)
-			}
-		}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
 
-		return nil
+func (t SpringCloudServiceResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.SpringCloudServiceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.AppPlatform.ServicesClient.Get(ctx, id.ResourceGroup, id.SpringName)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read Spring Cloud Service %q (Resource Group %q): %+v", id.SpringName, id.ResourceGroup, err)
+	}
+
+	return utils.Bool(resp.Properties != nil), nil
 }
 
-func testAccAzureRMSpringCloudService_basic(data acceptance.TestData) string {
+func (SpringCloudServiceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -213,7 +166,7 @@ resource "azurerm_spring_cloud_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMSpringCloudService_complete(data acceptance.TestData) string {
+func (SpringCloudServiceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -279,7 +232,7 @@ resource "azurerm_spring_cloud_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMSpringCloudService_virtualNetwork(data acceptance.TestData) string {
+func (SpringCloudServiceResource) virtualNetwork(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -365,8 +318,7 @@ resource "azurerm_spring_cloud_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMSpringCloudService_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMSpringCloudService_basic(data)
+func (r SpringCloudServiceResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -375,5 +327,5 @@ resource "azurerm_spring_cloud_service" "import" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
-`, template)
+`, r.basic(data))
 }

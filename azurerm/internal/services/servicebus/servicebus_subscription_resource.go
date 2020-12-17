@@ -11,20 +11,24 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/validate"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmServiceBusSubscription() *schema.Resource {
+func resourceServiceBusSubscription() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceBusSubscriptionCreateUpdate,
-		Read:   resourceArmServiceBusSubscriptionRead,
-		Update: resourceArmServiceBusSubscriptionCreateUpdate,
-		Delete: resourceArmServiceBusSubscriptionDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceServiceBusSubscriptionCreateUpdate,
+		Read:   resourceServiceBusSubscriptionRead,
+		Update: resourceServiceBusSubscriptionCreateUpdate,
+		Delete: resourceServiceBusSubscriptionDelete,
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.SubscriptionID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -38,7 +42,7 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateServiceBusSubscriptionName(),
+				ValidateFunc: validate.SubscriptionName(),
 			},
 
 			"namespace_name": {
@@ -52,7 +56,7 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateServiceBusTopicName(),
+				ValidateFunc: validate.TopicName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -127,27 +131,24 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 	}
 }
 
-func resourceArmServiceBusSubscriptionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusSubscriptionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.SubscriptionsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for Azure ARM ServiceBus Subscription creation.")
+	log.Printf("[INFO] preparing arguments for ServiceBus Subscription creation.")
 
-	name := d.Get("name").(string)
-	topicName := d.Get("topic_name").(string)
-	namespaceName := d.Get("namespace_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
+	resourceId := parse.NewSubscriptionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("topic_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, namespaceName, topicName, name)
+		existing, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.TopicName, resourceId.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing ServiceBus Subscription %q (resource group %q, namespace %q, topic %q): %v", name, resourceGroup, namespaceName, topicName, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", resourceId, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_servicebus_subscription", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_servicebus_subscription", resourceId.ID())
 		}
 	}
 
@@ -182,50 +183,37 @@ func resourceArmServiceBusSubscriptionCreateUpdate(d *schema.ResourceData, meta 
 		parameters.DefaultMessageTimeToLive = &defaultMessageTtl
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, topicName, name, parameters); err != nil {
-		return fmt.Errorf("Error issuing create/update request for ServiceBus Subscription %q (resource group %q, namespace %q, topic %q): %v", name, resourceGroup, namespaceName, topicName, err)
+	if _, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.NamespaceName, resourceId.TopicName, resourceId.Name, parameters); err != nil {
+		return fmt.Errorf("creating/updating %s: %v", resourceId, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, namespaceName, topicName, name)
-	if err != nil {
-		return fmt.Errorf("Error issuing get request for ServiceBus Subscription %q (resource group %q, namespace %q, topic %q): %v", name, resourceGroup, namespaceName, topicName, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read ServiceBus Subscription %s (resource group %s) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
-
-	return resourceArmServiceBusSubscriptionRead(d, meta)
+	d.SetId(resourceId.ID())
+	return resourceServiceBusSubscriptionRead(d, meta)
 }
 
-func resourceArmServiceBusSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.SubscriptionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SubscriptionID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	namespaceName := id.Path["namespaces"]
-	topicName := id.Path["topics"]
-	name := id.Path["subscriptions"]
 
-	resp, err := client.Get(ctx, resourceGroup, namespaceName, topicName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.NamespaceName, id.TopicName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure ServiceBus Subscription %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("namespace_name", namespaceName)
-	d.Set("topic_name", topicName)
+	d.Set("name", id.Name)
+	d.Set("topic_name", id.TopicName)
+	d.Set("namespace_name", id.NamespaceName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.SBSubscriptionProperties; props != nil {
 		d.Set("auto_delete_on_idle", props.AutoDeleteOnIdle)
@@ -247,21 +235,19 @@ func resourceArmServiceBusSubscriptionRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceArmServiceBusSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.SubscriptionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SubscriptionID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	namespaceName := id.Path["namespaces"]
-	topicName := id.Path["topics"]
-	name := id.Path["subscriptions"]
 
-	_, err = client.Delete(ctx, resourceGroup, namespaceName, topicName, name)
+	if _, err = client.Delete(ctx, id.ResourceGroup, id.NamespaceName, id.TopicName, id.Name); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
+	}
 
-	return err
+	return nil
 }

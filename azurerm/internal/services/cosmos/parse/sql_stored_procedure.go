@@ -31,16 +31,17 @@ func NewSqlStoredProcedureID(subscriptionId, resourceGroup, databaseAccountName,
 
 func (id SqlStoredProcedureId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Database Account Name %q", id.DatabaseAccountName),
-		fmt.Sprintf("Sql Database Name %q", id.SqlDatabaseName),
-		fmt.Sprintf("Container Name %q", id.ContainerName),
 		fmt.Sprintf("Stored Procedure Name %q", id.StoredProcedureName),
+		fmt.Sprintf("Container Name %q", id.ContainerName),
+		fmt.Sprintf("Sql Database Name %q", id.SqlDatabaseName),
+		fmt.Sprintf("Database Account Name %q", id.DatabaseAccountName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Sql Stored Procedure", segmentsStr)
 }
 
-func (id SqlStoredProcedureId) ID(_ string) string {
+func (id SqlStoredProcedureId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/databaseAccounts/%s/sqlDatabases/%s/containers/%s/storedProcedures/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DatabaseAccountName, id.SqlDatabaseName, id.ContainerName, id.StoredProcedureName)
 }

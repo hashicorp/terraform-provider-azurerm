@@ -117,7 +117,7 @@ provider "azuread" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-datashare-%[1]d"
+  name     = "acctestRG-datashare-%[1]d"
   location = "%[2]s"
 }
 
@@ -142,6 +142,7 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "RAGRS"
+  allow_blob_public_access = true
 }
 
 resource "azurerm_storage_container" "test" {

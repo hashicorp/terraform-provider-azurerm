@@ -106,7 +106,7 @@ func TestAccAzureRMRecoveryServicesVault_requiresImport(t *testing.T) {
 	})
 }
 
-func TestRecoveryServicesVault_basicWithIdentity(t *testing.T) {
+func TestAccRecoveryServicesVault_basicWithIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

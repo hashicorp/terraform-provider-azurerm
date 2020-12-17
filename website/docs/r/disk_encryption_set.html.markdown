@@ -14,10 +14,6 @@ Manages a Disk Encryption Set.
 ## Example Usage
 
 ```hcl
-provider "azurerm" {
-  features {}
-}
-
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "example" {
@@ -30,10 +26,10 @@ resource "azurerm_key_vault" "example" {
   location                    = azurerm_resource_group.example.location
   resource_group_name         = azurerm_resource_group.example.name
   tenant_id                   = data.azurerm_client_config.current.tenant_id
+  sku_name                    = "premium"
   enabled_for_disk_encryption = true
   soft_delete_enabled         = true
   purge_protection_enabled    = true
-  sku_name                    = "premium"
 }
 
 resource "azurerm_key_vault_key" "example" {

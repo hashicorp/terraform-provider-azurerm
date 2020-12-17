@@ -144,5 +144,5 @@ resource "azurerm_data_share_dataset_kusto_database" "import" {
   share_id          = azurerm_data_share.test.id
   kusto_database_id = azurerm_kusto_database.test.id
 }
-`, r.template(data))
+`, r.basic(data))
 }
