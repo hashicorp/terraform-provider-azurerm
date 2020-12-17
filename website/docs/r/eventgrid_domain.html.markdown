@@ -40,6 +40,8 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `input_schema` - (Optional) Specifies the schema in which incoming events will be published to this domain. Allowed values are `CloudEventSchemaV1_0`, `CustomEventSchema`, or `EventGridSchema`. Defaults to `eventgridschema`. Changing this forces a new resource to be created.
 
 * `input_mapping_fields` - (Optional) A `input_mapping_fields` block as defined below.
@@ -51,6 +53,14 @@ The following arguments are supported:
 * `inbound_ip_rule` - (Optional) One or more `inbound_ip_rule` blocks as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+A `identity` block exports the following:
+
+~> **Note:** Currently only type `SystemAssigned` identity is supported.
+
+* `type` - Specifies the type of Managed Service Identity that is configured on this Event Grid Domain.
 
 ---
 
