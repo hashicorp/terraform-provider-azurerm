@@ -186,7 +186,7 @@ func SSHKeySchemaHash(v interface{}) int {
 	if m, ok := v.(map[string]interface{}); ok {
 		normalisedKey, _ := azure.NormaliseSSHKey(m["public_key"].(string))
 		buf.WriteString(fmt.Sprintf("%s-", *normalisedKey))
-		buf.WriteString(fmt.Sprintf("%s", m["username"].(string)))
+		buf.WriteString(fmt.Sprintf("%s", m["username"]))
 	}
 
 	return hashcode.String(buf.String())
