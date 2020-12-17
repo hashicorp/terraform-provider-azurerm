@@ -121,10 +121,10 @@ func TestAccEventGridTopic_basicWithIdentity(t *testing.T) {
 			Config: r.basicWithIdentity(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.%").HasValue("1"),
-				check.That(data.ResourceName).Key("identity.type").HasValue("SystemAssigned"),
-				check.That(data.ResourceName).Key("identity.principal_id").Exists(),
-				check.That(data.ResourceName).Key("identity.tenant_id").Exists(),
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -207,8 +207,6 @@ resource "azurerm_eventgrid_topic" "test" {
 }
 
 func (EventGridTopicResource) basicWithTags(data acceptance.TestData) string {
-	// currently only supported in "West Central US" & "West US 2"
-	location := "westus2"
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -228,7 +226,7 @@ resource "azurerm_eventgrid_topic" "test" {
     "foo" = "bar"
   }
 }
-`, data.RandomInteger, location, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (EventGridTopicResource) inboundIPRules(data acceptance.TestData) string {
@@ -263,8 +261,6 @@ resource "azurerm_eventgrid_topic" "test" {
 }
 
 func (EventGridTopicResource) basicWithIdentity(data acceptance.TestData) string {
-	// currently only supported in "West Central US" & "West US 2"
-	location := "westus2"
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -284,5 +280,5 @@ resource "azurerm_eventgrid_topic" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, location, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

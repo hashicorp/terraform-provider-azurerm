@@ -55,7 +55,7 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"tags": tags.Schema(),
+			"identity": IdentitySchema(),
 
 			"input_schema": {
 				Type:     pluginsdk.TypeString,
@@ -158,6 +158,8 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -186,6 +188,12 @@ func resourceEventGridDomainCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
+	identityRaw := d.Get("identity").([]interface{})
+	identity, err := expandIdentity(identityRaw)
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	domainProperties := &eventgrid.DomainProperties{
 		InputSchemaMapping:  expandAzureRmEventgridDomainInputMapping(d),
 		InputSchema:         eventgrid.InputSchema(d.Get("input_schema").(string)),
@@ -195,6 +203,7 @@ func resourceEventGridDomainCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	domain := eventgrid.Domain{
 		Location:         &location,
+		Identity:         identity,
 		DomainProperties: domainProperties,
 		Tags:             tags.Expand(t),
 	}
@@ -286,6 +295,11 @@ func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) er
 	if err != nil {
 		return fmt.Errorf("retrieving Shared Access Keys for EventGrid Domain %q: %+v", id.Name, err)
 	}
+
+	if err := d.Set("identity", flattenIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
 	d.Set("primary_access_key", keys.Key1)
 	d.Set("secondary_access_key", keys.Key2)
 
