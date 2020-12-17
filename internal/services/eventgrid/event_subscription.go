@@ -778,7 +778,30 @@ func eventSubscriptionSchemaLabels() *pluginsdk.Schema {
 	}
 }
 
+<<<<<<< HEAD:internal/services/eventgrid/event_subscription.go
 func expandEventGridExpirationTime(d *pluginsdk.ResourceData) (*date.Time, error) {
+=======
+func eventSubscriptionSchemaIdentity() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"type": {
+					Type:     schema.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(eventgrid.SystemAssigned),
+					}, false),
+				},
+			},
+		},
+	}
+}
+
+func expandEventGridExpirationTime(d *schema.ResourceData) (*date.Time, error) {
+>>>>>>> eventgrid event subscription managed identity support:azurerm/internal/services/eventgrid/event_subscription.go
 	if expirationTimeUtc, ok := d.GetOk("expiration_time_utc"); ok {
 		if expirationTimeUtc == "" {
 			return nil, nil
@@ -1099,6 +1122,20 @@ func expandEventGridEventSubscriptionRetryPolicy(d *pluginsdk.ResourceData) *eve
 	}
 
 	return nil
+}
+
+func expandIdentity(input []interface{}) *eventgrid.EventSubscriptionIdentity {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	identity := input[0].(map[string]interface{})
+	identityType := eventgrid.EventSubscriptionIdentityType(identity["type"].(string))
+
+	eventgridIdentity := eventgrid.EventSubscriptionIdentity{
+		Type: identityType,
+	}
+
+	return &eventgridIdentity
 }
 
 func flattenEventGridEventSubscriptionEventhubEndpoint(input *eventgrid.EventHubEventSubscriptionDestination) []interface{} {
@@ -1444,5 +1481,18 @@ func flattenKey(inputKey *string) map[string]interface{} {
 
 	return map[string]interface{}{
 		"key": key,
+	}
+}
+
+
+func flattenIdentity(input *eventgrid.EventSubscriptionIdentity) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"type": string(input.Type),
+		},
 	}
 }
