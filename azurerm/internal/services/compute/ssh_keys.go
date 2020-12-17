@@ -5,18 +5,17 @@ import (
 	"crypto/rsa"
 	"encoding/base64"
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-
-	"golang.org/x/crypto/ssh"
-
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"golang.org/x/crypto/ssh"
 )
 
 func SSHKeysSchema(isVirtualMachine bool) *schema.Schema {
@@ -165,11 +164,13 @@ func ValidateSSHKey(i interface{}, k string) (warnings []string, errors []error)
 func SSHKeyDiffSuppress(_, old, new string, _ *schema.ResourceData) bool {
 	oldNormalised, err := azure.NormaliseSSHKey(old)
 	if err != nil {
+		log.Printf("[DEBUG] error normalising ssh key %q: %+v", old, err)
 		return false
 	}
 
 	newNormalised, err := azure.NormaliseSSHKey(new)
 	if err != nil {
+		log.Printf("[DEBUG] error normalising ssh key %q: %+v", new, err)
 		return false
 	}
 
@@ -184,7 +185,10 @@ func SSHKeySchemaHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		normalisedKey, _ := azure.NormaliseSSHKey(m["public_key"].(string))
+		normalisedKey, err := azure.NormaliseSSHKey(m["public_key"].(string))
+		if err != nil {
+			log.Printf("[DEBUG] error normalising ssh key %q: %+v", m["public_key"].(string), err)
+		}
 		buf.WriteString(fmt.Sprintf("%s-", *normalisedKey))
 		buf.WriteString(fmt.Sprintf("%s", m["username"]))
 	}

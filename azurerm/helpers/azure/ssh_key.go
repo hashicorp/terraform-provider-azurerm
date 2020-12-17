@@ -14,15 +14,17 @@ func NormaliseSSHKey(input string) (*string, error) {
 		return nil, fmt.Errorf("empty string supplied")
 	}
 
-	// Strip the Azure generated multiline wrapper
-	Normalised := strings.ReplaceAll(input, "<<~EOT\r\n", "")
-	Normalised = strings.ReplaceAll(Normalised, "EOT", "")
+	output := input
+	output = strings.ReplaceAll(output, "<<~EOT", "")
+	output = strings.ReplaceAll(output, "EOT", "")
+	output = strings.ReplaceAll(output, "\r", "")
 
-	// strip Windows flavour new-lines
-	Normalised = strings.ReplaceAll(Normalised, "\r\n", "")
+	lines := make([]string, 0)
+	for _, line := range strings.Split(output, "\n") {
+		lines = append(lines, strings.TrimSpace(line))
+	}
 
-	// strip Linux flavour nee lines
-	Normalised = strings.ReplaceAll(Normalised, "\n", "")
+	normalised := strings.Join(lines, "")
 
-	return utils.String(Normalised), nil
+	return utils.String(normalised), nil
 }
