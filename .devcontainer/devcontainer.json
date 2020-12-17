@@ -29,7 +29,7 @@
 	
 	// Add the IDs of extensions you want installed when the container is created.
 	"extensions": [
-		"ms-vscode.go"
+		"golang.go"
 	],
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
