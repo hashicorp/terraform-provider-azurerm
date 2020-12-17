@@ -5,7 +5,7 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/accesscontrol"
 )
 
-func ExpandArmDataLakeGen2AceList(input []interface{}) (*accesscontrol.ACL, error) {
+func ExpandDataLakeGen2AceList(input []interface{}) (*accesscontrol.ACL, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -46,7 +46,7 @@ func ExpandArmDataLakeGen2AceList(input []interface{}) (*accesscontrol.ACL, erro
 	return &accesscontrol.ACL{Entries: aceList}, nil
 }
 
-func FlattenArmDataLakeGen2AceList(acl accesscontrol.ACL) []interface{} {
+func FlattenDataLakeGen2AceList(acl accesscontrol.ACL) []interface{} {
 	output := make([]interface{}, len(acl.Entries))
 
 	for i, v := range acl.Entries {

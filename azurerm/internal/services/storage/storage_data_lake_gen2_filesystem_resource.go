@@ -124,7 +124,7 @@ func resourceStorageDataLakeGen2FileSystemCreate(d *schema.ResourceData, meta in
 	}
 
 	aceRaw := d.Get("ace").([]interface{})
-	acl, err := parse.ExpandArmDataLakeGen2AceList(aceRaw)
+	acl, err := parse.ExpandDataLakeGen2AceList(aceRaw)
 	if err != nil {
 		return fmt.Errorf("Error parsing ace list: %s", err)
 	}
@@ -201,7 +201,7 @@ func resourceStorageDataLakeGen2FileSystemUpdate(d *schema.ResourceData, meta in
 	}
 
 	aceRaw := d.Get("ace").([]interface{})
-	acl, err := parse.ExpandArmDataLakeGen2AceList(aceRaw)
+	acl, err := parse.ExpandDataLakeGen2AceList(aceRaw)
 	if err != nil {
 		return fmt.Errorf("Error parsing ace list: %s", err)
 	}
@@ -242,7 +242,7 @@ func resourceStorageDataLakeGen2FileSystemUpdate(d *schema.ResourceData, meta in
 		}
 	}
 
-	return resourceArmStorageDataLakeGen2FileSystemRead(d, meta)
+	return resourceStorageDataLakeGen2FileSystemRead(d, meta)
 }
 
 func resourceStorageDataLakeGen2FileSystemRead(d *schema.ResourceData, meta interface{}) error {
@@ -309,7 +309,7 @@ func resourceStorageDataLakeGen2FileSystemRead(d *schema.ResourceData, meta inte
 	if err != nil {
 		return fmt.Errorf("Error parsing response ACL %q: %s", pathResponse.ACL, err)
 	}
-	d.Set("ace", parse.FlattenArmDataLakeGen2AceList(acl))
+	d.Set("ace", parse.FlattenDataLakeGen2AceList(acl))
 
 	return nil
 }
