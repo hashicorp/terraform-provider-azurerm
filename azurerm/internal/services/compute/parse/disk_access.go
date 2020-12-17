@@ -25,13 +25,14 @@ func NewDiskAccessID(subscriptionId, resourceGroup, name string) DiskAccessId {
 
 func (id DiskAccessId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Disk Access", segmentsStr)
 }
 
-func (id DiskAccessId) ID(_ string) string {
+func (id DiskAccessId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/diskAccesses/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
