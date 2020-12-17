@@ -1,12 +1,13 @@
 package keyvault
 
 import (
+	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -364,96 +365,43 @@ func resourceArmKeyVaultSecretDelete(d *schema.ResourceData, meta interface{}) e
 		return nil
 	}
 
-	log.Printf("[DEBUG] Deleting Secret %q (Key Vault %q).", id.Name, id.KeyVaultBaseUrl)
-	if resp, err := client.DeleteSecret(ctx, id.KeyVaultBaseUrl, id.Name); err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return nil
-		}
-
-		return fmt.Errorf("deleting Secret %q (Key Vault %q): %+v", id.Name, id.KeyVaultBaseUrl, err)
+	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy
+	description := fmt.Sprintf("Secret %q (Key Vault %q)", id.Name, id.KeyVaultBaseUrl)
+	deleter := deleteAndPurgeSecret{
+		client:      client,
+		keyVaultUri: id.KeyVaultBaseUrl,
+		name:        id.Name,
 	}
-	log.Printf("[DEBUG] Waiting for Secret %q (Key Vault %q) to finish deleting", id.Name, id.KeyVaultBaseUrl)
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{"InProgress"},
-		Target:  []string{"NotFound"},
-		Refresh: func() (interface{}, string, error) {
-			key, err := client.GetSecret(ctx, id.KeyVaultBaseUrl, id.Name, "")
-			if err != nil {
-				if utils.ResponseWasNotFound(key.Response) {
-					return key, "NotFound", nil
-				}
-
-				return nil, "Error", err
-			}
-
-			return key, "InProgress", nil
-		},
-		ContinuousTargetOccurence: 3,
-		PollInterval:              5 * time.Second,
-		Timeout:                   d.Timeout(schema.TimeoutDelete),
-	}
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("waiting for Secret %q (Key Vault %q) to be deleted: %+v", id.Name, id.KeyVaultBaseUrl, err)
-	}
-	log.Printf("[DEBUG] Deleted Secret %q (Key Vault %q).", id.Name, id.KeyVaultBaseUrl)
-
-	shouldPurge := true // meta.(*clients.Client).Features.KeyVault.PurgeNestedItemsOnDestroy
-	if shouldPurge {
-		log.Printf("[DEBUG] Purging Secret %q (Key Vault %q)..", id.Name, id.KeyVaultBaseUrl)
-		if _, err := client.PurgeDeletedSecret(ctx, id.KeyVaultBaseUrl, id.Name); err != nil {
-			return fmt.Errorf("purging Secret %q (Key Vault %q): %+v", id.Name, id.KeyVaultBaseUrl, err)
-		}
-
-		log.Printf("[DEBUG] Waiting for Secret %q (Key Vault %q) to finish purging..", id.Name, id.KeyVaultBaseUrl)
-		stateConf := &resource.StateChangeConf{
-			Pending: []string{"InProgress"},
-			Target:  []string{"NotFound"},
-			Refresh: func() (interface{}, string, error) {
-				key, err := client.GetDeletedSecret(ctx, id.KeyVaultBaseUrl, id.Name)
-				if err != nil {
-					if utils.ResponseWasNotFound(key.Response) {
-						return key, "NotFound", nil
-					}
-
-					return nil, "Error", err
-				}
-
-				return key, "InProgress", nil
-			},
-			ContinuousTargetOccurence: 3,
-			PollInterval:              5 * time.Second,
-			Timeout:                   d.Timeout(schema.TimeoutDelete),
-		}
-		if _, err := stateConf.WaitForState(); err != nil {
-			return fmt.Errorf("waiting for Secret %q (Key Vault %q) to finish purging: %+v", id.Name, id.KeyVaultBaseUrl, err)
-		}
-		log.Printf("[DEBUG] Purged Secret %q (Key Vault %q).", id.Name, id.KeyVaultBaseUrl)
-	} else {
-		log.Printf("[DEBUG] Skipping purging of Secret %q (Key Vault %q)..", id.Name, id.KeyVaultBaseUrl)
+	if err := deleteAndOptionallyPurge(ctx, description, shouldPurge, deleter); err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func keyVaultChildItemRefreshFunc(secretUri string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		log.Printf("[DEBUG] Checking to see if KeyVault Secret %q is available..", secretUri)
+var _ deleteAndPurgeNestedItem = deleteAndPurgeSecret{}
 
-		PTransport := &http.Transport{Proxy: http.ProxyFromEnvironment}
+type deleteAndPurgeSecret struct {
+	client      *keyvault.BaseClient
+	keyVaultUri string
+	name        string
+}
 
-		client := &http.Client{
-			Transport: PTransport,
-		}
+func (d deleteAndPurgeSecret) DeleteNestedItem(ctx context.Context) (autorest.Response, error) {
+	resp, err := d.client.DeleteSecret(ctx, d.keyVaultUri, d.name)
+	return resp.Response, err
+}
 
-		conn, err := client.Get(secretUri)
-		if err != nil {
-			log.Printf("[DEBUG] Didn't find KeyVault secret at %q", secretUri)
-			return nil, "pending", fmt.Errorf("Error checking secret at %q: %s", secretUri, err)
-		}
+func (d deleteAndPurgeSecret) NestedItemHasBeenDeleted(ctx context.Context) (autorest.Response, error) {
+	resp, err := d.client.GetSecret(ctx, d.keyVaultUri, d.name, "")
+	return resp.Response, err
+}
 
-		defer conn.Body.Close()
+func (d deleteAndPurgeSecret) PurgeNestedItem(ctx context.Context) (autorest.Response, error) {
+	return d.client.PurgeDeletedSecret(ctx, d.keyVaultUri, d.name)
+}
 
-		log.Printf("[DEBUG] Found KeyVault Secret %q", secretUri)
-		return "available", "available", nil
-	}
+func (d deleteAndPurgeSecret) NestedItemHasBeenPurged(ctx context.Context) (autorest.Response, error) {
+	resp, err := d.client.GetDeletedSecret(ctx, d.keyVaultUri, d.name)
+	return resp.Response, err
 }

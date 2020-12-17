@@ -1,12 +1,14 @@
 package keyvault
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -429,75 +431,45 @@ func resourceArmKeyVaultKeyDelete(d *schema.ResourceData, meta interface{}) erro
 		return nil
 	}
 
-	log.Printf("[DEBUG] Deleting Key %q (Key Vault %q)..", id.Name, id.KeyVaultBaseUrl)
-	if resp, err := client.DeleteKey(ctx, id.KeyVaultBaseUrl, id.Name); err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return nil
-		}
-
-		return fmt.Errorf("deleting Key %q (Key Vault %q): %+v", id.Name, id.KeyVaultBaseUrl, err)
+	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy
+	description := fmt.Sprintf("Key %q (Key Vault %q)", id.Name, id.KeyVaultBaseUrl)
+	deleter := deleteAndPurgeKey{
+		client:      client,
+		keyVaultUri: id.KeyVaultBaseUrl,
+		name:        id.Name,
 	}
-	log.Printf("[DEBUG] Waiting for Key %q (Key Vault %q) to finish deleting", id.Name, id.KeyVaultBaseUrl)
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{"InProgress"},
-		Target:  []string{"NotFound"},
-		Refresh: func() (interface{}, string, error) {
-			key, err := client.GetKey(ctx, id.KeyVaultBaseUrl, id.Name, "")
-			if err != nil {
-				if utils.ResponseWasNotFound(key.Response) {
-					return key, "NotFound", nil
-				}
-
-				return nil, "Error", err
-			}
-
-			return key, "InProgress", nil
-		},
-		ContinuousTargetOccurence: 3,
-		PollInterval:              5 * time.Second,
-		Timeout:                   d.Timeout(schema.TimeoutDelete),
-	}
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("waiting for Key %q (Key Vault %q) to be deleted: %+v", id.Name, id.KeyVaultBaseUrl, err)
-	}
-	log.Printf("[DEBUG] Deleted Key %q (Key Vault %q).", id.Name, id.KeyVaultBaseUrl)
-
-	shouldPurge := true // meta.(*clients.Client).Features.KeyVault.PurgeNestedItemsOnDestroy
-	if shouldPurge {
-		log.Printf("[DEBUG] Purging Key %q (Key Vault %q)..", id.Name, id.KeyVaultBaseUrl)
-		if _, err := client.PurgeDeletedKey(ctx, id.KeyVaultBaseUrl, id.Name); err != nil {
-			return fmt.Errorf("purging Key %q (Key Vault %q): %+v", id.Name, id.KeyVaultBaseUrl, err)
-		}
-
-		log.Printf("[DEBUG] Waiting for Key %q (Key Vault %q) to finish purging..", id.Name, id.KeyVaultBaseUrl)
-		stateConf := &resource.StateChangeConf{
-			Pending: []string{"InProgress"},
-			Target:  []string{"NotFound"},
-			Refresh: func() (interface{}, string, error) {
-				key, err := client.GetDeletedKey(ctx, id.KeyVaultBaseUrl, id.Name)
-				if err != nil {
-					if utils.ResponseWasNotFound(key.Response) {
-						return key, "NotFound", nil
-					}
-
-					return nil, "Error", err
-				}
-
-				return key, "InProgress", nil
-			},
-			ContinuousTargetOccurence: 3,
-			PollInterval:              5 * time.Second,
-			Timeout:                   d.Timeout(schema.TimeoutDelete),
-		}
-		if _, err := stateConf.WaitForState(); err != nil {
-			return fmt.Errorf("waiting for Key %q (Key Vault %q) to finish purging: %+v", id.Name, id.KeyVaultBaseUrl, err)
-		}
-		log.Printf("[DEBUG] Purged Key %q (Key Vault %q).", id.Name, id.KeyVaultBaseUrl)
-	} else {
-		log.Printf("[DEBUG] Skipping purging of Key %q (Key Vault %q)..", id.Name, id.KeyVaultBaseUrl)
+	if err := deleteAndOptionallyPurge(ctx, description, shouldPurge, deleter); err != nil {
+		return err
 	}
 
 	return nil
+}
+
+var _ deleteAndPurgeNestedItem = deleteAndPurgeKey{}
+
+type deleteAndPurgeKey struct {
+	client      *keyvault.BaseClient
+	keyVaultUri string
+	name        string
+}
+
+func (d deleteAndPurgeKey) DeleteNestedItem(ctx context.Context) (autorest.Response, error) {
+	resp, err := d.client.DeleteKey(ctx, d.keyVaultUri, d.name)
+	return resp.Response, err
+}
+
+func (d deleteAndPurgeKey) NestedItemHasBeenDeleted(ctx context.Context) (autorest.Response, error) {
+	resp, err := d.client.GetKey(ctx, d.keyVaultUri, d.name, "")
+	return resp.Response, err
+}
+
+func (d deleteAndPurgeKey) PurgeNestedItem(ctx context.Context) (autorest.Response, error) {
+	return d.client.PurgeDeletedKey(ctx, d.keyVaultUri, d.name)
+}
+
+func (d deleteAndPurgeKey) NestedItemHasBeenPurged(ctx context.Context) (autorest.Response, error) {
+	resp, err := d.client.GetDeletedKey(ctx, d.keyVaultUri, d.name)
+	return resp.Response, err
 }
 
 func expandKeyVaultKeyOptions(d *schema.ResourceData) *[]keyvault.JSONWebKeyOperation {
