@@ -407,46 +407,13 @@ func testCheckAzureRMKeyVaultCertificateDisappears(resourceName string) resource
 }
 
 func testAccAzureRMKeyVaultCertificate_basicImportPFX(data acceptance.TestData) string {
+	template := testAccAzureRMKeyVaultCertificate_template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctestkeyvault%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name = "standard"
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    certificate_permissions = [
-      "delete",
-      "import",
-      "get",
-    ]
-
-    key_permissions = [
-      "create",
-    ]
-
-    secret_permissions = [
-      "set",
-    ]
-  }
-}
+%s
 
 resource "azurerm_key_vault_certificate" "test" {
   name         = "acctestcert%s"
@@ -474,7 +441,7 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, template, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultCertificate_requiresImport(data acceptance.TestData) string {
@@ -512,51 +479,13 @@ resource "azurerm_key_vault_certificate" "import" {
 }
 
 func testAccAzureRMKeyVaultCertificate_basicGenerate(data acceptance.TestData) string {
+	template := testAccAzureRMKeyVaultCertificate_template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctestkeyvault%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name = "standard"
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    certificate_permissions = [
-      "create",
-      "delete",
-      "get",
-      "update",
-    ]
-
-    key_permissions = [
-      "create",
-    ]
-
-    secret_permissions = [
-      "set",
-    ]
-
-    storage_permissions = [
-      "set",
-    ]
-  }
-}
+%s
 
 resource "azurerm_key_vault_certificate" "test" {
   name         = "acctestcert%s"
@@ -603,55 +532,17 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, template, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultCertificate_basicGenerateUnknownIssuer(data acceptance.TestData) string {
+	template := testAccAzureRMKeyVaultCertificate_template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctestkeyvault%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name = "standard"
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    certificate_permissions = [
-      "create",
-      "delete",
-      "get",
-      "update",
-    ]
-
-    key_permissions = [
-      "create",
-    ]
-
-    secret_permissions = [
-      "set",
-    ]
-
-    storage_permissions = [
-      "set",
-    ]
-  }
-}
+%s
 
 resource "azurerm_key_vault_certificate" "test" {
   name         = "acctestcert%s"
@@ -698,55 +589,17 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, template, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultCertificate_basicGenerateSans(data acceptance.TestData) string {
+	template := testAccAzureRMKeyVaultCertificate_template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctestkeyvault%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name = "standard"
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    certificate_permissions = [
-      "create",
-      "delete",
-      "get",
-      "update",
-    ]
-
-    key_permissions = [
-      "create",
-    ]
-
-    secret_permissions = [
-      "set",
-    ]
-
-    storage_permissions = [
-      "set",
-    ]
-  }
-}
+%s
 
 resource "azurerm_key_vault_certificate" "test" {
   name         = "acctestcert%s"
@@ -800,51 +653,17 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, template, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultCertificate_basicGenerateTags(data acceptance.TestData) string {
+	template := testAccAzureRMKeyVaultCertificate_template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctestkeyvault%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name = "standard"
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    certificate_permissions = [
-      "create",
-      "delete",
-      "get",
-      "update",
-    ]
-
-    key_permissions = [
-      "create",
-    ]
-
-    secret_permissions = [
-      "set",
-    ]
-  }
-}
+%s
 
 resource "azurerm_key_vault_certificate" "test" {
   name         = "acctestcert%s"
@@ -895,55 +714,17 @@ resource "azurerm_key_vault_certificate" "test" {
     "hello" = "world"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, template, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultCertificate_basicExtendedKeyUsage(data acceptance.TestData) string {
+	template := testAccAzureRMKeyVaultCertificate_template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctestkeyvault%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name = "standard"
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    certificate_permissions = [
-      "create",
-      "delete",
-      "get",
-      "update",
-    ]
-
-    key_permissions = [
-      "create",
-    ]
-
-    secret_permissions = [
-      "set",
-    ]
-
-    storage_permissions = [
-      "set",
-    ]
-  }
-}
+%s
 
 resource "azurerm_key_vault_certificate" "test" {
   name         = "acctestcert%s"
@@ -996,55 +777,17 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, template, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultCertificate_emptyExtendedKeyUsage(data acceptance.TestData) string {
+	template := testAccAzureRMKeyVaultCertificate_template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctestkeyvault%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name = "standard"
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    certificate_permissions = [
-      "create",
-      "delete",
-      "get",
-      "update",
-    ]
-
-    key_permissions = [
-      "create",
-    ]
-
-    secret_permissions = [
-      "set",
-    ]
-
-    storage_permissions = [
-      "set",
-    ]
-  }
-}
+%s
 
 resource "azurerm_key_vault_certificate" "test" {
   name         = "acctestcert%s"
@@ -1093,10 +836,11 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, template, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultCertificate_softDeleteRecovery(data acceptance.TestData, purge bool) string {
+	template := testAccAzureRMKeyVaultCertificate_template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -1107,48 +851,7 @@ provider "azurerm" {
   }
 }
 
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-kvc-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctestkeyvault%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  soft_delete_enabled = true
-
-  sku_name = "standard"
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    certificate_permissions = [
-      "create",
-      "delete",
-      "get",
-      "recover",
-      "update",
-    ]
-
-    key_permissions = [
-      "create",
-    ]
-
-    secret_permissions = [
-      "set",
-    ]
-
-    storage_permissions = [
-      "set",
-    ]
-  }
-}
+%s
 
 resource "azurerm_key_vault_certificate" "test" {
   name         = "acctestcert%s"
@@ -1195,7 +898,7 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 }
-`, purge, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, purge, template, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultCertificate_withExternalAccessPolicy(data acceptance.TestData) string {
@@ -1213,13 +916,13 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkeyvault%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name = "standard"
-
+  name                       = "acctestkeyvault%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_enabled        = true
+  soft_delete_retention_days = 7
 }
 
 resource "azurerm_key_vault_access_policy" "test" {
@@ -1230,6 +933,8 @@ resource "azurerm_key_vault_access_policy" "test" {
     "create",
     "delete",
     "get",
+    "purge",
+    "recover",
     "update",
   ]
 
@@ -1310,13 +1015,13 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkeyvault%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name = "standard"
-
+  name                       = "acctestkeyvault%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_enabled        = true
+  soft_delete_retention_days = 7
 }
 
 resource "azurerm_key_vault_access_policy" "test" {
@@ -1329,6 +1034,7 @@ resource "azurerm_key_vault_access_policy" "test" {
     "delete",
     "get",
     "recover",
+    "purge",
     "update",
   ]
 
@@ -1392,4 +1098,52 @@ resource "azurerm_key_vault_certificate" "test" {
   depends_on = [azurerm_key_vault_access_policy.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+}
+
+func testAccAzureRMKeyVaultCertificate_template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctestkeyvault%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_enabled        = true
+  soft_delete_retention_days = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    certificate_permissions = [
+      "create",
+      "delete",
+      "get",
+      "import",
+      "purge",
+      "recover",
+      "update",
+    ]
+
+    key_permissions = [
+      "create",
+    ]
+
+    secret_permissions = [
+      "set",
+    ]
+
+    storage_permissions = [
+      "set",
+    ]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
