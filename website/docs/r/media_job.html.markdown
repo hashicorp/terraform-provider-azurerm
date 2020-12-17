@@ -99,13 +99,13 @@ The following arguments are supported:
 
 ---
 
-* `description` - (Optional) 	Optional customer supplied description of the Job.
+* `description` - (Optional) Optional customer supplied description of the Job.
 
 * `priority` - (Optional) Priority with which the job should be processed. Higher priority jobs are processed before lower priority jobs. If not set, the default is normal. Changing this forces a new Media Job to be created.
 
 ---
 
-A `input_asset` block supports the following:
+An `input_asset` block supports the following:
 
 * `name` - (Required) The name of the input Asset. Changing this forces a new Media Job to be created.
 
@@ -113,7 +113,7 @@ A `input_asset` block supports the following:
 
 ---
 
-A `output_asset` block supports the following:
+An `output_asset` block supports the following:
 
 * `name` - (Required) The name of the output Asset. Changing this forces a new Media Job to be created.
 
