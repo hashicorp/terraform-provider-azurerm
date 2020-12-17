@@ -548,6 +548,8 @@ resource "azurerm_key_vault_access_policy" "test" {
     "set",
     "get",
     "delete",
+    "purge",
+    "recover"
   ]
 }
 
@@ -600,7 +602,8 @@ resource "azurerm_key_vault_access_policy" "test" {
     "set",
     "get",
     "delete",
-    "recover",
+    "purge",
+    "recover"
   ]
 }
 
