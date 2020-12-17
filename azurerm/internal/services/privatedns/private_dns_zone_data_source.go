@@ -15,9 +15,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmPrivateDnsZone() *schema.Resource {
+func dataSourcePrivateDnsZone() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmPrivateDnsZoneRead,
+		Read: dataSourcePrivateDnsZoneRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -60,7 +60,7 @@ func dataSourceArmPrivateDnsZone() *schema.Resource {
 	}
 }
 
-func dataSourceArmPrivateDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourcePrivateDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PrivateDns.PrivateZonesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

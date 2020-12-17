@@ -22,12 +22,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPrivateDnsZoneVirtualNetworkLink() *schema.Resource {
+func resourcePrivateDnsZoneVirtualNetworkLink() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPrivateDnsZoneVirtualNetworkLinkCreateUpdate,
-		Read:   resourceArmPrivateDnsZoneVirtualNetworkLinkRead,
-		Update: resourceArmPrivateDnsZoneVirtualNetworkLinkCreateUpdate,
-		Delete: resourceArmPrivateDnsZoneVirtualNetworkLinkDelete,
+		Create: resourcePrivateDnsZoneVirtualNetworkLinkCreateUpdate,
+		Read:   resourcePrivateDnsZoneVirtualNetworkLinkRead,
+		Update: resourcePrivateDnsZoneVirtualNetworkLinkCreateUpdate,
+		Delete: resourcePrivateDnsZoneVirtualNetworkLinkDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.VirtualNetworkLinkID(id)
 			return err
@@ -78,7 +78,7 @@ func resourceArmPrivateDnsZoneVirtualNetworkLink() *schema.Resource {
 	}
 }
 
-func resourceArmPrivateDnsZoneVirtualNetworkLinkCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateDnsZoneVirtualNetworkLinkCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PrivateDns.VirtualNetworkLinksClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -128,10 +128,10 @@ func resourceArmPrivateDnsZoneVirtualNetworkLinkCreateUpdate(d *schema.ResourceD
 	}
 
 	d.SetId(resourceId.ID())
-	return resourceArmPrivateDnsZoneVirtualNetworkLinkRead(d, meta)
+	return resourcePrivateDnsZoneVirtualNetworkLinkRead(d, meta)
 }
 
-func resourceArmPrivateDnsZoneVirtualNetworkLinkRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateDnsZoneVirtualNetworkLinkRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PrivateDns.VirtualNetworkLinksClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -165,7 +165,7 @@ func resourceArmPrivateDnsZoneVirtualNetworkLinkRead(d *schema.ResourceData, met
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmPrivateDnsZoneVirtualNetworkLinkDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateDnsZoneVirtualNetworkLinkDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PrivateDns.VirtualNetworkLinksClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

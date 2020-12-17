@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPrivateDnsMxRecord() *schema.Resource {
+func resourcePrivateDnsMxRecord() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPrivateDnsMxRecordCreateUpdate,
-		Read:   resourceArmPrivateDnsMxRecordRead,
-		Update: resourceArmPrivateDnsMxRecordCreateUpdate,
-		Delete: resourceArmPrivateDnsMxRecordDelete,
+		Create: resourcePrivateDnsMxRecordCreateUpdate,
+		Read:   resourcePrivateDnsMxRecordRead,
+		Update: resourcePrivateDnsMxRecordCreateUpdate,
+		Delete: resourcePrivateDnsMxRecordDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.MxRecordID(id)
 			return err
@@ -93,7 +93,7 @@ func resourceArmPrivateDnsMxRecord() *schema.Resource {
 	}
 }
 
-func resourceArmPrivateDnsMxRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateDnsMxRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -130,10 +130,10 @@ func resourceArmPrivateDnsMxRecordCreateUpdate(d *schema.ResourceData, meta inte
 	}
 
 	d.SetId(resourceId.ID())
-	return resourceArmPrivateDnsMxRecordRead(d, meta)
+	return resourcePrivateDnsMxRecordRead(d, meta)
 }
 
-func resourceArmPrivateDnsMxRecordRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateDnsMxRecordRead(d *schema.ResourceData, meta interface{}) error {
 	dnsClient := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -167,7 +167,7 @@ func resourceArmPrivateDnsMxRecordRead(d *schema.ResourceData, meta interface{})
 	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
-func resourceArmPrivateDnsMxRecordDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePrivateDnsMxRecordDelete(d *schema.ResourceData, meta interface{}) error {
 	dnsClient := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
