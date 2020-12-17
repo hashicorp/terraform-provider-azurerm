@@ -1,6 +1,7 @@
 package mssql_test
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"regexp"
@@ -8,361 +9,252 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMMsSqlServer_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
+type MsSqlServerResource struct{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMsSqlServer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
+func TestAccMsSqlServer_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
+	r := MsSqlServerResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
-func TestAccAzureRMMsSqlServer_complete(t *testing.T) {
+func TestAccMsSqlServer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
+	r := MsSqlServerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMsSqlServer_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password", "extended_auditing_policy.0.storage_account_access_key"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password", "extended_auditing_policy.0.storage_account_access_key"),
 	})
 }
 
-func TestAccAzureRMMsSqlServer_requiresImport(t *testing.T) {
+func TestAccMsSqlServer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
+	r := MsSqlServerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMsSqlServer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlServerExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMMsSqlServer_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMMsSqlServer_disappears(t *testing.T) {
+func TestAccMsSqlServer_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
+	r := MsSqlServerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMsSqlServer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlServerExists(data.ResourceName),
-					testCheckAzureRMMsSqlServerDisappears(data.ResourceName),
-				),
-				ExpectNonEmptyPlan: true,
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password", "extended_auditing_policy.0.storage_account_access_key"),
+		{
+			Config: r.completeUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password", "extended_auditing_policy.0.storage_account_access_key"),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
-func TestAccAzureRMMsSqlServer_update(t *testing.T) {
+func TestAccMsSqlServer_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
+	r := MsSqlServerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMsSqlServer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
-			{
-				Config: testAccAzureRMMsSqlServer_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password", "extended_auditing_policy.0.storage_account_access_key"),
-			{
-				Config: testAccAzureRMMsSqlServer_complete2(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password", "extended_auditing_policy.0.storage_account_access_key"),
-			{
-				Config: testAccAzureRMMsSqlServer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.identity(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password", "extended_auditing_policy.0.storage_account_access_key"),
 	})
 }
 
-func TestAccAzureRMMsSqlServer_identity(t *testing.T) {
+func TestAccMsSqlServer_azureadAdmin(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
+	r := MsSqlServerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMsSqlServer_identity(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password", "extended_auditing_policy.0.storage_account_access_key"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.aadAdmin(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.aadAdminUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
-func TestAccAzureRMMsSqlServer_azureadAdmin(t *testing.T) {
+func TestAccMsSqlServer_blobAuditingPolicies_withFirewall(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
+	r := MsSqlServerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMsSqlServer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
-			{
-				Config: testAccAzureRMMsSqlServer_azureadAdmin(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
-			{
-				Config: testAccAzureRMMsSqlServer_azureadAdminUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
-			{
-				Config: testAccAzureRMMsSqlServer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password", "extended_auditing_policy.0.storage_account_access_key"),
+		{
+			Config: r.blobAuditingPoliciesWithFirewall(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password", "extended_auditing_policy.0.storage_account_access_key"),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password", "extended_auditing_policy.0.storage_account_access_key"),
 	})
 }
 
-func TestAccAzureRMMsSqlServer_blobAuditingPolicies_withFirewall(t *testing.T) {
+func TestAccMsSqlServer_customDiff(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
+	r := MsSqlServerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMsSqlServer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password", "extended_auditing_policy.0.storage_account_access_key"),
-			{
-				Config: testAccAzureRMMsSqlServer_blobAuditingPolicies_withFirewall(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password", "extended_auditing_policy.0.storage_account_access_key"),
-			{
-				Config: testAccAzureRMMsSqlServer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password", "extended_auditing_policy.0.storage_account_access_key"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicWithMinimumTLSVersion(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+			ExpectError: regexp.MustCompile("`minimum_tls_version` cannot be removed once set, please set a valid value for this property"),
+		},
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
-func TestAccAzureRMMsSqlServer_customDiff(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMsSqlServer_basicWithMinimumTLSVersion(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
-			{
-				Config: testAccAzureRMMsSqlServer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlServerExists(data.ResourceName),
-				),
-				ExpectError: regexp.MustCompile("`minimum_tls_version` cannot be removed once set, please set a valid value for this property"),
-			},
-			data.ImportStep("administrator_login_password"),
-		},
-	})
-}
-
-func testCheckAzureRMMsSqlServerExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Sql.ServersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		sqlServerName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for SQL Server: %s", sqlServerName)
-		}
-
-		resp, err := conn.Get(ctx, resourceGroup, sqlServerName)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: SQL Server %s (resource group: %s) does not exist", sqlServerName, resourceGroup)
-			}
-			return fmt.Errorf("Bad: Get SQL Server: %v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMMsSqlServerDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).MSSQL.ServersClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_mssql_server" {
-			continue
-		}
-
-		sqlServerName := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, sqlServerName)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return fmt.Errorf("Bad: Get Server: %+v", err)
-		}
-
-		return fmt.Errorf("SQL Server %s still exists", sqlServerName)
+func (MsSqlServerResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ServerID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
-
-func testCheckAzureRMMsSqlServerDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MSSQL.ServersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
+	resp, err := client.MSSQL.ServersClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return nil, fmt.Errorf("SQL Server %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
 		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serverName := rs.Primary.Attributes["name"]
-
-		future, err := client.Delete(ctx, resourceGroup, serverName)
-		if err != nil {
-			return err
-		}
-
-		return future.WaitForCompletionRef(ctx, client.Client)
+		return nil, fmt.Errorf("reading SQL Server %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
 	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMMsSqlServer_basic(data acceptance.TestData) string {
+func (MsSqlServerResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-mssql-%d"
-  location = "%s"
+  name     = "acctestRG-mssql-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_mssql_server" "test" {
-  name                         = "acctestsqlserver%d"
+  name                         = "acctestsqlserver%[1]d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "missadministrator"
   administrator_login_password = "thisIsKat11"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMMsSqlServer_basicWithMinimumTLSVersion(data acceptance.TestData) string {
+func (MsSqlServerResource) basicWithMinimumTLSVersion(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-mssql-%d"
-  location = "%s"
+  name     = "acctestRG-mssql-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_mssql_server" "test" {
-  name                         = "acctestsqlserver%d"
+  name                         = "acctestsqlserver%[1]d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   version                      = "12.0"
@@ -370,10 +262,10 @@ resource "azurerm_mssql_server" "test" {
   administrator_login_password = "thisIsKat11"
   minimum_tls_version          = "1.2"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMMsSqlServer_requiresImport(data acceptance.TestData) string {
+func (r MsSqlServerResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -385,10 +277,10 @@ resource "azurerm_mssql_server" "import" {
   administrator_login          = azurerm_mssql_server.test.administrator_login
   administrator_login_password = azurerm_mssql_server.test.administrator_login_password
 }
-`, testAccAzureRMMsSqlServer_basic(data))
+`, r.basic(data))
 }
 
-func testAccAzureRMMsSqlServer_complete(data acceptance.TestData) string {
+func (MsSqlServerResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -477,7 +369,7 @@ resource "azurerm_private_endpoint" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(15))
 }
 
-func testAccAzureRMMsSqlServer_complete2(data acceptance.TestData) string {
+func (MsSqlServerResource) completeUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -565,19 +457,19 @@ resource "azurerm_private_endpoint" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(15))
 }
 
-func testAccAzureRMMsSqlServer_identity(data acceptance.TestData) string {
+func (MsSqlServerResource) identity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-mssql-%d"
-  location = "%s"
+  name     = "acctestRG-mssql-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_mssql_server" "test" {
-  name                         = "acctestsqlserver%d"
+  name                         = "acctestsqlserver%[1]d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   version                      = "12.0"
@@ -588,10 +480,10 @@ resource "azurerm_mssql_server" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMMsSqlServer_azureadAdmin(data acceptance.TestData) string {
+func (MsSqlServerResource) aadAdmin(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -622,7 +514,7 @@ resource "azurerm_mssql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, os.Getenv("ARM_CLIENT_ID"))
 }
 
-func testAccAzureRMMsSqlServer_azureadAdminUpdate(data acceptance.TestData) string {
+func (MsSqlServerResource) aadAdminUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -653,7 +545,7 @@ resource "azurerm_mssql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, os.Getenv("ARM_CLIENT_ID"))
 }
 
-func testAccAzureRMMsSqlServer_blobAuditingPolicies_withFirewall(data acceptance.TestData) string {
+func (MsSqlServerResource) blobAuditingPoliciesWithFirewall(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
