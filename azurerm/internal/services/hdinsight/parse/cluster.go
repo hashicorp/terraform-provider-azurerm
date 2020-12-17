@@ -9,42 +9,42 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type HDInsightClusterId struct {
+type ClusterId struct {
 	SubscriptionId string
 	ResourceGroup  string
-	ClusterName    string
+	Name           string
 }
 
-func NewHDInsightClusterID(subscriptionId, resourceGroup, clusterName string) HDInsightClusterId {
-	return HDInsightClusterId{
+func NewClusterID(subscriptionId, resourceGroup, name string) ClusterId {
+	return ClusterId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
-		ClusterName:    clusterName,
+		Name:           name,
 	}
 }
 
-func (id HDInsightClusterId) String() string {
+func (id ClusterId) String() string {
 	segments := []string{
-		fmt.Sprintf("Cluster Name %q", id.ClusterName),
+		fmt.Sprintf("Name %q", id.Name),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "H D Insight Cluster", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "Cluster", segmentsStr)
 }
 
-func (id HDInsightClusterId) ID() string {
+func (id ClusterId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.HDInsight/clusters/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ClusterName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
-// HDInsightClusterID parses a HDInsightCluster ID into an HDInsightClusterId struct
-func HDInsightClusterID(input string) (*HDInsightClusterId, error) {
+// ClusterID parses a Cluster ID into an ClusterId struct
+func ClusterID(input string) (*ClusterId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := HDInsightClusterId{
+	resourceId := ClusterId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -57,7 +57,7 @@ func HDInsightClusterID(input string) (*HDInsightClusterId, error) {
 		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
-	if resourceId.ClusterName, err = id.PopSegment("clusters"); err != nil {
+	if resourceId.Name, err = id.PopSegment("clusters"); err != nil {
 		return nil, err
 	}
 

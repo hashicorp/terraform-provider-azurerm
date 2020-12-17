@@ -135,7 +135,7 @@ func resourceArmHDInsightSparkClusterCreate(d *schema.ResourceData, meta interfa
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	id := parse.NewHDInsightClusterID(subscriptionId, resourceGroup, name)
+	id := parse.NewClusterID(subscriptionId, resourceGroup, name)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	clusterVersion := d.Get("cluster_version").(string)
 	t := d.Get("tags").(map[string]interface{})
@@ -243,13 +243,13 @@ func resourceArmHDInsightSparkClusterRead(d *schema.ResourceData, meta interface
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.HDInsightClusterID(d.Id())
+	id, err := parse.ClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resourceGroup := id.ResourceGroup
-	name := id.ClusterName
+	name := id.Name
 
 	resp, err := clustersClient.Get(ctx, resourceGroup, name)
 	if err != nil {

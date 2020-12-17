@@ -4,7 +4,7 @@ package validate
 
 import "testing"
 
-func TestHDInsightClusterID(t *testing.T) {
+func TestClusterID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -41,13 +41,13 @@ func TestHDInsightClusterID(t *testing.T) {
 		},
 
 		{
-			// missing ClusterName
+			// missing Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.HDInsight/",
 			Valid: false,
 		},
 
 		{
-			// missing value for ClusterName
+			// missing value for Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.HDInsight/clusters/",
 			Valid: false,
 		},
@@ -66,7 +66,7 @@ func TestHDInsightClusterID(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := HDInsightClusterID(tc.Input, "test")
+		_, errors := ClusterID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {
