@@ -116,7 +116,7 @@ func resourceArmLogAnalyticsLinkedService() *schema.Resource {
 
 				// This is an unneeded field, if it is removed you can safely ignore it
 				// as it's value can be(and is) derived via the 'read_access_id' field. It
-				// is only here for backwards compatability to avoid a breaking change
+				// is only here for backwards compatibility to avoid a breaking change
 				if newServiceName.(string) != "" {
 					// Ignore change if it's in case only
 					if !strings.EqualFold(oldServiceName.(string), newServiceName.(string)) {
