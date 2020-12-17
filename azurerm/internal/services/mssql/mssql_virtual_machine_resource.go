@@ -18,6 +18,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/helper"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
+	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -59,6 +60,82 @@ func resourceMsSqlVirtualMachine() *schema.Resource {
 					string(sqlvirtualmachine.PAYG),
 					string(sqlvirtualmachine.AHUB),
 				}, false),
+			},
+
+			"auto_backup": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"backup_system_databases": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+
+						"backup_schedule_automated": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
+						"encryption_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+
+						"encryption_password": {
+							Type:      schema.TypeString,
+							Optional:  true,
+							Sensitive: true,
+						},
+
+						"full_backup_frequency": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(sqlvirtualmachine.Daily),
+								string(sqlvirtualmachine.Weekly),
+							}, false),
+						},
+
+						"full_backup_start_hour": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(0, 23),
+						},
+
+						"full_backup_window_hours": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 23),
+						},
+
+						"log_backup_frequency": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(5, 60),
+						},
+
+						"retention_period": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(1, 30),
+						},
+
+						"storage_account_url": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: storageValidate.StorageAccountID,
+						},
+
+						"storage_account_access_key": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
 			},
 
 			"auto_patching": {
@@ -250,6 +327,7 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta interf
 			VirtualMachineResourceID:   utils.String(d.Get("virtual_machine_id").(string)),
 			SQLServerLicenseType:       sqlvirtualmachine.SQLServerLicenseType(d.Get("sql_license_type").(string)),
 			SQLManagement:              sqlvirtualmachine.Full,
+			AutoBackupSettings:         expandSqlVirtualMachineAutoBackupSettings(d.Get("auto_backup").([]interface{})),
 			AutoPatchingSettings:       expandSqlVirtualMachineAutoPatchingSettings(d.Get("auto_patching").([]interface{})),
 			KeyVaultCredentialSettings: expandSqlVirtualMachineKeyVaultCredential(d.Get("key_vault_credential").([]interface{})),
 			ServerConfigurationsManagementSettings: &sqlvirtualmachine.ServerConfigurationsManagementSettings{
@@ -311,6 +389,10 @@ func resourceMsSqlVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 	if props := resp.Properties; props != nil {
 		d.Set("virtual_machine_id", props.VirtualMachineResourceID)
 		d.Set("sql_license_type", string(props.SQLServerLicenseType))
+		if err := d.Set("auto_backup", flattenSqlVirtualMachineAutoBackup(props.AutoBackupSettings)); err != nil {
+			return fmt.Errorf("setting `auto_backup`: %+v", err)
+		}
+
 		if err := d.Set("auto_patching", flattenSqlVirtualMachineAutoPatching(props.AutoPatchingSettings)); err != nil {
 			return fmt.Errorf("setting `auto_patching`: %+v", err)
 		}
@@ -365,6 +447,111 @@ func resourceMsSqlVirtualMachineDelete(d *schema.ResourceData, meta interface{})
 	}
 
 	return nil
+}
+
+func expandSqlVirtualMachineAutoBackupSettings(input []interface{}) *sqlvirtualmachine.AutoBackupSettings {
+	ret := sqlvirtualmachine.AutoBackupSettings{
+		Enable: utils.Bool(false),
+	}
+
+	if len(input) == 1 {
+		config := input[0].(map[string]interface{})
+
+		ret.Enable = utils.Bool(true)
+		ret.FullBackupFrequency = sqlvirtualmachine.FullBackupFrequencyType(config["full_backup_frequency"].(string))
+		ret.RetentionPeriod = utils.Int32(int32(config["retention_period"].(int)))
+		ret.StorageAccountURL = utils.String(config["storage_account_url"].(string))
+		ret.StorageAccessKey = utils.String(config["storage_account_access_key"].(string))
+
+		if v, ok := config["backup_schedule_automated"]; ok && v.(bool) {
+			ret.BackupScheduleType = sqlvirtualmachine.Automated
+		} else {
+			ret.BackupScheduleType = sqlvirtualmachine.Manual
+		}
+
+		if v, ok := config["encryption_enabled"]; ok {
+			ret.EnableEncryption = utils.Bool(v.(bool))
+		}
+
+		if v, ok := config["encryption_password"]; ok {
+			ret.Password = utils.String(v.(string))
+		}
+
+		if v, ok := config["backup_system_databases"]; ok {
+			ret.BackupSystemDbs = utils.Bool(v.(bool))
+		}
+
+		if v, ok := config["full_backup_start_hour"]; ok {
+			ret.FullBackupStartTime = utils.Int32(int32(v.(int)))
+		}
+
+		if v, ok := config["full_backup_window_hours"]; ok {
+			ret.FullBackupWindowHours = utils.Int32(int32(v.(int)))
+		}
+
+		if v, ok := config["log_backup_frequency"]; ok {
+			ret.LogBackupFrequency = utils.Int32(int32(v.(int)))
+		}
+	}
+
+	return &ret
+}
+
+func flattenSqlVirtualMachineAutoBackup(autoBackup *sqlvirtualmachine.AutoBackupSettings) []interface{} {
+	if autoBackup == nil || autoBackup.Enable == nil || !*autoBackup.Enable {
+		return []interface{}{}
+	}
+
+	var encryptionPassword string
+	if autoBackup.Password != nil {
+		encryptionPassword = *autoBackup.Password
+	}
+
+	var fullBackupStartHour int32
+	if autoBackup.FullBackupStartTime != nil {
+		fullBackupStartHour = *autoBackup.FullBackupStartTime
+	}
+
+	var fullBackupWindowHours int32
+	if autoBackup.FullBackupWindowHours != nil {
+		fullBackupWindowHours = *autoBackup.FullBackupWindowHours
+	}
+
+	var logBackupFrequency int32
+	if autoBackup.LogBackupFrequency != nil {
+		logBackupFrequency = *autoBackup.LogBackupFrequency
+	}
+
+	var retentionPeriod int32
+	if autoBackup.RetentionPeriod != nil {
+		retentionPeriod = *autoBackup.RetentionPeriod
+	}
+
+	var storageAccountUrl string
+	if autoBackup.StorageAccountURL != nil {
+		storageAccountUrl = *autoBackup.StorageAccountURL
+	}
+
+	var storageAccountAccessKey string
+	if autoBackup.StorageAccessKey != nil {
+		storageAccountAccessKey = *autoBackup.StorageAccessKey
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"backup_schedule_automated":  autoBackup.BackupScheduleType == sqlvirtualmachine.Automated,
+			"backup_system_databases":    autoBackup.BackupSystemDbs != nil && *autoBackup.BackupSystemDbs,
+			"encryption_enabled":         autoBackup.EnableEncryption != nil && *autoBackup.EnableEncryption,
+			"encryption_password":        encryptionPassword,
+			"full_backup_frequency":      string(autoBackup.FullBackupFrequency),
+			"full_backup_start_hour":     fullBackupStartHour,
+			"full_backup_window_hours":   fullBackupWindowHours,
+			"log_backup_frequency":       logBackupFrequency,
+			"retention_period":           retentionPeriod,
+			"storage_account_access_key": storageAccountAccessKey,
+			"storage_account_url":        storageAccountUrl,
+		},
+	}
 }
 
 func expandSqlVirtualMachineAutoPatchingSettings(input []interface{}) *sqlvirtualmachine.AutoPatchingSettings {
