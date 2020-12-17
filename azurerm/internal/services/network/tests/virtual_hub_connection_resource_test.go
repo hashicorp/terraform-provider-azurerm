@@ -105,7 +105,7 @@ func TestAccAzureRMVirtualHubConnection_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMVirtualHubConnection_recreateWithSameConnectionName(t *testing.T) {
+func TestAccAzureRMVirtualHubConnection_enableInternetSecurity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -122,6 +122,42 @@ func TestAccAzureRMVirtualHubConnection_recreateWithSameConnectionName(t *testin
 			data.ImportStep(),
 			{
 				Config: testAccAzureRMVirtualHubConnection_enableInternetSecurity(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMVirtualHubConnection_recreateWithSameConnectionName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
+
+	resourceGroupName := fmt.Sprintf("acctestRG-vhub-%d", data.RandomInteger)
+	vhubName := fmt.Sprintf("acctest-VHUB-%d", data.RandomInteger)
+	vhubConnectionName := fmt.Sprintf("acctestbasicvhubconn-%d", data.RandomInteger)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMVirtualHubConnectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualHubConnection_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMVirtualHubConnection_template(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualHubConnectionDoesNotExist(resourceGroupName, vhubName, vhubConnectionName),
+				),
+			},
+			{
+				Config: testAccAzureRMVirtualHubConnection_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
 				),
@@ -254,6 +290,22 @@ func testCheckAzureRMVirtualHubConnectionExists(resourceName string) resource.Te
 		}
 
 		return nil
+	}
+}
+
+func testCheckAzureRMVirtualHubConnectionDoesNotExist(resourceGroupName, vhubName, vhubConnectionName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.HubVirtualNetworkConnectionClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		if resp, err := client.Get(ctx, resourceGroupName, vhubName, vhubConnectionName); err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return nil
+			}
+			return fmt.Errorf("Bad: Get on network.HubVirtualNetworkConnectionClient: %+v", err)
+		}
+
+		return fmt.Errorf("Bad: Virtual Hub Connection %q (Resource Group %q) still exists", vhubConnectionName, resourceGroupName)
 	}
 }
 
