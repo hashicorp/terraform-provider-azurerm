@@ -86,7 +86,7 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 					string(operationalinsights.WorkspaceSkuNameEnumStandard),
 					"Unlimited", // TODO check if this is actually no longer valid, removed in v28.0.0 of the SDK
 				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				DiffSuppressFunc: logAnalyticsLinkedServiceSkuChangeCaseDifference,
 			},
 
 			"retention_in_days": {
@@ -160,6 +160,20 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 	skuName := d.Get("sku").(string)
 	sku := &operationalinsights.WorkspaceSku{
 		Name: operationalinsights.WorkspaceSkuNameEnum(skuName),
+	}
+
+	// (@WodansSon) - If the workspace is connected to a cluster via the linked service resource
+	// the workspace cannot be modified since the linked service changes the sku value within
+	// the workspace
+	if !d.IsNewResource() {
+		resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName)
+		if err == nil {
+			if azSku := resp.Sku; azSku != nil {
+				if strings.EqualFold(string(azSku.Name), "lacluster") {
+					return fmt.Errorf("Log Analytics Workspace %q (Resource Group %q): cannot be modified while it is connected to a Log Analytics cluster", name, resourceGroup)
+				}
+			}
+		}
 	}
 
 	internetIngestionEnabled := operationalinsights.Disabled
@@ -295,4 +309,15 @@ func dailyQuotaGbDiffSuppressFunc(_, _, _ string, d *schema.ResourceData) bool {
 	}
 
 	return false
+}
+
+func logAnalyticsLinkedServiceSkuChangeCaseDifference(k, old, new string, d *schema.ResourceData) bool {
+	// (@WodansSon) - This is needed because if you connect your workspace to a log analytics linked service resource it
+	// will modify the value of your sku to "lacluster". We are currently in negotiations with the service team to
+	// see if there is another way of doing this, for now this is the workaround
+	if old == "lacluster" {
+		old = new
+	}
+
+	return suppress.CaseDifference(k, old, new, d)
 }
