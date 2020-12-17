@@ -395,53 +395,117 @@ func updateKeyVaultSecretValue(resourceName, value string) resource.TestCheckFun
 }
 
 func testAccAzureRMKeyVaultSecret_basic(data acceptance.TestData) string {
+	template := testAccAzureRMKeyVaultSecret_template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name = "premium"
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    key_permissions = [
-      "get",
-    ]
-
-    secret_permissions = [
-      "get",
-      "delete",
-      "set",
-    ]
-  }
-
-  tags = {
-    environment = "Production"
-  }
-}
+%s
 
 resource "azurerm_key_vault_secret" "test" {
   name         = "secret-%s"
   value        = "rick-and-morty"
   key_vault_id = azurerm_key_vault.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, template, data.RandomString)
+}
+
+func testAccAzureRMKeyVaultSecret_updateTags(data acceptance.TestData) string {
+	template := testAccAzureRMKeyVaultSecret_template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_secret" "test" {
+  name         = "secret-%s"
+  value        = "mad-scientist"
+  key_vault_id = azurerm_key_vault.test.id
+
+  tags = {
+    Rick = "Morty"
+  }
+}
+`, template, data.RandomString)
+}
+
+func testAccAzureRMKeyVaultSecret_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMKeyVaultSecret_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_key_vault_secret" "import" {
+  name         = azurerm_key_vault_secret.test.name
+  value        = azurerm_key_vault_secret.test.value
+  key_vault_id = azurerm_key_vault_secret.test.key_vault_id
+}
+`, template)
+}
+
+func testAccAzureRMKeyVaultSecret_complete(data acceptance.TestData) string {
+	template := testAccAzureRMKeyVaultSecret_template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_secret" "test" {
+  name            = "secret-%s"
+  value           = "<rick><morty /></rick>"
+  key_vault_id    = azurerm_key_vault.test.id
+  content_type    = "application/xml"
+  not_before_date = "2019-01-01T01:02:03Z"
+  expiration_date = "2020-01-01T01:02:03Z"
+
+  tags = {
+    "hello" = "world"
+  }
+}
+`, template, data.RandomString)
+}
+
+func testAccAzureRMKeyVaultSecret_basicUpdated(data acceptance.TestData) string {
+	template := testAccAzureRMKeyVaultSecret_template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_secret" "test" {
+  name         = "secret-%s"
+  value        = "szechuan"
+  key_vault_id = azurerm_key_vault.test.id
+}
+`, template, data.RandomString)
+}
+
+func testAccAzureRMKeyVaultSecret_softDeleteRecovery(data acceptance.TestData, purge bool) string {
+	template := testAccAzureRMKeyVaultSecret_template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy    = "%t"
+      recover_soft_deleted_key_vaults = true
+    }
+  }
+}
+
+%s
+
+resource "azurerm_key_vault_secret" "test" {
+  name         = "secret-%s"
+  value        = "rick-and-morty"
+  key_vault_id = azurerm_key_vault.test.id
+}
+`, purge, template, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultSecret_withExternalAccessPolicy(data acceptance.TestData) string {
@@ -459,12 +523,13 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name = "premium"
+  name                       = "acctestkv-%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
+  soft_delete_enabled        = true
+  soft_delete_retention_days = 7
 
   tags = {
     environment = "Production"
@@ -510,12 +575,13 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name = "premium"
+  name                       = "acctestkv-%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
+  soft_delete_enabled        = true
+  soft_delete_retention_days = 7
 
   tags = {
     environment = "Production"
@@ -547,14 +613,9 @@ resource "azurerm_key_vault_secret" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testAccAzureRMKeyVaultSecret_updateTags(data acceptance.TestData) string {
+func testAccAzureRMKeyVaultSecret_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_client_config" "current" {
-}
+data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -562,12 +623,13 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name = "premium"
+  name                       = "acctestkv-%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
+  soft_delete_enabled        = true
+  soft_delete_retention_days = 7
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -580,187 +642,8 @@ resource "azurerm_key_vault" "test" {
     secret_permissions = [
       "get",
       "delete",
-      "set",
-    ]
-  }
-
-  tags = {
-    environment = "Production"
-  }
-}
-
-resource "azurerm_key_vault_secret" "test" {
-  name         = "secret-%s"
-  value        = "mad-scientist"
-  key_vault_id = azurerm_key_vault.test.id
-
-  tags = {
-    Rick = "Morty"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
-}
-
-func testAccAzureRMKeyVaultSecret_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMKeyVaultSecret_basic(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_key_vault_secret" "import" {
-  name         = azurerm_key_vault_secret.test.name
-  value        = azurerm_key_vault_secret.test.value
-  key_vault_id = azurerm_key_vault_secret.test.key_vault_id
-}
-`, template)
-}
-
-func testAccAzureRMKeyVaultSecret_complete(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name = "premium"
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    key_permissions = [
-      "create",
-    ]
-
-    secret_permissions = [
-      "get",
-      "delete",
-      "set",
-    ]
-  }
-
-  tags = {
-    environment = "Production"
-  }
-}
-
-resource "azurerm_key_vault_secret" "test" {
-  name            = "secret-%s"
-  value           = "<rick><morty /></rick>"
-  key_vault_id    = azurerm_key_vault.test.id
-  content_type    = "application/xml"
-  not_before_date = "2019-01-01T01:02:03Z"
-  expiration_date = "2020-01-01T01:02:03Z"
-
-  tags = {
-    "hello" = "world"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
-}
-
-func testAccAzureRMKeyVaultSecret_basicUpdated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name = "premium"
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    key_permissions = [
-      "create",
-    ]
-
-    secret_permissions = [
-      "get",
-      "delete",
-      "set",
-    ]
-  }
-
-  tags = {
-    environment = "Production"
-  }
-}
-
-resource "azurerm_key_vault_secret" "test" {
-  name         = "secret-%s"
-  value        = "szechuan"
-  key_vault_id = azurerm_key_vault.test.id
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
-}
-
-func testAccAzureRMKeyVaultSecret_softDeleteRecovery(data acceptance.TestData, purge bool) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-    key_vault {
-      purge_soft_delete_on_destroy    = "%t"
-      recover_soft_deleted_key_vaults = true
-    }
-  }
-}
-
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-kvs-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  soft_delete_enabled = true
-
-  sku_name = "standard"
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    key_permissions = [
-      "get",
-    ]
-
-    secret_permissions = [
-      "get",
+      "purge",
       "recover",
-      "delete",
       "set",
     ]
   }
@@ -769,11 +652,5 @@ resource "azurerm_key_vault" "test" {
     environment = "Production"
   }
 }
-
-resource "azurerm_key_vault_secret" "test" {
-  name         = "secret-%s"
-  value        = "rick-and-morty"
-  key_vault_id = azurerm_key_vault.test.id
-}
-`, purge, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
