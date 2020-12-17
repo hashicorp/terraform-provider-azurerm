@@ -133,7 +133,6 @@ func resourceArmDiskAccessRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
-
 }
 
 func resourceArmDiskAccessDelete(d *schema.ResourceData, meta interface{}) error {
