@@ -429,8 +429,75 @@ func resourceArmKeyVaultKeyDelete(d *schema.ResourceData, meta interface{}) erro
 		return nil
 	}
 
-	_, err = client.DeleteKey(ctx, id.KeyVaultBaseUrl, id.Name)
-	return err
+	log.Printf("[DEBUG] Deleting Key %q (Key Vault %q)..", id.Name, id.KeyVaultBaseUrl)
+	if resp, err := client.DeleteKey(ctx, id.KeyVaultBaseUrl, id.Name); err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return nil
+		}
+
+		return fmt.Errorf("deleting Key %q (Key Vault %q): %+v", id.Name, id.KeyVaultBaseUrl, err)
+	}
+	log.Printf("[DEBUG] Waiting for Key %q (Key Vault %q) to finish deleting", id.Name, id.KeyVaultBaseUrl)
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"InProgress"},
+		Target:  []string{"NotFound"},
+		Refresh: func() (interface{}, string, error) {
+			key, err := client.GetKey(ctx, id.KeyVaultBaseUrl, id.Name, "")
+			if err != nil {
+				if utils.ResponseWasNotFound(key.Response) {
+					return key, "NotFound", nil
+				}
+
+				return nil, "Error", err
+			}
+
+			return key, "InProgress", nil
+		},
+		ContinuousTargetOccurence: 3,
+		PollInterval:              5 * time.Second,
+		Timeout:                   d.Timeout(schema.TimeoutDelete),
+	}
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for Key %q (Key Vault %q) to be deleted: %+v", id.Name, id.KeyVaultBaseUrl, err)
+	}
+	log.Printf("[DEBUG] Deleted Key %q (Key Vault %q).", id.Name, id.KeyVaultBaseUrl)
+
+	shouldPurge := true // meta.(*clients.Client).Features.KeyVault.PurgeNestedItemsOnDestroy
+	if shouldPurge {
+		log.Printf("[DEBUG] Purging Key %q (Key Vault %q)..", id.Name, id.KeyVaultBaseUrl)
+		if _, err := client.PurgeDeletedKey(ctx, id.KeyVaultBaseUrl, id.Name); err != nil {
+			return fmt.Errorf("purging Key %q (Key Vault %q): %+v", id.Name, id.KeyVaultBaseUrl, err)
+		}
+
+		log.Printf("[DEBUG] Waiting for Key %q (Key Vault %q) to finish purging..", id.Name, id.KeyVaultBaseUrl)
+		stateConf := &resource.StateChangeConf{
+			Pending: []string{"InProgress"},
+			Target:  []string{"NotFound"},
+			Refresh: func() (interface{}, string, error) {
+				key, err := client.GetDeletedKey(ctx, id.KeyVaultBaseUrl, id.Name)
+				if err != nil {
+					if utils.ResponseWasNotFound(key.Response) {
+						return key, "NotFound", nil
+					}
+
+					return nil, "Error", err
+				}
+
+				return key, "InProgress", nil
+			},
+			ContinuousTargetOccurence: 3,
+			PollInterval:              5 * time.Second,
+			Timeout:                   d.Timeout(schema.TimeoutDelete),
+		}
+		if _, err := stateConf.WaitForState(); err != nil {
+			return fmt.Errorf("waiting for Key %q (Key Vault %q) to finish purging: %+v", id.Name, id.KeyVaultBaseUrl, err)
+		}
+		log.Printf("[DEBUG] Purged Key %q (Key Vault %q).", id.Name, id.KeyVaultBaseUrl)
+	} else {
+		log.Printf("[DEBUG] Skipping purging of Key %q (Key Vault %q)..", id.Name, id.KeyVaultBaseUrl)
+	}
+
+	return nil
 }
 
 func expandKeyVaultKeyOptions(d *schema.ResourceData) *[]keyvault.JSONWebKeyOperation {

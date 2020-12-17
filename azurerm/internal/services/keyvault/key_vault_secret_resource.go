@@ -364,8 +364,75 @@ func resourceArmKeyVaultSecretDelete(d *schema.ResourceData, meta interface{}) e
 		return nil
 	}
 
-	_, err = client.DeleteSecret(ctx, id.KeyVaultBaseUrl, id.Name)
-	return err
+	log.Printf("[DEBUG] Deleting Secret %q (Key Vault %q).", id.Name, id.KeyVaultBaseUrl)
+	if resp, err := client.DeleteSecret(ctx, id.KeyVaultBaseUrl, id.Name); err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return nil
+		}
+
+		return fmt.Errorf("deleting Secret %q (Key Vault %q): %+v", id.Name, id.KeyVaultBaseUrl, err)
+	}
+	log.Printf("[DEBUG] Waiting for Secret %q (Key Vault %q) to finish deleting", id.Name, id.KeyVaultBaseUrl)
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"InProgress"},
+		Target:  []string{"NotFound"},
+		Refresh: func() (interface{}, string, error) {
+			key, err := client.GetSecret(ctx, id.KeyVaultBaseUrl, id.Name, "")
+			if err != nil {
+				if utils.ResponseWasNotFound(key.Response) {
+					return key, "NotFound", nil
+				}
+
+				return nil, "Error", err
+			}
+
+			return key, "InProgress", nil
+		},
+		ContinuousTargetOccurence: 3,
+		PollInterval:              5 * time.Second,
+		Timeout:                   d.Timeout(schema.TimeoutDelete),
+	}
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for Secret %q (Key Vault %q) to be deleted: %+v", id.Name, id.KeyVaultBaseUrl, err)
+	}
+	log.Printf("[DEBUG] Deleted Secret %q (Key Vault %q).", id.Name, id.KeyVaultBaseUrl)
+
+	shouldPurge := true // meta.(*clients.Client).Features.KeyVault.PurgeNestedItemsOnDestroy
+	if shouldPurge {
+		log.Printf("[DEBUG] Purging Secret %q (Key Vault %q)..", id.Name, id.KeyVaultBaseUrl)
+		if _, err := client.PurgeDeletedSecret(ctx, id.KeyVaultBaseUrl, id.Name); err != nil {
+			return fmt.Errorf("purging Secret %q (Key Vault %q): %+v", id.Name, id.KeyVaultBaseUrl, err)
+		}
+
+		log.Printf("[DEBUG] Waiting for Secret %q (Key Vault %q) to finish purging..", id.Name, id.KeyVaultBaseUrl)
+		stateConf := &resource.StateChangeConf{
+			Pending: []string{"InProgress"},
+			Target:  []string{"NotFound"},
+			Refresh: func() (interface{}, string, error) {
+				key, err := client.GetDeletedSecret(ctx, id.KeyVaultBaseUrl, id.Name)
+				if err != nil {
+					if utils.ResponseWasNotFound(key.Response) {
+						return key, "NotFound", nil
+					}
+
+					return nil, "Error", err
+				}
+
+				return key, "InProgress", nil
+			},
+			ContinuousTargetOccurence: 3,
+			PollInterval:              5 * time.Second,
+			Timeout:                   d.Timeout(schema.TimeoutDelete),
+		}
+		if _, err := stateConf.WaitForState(); err != nil {
+			return fmt.Errorf("waiting for Secret %q (Key Vault %q) to finish purging: %+v", id.Name, id.KeyVaultBaseUrl, err)
+		}
+		log.Printf("[DEBUG] Purged Secret %q (Key Vault %q).", id.Name, id.KeyVaultBaseUrl)
+	} else {
+		log.Printf("[DEBUG] Skipping purging of Secret %q (Key Vault %q)..", id.Name, id.KeyVaultBaseUrl)
+	}
+
+	return nil
 }
 
 func keyVaultChildItemRefreshFunc(secretUri string) resource.StateRefreshFunc {
