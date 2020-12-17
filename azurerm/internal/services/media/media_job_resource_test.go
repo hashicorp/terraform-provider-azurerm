@@ -147,6 +147,13 @@ resource "azurerm_media_job" "import" {
   name                        = azurerm_media_job.test.name
   resource_group_name         = azurerm_media_job.test.resource_group_name
   media_services_account_name = azurerm_media_job.test.media_services_account_name
+  transform_name              = azurerm_media_job.test.transform_name
+  input_asset {
+    name = azurerm_media_job.test.input_asset[0].name
+  }
+  output_asset {
+    name = azurerm_media_job.test.output_asset[0].name
+  }
 }
 
 `, r.basic(data))
