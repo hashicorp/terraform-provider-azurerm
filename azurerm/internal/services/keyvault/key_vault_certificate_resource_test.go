@@ -934,6 +934,7 @@ resource "azurerm_key_vault_access_policy" "test" {
     "delete",
     "get",
     "purge",
+    "recover",
     "update",
   ]
 
@@ -1125,7 +1126,9 @@ resource "azurerm_key_vault" "test" {
       "create",
       "delete",
       "get",
+      "import",
       "purge",
+      "recover",
       "update",
     ]
 
