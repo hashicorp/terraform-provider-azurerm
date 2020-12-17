@@ -1,6 +1,7 @@
 package mssql
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sqlvirtualmachine/mgmt/2017-03-01-preview/sqlvirtualmachine"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
@@ -20,6 +22,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -30,6 +33,8 @@ func resourceMsSqlVirtualMachine() *schema.Resource {
 		Read:   resourceMsSqlVirtualMachineRead,
 		Update: resourceMsSqlVirtualMachineCreateUpdate,
 		Delete: resourceMsSqlVirtualMachineDelete,
+
+		CustomizeDiff: resourceMsSqlVirtualMachineCustomDiff,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.SqlVirtualMachineID(id)
@@ -59,6 +64,84 @@ func resourceMsSqlVirtualMachine() *schema.Resource {
 					string(sqlvirtualmachine.PAYG),
 					string(sqlvirtualmachine.AHUB),
 				}, false),
+			},
+
+			"auto_backup": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"backup_system_databases": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+
+						"backup_schedule_automated": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
+						"encryption_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"encryption_password": {
+							Type:      schema.TypeString,
+							Optional:  true,
+							Sensitive: true,
+						},
+
+						"full_backup_frequency": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(sqlvirtualmachine.Daily),
+								string(sqlvirtualmachine.Weekly),
+							}, false),
+						},
+
+						"full_backup_start_hour": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(0, 23),
+						},
+
+						"full_backup_window_hours": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 23),
+						},
+
+						"log_backup_frequency": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(5, 60),
+						},
+
+						"retention_period": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(1, 30),
+						},
+
+						"storage_blob_endpoint": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.IsURLWithHTTPS,
+						},
+
+						"storage_account_access_key": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
 			},
 
 			"auto_patching": {
@@ -210,6 +293,55 @@ func resourceMsSqlVirtualMachine() *schema.Resource {
 	}
 }
 
+func resourceMsSqlVirtualMachineCustomDiff(d *schema.ResourceDiff, _ interface{}) error {
+	encryptionEnabled := d.Get("auto_backup.0.encryption_enabled")
+	v, ok := d.GetOk("auto_backup.0.encryption_password")
+
+	if encryptionEnabled.(bool) && (!ok || v.(string) == "") {
+		return fmt.Errorf("auto_backup: `encryption_password` is required when `encryption_enabled` is true")
+	}
+
+	if !encryptionEnabled.(bool) && ok && v.(string) != "" {
+		return fmt.Errorf("auto_backup: `encryption_enabled` must be true when `encryption_password` is set")
+	}
+
+	if v, ok := d.GetOk("auto_backup.0.backup_schedule_automated"); ok && v.(bool) {
+		if _, ok := d.GetOk("auto_backup.0.full_backup_start_hour"); ok {
+			return fmt.Errorf("auto_backup: `full_backup_start_hour` can only be set when `backup_schedule_automated` is false")
+		}
+
+		if _, ok := d.GetOk("auto_backup.0.full_backup_window_hours"); ok {
+			return fmt.Errorf("auto_backup: `full_backup_window_hours` can only be set when `backup_schedule_automated` is false")
+		}
+
+		if _, ok := d.GetOk("auto_backup.0.log_backup_frequency"); ok {
+			return fmt.Errorf("auto_backup: `log_backup_frequency` can only be set when `backup_schedule_automated` is false")
+		}
+
+		if _, ok := d.GetOk("auto_backup.0.full_backup_frequency"); ok {
+			return fmt.Errorf("auto_backup: `full_backup_frequency` can only be set when `backup_schedule_automated` is false")
+		}
+	} else {
+		if _, ok := d.GetOk("auto_backup.0.full_backup_start_hour"); !ok {
+			return fmt.Errorf("auto_backup: `full_backup_start_hour` must be set when `backup_schedule_automated` is false")
+		}
+
+		if _, ok := d.GetOk("auto_backup.0.full_backup_window_hours"); !ok {
+			return fmt.Errorf("auto_backup: `full_backup_window_hours` must be set when `backup_schedule_automated` is false")
+		}
+
+		if _, ok := d.GetOk("auto_backup.0.log_backup_frequency"); !ok {
+			return fmt.Errorf("auto_backup: `log_backup_frequency` must be set when `backup_schedule_automated` is false")
+		}
+
+		if v, ok := d.GetOk("auto_backup.0.full_backup_frequency"); !ok || v.(string) == "" {
+			return fmt.Errorf("auto_backup: `full_backup_frequency` must be set when `backup_schedule_automated` is false")
+		}
+	}
+
+	return nil
+}
+
 func resourceMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.VirtualMachinesClient
 	vmclient := meta.(*clients.Client).Compute.VMClient
@@ -250,6 +382,7 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta interf
 			VirtualMachineResourceID:   utils.String(d.Get("virtual_machine_id").(string)),
 			SQLServerLicenseType:       sqlvirtualmachine.SQLServerLicenseType(d.Get("sql_license_type").(string)),
 			SQLManagement:              sqlvirtualmachine.Full,
+			AutoBackupSettings:         expandSqlVirtualMachineAutoBackupSettings(d.Get("auto_backup").([]interface{})),
 			AutoPatchingSettings:       expandSqlVirtualMachineAutoPatchingSettings(d.Get("auto_patching").([]interface{})),
 			KeyVaultCredentialSettings: expandSqlVirtualMachineKeyVaultCredential(d.Get("key_vault_credential").([]interface{})),
 			ServerConfigurationsManagementSettings: &sqlvirtualmachine.ServerConfigurationsManagementSettings{
@@ -283,7 +416,29 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta interf
 	if resp.ID == nil {
 		return fmt.Errorf("Cannot read Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q) ID", id.Name, id.ResourceGroup)
 	}
+
 	d.SetId(*resp.ID)
+
+	// Wait for the auto backup settings to take effect
+	// See: https://github.com/Azure/azure-rest-api-specs/issues/12818
+	log.Printf("[DEBUG] Waiting for SQL Virtual Machine %q AutoBackupSettings to take effect", d.Id())
+	stateConf := &resource.StateChangeConf{
+		Pending:                   []string{"Retry", "Pending"},
+		Target:                    []string{"Updated"},
+		Refresh:                   resourceMsSqlVirtualMachineAutoBackupSettingsRefreshFunc(ctx, client, d),
+		MinTimeout:                1 * time.Minute,
+		ContinuousTargetOccurence: 2,
+	}
+
+	if d.IsNewResource() {
+		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+	} else {
+		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for SQL Virtual Machine %q AutoBackupSettings to take effect: %+v", d.Id(), err)
+	}
 
 	return resourceMsSqlVirtualMachineRead(d, meta)
 }
@@ -311,6 +466,10 @@ func resourceMsSqlVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 	if props := resp.Properties; props != nil {
 		d.Set("virtual_machine_id", props.VirtualMachineResourceID)
 		d.Set("sql_license_type", string(props.SQLServerLicenseType))
+		if err := d.Set("auto_backup", flattenSqlVirtualMachineAutoBackup(props.AutoBackupSettings, d)); err != nil {
+			return fmt.Errorf("setting `auto_backup`: %+v", err)
+		}
+
 		if err := d.Set("auto_patching", flattenSqlVirtualMachineAutoPatching(props.AutoPatchingSettings)); err != nil {
 			return fmt.Errorf("setting `auto_patching`: %+v", err)
 		}
@@ -365,6 +524,153 @@ func resourceMsSqlVirtualMachineDelete(d *schema.ResourceData, meta interface{})
 	}
 
 	return nil
+}
+
+func resourceMsSqlVirtualMachineAutoBackupSettingsRefreshFunc(ctx context.Context, client *sqlvirtualmachine.SQLVirtualMachinesClient, d *schema.ResourceData) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		id, err := parse.SqlVirtualMachineID(d.Id())
+		if err != nil {
+			return nil, "Error", err
+		}
+
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "*")
+		if err != nil {
+			return nil, "Retry", err
+		}
+
+		if props := resp.Properties; props != nil {
+			autoBackupSettings := flattenSqlVirtualMachineAutoBackup(props.AutoBackupSettings, d)
+
+			if len(autoBackupSettings) == 0 {
+				// auto backup was nil or disabled in the response
+				if v, ok := d.GetOk("auto_backup"); !ok || len(v.([]interface{})) == 0 {
+					// also disabled in the config
+					return resp, "Updated", nil
+				}
+				return resp, "Pending", nil
+			}
+
+			if v, ok := d.GetOk("auto_backup"); !ok || len(v.([]interface{})) == 0 {
+				// still waiting for it to be disabled
+				return resp, "Pending", nil
+			}
+
+			// check each property for drift
+			for prop, val := range autoBackupSettings[0].(map[string]interface{}) {
+				v := d.Get(fmt.Sprintf("auto_backup.0.%s", prop))
+				switch prop {
+				case "full_backup_frequency":
+					if !strings.EqualFold(v.(string), val.(string)) {
+						return resp, "Pending", nil
+					}
+				default:
+					if v != val {
+						return resp, "Pending", nil
+					}
+				}
+			}
+
+			return resp, "Updated", nil
+		}
+
+		return resp, "Retry", nil
+	}
+}
+
+func expandSqlVirtualMachineAutoBackupSettings(input []interface{}) *sqlvirtualmachine.AutoBackupSettings {
+	ret := sqlvirtualmachine.AutoBackupSettings{
+		Enable: utils.Bool(false),
+	}
+
+	if len(input) == 1 {
+		config := input[0].(map[string]interface{})
+
+		ret.Enable = utils.Bool(true)
+		ret.RetentionPeriod = utils.Int32(int32(config["retention_period"].(int)))
+		ret.StorageAccountURL = utils.String(config["storage_blob_endpoint"].(string))
+		ret.StorageAccessKey = utils.String(config["storage_account_access_key"].(string))
+
+		v, ok := config["encryption_enabled"]
+		enableEncryption := ok && v.(bool)
+		ret.EnableEncryption = utils.Bool(enableEncryption)
+		if enableEncryption {
+			ret.Password = utils.String(config["encryption_password"].(string))
+		}
+
+		if v, ok := config["backup_system_databases"]; ok {
+			ret.BackupSystemDbs = utils.Bool(v.(bool))
+		}
+
+		if v, ok := config["backup_schedule_automated"]; ok && v.(bool) {
+			ret.BackupScheduleType = sqlvirtualmachine.Automated
+		} else {
+			ret.BackupScheduleType = sqlvirtualmachine.Manual
+			ret.FullBackupFrequency = sqlvirtualmachine.FullBackupFrequencyType(config["full_backup_frequency"].(string))
+
+			if v, ok := config["full_backup_start_hour"]; ok {
+				ret.FullBackupStartTime = utils.Int32(int32(v.(int)))
+			}
+
+			if v, ok := config["full_backup_window_hours"]; ok {
+				ret.FullBackupWindowHours = utils.Int32(int32(v.(int)))
+			}
+
+			if v, ok := config["log_backup_frequency"]; ok {
+				ret.LogBackupFrequency = utils.Int32(int32(v.(int)))
+			}
+		}
+	}
+
+	return &ret
+}
+
+func flattenSqlVirtualMachineAutoBackup(autoBackup *sqlvirtualmachine.AutoBackupSettings, d *schema.ResourceData) []interface{} {
+	if autoBackup == nil || autoBackup.Enable == nil || !*autoBackup.Enable {
+		return []interface{}{}
+	}
+
+	var fullBackupStartHour int
+	if autoBackup.FullBackupStartTime != nil {
+		fullBackupStartHour = int(*autoBackup.FullBackupStartTime)
+	}
+
+	var fullBackupWindowHours int
+	if autoBackup.FullBackupWindowHours != nil {
+		fullBackupWindowHours = int(*autoBackup.FullBackupWindowHours)
+	}
+
+	var logBackupFrequency int
+	if autoBackup.LogBackupFrequency != nil {
+		logBackupFrequency = int(*autoBackup.LogBackupFrequency)
+	}
+
+	var retentionPeriod int
+	if autoBackup.RetentionPeriod != nil {
+		retentionPeriod = int(*autoBackup.RetentionPeriod)
+	}
+
+	// Password, StorageAccessKey, StorageAccountURL are not returned, so we try to copy them
+	// from existing config as a best effort.
+	encryptionPassword := d.Get("auto_backup.0.encryption_password").(string)
+	storageKey := d.Get("auto_backup.0.storage_account_access_key").(string)
+	blobEndpoint := d.Get("auto_backup.0.storage_blob_endpoint").(string)
+
+	return []interface{}{
+		map[string]interface{}{
+			"backup_schedule_automated": strings.EqualFold(string(autoBackup.BackupScheduleType), string(sqlvirtualmachine.Automated)),
+			"backup_system_databases":   autoBackup.BackupSystemDbs != nil && *autoBackup.BackupSystemDbs,
+			"encryption_enabled":        autoBackup.EnableEncryption != nil && *autoBackup.EnableEncryption,
+			"full_backup_frequency":     string(autoBackup.FullBackupFrequency),
+			"full_backup_start_hour":    fullBackupStartHour,
+			"full_backup_window_hours":  fullBackupWindowHours,
+			"log_backup_frequency":      logBackupFrequency,
+			"retention_period":          retentionPeriod,
+
+			"encryption_password":        encryptionPassword,
+			"storage_account_access_key": storageKey,
+			"storage_blob_endpoint":      blobEndpoint,
+		},
+	}
 }
 
 func expandSqlVirtualMachineAutoPatchingSettings(input []interface{}) *sqlvirtualmachine.AutoPatchingSettings {
