@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	loganalyticsParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -312,7 +313,18 @@ func resourceArmMonitorDiagnosticSettingRead(d *schema.ResourceData, meta interf
 
 	d.Set("eventhub_name", resp.EventHubName)
 	d.Set("eventhub_authorization_rule_id", resp.EventHubAuthorizationRuleID)
-	d.Set("log_analytics_workspace_id", resp.WorkspaceID)
+
+	workspaceId := ""
+	if resp.WorkspaceID != nil && *resp.WorkspaceID != "" {
+		parsedId, err := loganalyticsParse.LogAnalyticsWorkspaceID(*resp.WorkspaceID)
+		if err != nil {
+			return err
+		}
+
+		workspaceId = parsedId.ID()
+	}
+	d.Set("log_analytics_workspace_id", workspaceId)
+
 	d.Set("storage_account_id", resp.StorageAccountID)
 
 	d.Set("log_analytics_destination_type", resp.LogAnalyticsDestinationType)
