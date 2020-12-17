@@ -344,5 +344,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Key Vault Certificates can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_key_vault_certificate.example https://example-keyvault.vault.azure.net/certificates/example/fdf067c93bbb4b22bff4d8b7a9a56217
+terraform import azurerm_key_vault_certificate.example "https://example-keyvault.vault.azure.net/certificates/example/fdf067c93bbb4b22bff4d8b7a9a56217"
 ```

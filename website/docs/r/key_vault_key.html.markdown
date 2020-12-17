@@ -109,5 +109,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Key Vault Key which is Enabled can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_key_vault_key.example https://example-keyvault.vault.azure.net/keys/example/fdf067c93bbb4b22bff4d8b7a9a56217
+terraform import azurerm_key_vault_key.example "https://example-keyvault.vault.azure.net/keys/example/fdf067c93bbb4b22bff4d8b7a9a56217"
 ```
