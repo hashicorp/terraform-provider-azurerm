@@ -41,7 +41,7 @@ func eventSubscriptionInboundIPRule() *schema.Schema {
 }
 
 func expandPublicNetworkAccess(d *schema.ResourceData) eventgrid.PublicNetworkAccess {
-	if v, ok := d.GetOkExists("public_network_access_enabled"); ok {
+	if v, ok := d.GetOk("public_network_access_enabled"); ok {
 		enabled := eventgrid.Disabled
 		if v.(bool) {
 			enabled = eventgrid.Enabled
