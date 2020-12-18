@@ -83,6 +83,20 @@ func TestAccMsSqlVirtualMachine_autoBackup(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.withAutoBackupUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withAutoBackup(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -402,9 +416,41 @@ resource "azurerm_mssql_virtual_machine" "test" {
 
   auto_backup {
     full_backup_frequency      = "Weekly"
+    retention_period           = 21
+    storage_account_url        = azurerm_storage_account.test.primary_blob_endpoint
+    storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  }
+}
+`, r.template(data), data.RandomString)
+}
+
+func (r MsSqlVirtualMachineResource) withAutoBackupUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%[2]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_mssql_virtual_machine" "test" {
+  virtual_machine_id = azurerm_virtual_machine.test.id
+  sql_license_type   = "PAYG"
+
+  auto_backup {
+    full_backup_frequency      = "Daily"
     retention_period           = 14
     storage_account_url        = azurerm_storage_account.test.primary_blob_endpoint
     storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+	backup_system_databases   = true
+    backup_schedule_automated = false
+    full_backup_start_hour    = 3
+    full_backup_window_hours  = 4
+    log_backup_frequency      = 40
   }
 }
 `, r.template(data), data.RandomString)
