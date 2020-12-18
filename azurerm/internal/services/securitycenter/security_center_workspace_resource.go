@@ -188,11 +188,13 @@ func resourceSecurityCenterWorkspaceRead(d *schema.ResourceData, meta interface{
 	if properties := resp.WorkspaceSettingProperties; properties != nil {
 		d.Set("scope", properties.Scope)
 		workspaceId := ""
-		id, err := parse.LogAnalyticsWorkspaceID(*properties.WorkspaceID)
-		if err != nil {
-			return fmt.Errorf("Reading Security Center Log Analytics Workspace ID: %+v", err)
+		if properties.WorkspaceID != nil {
+			id, err := parse.LogAnalyticsWorkspaceID(*properties.WorkspaceID)
+			if err != nil {
+				return fmt.Errorf("Reading Security Center Log Analytics Workspace ID: %+v", err)
+			}
+			workspaceId = id.ID()
 		}
-		workspaceId = id.ID()
 		d.Set("workspace_id", utils.String(workspaceId))
 	}
 
