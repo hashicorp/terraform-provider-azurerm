@@ -31,6 +31,25 @@ func TestAccAzureRMFirewallPolicy_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMFirewallPolicy_basicPremium(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMFirewallPolicyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMFirewallPolicy_basicPremium(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFirewallPolicyExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMFirewallPolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
 
@@ -184,6 +203,20 @@ resource "azurerm_firewall_policy" "test" {
   name                = "acctest-networkfw-Policy-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMFirewallPolicy_basicPremium(data acceptance.TestData) string {
+	template := testAccAzureRMFirewallPolicy_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_firewall_policy" "test" {
+  name                = "acctest-networkfw-Policy-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku				  = "Premium"
 }
 `, template, data.RandomInteger)
 }
