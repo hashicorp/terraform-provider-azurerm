@@ -3,6 +3,7 @@
 IMPROVEMENTS:
 
 * Data Source: `azurerm_databricks_workspace` - support for the `tags` property [GH-9933]
+* `azurerm_log_analytics_linked_service` - Add validation for resource ID type [GH-9932]
 
 ## 2.41.0 (December 17, 2020)
 
