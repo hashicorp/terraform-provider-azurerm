@@ -231,6 +231,7 @@ resource "azurerm_mssql_server" "test" {
   version                      = "12.0"
   administrator_login          = "missadministrator"
   administrator_login_password = "thisIsKat11"
+  extended_auditing_policy     = []
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -254,6 +255,7 @@ resource "azurerm_mssql_server" "test" {
   administrator_login          = "missadministrator"
   administrator_login_password = "thisIsKat11"
   minimum_tls_version          = "1.2"
+  extended_auditing_policy     = []
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
