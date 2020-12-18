@@ -135,6 +135,8 @@ func TestAccAzureRMVirtualHubConnection_enableInternetSecurity(t *testing.T) {
 func TestAccAzureRMVirtualHubConnection_recreateWithSameConnectionName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
 
+	vhubData := data
+	vhubData.ResourceName = "azurerm_virtual_hub.test"
 	resourceGroupName := fmt.Sprintf("acctestRG-vhub-%d", data.RandomInteger)
 	vhubName := fmt.Sprintf("acctest-VHUB-%d", data.RandomInteger)
 	vhubConnectionName := fmt.Sprintf("acctestbasicvhubconn-%d", data.RandomInteger)
@@ -154,7 +156,7 @@ func TestAccAzureRMVirtualHubConnection_recreateWithSameConnectionName(t *testin
 			{
 				Config: testAccAzureRMVirtualHubConnection_template(data),
 				Check: resource.ComposeTestCheckFunc(
-					data.CheckWithClient(checkVirtualHubConnectionDoesNotExist(resourceGroupName, vhubName, vhubConnectionName)),
+					vhubData.CheckWithClient(checkVirtualHubConnectionDoesNotExist(resourceGroupName, vhubName, vhubConnectionName)),
 				),
 			},
 			{
