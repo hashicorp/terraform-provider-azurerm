@@ -141,10 +141,10 @@ resource "azurerm_data_factory_linked_service_synapse" "test" {
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
 
-  connection_string   = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
-  
-  annotations         = ["test1", "test2", "test3"]
-  description         = "test description"
+  connection_string = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
+
+  annotations = ["test1", "test2", "test3"]
+  description = "test description"
 
   parameters = {
     foo = "test1"
@@ -197,15 +197,15 @@ resource "azurerm_data_factory_linked_service_synapse" "test" {
   name                = "linksynapse"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  
-  connection_string   = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;"
+
+  connection_string = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;"
   key_vault_password_reference {
-	key_vault_linked_service_name  = azurerm_data_factory_linked_service_key_vault.test.name
-	key_vault_password_secret_name = "secret"
+    key_vault_linked_service_name  = azurerm_data_factory_linked_service_key_vault.test.name
+    key_vault_password_secret_name = "secret"
   }
 
-  annotations         = ["test1", "test2", "test3"]
-  description         = "test description"
+  annotations = ["test1", "test2", "test3"]
+  description = "test description"
 
   parameters = {
     foo = "test1"
