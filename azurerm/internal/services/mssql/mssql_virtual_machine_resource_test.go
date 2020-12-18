@@ -417,7 +417,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
   auto_backup {
     full_backup_frequency      = "Weekly"
     retention_period           = 21
-    storage_account_url        = azurerm_storage_account.test.primary_blob_endpoint
+    storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
     storage_account_access_key = azurerm_storage_account.test.primary_access_key
   }
 }
@@ -443,7 +443,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
   auto_backup {
     full_backup_frequency      = "Daily"
     retention_period           = 14
-    storage_account_url        = azurerm_storage_account.test.primary_blob_endpoint
+    storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
     storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
 	backup_system_databases   = true

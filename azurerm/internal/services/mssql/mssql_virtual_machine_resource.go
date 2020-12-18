@@ -18,7 +18,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/helper"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
-	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -123,10 +122,10 @@ func resourceMsSqlVirtualMachine() *schema.Resource {
 							ValidateFunc: validation.IntBetween(1, 30),
 						},
 
-						"storage_account_url": {
+						"storage_endpoint": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: storageValidate.StorageAccountID,
+							ValidateFunc: validation.IsURLWithHTTPS,
 						},
 
 						"storage_account_access_key": {
@@ -460,7 +459,7 @@ func expandSqlVirtualMachineAutoBackupSettings(input []interface{}) *sqlvirtualm
 		ret.Enable = utils.Bool(true)
 		ret.FullBackupFrequency = sqlvirtualmachine.FullBackupFrequencyType(config["full_backup_frequency"].(string))
 		ret.RetentionPeriod = utils.Int32(int32(config["retention_period"].(int)))
-		ret.StorageAccountURL = utils.String(config["storage_account_url"].(string))
+		ret.StorageAccountURL = utils.String(config["storage_endpoint"].(string))
 		ret.StorageAccessKey = utils.String(config["storage_account_access_key"].(string))
 
 		if v, ok := config["backup_schedule_automated"]; ok && v.(bool) {
@@ -549,7 +548,7 @@ func flattenSqlVirtualMachineAutoBackup(autoBackup *sqlvirtualmachine.AutoBackup
 			"log_backup_frequency":       logBackupFrequency,
 			"retention_period":           retentionPeriod,
 			"storage_account_access_key": storageAccountAccessKey,
-			"storage_account_url":        storageAccountUrl,
+			"storage_endpoint":           storageAccountUrl,
 		},
 	}
 }
