@@ -91,7 +91,7 @@ func TestAccMsSqlServer_update(t *testing.T) {
 		},
 		data.ImportStep("administrator_login_password", "extended_auditing_policy.0.storage_account_access_key"),
 		{
-			Config: r.basic(data),
+			Config: r.basicWithMinimumTLSVersion(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
