@@ -167,6 +167,31 @@ func resourceArmLogAnalyticsLinkedService() *schema.Resource {
 				}
 			}
 
+			// TODO: Remove in 3.0
+			if d.HasChange("resource_id") {
+				if resourceID := d.Get("resource_id").(string); resourceID != "" {
+					if !validate.IsLogAnalyticsAutomationID(resourceID) {
+						return fmt.Errorf("'resource_id' must be a Log Analytics Automation resource ID, got %q", resourceID)
+					}
+				}
+			}
+
+			if d.HasChange("read_access_id") {
+				if readAccessID := d.Get("read_access_id").(string); readAccessID != "" {
+					if !validate.IsLogAnalyticsAutomationID(readAccessID) {
+						return fmt.Errorf("'read_access_id' must be a Log Analytics Automation resource ID, got %q", readAccessID)
+					}
+				}
+			}
+
+			if d.HasChange("write_access_id") {
+				if writeAccessID := d.Get("write_access_id").(string); writeAccessID != "" {
+					if !validate.IsLogAnalyticsClusterID(writeAccessID) {
+						return fmt.Errorf("'write_access_id' must be a Log Analytics Cluster resource ID, got %q", writeAccessID)
+					}
+				}
+			}
+
 			return nil
 		},
 	}
