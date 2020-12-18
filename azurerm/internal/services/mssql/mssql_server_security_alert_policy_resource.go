@@ -27,7 +27,7 @@ func resourceMsSqlServerSecurityAlertPolicy() *schema.Resource {
 		Delete: resourceMsSqlServerSecurityAlertPolicyDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DatabaseExtendedAuditingPolicyID(id)
+			_, err := parse.ServerSecurityAlertPolicyID(id)
 			return err
 		}),
 
