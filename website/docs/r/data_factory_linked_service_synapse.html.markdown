@@ -81,17 +81,13 @@ resource "azurerm_data_factory_linked_service_synapse" "example" {
 
 ## Argument Reference
 
-The following arguments are supported:
+The following supported arguments are common across all Azure Data Factory Linked Services:
 
 * `name` - (Required) Specifies the name of the Data Factory Linked Service Synapse. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Data Factory Linked Service Synapse. Changing this forces a new resource
 
 * `data_factory_name` - (Required) The Data Factory name in which to associate the Linked Service with. Changing this forces a new resource.
-
-* `connection_string` - (Required) The connection string in which to authenticate with the Synapse.
-
-* `key_vault_password_reference` - (Optional) A `key_vault_password_reference` block as defined below. Use this argument to store Synapse password in an existing Key Vault. It needs an existing Data Factory linked service to Key Vault.
 
 * `description` - (Optional) The description for the Data Factory Linked Service Synapse.
 
@@ -102,6 +98,12 @@ The following arguments are supported:
 * `parameters` - (Optional) A map of parameters to associate with the Data Factory Linked Service Synapse.
 
 * `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Linked Service Synapse.
+
+The following supported arguments are specific to Azure File Storage Linked Service:
+
+* `connection_string` - (Required) The connection string in which to authenticate with the Synapse.
+
+* `key_vault_password_reference` - (Optional) A `key_vault_password_reference` block as defined below. Use this argument to store Synapse password in an existing Key Vault. It needs an existing Data Factory linked service to Key Vault.
 
 ---
 
