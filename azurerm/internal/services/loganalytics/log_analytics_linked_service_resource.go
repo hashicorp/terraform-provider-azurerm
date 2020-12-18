@@ -186,7 +186,7 @@ func resourceArmLogAnalyticsLinkedService() *schema.Resource {
 
 			if d.HasChange("write_access_id") {
 				if writeAccessID := d.Get("write_access_id").(string); writeAccessID != "" {
-					if !validate.IsLogAnalyticsClusterID(writeAccessID) {
+					if _, err := validate.LogAnalyticsClusterID(writeAccessID, "write_access_id"); err != nil {
 						return fmt.Errorf("'write_access_id' must be a Log Analytics Cluster resource ID, got %q", writeAccessID)
 					}
 				}
