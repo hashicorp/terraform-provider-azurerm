@@ -1,3 +1,9 @@
+## 2.42.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* Data Source: `azurerm_databricks_workspace` - support for the `tags` property [GH-9933]
+
 ## 2.41.0 (December 17, 2020)
 
 UPGRADE NOTES:
