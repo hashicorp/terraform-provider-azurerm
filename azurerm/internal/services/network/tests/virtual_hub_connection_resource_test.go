@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -153,7 +154,7 @@ func TestAccAzureRMVirtualHubConnection_recreateWithSameConnectionName(t *testin
 			{
 				Config: testAccAzureRMVirtualHubConnection_template(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubConnectionDoesNotExist(resourceGroupName, vhubName, vhubConnectionName),
+					data.CheckWithClient(checkVirtualHubConnectionDoesNotExist(resourceGroupName, vhubName, vhubConnectionName)),
 				),
 			},
 			{
@@ -293,12 +294,9 @@ func testCheckAzureRMVirtualHubConnectionExists(resourceName string) resource.Te
 	}
 }
 
-func testCheckAzureRMVirtualHubConnectionDoesNotExist(resourceGroupName, vhubName, vhubConnectionName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.HubVirtualNetworkConnectionClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		if resp, err := client.Get(ctx, resourceGroupName, vhubName, vhubConnectionName); err != nil {
+func checkVirtualHubConnectionDoesNotExist(resourceGroupName, vhubName, vhubConnectionName string) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+		if resp, err := clients.Network.HubVirtualNetworkConnectionClient.Get(ctx, resourceGroupName, vhubName, vhubConnectionName); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
 			}
