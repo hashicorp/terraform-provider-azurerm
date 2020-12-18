@@ -2,7 +2,7 @@ package validate
 
 import "testing"
 
-func TestLogAnalyticsIsLogAnalyticsAutomationID(t *testing.T) {
+func TestIsAutomationAccountID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -34,7 +34,7 @@ func TestLogAnalyticsIsLogAnalyticsAutomationID(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		valid := IsLogAnalyticsAutomationID(tc.Input)
+		valid := IsAutomationAccountID(tc.Input)
 
 		if tc.Valid != valid {
 			t.Fatalf("Expected %t but got %t", tc.Valid, valid)

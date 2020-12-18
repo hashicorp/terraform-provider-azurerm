@@ -170,16 +170,16 @@ func resourceArmLogAnalyticsLinkedService() *schema.Resource {
 			// TODO: Remove in 3.0
 			if d.HasChange("resource_id") {
 				if resourceID := d.Get("resource_id").(string); resourceID != "" {
-					if !validate.IsLogAnalyticsAutomationID(resourceID) {
-						return fmt.Errorf("'resource_id' must be a Log Analytics Automation resource ID, got %q", resourceID)
+					if !validate.IsAutomationAccountID(resourceID) {
+						return fmt.Errorf("'resource_id' must be an Automation Account resource ID, got %q", resourceID)
 					}
 				}
 			}
 
 			if d.HasChange("read_access_id") {
 				if readAccessID := d.Get("read_access_id").(string); readAccessID != "" {
-					if !validate.IsLogAnalyticsAutomationID(readAccessID) {
-						return fmt.Errorf("'read_access_id' must be a Log Analytics Automation resource ID, got %q", readAccessID)
+					if !validate.IsAutomationAccountID(readAccessID) {
+						return fmt.Errorf("'read_access_id' must be an Automation Account resource ID, got %q", readAccessID)
 					}
 				}
 			}
