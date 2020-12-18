@@ -6,27 +6,27 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMNetAppSnapshot_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_netapp_snapshot", "test")
+type NetAppSnapshotDataSource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceNetAppSnapshot_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-				),
-			},
+func TestAccDataSourceNetAppSnapshot_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_netapp_snapshot", "test")
+	r := NetAppSnapshotDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").Exists(),
+			),
 		},
 	})
 }
 
-func testAccDataSourceNetAppSnapshot_basic(data acceptance.TestData) string {
-	config := testAccAzureRMNetAppSnapshot_basic(data)
+func (NetAppSnapshotDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -37,5 +37,5 @@ data "azurerm_netapp_snapshot" "test" {
   volume_name         = azurerm_netapp_snapshot.test.volume_name
   name                = azurerm_netapp_snapshot.test.name
 }
-`, config)
+`, NetAppSnapshotResource{}.basic(data))
 }
