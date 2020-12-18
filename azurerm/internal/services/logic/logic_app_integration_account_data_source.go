@@ -15,7 +15,7 @@ import (
 
 func dataSourceLogicAppIntegrationAccount() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmLogicAppIntegrationAccountRead,
+		Read: dataSourceLogicAppIntegrationAccountRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -41,7 +41,7 @@ func dataSourceLogicAppIntegrationAccount() *schema.Resource {
 	}
 }
 
-func dataSourceArmLogicAppIntegrationAccountRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceLogicAppIntegrationAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logic.IntegrationAccountClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

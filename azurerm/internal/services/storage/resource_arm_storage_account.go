@@ -25,8 +25,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/queue/queues"
+	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/accounts"
+	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/queue/queues"
 )
 
 var storageAccountResourceName = "azurerm_storage_account"
@@ -192,7 +192,7 @@ func resourceArmStorageAccount() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: validate.StorageAccountIPRule,
+								ValidateFunc: validate.StorageAccountIpRule,
 							},
 							Set: schema.HashString,
 						},
@@ -388,6 +388,12 @@ func resourceArmStorageAccount() *schema.Resource {
 				},
 			},
 
+			"large_file_share_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+
 			"primary_location": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -575,6 +581,13 @@ func resourceArmStorageAccount() *schema.Resource {
 				}
 			}
 
+			if d.HasChange("large_file_share_enabled") {
+				lfsEnabled, changedEnabled := d.GetChange("large_file_share_enabled")
+				if lfsEnabled.(bool) && !changedEnabled.(bool) {
+					return fmt.Errorf("`large_file_share_enabled` cannot be disabled once it's been enabled")
+				}
+			}
+
 			return nil
 		},
 	}
@@ -652,11 +665,13 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		},
 	}
 
-	// For all Clouds except Public, don't specify "allow_blob_public_access" and "min_tls_version" in request body.
+	// For all Clouds except Public and USGovernmentCloud, don't specify "allow_blob_public_access" and "min_tls_version" in request body.
 	// https://github.com/terraform-providers/terraform-provider-azurerm/issues/7812
 	// https://github.com/terraform-providers/terraform-provider-azurerm/issues/8083
-	if envName != autorestAzure.PublicCloud.Name {
-		if allowBlobPublicAccess || minimumTLSVersion != string(storage.TLS10) {
+	// USGovernmentCloud allow_blob_public_access and min_tls_version allowed as of issue 9128
+	// https://github.com/terraform-providers/terraform-provider-azurerm/issues/9128
+	if envName != autorestAzure.PublicCloud.Name && envName != autorestAzure.USGovernmentCloud.Name {
+		if allowBlobPublicAccess && minimumTLSVersion != string(storage.TLS10) {
 			return fmt.Errorf(`"allow_blob_public_access" and "min_tls_version" are not supported for a Storage Account located in %q`, envName)
 		}
 	} else {
@@ -697,6 +712,14 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	if accountKind == string(storage.FileStorage) {
 		if string(parameters.Sku.Tier) == string(storage.StandardLRS) {
 			return fmt.Errorf("A `account_tier` of `Standard` is not supported for FileStorage accounts.")
+		}
+	}
+
+	// nolint staticcheck
+	if v, ok := d.GetOkExists("large_file_share_enabled"); ok {
+		parameters.LargeFileSharesState = storage.LargeFileSharesStateDisabled
+		if v.(bool) {
+			parameters.LargeFileSharesState = storage.LargeFileSharesStateEnabled
 		}
 	}
 
@@ -757,8 +780,8 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("Error expanding `queue_properties` for Azure Storage Account %q: %+v", storageAccountName, err)
 		}
 
-		if _, err = queueClient.SetServiceProperties(ctx, storageAccountName, queueProperties); err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account `queue_properties` %q: %+v", storageAccountName, err)
+		if err = queueClient.UpdateServiceProperties(ctx, account.ResourceGroup, storageAccountName, queueProperties); err != nil {
+			return fmt.Errorf("updating Queue Properties for Storage Account %q: %+v", storageAccountName, err)
 		}
 	}
 
@@ -898,9 +921,11 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	if d.HasChange("min_tls_version") {
 		minimumTLSVersion := d.Get("min_tls_version").(string)
 
-		// For all Clouds except Public, don't specify "min_tls_version" in request body.
+		// For all Clouds except Public and USGovernmentCloud, don't specify "min_tls_version" in request body.
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/8083
-		if envName != autorestAzure.PublicCloud.Name {
+		// USGovernmentCloud "min_tls_version" allowed as of issue 9128
+		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/9128
+		if envName != autorestAzure.PublicCloud.Name && envName != autorestAzure.USGovernmentCloud.Name {
 			if minimumTLSVersion != string(storage.TLS10) {
 				return fmt.Errorf(`"min_tls_version" is not supported for a Storage Account located in %q`, envName)
 			}
@@ -920,9 +945,11 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	if d.HasChange("allow_blob_public_access") {
 		allowBlobPublicAccess := d.Get("allow_blob_public_access").(bool)
 
-		// For all Clouds except Public, don't specify "allow_blob_public_access" in request body.
+		// For all Clouds except Public and USGovernmentCloud, don't specify "allow_blob_public_access" in request body.
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/7812
-		if envName != autorestAzure.PublicCloud.Name {
+		// USGovernmentCloud "allow_blob_public_access" allowed as of issue 9128
+		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/9128
+		if envName != autorestAzure.PublicCloud.Name && envName != autorestAzure.USGovernmentCloud.Name {
 			if allowBlobPublicAccess {
 				return fmt.Errorf(`"allow_blob_public_access" is not supported for a Storage Account located in %q`, envName)
 			}
@@ -953,6 +980,22 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		opts := storage.AccountUpdateParameters{
 			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
 				NetworkRuleSet: expandStorageAccountNetworkRules(d),
+			},
+		}
+
+		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
+			return fmt.Errorf("Error updating Azure Storage Account network_rules %q: %+v", storageAccountName, err)
+		}
+	}
+
+	if d.HasChange("large_file_share_enabled") {
+		isEnabled := storage.LargeFileSharesStateDisabled
+		if v := d.Get("large_file_share_enabled").(bool); v {
+			isEnabled = storage.LargeFileSharesStateEnabled
+		}
+		opts := storage.AccountUpdateParameters{
+			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+				LargeFileSharesState: isEnabled,
 			},
 		}
 
@@ -995,8 +1038,8 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("Error expanding `queue_properties` for Azure Storage Account %q: %+v", storageAccountName, err)
 		}
 
-		if _, err = queueClient.SetServiceProperties(ctx, storageAccountName, queueProperties); err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account `queue_properties` %q: %+v", storageAccountName, err)
+		if err = queueClient.UpdateServiceProperties(ctx, account.ResourceGroup, storageAccountName, queueProperties); err != nil {
+			return fmt.Errorf("updating Queue Properties for Storage Account %q: %+v", storageAccountName, err)
 		}
 	}
 
@@ -1094,10 +1137,13 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
 		d.Set("allow_blob_public_access", props.AllowBlobPublicAccess)
-		// For all Clouds except Public, "min_tls_version" is not returned from Azure so always persist the default values for "min_tls_version".
+		// For all Clouds except Public and USGovernmentCloud, "min_tls_version" is not returned from Azure so always persist the default values for "min_tls_version".
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/7812
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/8083
-		if meta.(*clients.Client).Account.Environment.Name != autorestAzure.PublicCloud.Name {
+		// USGovernmentCloud "min_tls_version" allowed as of issue 9128
+		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/9128
+		envName := meta.(*clients.Client).Account.Environment.Name
+		if envName != autorestAzure.PublicCloud.Name && envName != autorestAzure.USGovernmentCloud.Name {
 			d.Set("min_tls_version", string(storage.TLS10))
 		} else {
 			// For storage account created using old API, the response of GET call will not return "min_tls_version", either.
@@ -1160,6 +1206,10 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		if err := d.Set("network_rules", flattenStorageAccountNetworkRules(props.NetworkRuleSet)); err != nil {
 			return fmt.Errorf("Error setting `network_rules`: %+v", err)
 		}
+
+		if props.LargeFileSharesState != "" {
+			d.Set("large_file_share_enabled", props.LargeFileSharesState == storage.LargeFileSharesStateEnabled)
+		}
 	}
 
 	if accessKeys := keys.Keys; accessKeys != nil {
@@ -1210,15 +1260,13 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 				return fmt.Errorf("Error building Queues Client: %s", err)
 			}
 
-			queueProps, err := queueClient.GetServiceProperties(ctx, name)
+			queueProps, err := queueClient.GetServiceProperties(ctx, account.ResourceGroup, name)
 			if err != nil {
-				if queueProps.Response.Response != nil && !utils.ResponseWasNotFound(queueProps.Response) {
-					return fmt.Errorf("Error reading queue properties for AzureRM Storage Account %q: %+v", name, err)
-				}
+				return fmt.Errorf("Error reading queue properties for AzureRM Storage Account %q: %+v", name, err)
 			}
 
 			if err := d.Set("queue_properties", flattenQueueProperties(queueProps)); err != nil {
-				return fmt.Errorf("Error setting `queue_properties `for AzureRM Storage Account %q: %+v", name, err)
+				return fmt.Errorf("setting `queue_properties`: %+v", err)
 			}
 		}
 	}
@@ -1781,8 +1829,8 @@ func flattenBlobPropertiesDeleteRetentionPolicy(input *storage.DeleteRetentionPo
 	return deleteRetentionPolicy
 }
 
-func flattenQueueProperties(input queues.StorageServicePropertiesResponse) []interface{} {
-	if input.Response.Response == nil {
+func flattenQueueProperties(input *queues.StorageServiceProperties) []interface{} {
+	if input == nil {
 		return []interface{}{}
 	}
 

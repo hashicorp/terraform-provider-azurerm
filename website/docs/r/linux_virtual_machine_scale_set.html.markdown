@@ -43,7 +43,7 @@ resource "azurerm_subnet" "internal" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "example" {
@@ -164,6 +164,12 @@ The following arguments are supported:
 
 * `overprovision` - (Optional) Should Azure over-provision Virtual Machines in this Scale Set? This means that multiple Virtual Machines will be provisioned and Azure will keep the instances which become available first - which improves provisioning success rates and improves deployment time. You're not billed for these over-provisioned VM's and they don't count towards the Subscription Quota. Defaults to `true`.
 
+* `plan` - (Optional) A `plan` block as documented below.
+
+-> **NOTE:** When using an image from Azure Marketplace a `plan` must be specified.
+
+* `platform_fault_domain_count` - (Optional) Specifies the number of fault domains that are used by this Linux Virtual Machine Scale Set. Changing this forces a new resource to be created.
+
 * `priority` - (Optional) The Priority of this Virtual Machine Scale Set. Possible values are `Regular` and `Spot`. Defaults to `Regular`. Changing this value forces a new resource.
 
 -> **NOTE:** When `priority` is set to `Spot` an `eviction_policy` must be specified.
@@ -236,7 +242,7 @@ A `automatic_instance_repair` block supports the following:
 
 A `boot_diagnostics` block supports the following:
 
-* `storage_account_uri` - (Required) The Primary/Secondary Endpoint for the Azure Storage Account which should be used to store Boot Diagnostics, including Console Output and Screenshots from the Hypervisor.
+* `storage_account_uri` - (Optional) The Primary/Secondary Endpoint for the Azure Storage Account which should be used to store Boot Diagnostics, including Console Output and Screenshots from the Hypervisor.
 
 ---
 
@@ -269,6 +275,10 @@ A `data_disk` block supports the following:
 -> **NOTE:** The Disk Encryption Set must have the `Reader` Role Assignment scoped on the Key Vault - in addition to an Access Policy to the Key Vault
 
 ~> **NOTE:** Disk Encryption Sets are in Public Preview in a limited set of regions
+
+* `disk_iops_read_write` - (Optional) Specifies the Read-Write IOPS for this Data Disk. Only settable for UltraSSD disks.
+
+* `disk_mbps_read_write` - (Optional) Specifies the bandwidth in MB per second for this Data Disk. Only settable for UltraSSD disks.
 
 * `write_accelerator_enabled` - (Optional) Should Write Accelerator be enabled for this Data Disk? Defaults to `false`.
 
@@ -403,6 +413,16 @@ A `os_disk` block supports the following:
 * `write_accelerator_enabled` - (Optional) Should Write Accelerator be Enabled for this OS Disk? Defaults to `false`.
 
 -> **NOTE:** This requires that the `storage_account_type` is set to `Premium_LRS` and that `caching` is set to `None`.
+
+---
+
+A `plan` block supports the following:
+
+* `name` - (Required) Specifies the name of the image from the marketplace. Changing this forces a new resource to be created.
+
+* `publisher` - (Required) Specifies the publisher of the image. Changing this forces a new resource to be created.
+
+* `product` - (Required) Specifies the product of the image from the marketplace. Changing this forces a new resource to be created.
 
 ---
 

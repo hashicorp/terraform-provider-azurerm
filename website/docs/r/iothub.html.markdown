@@ -128,14 +128,19 @@ The following arguments are supported:
 
 * `endpoint` - (Optional) An `endpoint` block as defined below.
 
-
 * `fallback_route` - (Optional) A `fallback_route` block as defined below. If the fallback route is enabled, messages that don't match any of the supplied routes are automatically sent to this route. Defaults to messages/events.
+
+~> **NOTE:** If `fallback_route` isn't explicitly specified, the fallback route wouldn't be enabled by default.
 
 * `file_upload` - (Optional) A `file_upload` block as defined below.
 
 * `ip_filter_rule` - (Optional) One or more `ip_filter_rule` blocks as defined below.
 
 * `route` - (Optional) A `route` block as defined below.
+
+* `public_network_access_enabled` - (Optional) Is the IotHub resource accessible from a public network? 
+
+* `min_tls_version` - (Optional) Specifies the minimum TLS version to support for this hub. The only valid value is `1.2`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -168,6 +173,8 @@ An `endpoint` block supports the following:
 * `encoding` - (Optional) Encoding that is used to serialize messages to blobs. Supported values are 'avro' and 'avrodeflate'. Default value is 'avro'. This attribute is mandatory for endpoint type `AzureIotHub.StorageContainer`.
 
 * `file_name_format` - (Optional) File name format for the blob. Default format is ``{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}``. All parameters are mandatory but can be reordered. This attribute is mandatory for endpoint type `AzureIotHub.StorageContainer`.
+
+* `resource_group_name` - (Optional) The resource group in which the endpoint will be created.
 
 ---
 

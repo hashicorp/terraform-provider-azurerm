@@ -136,6 +136,16 @@ func resourceArmMsSqlServer() *schema.Resource {
 				},
 			},
 
+			"minimum_tls_version": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"1.0",
+					"1.1",
+					"1.2",
+				}, false),
+			},
+
 			"public_network_access_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -159,6 +169,7 @@ func resourceArmMsSqlServer() *schema.Resource {
 
 			"tags": tags.Schema(),
 		},
+		CustomizeDiff: mssqlMinimumTLSVersionDiff,
 	}
 }
 
@@ -183,7 +194,7 @@ func resourceArmMsSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing SQL Server %q (Resource Group %q): %+v", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing SQL Server %q (Resource Group %q): %+v", name, resGroup, err)
 			}
 		}
 
@@ -216,9 +227,13 @@ func resourceArmMsSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}
 		props.ServerProperties.AdministratorLoginPassword = utils.String(adminPassword)
 	}
 
+	if v := d.Get("minimum_tls_version"); v.(string) != "" {
+		props.ServerProperties.MinimalTLSVersion = utils.String(v.(string))
+	}
+
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, props)
 	if err != nil {
-		return fmt.Errorf("Error issuing create/update request for SQL Server %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("issuing create/update request for SQL Server %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
@@ -226,12 +241,12 @@ func resourceArmMsSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}
 			return fmt.Errorf("SQL Server names need to be globally unique and %q is already in use.", name)
 		}
 
-		return fmt.Errorf("Error waiting on create/update future for SQL Server %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("waiting on create/update future for SQL Server %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error issuing get request for SQL Server %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("issuing get request for SQL Server %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -264,7 +279,7 @@ func resourceArmMsSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}
 		},
 	}
 	if _, err = connectionClient.CreateOrUpdate(ctx, resGroup, name, connection); err != nil {
-		return fmt.Errorf("Error issuing create/update request for SQL Server %q Connection Policy (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("issuing create/update request for SQL Server %q Connection Policy (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	auditingProps := sql.ExtendedServerBlobAuditingPolicy{
@@ -273,7 +288,7 @@ func resourceArmMsSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	auditingFuture, err := auditingClient.CreateOrUpdate(ctx, resGroup, name, auditingProps)
 	if err != nil {
-		return fmt.Errorf("Error issuing create/update request for SQL Server %q Blob Auditing Policies(Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("issuing create/update request for SQL Server %q Blob Auditing Policies(Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if err = auditingFuture.WaitForCompletionRef(ctx, auditingClient.Client); err != nil {
@@ -308,7 +323,7 @@ func resourceArmMsSqlServerRead(d *schema.ResourceData, meta interface{}) error 
 			return nil
 		}
 
-		return fmt.Errorf("Error reading SQL Server %s: %v", name, err)
+		return fmt.Errorf("reading SQL Server %s: %v", name, err)
 	}
 
 	d.Set("name", name)
@@ -318,20 +333,21 @@ func resourceArmMsSqlServerRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	if err := d.Set("identity", flattenAzureRmSqlServerIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("Error setting `identity`: %+v", err)
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	if props := resp.ServerProperties; props != nil {
 		d.Set("version", props.Version)
 		d.Set("administrator_login", props.AdministratorLogin)
 		d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
+		d.Set("minimum_tls_version", props.MinimalTLSVersion)
 		d.Set("public_network_access_enabled", props.PublicNetworkAccess == sql.ServerPublicNetworkAccessEnabled)
 	}
 
 	adminResp, err := adminClient.Get(ctx, resGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(adminResp.Response) {
-			return fmt.Errorf("Error reading SQL Server %s AAD admin: %v", name, err)
+			return fmt.Errorf("reading SQL Server %s AAD admin: %v", name, err)
 		}
 	} else {
 		if err := d.Set("azuread_administrator", flatternAzureRmMsSqlServerAdministrator(adminResp)); err != nil {
@@ -341,7 +357,7 @@ func resourceArmMsSqlServerRead(d *schema.ResourceData, meta interface{}) error 
 
 	connection, err := connectionClient.Get(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error reading SQL Server %s Blob Connection Policy: %v ", name, err)
+		return fmt.Errorf("reading SQL Server %s Blob Connection Policy: %v ", name, err)
 	}
 
 	if props := connection.ServerConnectionPolicyProperties; props != nil {
@@ -350,11 +366,11 @@ func resourceArmMsSqlServerRead(d *schema.ResourceData, meta interface{}) error 
 
 	auditingResp, err := auditingClient.Get(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error reading SQL Server %s Blob Auditing Policies: %v ", name, err)
+		return fmt.Errorf("reading SQL Server %s Blob Auditing Policies: %v ", name, err)
 	}
 
 	if err := d.Set("extended_auditing_policy", helper.FlattenAzureRmSqlServerBlobAuditingPolicies(&auditingResp, d)); err != nil {
-		return fmt.Errorf("Error setting `extended_auditing_policy`: %+v", err)
+		return fmt.Errorf("setting `extended_auditing_policy`: %+v", err)
 	}
 
 	restorableResp, err := restorableDroppedDatabasesClient.ListByServer(ctx, resGroup, name)
@@ -383,7 +399,7 @@ func resourceArmMsSqlServerDelete(d *schema.ResourceData, meta interface{}) erro
 
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting SQL Server %s: %+v", name, err)
+		return fmt.Errorf("deleting SQL Server %s: %+v", name, err)
 	}
 
 	return future.WaitForCompletionRef(ctx, client.Client)
@@ -400,6 +416,7 @@ func expandAzureRmSqlServerIdentity(d *schema.ResourceData) *sql.ResourceIdentit
 		Type: identityType,
 	}
 }
+
 func flattenAzureRmSqlServerIdentity(identity *sql.ResourceIdentity) []interface{} {
 	if identity == nil {
 		return []interface{}{}
@@ -476,4 +493,12 @@ func flattenAzureRmSqlServerRestorableDatabases(resp sql.RestorableDroppedDataba
 		res = append(res, id)
 	}
 	return res
+}
+
+func mssqlMinimumTLSVersionDiff(d *schema.ResourceDiff, _ interface{}) (err error) {
+	old, new := d.GetChange("minimum_tls_version")
+	if old != "" && new == "" {
+		err = fmt.Errorf("`minimum_tls_version` cannot be removed once set, please set a valid value for this property")
+	}
+	return
 }

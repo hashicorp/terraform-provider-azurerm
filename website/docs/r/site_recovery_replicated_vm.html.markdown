@@ -128,7 +128,7 @@ resource "azurerm_subnet" "primary" {
   name                 = "network1-subnet"
   resource_group_name  = azurerm_resource_group.primary.name
   virtual_network_name = azurerm_virtual_network.primary.name
-  address_prefix       = "192.168.1.0/24"
+  address_prefixes     = ["192.168.1.0/24"]
 }
 
 resource "azurerm_network_interface" "vm" {

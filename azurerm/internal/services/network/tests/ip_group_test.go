@@ -3,14 +3,14 @@ package tests
 import (
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 )
 
 func TestParseIpGroup(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *network.IpGroupResourceID
+		Expected *parse.IpGroupId
 	}{
 		{
 			Name:     "Empty",
@@ -30,7 +30,7 @@ func TestParseIpGroup(t *testing.T) {
 		{
 			Name:  "Completed",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/ipGroups/example",
-			Expected: &network.IpGroupResourceID{
+			Expected: &parse.IpGroupId{
 				Name:          "example",
 				ResourceGroup: "foo",
 			},
@@ -40,7 +40,7 @@ func TestParseIpGroup(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := network.ParseIpGroupID(v.Input)
+		actual, err := parse.IpGroupID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

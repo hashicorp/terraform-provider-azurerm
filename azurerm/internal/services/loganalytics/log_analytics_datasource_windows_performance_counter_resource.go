@@ -7,7 +7,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2020-03-01-preview/operationalinsights"
+	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -16,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -55,7 +56,7 @@ func resourceArmLogAnalyticsDataSourceWindowsPerformanceCounter() *schema.Resour
 				Required:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     ValidateAzureRmLogAnalyticsWorkspaceName,
+				ValidateFunc:     validate.LogAnalyticsWorkspaceName,
 			},
 
 			"counter_name": {
@@ -85,6 +86,7 @@ func resourceArmLogAnalyticsDataSourceWindowsPerformanceCounter() *schema.Resour
 	}
 }
 
+// this should not have been merged, needs to be fixed once https://github.com/Azure/azure-rest-api-specs/issues/9072 has been addressed
 type dataSourceWindowsPerformanceCounterProperty struct {
 	CounterName     string `json:"counterName"`
 	InstanceName    string `json:"instanceName"`

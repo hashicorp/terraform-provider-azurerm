@@ -47,7 +47,7 @@ resource "azurerm_subnet" "example" {
   name                 = "acctsub"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_public_ip" "example" {
@@ -107,6 +107,7 @@ output "public_ip_address" {
 * `fqdn` - Fully qualified domain name of the A DNS record associated with the public IP. This is the concatenation of the domainNameLabel and the regionalized DNS zone.
 * `ip_address` - The IP address value that was allocated.
 * `ip_version` - The IP version being used, for example `IPv4` or `IPv6`.
+* `sku` - The SKU of the Public IP.
 * `tags` - A mapping of tags to assigned to the resource.
 
 ## Timeouts

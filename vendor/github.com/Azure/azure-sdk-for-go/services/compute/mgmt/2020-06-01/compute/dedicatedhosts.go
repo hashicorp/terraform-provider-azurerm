@@ -63,9 +63,7 @@ func (client DedicatedHostsClient) CreateOrUpdate(ctx context.Context, resourceG
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.DedicatedHostProperties", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "parameters.DedicatedHostProperties.PlatformFaultDomain", Name: validation.Null, Rule: false,
-					Chain: []validation.Constraint{{Target: "parameters.DedicatedHostProperties.PlatformFaultDomain", Name: validation.InclusiveMaximum, Rule: int64(2), Chain: nil},
-						{Target: "parameters.DedicatedHostProperties.PlatformFaultDomain", Name: validation.InclusiveMinimum, Rule: int64(0), Chain: nil},
-					}},
+					Chain: []validation.Constraint{{Target: "parameters.DedicatedHostProperties.PlatformFaultDomain", Name: validation.InclusiveMinimum, Rule: int64(0), Chain: nil}}},
 				}},
 				{Target: "parameters.Sku", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("compute.DedicatedHostsClient", "CreateOrUpdate", err.Error())

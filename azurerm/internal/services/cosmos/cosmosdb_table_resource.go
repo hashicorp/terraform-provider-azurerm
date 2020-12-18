@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2020-04-01/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -151,7 +151,7 @@ func resourceArmCosmosDbTableUpdate(d *schema.ResourceData, meta interface{}) er
 
 	err = common.CheckForChangeFromAutoscaleAndManualThroughput(d)
 	if err != nil {
-		return fmt.Errorf("Error updating Cosmos Table %q (Account: %q) - %+v", id.Name, id.Account, err)
+		return fmt.Errorf("Error updating Cosmos Table %q (Account: %q) - %+v", id.Name, id.DatabaseAccountName, err)
 	}
 
 	db := documentdb.TableCreateUpdateParameters{
@@ -163,27 +163,27 @@ func resourceArmCosmosDbTableUpdate(d *schema.ResourceData, meta interface{}) er
 		},
 	}
 
-	future, err := client.CreateUpdateTable(ctx, id.ResourceGroup, id.Account, id.Name, db)
+	future, err := client.CreateUpdateTable(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name, db)
 	if err != nil {
-		return fmt.Errorf("Error issuing create/update request for Cosmos Table %q (Account: %q): %+v", id.Name, id.Account, err)
+		return fmt.Errorf("Error issuing create/update request for Cosmos Table %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting on create/update future for Cosmos Table %q (Account: %q): %+v", id.Name, id.Account, err)
+		return fmt.Errorf("Error waiting on create/update future for Cosmos Table %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
 	}
 
 	if common.HasThroughputChange(d) {
 		throughputParameters := common.ExpandCosmosDBThroughputSettingsUpdateParameters(d)
-		throughputFuture, err := client.UpdateTableThroughput(ctx, id.ResourceGroup, id.Account, id.Name, *throughputParameters)
+		throughputFuture, err := client.UpdateTableThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name, *throughputParameters)
 		if err != nil {
 			if response.WasNotFound(throughputFuture.Response()) {
 				return fmt.Errorf("Error setting Throughput for Cosmos Table %q (Account: %q): %+v - "+
-					"If the collection has not been created with an initial throughput, you cannot configure it later.", id.Name, id.Account, err)
+					"If the collection has not been created with an initial throughput, you cannot configure it later.", id.Name, id.DatabaseAccountName, err)
 			}
 		}
 
 		if err = throughputFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting on ThroughputUpdate future for Cosmos Table %q (Account: %q): %+v", id.Name, id.Account, err)
+			return fmt.Errorf("Error waiting on ThroughputUpdate future for Cosmos Table %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
 		}
 	}
 
@@ -200,29 +200,29 @@ func resourceArmCosmosDbTableRead(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	resp, err := client.GetTable(ctx, id.ResourceGroup, id.Account, id.Name)
+	resp, err := client.GetTable(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading Cosmos Table %q (Account: %q) - removing from state", id.Name, id.Account)
+			log.Printf("[INFO] Error reading Cosmos Table %q (Account: %q) - removing from state", id.Name, id.DatabaseAccountName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Cosmos Table %q (Account: %q): %+v", id.Name, id.Account, err)
+		return fmt.Errorf("Error reading Cosmos Table %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
 	}
 
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("account_name", id.Account)
+	d.Set("account_name", id.DatabaseAccountName)
 	if props := resp.TableGetProperties; props != nil {
 		if res := props.Resource; res != nil {
 			d.Set("name", res.ID)
 		}
 	}
 
-	throughputResp, err := client.GetTableThroughput(ctx, id.ResourceGroup, id.Account, id.Name)
+	throughputResp, err := client.GetTableThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(throughputResp.Response) {
-			return fmt.Errorf("Error reading Throughput on Cosmos Table %q (Account: %q) ID: %v", id.Name, id.Account, err)
+			return fmt.Errorf("Error reading Throughput on Cosmos Table %q (Account: %q) ID: %v", id.Name, id.DatabaseAccountName, err)
 		} else {
 			d.Set("throughput", nil)
 			d.Set("autoscale_settings", nil)
@@ -244,16 +244,16 @@ func resourceArmCosmosDbTableDelete(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	future, err := client.DeleteTable(ctx, id.ResourceGroup, id.Account, id.Name)
+	future, err := client.DeleteTable(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error deleting Cosmos Table %q (Account: %q): %+v", id.Name, id.Account, err)
+			return fmt.Errorf("Error deleting Cosmos Table %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
 		}
 	}
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Error waiting on delete future for Cosmos Table %q (Account: %q): %+v", id.Name, id.Account, err)
+		return fmt.Errorf("Error waiting on delete future for Cosmos Table %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
 	}
 
 	return nil

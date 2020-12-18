@@ -19,14 +19,14 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_blueprint_definition":        dataSourceArmBlueprintDefinition(),
-		"azurerm_blueprint_published_version": dataSourceArmBlueprintPublishedVersion(),
+		"azurerm_blueprint_definition":        dataSourceBlueprintDefinition(),
+		"azurerm_blueprint_published_version": dataSourceBlueprintPublishedVersion(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_blueprint_assignment": resourceArmBlueprintAssignment(),
+		"azurerm_blueprint_assignment": resourceBlueprintAssignment(),
 	}
 }

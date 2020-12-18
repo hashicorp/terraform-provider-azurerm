@@ -111,6 +111,9 @@ func WebApplicationFirewallPolicyV0Schema() *schema.Resource {
 									"match_values": {
 										Type:     schema.TypeList,
 										Required: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
 									},
 
 									"operator": {
@@ -305,8 +308,8 @@ func WebApplicationFirewallPolicyV0ToV1(rawState map[string]interface{}, _ inter
 		return rawState, fmt.Errorf("couldn't find the `frontDoorWebApplicationFirewallPolicies` segment in the old resource id %q", oldId)
 	}
 
-	newId := parse.NewWebApplicationFirewallPolicyID(resourceGroup, policyName)
-	newIdStr := newId.ID(oldParsedId.SubscriptionID)
+	newId := parse.NewWebApplicationFirewallPolicyID(oldParsedId.SubscriptionID, resourceGroup, policyName)
+	newIdStr := newId.ID("")
 
 	log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newIdStr)
 

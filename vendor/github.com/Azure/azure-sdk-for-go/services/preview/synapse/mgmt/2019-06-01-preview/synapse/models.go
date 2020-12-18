@@ -464,6 +464,8 @@ type BigDataPoolResourceProperties struct {
 	CreationDate *date.Time `json:"creationDate,omitempty"`
 	// AutoPause - Auto-pausing properties
 	AutoPause *AutoPauseProperties `json:"autoPause,omitempty"`
+	// IsComputeIsolationEnabled - Whether compute isolation is required or not.
+	IsComputeIsolationEnabled *bool `json:"isComputeIsolationEnabled,omitempty"`
 	// SparkEventsFolder - The Spark events folder
 	SparkEventsFolder *string `json:"sparkEventsFolder,omitempty"`
 	// NodeCount - The number of nodes in the Big Data pool.
@@ -474,7 +476,7 @@ type BigDataPoolResourceProperties struct {
 	SparkVersion *string `json:"sparkVersion,omitempty"`
 	// DefaultSparkLogFolder - The default folder where Spark logs will be written.
 	DefaultSparkLogFolder *string `json:"defaultSparkLogFolder,omitempty"`
-	// NodeSize - The level of compute power that each node in the Big Data pool has. Possible values include: 'NodeSizeNone', 'NodeSizeSmall', 'NodeSizeMedium', 'NodeSizeLarge'
+	// NodeSize - The level of compute power that each node in the Big Data pool has. Possible values include: 'NodeSizeNone', 'NodeSizeSmall', 'NodeSizeMedium', 'NodeSizeLarge', 'NodeSizeXLarge', 'NodeSizeXXLarge'
 	NodeSize NodeSize `json:"nodeSize,omitempty"`
 	// NodeSizeFamily - The kind of nodes that the Big Data pool provides. Possible values include: 'NodeSizeFamilyNone', 'NodeSizeFamilyMemoryOptimized'
 	NodeSizeFamily NodeSizeFamily `json:"nodeSizeFamily,omitempty"`
@@ -2061,14 +2063,14 @@ type IntegrationRuntimeResource struct {
 	autorest.Response `json:"-"`
 	// Properties - Integration runtime properties.
 	Properties BasicIntegrationRuntime `json:"properties,omitempty"`
-	// ID - READ-ONLY; The resource identifier.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The resource name.
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The resource type.
-	Type *string `json:"type,omitempty"`
-	// Etag - READ-ONLY; Etag identifies change in the resource.
+	// Etag - READ-ONLY; Resource Etag.
 	Etag *string `json:"etag,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for IntegrationRuntimeResource.
@@ -2094,6 +2096,15 @@ func (irr *IntegrationRuntimeResource) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				irr.Properties = properties
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				irr.Etag = &etag
 			}
 		case "id":
 			if v != nil {
@@ -2122,19 +2133,62 @@ func (irr *IntegrationRuntimeResource) UnmarshalJSON(body []byte) error {
 				}
 				irr.Type = &typeVar
 			}
-		case "etag":
-			if v != nil {
-				var etag string
-				err = json.Unmarshal(*v, &etag)
-				if err != nil {
-					return err
-				}
-				irr.Etag = &etag
-			}
 		}
 	}
 
 	return nil
+}
+
+// IntegrationRuntimesCreateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type IntegrationRuntimesCreateFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *IntegrationRuntimesCreateFuture) Result(client IntegrationRuntimesClient) (irr IntegrationRuntimeResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesCreateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("synapse.IntegrationRuntimesCreateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if irr.Response.Response, err = future.GetResult(sender); err == nil && irr.Response.Response.StatusCode != http.StatusNoContent {
+		irr, err = client.CreateResponder(irr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesCreateFuture", "Result", irr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// IntegrationRuntimesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type IntegrationRuntimesDeleteFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *IntegrationRuntimesDeleteFuture) Result(client IntegrationRuntimesClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("synapse.IntegrationRuntimesDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
 }
 
 // IntegrationRuntimeSsisCatalogInfo catalog information for managed dedicated integration runtime.
@@ -5969,6 +6023,8 @@ type Sku struct {
 	Tier *string `json:"tier,omitempty"`
 	// Name - The SKU name
 	Name *string `json:"name,omitempty"`
+	// Capacity - If the SKU supports scale out/in then the capacity integer should be included. If scale out/in is not possible for the resource this may be omitted.
+	Capacity *int32 `json:"capacity,omitempty"`
 }
 
 // SQLPool a SQL Analytics pool
@@ -8808,16 +8864,16 @@ type SsisVariable struct {
 	SensitiveValue *string `json:"sensitiveValue,omitempty"`
 }
 
-// SubResource azure Synapse nested resource, which belongs to a factory.
+// SubResource azure Synapse nested resource, which belongs to a workspace.
 type SubResource struct {
-	// ID - READ-ONLY; The resource identifier.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The resource name.
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The resource type.
-	Type *string `json:"type,omitempty"`
-	// Etag - READ-ONLY; Etag identifies change in the resource.
+	// Etag - READ-ONLY; Resource Etag.
 	Etag *string `json:"etag,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
 }
 
 // TopQueries a database query.
@@ -9749,6 +9805,8 @@ type WorkspaceProperties struct {
 	ManagedVirtualNetwork *string `json:"managedVirtualNetwork,omitempty"`
 	// PrivateEndpointConnections - Private endpoint connections to the workspace
 	PrivateEndpointConnections *[]PrivateEndpointConnection `json:"privateEndpointConnections,omitempty"`
+	// ExtraProperties - READ-ONLY; Workspace level configs and feature flags
+	ExtraProperties map[string]interface{} `json:"extraProperties"`
 }
 
 // MarshalJSON is the custom marshaler for WorkspaceProperties.

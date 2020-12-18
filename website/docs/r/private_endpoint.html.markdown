@@ -10,8 +10,6 @@ description: |-
 
 Manages a Private Endpoint.
 
--> **NOTE** Private Endpoint is currently in Public Preview.
-
 Azure Private Endpoint is a network interface that connects you privately and securely to a service powered by Azure Private Link. Private Endpoint uses a private IP address from your VNet, effectively bringing the service into your VNet. The service could be an Azure service such as Azure Storage, SQL, etc. or your own Private Link Service.
 
 ## Example Usage
@@ -189,7 +187,7 @@ A `private_dns_zone_configs` block exports:
 
 ---
 
-A `private_serivce_connection` block exports:
+A `private_service_connection` block exports:
 
 * `private_ip_address` - (Computed) The private IP address associated with the private endpoint, note that you will have a private IP address assigned to the private endpoint even if the connection request was `Rejected`.
 
@@ -207,7 +205,7 @@ A `record_sets` block exports:
 
 * `ip_addresses` - A list of all IP Addresses that map to the `private_dns_zone` fqdn.
 
--> **NOTE:** If a Private DNS Zone Group has not been configured correctly the `record_sets` attibutes will be empty.
+-> **NOTE:** If a Private DNS Zone Group has not been configured correctly the `record_sets` attributes will be empty.
 
 ---
 

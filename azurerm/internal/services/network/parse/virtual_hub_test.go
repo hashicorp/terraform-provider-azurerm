@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"testing"
 
@@ -9,10 +11,8 @@ import (
 var _ resourceid.Formatter = VirtualHubId{}
 
 func TestVirtualHubIDFormatter(t *testing.T) {
-	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	id := NewVirtualHubID("group1", "vhub1")
-	actual := id.ID(subscriptionId)
-	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/virtualHubs/vhub1"
+	actual := NewVirtualHubID("12345678-1234-9876-4563-123456789012", "resGroup1", "virtualHub1").ID("")
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/virtualHubs/virtualHub1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -20,53 +20,93 @@ func TestVirtualHubIDFormatter(t *testing.T) {
 
 func TestVirtualHubID(t *testing.T) {
 	testData := []struct {
-		Name     string
 		Input    string
+		Error    bool
 		Expected *VirtualHubId
 	}{
+
 		{
-			Name:     "Empty",
-			Input:    "",
-			Expected: nil,
+			// empty
+			Input: "",
+			Error: true,
 		},
+
 		{
-			Name:     "No Virtual Hubs Segment",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo",
-			Expected: nil,
+			// missing SubscriptionId
+			Input: "/",
+			Error: true,
 		},
+
 		{
-			Name:     "No Virtual Hubs Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/virtualHubs/",
-			Expected: nil,
+			// missing value for SubscriptionId
+			Input: "/subscriptions/",
+			Error: true,
 		},
+
 		{
-			Name:  "Completed",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/virtualHubs/example",
+			// missing ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/",
+			Error: true,
+		},
+
+		{
+			// missing value for ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
+			Error: true,
+		},
+
+		{
+			// missing Name
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/",
+			Error: true,
+		},
+
+		{
+			// missing value for Name
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/virtualHubs/",
+			Error: true,
+		},
+
+		{
+			// valid
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Network/virtualHubs/virtualHub1",
 			Expected: &VirtualHubId{
-				Name:          "example",
-				ResourceGroup: "foo",
+				SubscriptionId: "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:  "resGroup1",
+				Name:           "virtualHub1",
 			},
+		},
+
+		{
+			// upper-cased
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.NETWORK/VIRTUALHUBS/VIRTUALHUB1",
+			Error: true,
 		},
 	}
 
 	for _, v := range testData {
-		t.Logf("[DEBUG] Testing %q", v.Name)
+		t.Logf("[DEBUG] Testing %q", v.Input)
 
 		actual, err := VirtualHubID(v.Input)
 		if err != nil {
-			if v.Expected == nil {
+			if v.Error {
 				continue
 			}
 
-			t.Fatalf("Expected a value but got an error: %s", err)
+			t.Fatalf("Expect a value but got an error: %s", err)
+		}
+		if v.Error {
+			t.Fatal("Expect an error but didn't get one")
 		}
 
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.SubscriptionId != v.Expected.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
 		}
-
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
+		}
+		if actual.Name != v.Expected.Name {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 	}
 }
