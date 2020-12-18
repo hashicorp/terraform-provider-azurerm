@@ -8,23 +8,28 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // todo 3.0 - this may want to be put into the mssql_server resource now that it exists.
 
-func resourceArmMssqlServerSecurityAlertPolicy() *schema.Resource {
+func resourceMsSqlServerSecurityAlertPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMssqlServerSecurityAlertPolicyCreateUpdate,
-		Read:   resourceArmMssqlServerSecurityAlertPolicyRead,
-		Update: resourceArmMssqlServerSecurityAlertPolicyCreateUpdate,
-		Delete: resourceArmMssqlServerSecurityAlertPolicyDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceMsSqlServerSecurityAlertPolicyCreateUpdate,
+		Read:   resourceMsSqlServerSecurityAlertPolicyRead,
+		Update: resourceMsSqlServerSecurityAlertPolicyCreateUpdate,
+		Delete: resourceMsSqlServerSecurityAlertPolicyDelete,
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.DatabaseExtendedAuditingPolicyID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -107,7 +112,7 @@ func resourceArmMssqlServerSecurityAlertPolicy() *schema.Resource {
 	}
 }
 
-func resourceArmMssqlServerSecurityAlertPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlServerSecurityAlertPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -139,25 +144,22 @@ func resourceArmMssqlServerSecurityAlertPolicyCreateUpdate(d *schema.ResourceDat
 
 	d.SetId(*result.ID)
 
-	return resourceArmMssqlServerSecurityAlertPolicyRead(d, meta)
+	return resourceMsSqlServerSecurityAlertPolicyRead(d, meta)
 }
 
-func resourceArmMssqlServerSecurityAlertPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlServerSecurityAlertPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] reading mssql server security alert policy")
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ServerSecurityAlertPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroupName := id.ResourceGroup
-	serverName := id.Path["servers"]
-
-	result, err := client.Get(ctx, resourceGroupName, serverName)
+	result, err := client.Get(ctx, id.ResourceGroup, id.ServerName)
 	if err != nil {
 		if utils.ResponseWasNotFound(result.Response) {
 			log.Printf("[WARN] mssql server security alert policy %v not found", id)
@@ -168,8 +170,8 @@ func resourceArmMssqlServerSecurityAlertPolicyRead(d *schema.ResourceData, meta 
 		return fmt.Errorf("error making read request to mssql server security alert policy: %+v", err)
 	}
 
-	d.Set("resource_group_name", resourceGroupName)
-	d.Set("server_name", serverName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("server_name", id.ServerName)
 
 	if props := result.SecurityAlertPolicyProperties; props != nil {
 		d.Set("state", string(props.State))
@@ -216,20 +218,17 @@ func resourceArmMssqlServerSecurityAlertPolicyRead(d *schema.ResourceData, meta 
 	return nil
 }
 
-func resourceArmMssqlServerSecurityAlertPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlServerSecurityAlertPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] deleting mssql server security alert policy.")
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ServerSecurityAlertPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
-
-	resourceGroupName := id.ResourceGroup
-	serverName := id.Path["servers"]
 
 	disabledPolicy := sql.ServerSecurityAlertPolicy{
 		SecurityAlertPolicyProperties: &sql.SecurityAlertPolicyProperties{
@@ -237,16 +236,16 @@ func resourceArmMssqlServerSecurityAlertPolicyDelete(d *schema.ResourceData, met
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroupName, serverName, disabledPolicy)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, disabledPolicy)
 	if err != nil {
 		return fmt.Errorf("error updataing mssql server security alert policy: %v", err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("error waiting for creation/update of mssql server security alert policy (server %q, resource group %q): %+v", serverName, resourceGroupName, err)
+		return fmt.Errorf("error waiting for creation/update of mssql server security alert policy (server %q, resource group %q): %+v", id.ServerName, id.ResourceGroup, err)
 	}
 
-	if _, err = client.Get(ctx, resourceGroupName, serverName); err != nil {
+	if _, err = client.Get(ctx, id.ResourceGroup, id.ServerName); err != nil {
 		return fmt.Errorf("error deleting mssql server security alert policy: %v", err)
 	}
 
