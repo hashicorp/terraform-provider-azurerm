@@ -103,13 +103,13 @@ The following supported arguments are specific to Data Factory Synapse Linked Se
 
 * `connection_string` - (Required) The connection string in which to authenticate with the Synapse.
 
-* `key_vault_password_reference` - (Optional) A `key_vault_password_reference` block as defined below. Use this argument to store Synapse password in an existing Key Vault. It needs an existing Data Factory linked service to Key Vault.
+* `key_vault_password_reference` - (Optional) A `key_vault_password_reference` block as defined below. Use this argument to store Synapse password in an existing Key Vault. It needs an existing Key Vault Data Factory Linked Service.
 
 ---
 
 A `key_vault_password_reference` block supports the following:
 
-* `key_vault_linked_service_name` - (Required) Specifies the existing Data Factory linked service to Key Vault.
+* `key_vault_linked_service_name` - (Required) Specifies the name of an existing Key Vault Data Factory Linked Service.
 
 * `key_vault_password_secret_name` - (Required) Specifies the secret name in Azure Key Vault that stores Synapse password.
 
