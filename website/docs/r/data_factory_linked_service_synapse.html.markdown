@@ -99,7 +99,7 @@ The following supported arguments are common across all Azure Data Factory Linke
 
 * `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Linked Service Synapse.
 
-The following supported arguments are specific to Azure File Storage Linked Service:
+The following supported arguments are specific to Data Factory Synapse Linked Service:
 
 * `connection_string` - (Required) The connection string in which to authenticate with the Synapse.
 
