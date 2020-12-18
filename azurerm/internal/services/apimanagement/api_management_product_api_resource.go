@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -43,6 +45,7 @@ func resourceApiManagementProductApi() *schema.Resource {
 
 func resourceApiManagementProductApiCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductApisClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -50,6 +53,7 @@ func resourceApiManagementProductApiCreate(d *schema.ResourceData, meta interfac
 	serviceName := d.Get("api_management_name").(string)
 	apiName := d.Get("api_name").(string)
 	productId := d.Get("product_id").(string)
+	id := parse.NewProductApiID(subscriptionId, resourceGroup, serviceName, productId, apiName)
 
 	exists, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, productId, apiName)
 	if err != nil {
@@ -65,13 +69,12 @@ func resourceApiManagementProductApiCreate(d *schema.ResourceData, meta interfac
 		return tf.ImportAsExistsError("azurerm_api_management_product_api", resourceId)
 	}
 
-	resp, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, productId, apiName)
+	_, err = client.CreateOrUpdate(ctx, resourceGroup, serviceName, productId, apiName)
 	if err != nil {
 		return fmt.Errorf("adding API %q to Product %q (API Management Service %q / Resource Group %q): %+v", apiName, productId, serviceName, resourceGroup, err)
 	}
 
-	// there's no Read so this is best-effort
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceApiManagementProductApiRead(d, meta)
 }
@@ -81,14 +84,14 @@ func resourceApiManagementProductApiRead(d *schema.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ProductApiID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	productId := id.Path["products"]
-	apiName := id.Path["apis"]
+	serviceName := id.ServiceName
+	productId := id.ProductName
+	apiName := id.ApiName
 
 	resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, productId, apiName)
 	if err != nil {
@@ -122,14 +125,14 @@ func resourceApiManagementProductApiDelete(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ProductApiID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	productId := id.Path["products"]
-	apiName := id.Path["apis"]
+	serviceName := id.ServiceName
+	productId := id.ProductName
+	apiName := id.ApiName
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, productId, apiName); err != nil {
 		if !utils.ResponseWasNotFound(resp) {

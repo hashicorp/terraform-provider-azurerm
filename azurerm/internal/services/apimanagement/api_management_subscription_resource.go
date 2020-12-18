@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -102,6 +104,7 @@ func resourceApiManagementSubscription() *schema.Resource {
 
 func resourceApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.SubscriptionsClient
+	azureSubscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -111,6 +114,8 @@ func resourceApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, meta 
 	if subscriptionId == "" {
 		subscriptionId = uuid.NewV4().String()
 	}
+
+	id := parse.NewSubscriptionID(azureSubscriptionId, resourceGroup, serviceName, subscriptionId)
 
 	if d.IsNewResource() {
 		resp, err := client.Get(ctx, resourceGroup, serviceName, subscriptionId)
@@ -155,12 +160,12 @@ func resourceApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, meta 
 		return fmt.Errorf("creating/updating Subscription %q (API Management Service %q / Resource Group %q): %+v", subscriptionId, serviceName, resourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, subscriptionId)
+	_, err = client.Get(ctx, resourceGroup, serviceName, subscriptionId)
 	if err != nil {
 		return fmt.Errorf("retrieving Subscription %q (API Management Service %q / Resource Group %q): %+v", subscriptionId, serviceName, resourceGroup, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(id.ID())
 
 	return resourceApiManagementSubscriptionRead(d, meta)
 }
@@ -170,13 +175,13 @@ func resourceApiManagementSubscriptionRead(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SubscriptionID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	subscriptionId := id.Path["subscriptions"]
+	serviceName := id.ServiceName
+	subscriptionId := id.SubscriptionId
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, subscriptionId)
 	if err != nil {
@@ -217,13 +222,13 @@ func resourceApiManagementSubscriptionDelete(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SubscriptionID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	subscriptionId := id.Path["subscriptions"]
+	serviceName := id.ServiceName
+	subscriptionId := id.SubscriptionId
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, subscriptionId, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {

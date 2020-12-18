@@ -6,6 +6,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -15,7 +17,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+const apiManagementPolicyName = "policy"
+
 func resourceApiManagementProductPolicy() *schema.Resource {
+
 	return &schema.Resource{
 		Create: resourceApiManagementProductPolicyCreateUpdate,
 		Read:   resourceApiManagementProductPolicyRead,
@@ -58,13 +63,14 @@ func resourceApiManagementProductPolicy() *schema.Resource {
 
 func resourceApiManagementProductPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductPoliciesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	serviceName := d.Get("api_management_name").(string)
 	productID := d.Get("product_id").(string)
-
+	id := parse.NewProductPolicyID(subscriptionId, resourceGroup, serviceName, productID, apiManagementPolicyName)
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, productID, apimanagement.PolicyExportFormatXML)
 		if err != nil {
@@ -105,14 +111,12 @@ func resourceApiManagementProductPolicyCreateUpdate(d *schema.ResourceData, meta
 		return fmt.Errorf("creating or updating Product Policy (Resource Group %q / API Management Service %q / Product %q): %+v", resourceGroup, serviceName, productID, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, productID, apimanagement.PolicyExportFormatXML)
+	_, err := client.Get(ctx, resourceGroup, serviceName, productID, apimanagement.PolicyExportFormatXML)
 	if err != nil {
 		return fmt.Errorf("retrieving Product Policy (Resource Group %q / API Management Service %q / Product %q): %+v", resourceGroup, serviceName, productID, err)
 	}
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read ID for Product Policy (Resource Group %q / API Management Service %q / Product %q): %+v", resourceGroup, serviceName, productID, err)
-	}
-	d.SetId(*resp.ID)
+
+	d.SetId(id.ID())
 
 	return resourceApiManagementProductPolicyRead(d, meta)
 }
@@ -122,13 +126,13 @@ func resourceApiManagementProductPolicyRead(d *schema.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ProductPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	productID := id.Path["products"]
+	serviceName := id.ServiceName
+	productID := id.ProductName
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, productID, apimanagement.PolicyExportFormatXML)
 	if err != nil {
@@ -159,13 +163,13 @@ func resourceApiManagementProductPolicyDelete(d *schema.ResourceData, meta inter
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ProductPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	productID := id.Path["products"]
+	serviceName := id.ServiceName
+	productID := id.ProductName
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, productID, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
