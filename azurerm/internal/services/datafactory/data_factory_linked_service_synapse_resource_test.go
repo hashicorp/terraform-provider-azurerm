@@ -137,7 +137,7 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_synapse" "test" {
-  name                = "acctestlssql%d"
+  name                = "linksynapse"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
 
@@ -156,7 +156,7 @@ resource "azurerm_data_factory_linked_service_synapse" "test" {
     bar = "test2"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMDataFactoryLinkedServiceSynapse_key_vault_reference(data acceptance.TestData) string {
