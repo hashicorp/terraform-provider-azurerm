@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specify the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku_name` - (Required) Specify the sku name of the Dedicated Host. Possible values are `DSv3-Type1`, `DSv3-Type2`, `DSv4-Type1`, `ESv3-Type1`, `ESv3-Type2`,`FSv2-Type2`. Changing this forces a new resource to be created.
+* `sku_name` - (Required) Specify the sku name of the Dedicated Host. Possible values are 'DASv4-Type1', 'DDSv4-Type1', 'DSv4-Type1', 'DSv3-Type1', 'DSv3-Type2', 'DSv3-Type3', 'DCSv2-Type1', 'EASv4-Type1', 'EDSv4-Type1', 'ESv4-Type1', 'ESv3-Type1', 'ESv3-Type2', 'ESv3-Type3', 'FSv2-Type2', 'FSv2-Type3', 'LSv2-Type1', 'MS-Type1', 'MSM-Type1', 'MSMv2-Type1', 'MSv2-Type1', 'NVASv4-Type1', 'NVSv3-Type1'. Changing this forces a new resource to be created.
 
 * `platform_fault_domain` - (Required) Specify the fault domain of the Dedicated Host Group in which to create the Dedicated Host. Changing this forces a new resource to be created.
 
