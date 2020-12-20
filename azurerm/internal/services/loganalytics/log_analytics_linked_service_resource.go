@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	validateAuto "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -170,7 +171,7 @@ func resourceArmLogAnalyticsLinkedService() *schema.Resource {
 			// TODO: Remove in 3.0
 			if d.HasChange("resource_id") {
 				if resourceID := d.Get("resource_id").(string); resourceID != "" {
-					if !validate.IsAutomationAccountID(resourceID) {
+					if _, err := validateAuto.AutomationAccountID(resourceID, "resource_id"); err != nil {
 						return fmt.Errorf("'resource_id' must be an Automation Account resource ID, got %q", resourceID)
 					}
 				}
@@ -178,7 +179,7 @@ func resourceArmLogAnalyticsLinkedService() *schema.Resource {
 
 			if d.HasChange("read_access_id") {
 				if readAccessID := d.Get("read_access_id").(string); readAccessID != "" {
-					if !validate.IsAutomationAccountID(readAccessID) {
+					if _, err := validateAuto.AutomationAccountID(readAccessID, "read_acces_id"); err != nil {
 						return fmt.Errorf("'read_access_id' must be an Automation Account resource ID, got %q", readAccessID)
 					}
 				}
