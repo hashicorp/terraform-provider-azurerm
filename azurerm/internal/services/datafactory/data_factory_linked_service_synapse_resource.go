@@ -142,11 +142,11 @@ func resourceArmDataFactoryLinkedServiceSynapseCreateUpdate(d *schema.ResourceDa
 		}
 	}
 
-	passwordReferenceProps := d.Get("key_vault_password_reference").([]interface{})
+	passwordReference := d.Get("key_vault_password_reference").([]interface{})
 
 	sqlDWProperties := &datafactory.AzureSQLDWLinkedServiceTypeProperties{
 		ConnectionString: d.Get("connection_string").(string),
-		Password:         expandAzureKeyVaultSecretReference(passwordReferenceProps),
+		Password:         expandAzureKeyVaultPasswordReference(passwordReference),
 	}
 
 	description := d.Get("description").(string)
@@ -257,8 +257,8 @@ func resourceArmDataFactoryLinkedServiceSynapseRead(d *schema.ResourceData, meta
 			}
 		}
 
-		if err := d.Set("key_vault_password_reference", flattenAzureKeyVaultSecretReference(properties.Password)); err != nil {
-			return fmt.Errorf("setting `custom_parameters`: %+v", err)
+		if err := d.Set("key_vault_password_reference", flattenAzureKeyVaultPasswordReference(properties.Password)); err != nil {
+			return fmt.Errorf("setting `key_vault_password_reference`: %+v", err)
 		}
 	}
 
@@ -286,44 +286,4 @@ func resourceArmDataFactoryLinkedServiceSynapseDelete(d *schema.ResourceData, me
 	}
 
 	return nil
-}
-
-func expandAzureKeyVaultSecretReference(input []interface{}) *datafactory.AzureKeyVaultSecretReference {
-	if len(input) == 0 || input[0] == nil {
-		return nil
-	}
-
-	config := input[0].(map[string]interface{})
-
-	keyVaultLinkedServiceName := config["linked_service_name"].(string)
-	keyVaultPasswordSecretName := config["password_secret_name"].(string)
-	linkedServiceType := "LinkedServiceReference"
-
-	return &datafactory.AzureKeyVaultSecretReference{
-		SecretName: keyVaultPasswordSecretName,
-		Store: &datafactory.LinkedServiceReference{
-			Type:          &linkedServiceType,
-			ReferenceName: &keyVaultLinkedServiceName,
-		},
-	}
-}
-
-func flattenAzureKeyVaultSecretReference(secretReference *datafactory.AzureKeyVaultSecretReference) []interface{} {
-	if secretReference == nil {
-		return nil
-	}
-
-	parameters := make(map[string]interface{})
-
-	if store := secretReference.Store; store != nil {
-		if store.ReferenceName != nil {
-			parameters["linked_service_name"] = *store.ReferenceName
-		}
-	}
-
-	if secretName := secretReference.SecretName; secretName != nil {
-		parameters["password_secret_name"] = secretName
-	}
-
-	return []interface{}{parameters}
 }

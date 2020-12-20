@@ -227,3 +227,41 @@ func serializeDataFactoryPipelineActivities(activities *[]datafactory.BasicActiv
 func suppressJsonOrderingDifference(_, old, new string, _ *schema.ResourceData) bool {
 	return utils.NormalizeJson(old) == utils.NormalizeJson(new)
 }
+
+func expandAzureKeyVaultPasswordReference(input []interface{}) *datafactory.AzureKeyVaultSecretReference {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	config := input[0].(map[string]interface{})
+
+	keyVaultLinkedServiceName := config["linked_service_name"].(string)
+	keyVaultPasswordSecretName := config["password_secret_name"].(string)
+	linkedServiceType := "LinkedServiceReference"
+
+	return &datafactory.AzureKeyVaultSecretReference{
+		SecretName: keyVaultPasswordSecretName,
+		Store: &datafactory.LinkedServiceReference{
+			Type:          &linkedServiceType,
+			ReferenceName: &keyVaultLinkedServiceName,
+		},
+	}
+}
+
+func flattenAzureKeyVaultPasswordReference(secretReference *datafactory.AzureKeyVaultSecretReference) []interface{} {
+	if secretReference == nil {
+		return nil
+	}
+
+	parameters := make(map[string]interface{})
+
+	if store := secretReference.Store; store != nil {
+		if store.ReferenceName != nil {
+			parameters["linked_service_name"] = *store.ReferenceName
+		}
+	}
+
+	parameters["password_secret_name"] = secretReference.SecretName
+
+	return []interface{}{parameters}
+}
