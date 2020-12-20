@@ -3,6 +3,7 @@
 IMPROVEMENTS:
 
 * Data Source: `azurerm_databricks_workspace` - support for the `tags` property [GH-9933]
+* `azurerm_dedicated_host` - Add support for new sku names [GH-9951]
 * `azurerm_log_analytics_linked_service` - Add validation for resource ID type [GH-9932]
 * `azurerm_log_analytics_linked_service` - Update validation to use generated validate functions [GH-9950]
 * `azurerm_monitor_diagnostic_setting` - validation that `eventhub_authorization_rule_id` is a EventHub Namespace Authorization Rule ID [GH-9914]
