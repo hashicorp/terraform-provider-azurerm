@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -24,27 +25,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-// todo refactor and find a home for this wayward func
-func resourceArmKeyVaultChildResourceImporter(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	client := meta.(*clients.Client).KeyVault.VaultsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := azure.ParseKeyVaultChildID(d.Id())
-	if err != nil {
-		return []*schema.ResourceData{d}, fmt.Errorf("Error Unable to parse ID (%s) for Key Vault Child import: %v", d.Id(), err)
-	}
-
-	kvid, err := azure.GetKeyVaultIDFromBaseUrl(ctx, client, id.KeyVaultBaseUrl)
-	if err != nil {
-		return []*schema.ResourceData{d}, fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
-	}
-
-	d.Set("key_vault_id", kvid)
-
-	return []*schema.ResourceData{d}, nil
-}
-
 func resourceArmKeyVaultCertificate() *schema.Resource {
 	return &schema.Resource{
 		// TODO: support Updating once we have more information about what can be updated
@@ -53,7 +33,7 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 		Delete: resourceArmKeyVaultCertificateDelete,
 
 		Importer: &schema.ResourceImporter{
-			State: resourceArmKeyVaultChildResourceImporter,
+			State: nestedItemResourceImporter,
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -235,6 +215,7 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 									"key_usage": {
 										Type:     schema.TypeList,
 										Required: true,
+										ForceNew: true,
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
@@ -602,16 +583,45 @@ func resourceArmKeyVaultCertificateDelete(d *schema.ResourceData, meta interface
 		return nil
 	}
 
-	resp, err := client.DeleteCertificate(ctx, id.KeyVaultBaseUrl, id.Name)
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return nil
-		}
-
-		return fmt.Errorf("Error deleting Certificate %q from Key Vault: %+v", id.Name, err)
+	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy
+	description := fmt.Sprintf("Certificate %q (Key Vault %q)", id.Name, id.KeyVaultBaseUrl)
+	deleter := deleteAndPurgeCertificate{
+		client:      client,
+		keyVaultUri: id.KeyVaultBaseUrl,
+		name:        id.Name,
+	}
+	if err := deleteAndOptionallyPurge(ctx, description, shouldPurge, deleter); err != nil {
+		return err
 	}
 
 	return nil
+}
+
+var _ deleteAndPurgeNestedItem = deleteAndPurgeCertificate{}
+
+type deleteAndPurgeCertificate struct {
+	client      *keyvault.BaseClient
+	keyVaultUri string
+	name        string
+}
+
+func (d deleteAndPurgeCertificate) DeleteNestedItem(ctx context.Context) (autorest.Response, error) {
+	resp, err := d.client.DeleteCertificate(ctx, d.keyVaultUri, d.name)
+	return resp.Response, err
+}
+
+func (d deleteAndPurgeCertificate) NestedItemHasBeenDeleted(ctx context.Context) (autorest.Response, error) {
+	resp, err := d.client.GetCertificate(ctx, d.keyVaultUri, d.name, "")
+	return resp.Response, err
+}
+
+func (d deleteAndPurgeCertificate) PurgeNestedItem(ctx context.Context) (autorest.Response, error) {
+	return d.client.PurgeDeletedCertificate(ctx, d.keyVaultUri, d.name)
+}
+
+func (d deleteAndPurgeCertificate) NestedItemHasBeenPurged(ctx context.Context) (autorest.Response, error) {
+	resp, err := d.client.GetDeletedCertificate(ctx, d.keyVaultUri, d.name)
+	return resp.Response, err
 }
 
 func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.CertificatePolicy {
