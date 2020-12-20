@@ -1,104 +1,83 @@
 package media_test
 
 import (
+	`context`
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/parse"
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils`
 )
 
-func TestAccAzureRMStreamingEndpoint_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_media_streaming_endpoint", "test")
+type MediaStreamingEndpointResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamingEndpointDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStreamingEndpoint_basic(data),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "scale_units", "1"),
-				),
-			},
-			data.ImportStep(),
+func TestAccMediaStreamingEndpoint_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_media_streaming_endpoint", "test")
+	r := MediaStreamingEndpointResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).Key("scale_units").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMStreamingEndpoint_CDN(t *testing.T) {
+func TestAccMediaStreamingEndpoint_CDN(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_streaming_endpoint", "test")
+	r := MediaStreamingEndpointResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamingEndpointDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStreamingEndpoint_CDN(data),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "cdn_profile", "MyCDNProfile"),
-					resource.TestCheckResourceAttr(data.ResourceName, "cdn_provider", "StandardVerizon"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.CDN(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).Key("cdn_profile").HasValue("MyCDNProfile"),
+				check.That(data.ResourceName).Key("cdn_provider").HasValue("StandardVerizon"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMStreamingEndpoint_MaxCacheAge(t *testing.T) {
+func TestAccMediaStreamingEndpoint_MaxCacheAge(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_streaming_endpoint", "test")
+	r := MediaStreamingEndpointResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamingEndpointDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStreamingEndpoint_maxCacheAge(data),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "max_cache_age_seconds", "60"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.maxCacheAge(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).Key("max_cache_age_seconds").HasValue("60"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMStreamingEndpointDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).Media.StreamingEndpointsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_media_streaming_endpoint" {
-			continue
-		}
-
-		id, err := parse.StreamingEndpointID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
-
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Streaming Endpoint still exists:\n%#v", resp)
-		}
+func (MediaStreamingEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.StreamingEndpointID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Media.StreamingEndpointsClient.Get(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
+	}
+
+	return utils.Bool(resp.StreamingEndpointProperties != nil), nil
 }
 
-func testAccAzureRMStreamingEndpoint_basic(data acceptance.TestData) string {
-	template := testAccAzureRMStreamingEndpoint_template(data)
+func (r MediaStreamingEndpointResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_media_streaming_endpoint" "test" {
@@ -108,11 +87,10 @@ resource "azurerm_media_streaming_endpoint" "test" {
   media_services_account_name = azurerm_media_services_account.test.name
   scale_units                 = 1
 }
-`, template)
+`, r.template(data))
 }
 
-func testAccAzureRMStreamingEndpoint_CDN(data acceptance.TestData) string {
-	template := testAccAzureRMStreamingEndpoint_template(data)
+func (r MediaStreamingEndpointResource) CDN(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_media_streaming_endpoint" "test" {
@@ -125,11 +103,10 @@ resource "azurerm_media_streaming_endpoint" "test" {
   cdn_provider                = "StandardVerizon"
   cdn_profile                 = "MyCDNProfile"
 }
-`, template)
+`, r.template(data))
 }
 
-func testAccAzureRMStreamingEndpoint_maxCacheAge(data acceptance.TestData) string {
-	template := testAccAzureRMStreamingEndpoint_template(data)
+func (r MediaStreamingEndpointResource) maxCacheAge(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_media_streaming_endpoint" "test" {
@@ -164,10 +141,10 @@ resource "azurerm_media_streaming_endpoint" "test" {
   max_cache_age_seconds = 60
 
 }
-`, template)
+`, r.template(data))
 }
 
-func testAccAzureRMStreamingEndpoint_template(data acceptance.TestData) string {
+func (MediaStreamingEndpointResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
