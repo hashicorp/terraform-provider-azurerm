@@ -66,13 +66,13 @@ func resourceArmDataFactoryLinkedServiceSynapse() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"key_vault_linked_service_name": {
+						"linked_service_name": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
-						"key_vault_password_secret_name": {
+						"password_secret_name": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -295,8 +295,8 @@ func expandAzureKeyVaultSecretReference(input []interface{}) *datafactory.AzureK
 
 	config := input[0].(map[string]interface{})
 
-	keyVaultLinkedServiceName := config["key_vault_linked_service_name"].(string)
-	keyVaultPasswordSecretName := config["key_vault_password_secret_name"].(string)
+	keyVaultLinkedServiceName := config["linked_service_name"].(string)
+	keyVaultPasswordSecretName := config["password_secret_name"].(string)
 	linkedServiceType := "LinkedServiceReference"
 
 	return &datafactory.AzureKeyVaultSecretReference{
@@ -317,12 +317,12 @@ func flattenAzureKeyVaultSecretReference(secretReference *datafactory.AzureKeyVa
 
 	if store := secretReference.Store; store != nil {
 		if store.ReferenceName != nil {
-			parameters["key_vault_linked_service_name"] = *store.ReferenceName
+			parameters["linked_service_name"] = *store.ReferenceName
 		}
 	}
 
 	if secretName := secretReference.SecretName; secretName != nil {
-		parameters["key_vault_password_secret_name"] = secretName
+		parameters["password_secret_name"] = secretName
 	}
 
 	return []interface{}{parameters}
