@@ -12,18 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/parse"
 )
 
-func TestAccAzureRMEventHubCluster_basic(t *testing.T) {
+func TestAccEventHubCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubClusterDestroy,
+		CheckDestroy: testCheckEventHubClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubCluster_basic(data),
+				Config: testAccEventHubCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubClusterExists(data.ResourceName),
+					testCheckEventHubClusterExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -31,32 +31,32 @@ func TestAccAzureRMEventHubCluster_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMEventHubCluster_update(t *testing.T) {
+func TestAccEventHubCluster_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubClusterDestroy,
+		CheckDestroy: testCheckEventHubClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubCluster_basic(data),
+				Config: testAccEventHubCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubClusterExists(data.ResourceName),
+					testCheckEventHubClusterExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMEventHubCluster_update(data),
+				Config: testAccEventHubCluster_update(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubClusterExists(data.ResourceName),
+					testCheckEventHubClusterExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMEventHubCluster_basic(data),
+				Config: testAccEventHubCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubClusterExists(data.ResourceName),
+					testCheckEventHubClusterExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -64,7 +64,7 @@ func TestAccAzureRMEventHubCluster_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMEventHubClusterDestroy(s *terraform.State) error {
+func testCheckEventHubClusterDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.ClusterClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -91,7 +91,7 @@ func testCheckAzureRMEventHubClusterDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMEventHubClusterExists(resourceName string) resource.TestCheckFunc {
+func testCheckEventHubClusterExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.ClusterClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -119,7 +119,7 @@ func testCheckAzureRMEventHubClusterExists(resourceName string) resource.TestChe
 	}
 }
 
-func testAccAzureRMEventHubCluster_basic(data acceptance.TestData) string {
+func testAccEventHubCluster_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -139,7 +139,7 @@ resource "azurerm_eventhub_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMEventHubCluster_update(data acceptance.TestData) string {
+func testAccEventHubCluster_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

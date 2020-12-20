@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMEventHubNamespace_basic(t *testing.T) {
+func TestAccEventHubNamespaceDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_namespace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -16,7 +16,7 @@ func TestAccDataSourceAzureRMEventHubNamespace_basic(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceEventHubNamespace_basic(data),
+				Config: testAccEventHubNamespaceDataSource_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Basic"),
 				),
@@ -25,7 +25,7 @@ func TestAccDataSourceAzureRMEventHubNamespace_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMEventHubNamespace_complete(t *testing.T) {
+func TestAccEventHubNamespaceDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_namespace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -33,7 +33,7 @@ func TestAccDataSourceAzureRMEventHubNamespace_complete(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceEventHubNamespace_complete(data),
+				Config: testAccEventHubNamespaceDataSource_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Standard"),
 					resource.TestCheckResourceAttr(data.ResourceName, "capacity", "2"),
@@ -45,7 +45,7 @@ func TestAccDataSourceAzureRMEventHubNamespace_complete(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMEventHubNamespace_withAliasConnectionString(t *testing.T) {
+func TestAccEventHubNamespaceDataSource_withAliasConnectionString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_namespace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -55,10 +55,10 @@ func TestAccDataSourceAzureRMEventHubNamespace_withAliasConnectionString(t *test
 			{
 				// `default_primary_connection_string_alias` and `default_secondary_connection_string_alias` are still `nil` while `data.azurerm_eventhub_namespace` is retrieving resource. since `azurerm_eventhub_namespace_disaster_recovery_config` hasn't been created.
 				// So these two properties should be checked in the second run.
-				Config: testAccAzureRMEventHubNamespace_withAliasConnectionString(data),
+				Config: testAccEventHubNamespace_withAliasConnectionString(data),
 			},
 			{
-				Config: testAccDataSourceEventHubNamespace_withAliasConnectionString(data),
+				Config: testAccEventHubNamespaceDataSource_withAliasConnectionString(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "default_primary_connection_string_alias"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "default_secondary_connection_string_alias"),
@@ -68,7 +68,7 @@ func TestAccDataSourceAzureRMEventHubNamespace_withAliasConnectionString(t *test
 	})
 }
 
-func testAccDataSourceEventHubNamespace_basic(data acceptance.TestData) string {
+func testAccEventHubNamespaceDataSource_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -93,7 +93,7 @@ data "azurerm_eventhub_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccDataSourceEventHubNamespace_complete(data acceptance.TestData) string {
+func testAccEventHubNamespaceDataSource_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -121,8 +121,8 @@ data "azurerm_eventhub_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccDataSourceEventHubNamespace_withAliasConnectionString(data acceptance.TestData) string {
-	template := testAccAzureRMEventHubNamespace_withAliasConnectionString(data)
+func testAccEventHubNamespaceDataSource_withAliasConnectionString(data acceptance.TestData) string {
+	template := testAccEventHubNamespace_withAliasConnectionString(data)
 	return fmt.Sprintf(`
 %s
 

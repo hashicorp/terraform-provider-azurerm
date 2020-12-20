@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMEventHubNamespaceAuthorizationRule_basic(t *testing.T) {
+func TestAccEventHubNamespaceAuthorizationRuleDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_namespace_authorization_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -16,7 +16,7 @@ func TestAccDataSourceAzureRMEventHubNamespaceAuthorizationRule_basic(t *testing
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceEventHubNamespaceAuthorizationRule_basic(data, true, true, true),
+				Config: testAccEventHubNamespaceDataSourceAuthorizationRule_basic(data, true, true, true),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "listen"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "manage"),
@@ -27,7 +27,7 @@ func TestAccDataSourceAzureRMEventHubNamespaceAuthorizationRule_basic(t *testing
 	})
 }
 
-func TestAccDataSourceAzureRMEventHubNamespaceAuthorizationRule_withAliasConnectionString(t *testing.T) {
+func TestAccEventHubNamespaceAuthorizationRuleDataSource_withAliasConnectionString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_namespace_authorization_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -39,10 +39,10 @@ func TestAccDataSourceAzureRMEventHubNamespaceAuthorizationRule_withAliasConnect
 				// So these two properties should be checked in the second run.
 				// And `depends_on` cannot be applied to `azurerm_eventhub_namespace_authorization_rule`.
 				// Because it would throw error message `BreakPairing operation is only allowed on primary namespace with valid secondary namespace.` while destroying `azurerm_eventhub_namespace_disaster_recovery_config` if `depends_on` is applied.
-				Config: testAccAzureRMEventHubNamespaceAuthorizationRule_withAliasConnectionString(data),
+				Config: testAccEventHubNamespaceAuthorizationRule_withAliasConnectionString(data),
 			},
 			{
-				Config: testAccDataSourceEventHubNamespaceAuthorizationRule_withAliasConnectionString(data),
+				Config: testAccEventHubNamespaceDataSourceAuthorizationRule_withAliasConnectionString(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string_alias"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string_alias"),
@@ -52,7 +52,7 @@ func TestAccDataSourceAzureRMEventHubNamespaceAuthorizationRule_withAliasConnect
 	})
 }
 
-func testAccDataSourceEventHubNamespaceAuthorizationRule_basic(data acceptance.TestData, listen, send, manage bool) string {
+func testAccEventHubNamespaceDataSourceAuthorizationRule_basic(data acceptance.TestData, listen, send, manage bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -89,8 +89,8 @@ data "azurerm_eventhub_namespace_authorization_rule" "test" {
 `, data.RandomInteger, data.Locations.Primary, listen, send, manage)
 }
 
-func testAccDataSourceEventHubNamespaceAuthorizationRule_withAliasConnectionString(data acceptance.TestData) string {
-	template := testAccAzureRMEventHubNamespaceAuthorizationRule_withAliasConnectionString(data)
+func testAccEventHubNamespaceDataSourceAuthorizationRule_withAliasConnectionString(data acceptance.TestData) string {
+	template := testAccEventHubNamespaceAuthorizationRule_withAliasConnectionString(data)
 	return fmt.Sprintf(`
 %s
 

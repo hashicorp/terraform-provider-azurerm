@@ -12,34 +12,34 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMEventHubNamespaceAuthorizationRule_listen(t *testing.T) {
-	testAccAzureRMEventHubNamespaceAuthorizationRule(t, true, false, false)
+func TestAccEventHubNamespaceAuthorizationRule_listen(t *testing.T) {
+	testAccEventHubNamespaceAuthorizationRule(t, true, false, false)
 }
 
-func TestAccAzureRMEventHubNamespaceAuthorizationRule_send(t *testing.T) {
-	testAccAzureRMEventHubNamespaceAuthorizationRule(t, false, true, false)
+func TestAccEventHubNamespaceAuthorizationRule_send(t *testing.T) {
+	testAccEventHubNamespaceAuthorizationRule(t, false, true, false)
 }
 
-func TestAccAzureRMEventHubNamespaceAuthorizationRule_listensend(t *testing.T) {
-	testAccAzureRMEventHubNamespaceAuthorizationRule(t, true, true, false)
+func TestAccEventHubNamespaceAuthorizationRule_listensend(t *testing.T) {
+	testAccEventHubNamespaceAuthorizationRule(t, true, true, false)
 }
 
-func TestAccAzureRMEventHubNamespaceAuthorizationRule_manage(t *testing.T) {
-	testAccAzureRMEventHubNamespaceAuthorizationRule(t, true, true, true)
+func TestAccEventHubNamespaceAuthorizationRule_manage(t *testing.T) {
+	testAccEventHubNamespaceAuthorizationRule(t, true, true, true)
 }
 
-func testAccAzureRMEventHubNamespaceAuthorizationRule(t *testing.T, listen, send, manage bool) {
+func testAccEventHubNamespaceAuthorizationRule(t *testing.T, listen, send, manage bool) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_authorization_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy,
+		CheckDestroy: testCheckEventHubNamespaceAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubNamespaceAuthorizationRule_base(data, listen, send, manage),
+				Config: testAccEventHubNamespaceAuthorizationRule_base(data, listen, send, manage),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(data.ResourceName),
+					testCheckEventHubNamespaceAuthorizationRuleExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "namespace_name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
@@ -56,49 +56,49 @@ func testAccAzureRMEventHubNamespaceAuthorizationRule(t *testing.T, listen, send
 	})
 }
 
-func TestAccAzureRMEventHubNamespaceAuthorizationRule_requiresImport(t *testing.T) {
+func TestAccEventHubNamespaceAuthorizationRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_authorization_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy,
+		CheckDestroy: testCheckEventHubNamespaceAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubNamespaceAuthorizationRule_base(data, true, true, true),
+				Config: testAccEventHubNamespaceAuthorizationRule_base(data, true, true, true),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(data.ResourceName),
+					testCheckEventHubNamespaceAuthorizationRuleExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMEventHubNamespaceAuthorizationRule_requiresImport(data, true, true, true),
+				Config:      testAccEventHubNamespaceAuthorizationRule_requiresImport(data, true, true, true),
 				ExpectError: acceptance.RequiresImportError("azurerm_eventhub_namespace_authorization_rule"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMEventHubNamespaceAuthorizationRule_rightsUpdate(t *testing.T) {
+func TestAccEventHubNamespaceAuthorizationRule_rightsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_authorization_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy,
+		CheckDestroy: testCheckEventHubNamespaceAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubNamespaceAuthorizationRule_base(data, true, false, false),
+				Config: testAccEventHubNamespaceAuthorizationRule_base(data, true, false, false),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(data.ResourceName),
+					testCheckEventHubNamespaceAuthorizationRuleExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "listen", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "send", "false"),
 					resource.TestCheckResourceAttr(data.ResourceName, "manage", "false"),
 				),
 			},
 			{
-				Config: testAccAzureRMEventHubNamespaceAuthorizationRule_base(data, true, true, true),
+				Config: testAccEventHubNamespaceAuthorizationRule_base(data, true, true, true),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(data.ResourceName),
+					testCheckEventHubNamespaceAuthorizationRuleExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "namespace_name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
@@ -115,26 +115,26 @@ func TestAccAzureRMEventHubNamespaceAuthorizationRule_rightsUpdate(t *testing.T)
 	})
 }
 
-func TestAccAzureRMEventHubNamespaceAuthorizationRule_withAliasConnectionString(t *testing.T) {
+func TestAccEventHubNamespaceAuthorizationRule_withAliasConnectionString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_authorization_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy,
+		CheckDestroy: testCheckEventHubNamespaceAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				// `primary_connection_string_alias` and `secondary_connection_string_alias` are still `nil` in `azurerm_eventhub_namespace_authorization_rule` after created `azurerm_eventhub_namespace` successfully since `azurerm_eventhub_namespace_disaster_recovery_config` hasn't been created.
 				// So these two properties should be checked in the second run.
 				// And `depends_on` cannot be applied to `azurerm_eventhub_namespace_authorization_rule`.
 				// Because it would throw error message `BreakPairing operation is only allowed on primary namespace with valid secondary namespace.` while destroying `azurerm_eventhub_namespace_disaster_recovery_config` if `depends_on` is applied.
-				Config: testAccAzureRMEventHubNamespaceAuthorizationRule_withAliasConnectionString(data),
+				Config: testAccEventHubNamespaceAuthorizationRule_withAliasConnectionString(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(data.ResourceName),
+					testCheckEventHubNamespaceAuthorizationRuleExists(data.ResourceName),
 				),
 			},
 			{
-				Config: testAccAzureRMEventHubNamespaceAuthorizationRule_withAliasConnectionString(data),
+				Config: testAccEventHubNamespaceAuthorizationRule_withAliasConnectionString(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string_alias"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string_alias"),
@@ -145,7 +145,7 @@ func TestAccAzureRMEventHubNamespaceAuthorizationRule_withAliasConnectionString(
 	})
 }
 
-func TestAccAzureRMEventHubNamespaceAuthorizationRule_multi(t *testing.T) {
+func TestAccEventHubNamespaceAuthorizationRule_multi(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_authorization_rule", "test1")
 	resourceTwoName := "azurerm_eventhub_namespace_authorization_rule.test2"
 	resourceThreeName := "azurerm_eventhub_namespace_authorization_rule.test3"
@@ -153,24 +153,24 @@ func TestAccAzureRMEventHubNamespaceAuthorizationRule_multi(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy,
+		CheckDestroy: testCheckEventHubNamespaceAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMEventHubNamespaceAuthorizationRule_multi(data, true, true, true),
+				Config: testEventHubNamespaceAuthorizationRule_multi(data, true, true, true),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(data.ResourceName),
+					testCheckEventHubNamespaceAuthorizationRuleExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "manage", "false"),
 					resource.TestCheckResourceAttr(data.ResourceName, "send", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "listen", "true"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
-					testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(resourceTwoName),
+					testCheckEventHubNamespaceAuthorizationRuleExists(resourceTwoName),
 					resource.TestCheckResourceAttr(resourceTwoName, "manage", "false"),
 					resource.TestCheckResourceAttr(resourceTwoName, "send", "true"),
 					resource.TestCheckResourceAttr(resourceTwoName, "listen", "true"),
 					resource.TestCheckResourceAttrSet(resourceTwoName, "primary_connection_string"),
 					resource.TestCheckResourceAttrSet(resourceTwoName, "secondary_connection_string"),
-					testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(resourceThreeName),
+					testCheckEventHubNamespaceAuthorizationRuleExists(resourceThreeName),
 					resource.TestCheckResourceAttr(resourceThreeName, "manage", "false"),
 					resource.TestCheckResourceAttr(resourceThreeName, "send", "true"),
 					resource.TestCheckResourceAttr(resourceThreeName, "listen", "true"),
@@ -193,7 +193,7 @@ func TestAccAzureRMEventHubNamespaceAuthorizationRule_multi(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy(s *terraform.State) error {
+func testCheckEventHubNamespaceAuthorizationRuleDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.NamespacesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -217,7 +217,7 @@ func testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy(s *terraform.Stat
 	return nil
 }
 
-func testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(resourceName string) resource.TestCheckFunc {
+func testCheckEventHubNamespaceAuthorizationRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.NamespacesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -248,7 +248,7 @@ func testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(resourceName strin
 	}
 }
 
-func testAccAzureRMEventHubNamespaceAuthorizationRule_base(data acceptance.TestData, listen, send, manage bool) string {
+func testAccEventHubNamespaceAuthorizationRule_base(data acceptance.TestData, listen, send, manage bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -279,7 +279,7 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
 `, data.RandomInteger, data.Locations.Primary, listen, send, manage)
 }
 
-func testAccAzureRMEventHubNamespaceAuthorizationRule_withAliasConnectionString(data acceptance.TestData) string {
+func testAccEventHubNamespaceAuthorizationRule_withAliasConnectionString(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -328,8 +328,8 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
 
-func testAccAzureRMEventHubNamespaceAuthorizationRule_requiresImport(data acceptance.TestData, listen, send, manage bool) string {
-	template := testAccAzureRMEventHubNamespaceAuthorizationRule_base(data, listen, send, manage)
+func testAccEventHubNamespaceAuthorizationRule_requiresImport(data acceptance.TestData, listen, send, manage bool) string {
+	template := testAccEventHubNamespaceAuthorizationRule_base(data, listen, send, manage)
 	return fmt.Sprintf(`
 %s
 
@@ -344,8 +344,8 @@ resource "azurerm_eventhub_namespace_authorization_rule" "import" {
 `, template)
 }
 
-func testAzureRMEventHubNamespaceAuthorizationRule_multi(data acceptance.TestData, listen, send, manage bool) string {
-	template := testAccAzureRMEventHubNamespaceAuthorizationRule_base(data, listen, send, manage)
+func testEventHubNamespaceAuthorizationRule_multi(data acceptance.TestData, listen, send, manage bool) string {
+	template := testAccEventHubNamespaceAuthorizationRule_base(data, listen, send, manage)
 	return fmt.Sprintf(`
 %s
 

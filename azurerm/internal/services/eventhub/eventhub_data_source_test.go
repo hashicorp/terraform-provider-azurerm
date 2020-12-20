@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMEventHub_basic(t *testing.T) {
+func TestAccEventHubDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

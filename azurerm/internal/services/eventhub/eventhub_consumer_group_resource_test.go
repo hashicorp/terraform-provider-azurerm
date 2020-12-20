@@ -11,18 +11,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMEventHubConsumerGroup_basic(t *testing.T) {
+func TestAccEventHubConsumerGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_consumer_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubConsumerGroupDestroy,
+		CheckDestroy: testCheckEventHubConsumerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubConsumerGroup_basic(data),
+				Config: testAccEventHubConsumerGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubConsumerGroupExists(data.ResourceName),
+					testCheckEventHubConsumerGroupExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -30,40 +30,40 @@ func TestAccAzureRMEventHubConsumerGroup_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMEventHubConsumerGroup_requiresImport(t *testing.T) {
+func TestAccEventHubConsumerGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_consumer_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubConsumerGroupDestroy,
+		CheckDestroy: testCheckEventHubConsumerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubConsumerGroup_basic(data),
+				Config: testAccEventHubConsumerGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubConsumerGroupExists(data.ResourceName),
+					testCheckEventHubConsumerGroupExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMEventHubConsumerGroup_requiresImport(data),
+				Config:      testAccEventHubConsumerGroup_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_eventhub_consumer_group"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMEventHubConsumerGroup_complete(t *testing.T) {
+func TestAccEventHubConsumerGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_consumer_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubConsumerGroupDestroy,
+		CheckDestroy: testCheckEventHubConsumerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubConsumerGroup_complete(data),
+				Config: testAccEventHubConsumerGroup_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubConsumerGroupExists(data.ResourceName),
+					testCheckEventHubConsumerGroupExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -71,24 +71,24 @@ func TestAccAzureRMEventHubConsumerGroup_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMEventHubConsumerGroup_userMetadataUpdate(t *testing.T) {
+func TestAccEventHubConsumerGroup_userMetadataUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_consumer_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubConsumerGroupDestroy,
+		CheckDestroy: testCheckEventHubConsumerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubConsumerGroup_basic(data),
+				Config: testAccEventHubConsumerGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubConsumerGroupExists(data.ResourceName),
+					testCheckEventHubConsumerGroupExists(data.ResourceName),
 				),
 			},
 			{
-				Config: testAccAzureRMEventHubConsumerGroup_complete(data),
+				Config: testAccEventHubConsumerGroup_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubConsumerGroupExists(data.ResourceName),
+					testCheckEventHubConsumerGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "user_metadata", "some-meta-data"),
 				),
 			},
@@ -97,7 +97,7 @@ func TestAccAzureRMEventHubConsumerGroup_userMetadataUpdate(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMEventHubConsumerGroupDestroy(s *terraform.State) error {
+func testCheckEventHubConsumerGroupDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.ConsumerGroupClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -122,7 +122,7 @@ func testCheckAzureRMEventHubConsumerGroupDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMEventHubConsumerGroupExists(resourceName string) resource.TestCheckFunc {
+func testCheckEventHubConsumerGroupExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.ConsumerGroupClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -155,7 +155,7 @@ func testCheckAzureRMEventHubConsumerGroupExists(resourceName string) resource.T
 	}
 }
 
-func testAccAzureRMEventHubConsumerGroup_basic(data acceptance.TestData) string {
+func testAccEventHubConsumerGroup_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -190,8 +190,8 @@ resource "azurerm_eventhub_consumer_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMEventHubConsumerGroup_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMEventHubConsumerGroup_basic(data)
+func testAccEventHubConsumerGroup_requiresImport(data acceptance.TestData) string {
+	template := testAccEventHubConsumerGroup_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -204,7 +204,7 @@ resource "azurerm_eventhub_consumer_group" "import" {
 `, template)
 }
 
-func testAccAzureRMEventHubConsumerGroup_complete(data acceptance.TestData) string {
+func testAccEventHubConsumerGroup_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -8,18 +8,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMEventHubAuthorizationRule(t *testing.T) {
+func TestAccEventHubAuthorizationRuleDataSource(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_authorization_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubAuthorizationRuleDestroy,
+		CheckDestroy: testCheckEventHubAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMEventHubAuthorizationRule_base(data, true, true, true),
+				Config: testAccEventHubAuthorizationRuleDataSource_base(data, true, true, true),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubAuthorizationRuleExists(data.ResourceName),
+					testCheckEventHubAuthorizationRuleExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "namespace_name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "eventhub_name"),
@@ -33,18 +33,18 @@ func TestAccDataSourceAzureRMEventHubAuthorizationRule(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMEventHubAuthorizationRule_withAliasConnectionString(t *testing.T) {
+func TestAccEventHubAuthorizationRuleDataSource_withAliasConnectionString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_authorization_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubAuthorizationRuleDestroy,
+		CheckDestroy: testCheckEventHubAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMEventHubAuthorizationRule_withAliasConnectionString(data),
+				Config: testAccEventHubAuthorizationRuleDataSource_withAliasConnectionString(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubAuthorizationRuleExists(data.ResourceName),
+					testCheckEventHubAuthorizationRuleExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string_alias"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string_alias"),
 				),
@@ -53,8 +53,8 @@ func TestAccDataSourceAzureRMEventHubAuthorizationRule_withAliasConnectionString
 	})
 }
 
-func testAccDataSourceAzureRMEventHubAuthorizationRule_base(data acceptance.TestData, listen, send, manage bool) string {
-	template := testAccAzureRMEventHubAuthorizationRule_base(data, listen, send, manage)
+func testAccEventHubAuthorizationRuleDataSource_base(data acceptance.TestData, listen, send, manage bool) string {
+	template := testAccEventHubAuthorizationRule_base(data, listen, send, manage)
 	return fmt.Sprintf(`
 %s
 
@@ -67,8 +67,8 @@ data "azurerm_eventhub_authorization_rule" "test" {
 `, template)
 }
 
-func testAccDataSourceAzureRMEventHubAuthorizationRule_withAliasConnectionString(data acceptance.TestData) string {
-	template := testAccAzureRMEventHubAuthorizationRule_withAliasConnectionString(data)
+func testAccEventHubAuthorizationRuleDataSource_withAliasConnectionString(data acceptance.TestData) string {
+	template := testAccEventHubAuthorizationRule_withAliasConnectionString(data)
 	return fmt.Sprintf(`
 %s
 
