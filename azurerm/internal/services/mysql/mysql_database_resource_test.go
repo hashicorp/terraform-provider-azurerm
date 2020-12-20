@@ -1,154 +1,106 @@
 package mysql_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMMySQLDatabase_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mysql_database", "test")
+type MySQLDatabaseResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLDatabaseDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMySQLDatabase_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLDatabaseExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccMySQLDatabase_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_database", "test")
+	r := MySQLDatabaseResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMySQLDatabase_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_database", "test")
+	r := MySQLDatabaseResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_mysql_database"),
 		},
 	})
 }
 
-func TestAccAzureRMMySQLDatabase_requiresImport(t *testing.T) {
+func TestAccMySQLDatabase_charsetUppercase(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_database", "test")
+	r := MySQLDatabaseResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLDatabaseDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMySQLDatabase_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLDatabaseExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMMySQLDatabase_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_mysql_database"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.charsetUppercase(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("charset").HasValue("utf8"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMMySQLDatabase_charsetUppercase(t *testing.T) {
+func TestAccMySQLDatabase_charsetMixedcase(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_database", "test")
+	r := MySQLDatabaseResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLDatabaseDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMySQLDatabase_charsetUppercase(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLDatabaseExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "charset", "utf8"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.charsetMixedcase(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("charset").HasValue("utf8"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMMySQLDatabase_charsetMixedcase(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mysql_database", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLDatabaseDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMySQLDatabase_charsetMixedcase(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLDatabaseExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "charset", "utf8"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testCheckAzureRMMySQLDatabaseExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.DatabasesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		serverName := rs.Primary.Attributes["server_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for MySQL Database: %s", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, serverName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: MySQL Database %q (server %q resource group: %q) does not exist", name, serverName, resourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on mysqlDatabasesClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMMySQLDatabaseDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.DatabasesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_mysql_database" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		serverName := rs.Primary.Attributes["server_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, serverName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return fmt.Errorf("MySQL Database still exists:\n%#v", resp)
-		}
+func (t MySQLDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resourceGroup := id.ResourceGroup
+	serverName := id.Path["servers"]
+	name := id.Path["databases"]
+
+	resp, err := clients.MySQL.DatabasesClient.Get(ctx, resourceGroup, serverName, name)
+	if err != nil {
+		return nil, fmt.Errorf("reading MySQL Database (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMMySQLDatabase_basic(data acceptance.TestData) string {
+func (MySQLDatabaseResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -188,7 +140,7 @@ resource "azurerm_mysql_database" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMMySQLDatabase_requiresImport(data acceptance.TestData) string {
+func (r MySQLDatabaseResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -199,10 +151,10 @@ resource "azurerm_mysql_database" "import" {
   charset             = azurerm_mysql_database.test.charset
   collation           = azurerm_mysql_database.test.collation
 }
-`, testAccAzureRMMySQLDatabase_basic(data))
+`, r.basic(data))
 }
 
-func testAccAzureRMMySQLDatabase_charsetUppercase(data acceptance.TestData) string {
+func (MySQLDatabaseResource) charsetUppercase(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -242,7 +194,7 @@ resource "azurerm_mysql_database" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMMySQLDatabase_charsetMixedcase(data acceptance.TestData) string {
+func (MySQLDatabaseResource) charsetMixedcase(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
