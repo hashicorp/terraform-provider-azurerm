@@ -11,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMLighthouseDefinition_basic(t *testing.T) {
+func TestAccLighthouseDefinitionDataSource_basic(t *testing.T) {
 	// Multiple tenants are needed to test this resource.
 	// Second tenant ID needs to be set as a environment variable ARM_TENANT_ID_ALT.
 	// ObjectId for user, usergroup or service principal from second Tenant needs to be set as a environment variable ARM_PRINCIPAL_ID_ALT_TENANT.
