@@ -388,7 +388,7 @@ resource "azurerm_backup_policy_vm" "test" {
     count = 10
   }
 }
-`, r.base(data), data.RandomInteger)
+`, r.withVault(data), data.RandomInteger)
 }
 
 // For update backup policy id test
@@ -410,7 +410,7 @@ resource "azurerm_backup_policy_vm" "test_change_backup" {
     count = 15
   }
 }
-`, r.base(data), data.RandomInteger)
+`, r.withFirstPolicy(data), data.RandomInteger)
 }
 
 // For update backup policy id test
