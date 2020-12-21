@@ -38,8 +38,8 @@ resource "azurerm_media_services_account" "example" {
 }
 
 resource "azurerm_media_content_key_policy" "example" {
-  name = "example"
-  resource_group_name = azurerm_resource_group.example.name
+  name                        = "example"
+  resource_group_name         = azurerm_resource_group.example.name
   media_services_account_name = azurerm_media_services_account.example.name
   policy_option {
     name                            = "ClearKeyOption"
@@ -82,8 +82,8 @@ resource "azurerm_media_services_account" "example" {
 }
 
 resource "azurerm_media_content_key_policy" "example" {
-  name = "example"
-  resource_group_name = azurerm_resource_group.example.name
+  name                        = "example"
+  resource_group_name         = azurerm_resource_group.example.name
   media_services_account_name = azurerm_media_services_account.example.name
   policy_option {
     name                            = "ClearKeyOption"
@@ -131,8 +131,8 @@ resource "azurerm_media_services_account" "example" {
 }
 
 resource "azurerm_media_content_key_policy" "example" {
-  name = "example"
-  resource_group_name = azurerm_resource_group.example.name
+  name                        = "example"
+  resource_group_name         = azurerm_resource_group.example.name
   media_services_account_name = azurerm_media_services_account.example.name
   policy_option {
     name = "playReady"
@@ -187,8 +187,8 @@ resource "azurerm_media_services_account" "example" {
 }
 
 resource "azurerm_media_content_key_policy" "example" {
-  name = "example"
-  resource_group_name = azurerm_resource_group.example.name
+  name                        = "example"
+  resource_group_name         = azurerm_resource_group.example.name
   media_services_account_name = azurerm_media_services_account.example.name
   policy_option {
     name = "fairplayOption2"
