@@ -34,11 +34,12 @@ func TestAccEventHubNamespaceDisasterRecoveryConfig_basic(t *testing.T) {
 
 func TestAccEventHubNamespaceDisasterRecoveryConfig_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_disaster_recovery_config", "test")
-	r := EventHubNamespaceDisasterRecoveryConfigResource{}
 
 	// skipping due to there being no way to delete a DRC once an alternate name has been set
 	// sdk bug: https://github.com/Azure/azure-sdk-for-go/issues/5893
 	t.Skip()
+
+	r := EventHubNamespaceDisasterRecoveryConfigResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
