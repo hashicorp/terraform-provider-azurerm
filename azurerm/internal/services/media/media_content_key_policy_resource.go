@@ -456,13 +456,7 @@ func resourceMediaContentKeyPolicyRead(d *schema.ResourceData, meta interface{})
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("media_services_account_name", id.MediaserviceName)
 	d.Set("description", resp.Description)
-
-	options, err := flattenPolicyOptions(resp.Options)
-	if err != nil {
-		return err
-	}
-
-	d.Set("policy_option", options)
+	d.Set("policy_option", flattenPolicyOptions(resp.Options))
 
 	return nil
 }
@@ -516,9 +510,9 @@ func expandPolicyOptions(input []interface{}) (*[]media.ContentKeyPolicyOption, 
 	return &results, nil
 }
 
-func flattenPolicyOptions(input *[]media.ContentKeyPolicyOption) ([]interface{}, error) {
+func flattenPolicyOptions(input *[]media.ContentKeyPolicyOption) []interface{} {
 	if input == nil {
-		return []interface{}{}, nil
+		return []interface{}{}
 	}
 
 	results := make([]interface{}, 0)
@@ -531,7 +525,7 @@ func flattenPolicyOptions(input *[]media.ContentKeyPolicyOption) ([]interface{},
 		results = append(results, policyOption)
 	}
 
-	return results, nil
+	return results
 }
 
 func expandRestriction(option map[string]interface{}) (media.BasicContentKeyPolicyRestriction, error) {
