@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKustoDatabase() *schema.Resource {
+func resourceKustoDatabase() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKustoDatabaseCreateUpdate,
-		Read:   resourceArmKustoDatabaseRead,
-		Update: resourceArmKustoDatabaseCreateUpdate,
-		Delete: resourceArmKustoDatabaseDelete,
+		Create: resourceKustoDatabaseCreateUpdate,
+		Read:   resourceKustoDatabaseRead,
+		Update: resourceKustoDatabaseCreateUpdate,
+		Delete: resourceKustoDatabaseDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -74,7 +74,7 @@ func resourceArmKustoDatabase() *schema.Resource {
 	}
 }
 
-func resourceArmKustoDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -142,10 +142,10 @@ func resourceArmKustoDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 
 	d.SetId(*database.ID)
 
-	return resourceArmKustoDatabaseRead(d, meta)
+	return resourceKustoDatabaseRead(d, meta)
 }
 
-func resourceArmKustoDatabaseRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -193,7 +193,7 @@ func resourceArmKustoDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceArmKustoDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

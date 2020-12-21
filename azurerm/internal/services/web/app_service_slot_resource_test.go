@@ -1142,6 +1142,11 @@ func (r AppServiceSlotResource) Exists(ctx context.Context, client *clients.Clie
 		return nil, fmt.Errorf("retrieving Slot %q (App Service %q / Resource Group %q): %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
 	}
 
+	// The SDK defines 404 as an "ok" status code..
+	if utils.ResponseWasNotFound(resp.Response) {
+		return utils.Bool(false), nil
+	}
+
 	return utils.Bool(true), nil
 }
 

@@ -29,7 +29,9 @@ func TestAccAzureRMAppService_basic(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("outbound_ip_addresses").Exists(),
+				check.That(data.ResourceName).Key("outbound_ip_address_list.#").Exists(),
 				check.That(data.ResourceName).Key("possible_outbound_ip_addresses").Exists(),
+				check.That(data.ResourceName).Key("possible_outbound_ip_address_list.#").Exists(),
 				check.That(data.ResourceName).Key("custom_domain_verification_id").Exists(),
 			),
 		},
@@ -1693,6 +1695,12 @@ func (r AppServiceResource) Exists(ctx context.Context, client *clients.Client, 
 		}
 		return nil, fmt.Errorf("retrieving App Service %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
 	}
+
+	// The SDK defines 404 as an "ok" status code..
+	if utils.ResponseWasNotFound(resp.Response) {
+		return utils.Bool(false), nil
+	}
+
 	return utils.Bool(true), nil
 }
 

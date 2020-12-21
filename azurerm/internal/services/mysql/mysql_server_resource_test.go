@@ -1,6 +1,7 @@
 package mysql_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -8,445 +9,347 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMMySQLServer_basicFiveSix(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+type MySQLServerResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMySQLServer_basic(data, "5.6"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
+func TestAccMySQLServer_basicFiveSix(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	r := MySQLServerResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "5.6"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
 	})
 }
 
-func TestAccAzureRMMySQLServer_basicFiveSixWithIdentity(t *testing.T) {
+func TestAccMySQLServer_basicFiveSixWithIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	r := MySQLServerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMySQLServer_basicWithIdentity(data, "5.6"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicWithIdentity(data, "5.6"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
 	})
 }
 
-func TestAccAzureRMMySQLServer_basicFiveSixWithIdentityUpdate(t *testing.T) {
+func TestAccMySQLServer_basicFiveSixWithIdentityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	r := MySQLServerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMySQLServer_basic(data, "5.6"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
-			{
-				Config: testAccAzureRMMySQLServer_basicWithIdentity(data, "5.6"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "5.6"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
+		{
+			Config: r.basicWithIdentity(data, "5.6"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
 	})
 }
 
-func TestAccAzureRMMySQLServer_basicFiveSixDeprecated(t *testing.T) { // remove in v3.0
+func TestAccMySQLServer_basicFiveSixDeprecated(t *testing.T) { // remove in v3.0
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	r := MySQLServerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMySQLServer_basicDeprecated(data, "5.6"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicDeprecated(data, "5.6"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
 	})
 }
 
-func TestAccAzureRMMySQLServer_basicFiveSeven(t *testing.T) {
+func TestAccMySQLServer_basicFiveSeven(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	r := MySQLServerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMySQLServer_basic(data, "5.7"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "5.7"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
 	})
 }
 
-func TestAccAzureRMMySQLServer_basicEightZero(t *testing.T) {
+func TestAccMySQLServer_basicEightZero(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	r := MySQLServerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMySQLServer_basic(data, "8.0"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "8.0"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
 	})
 }
 
-func TestAccAzureRMMySQLServer_autogrowOnly(t *testing.T) {
+func TestAccMySQLServer_autogrowOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	r := MySQLServerResource{}
 	mysqlVersion := "5.7"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMySQLServer_autogrow(data, mysqlVersion),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
-			{
-				Config: testAccAzureRMMySQLServer_basic(data, mysqlVersion),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.autogrow(data, mysqlVersion),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
+		{
+			Config: r.basic(data, mysqlVersion),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
 	})
 }
 
-func TestAccAzureRMMySQLServer_requiresImport(t *testing.T) {
+func TestAccMySQLServer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	r := MySQLServerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMySQLServer_basic(data, "5.7"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMMySQLServer_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "5.7"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMMySQLServer_complete(t *testing.T) {
+func TestAccMySQLServer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	r := MySQLServerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMySQLServer_complete(data, "8.0"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data, "8.0"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
 	})
 }
 
-func TestAccAzureRMMySQLServer_update(t *testing.T) {
+func TestAccMySQLServer_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	r := MySQLServerResource{}
 	mysqlVersion := "8.0"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMySQLServer_basic(data, mysqlVersion),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
-			{
-				Config: testAccAzureRMMySQLServer_complete(data, mysqlVersion),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
-			{
-				Config: testAccAzureRMMySQLServer_complete2(data, mysqlVersion),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password", "threat_detection_policy.0.storage_account_access_key"),
-			{
-				Config: testAccAzureRMMySQLServer_complete3(data, mysqlVersion),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password", "threat_detection_policy.0.storage_account_access_key"),
-			{
-				Config: testAccAzureRMMySQLServer_basic(data, mysqlVersion),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, mysqlVersion),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
+		{
+			Config: r.complete(data, mysqlVersion),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
+		{
+			Config: r.complete2(data, mysqlVersion),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password", "threat_detection_policy.0.storage_account_access_key"),
+		{
+			Config: r.complete3(data, mysqlVersion),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password", "threat_detection_policy.0.storage_account_access_key"),
+		{
+			Config: r.basic(data, mysqlVersion),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
 	})
 }
 
-func TestAccAzureRMMySQLServer_completeDeprecatedMigrate(t *testing.T) { // remove in v3.0
+func TestAccMySQLServer_completeDeprecatedMigrate(t *testing.T) { // remove in v3.0
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	r := MySQLServerResource{}
 	mysqlVersion := "5.6"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMySQLServer_completeDeprecated(data, mysqlVersion),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
-			{
-				Config: testAccAzureRMMySQLServer_complete(data, mysqlVersion),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.completeDeprecated(data, mysqlVersion),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
+		{
+			Config: r.complete(data, mysqlVersion),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
 	})
 }
 
-func TestAccAzureRMMySQLServer_updateDeprecated(t *testing.T) { // remove in v3.0
+func TestAccMySQLServer_updateDeprecated(t *testing.T) { // remove in v3.0
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	r := MySQLServerResource{}
 	mysqlVersion := "5.6"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMySQLServer_basicDeprecated(data, mysqlVersion),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
-			{
-				Config: testAccAzureRMMySQLServer_completeDeprecated(data, mysqlVersion),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
-			{
-				Config: testAccAzureRMMySQLServer_basicDeprecated(data, mysqlVersion),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicDeprecated(data, mysqlVersion),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
+		{
+			Config: r.completeDeprecated(data, mysqlVersion),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
+		{
+			Config: r.basicDeprecated(data, mysqlVersion),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
 	})
 }
 
-func TestAccAzureRMMySQLServer_updateSKU(t *testing.T) {
+func TestAccMySQLServer_updateSKU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	r := MySQLServerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMySQLServer_sku(data, "GP_Gen5_2"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
-			{
-				Config: testAccAzureRMMySQLServer_sku(data, "MO_Gen5_16"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"), // not returned as sensitive
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.sku(data, "GP_Gen5_2"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
+		{
+			Config: r.sku(data, "MO_Gen5_16"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"), // not returned as sensitive
 	})
 }
 
-func TestAccAzureRMMySQLServer_createReplica(t *testing.T) {
+func TestAccMySQLServer_createReplica(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	r := MySQLServerResource{}
 	mysqlVersion := "8.0"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMySQLServer_basic(data, mysqlVersion),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
-			{
-				Config: testAccAzureRMMySQLServer_createReplica(data, mysqlVersion),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-					testCheckAzureRMMySQLServerExists("azurerm_mysql_server.replica"),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, mysqlVersion),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.createReplica(data, mysqlVersion),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
-func TestAccAzureRMMySQLServer_createPointInTimeRestore(t *testing.T) {
+func TestAccMySQLServer_createPointInTimeRestore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	r := MySQLServerResource{}
 	restoreTime := time.Now().Add(11 * time.Minute)
 	mysqlVersion := "8.0"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMySQLServer_basic(data, mysqlVersion),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
-			{
-				PreConfig: func() { time.Sleep(restoreTime.Sub(time.Now().Add(-7 * time.Minute))) },
-				Config:    testAccAzureRMMySQLServer_createPointInTimeRestore(data, mysqlVersion, restoreTime.Format(time.RFC3339)),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(data.ResourceName),
-					testCheckAzureRMMySQLServerExists("azurerm_mysql_server.restore"),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, mysqlVersion),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("administrator_login_password"),
+		{
+			PreConfig: func() { time.Sleep(restoreTime.Sub(time.Now().Add(-7 * time.Minute))) },
+			Config:    r.createPointInTimeRestore(data, mysqlVersion, restoreTime.Format(time.RFC3339)),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
 	})
 }
 
-func testCheckAzureRMMySQLServerExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.ServersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for MySQL Server: %s", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: MySQL Server %q (resource group: %q) does not exist", name, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on mysqlServersClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMMySQLServerDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.ServersClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_mysql_server" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return fmt.Errorf("MySQL Server still exists:\n%#v", resp)
-		}
+func (t MySQLServerResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ServerID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.MySQL.ServersClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("reading MySQL Server (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMMySQLServer_basic(data acceptance.TestData, version string) string {
+func (MySQLServerResource) basic(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -472,7 +375,7 @@ resource "azurerm_mysql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
 
-func testAccAzureRMMySQLServer_basicDeprecated(data acceptance.TestData, version string) string { // remove in v3.0
+func (MySQLServerResource) basicDeprecated(data acceptance.TestData, version string) string { // remove in v3.0
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -503,7 +406,7 @@ resource "azurerm_mysql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
 
-func testAccAzureRMMySQLServer_basicWithIdentity(data acceptance.TestData, version string) string {
+func (MySQLServerResource) basicWithIdentity(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -533,7 +436,7 @@ resource "azurerm_mysql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
 
-func testAccAzureRMMySQLServer_complete(data acceptance.TestData, version string) string {
+func (MySQLServerResource) complete(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -570,7 +473,7 @@ resource "azurerm_mysql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, version)
 }
 
-func testAccAzureRMMySQLServer_complete2(data acceptance.TestData, version string) string {
+func (MySQLServerResource) complete2(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -616,7 +519,7 @@ resource "azurerm_mysql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, version)
 }
 
-func testAccAzureRMMySQLServer_complete3(data acceptance.TestData, version string) string {
+func (MySQLServerResource) complete3(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -660,7 +563,7 @@ resource "azurerm_mysql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, version)
 }
 
-func testAccAzureRMMySQLServer_completeDeprecated(data acceptance.TestData, version string) string { // remove in v3.0
+func (MySQLServerResource) completeDeprecated(data acceptance.TestData, version string) string { // remove in v3.0
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -694,7 +597,7 @@ resource "azurerm_mysql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
 
-func testAccAzureRMMySQLServer_requiresImport(data acceptance.TestData) string {
+func (r MySQLServerResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -712,10 +615,10 @@ resource "azurerm_mysql_server" "import" {
   ssl_enforcement_enabled      = true
   storage_mb                   = 51200
 }
-`, testAccAzureRMMySQLServer_basic(data, "5.7"))
+`, r.basic(data, "5.7"))
 }
 
-func testAccAzureRMMySQLServer_sku(data acceptance.TestData, sku string) string {
+func (MySQLServerResource) sku(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -741,7 +644,7 @@ resource "azurerm_mysql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku)
 }
 
-func testAccAzureRMMySQLServer_autogrow(data acceptance.TestData, version string) string {
+func (MySQLServerResource) autogrow(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -770,7 +673,7 @@ resource "azurerm_mysql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
 
-func testAccAzureRMMySQLServer_createReplica(data acceptance.TestData, version string) string {
+func (r MySQLServerResource) createReplica(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -787,10 +690,10 @@ resource "azurerm_mysql_server" "replica" {
   ssl_enforcement_enabled          = true
   ssl_minimal_tls_version_enforced = "TLS1_1"
 }
-`, testAccAzureRMMySQLServer_basic(data, version), data.RandomInteger, version)
+`, r.basic(data, version), data.RandomInteger, version)
 }
 
-func testAccAzureRMMySQLServer_createPointInTimeRestore(data acceptance.TestData, version, restoreTime string) string {
+func (r MySQLServerResource) createPointInTimeRestore(data acceptance.TestData, version, restoreTime string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -808,5 +711,5 @@ resource "azurerm_mysql_server" "restore" {
   ssl_minimal_tls_version_enforced = "TLS1_1"
   storage_mb                       = 51200
 }
-`, testAccAzureRMMySQLServer_basic(data, version), data.RandomInteger, version, restoreTime)
+`, r.basic(data, version), data.RandomInteger, version, restoreTime)
 }

@@ -15,6 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	eventhubParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/parse"
+	eventhubValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/validate"
+	logAnalyticsParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
+	logAnalyticsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
+	storageParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
+	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -64,21 +70,21 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: eventhubValidate.NamespaceAuthorizationRuleID,
 			},
 
 			"log_analytics_workspace_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: logAnalyticsValidate.LogAnalyticsWorkspaceID,
 			},
 
 			"storage_account_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: storageValidate.StorageAccountID,
 			},
 
 			"log_analytics_destination_type": {
@@ -311,9 +317,38 @@ func resourceArmMonitorDiagnosticSettingRead(d *schema.ResourceData, meta interf
 	d.Set("target_resource_id", id.resourceID)
 
 	d.Set("eventhub_name", resp.EventHubName)
-	d.Set("eventhub_authorization_rule_id", resp.EventHubAuthorizationRuleID)
-	d.Set("log_analytics_workspace_id", resp.WorkspaceID)
-	d.Set("storage_account_id", resp.StorageAccountID)
+	eventhubAuthorizationRuleId := ""
+	if resp.EventHubAuthorizationRuleID != nil && *resp.EventHubAuthorizationRuleID != "" {
+		parsedId, err := eventhubParse.NamespaceAuthorizationRuleID(*resp.EventHubAuthorizationRuleID)
+		if err != nil {
+			return err
+		}
+
+		eventhubAuthorizationRuleId = parsedId.ID()
+	}
+	d.Set("eventhub_authorization_rule_id", eventhubAuthorizationRuleId)
+
+	workspaceId := ""
+	if resp.WorkspaceID != nil && *resp.WorkspaceID != "" {
+		parsedId, err := logAnalyticsParse.LogAnalyticsWorkspaceID(*resp.WorkspaceID)
+		if err != nil {
+			return err
+		}
+
+		workspaceId = parsedId.ID()
+	}
+	d.Set("log_analytics_workspace_id", workspaceId)
+
+	storageAccountId := ""
+	if resp.StorageAccountID != nil && *resp.StorageAccountID != "" {
+		parsedId, err := storageParse.StorageAccountID(*resp.StorageAccountID)
+		if err != nil {
+			return err
+		}
+
+		storageAccountId = parsedId.ID()
+	}
+	d.Set("storage_account_id", storageAccountId)
 
 	d.Set("log_analytics_destination_type", resp.LogAnalyticsDestinationType)
 

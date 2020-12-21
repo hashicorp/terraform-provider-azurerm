@@ -1,268 +1,186 @@
 package loadbalancer_test
 
 import (
+	"context"
 	"fmt"
-	"os"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type LoadBalancerOutboundRule struct {
+}
+
 func TestAccAzureRMLoadBalancerOutboundRule_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_lb_outbound_rule", "test")
+	r := LoadBalancerOutboundRule{}
 
-	var lb network.LoadBalancer
-	outboundRuleName := fmt.Sprintf("OutboundRule-%d", data.RandomInteger)
-
-	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	outboundRuleId := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/outboundRules/%s",
-		subscriptionID, data.RandomInteger, data.RandomInteger, outboundRuleName)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLoadBalancerOutboundRule_basic(data, outboundRuleName),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
-					testCheckAzureRMLoadBalancerOutboundRuleExists(outboundRuleName, &lb),
-					resource.TestCheckResourceAttr(
-						"azurerm_lb_outbound_rule.test", "id", outboundRuleId),
-				),
-			},
-			{
-				ResourceName:      "azurerm_lb.test",
-				ImportState:       true,
-				ImportStateVerify: true,
-				// location is deprecated and was never actually used
-				ImportStateVerifyIgnore: []string{"location"},
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMLoadBalancerOutboundRule_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_lb_outbound_rule", "test")
+	r := LoadBalancerOutboundRule{}
 
-	var lb network.LoadBalancer
-	outboundRuleName := fmt.Sprintf("OutboundRule-%d", data.RandomInteger)
-
-	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	outboundRuleId := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/outboundRules/%s",
-		subscriptionID, data.RandomInteger, data.RandomInteger, outboundRuleName)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLoadBalancerOutboundRule_basic(data, outboundRuleName),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
-					testCheckAzureRMLoadBalancerOutboundRuleExists(outboundRuleName, &lb),
-					resource.TestCheckResourceAttr(
-						"azurerm_lb_outbound_rule.test", "id", outboundRuleId),
-				),
-			},
-			{
-				Config:      testAccAzureRMLoadBalancerOutboundRule_requiresImport(data, outboundRuleName),
-				ExpectError: acceptance.RequiresImportError("azurerm_lb_outbound_rule"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
 func TestAccAzureRMLoadBalancerOutboundRule_removal(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_lb_outbound_rule", "test")
+	r := LoadBalancerOutboundRule{}
 
-	var lb network.LoadBalancer
-	outboundRuleName := fmt.Sprintf("OutboundRule-%d", data.RandomInteger)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLoadBalancerOutboundRule_basic(data, outboundRuleName),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
-					testCheckAzureRMLoadBalancerOutboundRuleExists(outboundRuleName, &lb),
-				),
-			},
-			{
-				Config: testAccAzureRMLoadBalancerOutboundRule_removal(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
-					testCheckAzureRMLoadBalancerOutboundRuleNotExists(outboundRuleName, &lb),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.removal(data),
+			Check: resource.ComposeTestCheckFunc(
+				r.IsMissing("azurerm_lb.test", fmt.Sprintf("OutboundRule-%d", data.RandomInteger)),
+			),
 		},
 	})
 }
 
 func TestAccAzureRMLoadBalancerOutboundRule_update(t *testing.T) {
-	data1 := acceptance.BuildTestData(t, "azurerm_lb_outbound_rule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_lb_outbound_rule", "test")
 	data2 := acceptance.BuildTestData(t, "azurerm_lb_outbound_rule", "test2")
+	r := LoadBalancerOutboundRule{}
 
-	var lb network.LoadBalancer
-	outboundRuleName := fmt.Sprintf("OutboundRule-%d", data1.RandomInteger)
-	outboundRule2Name := fmt.Sprintf("OutboundRule-%d", data2.RandomInteger)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLoadBalancerOutboundRule_multipleRules(data1, outboundRuleName, outboundRule2Name),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
-					testCheckAzureRMLoadBalancerOutboundRuleExists(outboundRuleName, &lb),
-					testCheckAzureRMLoadBalancerOutboundRuleExists(outboundRule2Name, &lb),
-				),
-			},
-			data1.ImportStep(),
-			data2.ImportStep(),
-			{
-				Config: testAccAzureRMLoadBalancerOutboundRule_multipleRulesUpdate(data1, outboundRuleName, outboundRule2Name),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
-					testCheckAzureRMLoadBalancerOutboundRuleExists(outboundRuleName, &lb),
-					testCheckAzureRMLoadBalancerOutboundRuleExists(outboundRule2Name, &lb),
-				),
-			},
-			data1.ImportStep(),
-			data2.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.multipleRules(data, data2),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data2.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		data2.ImportStep(),
+		{
+			Config: r.multipleRulesUpdate(data, data2),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data2.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		data2.ImportStep(),
 	})
 }
 
 func TestAccAzureRMLoadBalancerOutboundRule_withPublicIPPrefix(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
+	data := acceptance.BuildTestData(t, "azurerm_lb_outbound_rule", "test")
+	r := LoadBalancerOutboundRule{}
 
-	var lb network.LoadBalancer
-	outboundRuleName := fmt.Sprintf("OutboundRule-%d", data.RandomInteger)
-
-	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	outboundRuleId := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/outboundRules/%s",
-		subscriptionID, data.RandomInteger, data.RandomInteger, outboundRuleName)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLoadBalancerOutboundRule_withPublicIPPrefix(data, outboundRuleName),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
-					testCheckAzureRMLoadBalancerOutboundRuleExists(outboundRuleName, &lb),
-					resource.TestCheckResourceAttr(
-						"azurerm_lb_outbound_rule.test", "id", outboundRuleId),
-				),
-			},
-			{
-				ResourceName:      "azurerm_lb.test",
-				ImportState:       true,
-				ImportStateVerify: true,
-				// location is deprecated and was never actually used
-				ImportStateVerifyIgnore: []string{"location"},
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withPublicIPPrefix(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMLoadBalancerOutboundRule_disappears(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
-
-	var lb network.LoadBalancer
-	outboundRuleName := fmt.Sprintf("OutboundRule-%d", data.RandomInteger)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLoadBalancerOutboundRule_basic(data, outboundRuleName),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
-					testCheckAzureRMLoadBalancerOutboundRuleExists(outboundRuleName, &lb),
-					testCheckAzureRMLoadBalancerOutboundRuleDisappears(outboundRuleName, &lb),
-				),
-				ExpectNonEmptyPlan: true,
-			},
-		},
-	})
-}
-
-func testCheckAzureRMLoadBalancerOutboundRuleExists(outboundRuleName string, lb *network.LoadBalancer) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		if _, _, exists := loadbalancer.FindLoadBalancerOutboundRuleByName(lb, outboundRuleName); !exists {
-			return fmt.Errorf("A Load Balancer Outbound Rule with name %q cannot be found.", outboundRuleName)
-		}
-
-		return nil
+func (r LoadBalancerOutboundRule) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.LoadBalancerOutboundRuleID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-}
 
-func testCheckAzureRMLoadBalancerOutboundRuleNotExists(outboundRuleName string, lb *network.LoadBalancer) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		if _, _, exists := loadbalancer.FindLoadBalancerOutboundRuleByName(lb, outboundRuleName); exists {
-			return fmt.Errorf("A Load Balancer Outbound Rule with name %q has been found.", outboundRuleName)
+	lb, err := client.LoadBalancers.LoadBalancersClient.Get(ctx, id.ResourceGroup, id.LoadBalancerName, "")
+	if err != nil {
+		if utils.ResponseWasNotFound(lb.Response) {
+			return nil, fmt.Errorf("Load Balancer %q (resource group %q) not found for Outbound Rule %q", id.LoadBalancerName, id.ResourceGroup, id.OutboundRuleName)
 		}
-
-		return nil
+		return nil, fmt.Errorf("failed reading Load Balancer %q (resource group %q) for Outbound Rule %q", id.LoadBalancerName, id.ResourceGroup, id.OutboundRuleName)
 	}
+	props := lb.LoadBalancerPropertiesFormat
+	if props == nil || props.OutboundRules == nil || len(*props.OutboundRules) == 0 {
+		return nil, fmt.Errorf("Outbound Rule %q not found in Load Balancer %q (resource group %q)", id.OutboundRuleName, id.LoadBalancerName, id.ResourceGroup)
+	}
+
+	found := false
+	for _, v := range *props.OutboundRules {
+		if v.Name != nil && *v.Name == id.OutboundRuleName {
+			found = true
+		}
+	}
+	if !found {
+		return nil, fmt.Errorf("Outbound Rule %q not found in Load Balancer %q (resource group %q)", id.OutboundRuleName, id.LoadBalancerName, id.ResourceGroup)
+	}
+	return utils.Bool(found), nil
 }
 
-func testCheckAzureRMLoadBalancerOutboundRuleDisappears(ruleName string, lb *network.LoadBalancer) resource.TestCheckFunc {
+func (r LoadBalancerOutboundRule) IsMissing(loadBalancerName string, outboundRuleName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).LoadBalancers.LoadBalancersClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-		_, i, exists := loadbalancer.FindLoadBalancerOutboundRuleByName(lb, ruleName)
-		if !exists {
-			return fmt.Errorf("A Outbound Rule with name %q cannot be found.", ruleName)
+		rs, ok := s.RootModule().Resources[loadBalancerName]
+		if !ok {
+			return fmt.Errorf("not found: %q", loadBalancerName)
 		}
 
-		currentRules := *lb.LoadBalancerPropertiesFormat.OutboundRules
-		rules := append(currentRules[:i], currentRules[i+1:]...)
-		lb.LoadBalancerPropertiesFormat.OutboundRules = &rules
-
-		id, err := azure.ParseAzureResourceID(*lb.ID)
+		id, err := parse.LoadBalancerID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, *lb.Name, *lb)
+		lb, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
-			return fmt.Errorf("Error Creating/Updating Load Balancer %q (Resource Group %q): %+v", *lb.Name, id.ResourceGroup, err)
+			if utils.ResponseWasNotFound(lb.Response) {
+				return fmt.Errorf("Load Balancer %q (resource group %q) not found while checking for Outbound Rule removal", id.Name, id.ResourceGroup)
+			}
+			return fmt.Errorf("failed reading Load Balancer %q (resource group %q) for Outbound Rule removal", id.Name, id.ResourceGroup)
+		}
+		props := lb.LoadBalancerPropertiesFormat
+		if props == nil || props.OutboundRules == nil {
+			return fmt.Errorf("Outbound Rule %q not found in Load Balancer %q (resource group %q)", outboundRuleName, id.Name, id.ResourceGroup)
 		}
 
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for completion of Load Balancer %q (Resource Group %q): %+v", *lb.Name, id.ResourceGroup, err)
+		found := false
+		for _, v := range *props.OutboundRules {
+			if v.Name != nil && *v.Name == outboundRuleName {
+				found = true
+			}
 		}
-
-		_, err = client.Get(ctx, id.ResourceGroup, *lb.Name, "")
-		return err
+		if found {
+			return fmt.Errorf("Outbound Rule %q not removed from Load Balancer %q (resource group %q)", outboundRuleName, id.Name, id.ResourceGroup)
+		}
+		return nil
 	}
 }
 
-func testAccAzureRMLoadBalancerOutboundRule_basic(data acceptance.TestData, outboundRuleName string) string {
+func (r LoadBalancerOutboundRule) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -302,7 +220,7 @@ resource "azurerm_lb_backend_address_pool" "test" {
 resource "azurerm_lb_outbound_rule" "test" {
   resource_group_name     = azurerm_resource_group.test.name
   loadbalancer_id         = azurerm_lb.test.id
-  name                    = "%s"
+  name                    = "OutboundRule-%d"
   backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
   protocol                = "All"
 
@@ -310,11 +228,11 @@ resource "azurerm_lb_outbound_rule" "test" {
     name = "one-%d"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, outboundRuleName, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMLoadBalancerOutboundRule_requiresImport(data acceptance.TestData, name string) string {
-	template := testAccAzureRMLoadBalancerOutboundRule_basic(data, name)
+func (r LoadBalancerOutboundRule) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -332,7 +250,7 @@ resource "azurerm_lb_outbound_rule" "import" {
 `, template)
 }
 
-func testAccAzureRMLoadBalancerOutboundRule_removal(data acceptance.TestData) string {
+func (r LoadBalancerOutboundRule) removal(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -371,7 +289,7 @@ resource "azurerm_lb" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMLoadBalancerOutboundRule_multipleRules(data acceptance.TestData, outboundRuleName, outboundRule2Name string) string {
+func (r LoadBalancerOutboundRule) multipleRules(data, data2 acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -424,7 +342,7 @@ resource "azurerm_lb_backend_address_pool" "test" {
 resource "azurerm_lb_outbound_rule" "test" {
   resource_group_name     = azurerm_resource_group.test.name
   loadbalancer_id         = azurerm_lb.test.id
-  name                    = "%s"
+  name                    = "OutboundRule-%d"
   protocol                = "Tcp"
   backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
 
@@ -436,7 +354,7 @@ resource "azurerm_lb_outbound_rule" "test" {
 resource "azurerm_lb_outbound_rule" "test2" {
   resource_group_name     = azurerm_resource_group.test.name
   loadbalancer_id         = azurerm_lb.test.id
-  name                    = "%s"
+  name                    = "OutboundRule-%d"
   protocol                = "Udp"
   backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
 
@@ -444,10 +362,10 @@ resource "azurerm_lb_outbound_rule" "test2" {
     name = "fe2-%d"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, outboundRuleName, data.RandomInteger, outboundRule2Name, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data2.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMLoadBalancerOutboundRule_multipleRulesUpdate(data acceptance.TestData, outboundRuleName, outboundRule2Name string) string {
+func (r LoadBalancerOutboundRule) multipleRulesUpdate(data, data2 acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -500,7 +418,7 @@ resource "azurerm_lb_backend_address_pool" "test" {
 resource "azurerm_lb_outbound_rule" "test" {
   resource_group_name     = azurerm_resource_group.test.name
   loadbalancer_id         = azurerm_lb.test.id
-  name                    = "%s"
+  name                    = "OutboundRule-%d"
   protocol                = "All"
   backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
 
@@ -512,7 +430,7 @@ resource "azurerm_lb_outbound_rule" "test" {
 resource "azurerm_lb_outbound_rule" "test2" {
   resource_group_name     = azurerm_resource_group.test.name
   loadbalancer_id         = azurerm_lb.test.id
-  name                    = "%s"
+  name                    = "OutboundRule-%d"
   protocol                = "All"
   backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
 
@@ -520,10 +438,10 @@ resource "azurerm_lb_outbound_rule" "test2" {
     name = "fe2-%d"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, outboundRuleName, data.RandomInteger, outboundRule2Name, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data2.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMLoadBalancerOutboundRule_withPublicIPPrefix(data acceptance.TestData, outboundRuleName string) string {
+func (r LoadBalancerOutboundRule) withPublicIPPrefix(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -562,7 +480,7 @@ resource "azurerm_lb_backend_address_pool" "test" {
 resource "azurerm_lb_outbound_rule" "test" {
   resource_group_name     = azurerm_resource_group.test.name
   loadbalancer_id         = azurerm_lb.test.id
-  name                    = "%s"
+  name                    = "OutboundRule-%d"
   backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
   protocol                = "All"
 
@@ -570,5 +488,5 @@ resource "azurerm_lb_outbound_rule" "test" {
     name = "one-%d"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, outboundRuleName, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

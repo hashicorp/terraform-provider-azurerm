@@ -1,12 +1,14 @@
 package keyvault
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -26,7 +28,7 @@ func resourceArmKeyVaultKey() *schema.Resource {
 		Update: resourceArmKeyVaultKeyUpdate,
 		Delete: resourceArmKeyVaultKeyDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceArmKeyVaultChildResourceImporter,
+			State: nestedItemResourceImporter,
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -429,8 +431,45 @@ func resourceArmKeyVaultKeyDelete(d *schema.ResourceData, meta interface{}) erro
 		return nil
 	}
 
-	_, err = client.DeleteKey(ctx, id.KeyVaultBaseUrl, id.Name)
-	return err
+	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy
+	description := fmt.Sprintf("Key %q (Key Vault %q)", id.Name, id.KeyVaultBaseUrl)
+	deleter := deleteAndPurgeKey{
+		client:      client,
+		keyVaultUri: id.KeyVaultBaseUrl,
+		name:        id.Name,
+	}
+	if err := deleteAndOptionallyPurge(ctx, description, shouldPurge, deleter); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+var _ deleteAndPurgeNestedItem = deleteAndPurgeKey{}
+
+type deleteAndPurgeKey struct {
+	client      *keyvault.BaseClient
+	keyVaultUri string
+	name        string
+}
+
+func (d deleteAndPurgeKey) DeleteNestedItem(ctx context.Context) (autorest.Response, error) {
+	resp, err := d.client.DeleteKey(ctx, d.keyVaultUri, d.name)
+	return resp.Response, err
+}
+
+func (d deleteAndPurgeKey) NestedItemHasBeenDeleted(ctx context.Context) (autorest.Response, error) {
+	resp, err := d.client.GetKey(ctx, d.keyVaultUri, d.name, "")
+	return resp.Response, err
+}
+
+func (d deleteAndPurgeKey) PurgeNestedItem(ctx context.Context) (autorest.Response, error) {
+	return d.client.PurgeDeletedKey(ctx, d.keyVaultUri, d.name)
+}
+
+func (d deleteAndPurgeKey) NestedItemHasBeenPurged(ctx context.Context) (autorest.Response, error) {
+	resp, err := d.client.GetDeletedKey(ctx, d.keyVaultUri, d.name)
+	return resp.Response, err
 }
 
 func expandKeyVaultKeyOptions(d *schema.ResourceData) *[]keyvault.JSONWebKeyOperation {

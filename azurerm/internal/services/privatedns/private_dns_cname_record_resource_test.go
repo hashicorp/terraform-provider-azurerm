@@ -1,182 +1,123 @@
 package privatedns_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMPrivateDnsCNameRecord_basic(t *testing.T) {
+type PrivateDnsCNameRecordResource struct {
+}
+
+func TestAccPrivateDnsCNameRecord_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_cname_record", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateDnsCNameRecordDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPrivateDnsCNameRecord_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateDnsCNameRecordExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
-				),
-			},
-			data.ImportStep(),
+	r := PrivateDnsCNameRecordResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("fqdn").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPrivateDnsCNameRecord_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_cname_record", "test")
+	r := PrivateDnsCNameRecordResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccPrivateDnsCNameRecord_subdomain(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_cname_record", "test")
+	r := PrivateDnsCNameRecordResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.subdomain(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("record").HasValue("test.contoso.com"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPrivateDnsCNameRecord_updateRecords(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_cname_record", "test")
+	r := PrivateDnsCNameRecordResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.updateRecords(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMPrivateDnsCNameRecord_requiresImport(t *testing.T) {
+func TestAccPrivateDnsCNameRecord_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_cname_record", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateDnsCNameRecordDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPrivateDnsCNameRecord_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateDnsCNameRecordExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMPrivateDnsCNameRecord_requiresImport),
+	r := PrivateDnsCNameRecordResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withTags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+			),
 		},
+		{
+			Config: r.withTagsUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMPrivateDnsCNameRecord_subdomain(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_private_dns_cname_record", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateDnsCNameRecordDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPrivateDnsCNameRecord_subdomain(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateDnsCNameRecordExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "record", "test.contoso.com"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMPrivateDnsCNameRecord_updateRecords(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_private_dns_cname_record", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateDnsCNameRecordDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPrivateDnsCNameRecord_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateDnsCNameRecordExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMPrivateDnsCNameRecord_updateRecords(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateDnsCNameRecordExists(data.ResourceName),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMPrivateDnsCNameRecord_withTags(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_private_dns_cname_record", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateDnsCNameRecordDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPrivateDnsCNameRecord_withTags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateDnsCNameRecordExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
-				),
-			},
-			{
-				Config: testAccAzureRMPrivateDnsCNameRecord_withTagsUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateDnsCNameRecordExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testCheckAzureRMPrivateDnsCNameRecordExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).PrivateDns.RecordSetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		aName := rs.Primary.Attributes["name"]
-		zoneName := rs.Primary.Attributes["zone_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Private DNS CNAME record: %s", aName)
-		}
-
-		resp, err := conn.Get(ctx, resourceGroup, zoneName, privatedns.CNAME, aName)
-		if err != nil {
-			return fmt.Errorf("Bad: Get CNAME RecordSet: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Private DNS CNAME record %s (resource group: %s) does not exist", aName, resourceGroup)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMPrivateDnsCNameRecordDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).PrivateDns.RecordSetsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_private_dns_cname_record" {
-			continue
-		}
-
-		aName := rs.Primary.Attributes["name"]
-		zoneName := rs.Primary.Attributes["zone_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, zoneName, privatedns.CNAME, aName)
-		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("Private DNS CNAME record still exists:\n%#v", resp.RecordSetProperties)
+func (t PrivateDnsCNameRecordResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.CnameRecordID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.PrivateDns.RecordSetsClient.Get(ctx, id.ResourceGroup, id.PrivateDnsZoneName, privatedns.CNAME, id.CNAMEName)
+	if err != nil {
+		return nil, fmt.Errorf("reading Private DNS CName Record (%s): %+v", id.String(), err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMPrivateDnsCNameRecord_basic(data acceptance.TestData) string {
+func (PrivateDnsCNameRecordResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -202,8 +143,7 @@ resource "azurerm_private_dns_cname_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMPrivateDnsCNameRecord_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMPrivateDnsCNameRecord_basic(data)
+func (r PrivateDnsCNameRecordResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -214,10 +154,10 @@ resource "azurerm_private_dns_cname_record" "import" {
   ttl                 = 300
   record              = "contoso.com"
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMPrivateDnsCNameRecord_subdomain(data acceptance.TestData) string {
+func (PrivateDnsCNameRecordResource) subdomain(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -243,7 +183,7 @@ resource "azurerm_private_dns_cname_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMPrivateDnsCNameRecord_updateRecords(data acceptance.TestData) string {
+func (PrivateDnsCNameRecordResource) updateRecords(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -269,7 +209,7 @@ resource "azurerm_private_dns_cname_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMPrivateDnsCNameRecord_withTags(data acceptance.TestData) string {
+func (PrivateDnsCNameRecordResource) withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -300,7 +240,7 @@ resource "azurerm_private_dns_cname_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMPrivateDnsCNameRecord_withTagsUpdate(data acceptance.TestData) string {
+func (PrivateDnsCNameRecordResource) withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

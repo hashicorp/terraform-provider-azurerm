@@ -6,6 +6,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -173,12 +175,14 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 
 func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HDInsight.ClustersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewClusterID(subscriptionId, resourceGroup, name)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	clusterVersion := d.Get("cluster_version").(string)
 	t := d.Get("tags").(map[string]interface{})
@@ -266,7 +270,7 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("failure reading ID for HDInsight Hadoop Cluster %q (Resource Group %q)", name, resourceGroup)
 	}
 
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	// We can only add an edge node after creation
 	if v, ok := d.GetOk("roles.0.edge_node"); ok {
@@ -312,13 +316,13 @@ func resourceArmHDInsightHadoopClusterRead(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resourceGroup := id.ResourceGroup
-	name := id.Path["clusters"]
+	name := id.Name
 
 	resp, err := clustersClient.Get(ctx, resourceGroup, name)
 	if err != nil {

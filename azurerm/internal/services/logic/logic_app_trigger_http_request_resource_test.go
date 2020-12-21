@@ -128,8 +128,7 @@ func (LogicAppTriggerHttpRequestResource) Exists(ctx context.Context, clients *c
 	return triggerExists(ctx, clients, state)
 }
 
-func (LogicAppTriggerHttpRequestResource) basic(data acceptance.TestData) string {
-	template := LogicAppTriggerHttpRequestResource{}.template(data)
+func (r LogicAppTriggerHttpRequestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -138,11 +137,10 @@ resource "azurerm_logic_app_trigger_http_request" "test" {
   logic_app_id = azurerm_logic_app_workflow.test.id
   schema       = "{}"
 }
-`, template)
+`, r.template(data))
 }
 
-func (LogicAppTriggerHttpRequestResource) requiresImport(data acceptance.TestData) string {
-	template := LogicAppTriggerHttpRequestResource{}.basic(data)
+func (r LogicAppTriggerHttpRequestResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -151,11 +149,10 @@ resource "azurerm_logic_app_trigger_http_request" "import" {
   logic_app_id = azurerm_logic_app_trigger_http_request.test.logic_app_id
   schema       = azurerm_logic_app_trigger_http_request.test.schema
 }
-`, template)
+`, r.template(data))
 }
 
-func (LogicAppTriggerHttpRequestResource) fullSchema(data acceptance.TestData) string {
-	template := LogicAppTriggerHttpRequestResource{}.template(data)
+func (r LogicAppTriggerHttpRequestResource) fullSchema(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -175,11 +172,10 @@ resource "azurerm_logic_app_trigger_http_request" "test" {
 SCHEMA
 
 }
-`, template)
+`, r.template(data))
 }
 
-func (LogicAppTriggerHttpRequestResource) method(data acceptance.TestData) string {
-	template := LogicAppTriggerHttpRequestResource{}.template(data)
+func (r LogicAppTriggerHttpRequestResource) method(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -189,11 +185,10 @@ resource "azurerm_logic_app_trigger_http_request" "test" {
   schema       = "{}"
   method       = "PUT"
 }
-`, template)
+`, r.template(data))
 }
 
-func (LogicAppTriggerHttpRequestResource) relativePath(data acceptance.TestData) string {
-	template := LogicAppTriggerHttpRequestResource{}.template(data)
+func (r LogicAppTriggerHttpRequestResource) relativePath(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -204,7 +199,7 @@ resource "azurerm_logic_app_trigger_http_request" "test" {
   method        = "POST"
   relative_path = "customers/{id}"
 }
-`, template)
+`, r.template(data))
 }
 
 func (LogicAppTriggerHttpRequestResource) template(data acceptance.TestData) string {

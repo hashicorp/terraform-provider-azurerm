@@ -21,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmNetAppPool() *schema.Resource {
+func resourceNetAppPool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetAppPoolCreateUpdate,
-		Read:   resourceArmNetAppPoolRead,
-		Update: resourceArmNetAppPoolCreateUpdate,
-		Delete: resourceArmNetAppPoolDelete,
+		Create: resourceNetAppPoolCreateUpdate,
+		Read:   resourceNetAppPoolRead,
+		Update: resourceNetAppPoolCreateUpdate,
+		Delete: resourceNetAppPoolDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -79,7 +79,7 @@ func resourceArmNetAppPool() *schema.Resource {
 	}
 }
 
-func resourceArmNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.PoolClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -132,10 +132,10 @@ func resourceArmNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{})
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmNetAppPoolRead(d, meta)
+	return resourceNetAppPoolRead(d, meta)
 }
 
-func resourceArmNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.PoolClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -176,7 +176,7 @@ func resourceArmNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmNetAppPoolDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppPoolDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.PoolClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
