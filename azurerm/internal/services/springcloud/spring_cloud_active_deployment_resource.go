@@ -45,7 +45,7 @@ func resourceSpringCloudActiveDeployment() *schema.Resource {
 
 			"deployment_name": {
 				Type:         schema.TypeString,
-				Optional:     true,
+				Required:     true,
 				ValidateFunc: validate.SpringCloudDeploymentName,
 			},
 		},
