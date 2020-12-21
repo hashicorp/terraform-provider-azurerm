@@ -36,7 +36,7 @@ func (id LogAnalyticsDataSourceWindowsEventId) String() string {
 }
 
 func (id LogAnalyticsDataSourceWindowsEventId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.OperationalInsights/workspaces/%s/dataSources/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/microsoft.operationalinsights/workspaces/%s/dataSources/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.DataSourceName)
 }
 

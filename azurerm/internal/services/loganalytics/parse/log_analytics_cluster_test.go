@@ -12,7 +12,7 @@ var _ resourceid.Formatter = LogAnalyticsClusterId{}
 
 func TestLogAnalyticsClusterIDFormatter(t *testing.T) {
 	actual := NewLogAnalyticsClusterID("12345678-1234-9876-4563-123456789012", "resGroup1", "cluster1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/clusters/cluster1"
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/microsoft.operationalinsights/clusters/cluster1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -57,19 +57,19 @@ func TestLogAnalyticsClusterID(t *testing.T) {
 
 		{
 			// missing ClusterName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/microsoft.operationalinsights/",
 			Error: true,
 		},
 
 		{
 			// missing value for ClusterName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/clusters/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/microsoft.operationalinsights/clusters/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/clusters/cluster1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/microsoft.operationalinsights/clusters/cluster1",
 			Expected: &LogAnalyticsClusterId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",

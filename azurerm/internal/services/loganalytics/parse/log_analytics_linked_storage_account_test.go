@@ -12,7 +12,7 @@ var _ resourceid.Formatter = LogAnalyticsLinkedStorageAccountId{}
 
 func TestLogAnalyticsLinkedStorageAccountIDFormatter(t *testing.T) {
 	actual := NewLogAnalyticsLinkedStorageAccountID("12345678-1234-9876-4563-123456789012", "resGroup1", "workspace1", "query").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/linkedStorageAccounts/query"
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/microsoft.operationalinsights/workspaces/workspace1/linkedStorageAccounts/query"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -57,31 +57,31 @@ func TestLogAnalyticsLinkedStorageAccountID(t *testing.T) {
 
 		{
 			// missing WorkspaceName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/microsoft.operationalinsights/",
 			Error: true,
 		},
 
 		{
 			// missing value for WorkspaceName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/microsoft.operationalinsights/workspaces/",
 			Error: true,
 		},
 
 		{
 			// missing LinkedStorageAccountName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/microsoft.operationalinsights/workspaces/workspace1/",
 			Error: true,
 		},
 
 		{
 			// missing value for LinkedStorageAccountName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/linkedStorageAccounts/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/microsoft.operationalinsights/workspaces/workspace1/linkedStorageAccounts/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/linkedStorageAccounts/query",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/microsoft.operationalinsights/workspaces/workspace1/linkedStorageAccounts/query",
 			Expected: &LogAnalyticsLinkedStorageAccountId{
 				SubscriptionId:           "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:            "resGroup1",

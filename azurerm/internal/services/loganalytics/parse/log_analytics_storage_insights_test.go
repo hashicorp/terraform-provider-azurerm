@@ -12,7 +12,7 @@ var _ resourceid.Formatter = LogAnalyticsStorageInsightsId{}
 
 func TestLogAnalyticsStorageInsightsIDFormatter(t *testing.T) {
 	actual := NewLogAnalyticsStorageInsightsID("12345678-1234-9876-4563-123456789012", "resGroup1", "workspace1", "storageInsight1").ID()
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/storageInsightConfigs/storageInsight1"
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/microsoft.operationalinsights/workspaces/workspace1/storageInsightConfigs/storageInsight1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -57,31 +57,31 @@ func TestLogAnalyticsStorageInsightsID(t *testing.T) {
 
 		{
 			// missing WorkspaceName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/microsoft.operationalinsights/",
 			Error: true,
 		},
 
 		{
 			// missing value for WorkspaceName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/microsoft.operationalinsights/workspaces/",
 			Error: true,
 		},
 
 		{
 			// missing StorageInsightConfigName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/microsoft.operationalinsights/workspaces/workspace1/",
 			Error: true,
 		},
 
 		{
 			// missing value for StorageInsightConfigName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/storageInsightConfigs/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/microsoft.operationalinsights/workspaces/workspace1/storageInsightConfigs/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/storageInsightConfigs/storageInsight1",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/microsoft.operationalinsights/workspaces/workspace1/storageInsightConfigs/storageInsight1",
 			Expected: &LogAnalyticsStorageInsightsId{
 				SubscriptionId:           "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:            "resGroup1",
