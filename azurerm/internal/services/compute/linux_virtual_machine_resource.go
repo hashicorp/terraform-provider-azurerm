@@ -238,6 +238,14 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 				ValidateFunc: computeValidate.VirtualMachineScaleSetID,
 			},
 
+			"platform_fault_domain": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ForceNew:     true,
+				RequiredWith: []string{"virtual_machine_scale_set_id"},
+				ValidateFunc: validation.IntAtLeast(0),
+			},
+
 			"tags": tags.Schema(),
 
 			"zone": {
@@ -459,6 +467,10 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
+	if v, ok := d.GetOk("platform_fault_domain"); ok {
+		params.PlatformFaultDomain = utils.Int32(int32(v.(int)))
+	}
+
 	if v, ok := d.GetOk("zone"); ok {
 		params.Zones = &[]string{
 			v.(string),
@@ -595,6 +607,7 @@ func resourceLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 		virtualMachineScaleSetId = *props.VirtualMachineScaleSet.ID
 	}
 	d.Set("virtual_machine_scale_set_id", virtualMachineScaleSetId)
+	d.Set("platform_fault_domain", props.PlatformFaultDomain)
 
 	if profile := props.OsProfile; profile != nil {
 		d.Set("admin_username", profile.AdminUsername)
