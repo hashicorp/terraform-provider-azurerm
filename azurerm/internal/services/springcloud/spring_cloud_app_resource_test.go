@@ -141,9 +141,16 @@ resource "azurerm_spring_cloud_app" "test" {
   name                = "acctest-sca-%d"
   resource_group_name = azurerm_spring_cloud_service.test.resource_group_name
   service_name        = azurerm_spring_cloud_service.test.name
+  is_public           = true
+  https_only          = true
 
   identity {
     type = "SystemAssigned"
+  }
+
+  persistent_disk {
+    size_in_gb = 50
+    mount_path = "/persistent"
   }
 }
 `, r.template(data), data.RandomInteger)
