@@ -59,6 +59,7 @@ func TestAccSpringCloudApp_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
+				check.That(data.ResourceName).Key("url").Exists(),
 			),
 		},
 		data.ImportStep(),
