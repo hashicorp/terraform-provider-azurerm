@@ -97,7 +97,6 @@ func testAccAzureRMCosmosDBAccount_public_network_access_enabled(t *testing.T, k
 	})
 }
 
-
 func TestAccCosmosDBAccount_keyVaultUri(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 
