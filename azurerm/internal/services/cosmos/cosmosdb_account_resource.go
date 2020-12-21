@@ -534,6 +534,15 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		Tags: tags.Expand(t),
 	}
 
+	if keyVaultKeyIDRaw, ok := d.GetOk("key_vault_key_id"); ok {
+		keyVaultKey, err := azure.ParseKeyVaultChildIDVersionOptional(keyVaultKeyIDRaw.(string))
+		if err != nil {
+			return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
+		}
+		keyVaultKeyURI := fmt.Sprintf("%skeys/%s", keyVaultKey.KeyVaultBaseUrl, keyVaultKey.Name)
+		account.DatabaseAccountCreateUpdateProperties.KeyVaultKeyURI = utils.String(keyVaultKeyURI)
+	}
+	
 	if _, err = resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
 		return fmt.Errorf("Error updating CosmosDB Account %q properties (Resource Group %q): %+v", name, resourceGroup, err)
 	}
