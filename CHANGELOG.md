@@ -3,6 +3,7 @@
 IMPROVEMENTS:
 
 * Data Source: `azurerm_databricks_workspace` - support for the `tags` property [GH-9933]
+* `azurerm_api_management` - add `sku_name` `Consumption_0` [GH-6868]
 * `azurerm_dedicated_host` - Add support for new sku names [GH-9951]
 * `azurerm_log_analytics_linked_service` - Add validation for resource ID type [GH-9932]
 * `azurerm_log_analytics_linked_service` - Update validation to use generated validate functions [GH-9950]
