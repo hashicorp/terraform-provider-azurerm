@@ -19,6 +19,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	apimValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -73,15 +74,10 @@ func resourceArmApiManagementService() *schema.Resource {
 			},
 
 			"sku_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: azure.MinCapacitySkuNameInSlice([]string{
-					string(apimanagement.SkuTypeConsumption),
-					string(apimanagement.SkuTypeDeveloper),
-					string(apimanagement.SkuTypeBasic),
-					string(apimanagement.SkuTypeStandard),
-					string(apimanagement.SkuTypePremium),
-				}, 1, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: apimValidate.ApimSkuName(),
 			},
 
 			"identity": {
@@ -518,7 +514,10 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 	notificationSenderEmail := d.Get("notification_sender_email").(string)
 	virtualNetworkType := d.Get("virtual_network_type").(string)
 
-	customProperties := expandApiManagementCustomProperties(d)
+	customProperties, err := expandApiManagementCustomProperties(d, sku.Name == apimanagement.SkuTypeConsumption)
+	if err != nil {
+		return err
+	}
 	certificates := expandAzureRmApiManagementCertificates(d)
 
 	properties := apimanagement.ServiceResource{
@@ -590,17 +589,27 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 	d.SetId(*read.ID)
 
 	signInSettingsRaw := d.Get("sign_in").([]interface{})
-	signInSettings := expandApiManagementSignInSettings(signInSettingsRaw)
-	signInClient := meta.(*clients.Client).ApiManagement.SignInClient
-	if _, err := signInClient.CreateOrUpdate(ctx, resourceGroup, name, signInSettings, ""); err != nil {
-		return fmt.Errorf(" setting Sign In settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if sku.Name == apimanagement.SkuTypeConsumption && len(signInSettingsRaw) > 0 {
+		return fmt.Errorf("`sign_in` is not support for sku tier `Consumption`")
+	}
+	if sku.Name != apimanagement.SkuTypeConsumption {
+		signInSettings := expandApiManagementSignInSettings(signInSettingsRaw)
+		signInClient := meta.(*clients.Client).ApiManagement.SignInClient
+		if _, err := signInClient.CreateOrUpdate(ctx, resourceGroup, name, signInSettings, ""); err != nil {
+			return fmt.Errorf(" setting Sign In settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
 	}
 
 	signUpSettingsRaw := d.Get("sign_up").([]interface{})
-	signUpSettings := expandApiManagementSignUpSettings(signUpSettingsRaw)
-	signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
-	if _, err := signUpClient.CreateOrUpdate(ctx, resourceGroup, name, signUpSettings, ""); err != nil {
-		return fmt.Errorf(" setting Sign Up settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if sku.Name == apimanagement.SkuTypeConsumption && len(signInSettingsRaw) > 0 {
+		return fmt.Errorf("`sign_up` is not support for sku tier `Consumption`")
+	}
+	if sku.Name != apimanagement.SkuTypeConsumption {
+		signUpSettings := expandApiManagementSignUpSettings(signUpSettingsRaw)
+		signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
+		if _, err := signUpClient.CreateOrUpdate(ctx, resourceGroup, name, signUpSettings, ""); err != nil {
+			return fmt.Errorf(" setting Sign Up settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
 	}
 
 	policyClient := meta.(*clients.Client).ApiManagement.PolicyClient
@@ -631,6 +640,8 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 
 func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
+	signInClient := meta.(*clients.Client).ApiManagement.SignInClient
+	signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
 	environment := meta.(*clients.Client).Account.Environment
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -652,18 +663,6 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 		}
 
 		return fmt.Errorf("making Read request on API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	signInClient := meta.(*clients.Client).ApiManagement.SignInClient
-	signInSettings, err := signInClient.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Sign In Settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
-	signUpSettings, err := signUpClient.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Sign Up Settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	policyClient := meta.(*clients.Client).ApiManagement.PolicyClient
@@ -700,8 +699,10 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 		d.Set("private_ip_addresses", props.PrivateIPAddresses)
 		d.Set("virtual_network_type", props.VirtualNetworkType)
 
-		if err := d.Set("security", flattenApiManagementSecurityCustomProperties(props.CustomProperties)); err != nil {
-			return fmt.Errorf("setting `security`: %+v", err)
+		if resp.Sku != nil && resp.Sku.Name != "" {
+			if err := d.Set("security", flattenApiManagementSecurityCustomProperties(props.CustomProperties, resp.Sku.Name == apimanagement.SkuTypeConsumption)); err != nil {
+				return fmt.Errorf("setting `security`: %+v", err)
+			}
 		}
 
 		if err := d.Set("protocols", flattenApiManagementProtocolsCustomProperties(props.CustomProperties)); err != nil {
@@ -727,16 +728,30 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("setting `sku_name`: %+v", err)
 	}
 
-	if err := d.Set("sign_in", flattenApiManagementSignInSettings(signInSettings)); err != nil {
-		return fmt.Errorf("setting `sign_in`: %+v", err)
-	}
-
-	if err := d.Set("sign_up", flattenApiManagementSignUpSettings(signUpSettings)); err != nil {
-		return fmt.Errorf("setting `sign_up`: %+v", err)
-	}
-
 	if err := d.Set("policy", flattenApiManagementPolicies(d, policy)); err != nil {
 		return fmt.Errorf("setting `policy`: %+v", err)
+	}
+
+	if resp.Sku.Name != apimanagement.SkuTypeConsumption {
+		signInSettings, err := signInClient.Get(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("retrieving Sign In Settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+		if err := d.Set("sign_in", flattenApiManagementSignInSettings(signInSettings)); err != nil {
+			return fmt.Errorf("setting `sign_in`: %+v", err)
+		}
+
+		signUpSettings, err := signUpClient.Get(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("retrieving Sign Up Settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		if err := d.Set("sign_up", flattenApiManagementSignUpSettings(signUpSettings)); err != nil {
+			return fmt.Errorf("setting `sign_up`: %+v", err)
+		}
+	} else {
+		d.Set("sign_in", []interface{}{})
+		d.Set("sign_up", []interface{}{})
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -1146,7 +1161,7 @@ func flattenApiManagementServiceSkuName(input *apimanagement.ServiceSkuPropertie
 	return fmt.Sprintf("%s_%d", string(input.Name), *input.Capacity)
 }
 
-func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*string {
+func expandApiManagementCustomProperties(d *schema.ResourceData, skuIsConsumption bool) (map[string]*string, error) {
 	backendProtocolSsl3 := false
 	backendProtocolTls10 := false
 	backendProtocolTls11 := false
@@ -1164,16 +1179,26 @@ func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*str
 		frontendProtocolTls10 = v["enable_frontend_tls10"].(bool)
 		frontendProtocolTls11 = v["enable_frontend_tls11"].(bool)
 		tripleDesCiphers = v["enable_triple_des_ciphers"].(bool)
+		if skuIsConsumption && frontendProtocolSsl3 {
+			return nil, fmt.Errorf("`enable_frontend_ssl30` is not support for Sku Tier `Consumption`")
+		}
+
+		if skuIsConsumption && tripleDesCiphers {
+			return nil, fmt.Errorf("`enable_triple_des_ciphers` is not support for Sku Tier `Consumption`")
+		}
 	}
 
 	customProperties := map[string]*string{
 		apimBackendProtocolSsl3:   utils.String(strconv.FormatBool(backendProtocolSsl3)),
 		apimBackendProtocolTls10:  utils.String(strconv.FormatBool(backendProtocolTls10)),
 		apimBackendProtocolTls11:  utils.String(strconv.FormatBool(backendProtocolTls11)),
-		apimFrontendProtocolSsl3:  utils.String(strconv.FormatBool(frontendProtocolSsl3)),
 		apimFrontendProtocolTls10: utils.String(strconv.FormatBool(frontendProtocolTls10)),
 		apimFrontendProtocolTls11: utils.String(strconv.FormatBool(frontendProtocolTls11)),
-		apimTripleDesCiphers:      utils.String(strconv.FormatBool(tripleDesCiphers)),
+	}
+
+	if !skuIsConsumption {
+		customProperties[apimFrontendProtocolSsl3] = utils.String(strconv.FormatBool(frontendProtocolSsl3))
+		customProperties[apimTripleDesCiphers] = utils.String(strconv.FormatBool(tripleDesCiphers))
 	}
 
 	if vp := d.Get("protocols").([]interface{}); len(vp) > 0 {
@@ -1182,7 +1207,7 @@ func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*str
 		customProperties[apimHttp2Protocol] = utils.String(strconv.FormatBool(enableHttp2))
 	}
 
-	return customProperties
+	return customProperties, nil
 }
 
 func expandAzureRmApiManagementVirtualNetworkConfigurations(d *schema.ResourceData) *apimanagement.VirtualNetworkConfiguration {
@@ -1199,16 +1224,19 @@ func expandAzureRmApiManagementVirtualNetworkConfigurations(d *schema.ResourceDa
 	}
 }
 
-func flattenApiManagementSecurityCustomProperties(input map[string]*string) []interface{} {
+func flattenApiManagementSecurityCustomProperties(input map[string]*string, skuIsConsumption bool) []interface{} {
 	output := make(map[string]interface{})
 
 	output["enable_backend_ssl30"] = parseApiManagementNilableDictionary(input, apimBackendProtocolSsl3)
 	output["enable_backend_tls10"] = parseApiManagementNilableDictionary(input, apimBackendProtocolTls10)
 	output["enable_backend_tls11"] = parseApiManagementNilableDictionary(input, apimBackendProtocolTls11)
-	output["enable_frontend_ssl30"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolSsl3)
 	output["enable_frontend_tls10"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls10)
 	output["enable_frontend_tls11"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls11)
-	output["enable_triple_des_ciphers"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers)
+
+	if !skuIsConsumption {
+		output["enable_frontend_ssl30"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolSsl3)
+		output["enable_triple_des_ciphers"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers)
+	}
 
 	return []interface{}{output}
 }
