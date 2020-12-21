@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmBackupProtectedFileShare() *schema.Resource {
+func resourceBackupProtectedFileShare() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmBackupProtectedFileShareCreateUpdate,
-		Read:   resourceArmBackupProtectedFileShareRead,
-		Update: resourceArmBackupProtectedFileShareCreateUpdate,
-		Delete: resourceArmBackupProtectedFileShareDelete,
+		Create: resourceBackupProtectedFileShareCreateUpdate,
+		Read:   resourceBackupProtectedFileShareRead,
+		Update: resourceBackupProtectedFileShareCreateUpdate,
+		Delete: resourceBackupProtectedFileShareDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -70,7 +70,7 @@ func resourceArmBackupProtectedFileShare() *schema.Resource {
 	}
 }
 
-func resourceArmBackupProtectedFileShareCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBackupProtectedFileShareCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
 	opClient := meta.(*clients.Client).RecoveryServices.BackupOperationStatusesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -139,7 +139,7 @@ func resourceArmBackupProtectedFileShareCreateUpdate(d *schema.ResourceData, met
 	}
 	operationID := parsedLocation.Path["operationResults"]
 
-	if _, err := resourceArmBackupProtectedFileShareWaitForOperation(ctx, opClient, vaultName, resourceGroup, operationID, d); err != nil {
+	if _, err := resourceBackupProtectedFileShareWaitForOperation(ctx, opClient, vaultName, resourceGroup, operationID, d); err != nil {
 		return err
 	}
 
@@ -152,10 +152,10 @@ func resourceArmBackupProtectedFileShareCreateUpdate(d *schema.ResourceData, met
 	id := strings.Replace(*resp.ID, "Subscriptions", "subscriptions", 1) // This code is a workaround for this bug https://github.com/Azure/azure-sdk-for-go/issues/2824
 	d.SetId(id)
 
-	return resourceArmBackupProtectedFileShareRead(d, meta)
+	return resourceBackupProtectedFileShareRead(d, meta)
 }
 
-func resourceArmBackupProtectedFileShareRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBackupProtectedFileShareRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -200,7 +200,7 @@ func resourceArmBackupProtectedFileShareRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceArmBackupProtectedFileShareDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBackupProtectedFileShareDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
 	opClient := meta.(*clients.Client).RecoveryServices.BackupOperationStatusesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -238,7 +238,7 @@ func resourceArmBackupProtectedFileShareDelete(d *schema.ResourceData, meta inte
 	}
 	operationID := parsedLocation.Path["backupOperationResults"] // This is different for create and delete requests ¯\_(ツ)_/¯
 
-	if _, err := resourceArmBackupProtectedFileShareWaitForOperation(ctx, opClient, vaultName, resourceGroup, operationID, d); err != nil {
+	if _, err := resourceBackupProtectedFileShareWaitForOperation(ctx, opClient, vaultName, resourceGroup, operationID, d); err != nil {
 		return err
 	}
 
@@ -246,13 +246,13 @@ func resourceArmBackupProtectedFileShareDelete(d *schema.ResourceData, meta inte
 }
 
 // nolint unused - linter mistakenly things this function isn't used?
-func resourceArmBackupProtectedFileShareWaitForOperation(ctx context.Context, client *backup.OperationStatusesClient, vaultName, resourceGroup, operationID string, d *schema.ResourceData) (backup.OperationStatus, error) {
+func resourceBackupProtectedFileShareWaitForOperation(ctx context.Context, client *backup.OperationStatusesClient, vaultName, resourceGroup, operationID string, d *schema.ResourceData) (backup.OperationStatus, error) {
 	state := &resource.StateChangeConf{
 		MinTimeout: 10 * time.Second,
 		Delay:      10 * time.Second,
 		Pending:    []string{"InProgress"},
 		Target:     []string{"Succeeded"},
-		Refresh:    resourceArmBackupProtectedFileShareCheckOperation(ctx, client, vaultName, resourceGroup, operationID),
+		Refresh:    resourceBackupProtectedFileShareCheckOperation(ctx, client, vaultName, resourceGroup, operationID),
 	}
 
 	if d.IsNewResource() {
@@ -269,7 +269,7 @@ func resourceArmBackupProtectedFileShareWaitForOperation(ctx context.Context, cl
 	return resp.(backup.OperationStatus), nil
 }
 
-func resourceArmBackupProtectedFileShareCheckOperation(ctx context.Context, client *backup.OperationStatusesClient, vaultName, resourceGroup, operationID string) resource.StateRefreshFunc {
+func resourceBackupProtectedFileShareCheckOperation(ctx context.Context, client *backup.OperationStatusesClient, vaultName, resourceGroup, operationID string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := client.Get(ctx, vaultName, resourceGroup, operationID)
 		if err != nil {
