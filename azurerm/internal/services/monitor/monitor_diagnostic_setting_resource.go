@@ -25,12 +25,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMonitorDiagnosticSetting() *schema.Resource {
+func resourceMonitorDiagnosticSetting() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMonitorDiagnosticSettingCreateUpdate,
-		Read:   resourceArmMonitorDiagnosticSettingRead,
-		Update: resourceArmMonitorDiagnosticSettingCreateUpdate,
-		Delete: resourceArmMonitorDiagnosticSettingDelete,
+		Create: resourceMonitorDiagnosticSettingCreateUpdate,
+		Read:   resourceMonitorDiagnosticSettingRead,
+		Update: resourceMonitorDiagnosticSettingCreateUpdate,
+		Delete: resourceMonitorDiagnosticSettingDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -178,7 +178,7 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 	}
 }
 
-func resourceArmMonitorDiagnosticSettingCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorDiagnosticSettingCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.DiagnosticSettingsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -287,10 +287,10 @@ func resourceArmMonitorDiagnosticSettingCreateUpdate(d *schema.ResourceData, met
 
 	d.SetId(fmt.Sprintf("%s|%s", actualResourceId, name))
 
-	return resourceArmMonitorDiagnosticSettingRead(d, meta)
+	return resourceMonitorDiagnosticSettingRead(d, meta)
 }
 
-func resourceArmMonitorDiagnosticSettingRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorDiagnosticSettingRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.DiagnosticSettingsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -363,7 +363,7 @@ func resourceArmMonitorDiagnosticSettingRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceArmMonitorDiagnosticSettingDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorDiagnosticSettingDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.DiagnosticSettingsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
