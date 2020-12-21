@@ -3,10 +3,10 @@
 IMPROVEMENTS:
 
 * Data Source: `azurerm_databricks_workspace` - support for the `tags` property [GH-9933]
-* `azurerm_api_management` - add `sku_name` `Consumption_0` [GH-6868]
-* `azurerm_dedicated_host` - Add support for new sku names [GH-9951]
-* `azurerm_log_analytics_linked_service` - Add validation for resource ID type [GH-9932]
-* `azurerm_log_analytics_linked_service` - Update validation to use generated validate functions [GH-9950]
+* `azurerm_api_management` - support `Consumption_0` for the `sku_name` property [GH-6868]
+* `azurerm_dedicated_host` - support for addtional `sku_name` values [GH-9951]
+* `azurerm_log_analytics_linked_service` - add validation for resource ID type [GH-9932]
+* `azurerm_log_analytics_linked_service` - update validation to use generated validate functions [GH-9950]
 * `azurerm_monitor_diagnostic_setting` - validation that `eventhub_authorization_rule_id` is a EventHub Namespace Authorization Rule ID [GH-9914]
 * `azurerm_monitor_diagnostic_setting` - validation that `log_analytics_workspace_id` is a Log Analytics Workspace ID [GH-9914]
 * `azurerm_monitor_diagnostic_setting` - validation that `storage_account_id` is a Storage Account ID [GH-9914]
