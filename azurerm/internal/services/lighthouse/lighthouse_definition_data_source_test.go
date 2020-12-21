@@ -32,7 +32,7 @@ func TestAccLighthouseDefinitionDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("id").Exists(),
 				check.That(data.ResourceName).Key("scope").Exists(),
 				resource.TestMatchResourceAttr(data.ResourceName, "lighthouse_definition_id", validate.UUIDRegExp),
-				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctest-LD-%d")),
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctest-LD-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("description").HasValue("Acceptance Test Lighthouse Definition"),
 				resource.TestMatchResourceAttr(data.ResourceName, "managing_tenant_id", validate.UUIDRegExp),
 				resource.TestMatchResourceAttr(data.ResourceName, "authorization.0.principal_id", validate.UUIDRegExp),
