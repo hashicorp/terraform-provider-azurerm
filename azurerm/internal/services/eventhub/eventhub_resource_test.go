@@ -1,18 +1,24 @@
 package eventhub_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"strconv"
 	"testing"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
+
+type EventHubResource struct {
+}
 
 func TestAccEventHubPartitionCount_validation(t *testing.T) {
 	cases := []struct {
@@ -172,241 +178,169 @@ func TestAccEventHubArchiveNameFormat_validation(t *testing.T) {
 
 func TestAccEventHub_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
+	r := EventHubResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventHubDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventHub_basic(data, 2),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventHubExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, 2),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccEventHub_basicOnePartition(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
+	r := EventHubResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventHubDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventHub_basic(data, 1),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventHubExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "partition_count", "1"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, 1),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("partition_count").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccEventHub_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
+	r := EventHubResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventHubDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventHub_basic(data, 2),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventHubExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccEventHub_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_eventhub"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, 2),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_eventhub"),
 		},
 	})
 }
 
 func TestAccEventHub_partitionCountUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
+	r := EventHubResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventHubDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventHub_basic(data, 2),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventHubExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "partition_count", "2"),
-				),
-			},
-			{
-				Config: testAccEventHub_partitionCountUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventHubExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "partition_count", "10"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, 2),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("partition_count").HasValue("2"),
+			),
+		},
+		{
+			Config: r.partitionCountUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("partition_count").HasValue("10"),
+			),
 		},
 	})
 }
 
 func TestAccEventHub_standard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
+	r := EventHubResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventHubDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventHub_standard(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventHubExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.standard(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccEventHub_captureDescription(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
+	r := EventHubResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventHubDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventHub_captureDescription(data, true),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventHubExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "capture_description.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "capture_description.0.skip_empty_archives", "true"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.captureDescription(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("capture_description.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("capture_description.0.skip_empty_archives").HasValue("true"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccEventHub_captureDescriptionDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
+	r := EventHubResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventHubDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventHub_captureDescription(data, true),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventHubExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "capture_description.0.enabled", "true"),
-				),
-			},
-			{
-				Config: testAccEventHub_captureDescription(data, false),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventHubExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "capture_description.0.enabled", "false"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.captureDescription(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("capture_description.0.enabled").HasValue("true"),
+			),
+		},
+		{
+			Config: r.captureDescription(data, false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("capture_description.0.enabled").HasValue("false"),
+			),
 		},
 	})
 }
 
 func TestAccEventHub_messageRetentionUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
+	r := EventHubResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventHubDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventHub_standard(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventHubExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "message_retention", "7"),
-				),
-			},
-			{
-				Config: testAccEventHub_messageRetentionUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventHubExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "message_retention", "5"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.standard(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("message_retention").HasValue("7"),
+			),
+		},
+		{
+			Config: r.messageRetentionUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("message_retention").HasValue("5"),
+			),
 		},
 	})
 }
 
-func testCheckEventHubDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.EventHubsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_eventhub" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		namespaceName := rs.Primary.Attributes["namespace_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, namespaceName, name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("EventHub still exists:\n%#v", resp.Properties)
-		}
+func (EventHubResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
+	namespaceName := id.Path["namespaces"]
+	name := id.Path["eventhubs"]
 
-func testCheckEventHubExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.EventHubsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		namespaceName := rs.Primary.Attributes["namespace_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Event Hub: %s", name)
-		}
-
-		resp, err := conn.Get(ctx, resourceGroup, namespaceName, name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on eventHubClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Event Hub %q (namespace %q / resource group: %q) does not exist", name, namespaceName, resourceGroup)
-		}
-
-		return nil
+	resp, err := clients.Eventhub.EventHubsClient.Get(ctx, id.ResourceGroup, namespaceName, name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Event Hub %q (namespace %q / resource group: %q): %v", name, namespaceName, id.ResourceGroup, err)
 	}
+
+	return utils.Bool(resp.Properties != nil), nil
 }
 
-func testAccEventHub_basic(data acceptance.TestData, partitionCount int) string {
+func (EventHubResource) basic(data acceptance.TestData, partitionCount int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -434,8 +368,8 @@ resource "azurerm_eventhub" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, partitionCount)
 }
 
-func testAccEventHub_requiresImport(data acceptance.TestData) string {
-	template := testAccEventHub_basic(data, 2)
+func (EventHubResource) requiresImport(data acceptance.TestData) string {
+	template := EventHubResource{}.basic(data, 2)
 	return fmt.Sprintf(`
 %s
 
@@ -449,7 +383,7 @@ resource "azurerm_eventhub" "import" {
 `, template)
 }
 
-func testAccEventHub_partitionCountUpdate(data acceptance.TestData) string {
+func (EventHubResource) partitionCountUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -477,7 +411,7 @@ resource "azurerm_eventhub" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccEventHub_standard(data acceptance.TestData) string {
+func (EventHubResource) standard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -505,7 +439,7 @@ resource "azurerm_eventhub" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccEventHub_captureDescription(data acceptance.TestData, enabled bool) string {
+func (EventHubResource) captureDescription(data acceptance.TestData, enabled bool) string {
 	enabledString := strconv.FormatBool(enabled)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -563,7 +497,7 @@ resource "azurerm_eventhub" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, enabledString)
 }
 
-func testAccEventHub_messageRetentionUpdate(data acceptance.TestData) string {
+func (EventHubResource) messageRetentionUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

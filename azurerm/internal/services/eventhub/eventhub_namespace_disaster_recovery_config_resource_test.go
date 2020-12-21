@@ -1,139 +1,99 @@
 package eventhub_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type EventHubNamespaceDisasterRecoveryConfigResource struct {
+}
+
 func TestAccEventHubNamespaceDisasterRecoveryConfig_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_disaster_recovery_config", "test")
+	r := EventHubNamespaceDisasterRecoveryConfigResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventHubNamespaceDisasterRecoveryConfigDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventHubNamespaceDisasterRecoveryConfig_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventHubNamespaceDisasterRecoveryConfigExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccEventHubNamespaceDisasterRecoveryConfig_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_disaster_recovery_config", "test")
+	r := EventHubNamespaceDisasterRecoveryConfigResource{}
 
 	// skipping due to there being no way to delete a DRC once an alternate name has been set
 	// sdk bug: https://github.com/Azure/azure-sdk-for-go/issues/5893
 	t.Skip()
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventHubNamespaceDisasterRecoveryConfigDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventHubNamespaceDisasterRecoveryConfig_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventHubNamespaceDisasterRecoveryConfigExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccEventHubNamespaceDisasterRecoveryConfig_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_disaster_recovery_config", "test")
+	r := EventHubNamespaceDisasterRecoveryConfigResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventHubNamespaceDisasterRecoveryConfigDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventHubNamespaceDisasterRecoveryConfig_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventHubNamespaceDisasterRecoveryConfigExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccEventHubNamespaceDisasterRecoveryConfig_updated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventHubNamespaceDisasterRecoveryConfigExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccEventHubNamespaceDisasterRecoveryConfig_updated_removed(data),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.updated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updated_removed(data),
 		},
 	})
 }
 
-func testCheckEventHubNamespaceDisasterRecoveryConfigDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.DisasterRecoveryConfigsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_eventhub_namespace_disaster_recovery_config" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		namespaceName := rs.Primary.Attributes["namespace_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, namespaceName, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: EventHub Namespace Disaster Recovery Configs %q (namespace %q / resource group: %q): %+v", name, namespaceName, resourceGroup, err)
-			}
-		}
+func (EventHubNamespaceDisasterRecoveryConfigResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
+	name := id.Path["disasterRecoveryConfigs"]
+	resourceGroup := id.ResourceGroup
+	namespaceName := id.Path["namespaces"]
 
-func testCheckEventHubNamespaceDisasterRecoveryConfigExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.DisasterRecoveryConfigsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		namespaceName := rs.Primary.Attributes["namespace_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, namespaceName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: EventHub Namespace Disaster Recovery Configs %q (namespace %q / resource group: %q) does not exist", name, namespaceName, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: EventHub Namespace Disaster Recovery Configs %q (namespace %q / resource group: %q): %+v", name, namespaceName, resourceGroup, err)
-		}
-
-		return nil
+	resp, err := clients.Eventhub.DisasterRecoveryConfigsClient.Get(ctx, resourceGroup, namespaceName, name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving EventHub Namespace Disaster Recovery Configs %q (namespace %q / resource group: %q): %v", name, namespaceName, id.ResourceGroup, err)
 	}
+
+	return utils.Bool(resp.ArmDisasterRecoveryProperties != nil), nil
 }
 
-func testAccEventHubNamespaceDisasterRecoveryConfig_basic(data acceptance.TestData) string {
+func (EventHubNamespaceDisasterRecoveryConfigResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -168,7 +128,7 @@ resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
 }
 
 // nolint unused - mistakenly marked as unused
-func testAccEventHubNamespaceDisasterRecoveryConfig_complete(data acceptance.TestData) string {
+func (EventHubNamespaceDisasterRecoveryConfigResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -203,7 +163,7 @@ resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
 
-func testAccEventHubNamespaceDisasterRecoveryConfig_updated(data acceptance.TestData) string {
+func (EventHubNamespaceDisasterRecoveryConfigResource) updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -244,7 +204,7 @@ resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
 
-func testAccEventHubNamespaceDisasterRecoveryConfig_updated_removed(data acceptance.TestData) string {
+func (EventHubNamespaceDisasterRecoveryConfigResource) updated_removed(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

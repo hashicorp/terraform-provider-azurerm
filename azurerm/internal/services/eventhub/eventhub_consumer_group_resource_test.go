@@ -1,168 +1,114 @@
 package eventhub_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type EventHubConsumerGroupResource struct {
+}
+
 func TestAccEventHubConsumerGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_consumer_group", "test")
+	r := EventHubConsumerGroupResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventHubConsumerGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventHubConsumerGroup_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventHubConsumerGroupExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccEventHubConsumerGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_consumer_group", "test")
+	r := EventHubConsumerGroupResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventHubConsumerGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventHubConsumerGroup_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventHubConsumerGroupExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccEventHubConsumerGroup_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_eventhub_consumer_group"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_eventhub_consumer_group"),
 		},
 	})
 }
 
 func TestAccEventHubConsumerGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_consumer_group", "test")
+	r := EventHubConsumerGroupResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventHubConsumerGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventHubConsumerGroup_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventHubConsumerGroupExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccEventHubConsumerGroup_userMetadataUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_consumer_group", "test")
+	r := EventHubConsumerGroupResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckEventHubConsumerGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccEventHubConsumerGroup_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventHubConsumerGroupExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccEventHubConsumerGroup_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckEventHubConsumerGroupExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "user_metadata", "some-meta-data"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("user_metadata").HasValue("some-meta-data"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckEventHubConsumerGroupDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.ConsumerGroupClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_eventhub_consumer_group" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		namespaceName := rs.Primary.Attributes["namespace_name"]
-		eventHubName := rs.Primary.Attributes["eventhub_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, namespaceName, eventHubName, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return err
-			}
-		}
+func (EventHubConsumerGroupResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.EventHubConsumerGroupID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
-
-func testCheckEventHubConsumerGroupExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.ConsumerGroupClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Event Hub Consumer Group: %s", name)
-		}
-
-		namespaceName := rs.Primary.Attributes["namespace_name"]
-		eventHubName := rs.Primary.Attributes["eventhub_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, namespaceName, eventHubName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Event Hub Consumer Group %q (resource group: %q) does not exist", name, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on eventHubConsumerGroupClient: %+v", err)
-		}
-
-		return nil
+	resp, err := clients.Eventhub.ConsumerGroupClient.Get(ctx, id.ResourceGroup, id.NamespaceName, id.EventhubName, id.ConsumergroupName)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
+
+	return utils.Bool(resp.ConsumerGroupProperties != nil), nil
 }
 
-func testAccEventHubConsumerGroup_basic(data acceptance.TestData) string {
+func (EventHubConsumerGroupResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eh-%d"
   location = "%s"
 }
 
@@ -190,8 +136,8 @@ resource "azurerm_eventhub_consumer_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccEventHubConsumerGroup_requiresImport(data acceptance.TestData) string {
-	template := testAccEventHubConsumerGroup_basic(data)
+func (EventHubConsumerGroupResource) requiresImport(data acceptance.TestData) string {
+	template := EventHubConsumerGroupResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -204,14 +150,14 @@ resource "azurerm_eventhub_consumer_group" "import" {
 `, template)
 }
 
-func testAccEventHubConsumerGroup_complete(data acceptance.TestData) string {
+func (EventHubConsumerGroupResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eh-%d"
   location = "%s"
 }
 
