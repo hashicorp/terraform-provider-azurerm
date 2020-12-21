@@ -526,12 +526,7 @@ func flattenPolicyOptions(input *[]media.ContentKeyPolicyOption) ([]interface{},
 		policyOption := make(map[string]interface{})
 		policyOption["name"] = option.Name
 		policyOption = flattenConfiguration(option.Configuration, policyOption)
-
-		restriction, err := flattenRestriction(option.Restriction, policyOption)
-		if err != nil {
-			return nil, err
-		}
-		policyOption = restriction
+		policyOption = flattenRestriction(option.Restriction, policyOption)
 
 		results = append(results, policyOption)
 	}
@@ -598,9 +593,9 @@ func expandRestriction(option map[string]interface{}) (media.BasicContentKeyPoli
 	}
 }
 
-func flattenRestriction(input media.BasicContentKeyPolicyRestriction, option map[string]interface{}) (map[string]interface{}, error) {
+func flattenRestriction(input media.BasicContentKeyPolicyRestriction, option map[string]interface{}) map[string]interface{} {
 	if input == nil {
-		return option, nil
+		return option
 	}
 	switch input.(type) {
 	case media.ContentKeyPolicyOpenRestriction:
@@ -640,7 +635,7 @@ func flattenRestriction(input media.BasicContentKeyPolicyRestriction, option map
 		}
 	}
 
-	return option, nil
+	return option
 }
 
 func expandConfiguration(input map[string]interface{}) (media.BasicContentKeyPolicyConfiguration, error) {
