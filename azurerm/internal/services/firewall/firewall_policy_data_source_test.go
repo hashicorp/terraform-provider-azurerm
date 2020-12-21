@@ -12,7 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceFirewallPolicy_basic(t *testing.T) {
+func TestAccFirewallPolicyDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_firewall_policy", "test")
 	dataParent := acceptance.BuildTestData(t, "data.azurerm_firewall_policy", "test-parent")
 
@@ -21,7 +21,7 @@ func TestAccDataSourceFirewallPolicy_basic(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceFirewallPolicy_basic(data),
+				Config: testAccFirewallDataSourcePolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
@@ -39,8 +39,8 @@ func TestAccDataSourceFirewallPolicy_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceFirewallPolicy_basic(data acceptance.TestData) string {
-	config := testAccAzureRMFirewallPolicy_inherit(data)
+func testAccFirewallDataSourcePolicy_basic(data acceptance.TestData) string {
+	config := testAccFirewallPolicy_inherit(data)
 
 	// We deliberately set add a dependency between "data.azurerm_firewall_policy.test-parent"
 	// and "azurerm_firewall_policy.test" so that we can test "data.azurerm_firewall_policy.test-parent.child_policies"

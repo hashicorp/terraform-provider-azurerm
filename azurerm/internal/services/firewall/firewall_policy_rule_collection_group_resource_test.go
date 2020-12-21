@@ -12,18 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMFirewallPolicyRuleCollectionGroup_basic(t *testing.T) {
+func TestAccFirewallPolicyRuleCollectionGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy_rule_collection_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallPolicyRuleCollectionGroupDestroy,
+		CheckDestroy: testCheckFirewallPolicyRuleCollectionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFirewallPolicyRuleCollectionGroup_basic(data),
+				Config: testAccFirewallPolicyRuleCollectionGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallPolicyRuleCollectionGroupExists(data.ResourceName),
+					testCheckFirewallPolicyRuleCollectionGroupExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -31,18 +31,18 @@ func TestAccAzureRMFirewallPolicyRuleCollectionGroup_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFirewallPolicyRuleCollectionGroup_complete(t *testing.T) {
+func TestAccFirewallPolicyRuleCollectionGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy_rule_collection_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallPolicyRuleCollectionGroupDestroy,
+		CheckDestroy: testCheckFirewallPolicyRuleCollectionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFirewallPolicyRuleCollectionGroup_complete(data),
+				Config: testAccFirewallPolicyRuleCollectionGroup_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallPolicyRuleCollectionGroupExists(data.ResourceName),
+					testCheckFirewallPolicyRuleCollectionGroupExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -50,32 +50,32 @@ func TestAccAzureRMFirewallPolicyRuleCollectionGroup_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFirewallPolicyRuleCollectionGroup_update(t *testing.T) {
+func TestAccFirewallPolicyRuleCollectionGroup_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy_rule_collection_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallPolicyRuleCollectionGroupDestroy,
+		CheckDestroy: testCheckFirewallPolicyRuleCollectionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFirewallPolicyRuleCollectionGroup_complete(data),
+				Config: testAccFirewallPolicyRuleCollectionGroup_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallPolicyRuleCollectionGroupExists(data.ResourceName),
+					testCheckFirewallPolicyRuleCollectionGroupExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMFirewallPolicyRuleCollectionGroup_update(data),
+				Config: testAccFirewallPolicyRuleCollectionGroup_update(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallPolicyRuleCollectionGroupExists(data.ResourceName),
+					testCheckFirewallPolicyRuleCollectionGroupExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMFirewallPolicyRuleCollectionGroup_complete(data),
+				Config: testAccFirewallPolicyRuleCollectionGroup_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallPolicyRuleCollectionGroupExists(data.ResourceName),
+					testCheckFirewallPolicyRuleCollectionGroupExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -83,26 +83,26 @@ func TestAccAzureRMFirewallPolicyRuleCollectionGroup_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFirewallPolicyRuleCollectionGroup_requiresImport(t *testing.T) {
+func TestAccFirewallPolicyRuleCollectionGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy_rule_collection_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallPolicyRuleCollectionGroupDestroy,
+		CheckDestroy: testCheckFirewallPolicyRuleCollectionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFirewallPolicyRuleCollectionGroup_basic(data),
+				Config: testAccFirewallPolicyRuleCollectionGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallPolicyRuleCollectionGroupExists(data.ResourceName),
+					testCheckFirewallPolicyRuleCollectionGroupExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMFirewallPolicyRuleCollectionGroup_requiresImport),
+			data.RequiresImportErrorStep(testAccFirewallPolicyRuleCollectionGroup_requiresImport),
 		},
 	})
 }
 
-func testCheckAzureRMFirewallPolicyRuleCollectionGroupExists(resourceName string) resource.TestCheckFunc {
+func testCheckFirewallPolicyRuleCollectionGroupExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Firewall.FirewallPolicyRuleGroupClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -128,7 +128,7 @@ func testCheckAzureRMFirewallPolicyRuleCollectionGroupExists(resourceName string
 	}
 }
 
-func testCheckAzureRMFirewallPolicyRuleCollectionGroupDestroy(s *terraform.State) error {
+func testCheckFirewallPolicyRuleCollectionGroupDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Firewall.FirewallPolicyRuleGroupClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -155,7 +155,7 @@ func testCheckAzureRMFirewallPolicyRuleCollectionGroupDestroy(s *terraform.State
 	return nil
 }
 
-func testAccAzureRMFirewallPolicyRuleCollectionGroup_basic(data acceptance.TestData) string {
+func testAccFirewallPolicyRuleCollectionGroup_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -180,7 +180,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMFirewallPolicyRuleCollectionGroup_complete(data acceptance.TestData) string {
+func testAccFirewallPolicyRuleCollectionGroup_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -317,7 +317,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMFirewallPolicyRuleCollectionGroup_update(data acceptance.TestData) string {
+func testAccFirewallPolicyRuleCollectionGroup_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -441,8 +441,8 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMFirewallPolicyRuleCollectionGroup_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMFirewallPolicyRuleCollectionGroup_basic(data)
+func testAccFirewallPolicyRuleCollectionGroup_requiresImport(data acceptance.TestData) string {
+	template := testAccFirewallPolicyRuleCollectionGroup_basic(data)
 	return fmt.Sprintf(`
 %s
 

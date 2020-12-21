@@ -12,18 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
-func TestAccAzureRMFirewallNetworkRuleCollection_basic(t *testing.T) {
+func TestAccFirewallNetworkRuleCollection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_network_rule_collection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		CheckDestroy: testCheckFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFirewallNetworkRuleCollection_basic(data),
+				Config: testAccFirewallNetworkRuleCollection_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallNetworkRuleCollectionExists(data.ResourceName),
+					testCheckFirewallNetworkRuleCollectionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", "acctestnrc"),
 					resource.TestCheckResourceAttr(data.ResourceName, "priority", "100"),
 					resource.TestCheckResourceAttr(data.ResourceName, "action", "Allow"),
@@ -35,40 +35,40 @@ func TestAccAzureRMFirewallNetworkRuleCollection_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFirewallNetworkRuleCollection_requiresImport(t *testing.T) {
+func TestAccFirewallNetworkRuleCollection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_network_rule_collection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		CheckDestroy: testCheckFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFirewallNetworkRuleCollection_basic(data),
+				Config: testAccFirewallNetworkRuleCollection_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallNetworkRuleCollectionExists(data.ResourceName),
+					testCheckFirewallNetworkRuleCollectionExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMFirewallNetworkRuleCollection_requiresImport(data),
+				Config:      testAccFirewallNetworkRuleCollection_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_firewall_network_rule_collection"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMFirewallNetworkRuleCollection_updatedName(t *testing.T) {
+func TestAccFirewallNetworkRuleCollection_updatedName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_network_rule_collection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		CheckDestroy: testCheckFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFirewallNetworkRuleCollection_basic(data),
+				Config: testAccFirewallNetworkRuleCollection_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallNetworkRuleCollectionExists(data.ResourceName),
+					testCheckFirewallNetworkRuleCollectionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", "acctestnrc"),
 					resource.TestCheckResourceAttr(data.ResourceName, "priority", "100"),
 					resource.TestCheckResourceAttr(data.ResourceName, "action", "Allow"),
@@ -77,9 +77,9 @@ func TestAccAzureRMFirewallNetworkRuleCollection_updatedName(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMFirewallNetworkRuleCollection_updatedName(data),
+				Config: testAccFirewallNetworkRuleCollection_updatedName(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallNetworkRuleCollectionExists(data.ResourceName),
+					testCheckFirewallNetworkRuleCollectionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", "acctestnrc"),
 					resource.TestCheckResourceAttr(data.ResourceName, "priority", "100"),
 					resource.TestCheckResourceAttr(data.ResourceName, "action", "Allow"),
@@ -91,19 +91,19 @@ func TestAccAzureRMFirewallNetworkRuleCollection_updatedName(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFirewallNetworkRuleCollection_multipleRuleCollections(t *testing.T) {
+func TestAccFirewallNetworkRuleCollection_multipleRuleCollections(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_network_rule_collection", "test")
 	secondRule := "azurerm_firewall_network_rule_collection.test_add"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		CheckDestroy: testCheckFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFirewallNetworkRuleCollection_basic(data),
+				Config: testAccFirewallNetworkRuleCollection_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallNetworkRuleCollectionExists(data.ResourceName),
+					testCheckFirewallNetworkRuleCollectionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", "acctestnrc"),
 					resource.TestCheckResourceAttr(data.ResourceName, "priority", "100"),
 					resource.TestCheckResourceAttr(data.ResourceName, "action", "Allow"),
@@ -111,14 +111,14 @@ func TestAccAzureRMFirewallNetworkRuleCollection_multipleRuleCollections(t *test
 				),
 			},
 			{
-				Config: testAccAzureRMFirewallNetworkRuleCollection_multiple(data),
+				Config: testAccFirewallNetworkRuleCollection_multiple(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallNetworkRuleCollectionExists(data.ResourceName),
+					testCheckFirewallNetworkRuleCollectionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", "acctestnrc"),
 					resource.TestCheckResourceAttr(data.ResourceName, "priority", "100"),
 					resource.TestCheckResourceAttr(data.ResourceName, "action", "Allow"),
 					resource.TestCheckResourceAttr(data.ResourceName, "rule.#", "1"),
-					testCheckAzureRMFirewallNetworkRuleCollectionExists(secondRule),
+					testCheckFirewallNetworkRuleCollectionExists(secondRule),
 					resource.TestCheckResourceAttr(secondRule, "name", "acctestnrc_add"),
 					resource.TestCheckResourceAttr(secondRule, "priority", "200"),
 					resource.TestCheckResourceAttr(secondRule, "action", "Deny"),
@@ -126,38 +126,38 @@ func TestAccAzureRMFirewallNetworkRuleCollection_multipleRuleCollections(t *test
 				),
 			},
 			{
-				Config: testAccAzureRMFirewallNetworkRuleCollection_basic(data),
+				Config: testAccFirewallNetworkRuleCollection_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallNetworkRuleCollectionExists(data.ResourceName),
+					testCheckFirewallNetworkRuleCollectionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", "acctestnrc"),
 					resource.TestCheckResourceAttr(data.ResourceName, "priority", "100"),
 					resource.TestCheckResourceAttr(data.ResourceName, "action", "Allow"),
 					resource.TestCheckResourceAttr(data.ResourceName, "rule.#", "1"),
-					testCheckAzureRMFirewallNetworkRuleCollectionDoesNotExist("azurerm_firewall.test", "acctestnrc_add"),
+					testCheckFirewallNetworkRuleCollectionDoesNotExist("azurerm_firewall.test", "acctestnrc_add"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMFirewallNetworkRuleCollection_update(t *testing.T) {
+func TestAccFirewallNetworkRuleCollection_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_network_rule_collection", "test")
 	secondResourceName := "azurerm_firewall_network_rule_collection.test_add"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		CheckDestroy: testCheckFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFirewallNetworkRuleCollection_multiple(data),
+				Config: testAccFirewallNetworkRuleCollection_multiple(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallNetworkRuleCollectionExists(data.ResourceName),
+					testCheckFirewallNetworkRuleCollectionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", "acctestnrc"),
 					resource.TestCheckResourceAttr(data.ResourceName, "priority", "100"),
 					resource.TestCheckResourceAttr(data.ResourceName, "action", "Allow"),
 					resource.TestCheckResourceAttr(data.ResourceName, "rule.#", "1"),
-					testCheckAzureRMFirewallNetworkRuleCollectionExists(secondResourceName),
+					testCheckFirewallNetworkRuleCollectionExists(secondResourceName),
 					resource.TestCheckResourceAttr(secondResourceName, "name", "acctestnrc_add"),
 					resource.TestCheckResourceAttr(secondResourceName, "priority", "200"),
 					resource.TestCheckResourceAttr(secondResourceName, "action", "Deny"),
@@ -165,14 +165,14 @@ func TestAccAzureRMFirewallNetworkRuleCollection_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMFirewallNetworkRuleCollection_multipleUpdate(data),
+				Config: testAccFirewallNetworkRuleCollection_multipleUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallNetworkRuleCollectionExists(data.ResourceName),
+					testCheckFirewallNetworkRuleCollectionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", "acctestnrc"),
 					resource.TestCheckResourceAttr(data.ResourceName, "priority", "300"),
 					resource.TestCheckResourceAttr(data.ResourceName, "action", "Deny"),
 					resource.TestCheckResourceAttr(data.ResourceName, "rule.#", "1"),
-					testCheckAzureRMFirewallNetworkRuleCollectionExists(secondResourceName),
+					testCheckFirewallNetworkRuleCollectionExists(secondResourceName),
 					resource.TestCheckResourceAttr(secondResourceName, "name", "acctestnrc_add"),
 					resource.TestCheckResourceAttr(secondResourceName, "priority", "400"),
 					resource.TestCheckResourceAttr(secondResourceName, "action", "Allow"),
@@ -183,23 +183,23 @@ func TestAccAzureRMFirewallNetworkRuleCollection_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFirewallNetworkRuleCollection_disappears(t *testing.T) {
+func TestAccFirewallNetworkRuleCollection_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_network_rule_collection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		CheckDestroy: testCheckFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFirewallNetworkRuleCollection_basic(data),
+				Config: testAccFirewallNetworkRuleCollection_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallNetworkRuleCollectionExists(data.ResourceName),
+					testCheckFirewallNetworkRuleCollectionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", "acctestnrc"),
 					resource.TestCheckResourceAttr(data.ResourceName, "priority", "100"),
 					resource.TestCheckResourceAttr(data.ResourceName, "action", "Allow"),
 					resource.TestCheckResourceAttr(data.ResourceName, "rule.#", "1"),
-					testCheckAzureRMFirewallNetworkRuleCollectionDisappears(data.ResourceName),
+					testCheckFirewallNetworkRuleCollectionDisappears(data.ResourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -207,18 +207,18 @@ func TestAccAzureRMFirewallNetworkRuleCollection_disappears(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFirewallNetworkRuleCollection_multipleRules(t *testing.T) {
+func TestAccFirewallNetworkRuleCollection_multipleRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_network_rule_collection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		CheckDestroy: testCheckFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFirewallNetworkRuleCollection_basic(data),
+				Config: testAccFirewallNetworkRuleCollection_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallNetworkRuleCollectionExists(data.ResourceName),
+					testCheckFirewallNetworkRuleCollectionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", "acctestnrc"),
 					resource.TestCheckResourceAttr(data.ResourceName, "priority", "100"),
 					resource.TestCheckResourceAttr(data.ResourceName, "action", "Allow"),
@@ -226,9 +226,9 @@ func TestAccAzureRMFirewallNetworkRuleCollection_multipleRules(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMFirewallNetworkRuleCollection_multipleRules(data),
+				Config: testAccFirewallNetworkRuleCollection_multipleRules(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallNetworkRuleCollectionExists(data.ResourceName),
+					testCheckFirewallNetworkRuleCollectionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", "acctestnrc"),
 					resource.TestCheckResourceAttr(data.ResourceName, "priority", "100"),
 					resource.TestCheckResourceAttr(data.ResourceName, "action", "Allow"),
@@ -236,9 +236,9 @@ func TestAccAzureRMFirewallNetworkRuleCollection_multipleRules(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMFirewallNetworkRuleCollection_basic(data),
+				Config: testAccFirewallNetworkRuleCollection_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallNetworkRuleCollectionExists(data.ResourceName),
+					testCheckFirewallNetworkRuleCollectionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", "acctestnrc"),
 					resource.TestCheckResourceAttr(data.ResourceName, "priority", "100"),
 					resource.TestCheckResourceAttr(data.ResourceName, "action", "Allow"),
@@ -249,18 +249,18 @@ func TestAccAzureRMFirewallNetworkRuleCollection_multipleRules(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFirewallNetworkRuleCollection_updateFirewallTags(t *testing.T) {
+func TestAccFirewallNetworkRuleCollection_updateFirewallTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_network_rule_collection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		CheckDestroy: testCheckFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFirewallNetworkRuleCollection_basic(data),
+				Config: testAccFirewallNetworkRuleCollection_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallNetworkRuleCollectionExists(data.ResourceName),
+					testCheckFirewallNetworkRuleCollectionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", "acctestnrc"),
 					resource.TestCheckResourceAttr(data.ResourceName, "priority", "100"),
 					resource.TestCheckResourceAttr(data.ResourceName, "action", "Allow"),
@@ -268,9 +268,9 @@ func TestAccAzureRMFirewallNetworkRuleCollection_updateFirewallTags(t *testing.T
 				),
 			},
 			{
-				Config: testAccAzureRMFirewallNetworkRuleCollection_updateFirewallTags(data),
+				Config: testAccFirewallNetworkRuleCollection_updateFirewallTags(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallNetworkRuleCollectionExists(data.ResourceName),
+					testCheckFirewallNetworkRuleCollectionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", "acctestnrc"),
 					resource.TestCheckResourceAttr(data.ResourceName, "priority", "100"),
 					resource.TestCheckResourceAttr(data.ResourceName, "action", "Allow"),
@@ -281,18 +281,18 @@ func TestAccAzureRMFirewallNetworkRuleCollection_updateFirewallTags(t *testing.T
 	})
 }
 
-func TestAccAzureRMFirewallNetworkRuleCollection_serviceTag(t *testing.T) {
+func TestAccFirewallNetworkRuleCollection_serviceTag(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_network_rule_collection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		CheckDestroy: testCheckFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFirewallNetworkRuleCollection_serviceTag(data),
+				Config: testAccFirewallNetworkRuleCollection_serviceTag(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallNetworkRuleCollectionExists(data.ResourceName),
+					testCheckFirewallNetworkRuleCollectionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", "acctestnrc"),
 					resource.TestCheckResourceAttr(data.ResourceName, "priority", "100"),
 					resource.TestCheckResourceAttr(data.ResourceName, "action", "Allow"),
@@ -304,18 +304,18 @@ func TestAccAzureRMFirewallNetworkRuleCollection_serviceTag(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFirewallNetworkRuleCollection_ipGroup(t *testing.T) {
+func TestAccFirewallNetworkRuleCollection_ipGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_network_rule_collection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		CheckDestroy: testCheckFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFirewallNetworkRuleCollection_ipGroup(data),
+				Config: testAccFirewallNetworkRuleCollection_ipGroup(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallNetworkRuleCollectionExists(data.ResourceName),
+					testCheckFirewallNetworkRuleCollectionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "rule.#", "1"),
 				),
 			},
@@ -324,18 +324,18 @@ func TestAccAzureRMFirewallNetworkRuleCollection_ipGroup(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFirewallNetworkRuleCollection_fqdns(t *testing.T) {
+func TestAccFirewallNetworkRuleCollection_fqdns(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_network_rule_collection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		CheckDestroy: testCheckFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFirewallNetworkRuleCollection_fqdns(data),
+				Config: testAccFirewallNetworkRuleCollection_fqdns(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallNetworkRuleCollectionExists(data.ResourceName),
+					testCheckFirewallNetworkRuleCollectionExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -343,39 +343,39 @@ func TestAccAzureRMFirewallNetworkRuleCollection_fqdns(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFirewallNetworkRuleCollection_noSource(t *testing.T) {
+func TestAccFirewallNetworkRuleCollection_noSource(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_network_rule_collection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		CheckDestroy: testCheckFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAzureRMFirewallNetworkRuleCollection_noSource(data),
+				Config:      testAccFirewallNetworkRuleCollection_noSource(data),
 				ExpectError: regexp.MustCompile(fmt.Sprintf("at least one of %q and %q must be specified", "source_addresses", "source_ip_groups")),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMFirewallNetworkRuleCollection_noDestination(t *testing.T) {
+func TestAccFirewallNetworkRuleCollection_noDestination(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_network_rule_collection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		CheckDestroy: testCheckFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAzureRMFirewallNetworkRuleCollection_noDestination(data),
+				Config:      testAccFirewallNetworkRuleCollection_noDestination(data),
 				ExpectError: regexp.MustCompile(fmt.Sprintf("at least one of %q, %q and %q must be specified", "destination_addresses", "destination_ip_groups", "destination_fqdns")),
 			},
 		},
 	})
 }
 
-func testCheckAzureRMFirewallNetworkRuleCollectionExists(resourceName string) resource.TestCheckFunc {
+func testCheckFirewallNetworkRuleCollectionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Firewall.AzureFirewallsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -411,7 +411,7 @@ func testCheckAzureRMFirewallNetworkRuleCollectionExists(resourceName string) re
 	}
 }
 
-func testCheckAzureRMFirewallNetworkRuleCollectionDoesNotExist(resourceName string, collectionName string) resource.TestCheckFunc {
+func testCheckFirewallNetworkRuleCollectionDoesNotExist(resourceName string, collectionName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Firewall.AzureFirewallsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -440,7 +440,7 @@ func testCheckAzureRMFirewallNetworkRuleCollectionDoesNotExist(resourceName stri
 	}
 }
 
-func testCheckAzureRMFirewallNetworkRuleCollectionDisappears(resourceName string) resource.TestCheckFunc {
+func testCheckFirewallNetworkRuleCollectionDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Firewall.AzureFirewallsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -483,8 +483,8 @@ func testCheckAzureRMFirewallNetworkRuleCollectionDisappears(resourceName string
 	}
 }
 
-func testAccAzureRMFirewallNetworkRuleCollection_basic(data acceptance.TestData) string {
-	template := testAccAzureRMFirewall_basic(data)
+func testAccFirewallNetworkRuleCollection_basic(data acceptance.TestData) string {
+	template := testAccFirewall_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -518,8 +518,8 @@ resource "azurerm_firewall_network_rule_collection" "test" {
 `, template)
 }
 
-func testAccAzureRMFirewallNetworkRuleCollection_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMFirewallNetworkRuleCollection_basic(data)
+func testAccFirewallNetworkRuleCollection_requiresImport(data acceptance.TestData) string {
+	template := testAccFirewallNetworkRuleCollection_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -553,8 +553,8 @@ resource "azurerm_firewall_network_rule_collection" "import" {
 `, template)
 }
 
-func testAccAzureRMFirewallNetworkRuleCollection_updatedName(data acceptance.TestData) string {
-	template := testAccAzureRMFirewall_basic(data)
+func testAccFirewallNetworkRuleCollection_updatedName(data acceptance.TestData) string {
+	template := testAccFirewall_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -588,8 +588,8 @@ resource "azurerm_firewall_network_rule_collection" "test" {
 `, template)
 }
 
-func testAccAzureRMFirewallNetworkRuleCollection_multiple(data acceptance.TestData) string {
-	template := testAccAzureRMFirewall_basic(data)
+func testAccFirewallNetworkRuleCollection_multiple(data acceptance.TestData) string {
+	template := testAccFirewall_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -651,8 +651,8 @@ resource "azurerm_firewall_network_rule_collection" "test_add" {
 `, template)
 }
 
-func testAccAzureRMFirewallNetworkRuleCollection_multipleUpdate(data acceptance.TestData) string {
-	template := testAccAzureRMFirewall_basic(data)
+func testAccFirewallNetworkRuleCollection_multipleUpdate(data acceptance.TestData) string {
+	template := testAccFirewall_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -714,8 +714,8 @@ resource "azurerm_firewall_network_rule_collection" "test_add" {
 `, template)
 }
 
-func testAccAzureRMFirewallNetworkRuleCollection_multipleRules(data acceptance.TestData) string {
-	template := testAccAzureRMFirewall_basic(data)
+func testAccFirewallNetworkRuleCollection_multipleRules(data acceptance.TestData) string {
+	template := testAccFirewall_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -769,8 +769,8 @@ resource "azurerm_firewall_network_rule_collection" "test" {
 `, template)
 }
 
-func testAccAzureRMFirewallNetworkRuleCollection_updateFirewallTags(data acceptance.TestData) string {
-	template := testAccAzureRMFirewall_withTags(data)
+func testAccFirewallNetworkRuleCollection_updateFirewallTags(data acceptance.TestData) string {
+	template := testAccFirewall_withTags(data)
 	return fmt.Sprintf(`
 %s
 
@@ -804,8 +804,8 @@ resource "azurerm_firewall_network_rule_collection" "test" {
 `, template)
 }
 
-func testAccAzureRMFirewallNetworkRuleCollection_serviceTag(data acceptance.TestData) string {
-	template := testAccAzureRMFirewall_basic(data)
+func testAccFirewallNetworkRuleCollection_serviceTag(data acceptance.TestData) string {
+	template := testAccFirewall_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -839,8 +839,8 @@ resource "azurerm_firewall_network_rule_collection" "test" {
 `, template)
 }
 
-func testAccAzureRMFirewallNetworkRuleCollection_ipGroup(data acceptance.TestData) string {
-	template := testAccAzureRMFirewall_basic(data)
+func testAccFirewallNetworkRuleCollection_ipGroup(data acceptance.TestData) string {
+	template := testAccFirewall_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -888,8 +888,8 @@ resource "azurerm_firewall_network_rule_collection" "test" {
 `, template)
 }
 
-func testAccAzureRMFirewallNetworkRuleCollection_fqdns(data acceptance.TestData) string {
-	template := testAccAzureRMFirewall_enableDNS(data)
+func testAccFirewallNetworkRuleCollection_fqdns(data acceptance.TestData) string {
+	template := testAccFirewall_enableDNS(data)
 	return fmt.Sprintf(`
 %s
 
@@ -923,8 +923,8 @@ resource "azurerm_firewall_network_rule_collection" "test" {
 `, template)
 }
 
-func testAccAzureRMFirewallNetworkRuleCollection_noSource(data acceptance.TestData) string {
-	template := testAccAzureRMFirewall_basic(data)
+func testAccFirewallNetworkRuleCollection_noSource(data acceptance.TestData) string {
+	template := testAccFirewall_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -954,8 +954,8 @@ resource "azurerm_firewall_network_rule_collection" "test" {
 `, template)
 }
 
-func testAccAzureRMFirewallNetworkRuleCollection_noDestination(data acceptance.TestData) string {
-	template := testAccAzureRMFirewall_basic(data)
+func testAccFirewallNetworkRuleCollection_noDestination(data acceptance.TestData) string {
+	template := testAccFirewall_basic(data)
 	return fmt.Sprintf(`
 %s
 
