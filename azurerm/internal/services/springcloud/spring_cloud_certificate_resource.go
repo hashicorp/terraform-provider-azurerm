@@ -60,6 +60,11 @@ func resourceSpringCloudCertificate() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: keyVaultValidate.NestedItemId,
 			},
+
+			"thumbprint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -126,6 +131,10 @@ func resourceSpringCloudCertificateRead(d *schema.ResourceData, meta interface{}
 	d.Set("name", id.CertificateName)
 	d.Set("service_name", id.SpringName)
 	d.Set("resource_group_name", id.ResourceGroup)
+
+	if props := resp.Properties; props != nil {
+		d.Set("thumbprint", props.Thumbprint)
+	}
 
 	return nil
 }

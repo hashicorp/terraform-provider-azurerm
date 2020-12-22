@@ -31,6 +31,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_spring_cloud_active_deployment": resourceSpringCloudActiveDeployment(),
 		"azurerm_spring_cloud_app":               resourceSpringCloudApp(),
 		"azurerm_spring_cloud_certificate":       resourceSpringCloudCertificate(),
+		"azurerm_spring_cloud_custom_domain":     resourceSpringCloudCustomDomain(),
 		"azurerm_spring_cloud_java_deployment":   resourceSpringCloudJavaDeployment(),
 		"azurerm_spring_cloud_service":           resourceSpringCloudService(),
 	}

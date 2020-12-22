@@ -27,6 +27,7 @@ func TestAccSpringCloudCertificate_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("thumbprint").Exists(),
 			),
 		},
 		data.ImportStep("key_vault_certificate_id"),
