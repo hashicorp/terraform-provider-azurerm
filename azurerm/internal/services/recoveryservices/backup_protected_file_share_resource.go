@@ -71,6 +71,7 @@ func resourceBackupProtectedFileShare() *schema.Resource {
 }
 
 func resourceBackupProtectedFileShareCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	protectedClient := meta.(*clients.Client).RecoveryServices.ProtectedItemsGroupClient
 	protectableClient := meta.(*clients.Client).RecoveryServices.ProtectableItemsClient
 	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
 	opClient := meta.(*clients.Client).RecoveryServices.BackupOperationStatusesClient
