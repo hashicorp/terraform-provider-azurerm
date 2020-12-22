@@ -27,7 +27,7 @@ func TestAccLogAnalyticsLinkedService_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestLAW-%d/Automation")),
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestLAW-%d/Automation", data.RandomInteger)),
 			),
 		},
 		data.ImportStep(),
@@ -43,7 +43,7 @@ func TestAccLogAnalyticsLinkedService_requiresImport(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestLAW-%d/Automation")),
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestLAW-%d/Automation", data.RandomInteger)),
 			),
 		},
 		{
