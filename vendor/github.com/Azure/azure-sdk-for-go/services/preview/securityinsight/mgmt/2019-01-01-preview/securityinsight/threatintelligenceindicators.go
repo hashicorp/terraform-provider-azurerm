@@ -98,6 +98,7 @@ func (client ThreatIntelligenceIndicatorsClient) List(ctx context.Context, resou
 	result.tiil, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.ThreatIntelligenceIndicatorsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.tiil.hasNextLink() && result.tiil.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -175,6 +176,7 @@ func (client ThreatIntelligenceIndicatorsClient) listNextResults(ctx context.Con
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.ThreatIntelligenceIndicatorsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

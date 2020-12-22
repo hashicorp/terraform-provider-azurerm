@@ -74,6 +74,7 @@ func (client UpdatesClient) List(ctx context.Context, resourceGroupName string, 
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maintenance.UpdatesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -155,6 +156,7 @@ func (client UpdatesClient) ListParent(ctx context.Context, resourceGroupName st
 	result, err = client.ListParentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maintenance.UpdatesClient", "ListParent", resp, "Failure responding to request")
+		return
 	}
 
 	return

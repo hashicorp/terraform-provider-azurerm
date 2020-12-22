@@ -75,6 +75,7 @@ func (client WorkflowRunActionsClient) Get(ctx context.Context, resourceGroupNam
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowRunActionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -156,6 +157,7 @@ func (client WorkflowRunActionsClient) List(ctx context.Context, resourceGroupNa
 	result.wralr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowRunActionsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.wralr.hasNextLink() && result.wralr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -227,6 +229,7 @@ func (client WorkflowRunActionsClient) listNextResults(ctx context.Context, last
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowRunActionsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -280,6 +283,7 @@ func (client WorkflowRunActionsClient) ListExpressionTraces(ctx context.Context,
 	result, err = client.ListExpressionTracesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowRunActionsClient", "ListExpressionTraces", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -265,6 +265,7 @@ func (client ServersClient) Get(ctx context.Context, resourceGroupName string, s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mysql.ServersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -343,6 +344,7 @@ func (client ServersClient) List(ctx context.Context) (result ServerListResult, 
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mysql.ServersClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -425,6 +427,7 @@ func (client ServersClient) ListByResourceGroup(ctx context.Context, resourceGro
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mysql.ServersClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return

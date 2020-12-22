@@ -93,6 +93,7 @@ func (client DataMaskingRulesClient) CreateOrUpdate(ctx context.Context, resourc
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.DataMaskingRulesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -186,6 +187,7 @@ func (client DataMaskingRulesClient) ListBySQLPool(ctx context.Context, resource
 	result, err = client.ListBySQLPoolResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.DataMaskingRulesClient", "ListBySQLPool", resp, "Failure responding to request")
+		return
 	}
 
 	return

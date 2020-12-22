@@ -85,6 +85,7 @@ func (client CertificatesClient) CreateOrUpdate(ctx context.Context, resourceGro
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.CertificatesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -165,6 +166,7 @@ func (client CertificatesClient) Delete(ctx context.Context, resourceGroupName s
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.CertificatesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -242,6 +244,7 @@ func (client CertificatesClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.CertificatesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -320,6 +323,7 @@ func (client CertificatesClient) List(ctx context.Context, resourceGroupName str
 	result.crc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.CertificatesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.crc.hasNextLink() && result.crc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -384,6 +388,7 @@ func (client CertificatesClient) listNextResults(ctx context.Context, lastResult
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.CertificatesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -83,6 +83,7 @@ func (client CheckNameAvailabilityClient) Execute(ctx context.Context, nameAvail
 	result, err = client.ExecuteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "postgresql.CheckNameAvailabilityClient", "Execute", resp, "Failure responding to request")
+		return
 	}
 
 	return

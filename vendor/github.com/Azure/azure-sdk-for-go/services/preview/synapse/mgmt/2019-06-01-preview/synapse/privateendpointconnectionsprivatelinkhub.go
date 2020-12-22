@@ -86,9 +86,11 @@ func (client PrivateEndpointConnectionsPrivateLinkHubClient) List(ctx context.Co
 	result.pecfplhrcr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.PrivateEndpointConnectionsPrivateLinkHubClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.pecfplhrcr.hasNextLink() && result.pecfplhrcr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

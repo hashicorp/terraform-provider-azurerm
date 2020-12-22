@@ -73,6 +73,7 @@ func (client TenantConfigurationsClient) Create(ctx context.Context, tenantConfi
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "portal.TenantConfigurationsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -145,6 +146,7 @@ func (client TenantConfigurationsClient) Delete(ctx context.Context) (result aut
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "portal.TenantConfigurationsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -214,6 +216,7 @@ func (client TenantConfigurationsClient) Get(ctx context.Context) (result Config
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "portal.TenantConfigurationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -284,6 +287,7 @@ func (client TenantConfigurationsClient) List(ctx context.Context) (result Confi
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "portal.TenantConfigurationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

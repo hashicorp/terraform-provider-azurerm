@@ -86,6 +86,7 @@ func (client DataMaskingPoliciesClient) CreateOrUpdate(ctx context.Context, reso
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.DataMaskingPoliciesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -179,6 +180,7 @@ func (client DataMaskingPoliciesClient) Get(ctx context.Context, resourceGroupNa
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.DataMaskingPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

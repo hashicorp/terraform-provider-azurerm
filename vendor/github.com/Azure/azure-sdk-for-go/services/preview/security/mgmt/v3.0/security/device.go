@@ -72,6 +72,7 @@ func (client DeviceClient) Get(ctx context.Context, resourceID string, deviceID 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.DeviceClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

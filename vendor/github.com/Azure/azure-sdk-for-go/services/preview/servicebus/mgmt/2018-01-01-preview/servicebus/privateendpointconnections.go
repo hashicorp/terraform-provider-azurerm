@@ -86,6 +86,7 @@ func (client PrivateEndpointConnectionsClient) CreateOrUpdate(ctx context.Contex
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.PrivateEndpointConnectionsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -261,6 +262,7 @@ func (client PrivateEndpointConnectionsClient) Get(ctx context.Context, resource
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.PrivateEndpointConnectionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -348,6 +350,7 @@ func (client PrivateEndpointConnectionsClient) List(ctx context.Context, resourc
 	result.peclr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.PrivateEndpointConnectionsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.peclr.hasNextLink() && result.peclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -412,6 +415,7 @@ func (client PrivateEndpointConnectionsClient) listNextResults(ctx context.Conte
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.PrivateEndpointConnectionsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

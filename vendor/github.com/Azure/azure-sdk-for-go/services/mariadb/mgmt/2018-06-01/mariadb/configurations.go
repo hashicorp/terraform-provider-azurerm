@@ -176,6 +176,7 @@ func (client ConfigurationsClient) Get(ctx context.Context, resourceGroupName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.ConfigurationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -262,6 +263,7 @@ func (client ConfigurationsClient) ListByServer(ctx context.Context, resourceGro
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.ConfigurationsClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 
 	return

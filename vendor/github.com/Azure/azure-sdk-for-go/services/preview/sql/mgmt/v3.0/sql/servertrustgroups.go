@@ -245,6 +245,7 @@ func (client ServerTrustGroupsClient) Get(ctx context.Context, resourceGroupName
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerTrustGroupsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -323,6 +324,7 @@ func (client ServerTrustGroupsClient) ListByInstance(ctx context.Context, resour
 	result.stglr, err = client.ListByInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerTrustGroupsClient", "ListByInstance", resp, "Failure responding to request")
+		return
 	}
 	if result.stglr.hasNextLink() && result.stglr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -387,6 +389,7 @@ func (client ServerTrustGroupsClient) listByInstanceNextResults(ctx context.Cont
 	result, err = client.ListByInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerTrustGroupsClient", "listByInstanceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -440,6 +443,7 @@ func (client ServerTrustGroupsClient) ListByLocation(ctx context.Context, resour
 	result.stglr, err = client.ListByLocationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerTrustGroupsClient", "ListByLocation", resp, "Failure responding to request")
+		return
 	}
 	if result.stglr.hasNextLink() && result.stglr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -504,6 +508,7 @@ func (client ServerTrustGroupsClient) listByLocationNextResults(ctx context.Cont
 	result, err = client.ListByLocationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerTrustGroupsClient", "listByLocationNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

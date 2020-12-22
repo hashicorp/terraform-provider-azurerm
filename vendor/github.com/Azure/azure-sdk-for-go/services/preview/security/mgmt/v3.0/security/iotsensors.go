@@ -45,7 +45,8 @@ func NewIotSensorsClientWithBaseURI(baseURI string, subscriptionID string, ascLo
 // Parameters:
 // scope - scope of the query (IoT Hub, /providers/Microsoft.Devices/iotHubs/myHub)
 // iotSensorName - name of the IoT sensor
-func (client IotSensorsClient) CreateOrUpdate(ctx context.Context, scope string, iotSensorName string) (result IotSensor, err error) {
+// iotSensorsModel - the IoT sensor model
+func (client IotSensorsClient) CreateOrUpdate(ctx context.Context, scope string, iotSensorName string, iotSensorsModel IotSensorsModel) (result IotSensorsModel, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/IotSensorsClient.CreateOrUpdate")
 		defer func() {
@@ -56,7 +57,7 @@ func (client IotSensorsClient) CreateOrUpdate(ctx context.Context, scope string,
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.CreateOrUpdatePreparer(ctx, scope, iotSensorName)
+	req, err := client.CreateOrUpdatePreparer(ctx, scope, iotSensorName, iotSensorsModel)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotSensorsClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
@@ -72,13 +73,14 @@ func (client IotSensorsClient) CreateOrUpdate(ctx context.Context, scope string,
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotSensorsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client IotSensorsClient) CreateOrUpdatePreparer(ctx context.Context, scope string, iotSensorName string) (*http.Request, error) {
+func (client IotSensorsClient) CreateOrUpdatePreparer(ctx context.Context, scope string, iotSensorName string, iotSensorsModel IotSensorsModel) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"iotSensorName": autorest.Encode("path", iotSensorName),
 		"scope":         scope,
@@ -90,9 +92,11 @@ func (client IotSensorsClient) CreateOrUpdatePreparer(ctx context.Context, scope
 	}
 
 	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/{scope}/providers/Microsoft.Security/iotSensors/{iotSensorName}", pathParameters),
+		autorest.WithJSON(iotSensorsModel),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -105,7 +109,7 @@ func (client IotSensorsClient) CreateOrUpdateSender(req *http.Request) (*http.Re
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
-func (client IotSensorsClient) CreateOrUpdateResponder(resp *http.Response) (result IotSensor, err error) {
+func (client IotSensorsClient) CreateOrUpdateResponder(resp *http.Response) (result IotSensorsModel, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
@@ -146,6 +150,7 @@ func (client IotSensorsClient) Delete(ctx context.Context, scope string, iotSens
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotSensorsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -219,6 +224,7 @@ func (client IotSensorsClient) DownloadActivation(ctx context.Context, scope str
 	result, err = client.DownloadActivationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotSensorsClient", "DownloadActivation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -293,6 +299,7 @@ func (client IotSensorsClient) DownloadResetPassword(ctx context.Context, scope 
 	result, err = client.DownloadResetPasswordResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotSensorsClient", "DownloadResetPassword", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -341,7 +348,7 @@ func (client IotSensorsClient) DownloadResetPasswordResponder(resp *http.Respons
 // Parameters:
 // scope - scope of the query (IoT Hub, /providers/Microsoft.Devices/iotHubs/myHub)
 // iotSensorName - name of the IoT sensor
-func (client IotSensorsClient) Get(ctx context.Context, scope string, iotSensorName string) (result IotSensor, err error) {
+func (client IotSensorsClient) Get(ctx context.Context, scope string, iotSensorName string) (result IotSensorsModel, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/IotSensorsClient.Get")
 		defer func() {
@@ -368,6 +375,7 @@ func (client IotSensorsClient) Get(ctx context.Context, scope string, iotSensorN
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotSensorsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -401,7 +409,7 @@ func (client IotSensorsClient) GetSender(req *http.Request) (*http.Response, err
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client IotSensorsClient) GetResponder(resp *http.Response) (result IotSensor, err error) {
+func (client IotSensorsClient) GetResponder(resp *http.Response) (result IotSensorsModel, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -441,6 +449,7 @@ func (client IotSensorsClient) List(ctx context.Context, scope string) (result I
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotSensorsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -480,5 +489,79 @@ func (client IotSensorsClient) ListResponder(resp *http.Response) (result IotSen
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// TriggerTiPackageUpdate trigger threat intelligence package update
+// Parameters:
+// scope - scope of the query (IoT Hub, /providers/Microsoft.Devices/iotHubs/myHub)
+// iotSensorName - name of the IoT sensor
+func (client IotSensorsClient) TriggerTiPackageUpdate(ctx context.Context, scope string, iotSensorName string) (result autorest.Response, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/IotSensorsClient.TriggerTiPackageUpdate")
+		defer func() {
+			sc := -1
+			if result.Response != nil {
+				sc = result.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.TriggerTiPackageUpdatePreparer(ctx, scope, iotSensorName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.IotSensorsClient", "TriggerTiPackageUpdate", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.TriggerTiPackageUpdateSender(req)
+	if err != nil {
+		result.Response = resp
+		err = autorest.NewErrorWithError(err, "security.IotSensorsClient", "TriggerTiPackageUpdate", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.TriggerTiPackageUpdateResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.IotSensorsClient", "TriggerTiPackageUpdate", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// TriggerTiPackageUpdatePreparer prepares the TriggerTiPackageUpdate request.
+func (client IotSensorsClient) TriggerTiPackageUpdatePreparer(ctx context.Context, scope string, iotSensorName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"iotSensorName": autorest.Encode("path", iotSensorName),
+		"scope":         scope,
+	}
+
+	const APIVersion = "2020-08-06-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/{scope}/providers/Microsoft.Security/iotSensors/{iotSensorName}/triggerTiPackageUpdate", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// TriggerTiPackageUpdateSender sends the TriggerTiPackageUpdate request. The method will close the
+// http.Response Body if it receives an error.
+func (client IotSensorsClient) TriggerTiPackageUpdateSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// TriggerTiPackageUpdateResponder handles the response to the TriggerTiPackageUpdate request. The method always
+// closes the http.Response Body.
+func (client IotSensorsClient) TriggerTiPackageUpdateResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByClosing())
+	result.Response = resp
 	return
 }

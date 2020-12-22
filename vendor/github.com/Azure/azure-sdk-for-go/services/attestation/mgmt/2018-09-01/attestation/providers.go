@@ -88,6 +88,7 @@ func (client ProvidersClient) Create(ctx context.Context, resourceGroupName stri
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "attestation.ProvidersClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -175,6 +176,7 @@ func (client ProvidersClient) Delete(ctx context.Context, resourceGroupName stri
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "attestation.ProvidersClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -259,6 +261,7 @@ func (client ProvidersClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "attestation.ProvidersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -341,6 +344,7 @@ func (client ProvidersClient) GetDefaultByLocation(ctx context.Context, location
 	result, err = client.GetDefaultByLocationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "attestation.ProvidersClient", "GetDefaultByLocation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -418,6 +422,7 @@ func (client ProvidersClient) List(ctx context.Context) (result ProviderListResu
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "attestation.ProvidersClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -500,6 +505,7 @@ func (client ProvidersClient) ListByResourceGroup(ctx context.Context, resourceG
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "attestation.ProvidersClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -577,6 +583,7 @@ func (client ProvidersClient) ListDefault(ctx context.Context) (result ProviderL
 	result, err = client.ListDefaultResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "attestation.ProvidersClient", "ListDefault", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -661,6 +668,7 @@ func (client ProvidersClient) Update(ctx context.Context, resourceGroupName stri
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "attestation.ProvidersClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

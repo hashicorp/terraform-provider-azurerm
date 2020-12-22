@@ -13909,6 +13909,35 @@ type WorkspaceKeyDetails struct {
 	KeyVaultURL *string `json:"keyVaultUrl,omitempty"`
 }
 
+// WorkspaceManagedIdentitySQLControlSettingsCreateOrUpdateFuture an abstraction for monitoring and
+// retrieving the results of a long-running operation.
+type WorkspaceManagedIdentitySQLControlSettingsCreateOrUpdateFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *WorkspaceManagedIdentitySQLControlSettingsCreateOrUpdateFuture) Result(client WorkspaceManagedIdentitySQLControlSettingsClient) (miscsm ManagedIdentitySQLControlSettingsModel, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "synapse.WorkspaceManagedIdentitySQLControlSettingsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("synapse.WorkspaceManagedIdentitySQLControlSettingsCreateOrUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if miscsm.Response.Response, err = future.GetResult(sender); err == nil && miscsm.Response.Response.StatusCode != http.StatusNoContent {
+		miscsm, err = client.CreateOrUpdateResponder(miscsm.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "synapse.WorkspaceManagedIdentitySQLControlSettingsCreateOrUpdateFuture", "Result", miscsm.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
 // WorkspaceManagedSQLServerBlobAuditingPoliciesCreateOrUpdateFuture an abstraction for monitoring and
 // retrieving the results of a long-running operation.
 type WorkspaceManagedSQLServerBlobAuditingPoliciesCreateOrUpdateFuture struct {
@@ -14075,6 +14104,8 @@ type WorkspacePatchProperties struct {
 	PurviewConfiguration *PurviewConfiguration `json:"purviewConfiguration,omitempty"`
 	// ProvisioningState - READ-ONLY; Resource provisioning state
 	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// Encryption - The encryption details of the workspace
+	Encryption *EncryptionDetails `json:"encryption,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for WorkspacePatchProperties.
@@ -14091,6 +14122,9 @@ func (wpp WorkspacePatchProperties) MarshalJSON() ([]byte, error) {
 	}
 	if wpp.PurviewConfiguration != nil {
 		objectMap["purviewConfiguration"] = wpp.PurviewConfiguration
+	}
+	if wpp.Encryption != nil {
+		objectMap["encryption"] = wpp.Encryption
 	}
 	return json.Marshal(objectMap)
 }

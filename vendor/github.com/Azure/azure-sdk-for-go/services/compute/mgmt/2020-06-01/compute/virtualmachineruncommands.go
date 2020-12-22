@@ -236,6 +236,7 @@ func (client VirtualMachineRunCommandsClient) Get(ctx context.Context, location 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.VirtualMachineRunCommandsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -313,6 +314,7 @@ func (client VirtualMachineRunCommandsClient) GetByVirtualMachine(ctx context.Co
 	result, err = client.GetByVirtualMachineResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.VirtualMachineRunCommandsClient", "GetByVirtualMachine", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -398,6 +400,7 @@ func (client VirtualMachineRunCommandsClient) List(ctx context.Context, location
 	result.rclr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.VirtualMachineRunCommandsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.rclr.hasNextLink() && result.rclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -461,6 +464,7 @@ func (client VirtualMachineRunCommandsClient) listNextResults(ctx context.Contex
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.VirtualMachineRunCommandsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -514,6 +518,7 @@ func (client VirtualMachineRunCommandsClient) ListByVirtualMachine(ctx context.C
 	result.vmrclr, err = client.ListByVirtualMachineResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.VirtualMachineRunCommandsClient", "ListByVirtualMachine", resp, "Failure responding to request")
+		return
 	}
 	if result.vmrclr.hasNextLink() && result.vmrclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -581,6 +586,7 @@ func (client VirtualMachineRunCommandsClient) listByVirtualMachineNextResults(ct
 	result, err = client.ListByVirtualMachineResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.VirtualMachineRunCommandsClient", "listByVirtualMachineNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

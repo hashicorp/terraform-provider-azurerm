@@ -84,6 +84,7 @@ func (client AlertsClient) GetResourceGroupLevelAlerts(ctx context.Context, aler
 	result, err = client.GetResourceGroupLevelAlertsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AlertsClient", "GetResourceGroupLevelAlerts", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -165,6 +166,7 @@ func (client AlertsClient) GetSubscriptionLevelAlert(ctx context.Context, alertN
 	result, err = client.GetSubscriptionLevelAlertResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AlertsClient", "GetSubscriptionLevelAlert", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -244,9 +246,11 @@ func (client AlertsClient) List(ctx context.Context) (result AlertListPage, err 
 	result.al, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AlertsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.al.hasNextLink() && result.al.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -368,9 +372,11 @@ func (client AlertsClient) ListByResourceGroup(ctx context.Context, resourceGrou
 	result.al, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AlertsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.al.hasNextLink() && result.al.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -494,9 +500,11 @@ func (client AlertsClient) ListResourceGroupLevelAlertsByRegion(ctx context.Cont
 	result.al, err = client.ListResourceGroupLevelAlertsByRegionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AlertsClient", "ListResourceGroupLevelAlertsByRegion", resp, "Failure responding to request")
+		return
 	}
 	if result.al.hasNextLink() && result.al.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -614,9 +622,11 @@ func (client AlertsClient) ListSubscriptionLevelAlertsByRegion(ctx context.Conte
 	result.al, err = client.ListSubscriptionLevelAlertsByRegionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AlertsClient", "ListSubscriptionLevelAlertsByRegion", resp, "Failure responding to request")
+		return
 	}
 	if result.al.hasNextLink() && result.al.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -739,6 +749,7 @@ func (client AlertsClient) UpdateResourceGroupLevelAlertStateToDismiss(ctx conte
 	result, err = client.UpdateResourceGroupLevelAlertStateToDismissResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateResourceGroupLevelAlertStateToDismiss", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -825,6 +836,7 @@ func (client AlertsClient) UpdateResourceGroupLevelAlertStateToReactivate(ctx co
 	result, err = client.UpdateResourceGroupLevelAlertStateToReactivateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateResourceGroupLevelAlertStateToReactivate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -911,6 +923,7 @@ func (client AlertsClient) UpdateResourceGroupLevelStateToResolve(ctx context.Co
 	result, err = client.UpdateResourceGroupLevelStateToResolveResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateResourceGroupLevelStateToResolve", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -991,6 +1004,7 @@ func (client AlertsClient) UpdateSubscriptionLevelAlertStateToDismiss(ctx contex
 	result, err = client.UpdateSubscriptionLevelAlertStateToDismissResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateSubscriptionLevelAlertStateToDismiss", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1070,6 +1084,7 @@ func (client AlertsClient) UpdateSubscriptionLevelAlertStateToReactivate(ctx con
 	result, err = client.UpdateSubscriptionLevelAlertStateToReactivateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateSubscriptionLevelAlertStateToReactivate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1149,6 +1164,7 @@ func (client AlertsClient) UpdateSubscriptionLevelStateToResolve(ctx context.Con
 	result, err = client.UpdateSubscriptionLevelStateToResolveResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateSubscriptionLevelStateToResolve", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -68,6 +68,7 @@ func (client ManagedPrivateEndpointsClient) Create(ctx context.Context, managedV
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedvirtualnetwork.ManagedPrivateEndpointsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -151,6 +152,7 @@ func (client ManagedPrivateEndpointsClient) Delete(ctx context.Context, managedV
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedvirtualnetwork.ManagedPrivateEndpointsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -228,6 +230,7 @@ func (client ManagedPrivateEndpointsClient) Get(ctx context.Context, managedVirt
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedvirtualnetwork.ManagedPrivateEndpointsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -306,6 +309,7 @@ func (client ManagedPrivateEndpointsClient) List(ctx context.Context, managedVir
 	result.mpelr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedvirtualnetwork.ManagedPrivateEndpointsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.mpelr.hasNextLink() && result.mpelr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -372,6 +376,7 @@ func (client ManagedPrivateEndpointsClient) listNextResults(ctx context.Context,
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedvirtualnetwork.ManagedPrivateEndpointsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

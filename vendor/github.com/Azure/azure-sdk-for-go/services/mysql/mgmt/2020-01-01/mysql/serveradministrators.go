@@ -266,6 +266,7 @@ func (client ServerAdministratorsClient) Get(ctx context.Context, resourceGroupN
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mysql.ServerAdministratorsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -351,6 +352,7 @@ func (client ServerAdministratorsClient) List(ctx context.Context, resourceGroup
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mysql.ServerAdministratorsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

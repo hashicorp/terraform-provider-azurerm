@@ -80,9 +80,11 @@ func (client SecureScoreControlsClient) List(ctx context.Context, expand ExpandC
 	result.sscl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.SecureScoreControlsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.sscl.hasNextLink() && result.sscl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -204,9 +206,11 @@ func (client SecureScoreControlsClient) ListBySecureScore(ctx context.Context, s
 	result.sscl, err = client.ListBySecureScoreResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.SecureScoreControlsClient", "ListBySecureScore", resp, "Failure responding to request")
+		return
 	}
 	if result.sscl.hasNextLink() && result.sscl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

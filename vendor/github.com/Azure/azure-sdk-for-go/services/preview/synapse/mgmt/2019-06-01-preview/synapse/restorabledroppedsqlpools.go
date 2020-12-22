@@ -86,6 +86,7 @@ func (client RestorableDroppedSQLPoolsClient) Get(ctx context.Context, resourceG
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.RestorableDroppedSQLPoolsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -172,6 +173,7 @@ func (client RestorableDroppedSQLPoolsClient) ListByWorkspace(ctx context.Contex
 	result, err = client.ListByWorkspaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.RestorableDroppedSQLPoolsClient", "ListByWorkspace", resp, "Failure responding to request")
+		return
 	}
 
 	return

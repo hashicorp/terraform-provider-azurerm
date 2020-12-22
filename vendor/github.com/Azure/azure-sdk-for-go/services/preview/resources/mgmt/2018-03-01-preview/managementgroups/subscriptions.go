@@ -75,6 +75,7 @@ func (client SubscriptionsClient) Create(ctx context.Context, groupID string, su
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managementgroups.SubscriptionsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -156,6 +157,7 @@ func (client SubscriptionsClient) Delete(ctx context.Context, groupID string, su
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managementgroups.SubscriptionsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -79,6 +79,7 @@ func (client OnPremiseIotSensorsClient) CreateOrUpdate(ctx context.Context, onPr
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.OnPremiseIotSensorsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -158,6 +159,7 @@ func (client OnPremiseIotSensorsClient) Delete(ctx context.Context, onPremiseIot
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.OnPremiseIotSensorsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -236,6 +238,7 @@ func (client OnPremiseIotSensorsClient) DownloadActivation(ctx context.Context, 
 	result, err = client.DownloadActivationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.OnPremiseIotSensorsClient", "DownloadActivation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -315,6 +318,7 @@ func (client OnPremiseIotSensorsClient) DownloadResetPassword(ctx context.Contex
 	result, err = client.DownloadResetPasswordResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.OnPremiseIotSensorsClient", "DownloadResetPassword", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -395,6 +399,7 @@ func (client OnPremiseIotSensorsClient) Get(ctx context.Context, onPremiseIotSen
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.OnPremiseIotSensorsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -472,6 +477,7 @@ func (client OnPremiseIotSensorsClient) List(ctx context.Context) (result OnPrem
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.OnPremiseIotSensorsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

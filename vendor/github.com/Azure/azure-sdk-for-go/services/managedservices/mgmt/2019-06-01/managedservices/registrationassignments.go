@@ -245,6 +245,7 @@ func (client RegistrationAssignmentsClient) Get(ctx context.Context, scope strin
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedservices.RegistrationAssignmentsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -324,6 +325,7 @@ func (client RegistrationAssignmentsClient) List(ctx context.Context, scope stri
 	result.ral, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedservices.RegistrationAssignmentsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.ral.hasNextLink() && result.ral.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -389,6 +391,7 @@ func (client RegistrationAssignmentsClient) listNextResults(ctx context.Context,
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedservices.RegistrationAssignmentsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -85,6 +85,7 @@ func (client IotAlertTypesClient) Get(ctx context.Context, resourceGroupName str
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotAlertTypesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -166,6 +167,7 @@ func (client IotAlertTypesClient) Get1(ctx context.Context, iotAlertTypeName str
 	result, err = client.Get1Responder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotAlertTypesClient", "Get1", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -251,6 +253,7 @@ func (client IotAlertTypesClient) List(ctx context.Context, resourceGroupName st
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotAlertTypesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -329,6 +332,7 @@ func (client IotAlertTypesClient) List1(ctx context.Context) (result IotAlertTyp
 	result, err = client.List1Responder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotAlertTypesClient", "List1", resp, "Failure responding to request")
+		return
 	}
 
 	return

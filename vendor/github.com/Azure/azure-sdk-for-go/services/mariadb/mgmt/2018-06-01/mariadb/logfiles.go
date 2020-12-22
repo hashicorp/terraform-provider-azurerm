@@ -85,6 +85,7 @@ func (client LogFilesClient) ListByServer(ctx context.Context, resourceGroupName
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.LogFilesClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 
 	return

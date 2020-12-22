@@ -85,6 +85,7 @@ func (client KeysClient) CreateOrUpdate(ctx context.Context, resourceGroupName s
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.KeysClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -174,6 +175,7 @@ func (client KeysClient) Delete(ctx context.Context, resourceGroupName string, w
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.KeysClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -261,6 +263,7 @@ func (client KeysClient) Get(ctx context.Context, resourceGroupName string, work
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.KeysClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -348,9 +351,11 @@ func (client KeysClient) ListByWorkspace(ctx context.Context, resourceGroupName 
 	result.kilr, err = client.ListByWorkspaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.KeysClient", "ListByWorkspace", resp, "Failure responding to request")
+		return
 	}
 	if result.kilr.hasNextLink() && result.kilr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

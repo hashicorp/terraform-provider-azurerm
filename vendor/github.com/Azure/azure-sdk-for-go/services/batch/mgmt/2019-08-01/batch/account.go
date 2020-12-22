@@ -263,6 +263,7 @@ func (client AccountClient) Get(ctx context.Context, resourceGroupName string, a
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.AccountClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -348,6 +349,7 @@ func (client AccountClient) GetKeys(ctx context.Context, resourceGroupName strin
 	result, err = client.GetKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.AccountClient", "GetKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -421,6 +423,7 @@ func (client AccountClient) List(ctx context.Context) (result AccountListResultP
 	result.alr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.AccountClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.alr.hasNextLink() && result.alr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -483,6 +486,7 @@ func (client AccountClient) listNextResults(ctx context.Context, lastResults Acc
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.AccountClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -534,6 +538,7 @@ func (client AccountClient) ListByResourceGroup(ctx context.Context, resourceGro
 	result.alr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.AccountClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.alr.hasNextLink() && result.alr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -597,6 +602,7 @@ func (client AccountClient) listByResourceGroupNextResults(ctx context.Context, 
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.AccountClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -657,6 +663,7 @@ func (client AccountClient) RegenerateKey(ctx context.Context, resourceGroupName
 	result, err = client.RegenerateKeyResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.AccountClient", "RegenerateKey", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -743,6 +750,7 @@ func (client AccountClient) SynchronizeAutoStorageKeys(ctx context.Context, reso
 	result, err = client.SynchronizeAutoStorageKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.AccountClient", "SynchronizeAutoStorageKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -826,6 +834,7 @@ func (client AccountClient) Update(ctx context.Context, resourceGroupName string
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.AccountClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

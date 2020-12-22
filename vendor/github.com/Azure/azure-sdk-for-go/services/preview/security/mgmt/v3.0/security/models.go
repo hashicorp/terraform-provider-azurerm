@@ -6937,7 +6937,7 @@ type DataExportSettings struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
-	// Kind - Possible values include: 'KindSettingResource', 'KindSetting', 'KindDataExportSettings'
+	// Kind - Possible values include: 'KindSetting', 'KindDataExportSettings'
 	Kind KindEnum `json:"kind,omitempty"`
 }
 
@@ -6954,28 +6954,18 @@ func (desVar DataExportSettings) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// AsSetting is the BasicSettingResource implementation for DataExportSettings.
-func (desVar DataExportSettings) AsSetting() (*Setting, bool) {
-	return nil, false
-}
-
-// AsBasicSetting is the BasicSettingResource implementation for DataExportSettings.
-func (desVar DataExportSettings) AsBasicSetting() (BasicSetting, bool) {
-	return &desVar, true
-}
-
-// AsDataExportSettings is the BasicSettingResource implementation for DataExportSettings.
+// AsDataExportSettings is the BasicSetting implementation for DataExportSettings.
 func (desVar DataExportSettings) AsDataExportSettings() (*DataExportSettings, bool) {
 	return &desVar, true
 }
 
-// AsSettingResource is the BasicSettingResource implementation for DataExportSettings.
-func (desVar DataExportSettings) AsSettingResource() (*SettingResource, bool) {
+// AsSetting is the BasicSetting implementation for DataExportSettings.
+func (desVar DataExportSettings) AsSetting() (*Setting, bool) {
 	return nil, false
 }
 
-// AsBasicSettingResource is the BasicSettingResource implementation for DataExportSettings.
-func (desVar DataExportSettings) AsBasicSettingResource() (BasicSettingResource, bool) {
+// AsBasicSetting is the BasicSetting implementation for DataExportSettings.
+func (desVar DataExportSettings) AsBasicSetting() (BasicSetting, bool) {
 	return &desVar, true
 }
 
@@ -12458,24 +12448,38 @@ func NewIoTSecuritySolutionsListPage(cur IoTSecuritySolutionsList, getNextPage f
 	}
 }
 
-// IotSensor ioT sensor
-type IotSensor struct {
-	autorest.Response `json:"-"`
-	// Properties - IoT sensor properties
-	Properties interface{} `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource name
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Resource type
-	Type *string `json:"type,omitempty"`
+// IotSensorProperties ioT sensor properties
+type IotSensorProperties struct {
+	// ConnectivityTime - READ-ONLY; Last connectivity time of the IoT sensor
+	ConnectivityTime *string `json:"connectivityTime,omitempty"`
+	// CreationTime - READ-ONLY; Creation time of the IoT sensor
+	CreationTime *string `json:"creationTime,omitempty"`
+	// DynamicLearning - READ-ONLY; Dynamic mode status of the IoT sensor
+	DynamicLearning *bool `json:"dynamicLearning,omitempty"`
+	// LearningMode - READ-ONLY; Learning mode status of the IoT sensor
+	LearningMode *bool `json:"learningMode,omitempty"`
+	// SensorStatus - READ-ONLY; Status of the IoT sensor. Possible values include: 'Ok', 'Disconnected', 'Unavailable'
+	SensorStatus SensorStatus `json:"sensorStatus,omitempty"`
+	// SensorVersion - READ-ONLY; Version of the IoT sensor
+	SensorVersion *string `json:"sensorVersion,omitempty"`
+	// TiAutomaticUpdates - TI Automatic mode status of the IoT sensor
+	TiAutomaticUpdates *bool `json:"tiAutomaticUpdates,omitempty"`
+	// TiStatus - READ-ONLY; TI Status of the IoT sensor. Possible values include: 'TiStatusOk', 'TiStatusFailed', 'TiStatusInProgress', 'TiStatusUpdateAvailable'
+	TiStatus TiStatus `json:"tiStatus,omitempty"`
+	// TiVersion - READ-ONLY; TI Version of the IoT sensor
+	TiVersion *string `json:"tiVersion,omitempty"`
+	// Zone - Zone of the IoT sensor
+	Zone *string `json:"zone,omitempty"`
 }
 
-// MarshalJSON is the custom marshaler for IotSensor.
-func (is IotSensor) MarshalJSON() ([]byte, error) {
+// MarshalJSON is the custom marshaler for IotSensorProperties.
+func (isp IotSensorProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if is.Properties != nil {
-		objectMap["properties"] = is.Properties
+	if isp.TiAutomaticUpdates != nil {
+		objectMap["tiAutomaticUpdates"] = isp.TiAutomaticUpdates
+	}
+	if isp.Zone != nil {
+		objectMap["zone"] = isp.Zone
 	}
 	return json.Marshal(objectMap)
 }
@@ -12484,7 +12488,80 @@ func (is IotSensor) MarshalJSON() ([]byte, error) {
 type IotSensorsList struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; List data
-	Value *[]IotSensor `json:"value,omitempty"`
+	Value *[]IotSensorsModel `json:"value,omitempty"`
+}
+
+// IotSensorsModel ioT sensor model
+type IotSensorsModel struct {
+	autorest.Response `json:"-"`
+	// IotSensorProperties - IoT sensor properties
+	*IotSensorProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for IotSensorsModel.
+func (ism IotSensorsModel) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ism.IotSensorProperties != nil {
+		objectMap["properties"] = ism.IotSensorProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for IotSensorsModel struct.
+func (ism *IotSensorsModel) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var iotSensorProperties IotSensorProperties
+				err = json.Unmarshal(*v, &iotSensorProperties)
+				if err != nil {
+					return err
+				}
+				ism.IotSensorProperties = &iotSensorProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				ism.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				ism.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				ism.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
 }
 
 // IoTSeverityMetrics ioT Security solution analytics severity metrics.
@@ -12495,6 +12572,106 @@ type IoTSeverityMetrics struct {
 	Medium *int32 `json:"medium,omitempty"`
 	// Low - Count of low severity alerts/recommendations.
 	Low *int32 `json:"low,omitempty"`
+}
+
+// IotSiteProperties ioT site properties
+type IotSiteProperties struct {
+	// DisplayName - Display name of the IoT site
+	DisplayName *string `json:"displayName,omitempty"`
+	// Tags - Tags of the IoT site
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for IotSiteProperties.
+func (isp IotSiteProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if isp.DisplayName != nil {
+		objectMap["displayName"] = isp.DisplayName
+	}
+	if isp.Tags != nil {
+		objectMap["tags"] = isp.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// IotSitesList list of IoT sites
+type IotSitesList struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; List data
+	Value *[]IotSitesModel `json:"value,omitempty"`
+}
+
+// IotSitesModel ioT site model
+type IotSitesModel struct {
+	autorest.Response `json:"-"`
+	// IotSiteProperties - IoT site properties
+	*IotSiteProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for IotSitesModel.
+func (ism IotSitesModel) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ism.IotSiteProperties != nil {
+		objectMap["properties"] = ism.IotSiteProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for IotSitesModel struct.
+func (ism *IotSitesModel) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var iotSiteProperties IotSiteProperties
+				err = json.Unmarshal(*v, &iotSiteProperties)
+				if err != nil {
+					return err
+				}
+				ism.IotSiteProperties = &iotSiteProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				ism.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				ism.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				ism.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
 }
 
 // IPAddress IP Address information
@@ -17387,16 +17564,16 @@ type ServicePrincipalProperties struct {
 	Secret *string `json:"secret,omitempty"`
 }
 
-// BasicSetting represents a security setting in Azure Security Center.
+// BasicSetting the kind of the security setting
 type BasicSetting interface {
 	AsDataExportSettings() (*DataExportSettings, bool)
 	AsSetting() (*Setting, bool)
 }
 
-// Setting represents a security setting in Azure Security Center.
+// Setting the kind of the security setting
 type Setting struct {
 	autorest.Response `json:"-"`
-	// Kind - Possible values include: 'KindSettingResource', 'KindSetting', 'KindDataExportSettings'
+	// Kind - Possible values include: 'KindSetting', 'KindDataExportSettings'
 	Kind KindEnum `json:"kind,omitempty"`
 	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
@@ -17453,125 +17630,36 @@ func (s Setting) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// AsSetting is the BasicSettingResource implementation for Setting.
-func (s Setting) AsSetting() (*Setting, bool) {
-	return &s, true
-}
-
-// AsBasicSetting is the BasicSettingResource implementation for Setting.
-func (s Setting) AsBasicSetting() (BasicSetting, bool) {
-	return &s, true
-}
-
-// AsDataExportSettings is the BasicSettingResource implementation for Setting.
+// AsDataExportSettings is the BasicSetting implementation for Setting.
 func (s Setting) AsDataExportSettings() (*DataExportSettings, bool) {
 	return nil, false
 }
 
-// AsSettingResource is the BasicSettingResource implementation for Setting.
-func (s Setting) AsSettingResource() (*SettingResource, bool) {
-	return nil, false
-}
-
-// AsBasicSettingResource is the BasicSettingResource implementation for Setting.
-func (s Setting) AsBasicSettingResource() (BasicSettingResource, bool) {
+// AsSetting is the BasicSetting implementation for Setting.
+func (s Setting) AsSetting() (*Setting, bool) {
 	return &s, true
 }
 
-// BasicSettingResource the kind of the security setting
-type BasicSettingResource interface {
-	AsSetting() (*Setting, bool)
-	AsBasicSetting() (BasicSetting, bool)
-	AsDataExportSettings() (*DataExportSettings, bool)
-	AsSettingResource() (*SettingResource, bool)
+// AsBasicSetting is the BasicSetting implementation for Setting.
+func (s Setting) AsBasicSetting() (BasicSetting, bool) {
+	return &s, true
 }
 
-// SettingResource the kind of the security setting
-type SettingResource struct {
-	// Kind - Possible values include: 'KindSettingResource', 'KindSetting', 'KindDataExportSettings'
-	Kind KindEnum `json:"kind,omitempty"`
-	// ID - READ-ONLY; Resource Id
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource name
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Resource type
-	Type *string `json:"type,omitempty"`
+// SettingModel ...
+type SettingModel struct {
+	autorest.Response `json:"-"`
+	Value             BasicSetting `json:"value,omitempty"`
 }
 
-func unmarshalBasicSettingResource(body []byte) (BasicSettingResource, error) {
-	var m map[string]interface{}
-	err := json.Unmarshal(body, &m)
+// UnmarshalJSON is the custom unmarshaler for SettingModel struct.
+func (sm *SettingModel) UnmarshalJSON(body []byte) error {
+	s, err := unmarshalBasicSetting(body)
 	if err != nil {
-		return nil, err
+		return err
 	}
+	sm.Value = s
 
-	switch m["kind"] {
-	case string(KindSetting):
-		var s Setting
-		err := json.Unmarshal(body, &s)
-		return s, err
-	case string(KindDataExportSettings):
-		var desVar DataExportSettings
-		err := json.Unmarshal(body, &desVar)
-		return desVar, err
-	default:
-		var sr SettingResource
-		err := json.Unmarshal(body, &sr)
-		return sr, err
-	}
-}
-func unmarshalBasicSettingResourceArray(body []byte) ([]BasicSettingResource, error) {
-	var rawMessages []*json.RawMessage
-	err := json.Unmarshal(body, &rawMessages)
-	if err != nil {
-		return nil, err
-	}
-
-	srArray := make([]BasicSettingResource, len(rawMessages))
-
-	for index, rawMessage := range rawMessages {
-		sr, err := unmarshalBasicSettingResource(*rawMessage)
-		if err != nil {
-			return nil, err
-		}
-		srArray[index] = sr
-	}
-	return srArray, nil
-}
-
-// MarshalJSON is the custom marshaler for SettingResource.
-func (sr SettingResource) MarshalJSON() ([]byte, error) {
-	sr.Kind = KindSettingResource
-	objectMap := make(map[string]interface{})
-	if sr.Kind != "" {
-		objectMap["kind"] = sr.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// AsSetting is the BasicSettingResource implementation for SettingResource.
-func (sr SettingResource) AsSetting() (*Setting, bool) {
-	return nil, false
-}
-
-// AsBasicSetting is the BasicSettingResource implementation for SettingResource.
-func (sr SettingResource) AsBasicSetting() (BasicSetting, bool) {
-	return nil, false
-}
-
-// AsDataExportSettings is the BasicSettingResource implementation for SettingResource.
-func (sr SettingResource) AsDataExportSettings() (*DataExportSettings, bool) {
-	return nil, false
-}
-
-// AsSettingResource is the BasicSettingResource implementation for SettingResource.
-func (sr SettingResource) AsSettingResource() (*SettingResource, bool) {
-	return &sr, true
-}
-
-// AsBasicSettingResource is the BasicSettingResource implementation for SettingResource.
-func (sr SettingResource) AsBasicSettingResource() (BasicSettingResource, bool) {
-	return &sr, true
+	return nil
 }
 
 // SettingsList subscription settings list.

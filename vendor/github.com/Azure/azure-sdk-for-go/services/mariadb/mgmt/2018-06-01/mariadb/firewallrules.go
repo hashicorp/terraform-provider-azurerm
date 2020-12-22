@@ -269,6 +269,7 @@ func (client FirewallRulesClient) Get(ctx context.Context, resourceGroupName str
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.FirewallRulesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -355,6 +356,7 @@ func (client FirewallRulesClient) ListByServer(ctx context.Context, resourceGrou
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.FirewallRulesClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 
 	return

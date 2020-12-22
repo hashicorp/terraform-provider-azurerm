@@ -90,6 +90,7 @@ func (client MyWorkbooksClient) CreateOrUpdate(ctx context.Context, resourceGrou
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MyWorkbooksClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -177,6 +178,7 @@ func (client MyWorkbooksClient) Delete(ctx context.Context, resourceGroupName st
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MyWorkbooksClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -261,6 +263,7 @@ func (client MyWorkbooksClient) Get(ctx context.Context, resourceGroupName strin
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MyWorkbooksClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -349,6 +352,7 @@ func (client MyWorkbooksClient) ListByResourceGroup(ctx context.Context, resourc
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MyWorkbooksClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -438,6 +442,7 @@ func (client MyWorkbooksClient) ListBySubscription(ctx context.Context, category
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MyWorkbooksClient", "ListBySubscription", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -529,6 +534,7 @@ func (client MyWorkbooksClient) Update(ctx context.Context, resourceGroupName st
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MyWorkbooksClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

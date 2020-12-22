@@ -87,6 +87,7 @@ func (client SQLPoolColumnsClient) Get(ctx context.Context, resourceGroupName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolColumnsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

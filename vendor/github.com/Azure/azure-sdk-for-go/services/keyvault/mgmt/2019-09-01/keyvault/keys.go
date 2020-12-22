@@ -88,6 +88,7 @@ func (client KeysClient) CreateIfNotExist(ctx context.Context, resourceGroupName
 	result, err = client.CreateIfNotExistResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "keyvault.KeysClient", "CreateIfNotExist", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -175,6 +176,7 @@ func (client KeysClient) Get(ctx context.Context, resourceGroupName string, vaul
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "keyvault.KeysClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -263,6 +265,7 @@ func (client KeysClient) GetVersion(ctx context.Context, resourceGroupName strin
 	result, err = client.GetVersionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "keyvault.KeysClient", "GetVersion", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -347,6 +350,7 @@ func (client KeysClient) List(ctx context.Context, resourceGroupName string, vau
 	result.klr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "keyvault.KeysClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.klr.hasNextLink() && result.klr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -411,6 +415,7 @@ func (client KeysClient) listNextResults(ctx context.Context, lastResults KeyLis
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "keyvault.KeysClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -472,6 +477,7 @@ func (client KeysClient) ListVersions(ctx context.Context, resourceGroupName str
 	result.klr, err = client.ListVersionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "keyvault.KeysClient", "ListVersions", resp, "Failure responding to request")
+		return
 	}
 	if result.klr.hasNextLink() && result.klr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -537,6 +543,7 @@ func (client KeysClient) listVersionsNextResults(ctx context.Context, lastResult
 	result, err = client.ListVersionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "keyvault.KeysClient", "listVersionsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

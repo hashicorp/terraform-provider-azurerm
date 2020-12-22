@@ -86,6 +86,7 @@ func (client IotRecommendationTypesClient) Get(ctx context.Context, resourceGrou
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotRecommendationTypesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -167,6 +168,7 @@ func (client IotRecommendationTypesClient) Get1(ctx context.Context, iotRecommen
 	result, err = client.Get1Responder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotRecommendationTypesClient", "Get1", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -252,6 +254,7 @@ func (client IotRecommendationTypesClient) List(ctx context.Context, resourceGro
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotRecommendationTypesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -330,6 +333,7 @@ func (client IotRecommendationTypesClient) List1(ctx context.Context) (result Io
 	result, err = client.List1Responder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotRecommendationTypesClient", "List1", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -315,6 +315,7 @@ func (client PoolClient) DisableAutoScale(ctx context.Context, resourceGroupName
 	result, err = client.DisableAutoScaleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.PoolClient", "DisableAutoScale", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -404,6 +405,7 @@ func (client PoolClient) Get(ctx context.Context, resourceGroupName string, acco
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.PoolClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -505,6 +507,7 @@ func (client PoolClient) ListByBatchAccount(ctx context.Context, resourceGroupNa
 	result.lpr, err = client.ListByBatchAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.PoolClient", "ListByBatchAccount", resp, "Failure responding to request")
+		return
 	}
 	if result.lpr.hasNextLink() && result.lpr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -578,6 +581,7 @@ func (client PoolClient) listByBatchAccountNextResults(ctx context.Context, last
 	result, err = client.ListByBatchAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.PoolClient", "listByBatchAccountNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -646,6 +650,7 @@ func (client PoolClient) StopResize(ctx context.Context, resourceGroupName strin
 	result, err = client.StopResizeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.PoolClient", "StopResize", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -739,6 +744,7 @@ func (client PoolClient) Update(ctx context.Context, resourceGroupName string, a
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.PoolClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -2,17 +2,19 @@ package client
 
 import (
 	providers "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
+	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2019-06-01-preview/templatespecs"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
 type Client struct {
-	DeploymentsClient *resources.DeploymentsClient
-	GroupsClient      *resources.GroupsClient
-	LocksClient       *locks.ManagementLocksClient
-	ProvidersClient   *providers.ProvidersClient
-	ResourcesClient   *resources.Client
+	DeploymentsClient  *resources.DeploymentsClient
+	GroupsClient       *resources.GroupsClient
+	LocksClient        *locks.ManagementLocksClient
+	ProvidersClient    *providers.ProvidersClient
+	ResourcesClient    *resources.Client
+	TemplateSpecClient *templatespecs.Client
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -32,11 +34,15 @@ func NewClient(o *common.ClientOptions) *Client {
 	resourcesClient := resources.NewClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&resourcesClient.Client, o.ResourceManagerAuthorizer)
 
+	templateSpecClient := templatespecs.NewClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&templateSpecClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
-		GroupsClient:      &groupsClient,
-		DeploymentsClient: &deploymentsClient,
-		LocksClient:       &locksClient,
-		ProvidersClient:   &providersClient,
-		ResourcesClient:   &resourcesClient,
+		GroupsClient:       &groupsClient,
+		DeploymentsClient:  &deploymentsClient,
+		LocksClient:        &locksClient,
+		ProvidersClient:    &providersClient,
+		ResourcesClient:    &resourcesClient,
+		TemplateSpecClient: &templateSpecClient,
 	}
 }

@@ -85,6 +85,7 @@ func (client ReplicasClient) ListByServer(ctx context.Context, resourceGroupName
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "postgresql.ReplicasClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -256,6 +256,7 @@ func (client WorkspaceSQLAadAdminsClient) Get(ctx context.Context, resourceGroup
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.WorkspaceSQLAadAdminsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

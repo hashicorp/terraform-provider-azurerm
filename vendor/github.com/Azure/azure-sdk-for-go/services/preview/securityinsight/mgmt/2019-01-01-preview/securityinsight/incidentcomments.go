@@ -96,6 +96,7 @@ func (client IncidentCommentsClient) CreateComment(ctx context.Context, resource
 	result, err = client.CreateCommentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.IncidentCommentsClient", "CreateComment", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -194,6 +195,7 @@ func (client IncidentCommentsClient) DeleteComment(ctx context.Context, resource
 	result, err = client.DeleteCommentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.IncidentCommentsClient", "DeleteComment", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -289,6 +291,7 @@ func (client IncidentCommentsClient) GetComment(ctx context.Context, resourceGro
 	result, err = client.GetCommentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.IncidentCommentsClient", "GetComment", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -391,6 +394,7 @@ func (client IncidentCommentsClient) ListByIncident(ctx context.Context, resourc
 	result.icl, err = client.ListByIncidentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.IncidentCommentsClient", "ListByIncident", resp, "Failure responding to request")
+		return
 	}
 	if result.icl.hasNextLink() && result.icl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -469,6 +473,7 @@ func (client IncidentCommentsClient) listByIncidentNextResults(ctx context.Conte
 	result, err = client.ListByIncidentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.IncidentCommentsClient", "listByIncidentNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

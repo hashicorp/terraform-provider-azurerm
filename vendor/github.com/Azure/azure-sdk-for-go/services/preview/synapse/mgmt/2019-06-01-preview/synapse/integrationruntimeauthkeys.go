@@ -85,6 +85,7 @@ func (client IntegrationRuntimeAuthKeysClient) List(ctx context.Context, resourc
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimeAuthKeysClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -173,6 +174,7 @@ func (client IntegrationRuntimeAuthKeysClient) Regenerate(ctx context.Context, r
 	result, err = client.RegenerateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimeAuthKeysClient", "Regenerate", resp, "Failure responding to request")
+		return
 	}
 
 	return

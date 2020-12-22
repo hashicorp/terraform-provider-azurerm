@@ -74,6 +74,7 @@ func (client ScriptExecutionHistoryClient) ListByCluster(ctx context.Context, re
 	result.saehl, err = client.ListByClusterResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ScriptExecutionHistoryClient", "ListByCluster", resp, "Failure responding to request")
+		return
 	}
 	if result.saehl.hasNextLink() && result.saehl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -138,6 +139,7 @@ func (client ScriptExecutionHistoryClient) listByClusterNextResults(ctx context.
 	result, err = client.ListByClusterResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ScriptExecutionHistoryClient", "listByClusterNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -190,6 +192,7 @@ func (client ScriptExecutionHistoryClient) Promote(ctx context.Context, resource
 	result, err = client.PromoteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ScriptExecutionHistoryClient", "Promote", resp, "Failure responding to request")
+		return
 	}
 
 	return

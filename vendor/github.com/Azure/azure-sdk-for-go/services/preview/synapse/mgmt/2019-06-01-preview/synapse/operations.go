@@ -78,6 +78,7 @@ func (client OperationsClient) CheckNameAvailability(ctx context.Context, reques
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.OperationsClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -164,6 +165,7 @@ func (client OperationsClient) GetAzureAsyncHeaderResult(ctx context.Context, re
 	result, err = client.GetAzureAsyncHeaderResultResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.OperationsClient", "GetAzureAsyncHeaderResult", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -251,6 +253,7 @@ func (client OperationsClient) GetLocationHeaderResult(ctx context.Context, reso
 	result, err = client.GetLocationHeaderResultResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.OperationsClient", "GetLocationHeaderResult", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -323,6 +326,7 @@ func (client OperationsClient) List(ctx context.Context) (result ListAvailableRp
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.OperationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

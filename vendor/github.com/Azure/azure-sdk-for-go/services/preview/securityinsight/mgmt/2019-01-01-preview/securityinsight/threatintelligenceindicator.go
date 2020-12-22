@@ -93,6 +93,7 @@ func (client ThreatIntelligenceIndicatorClient) AppendTags(ctx context.Context, 
 	result, err = client.AppendTagsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.ThreatIntelligenceIndicatorClient", "AppendTags", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -189,6 +190,7 @@ func (client ThreatIntelligenceIndicatorClient) Create(ctx context.Context, reso
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.ThreatIntelligenceIndicatorClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -285,6 +287,7 @@ func (client ThreatIntelligenceIndicatorClient) CreateIndicator(ctx context.Cont
 	result, err = client.CreateIndicatorResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.ThreatIntelligenceIndicatorClient", "CreateIndicator", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -380,6 +383,7 @@ func (client ThreatIntelligenceIndicatorClient) Delete(ctx context.Context, reso
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.ThreatIntelligenceIndicatorClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -473,6 +477,7 @@ func (client ThreatIntelligenceIndicatorClient) Get(ctx context.Context, resourc
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.ThreatIntelligenceIndicatorClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -568,6 +573,7 @@ func (client ThreatIntelligenceIndicatorClient) QueryIndicators(ctx context.Cont
 	result.tiil, err = client.QueryIndicatorsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.ThreatIntelligenceIndicatorClient", "QueryIndicators", resp, "Failure responding to request")
+		return
 	}
 	if result.tiil.hasNextLink() && result.tiil.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -635,6 +641,7 @@ func (client ThreatIntelligenceIndicatorClient) queryIndicatorsNextResults(ctx c
 	result, err = client.QueryIndicatorsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.ThreatIntelligenceIndicatorClient", "queryIndicatorsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -704,6 +711,7 @@ func (client ThreatIntelligenceIndicatorClient) ReplaceTags(ctx context.Context,
 	result, err = client.ReplaceTagsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.ThreatIntelligenceIndicatorClient", "ReplaceTags", resp, "Failure responding to request")
+		return
 	}
 
 	return

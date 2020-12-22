@@ -90,6 +90,7 @@ func (client ProductSettingsClient) Delete(ctx context.Context, resourceGroupNam
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.ProductSettingsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -183,6 +184,7 @@ func (client ProductSettingsClient) Get(ctx context.Context, resourceGroupName s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.ProductSettingsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -276,6 +278,7 @@ func (client ProductSettingsClient) GetAll(ctx context.Context, resourceGroupNam
 	result, err = client.GetAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.ProductSettingsClient", "GetAll", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -370,6 +373,7 @@ func (client ProductSettingsClient) Update(ctx context.Context, resourceGroupNam
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.ProductSettingsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

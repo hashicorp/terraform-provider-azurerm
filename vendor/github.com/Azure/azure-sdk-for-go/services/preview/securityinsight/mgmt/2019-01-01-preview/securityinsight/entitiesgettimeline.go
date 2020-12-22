@@ -95,6 +95,7 @@ func (client EntitiesGetTimelineClient) List(ctx context.Context, resourceGroupN
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.EntitiesGetTimelineClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

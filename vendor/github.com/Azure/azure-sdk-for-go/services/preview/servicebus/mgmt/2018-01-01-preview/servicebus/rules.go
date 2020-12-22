@@ -104,6 +104,7 @@ func (client RulesClient) CreateOrUpdate(ctx context.Context, resourceGroupName 
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.RulesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -205,6 +206,7 @@ func (client RulesClient) Delete(ctx context.Context, resourceGroupName string, 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.RulesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -303,6 +305,7 @@ func (client RulesClient) Get(ctx context.Context, resourceGroupName string, nam
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.RulesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -413,6 +416,7 @@ func (client RulesClient) ListBySubscriptions(ctx context.Context, resourceGroup
 	result.rlr, err = client.ListBySubscriptionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.RulesClient", "ListBySubscriptions", resp, "Failure responding to request")
+		return
 	}
 	if result.rlr.hasNextLink() && result.rlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -485,6 +489,7 @@ func (client RulesClient) listBySubscriptionsNextResults(ctx context.Context, la
 	result, err = client.ListBySubscriptionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.RulesClient", "listBySubscriptionsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

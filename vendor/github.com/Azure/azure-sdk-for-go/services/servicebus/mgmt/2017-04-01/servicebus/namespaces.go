@@ -78,6 +78,7 @@ func (client NamespacesClient) CheckNameAvailabilityMethod(ctx context.Context, 
 	result, err = client.CheckNameAvailabilityMethodResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "CheckNameAvailabilityMethod", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -257,6 +258,7 @@ func (client NamespacesClient) CreateOrUpdateAuthorizationRule(ctx context.Conte
 	result, err = client.CreateOrUpdateAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "CreateOrUpdateAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -346,6 +348,7 @@ func (client NamespacesClient) CreateOrUpdateNetworkRuleSet(ctx context.Context,
 	result, err = client.CreateOrUpdateNetworkRuleSetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "CreateOrUpdateNetworkRuleSet", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -521,6 +524,7 @@ func (client NamespacesClient) DeleteAuthorizationRule(ctx context.Context, reso
 	result, err = client.DeleteAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "DeleteAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -606,6 +610,7 @@ func (client NamespacesClient) Get(ctx context.Context, resourceGroupName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -695,6 +700,7 @@ func (client NamespacesClient) GetAuthorizationRule(ctx context.Context, resourc
 	result, err = client.GetAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "GetAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -781,6 +787,7 @@ func (client NamespacesClient) GetNetworkRuleSet(ctx context.Context, resourceGr
 	result, err = client.GetNetworkRuleSetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "GetNetworkRuleSet", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -854,6 +861,7 @@ func (client NamespacesClient) List(ctx context.Context) (result SBNamespaceList
 	result.snlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.snlr.hasNextLink() && result.snlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -916,6 +924,7 @@ func (client NamespacesClient) listNextResults(ctx context.Context, lastResults 
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -978,6 +987,7 @@ func (client NamespacesClient) ListAuthorizationRules(ctx context.Context, resou
 	result.sarlr, err = client.ListAuthorizationRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "ListAuthorizationRules", resp, "Failure responding to request")
+		return
 	}
 	if result.sarlr.hasNextLink() && result.sarlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -1042,6 +1052,7 @@ func (client NamespacesClient) listAuthorizationRulesNextResults(ctx context.Con
 	result, err = client.ListAuthorizationRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "listAuthorizationRulesNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -1100,6 +1111,7 @@ func (client NamespacesClient) ListByResourceGroup(ctx context.Context, resource
 	result.snlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.snlr.hasNextLink() && result.snlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -1163,6 +1175,7 @@ func (client NamespacesClient) listByResourceGroupNextResults(ctx context.Contex
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -1228,6 +1241,7 @@ func (client NamespacesClient) ListKeys(ctx context.Context, resourceGroupName s
 	result, err = client.ListKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "ListKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1315,6 +1329,7 @@ func (client NamespacesClient) ListNetworkRuleSets(ctx context.Context, resource
 	result.nrslr, err = client.ListNetworkRuleSetsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "ListNetworkRuleSets", resp, "Failure responding to request")
+		return
 	}
 	if result.nrslr.hasNextLink() && result.nrslr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -1379,6 +1394,7 @@ func (client NamespacesClient) listNetworkRuleSetsNextResults(ctx context.Contex
 	result, err = client.ListNetworkRuleSetsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "listNetworkRuleSetsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -1441,6 +1457,7 @@ func (client NamespacesClient) Migrate(ctx context.Context, resourceGroupName st
 	result, err = client.MigrateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "Migrate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1532,6 +1549,7 @@ func (client NamespacesClient) RegenerateKeys(ctx context.Context, resourceGroup
 	result, err = client.RegenerateKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "RegenerateKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1622,6 +1640,7 @@ func (client NamespacesClient) Update(ctx context.Context, resourceGroupName str
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -85,6 +85,7 @@ func (client SQLPoolGeoBackupPoliciesClient) Get(ctx context.Context, resourceGr
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolGeoBackupPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -173,6 +174,7 @@ func (client SQLPoolGeoBackupPoliciesClient) List(ctx context.Context, resourceG
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolGeoBackupPoliciesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

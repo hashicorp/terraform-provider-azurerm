@@ -105,6 +105,7 @@ func (client EventHubsClient) CreateOrUpdate(ctx context.Context, resourceGroupN
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.EventHubsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -205,6 +206,7 @@ func (client EventHubsClient) CreateOrUpdateAuthorizationRule(ctx context.Contex
 	result, err = client.CreateOrUpdateAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.EventHubsClient", "CreateOrUpdateAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -298,6 +300,7 @@ func (client EventHubsClient) Delete(ctx context.Context, resourceGroupName stri
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.EventHubsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -390,6 +393,7 @@ func (client EventHubsClient) DeleteAuthorizationRule(ctx context.Context, resou
 	result, err = client.DeleteAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.EventHubsClient", "DeleteAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -480,6 +484,7 @@ func (client EventHubsClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.EventHubsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -573,6 +578,7 @@ func (client EventHubsClient) GetAuthorizationRule(ctx context.Context, resource
 	result, err = client.GetAuthorizationRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.EventHubsClient", "GetAuthorizationRule", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -665,6 +671,7 @@ func (client EventHubsClient) ListAuthorizationRules(ctx context.Context, resour
 	result.arlr, err = client.ListAuthorizationRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.EventHubsClient", "ListAuthorizationRules", resp, "Failure responding to request")
+		return
 	}
 	if result.arlr.hasNextLink() && result.arlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -730,6 +737,7 @@ func (client EventHubsClient) listAuthorizationRulesNextResults(ctx context.Cont
 	result, err = client.ListAuthorizationRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.EventHubsClient", "listAuthorizationRulesNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -806,6 +814,7 @@ func (client EventHubsClient) ListByNamespace(ctx context.Context, resourceGroup
 	result.lr, err = client.ListByNamespaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.EventHubsClient", "ListByNamespace", resp, "Failure responding to request")
+		return
 	}
 	if result.lr.hasNextLink() && result.lr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -876,6 +885,7 @@ func (client EventHubsClient) listByNamespaceNextResults(ctx context.Context, la
 	result, err = client.ListByNamespaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.EventHubsClient", "listByNamespaceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -944,6 +954,7 @@ func (client EventHubsClient) ListKeys(ctx context.Context, resourceGroupName st
 	result, err = client.ListKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.EventHubsClient", "ListKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1039,6 +1050,7 @@ func (client EventHubsClient) RegenerateKeys(ctx context.Context, resourceGroupN
 	result, err = client.RegenerateKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.EventHubsClient", "RegenerateKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return

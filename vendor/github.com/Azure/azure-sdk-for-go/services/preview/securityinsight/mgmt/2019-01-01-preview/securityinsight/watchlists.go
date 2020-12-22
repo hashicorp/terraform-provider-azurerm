@@ -98,6 +98,7 @@ func (client WatchlistsClient) Create(ctx context.Context, resourceGroupName str
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.WatchlistsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -194,6 +195,7 @@ func (client WatchlistsClient) Delete(ctx context.Context, resourceGroupName str
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.WatchlistsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -287,6 +289,7 @@ func (client WatchlistsClient) Get(ctx context.Context, resourceGroupName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.WatchlistsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -381,6 +384,7 @@ func (client WatchlistsClient) List(ctx context.Context, resourceGroupName strin
 	result.wl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.WatchlistsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.wl.hasNextLink() && result.wl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -446,6 +450,7 @@ func (client WatchlistsClient) listNextResults(ctx context.Context, lastResults 
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.WatchlistsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

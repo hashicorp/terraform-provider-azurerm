@@ -794,13 +794,11 @@ const (
 	KindDataExportSettings KindEnum = "DataExportSettings"
 	// KindSetting ...
 	KindSetting KindEnum = "Setting"
-	// KindSettingResource ...
-	KindSettingResource KindEnum = "SettingResource"
 )
 
 // PossibleKindEnumValues returns an array of possible values for the KindEnum const type.
 func PossibleKindEnumValues() []KindEnum {
-	return []KindEnum{KindDataExportSettings, KindSetting, KindSettingResource}
+	return []KindEnum{KindDataExportSettings, KindSetting}
 }
 
 // KindEnum1 enumerates the values for kind enum 1.
@@ -1462,6 +1460,23 @@ func PossibleScriptValues() []Script {
 	return []Script{ScriptAudit, ScriptEnforce, ScriptNone}
 }
 
+// SensorStatus enumerates the values for sensor status.
+type SensorStatus string
+
+const (
+	// Disconnected ...
+	Disconnected SensorStatus = "Disconnected"
+	// Ok ...
+	Ok SensorStatus = "Ok"
+	// Unavailable ...
+	Unavailable SensorStatus = "Unavailable"
+)
+
+// PossibleSensorStatusValues returns an array of possible values for the SensorStatus const type.
+func PossibleSensorStatusValues() []SensorStatus {
+	return []SensorStatus{Disconnected, Ok, Unavailable}
+}
+
 // Severity enumerates the values for severity.
 type Severity string
 
@@ -1628,6 +1643,25 @@ const (
 // PossibleThreatsValues returns an array of possible values for the Threats const type.
 func PossibleThreatsValues() []Threats {
 	return []Threats{AccountBreach, DataExfiltration, DataSpillage, DenialOfService, ElevationOfPrivilege, MaliciousInsider, MissingCoverage, ThreatResistance}
+}
+
+// TiStatus enumerates the values for ti status.
+type TiStatus string
+
+const (
+	// TiStatusFailed ...
+	TiStatusFailed TiStatus = "Failed"
+	// TiStatusInProgress ...
+	TiStatusInProgress TiStatus = "InProgress"
+	// TiStatusOk ...
+	TiStatusOk TiStatus = "Ok"
+	// TiStatusUpdateAvailable ...
+	TiStatusUpdateAvailable TiStatus = "UpdateAvailable"
+)
+
+// PossibleTiStatusValues returns an array of possible values for the TiStatus const type.
+func PossibleTiStatusValues() []TiStatus {
+	return []TiStatus{TiStatusFailed, TiStatusInProgress, TiStatusOk, TiStatusUpdateAvailable}
 }
 
 // TransportProtocol enumerates the values for transport protocol.

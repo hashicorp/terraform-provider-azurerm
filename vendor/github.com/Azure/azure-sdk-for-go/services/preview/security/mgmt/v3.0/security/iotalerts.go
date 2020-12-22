@@ -85,6 +85,7 @@ func (client IotAlertsClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotAlertsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -162,6 +163,7 @@ func (client IotAlertsClient) Get1(ctx context.Context, scope string, iotAlertID
 	result, err = client.Get1Responder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotAlertsClient", "Get1", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -254,9 +256,11 @@ func (client IotAlertsClient) List(ctx context.Context, resourceGroupName string
 	result.ial, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotAlertsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.ial.hasNextLink() && result.ial.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -395,9 +399,11 @@ func (client IotAlertsClient) List1(ctx context.Context, scope string, minStartT
 	result.ialm, err = client.List1Responder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotAlertsClient", "List1", resp, "Failure responding to request")
+		return
 	}
 	if result.ialm.hasNextLink() && result.ialm.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

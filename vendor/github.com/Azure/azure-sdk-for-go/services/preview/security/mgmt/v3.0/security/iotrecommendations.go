@@ -86,6 +86,7 @@ func (client IotRecommendationsClient) Get(ctx context.Context, resourceGroupNam
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotRecommendationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -163,6 +164,7 @@ func (client IotRecommendationsClient) Get1(ctx context.Context, scope string, i
 	result, err = client.Get1Responder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotRecommendationsClient", "Get1", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -253,9 +255,11 @@ func (client IotRecommendationsClient) List(ctx context.Context, resourceGroupNa
 	result.irl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotRecommendationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.irl.hasNextLink() && result.irl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -385,9 +389,11 @@ func (client IotRecommendationsClient) List1(ctx context.Context, scope string, 
 	result.irlm, err = client.List1Responder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotRecommendationsClient", "List1", resp, "Failure responding to request")
+		return
 	}
 	if result.irlm.hasNextLink() && result.irlm.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

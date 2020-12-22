@@ -86,6 +86,7 @@ func (client SQLPoolTablesClient) Get(ctx context.Context, resourceGroupName str
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolTablesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -178,9 +179,11 @@ func (client SQLPoolTablesClient) ListBySchema(ctx context.Context, resourceGrou
 	result.sptlr, err = client.ListBySchemaResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolTablesClient", "ListBySchema", resp, "Failure responding to request")
+		return
 	}
 	if result.sptlr.hasNextLink() && result.sptlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

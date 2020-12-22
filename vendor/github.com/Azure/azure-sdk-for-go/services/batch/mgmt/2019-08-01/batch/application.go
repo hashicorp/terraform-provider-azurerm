@@ -87,6 +87,7 @@ func (client ApplicationClient) Create(ctx context.Context, resourceGroupName st
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.ApplicationClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -181,6 +182,7 @@ func (client ApplicationClient) Delete(ctx context.Context, resourceGroupName st
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.ApplicationClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -269,6 +271,7 @@ func (client ApplicationClient) Get(ctx context.Context, resourceGroupName strin
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.ApplicationClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -355,6 +358,7 @@ func (client ApplicationClient) List(ctx context.Context, resourceGroupName stri
 	result.lar, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.ApplicationClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.lar.hasNextLink() && result.lar.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -422,6 +426,7 @@ func (client ApplicationClient) listNextResults(ctx context.Context, lastResults
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.ApplicationClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -487,6 +492,7 @@ func (client ApplicationClient) Update(ctx context.Context, resourceGroupName st
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.ApplicationClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

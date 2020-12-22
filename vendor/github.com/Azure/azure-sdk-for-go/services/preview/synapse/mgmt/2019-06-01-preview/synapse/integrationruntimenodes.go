@@ -86,6 +86,7 @@ func (client IntegrationRuntimeNodesClient) Delete(ctx context.Context, resource
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimeNodesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -174,6 +175,7 @@ func (client IntegrationRuntimeNodesClient) Get(ctx context.Context, resourceGro
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimeNodesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -264,6 +266,7 @@ func (client IntegrationRuntimeNodesClient) Update(ctx context.Context, resource
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimeNodesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

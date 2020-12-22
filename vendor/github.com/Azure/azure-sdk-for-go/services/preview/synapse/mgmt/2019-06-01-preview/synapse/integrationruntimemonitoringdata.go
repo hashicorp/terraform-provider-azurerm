@@ -85,6 +85,7 @@ func (client IntegrationRuntimeMonitoringDataClient) List(ctx context.Context, r
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimeMonitoringDataClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -93,6 +93,7 @@ func (client IntegrationRuntimeObjectMetadataClient) Get(ctx context.Context, re
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimeObjectMetadataClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

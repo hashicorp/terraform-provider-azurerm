@@ -86,6 +86,7 @@ func (client WorkspaceManagedSQLServerRecoverableSqlpoolsClient) Get(ctx context
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.WorkspaceManagedSQLServerRecoverableSqlpoolsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -173,9 +174,11 @@ func (client WorkspaceManagedSQLServerRecoverableSqlpoolsClient) List(ctx contex
 	result.rsplr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.WorkspaceManagedSQLServerRecoverableSqlpoolsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.rsplr.hasNextLink() && result.rsplr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

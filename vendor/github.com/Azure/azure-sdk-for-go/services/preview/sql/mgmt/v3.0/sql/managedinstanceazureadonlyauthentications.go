@@ -243,6 +243,7 @@ func (client ManagedInstanceAzureADOnlyAuthenticationsClient) Get(ctx context.Co
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAzureADOnlyAuthenticationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -321,6 +322,7 @@ func (client ManagedInstanceAzureADOnlyAuthenticationsClient) ListByInstance(ctx
 	result.miaaoalr, err = client.ListByInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAzureADOnlyAuthenticationsClient", "ListByInstance", resp, "Failure responding to request")
+		return
 	}
 	if result.miaaoalr.hasNextLink() && result.miaaoalr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -385,6 +387,7 @@ func (client ManagedInstanceAzureADOnlyAuthenticationsClient) listByInstanceNext
 	result, err = client.ListByInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAzureADOnlyAuthenticationsClient", "listByInstanceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

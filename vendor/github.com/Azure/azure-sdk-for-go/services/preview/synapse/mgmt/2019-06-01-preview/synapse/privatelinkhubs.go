@@ -84,6 +84,7 @@ func (client PrivateLinkHubsClient) CreateOrUpdate(ctx context.Context, privateL
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.PrivateLinkHubsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -255,6 +256,7 @@ func (client PrivateLinkHubsClient) Get(ctx context.Context, resourceGroupName s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.PrivateLinkHubsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -334,9 +336,11 @@ func (client PrivateLinkHubsClient) List(ctx context.Context) (result PrivateLin
 	result.plhilr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.PrivateLinkHubsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.plhilr.hasNextLink() && result.plhilr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -457,9 +461,11 @@ func (client PrivateLinkHubsClient) ListByResourceGroup(ctx context.Context, res
 	result.plhilr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.PrivateLinkHubsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.plhilr.hasNextLink() && result.plhilr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -582,6 +588,7 @@ func (client PrivateLinkHubsClient) Update(ctx context.Context, privateLinkHubPa
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.PrivateLinkHubsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

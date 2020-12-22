@@ -560,6 +560,7 @@ func (client VirtualMachinesClient) Get(ctx context.Context, resourceGroupName s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -645,6 +646,7 @@ func (client VirtualMachinesClient) List(ctx context.Context, resourceGroupName 
 	result.rwclvm, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.rwclvm.hasNextLink() && result.rwclvm.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -721,6 +723,7 @@ func (client VirtualMachinesClient) listNextResults(ctx context.Context, lastRes
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -773,6 +776,7 @@ func (client VirtualMachinesClient) ListApplicableSchedules(ctx context.Context,
 	result, err = client.ListApplicableSchedulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesClient", "ListApplicableSchedules", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1003,6 +1007,7 @@ func (client VirtualMachinesClient) Update(ctx context.Context, resourceGroupNam
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.VirtualMachinesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

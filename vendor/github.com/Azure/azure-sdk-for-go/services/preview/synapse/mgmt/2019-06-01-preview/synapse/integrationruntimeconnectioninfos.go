@@ -86,6 +86,7 @@ func (client IntegrationRuntimeConnectionInfosClient) Get(ctx context.Context, r
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimeConnectionInfosClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

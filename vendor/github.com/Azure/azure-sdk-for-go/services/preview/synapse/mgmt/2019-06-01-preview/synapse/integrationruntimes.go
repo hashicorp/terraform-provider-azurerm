@@ -68,9 +68,7 @@ func (client IntegrationRuntimesClient) Create(ctx context.Context, resourceGrou
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
-		{TargetValue: integrationRuntime,
-			Constraints: []validation.Constraint{{Target: "integrationRuntime.Properties", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("synapse.IntegrationRuntimesClient", "Create", err.Error())
 	}
 
@@ -443,6 +441,7 @@ func (client IntegrationRuntimesClient) Get(ctx context.Context, resourceGroupNa
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -534,9 +533,11 @@ func (client IntegrationRuntimesClient) ListByWorkspace(ctx context.Context, res
 	result.irlr, err = client.ListByWorkspaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "ListByWorkspace", resp, "Failure responding to request")
+		return
 	}
 	if result.irlr.hasNextLink() && result.irlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -834,6 +835,7 @@ func (client IntegrationRuntimesClient) Update(ctx context.Context, resourceGrou
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -923,6 +925,7 @@ func (client IntegrationRuntimesClient) Upgrade(ctx context.Context, resourceGro
 	result, err = client.UpgradeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "Upgrade", resp, "Failure responding to request")
+		return
 	}
 
 	return

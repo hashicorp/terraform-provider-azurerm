@@ -85,6 +85,7 @@ func (client IotDefenderSettingsClient) CreateOrUpdate(ctx context.Context, iotD
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotDefenderSettingsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -163,6 +164,7 @@ func (client IotDefenderSettingsClient) Delete(ctx context.Context) (result auto
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotDefenderSettingsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -238,6 +240,7 @@ func (client IotDefenderSettingsClient) DownloadManagerActivation(ctx context.Co
 	result, err = client.DownloadManagerActivationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotDefenderSettingsClient", "DownloadManagerActivation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -313,6 +316,7 @@ func (client IotDefenderSettingsClient) Get(ctx context.Context) (result IotDefe
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotDefenderSettingsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -389,6 +393,7 @@ func (client IotDefenderSettingsClient) List(ctx context.Context) (result IotDef
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotDefenderSettingsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -465,6 +470,7 @@ func (client IotDefenderSettingsClient) PackageDownloadsMethod(ctx context.Conte
 	result, err = client.PackageDownloadsMethodResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotDefenderSettingsClient", "PackageDownloadsMethod", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -89,6 +89,7 @@ func (client ContentItemClient) CreateOrUpdate(ctx context.Context, resourceGrou
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ContentItemClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -182,6 +183,7 @@ func (client ContentItemClient) Delete(ctx context.Context, resourceGroupName st
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ContentItemClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -274,6 +276,7 @@ func (client ContentItemClient) Get(ctx context.Context, resourceGroupName strin
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ContentItemClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -367,6 +370,7 @@ func (client ContentItemClient) GetEntityTag(ctx context.Context, resourceGroupN
 	result, err = client.GetEntityTagResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ContentItemClient", "GetEntityTag", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -456,6 +460,7 @@ func (client ContentItemClient) ListByService(ctx context.Context, resourceGroup
 	result.cic, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ContentItemClient", "ListByService", resp, "Failure responding to request")
+		return
 	}
 	if result.cic.hasNextLink() && result.cic.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -521,6 +526,7 @@ func (client ContentItemClient) listByServiceNextResults(ctx context.Context, la
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ContentItemClient", "listByServiceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

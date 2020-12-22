@@ -76,6 +76,7 @@ func (client SuppressionsClient) Create(ctx context.Context, resourceURI string,
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.SuppressionsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -156,6 +157,7 @@ func (client SuppressionsClient) Delete(ctx context.Context, resourceURI string,
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.SuppressionsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -232,6 +234,7 @@ func (client SuppressionsClient) Get(ctx context.Context, resourceURI string, re
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.SuppressionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -309,6 +312,7 @@ func (client SuppressionsClient) List(ctx context.Context, top *int32, skipToken
 	result.sclr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.SuppressionsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.sclr.hasNextLink() && result.sclr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -377,6 +381,7 @@ func (client SuppressionsClient) listNextResults(ctx context.Context, lastResult
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.SuppressionsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

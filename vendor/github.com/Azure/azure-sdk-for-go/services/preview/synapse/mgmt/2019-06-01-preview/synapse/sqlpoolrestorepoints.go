@@ -178,6 +178,7 @@ func (client SQLPoolRestorePointsClient) Delete(ctx context.Context, resourceGro
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolRestorePointsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -266,6 +267,7 @@ func (client SQLPoolRestorePointsClient) Get(ctx context.Context, resourceGroupN
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolRestorePointsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -355,9 +357,11 @@ func (client SQLPoolRestorePointsClient) List(ctx context.Context, resourceGroup
 	result.rplr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolRestorePointsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.rplr.hasNextLink() && result.rplr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

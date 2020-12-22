@@ -91,6 +91,7 @@ func (client CertificateClient) CancelDeletion(ctx context.Context, resourceGrou
 	result, err = client.CancelDeletionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.CertificateClient", "CancelDeletion", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -378,6 +379,7 @@ func (client CertificateClient) Get(ctx context.Context, resourceGroupName strin
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.CertificateClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -468,6 +470,7 @@ func (client CertificateClient) ListByBatchAccount(ctx context.Context, resource
 	result.lcr, err = client.ListByBatchAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.CertificateClient", "ListByBatchAccount", resp, "Failure responding to request")
+		return
 	}
 	if result.lcr.hasNextLink() && result.lcr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -541,6 +544,7 @@ func (client CertificateClient) listByBatchAccountNextResults(ctx context.Contex
 	result, err = client.ListByBatchAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.CertificateClient", "listByBatchAccountNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -609,6 +613,7 @@ func (client CertificateClient) Update(ctx context.Context, resourceGroupName st
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.CertificateClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

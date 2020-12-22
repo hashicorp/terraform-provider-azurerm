@@ -81,6 +81,7 @@ func (client LocationBasedPerformanceTierClient) List(ctx context.Context, locat
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.LocationBasedPerformanceTierClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

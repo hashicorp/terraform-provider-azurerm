@@ -85,6 +85,7 @@ func (client IntegrationRuntimeStatusClient) Get(ctx context.Context, resourceGr
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimeStatusClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

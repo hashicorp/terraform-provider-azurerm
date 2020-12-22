@@ -86,6 +86,7 @@ func (client IntegrationRuntimeNodeIPAddressClient) Get(ctx context.Context, res
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimeNodeIPAddressClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

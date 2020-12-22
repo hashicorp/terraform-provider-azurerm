@@ -72,9 +72,11 @@ func (client SecureScoreControlDefinitionsClient) List(ctx context.Context) (res
 	result.sscdl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.SecureScoreControlDefinitionsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.sscdl.hasNextLink() && result.sscdl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -186,9 +188,11 @@ func (client SecureScoreControlDefinitionsClient) ListBySubscription(ctx context
 	result.sscdl, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.SecureScoreControlDefinitionsClient", "ListBySubscription", resp, "Failure responding to request")
+		return
 	}
 	if result.sscdl.hasNextLink() && result.sscdl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

@@ -85,6 +85,7 @@ func (client ContentTypesClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ContentTypesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -86,6 +86,7 @@ func (client IntegrationRuntimeObjectMetadataClient) List(ctx context.Context, r
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimeObjectMetadataClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

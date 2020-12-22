@@ -92,6 +92,7 @@ func (client ThreatIntelligenceIndicatorMetricsClient) List(ctx context.Context,
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.ThreatIntelligenceIndicatorMetricsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

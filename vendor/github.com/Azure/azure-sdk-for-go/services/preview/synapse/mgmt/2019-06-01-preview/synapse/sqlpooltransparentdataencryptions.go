@@ -87,6 +87,7 @@ func (client SQLPoolTransparentDataEncryptionsClient) CreateOrUpdate(ctx context
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolTransparentDataEncryptionsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -178,6 +179,7 @@ func (client SQLPoolTransparentDataEncryptionsClient) Get(ctx context.Context, r
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolTransparentDataEncryptionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -267,9 +269,11 @@ func (client SQLPoolTransparentDataEncryptionsClient) List(ctx context.Context, 
 	result.tdelr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolTransparentDataEncryptionsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.tdelr.hasNextLink() && result.tdelr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

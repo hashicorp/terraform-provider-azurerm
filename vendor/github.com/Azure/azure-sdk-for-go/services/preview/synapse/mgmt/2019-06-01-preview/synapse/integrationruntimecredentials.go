@@ -88,6 +88,7 @@ func (client IntegrationRuntimeCredentialsClient) Sync(ctx context.Context, reso
 	result, err = client.SyncResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimeCredentialsClient", "Sync", resp, "Failure responding to request")
+		return
 	}
 
 	return

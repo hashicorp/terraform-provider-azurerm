@@ -272,6 +272,7 @@ func (client SQLPoolWorkloadGroupClient) Get(ctx context.Context, resourceGroupN
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolWorkloadGroupClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -361,9 +362,11 @@ func (client SQLPoolWorkloadGroupClient) List(ctx context.Context, resourceGroup
 	result.wglr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolWorkloadGroupClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.wglr.hasNextLink() && result.wglr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
