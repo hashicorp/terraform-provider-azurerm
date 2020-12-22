@@ -161,7 +161,7 @@ func TestAccMonitorAutoScaleSetting_customEmails(t *testing.T) {
 				check.That(data.ResourceName).Key("notification.#").HasValue("1"),
 				check.That(data.ResourceName).Key("notification.0.email.#").HasValue("1"),
 				check.That(data.ResourceName).Key("notification.0.email.0.custom_emails.#").HasValue("1"),
-				check.That(data.ResourceName).Key("notification.0.email.0.custom_emails.0").HasValue(fmt.Sprintf("acctest1-%d@example.com")),
+				check.That(data.ResourceName).Key("notification.0.email.0.custom_emails.0").HasValue(fmt.Sprintf("acctest1-%d@example.com", data.RandomInteger)),
 			),
 		},
 		{
@@ -171,8 +171,8 @@ func TestAccMonitorAutoScaleSetting_customEmails(t *testing.T) {
 				check.That(data.ResourceName).Key("notification.#").HasValue("1"),
 				check.That(data.ResourceName).Key("notification.0.email.#").HasValue("1"),
 				check.That(data.ResourceName).Key("notification.0.email.0.custom_emails.#").HasValue("2"),
-				check.That(data.ResourceName).Key("notification.0.email.0.custom_emails.0").HasValue(fmt.Sprintf("acctest1-%d@example.com")),
-				check.That(data.ResourceName).Key("notification.0.email.0.custom_emails.1").HasValue(fmt.Sprintf("acctest2-%d@example.com")),
+				check.That(data.ResourceName).Key("notification.0.email.0.custom_emails.0").HasValue(fmt.Sprintf("acctest1-%d@example.com", data.RandomInteger)),
+				check.That(data.ResourceName).Key("notification.0.email.0.custom_emails.1").HasValue(fmt.Sprintf("acctest2-%d@example.com", data.RandomInteger)),
 			),
 		},
 	})
