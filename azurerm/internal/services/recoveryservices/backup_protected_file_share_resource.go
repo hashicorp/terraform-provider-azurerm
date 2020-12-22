@@ -95,37 +95,55 @@ func resourceBackupProtectedFileShareCreateUpdate(d *schema.ResourceData, meta i
 		return fmt.Errorf("[ERROR] parsed source_storage_account_id '%s' doesn't contain 'storageAccounts'", storageAccountID)
 	}
 
-	// The fileshare has a user defined name, but its system name (fileShareSystemName) is only known to Azure Backup
-	filter := fmt.Sprintf("backupManagementType eq 'AzureStorage' and friendlyName eq '%s'", fileShareName)
+	// the fileshare has a user defined name, but its system name (fileShareSystemName) is only known to Azure Backup
+	fileShareSystemName := ""
+	// @aristosvo: preferred filter would be like below but the 'and' expression seems to fail
+	//   filter := fmt.Sprintf("backupManagementType eq 'AzureStorage' and friendlyName eq '%s'", fileShareName)
+	// this means which means we have to do it client side and loop over backupProtectedItems en backupProtectableItems until share is found
+	filter := "backupManagementType eq 'AzureStorage'"
 	backupProtectableItemsResponse, err := protectableClient.List(ctx, vaultName, resourceGroup, filter, "")
 	if err != nil {
 		return fmt.Errorf("Error checking for protectable fileshares in Recovery Service Vault %q (Resource Group %q): %+v", vaultName, resourceGroup, err)
 	}
-	backupProtectableItems := backupProtectableItemsResponse.Values()
 
-	backupProtectedItemsResponse, err := protectedClient.List(ctx, vaultName, resourceGroup, filter, "")
-	if err != nil {
-		return fmt.Errorf("Error checking for protected fileshares in Recovery Service Vault %q (Resource Group %q): %+v", vaultName, resourceGroup, err)
+	for _, protectableItem := range backupProtectableItemsResponse.Values() {
+		if *protectableItem.Name == "" || protectableItem.Properties == nil {
+			continue
+		}
+		azureFileShareProtectableItem, check := protectableItem.Properties.AsAzureFileShareProtectableItem()
+
+		// check if protected item has the same fileshare name and is from the same storage account
+		if check && *azureFileShareProtectableItem.FriendlyName == fileShareName && *azureFileShareProtectableItem.ParentContainerFriendlyName == accountName {
+			fileShareSystemName = *protectableItem.Name
+			break
+		}
 	}
-	backupProtectedItems := backupProtectedItemsResponse.Values()
 
-	if backupProtectedItems == nil && backupProtectableItems == nil {
+	// fileShareSystemName not found? Check if already protected by this vault!
+	if fileShareSystemName == "" {
+		backupProtectedItemsResponse, err := protectedClient.List(ctx, vaultName, resourceGroup, filter, "")
+		if err != nil {
+			return fmt.Errorf("Error checking for protected fileshares in Recovery Service Vault %q (Resource Group %q): %+v", vaultName, resourceGroup, err)
+		}
+
+		for _, protectedItem := range backupProtectedItemsResponse.Values() {
+			if *protectedItem.Name == "" || protectedItem.Properties == nil {
+				continue
+			}
+			azureFileShareProtectedItem, check := protectedItem.Properties.AsAzureFileshareProtectedItem()
+
+			// check if protected item has the same fileshare name and is from the same storage account
+			if check && *azureFileShareProtectedItem.FriendlyName == fileShareName && strings.EqualFold(*azureFileShareProtectedItem.SourceResourceID, storageAccountID) {
+				fileShareSystemName = *protectedItem.Name
+				break
+			}
+		}
+	}
+	if fileShareSystemName == "" {
 		return fmt.Errorf("[ERROR] fileshare '%s' not found in protectable or protected fileshares, make sure Storage Account %q is registered with Recovery Service Vault %q (Resource Group %q)", fileShareName, accountName, vaultName, resourceGroup)
-	}
-	if len(backupProtectableItems)+len(backupProtectedItems) > 1 {
-		return fmt.Errorf("[ERROR] multiple fileshares found after filtering protectable or protected fileshares where only one is expected")
-	}
-
-	fileShareSystemName := ""
-	if backupProtectableItems != nil && *backupProtectableItems[0].Name != "" {
-		fileShareSystemName = *backupProtectableItems[0].Name
-	}
-	if backupProtectedItems != nil && *backupProtectedItems[0].Name != "" {
-		fileShareSystemName = *backupProtectedItems[0].Name
 	}
 
 	containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageAccountID.ResourceGroup, accountName)
-
 	log.Printf("[DEBUG] creating/updating Recovery Service Protected File Share %q (Container Name %q)", fileShareName, containerName)
 
 	if d.IsNewResource() {

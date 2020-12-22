@@ -182,71 +182,6 @@ resource "azurerm_backup_policy_file_share" "test1" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r BackupProtectedFileShareResource) baseMultiple(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-backup-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctest%[3]s"
-  location                 = "${azurerm_resource_group.test.location}"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_share" "testshare1" {
-  name                 = "acctest-ss-%[1]d-1"
-  storage_account_name = "${azurerm_storage_account.test.name}"
-  metadata             = {}
-
-  lifecycle {
-    ignore_changes = [metadata] // Ignore changes Azure Backup makes to the metadata
-  }
-}
-
-resource "azurerm_storage_share" "testshare2" {
-	name                 = "acctest-ss-%[1]d-2"
-	storage_account_name = "${azurerm_storage_account.test.name}"
-	metadata             = {}
-  
-	lifecycle {
-	  ignore_changes = [metadata] // Ignore changes Azure Backup makes to the metadata
-	}
-  }
-
-resource "azurerm_recovery_services_vault" "test" {
-  name                = "acctest-VAULT-%[1]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "Standard"
-
-  soft_delete_enabled = false
-}
-
-resource "azurerm_backup_policy_file_share" "test1" {
-  name                = "acctest-PFS-%[1]d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
-
-  backup {
-    frequency = "Daily"
-    time      = "23:00"
-  }
-
-  retention_daily {
-    count = 10
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-}
-
 func (r BackupProtectedFileShareResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -265,26 +200,6 @@ resource "azurerm_backup_protected_file_share" "test" {
   backup_policy_id          = azurerm_backup_policy_file_share.test1.id
 }
 `, r.base(data))
-}
-
-func (r BackupProtectedFileShareResource) multiple(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_backup_container_storage_account" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  recovery_vault_name = azurerm_recovery_services_vault.test.name
-  storage_account_id  = azurerm_storage_account.test.id
-}
-
-resource "azurerm_backup_protected_file_share" "test" {
-  resource_group_name       = azurerm_resource_group.test.name
-  recovery_vault_name       = azurerm_recovery_services_vault.test.name
-  source_storage_account_id = azurerm_backup_container_storage_account.test.storage_account_id
-  source_file_share_name    = azurerm_storage_share.testshare2.name
-  backup_policy_id          = azurerm_backup_policy_file_share.test1.id
-}
-`, r.baseMultiple(data))
 }
 
 func (r BackupProtectedFileShareResource) updatePolicy(data acceptance.TestData) string {
@@ -329,9 +244,128 @@ func (r BackupProtectedFileShareResource) requiresImport(data acceptance.TestDat
 resource "azurerm_backup_protected_file_share" "test_import" {
   resource_group_name       = azurerm_resource_group.test.name
   recovery_vault_name       = azurerm_recovery_services_vault.test.name
-  source_storage_account_id = azurerm_storage_account.test.id
+  source_storage_account_id = azurerm_backup_container_storage_account.test.storage_account_id
   source_file_share_name    = azurerm_storage_share.test.name
   backup_policy_id          = azurerm_backup_policy_file_share.test1.id
 }
-`, r.base(data))
+`, r.basic(data))
+}
+
+func (r BackupProtectedFileShareResource) baseMultiple(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-backup-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test1" {
+  name                     = "acctest%[3]s1"
+  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_account" "test2" {
+  name                     = "acctest%[3]s2"
+  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_share" "testshare1" {
+  name                 = "acctest-ss-%[1]d-1"
+  storage_account_name = "${azurerm_storage_account.test1.name}"
+  metadata             = {}
+
+  lifecycle {
+    ignore_changes = [metadata] // Ignore changes Azure Backup makes to the metadata
+  }
+}
+
+resource "azurerm_storage_share" "testshare2" {
+  name                 = "acctest-ss-%[1]d-2"
+  storage_account_name = "${azurerm_storage_account.test1.name}"
+  metadata             = {}
+
+  lifecycle {
+    ignore_changes = [metadata] // Ignore changes Azure Backup makes to the metadata
+  }
+}
+
+resource "azurerm_storage_share" "testshare3" {
+  name                 = "acctest-ss-%[1]d-1"
+  storage_account_name = "${azurerm_storage_account.test2.name}"
+  metadata             = {}
+
+  lifecycle {
+    ignore_changes = [metadata] // Ignore changes Azure Backup makes to the metadata
+  }
+}
+
+resource "azurerm_storage_share" "testshare4" {
+  name                 = "acctest-ss-%[1]d-2"
+  storage_account_name = "${azurerm_storage_account.test2.name}"
+  metadata             = {}
+
+  lifecycle {
+    ignore_changes = [metadata] // Ignore changes Azure Backup makes to the metadata
+  }
+}
+
+resource "azurerm_recovery_services_vault" "test" {
+  name                = "acctest-VAULT-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+
+  soft_delete_enabled = false
+}
+
+resource "azurerm_backup_policy_file_share" "test" {
+  name                = "acctest-PFS-%[1]d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
+
+  backup {
+    frequency = "Daily"
+    time      = "23:00"
+  }
+
+  retention_daily {
+    count = 10
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r BackupProtectedFileShareResource) multiple(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_container_storage_account" "test1" {
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+  storage_account_id  = azurerm_storage_account.test1.id
+}
+
+resource "azurerm_backup_container_storage_account" "test2" {
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+  storage_account_id  = azurerm_storage_account.test2.id
+}
+
+resource "azurerm_backup_protected_file_share" "test" {
+  resource_group_name       = azurerm_resource_group.test.name
+  recovery_vault_name       = azurerm_recovery_services_vault.test.name
+  source_storage_account_id = azurerm_backup_container_storage_account.test2.storage_account_id
+  source_file_share_name    = azurerm_storage_share.testshare3.name
+  backup_policy_id          = azurerm_backup_policy_file_share.test.id
+}
+`, r.baseMultiple(data))
 }
