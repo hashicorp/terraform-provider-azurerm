@@ -12,6 +12,10 @@ IMPROVEMENTS:
 * `azurerm_monitor_diagnostic_setting` - validation that `storage_account_id` is a Storage Account ID [GH-9914]
 * `azurerm_network_security_rule` - increase allowed the number of `application_security_group` blocks allowed [GH-9884]
 
+BUG FIXES:
+
+* `azurerm_cosmosdb_account` - always include `key_vault_id` in update requests for azure policy enginer compatibility [GH-9966]
+
 ## 2.41.0 (December 17, 2020)
 
 UPGRADE NOTES:
