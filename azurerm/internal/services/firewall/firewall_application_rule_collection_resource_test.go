@@ -1,16 +1,16 @@
 package firewall_test
 
 import (
-	`context`
+	"context"
 	"fmt"
 	"regexp"
 	"testing"
 
-	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure`
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils`
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -401,8 +401,7 @@ func (FirewallApplicationRuleCollectionResource) Exists(ctx context.Context, cli
 	return utils.Bool(false), nil
 }
 
-
-func (t FirewallApplicationRuleCollectionResource) doesNotExist (ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+func (t FirewallApplicationRuleCollectionResource) doesNotExist(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
 	var id, err = azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return err
@@ -412,7 +411,7 @@ func (t FirewallApplicationRuleCollectionResource) doesNotExist (ctx context.Con
 	name := id.Path["applicationRuleCollections"]
 
 	exists, err := t.Exists(ctx, clients, state)
-	if err != nil  {
+	if err != nil {
 		return err
 	}
 
@@ -423,7 +422,7 @@ func (t FirewallApplicationRuleCollectionResource) doesNotExist (ctx context.Con
 	return nil
 }
 
-func (t FirewallApplicationRuleCollectionResource) disappears (ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+func (t FirewallApplicationRuleCollectionResource) disappears(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
 	client := clients.Firewall.AzureFirewallsClient
 	var id, err = azure.ParseAzureResourceID(state.ID)
 	if err != nil {

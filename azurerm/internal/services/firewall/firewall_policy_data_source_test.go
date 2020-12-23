@@ -22,21 +22,21 @@ func TestAccFirewallPolicyDataSource_basic(t *testing.T) {
 	dataParent := acceptance.BuildTestData(t, "data.azurerm_firewall_policy", "test-parent")
 
 	data.DataSourceTest(t, []resource.TestStep{
-			{
-				Config: r.basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					check.That(data.ResourceName).Key( "name").Exists(),
-					check.That(data.ResourceName).Key( "resource_group_name").Exists(),
-					check.That(data.ResourceName).Key( "location").HasValue( location.Normalize(data.Locations.Primary)),
-					check.That(data.ResourceName).Key( "base_policy_id").Exists(),
-					resource.TestCheckResourceAttr(dataParent.ResourceName, "child_policies.#", "1"),
-					check.That(data.ResourceName).Key( "dns.0.proxy_enabled").HasValue( "true"),
-					check.That(data.ResourceName).Key( "dns.0.servers.#").HasValue( "2"),
-					check.That(data.ResourceName).Key( "threat_intelligence_mode").HasValue( string(network.AzureFirewallThreatIntelModeAlert)),
-					check.That(data.ResourceName).Key( "threat_intelligence_allowlist.0.ip_addresses.#").HasValue( "2"),
-					check.That(data.ResourceName).Key( "threat_intelligence_allowlist.0.fqdns.#").HasValue( "2"),
-				),
-			},
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("location").HasValue(location.Normalize(data.Locations.Primary)),
+				check.That(data.ResourceName).Key("base_policy_id").Exists(),
+				resource.TestCheckResourceAttr(dataParent.ResourceName, "child_policies.#", "1"),
+				check.That(data.ResourceName).Key("dns.0.proxy_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("dns.0.servers.#").HasValue("2"),
+				check.That(data.ResourceName).Key("threat_intelligence_mode").HasValue(string(network.AzureFirewallThreatIntelModeAlert)),
+				check.That(data.ResourceName).Key("threat_intelligence_allowlist.0.ip_addresses.#").HasValue("2"),
+				check.That(data.ResourceName).Key("threat_intelligence_allowlist.0.fqdns.#").HasValue("2"),
+			),
+		},
 	})
 }
 

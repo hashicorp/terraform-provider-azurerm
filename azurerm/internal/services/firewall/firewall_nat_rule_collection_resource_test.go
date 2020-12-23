@@ -1,7 +1,7 @@
 package firewall_test
 
 import (
-	`context`
+	"context"
 	"fmt"
 	"regexp"
 	"testing"
@@ -9,11 +9,11 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure`
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils`
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 type FirewallNatRuleCollectionResource struct {
@@ -255,7 +255,7 @@ func (FirewallNatRuleCollectionResource) Exists(ctx context.Context, clients *cl
 	return utils.Bool(false), nil
 }
 
-func (t FirewallNatRuleCollectionResource) doesNotExist (ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+func (t FirewallNatRuleCollectionResource) doesNotExist(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
 	var id, err = azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return err
@@ -265,7 +265,7 @@ func (t FirewallNatRuleCollectionResource) doesNotExist (ctx context.Context, cl
 	name := id.Path["natRuleCollections"]
 
 	exists, err := t.Exists(ctx, clients, state)
-	if err != nil  {
+	if err != nil {
 		return err
 	}
 
@@ -276,7 +276,7 @@ func (t FirewallNatRuleCollectionResource) doesNotExist (ctx context.Context, cl
 	return nil
 }
 
-func (t FirewallNatRuleCollectionResource) disappears (ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+func (t FirewallNatRuleCollectionResource) disappears(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
 	client := clients.Firewall.AzureFirewallsClient
 	var id, err = azure.ParseAzureResourceID(state.ID)
 	if err != nil {
