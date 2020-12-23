@@ -42,11 +42,11 @@ var hdInsightKafkaClusterZookeeperNodeDefinition = HDInsightNodeDefinition{
 	FixedTargetInstanceCount: utils.Int32(int32(3)),
 }
 
-func resourceArmHDInsightKafkaCluster() *schema.Resource {
+func resourceHDInsightKafkaCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmHDInsightKafkaClusterCreate,
-		Read:   resourceArmHDInsightKafkaClusterRead,
-		Update: hdinsightClusterUpdate("Kafka", resourceArmHDInsightKafkaClusterRead),
+		Create: resourceHDInsightKafkaClusterCreate,
+		Read:   resourceHDInsightKafkaClusterRead,
+		Update: hdinsightClusterUpdate("Kafka", resourceHDInsightKafkaClusterRead),
 		Delete: hdinsightClusterDelete("Kafka"),
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -127,7 +127,7 @@ func resourceArmHDInsightKafkaCluster() *schema.Resource {
 	}
 }
 
-func resourceArmHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HDInsight.ClustersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
@@ -234,10 +234,10 @@ func resourceArmHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	return resourceArmHDInsightKafkaClusterRead(d, meta)
+	return resourceHDInsightKafkaClusterRead(d, meta)
 }
 
-func resourceArmHDInsightKafkaClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceHDInsightKafkaClusterRead(d *schema.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
 	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient

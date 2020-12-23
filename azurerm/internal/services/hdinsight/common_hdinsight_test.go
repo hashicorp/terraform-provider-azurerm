@@ -10,7 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func testCheckAzureRMHDInsightClusterDestroy(terraformResourceName string) func(s *terraform.State) error {
+func testCheckHDInsightClusterDestroy(terraformResourceName string) func(s *terraform.State) error {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).HDInsight.ClustersClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -34,7 +34,7 @@ func testCheckAzureRMHDInsightClusterDestroy(terraformResourceName string) func(
 	}
 }
 
-func testCheckAzureRMHDInsightClusterExists(resourceName string) resource.TestCheckFunc {
+func testCheckHDInsightClusterExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).HDInsight.ClustersClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
