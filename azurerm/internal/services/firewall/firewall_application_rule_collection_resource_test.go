@@ -95,6 +95,7 @@ func TestAccFirewallApplicationRuleCollection_updatedName(t *testing.T) {
 
 func TestAccFirewallApplicationRuleCollection_multipleRuleCollections(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_application_rule_collection", "test")
+	data2 := acceptance.BuildTestData(t, "azurerm_firewall_application_rule_collection", "acctestarc_add")
 	r := FirewallApplicationRuleCollectionResource{}
 
 	secondRule := "azurerm_firewall_application_rule_collection.test_add"
@@ -133,7 +134,7 @@ func TestAccFirewallApplicationRuleCollection_multipleRuleCollections(t *testing
 				check.That(data.ResourceName).Key("priority").HasValue("100"),
 				check.That(data.ResourceName).Key("action").HasValue("Allow"),
 				check.That(data.ResourceName).Key("rule.#").HasValue("1"),
-				testCheckFirewallApplicationRuleCollectionDoesNotExist("azurerm_firewall.test", "acctestarc_add"),
+				data2.CheckWithClient(r.doesNotExist),
 			),
 		},
 	})
@@ -191,7 +192,7 @@ func TestAccFirewallApplicationRuleCollection_disappears(t *testing.T) {
 				check.That(data.ResourceName).Key("priority").HasValue("100"),
 				check.That(data.ResourceName).Key("action").HasValue("Allow"),
 				check.That(data.ResourceName).Key("rule.#").HasValue("1"),
-				testCheckFirewallApplicationRuleCollectionDisappears(data.ResourceName),
+				data.CheckWithClient(r.disappears),
 			),
 			ExpectNonEmptyPlan: true,
 		},
@@ -460,77 +461,6 @@ func (t FirewallApplicationRuleCollectionResource) disappears(ctx context.Contex
 	}
 
 	return FirewallApplicationRuleCollectionResource{}.doesNotExist(ctx, clients, state)
-}
-
-func testCheckFirewallApplicationRuleCollectionDoesNotExist(resourceName string, collectionName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Firewall.AzureFirewallsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		firewallName := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		read, err := client.Get(ctx, resourceGroup, firewallName)
-		if err != nil {
-			return err
-		}
-
-		for _, collection := range *read.AzureFirewallPropertiesFormat.ApplicationRuleCollections {
-			if *collection.Name == collectionName {
-				return fmt.Errorf("Application Rule Collection %q exists in Firewall %q: %+v", collectionName, firewallName, collection)
-			}
-		}
-
-		return nil
-	}
-}
-
-func testCheckFirewallApplicationRuleCollectionDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Firewall.AzureFirewallsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		firewallName := rs.Primary.Attributes["azure_firewall_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		read, err := client.Get(ctx, resourceGroup, firewallName)
-		if err != nil {
-			return err
-		}
-
-		rules := make([]network.AzureFirewallApplicationRuleCollection, 0)
-		for _, collection := range *read.AzureFirewallPropertiesFormat.ApplicationRuleCollections {
-			if *collection.Name != name {
-				rules = append(rules, collection)
-			}
-		}
-
-		read.AzureFirewallPropertiesFormat.ApplicationRuleCollections = &rules
-		future, err := client.CreateOrUpdate(ctx, resourceGroup, firewallName, read)
-		if err != nil {
-			return fmt.Errorf("Error removing Application Rule Collection from Firewall: %+v", err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for the removal of Application Rule Collection from Firewall: %+v", err)
-		}
-
-		_, err = client.Get(ctx, resourceGroup, firewallName)
-		return err
-	}
 }
 
 func (FirewallApplicationRuleCollectionResource) basic(data acceptance.TestData) string {
