@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKeyVaultSecret() *schema.Resource {
+func resourceKeyVaultSecret() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKeyVaultSecretCreate,
-		Read:   resourceArmKeyVaultSecretRead,
-		Update: resourceArmKeyVaultSecretUpdate,
-		Delete: resourceArmKeyVaultSecretDelete,
+		Create: resourceKeyVaultSecretCreate,
+		Read:   resourceKeyVaultSecretRead,
+		Update: resourceKeyVaultSecretUpdate,
+		Delete: resourceKeyVaultSecretDelete,
 		Importer: &schema.ResourceImporter{
 			State: nestedItemResourceImporter,
 		},
@@ -85,7 +85,7 @@ func resourceArmKeyVaultSecret() *schema.Resource {
 	}
 }
 
-func resourceArmKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) error {
 	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -179,10 +179,10 @@ func resourceArmKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) e
 
 	d.SetId(*read.ID)
 
-	return resourceArmKeyVaultSecretRead(d, meta)
+	return resourceKeyVaultSecretRead(d, meta)
 }
 
-func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) error {
 	keyVaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -267,10 +267,10 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 	// the ID is suffixed with the secret version
 	d.SetId(*read.ID)
 
-	return resourceArmKeyVaultSecretRead(d, meta)
+	return resourceKeyVaultSecretRead(d, meta)
 }
 
-func resourceArmKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) error {
 	keyVaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -336,7 +336,7 @@ func resourceArmKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmKeyVaultSecretDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultSecretDelete(d *schema.ResourceData, meta interface{}) error {
 	keyVaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)

@@ -25,12 +25,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKeyVaultCertificate() *schema.Resource {
+func resourceKeyVaultCertificate() *schema.Resource {
 	return &schema.Resource{
 		// TODO: support Updating once we have more information about what can be updated
-		Create: resourceArmKeyVaultCertificateCreate,
-		Read:   resourceArmKeyVaultCertificateRead,
-		Delete: resourceArmKeyVaultCertificateDelete,
+		Create: resourceKeyVaultCertificateCreate,
+		Read:   resourceKeyVaultCertificateRead,
+		Delete: resourceKeyVaultCertificateDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: nestedItemResourceImporter,
@@ -350,7 +350,7 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 	}
 }
 
-func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{}) error {
 	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -452,7 +452,7 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 
 	d.SetId(*resp.ID)
 
-	return resourceArmKeyVaultCertificateRead(d, meta)
+	return resourceKeyVaultCertificateRead(d, meta)
 }
 
 func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *keyvault.BaseClient, keyVaultBaseUrl string, name string) resource.StateRefreshFunc {
@@ -477,7 +477,7 @@ func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *keyvaul
 	}
 }
 
-func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	keyVaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -554,7 +554,7 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 	return tags.FlattenAndSet(d, cert.Tags)
 }
 
-func resourceArmKeyVaultCertificateDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultCertificateDelete(d *schema.ResourceData, meta interface{}) error {
 	keyVaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
