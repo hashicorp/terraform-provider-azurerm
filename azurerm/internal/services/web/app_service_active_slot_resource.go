@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAppServiceActiveSlot() *schema.Resource {
+func resourceAppServiceActiveSlot() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAppServiceActiveSlotCreateUpdate,
-		Read:   resourceArmAppServiceActiveSlotRead,
-		Update: resourceArmAppServiceActiveSlotCreateUpdate,
-		Delete: resourceArmAppServiceActiveSlotDelete,
+		Create: resourceAppServiceActiveSlotCreateUpdate,
+		Read:   resourceAppServiceActiveSlotRead,
+		Update: resourceAppServiceActiveSlotCreateUpdate,
+		Delete: resourceAppServiceActiveSlotDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.AppServiceID(id)
 			return err
@@ -51,7 +51,7 @@ func resourceArmAppServiceActiveSlot() *schema.Resource {
 	}
 }
 
-func resourceArmAppServiceActiveSlotCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceActiveSlotCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -90,10 +90,10 @@ func resourceArmAppServiceActiveSlotCreateUpdate(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error swapping App Service Slot %q/%q: %+v", appServiceName, targetSlot, err)
 	}
 	d.SetId(*resp.ID)
-	return resourceArmAppServiceActiveSlotRead(d, meta)
+	return resourceAppServiceActiveSlotRead(d, meta)
 }
 
-func resourceArmAppServiceActiveSlotRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceActiveSlotRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -119,7 +119,7 @@ func resourceArmAppServiceActiveSlotRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceArmAppServiceActiveSlotDelete(_ *schema.ResourceData, _ interface{}) error {
+func resourceAppServiceActiveSlotDelete(_ *schema.ResourceData, _ interface{}) error {
 	// There is nothing to delete so return nil
 	return nil
 }

@@ -17,7 +17,7 @@ import (
 
 type AppServiceCertificateBindingResource struct{}
 
-func TestAccAzureRMAppServiceCertificateBinding_basic(t *testing.T) {
+func TestAccAppServiceCertificateBinding_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate_binding", "test")
 	r := AppServiceCertificateBindingResource{}
 
@@ -33,7 +33,7 @@ func TestAccAzureRMAppServiceCertificateBinding_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceCertificateBinding_basicSniEnabled(t *testing.T) {
+func TestAccAppServiceCertificateBinding_basicSniEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate_binding", "test")
 	r := AppServiceCertificateBindingResource{}
 
@@ -49,7 +49,7 @@ func TestAccAzureRMAppServiceCertificateBinding_basicSniEnabled(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceCertificateBinding_requiresImport(t *testing.T) {
+func TestAccAppServiceCertificateBinding_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate_binding", "test")
 	r := AppServiceCertificateBindingResource{}
 

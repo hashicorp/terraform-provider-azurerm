@@ -16,7 +16,7 @@ import (
 
 type AppServiceHybridConnectionResource struct{}
 
-func TestAccAzureRMAppServiceHybridConnection_basic(t *testing.T) {
+func TestAccAppServiceHybridConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_hybrid_connection", "test")
 	r := AppServiceHybridConnectionResource{}
 
@@ -31,7 +31,7 @@ func TestAccAzureRMAppServiceHybridConnection_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceHybridConnection_update(t *testing.T) {
+func TestAccAppServiceHybridConnection_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_hybrid_connection", "test")
 	r := AppServiceHybridConnectionResource{}
 
@@ -53,7 +53,7 @@ func TestAccAzureRMAppServiceHybridConnection_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceHybridConnection_requiresImport(t *testing.T) {
+func TestAccAppServiceHybridConnection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_hybrid_connection", "test")
 	r := AppServiceHybridConnectionResource{}
 
@@ -68,7 +68,7 @@ func TestAccAzureRMAppServiceHybridConnection_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceHybridConnection_differentResourceGroup(t *testing.T) {
+func TestAccAppServiceHybridConnection_differentResourceGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_hybrid_connection", "test")
 	r := AppServiceHybridConnectionResource{}
 

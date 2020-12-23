@@ -8,18 +8,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccAzureRMFunctionAppSlotVirtualNetworkSwiftConnection_basic(t *testing.T) {
+func TestAccFunctionAppSlotVirtualNetworkSwiftConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionDestroy,
+		CheckDestroy: testCheckAppServiceSlotVirtualNetworkSwiftConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFunctionAppSlotVirtualNetworkSwiftConnection_basic(data),
+				Config: testAccFunctionAppSlotVirtualNetworkSwiftConnection_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionExists(data.ResourceName),
+					testCheckAppServiceSlotVirtualNetworkSwiftConnectionExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -27,62 +27,62 @@ func TestAccAzureRMFunctionAppSlotVirtualNetworkSwiftConnection_basic(t *testing
 	})
 }
 
-func TestAccAzureRMFunctionAppSlotVirtualNetworkSwiftConnection_requiresImport(t *testing.T) {
+func TestAccFunctionAppSlotVirtualNetworkSwiftConnection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionDestroy,
+		CheckDestroy: testCheckAppServiceSlotVirtualNetworkSwiftConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFunctionAppSlotVirtualNetworkSwiftConnection_basic(data),
+				Config: testAccFunctionAppSlotVirtualNetworkSwiftConnection_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionExists(data.ResourceName),
+					testCheckAppServiceSlotVirtualNetworkSwiftConnectionExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMFunctionAppSlotVirtualNetworkSwiftConnection_requiresImport),
+			data.RequiresImportErrorStep(testAccFunctionAppSlotVirtualNetworkSwiftConnection_requiresImport),
 		},
 	})
 }
 
-func TestAccAzureRMFunctionAppSlotVirtualNetworkSwiftConnection_update(t *testing.T) {
+func TestAccFunctionAppSlotVirtualNetworkSwiftConnection_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionDestroy,
+		CheckDestroy: testCheckAppServiceSlotVirtualNetworkSwiftConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFunctionAppSlotVirtualNetworkSwiftConnection_basic(data),
+				Config: testAccFunctionAppSlotVirtualNetworkSwiftConnection_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionExists(data.ResourceName),
+					testCheckAppServiceSlotVirtualNetworkSwiftConnectionExists(data.ResourceName),
 				),
 			},
 			{
-				Config: testAccAzureRMFunctionAppSlotVirtualNetworkSwiftConnection_update(data),
+				Config: testAccFunctionAppSlotVirtualNetworkSwiftConnection_update(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionExists(data.ResourceName),
+					testCheckAppServiceSlotVirtualNetworkSwiftConnectionExists(data.ResourceName),
 				),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMFunctionAppSlotVirtualNetworkSwiftConnection_disappears(t *testing.T) {
+func TestAccFunctionAppSlotVirtualNetworkSwiftConnection_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionDestroy,
+		CheckDestroy: testCheckAppServiceSlotVirtualNetworkSwiftConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAppServiceSlotVirtualNetworkSwiftConnection_basic(data),
+				Config: testAccAppServiceSlotVirtualNetworkSwiftConnection_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionExists(data.ResourceName),
-					testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionDisappears(data.ResourceName),
+					testCheckAppServiceSlotVirtualNetworkSwiftConnectionExists(data.ResourceName),
+					testCheckAppServiceSlotVirtualNetworkSwiftConnectionDisappears(data.ResourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -90,7 +90,7 @@ func TestAccAzureRMFunctionAppSlotVirtualNetworkSwiftConnection_disappears(t *te
 	})
 }
 
-func testAccAzureRMFunctionAppSlotVirtualNetworkSwiftConnection_base(data acceptance.TestData) string {
+func testAccFunctionAppSlotVirtualNetworkSwiftConnection_base(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-functionapp-%d"
@@ -179,8 +179,8 @@ resource "azurerm_function_app_slot" "test-staging" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMFunctionAppSlotVirtualNetworkSwiftConnection_basic(data acceptance.TestData) string {
-	template := testAccAzureRMFunctionAppSlotVirtualNetworkSwiftConnection_base(data)
+func testAccFunctionAppSlotVirtualNetworkSwiftConnection_basic(data acceptance.TestData) string {
+	template := testAccFunctionAppSlotVirtualNetworkSwiftConnection_base(data)
 	return fmt.Sprintf(`
 %s
 
@@ -192,8 +192,8 @@ resource "azurerm_app_service_slot_virtual_network_swift_connection" "test" {
 `, template)
 }
 
-func testAccAzureRMFunctionAppSlotVirtualNetworkSwiftConnection_update(data acceptance.TestData) string {
-	template := testAccAzureRMFunctionAppSlotVirtualNetworkSwiftConnection_base(data)
+func testAccFunctionAppSlotVirtualNetworkSwiftConnection_update(data acceptance.TestData) string {
+	template := testAccFunctionAppSlotVirtualNetworkSwiftConnection_base(data)
 	return fmt.Sprintf(`
 %s
 
@@ -205,8 +205,8 @@ resource "azurerm_app_service_slot_virtual_network_swift_connection" "test" {
 `, template)
 }
 
-func testAccAzureRMFunctionAppSlotVirtualNetworkSwiftConnection_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMFunctionAppSlotVirtualNetworkSwiftConnection_basic(data)
+func testAccFunctionAppSlotVirtualNetworkSwiftConnection_requiresImport(data acceptance.TestData) string {
+	template := testAccFunctionAppSlotVirtualNetworkSwiftConnection_basic(data)
 	return fmt.Sprintf(`
 %s
 

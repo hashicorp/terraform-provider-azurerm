@@ -13,7 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMAppServiceSourceControlToken(t *testing.T) {
+func TestAccAppServiceSourceControlToken(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control_token", "test")
 	token := strings.ToLower(acctest.RandString(41))
 	tokenSecret := strings.ToLower(acctest.RandString(41))
@@ -21,10 +21,10 @@ func TestAccAzureRMAppServiceSourceControlToken(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSourceControlTokenDestroy,
+		CheckDestroy: testCheckAppServiceSourceControlTokenDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAppServiceSourceControlToken(token, tokenSecret),
+				Config: testAccAppServiceSourceControlToken(token, tokenSecret),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "type", "GitHub"),
 					resource.TestCheckResourceAttr(data.ResourceName, "token", token),
@@ -36,7 +36,7 @@ func TestAccAzureRMAppServiceSourceControlToken(t *testing.T) {
 	})
 }
 
-func testAccAzureRMAppServiceSourceControlToken(token, tokenSecret string) string {
+func testAccAppServiceSourceControlToken(token, tokenSecret string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -50,7 +50,7 @@ resource "azurerm_app_service_source_control_token" "test" {
 `, token, tokenSecret)
 }
 
-func testCheckAzureRMAppServiceSourceControlTokenDestroy(s *terraform.State) error {
+func testCheckAppServiceSourceControlTokenDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).Web.BaseClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 

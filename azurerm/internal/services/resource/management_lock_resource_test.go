@@ -17,7 +17,7 @@ func TestAccAzureRMManagementLock_resourceGroupReadOnlyBasic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
+		Providers:     acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMManagementLockDestroy,
 		Steps: []resource.TestStep{
 			{

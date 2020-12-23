@@ -16,7 +16,7 @@ import (
 
 type AppServiceEnvironmentResource struct{}
 
-func TestAccAzureRMAppServiceEnvironment_basic(t *testing.T) {
+func TestAccAppServiceEnvironment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	r := AppServiceEnvironmentResource{}
 
@@ -33,7 +33,7 @@ func TestAccAzureRMAppServiceEnvironment_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceEnvironment_requiresImport(t *testing.T) {
+func TestAccAppServiceEnvironment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	r := AppServiceEnvironmentResource{}
 
@@ -48,7 +48,7 @@ func TestAccAzureRMAppServiceEnvironment_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceEnvironment_update(t *testing.T) {
+func TestAccAppServiceEnvironment_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	r := AppServiceEnvironmentResource{}
 
@@ -73,7 +73,7 @@ func TestAccAzureRMAppServiceEnvironment_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceEnvironment_tierAndScaleFactor(t *testing.T) {
+func TestAccAppServiceEnvironment_tierAndScaleFactor(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	r := AppServiceEnvironmentResource{}
 
@@ -90,7 +90,7 @@ func TestAccAzureRMAppServiceEnvironment_tierAndScaleFactor(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceEnvironment_withAppServicePlan(t *testing.T) {
+func TestAccAppServiceEnvironment_withAppServicePlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	aspData := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServiceEnvironmentResource{}
@@ -109,7 +109,7 @@ func TestAccAzureRMAppServiceEnvironment_withAppServicePlan(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceEnvironment_dedicatedResourceGroup(t *testing.T) {
+func TestAccAppServiceEnvironment_dedicatedResourceGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	r := AppServiceEnvironmentResource{}
 
@@ -124,7 +124,7 @@ func TestAccAzureRMAppServiceEnvironment_dedicatedResourceGroup(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceEnvironment_withCertificatePfx(t *testing.T) {
+func TestAccAppServiceEnvironment_withCertificatePfx(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	certData := acceptance.BuildTestData(t, "azurerm_app_service_certificate", "test")
 	r := AppServiceEnvironmentResource{}
@@ -143,7 +143,7 @@ func TestAccAzureRMAppServiceEnvironment_withCertificatePfx(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceEnvironment_internalLoadBalancer(t *testing.T) {
+func TestAccAppServiceEnvironment_internalLoadBalancer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	r := AppServiceEnvironmentResource{}
 

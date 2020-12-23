@@ -12,7 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMAppServiceCustomHostnameBinding(t *testing.T) {
+func TestAccAppServiceCustomHostnameBinding(t *testing.T) {
 	appServiceEnvVariable := "ARM_TEST_APP_SERVICE"
 	appServiceEnv := os.Getenv(appServiceEnvVariable)
 	if appServiceEnv == "" {
@@ -29,10 +29,10 @@ func TestAccAzureRMAppServiceCustomHostnameBinding(t *testing.T) {
 	// the app service name being shared (so the tests don't conflict with each other)
 	testCases := map[string]map[string]func(t *testing.T, appServiceEnv, domainEnv string){
 		"basic": {
-			"basic":          testAccAzureRMAppServiceCustomHostnameBinding_basic,
-			"multiple":       testAccAzureRMAppServiceCustomHostnameBinding_multiple,
-			"requiresImport": testAccAzureRMAppServiceCustomHostnameBinding_requiresImport,
-			"ssl":            testAccAzureRMAppServiceCustomHostnameBinding_ssl,
+			"basic":          testAccAppServiceCustomHostnameBinding_basic,
+			"multiple":       testAccAppServiceCustomHostnameBinding_multiple,
+			"requiresImport": testAccAppServiceCustomHostnameBinding_requiresImport,
+			"ssl":            testAccAppServiceCustomHostnameBinding_ssl,
 		},
 	}
 
@@ -49,18 +49,18 @@ func TestAccAzureRMAppServiceCustomHostnameBinding(t *testing.T) {
 	}
 }
 
-func testAccAzureRMAppServiceCustomHostnameBinding_basic(t *testing.T, appServiceEnv, domainEnv string) {
+func testAccAppServiceCustomHostnameBinding_basic(t *testing.T, appServiceEnv, domainEnv string) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_custom_hostname_binding", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceCustomHostnameBindingDestroy,
+		CheckDestroy: testCheckAppServiceCustomHostnameBindingDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAppServiceCustomHostnameBinding_basicConfig(data, appServiceEnv, domainEnv),
+				Config: testAccAppServiceCustomHostnameBinding_basicConfig(data, appServiceEnv, domainEnv),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceCustomHostnameBindingExists(data.ResourceName),
+					testCheckAppServiceCustomHostnameBindingExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -68,28 +68,28 @@ func testAccAzureRMAppServiceCustomHostnameBinding_basic(t *testing.T, appServic
 	})
 }
 
-func testAccAzureRMAppServiceCustomHostnameBinding_requiresImport(t *testing.T, appServiceEnv, domainEnv string) {
+func testAccAppServiceCustomHostnameBinding_requiresImport(t *testing.T, appServiceEnv, domainEnv string) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_custom_hostname_binding", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceCustomHostnameBindingDestroy,
+		CheckDestroy: testCheckAppServiceCustomHostnameBindingDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAppServiceCustomHostnameBinding_basicConfig(data, appServiceEnv, domainEnv),
+				Config: testAccAppServiceCustomHostnameBinding_basicConfig(data, appServiceEnv, domainEnv),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceCustomHostnameBindingExists(data.ResourceName),
+					testCheckAppServiceCustomHostnameBindingExists(data.ResourceName),
 				),
 			},
 			data.RequiresImportErrorStep(func(data acceptance.TestData) string {
-				return testAccAzureRMAppServiceCustomHostnameBinding_requiresImportConfig(data, appServiceEnv, domainEnv)
+				return testAccAppServiceCustomHostnameBinding_requiresImportConfig(data, appServiceEnv, domainEnv)
 			}),
 		},
 	})
 }
 
-func testAccAzureRMAppServiceCustomHostnameBinding_multiple(t *testing.T, appServiceEnv, domainEnv string) {
+func testAccAppServiceCustomHostnameBinding_multiple(t *testing.T, appServiceEnv, domainEnv string) {
 	altDomainEnvVariable := "ARM_ALT_TEST_DOMAIN"
 	altDomainEnv := os.Getenv(altDomainEnvVariable)
 	if altDomainEnv == "" {
@@ -101,30 +101,30 @@ func testAccAzureRMAppServiceCustomHostnameBinding_multiple(t *testing.T, appSer
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceCustomHostnameBindingDestroy,
+		CheckDestroy: testCheckAppServiceCustomHostnameBindingDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAppServiceCustomHostnameBinding_multipleConfig(data, appServiceEnv, domainEnv, altDomainEnv),
+				Config: testAccAppServiceCustomHostnameBinding_multipleConfig(data, appServiceEnv, domainEnv, altDomainEnv),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceCustomHostnameBindingExists(data.ResourceName),
+					testCheckAppServiceCustomHostnameBindingExists(data.ResourceName),
 				),
 			},
 		},
 	})
 }
 
-func testAccAzureRMAppServiceCustomHostnameBinding_ssl(t *testing.T, appServiceEnv, domainEnv string) {
+func testAccAppServiceCustomHostnameBinding_ssl(t *testing.T, appServiceEnv, domainEnv string) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_custom_hostname_binding", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceCustomHostnameBindingDestroy,
+		CheckDestroy: testCheckAppServiceCustomHostnameBindingDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAppServiceCustomHostnameBinding_sslConfig(data, appServiceEnv, domainEnv),
+				Config: testAccAppServiceCustomHostnameBinding_sslConfig(data, appServiceEnv, domainEnv),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceCustomHostnameBindingExists(data.ResourceName),
+					testCheckAppServiceCustomHostnameBindingExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -132,7 +132,7 @@ func testAccAzureRMAppServiceCustomHostnameBinding_ssl(t *testing.T, appServiceE
 	})
 }
 
-func testCheckAzureRMAppServiceCustomHostnameBindingDestroy(s *terraform.State) error {
+func testCheckAppServiceCustomHostnameBindingDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServicesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -159,7 +159,7 @@ func testCheckAzureRMAppServiceCustomHostnameBindingDestroy(s *terraform.State) 
 	return nil
 }
 
-func testCheckAzureRMAppServiceCustomHostnameBindingExists(resourceName string) resource.TestCheckFunc {
+func testCheckAppServiceCustomHostnameBindingExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServicesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -187,7 +187,7 @@ func testCheckAzureRMAppServiceCustomHostnameBindingExists(resourceName string) 
 	}
 }
 
-func testAccAzureRMAppServiceCustomHostnameBinding_basicConfig(data acceptance.TestData, appServiceName string, domain string) string {
+func testAccAppServiceCustomHostnameBinding_basicConfig(data acceptance.TestData, appServiceName string, domain string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -224,8 +224,8 @@ resource "azurerm_app_service_custom_hostname_binding" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, appServiceName, domain)
 }
 
-func testAccAzureRMAppServiceCustomHostnameBinding_requiresImportConfig(data acceptance.TestData, appServiceName string, domain string) string {
-	template := testAccAzureRMAppServiceCustomHostnameBinding_basicConfig(data, appServiceName, domain)
+func testAccAppServiceCustomHostnameBinding_requiresImportConfig(data acceptance.TestData, appServiceName string, domain string) string {
+	template := testAccAppServiceCustomHostnameBinding_basicConfig(data, appServiceName, domain)
 	return fmt.Sprintf(`
 %s
 
@@ -237,8 +237,8 @@ resource "azurerm_app_service_custom_hostname_binding" "import" {
 `, template)
 }
 
-func testAccAzureRMAppServiceCustomHostnameBinding_multipleConfig(data acceptance.TestData, appServiceName, domain, altDomain string) string {
-	template := testAccAzureRMAppServiceCustomHostnameBinding_basicConfig(data, appServiceName, domain)
+func testAccAppServiceCustomHostnameBinding_multipleConfig(data acceptance.TestData, appServiceName, domain, altDomain string) string {
+	template := testAccAppServiceCustomHostnameBinding_basicConfig(data, appServiceName, domain)
 	return fmt.Sprintf(`
 %s
 
@@ -250,7 +250,7 @@ resource "azurerm_app_service_custom_hostname_binding" "test2" {
 `, template, altDomain)
 }
 
-func testAccAzureRMAppServiceCustomHostnameBinding_sslConfig(data acceptance.TestData, appServiceName, domain string) string {
+func testAccAppServiceCustomHostnameBinding_sslConfig(data acceptance.TestData, appServiceName, domain string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
