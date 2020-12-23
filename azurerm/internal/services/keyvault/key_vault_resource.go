@@ -177,9 +177,12 @@ func resourceArmKeyVault() *schema.Resource {
 				Optional: true,
 			},
 
+			// Consider future breaking change deprecation, since value must always be true now - https://docs.microsoft.com/en-us/azure/key-vault/general/soft-delete-change
 			"soft_delete_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Default:  true,
+				ValidateFunc: validatealwaystrue
 			},
 
 			"soft_delete_retention_days": {
@@ -313,7 +316,7 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 			parameters.Properties.SoftDeleteRetentionInDays = utils.Int32(int32(softDeleteRetentionInDays))
 		}
 	} else {
-		parameters.Properties.EnableSoftDelete = utils.Bool(false)
+		return fmt.Errorf("Error creating Key Vault %q (Resource Group %q): Soft Delete must be enabled.", name, resourceGroup)
 	}
 	if purgeProtectionEnabled := d.Get("purge_protection_enabled").(bool); purgeProtectionEnabled {
 		parameters.Properties.EnablePurgeProtection = utils.Bool(purgeProtectionEnabled)
@@ -531,6 +534,12 @@ func resourceArmKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		newValue := d.Get("soft_delete_enabled").(bool)
+
+		// whilst this should have got caught in the customizeDiff this won't work if that fields interpolated
+		// hence the double-checking here
+		if !newValue {
+			return fmt.Errorf("Error updating Key Vault %q (Resource Group %q): Soft Delete must be enabled.", name, resourceGroup)
+		}
 
 		// existing.Properties guaranteed non-nil above
 		oldValue := false

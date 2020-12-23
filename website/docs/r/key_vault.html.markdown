@@ -115,9 +115,9 @@ The following arguments are supported:
 
 !> **Note:** Once Purge Protection has been Enabled it's not possible to Disable it. Support for [disabling purge protection is being tracked in this Azure API issue](https://github.com/Azure/azure-rest-api-specs/issues/8075). Deleting the Key Vault with Purge Protection Enabled will schedule the Key Vault to be deleted (which will happen by Azure in the configured number of days, currently 90 days - which will be configurable in Terraform in the future).
 
-* `soft_delete_enabled` - (Optional) Should Soft Delete be enabled for this Key Vault? Defaults to `false`.
+* `soft_delete_enabled` - (Optional) Must be true. 
 
-!> **Note:** Once Soft Delete has been Enabled it's not possible to Disable it.
+!> **Note:** [Soft Delete is now required on Azure Key Vault.](https://docs.microsoft.com/en-us/azure/key-vault/general/soft-delete-change)
 
 ~> **Note:** Terraform will check when creating a Key Vault for a previous soft-deleted Key Vault and recover it if one exists. You can configure this behaviour using the `features` block within the `provider` block.  
 
