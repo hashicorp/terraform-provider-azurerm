@@ -25,12 +25,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMonitorDiagnosticSetting() *schema.Resource {
+func resourceMonitorDiagnosticSetting() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMonitorDiagnosticSettingCreateUpdate,
-		Read:   resourceArmMonitorDiagnosticSettingRead,
-		Update: resourceArmMonitorDiagnosticSettingCreateUpdate,
-		Delete: resourceArmMonitorDiagnosticSettingDelete,
+		Create: resourceMonitorDiagnosticSettingCreateUpdate,
+		Read:   resourceMonitorDiagnosticSettingRead,
+		Update: resourceMonitorDiagnosticSettingCreateUpdate,
+		Delete: resourceMonitorDiagnosticSettingDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -178,7 +178,7 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 	}
 }
 
-func resourceArmMonitorDiagnosticSettingCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorDiagnosticSettingCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.DiagnosticSettingsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -287,34 +287,34 @@ func resourceArmMonitorDiagnosticSettingCreateUpdate(d *schema.ResourceData, met
 
 	d.SetId(fmt.Sprintf("%s|%s", actualResourceId, name))
 
-	return resourceArmMonitorDiagnosticSettingRead(d, meta)
+	return resourceMonitorDiagnosticSettingRead(d, meta)
 }
 
-func resourceArmMonitorDiagnosticSettingRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorDiagnosticSettingRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.DiagnosticSettingsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parseMonitorDiagnosticId(d.Id())
+	id, err := ParseMonitorDiagnosticId(d.Id())
 	if err != nil {
 		return err
 	}
 
-	actualResourceId := id.resourceID
+	actualResourceId := id.ResourceID
 	targetResourceId := strings.TrimPrefix(actualResourceId, "/")
-	resp, err := client.Get(ctx, targetResourceId, id.name)
+	resp, err := client.Get(ctx, targetResourceId, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] Monitor Diagnostics Setting %q was not found for Resource %q - removing from state!", id.name, actualResourceId)
+			log.Printf("[WARN] Monitor Diagnostics Setting %q was not found for Resource %q - removing from state!", id.Name, actualResourceId)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Monitor Diagnostics Setting %q for Resource %q: %+v", id.name, actualResourceId, err)
+		return fmt.Errorf("Error retrieving Monitor Diagnostics Setting %q for Resource %q: %+v", id.Name, actualResourceId, err)
 	}
 
-	d.Set("name", id.name)
-	d.Set("target_resource_id", id.resourceID)
+	d.Set("name", id.Name)
+	d.Set("target_resource_id", id.ResourceID)
 
 	d.Set("eventhub_name", resp.EventHubName)
 	eventhubAuthorizationRuleId := ""
@@ -363,37 +363,37 @@ func resourceArmMonitorDiagnosticSettingRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceArmMonitorDiagnosticSettingDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorDiagnosticSettingDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.DiagnosticSettingsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parseMonitorDiagnosticId(d.Id())
+	id, err := ParseMonitorDiagnosticId(d.Id())
 	if err != nil {
 		return err
 	}
 
-	targetResourceId := strings.TrimPrefix(id.resourceID, "/")
-	resp, err := client.Delete(ctx, targetResourceId, id.name)
+	targetResourceId := strings.TrimPrefix(id.ResourceID, "/")
+	resp, err := client.Delete(ctx, targetResourceId, id.Name)
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting Monitor Diagnostics Setting %q for Resource %q: %+v", id.name, targetResourceId, err)
+			return fmt.Errorf("Error deleting Monitor Diagnostics Setting %q for Resource %q: %+v", id.Name, targetResourceId, err)
 		}
 	}
 
 	// API appears to be eventually consistent (identified during tainting this resource)
-	log.Printf("[DEBUG] Waiting for Monitor Diagnostic Setting %q for Resource %q to disappear", id.name, id.resourceID)
+	log.Printf("[DEBUG] Waiting for Monitor Diagnostic Setting %q for Resource %q to disappear", id.Name, id.ResourceID)
 	stateConf := &resource.StateChangeConf{
 		Pending:                   []string{"Exists"},
 		Target:                    []string{"NotFound"},
-		Refresh:                   monitorDiagnosticSettingDeletedRefreshFunc(ctx, client, targetResourceId, id.name),
+		Refresh:                   monitorDiagnosticSettingDeletedRefreshFunc(ctx, client, targetResourceId, id.Name),
 		MinTimeout:                15 * time.Second,
 		ContinuousTargetOccurence: 5,
 		Timeout:                   d.Timeout(schema.TimeoutDelete),
 	}
 
 	if _, err = stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for Monitor Diagnostic Setting %q for Resource %q to become available: %s", id.name, id.resourceID, err)
+		return fmt.Errorf("Error waiting for Monitor Diagnostic Setting %q for Resource %q to become available: %s", id.Name, id.ResourceID, err)
 	}
 
 	return nil
@@ -560,19 +560,19 @@ func flattenMonitorDiagnosticMetrics(input *[]insights.MetricSettings) []interfa
 }
 
 type monitorDiagnosticId struct {
-	resourceID string
-	name       string
+	ResourceID string
+	Name       string
 }
 
-func parseMonitorDiagnosticId(monitorId string) (*monitorDiagnosticId, error) {
+func ParseMonitorDiagnosticId(monitorId string) (*monitorDiagnosticId, error) {
 	v := strings.Split(monitorId, "|")
 	if len(v) != 2 {
 		return nil, fmt.Errorf("Expected the Monitor Diagnostics ID to be in the format `{resourceId}|{name}` but got %d segments", len(v))
 	}
 
 	identifier := monitorDiagnosticId{
-		resourceID: v[0],
-		name:       v[1],
+		ResourceID: v[0],
+		Name:       v[1],
 	}
 	return &identifier, nil
 }
