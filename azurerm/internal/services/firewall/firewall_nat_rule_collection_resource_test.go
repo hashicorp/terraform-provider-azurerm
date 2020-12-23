@@ -1,6 +1,7 @@
 package firewall_test
 
 import (
+	`context`
 	"fmt"
 	"regexp"
 	"testing"
@@ -8,366 +9,314 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure`
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils`
 )
+
+type FirewallNatRuleCollectionResource struct {
+}
 
 func TestAccFirewallNatRuleCollection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_nat_rule_collection", "test")
+	r := FirewallNatRuleCollectionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckFirewallDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccFirewallNatRuleCollection_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallNatRuleCollectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccFirewallNatRuleCollection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_nat_rule_collection", "test")
+	r := FirewallNatRuleCollectionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckFirewallDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccFirewallNatRuleCollection_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallNatRuleCollectionExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccFirewallNatRuleCollection_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_firewall_nat_rule_collection"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_firewall_nat_rule_collection"),
 		},
 	})
 }
 
 func TestAccFirewallNatRuleCollection_updatedName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_nat_rule_collection", "test")
+	r := FirewallNatRuleCollectionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckFirewallDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccFirewallNatRuleCollection_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallNatRuleCollectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccFirewallNatRuleCollection_updatedName(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallNatRuleCollectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.updatedName(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccFirewallNatRuleCollection_multipleRuleCollections(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_nat_rule_collection", "test")
-	secondRule := "azurerm_firewall_nat_rule_collection.test_add"
+	data2 := acceptance.BuildTestData(t, "azurerm_firewall_nat_rule_collection", "test_add")
+	r := FirewallNatRuleCollectionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckFirewallDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccFirewallNatRuleCollection_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallNatRuleCollectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccFirewallNatRuleCollection_multiple(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallNatRuleCollectionExists(data.ResourceName),
-					testCheckFirewallNatRuleCollectionExists(secondRule),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccFirewallNatRuleCollection_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallNatRuleCollectionExists(data.ResourceName),
-					testCheckFirewallNatRuleCollectionDoesNotExist("azurerm_firewall.test", "acctestnrc_add"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.multiple(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data2.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				data2.CheckWithClient(r.doesNotExist),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccFirewallNatRuleCollection_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_nat_rule_collection", "test")
+	r := FirewallNatRuleCollectionResource{}
 	secondResourceName := "azurerm_firewall_nat_rule_collection.test_add"
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckFirewallDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccFirewallNatRuleCollection_multiple(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallNatRuleCollectionExists(data.ResourceName),
-					testCheckFirewallNatRuleCollectionExists(secondResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccFirewallNatRuleCollection_multipleUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallNatRuleCollectionExists(data.ResourceName),
-					testCheckFirewallNatRuleCollectionExists(secondResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.multiple(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(secondResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.multipleUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(secondResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccFirewallNatRuleCollection_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_nat_rule_collection", "test")
+	r := FirewallNatRuleCollectionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckFirewallDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccFirewallNatRuleCollection_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallNatRuleCollectionExists(data.ResourceName),
-					testCheckFirewallNatRuleCollectionDisappears(data.ResourceName),
-				),
-				ExpectNonEmptyPlan: true,
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.disappears),
+			),
+			ExpectNonEmptyPlan: true,
 		},
 	})
 }
 
 func TestAccFirewallNatRuleCollection_multipleRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_nat_rule_collection", "test")
+	r := FirewallNatRuleCollectionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckFirewallDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccFirewallNatRuleCollection_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallNatRuleCollectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccFirewallNatRuleCollection_multipleRules(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallNatRuleCollectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccFirewallNatRuleCollection_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallNatRuleCollectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.multipleRules(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccFirewallNatRuleCollection_updateFirewallTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_nat_rule_collection", "test")
+	r := FirewallNatRuleCollectionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckFirewallDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccFirewallNatRuleCollection_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallNatRuleCollectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccFirewallNatRuleCollection_updateFirewallTags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallNatRuleCollectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.updateFirewallTags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccFirewallNatRuleCollection_ipGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_nat_rule_collection", "test")
+	r := FirewallNatRuleCollectionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckFirewallDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccFirewallNatRuleCollection_ipGroup(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallNatRuleCollectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.ipGroup(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccFirewallNatRuleCollection_noSource(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_nat_rule_collection", "test")
+	r := FirewallNatRuleCollectionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckFirewallDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      testAccFirewallNatRuleCollection_noSource(data),
-				ExpectError: regexp.MustCompile(fmt.Sprintf("at least one of %q and %q must be specified", "source_addresses", "source_ip_groups")),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config:      r.noSource(data),
+			ExpectError: regexp.MustCompile(fmt.Sprintf("at least one of %q and %q must be specified", "source_addresses", "source_ip_groups")),
 		},
 	})
 }
 
-func testCheckFirewallNatRuleCollectionExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Firewall.AzureFirewallsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		firewallName := rs.Primary.Attributes["azure_firewall_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		read, err := client.Get(ctx, resourceGroup, firewallName)
-		if err != nil {
-			return err
-		}
-
-		found := false
-		for _, collection := range *read.AzureFirewallPropertiesFormat.NatRuleCollections {
-			if *collection.Name == name {
-				found = true
-				break
-			}
-		}
-
-		if !found {
-			return fmt.Errorf("Expected NAT Rule Collection %q (Firewall %q / Resource Group %q) to exist but it didn't", name, firewallName, resourceGroup)
-		}
-
-		return nil
+func (FirewallNatRuleCollectionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	var id, err = azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	firewallName := id.Path["azureFirewalls"]
+	name := id.Path["natRuleCollections"]
+
+	resp, err := clients.Firewall.AzureFirewallsClient.Get(ctx, id.ResourceGroup, firewallName)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Firewall Nat Rule Collection %q (Firewall %q / Resource Group %q): %v", name, firewallName, id.ResourceGroup, err)
+	}
+
+	if resp.AzureFirewallPropertiesFormat == nil || resp.AzureFirewallPropertiesFormat.NatRuleCollections == nil {
+		return nil, fmt.Errorf("retrieving Firewall  Nat Rule Collection %q (Firewall %q / Resource Group %q): properties or collections was nil", name, firewallName, id.ResourceGroup)
+	}
+
+	for _, rule := range *resp.AzureFirewallPropertiesFormat.NatRuleCollections {
+		if rule.Name == nil {
+			continue
+		}
+
+		if *rule.Name == name {
+			return utils.Bool(true), nil
+		}
+	}
+	return utils.Bool(false), nil
 }
 
-func testCheckFirewallNatRuleCollectionDoesNotExist(resourceName string, collectionName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Firewall.AzureFirewallsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		firewallName := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		read, err := client.Get(ctx, resourceGroup, firewallName)
-		if err != nil {
-			return err
-		}
-
-		for _, collection := range *read.AzureFirewallPropertiesFormat.NatRuleCollections {
-			if *collection.Name == collectionName {
-				return fmt.Errorf("NAT Rule Collection %q exists in Firewall %q: %+v", collectionName, firewallName, collection)
-			}
-		}
-
-		return nil
-	}
-}
-
-func testCheckFirewallNatRuleCollectionDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Firewall.AzureFirewallsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		firewallName := rs.Primary.Attributes["azure_firewall_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		read, err := client.Get(ctx, resourceGroup, firewallName)
-		if err != nil {
-			return err
-		}
-
-		rules := make([]network.AzureFirewallNatRuleCollection, 0)
-		for _, collection := range *read.AzureFirewallPropertiesFormat.NatRuleCollections {
-			if *collection.Name != name {
-				rules = append(rules, collection)
-			}
-		}
-
-		read.AzureFirewallPropertiesFormat.NatRuleCollections = &rules
-
-		future, err := client.CreateOrUpdate(ctx, resourceGroup, firewallName, read)
-		if err != nil {
-			return fmt.Errorf("Error removing NAT Rule Collection from Firewall: %+v", err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for the removal of NAT Rule Collection from Firewall: %+v", err)
-		}
-
-		_, err = client.Get(ctx, resourceGroup, firewallName)
+func (t FirewallNatRuleCollectionResource) doesNotExist (ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+	var id, err = azure.ParseAzureResourceID(state.ID)
+	if err != nil {
 		return err
 	}
+
+	firewallName := id.Path["azureFirewalls"]
+	name := id.Path["natRuleCollections"]
+
+	exists, err := t.Exists(ctx, clients, state)
+	if err != nil  {
+		return err
+	}
+
+	if *exists {
+		return fmt.Errorf("Firewall Nat Rule Collection %q (Firewall %q / Resource Group %q): still exists", name, firewallName, id.ResourceGroup)
+	}
+
+	return nil
 }
 
-func testAccFirewallNatRuleCollection_basic(data acceptance.TestData) string {
-	template := testAccFirewall_basic(data)
+func (t FirewallNatRuleCollectionResource) disappears (ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+	client := clients.Firewall.AzureFirewallsClient
+	var id, err = azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return err
+	}
+
+	firewallName := id.Path["azureFirewalls"]
+	name := id.Path["natRuleCollections"]
+
+	resp, err := client.Get(ctx, id.ResourceGroup, firewallName)
+	if err != nil {
+		return fmt.Errorf("retrieving Firewall Nat Rule Collection %q (Firewall %q / Resource Group %q): %v", name, firewallName, id.ResourceGroup, err)
+	}
+
+	if resp.AzureFirewallPropertiesFormat == nil || resp.AzureFirewallPropertiesFormat.NatRuleCollections == nil {
+		return fmt.Errorf("retrieving Firewall  Nat Rule Collection %q (Firewall %q / Resource Group %q): properties or collections was nil", name, firewallName, id.ResourceGroup)
+	}
+
+	rules := make([]network.AzureFirewallNatRuleCollection, 0)
+	for _, collection := range *resp.AzureFirewallPropertiesFormat.NatRuleCollections {
+		if *collection.Name != name {
+			rules = append(rules, collection)
+		}
+	}
+
+	resp.AzureFirewallPropertiesFormat.NatRuleCollections = &rules
+
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, firewallName, resp)
+	if err != nil {
+		return fmt.Errorf("removing Firewall Nat Rule Collection %q (Firewall %q / Resource Group %q): %v", name, firewallName, id.ResourceGroup, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for the removal of Firewall Nat Rule Collection %q (Firewall %q / Resource Group %q): %v", name, firewallName, id.ResourceGroup, err)
+	}
+
+	return FirewallNatRuleCollectionResource{}.doesNotExist(ctx, clients, state)
+}
+
+func (FirewallNatRuleCollectionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -401,11 +350,10 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
     translated_address = "8.8.8.8"
   }
 }
-`, template, data.RandomInteger)
+`, FirewallResource{}.basic(data), data.RandomInteger)
 }
 
-func testAccFirewallNatRuleCollection_requiresImport(data acceptance.TestData) string {
-	template := testAccFirewallNatRuleCollection_basic(data)
+func (r FirewallNatRuleCollectionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -439,11 +387,10 @@ resource "azurerm_firewall_nat_rule_collection" "import" {
     translated_address = "8.8.8.8"
   }
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccFirewallNatRuleCollection_updatedName(data acceptance.TestData) string {
-	template := testAccFirewall_basic(data)
+func (FirewallNatRuleCollectionResource) updatedName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -477,11 +424,10 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
     translated_address = "8.8.8.8"
   }
 }
-`, template, data.RandomInteger)
+`, FirewallResource{}.basic(data), data.RandomInteger)
 }
 
-func testAccFirewallNatRuleCollection_multiple(data acceptance.TestData) string {
-	template := testAccFirewall_basic(data)
+func (FirewallNatRuleCollectionResource) multiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -546,11 +492,10 @@ resource "azurerm_firewall_nat_rule_collection" "test_add" {
     translated_address = "8.8.4.4"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, FirewallResource{}.basic(data), data.RandomInteger, data.RandomInteger)
 }
 
-func testAccFirewallNatRuleCollection_multipleUpdate(data acceptance.TestData) string {
-	template := testAccFirewall_basic(data)
+func (FirewallNatRuleCollectionResource) multipleUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -615,11 +560,10 @@ resource "azurerm_firewall_nat_rule_collection" "test_add" {
     translated_address = "10.0.0.1"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, FirewallResource{}.basic(data), data.RandomInteger, data.RandomInteger)
 }
 
-func testAccFirewallNatRuleCollection_multipleRules(data acceptance.TestData) string {
-	template := testAccFirewall_basic(data)
+func (FirewallNatRuleCollectionResource) multipleRules(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -676,11 +620,10 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
     translated_address = "192.168.0.1"
   }
 }
-`, template, data.RandomInteger)
+`, FirewallResource{}.basic(data), data.RandomInteger)
 }
 
-func testAccFirewallNatRuleCollection_updateFirewallTags(data acceptance.TestData) string {
-	template := testAccFirewall_withTags(data)
+func (FirewallNatRuleCollectionResource) updateFirewallTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -714,11 +657,10 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
     translated_address = "10.0.0.1"
   }
 }
-`, template, data.RandomInteger)
+`, FirewallResource{}.withTags(data), data.RandomInteger)
 }
 
-func testAccFirewallNatRuleCollection_ipGroup(data acceptance.TestData) string {
-	template := testAccFirewall_basic(data)
+func (FirewallNatRuleCollectionResource) ipGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -759,11 +701,10 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
     translated_address = "8.8.8.8"
   }
 }
-`, template, data.RandomInteger)
+`, FirewallResource{}.basic(data), data.RandomInteger)
 }
 
-func testAccFirewallNatRuleCollection_noSource(data acceptance.TestData) string {
-	template := testAccFirewall_basic(data)
+func (FirewallNatRuleCollectionResource) noSource(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -793,5 +734,5 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
     translated_address = "8.8.8.8"
   }
 }
-`, template, data.RandomInteger)
+`, FirewallResource{}.basic(data), data.RandomInteger)
 }

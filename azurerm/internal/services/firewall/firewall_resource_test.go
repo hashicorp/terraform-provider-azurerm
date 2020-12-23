@@ -1,340 +1,288 @@
 package firewall_test
 
 import (
+	`context`
 	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure`
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type FirewallResource struct {
+}
+
 func TestAccFirewall_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
+	r := FirewallResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckFirewallDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccFirewall_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "ip_configuration.0.name", "configuration"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_configuration.0.private_ip_address"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_configuration.0.name").HasValue("configuration"),
+				check.That(data.ResourceName).Key("ip_configuration.0.private_ip_address").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccFirewall_enableDNS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
+	r := FirewallResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckFirewallDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccFirewall_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccFirewall_enableDNS(data, "1.1.1.1", "8.8.8.8"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccFirewall_enableDNS(data, "1.1.1.1"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccFirewall_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.enableDNS(data, "1.1.1.1", "8.8.8.8"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.enableDNS(data, "1.1.1.1"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccFirewall_withManagementIp(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
+	r := FirewallResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckFirewallDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccFirewall_withManagementIp(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "ip_configuration.0.name", "configuration"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_configuration.0.private_ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "management_ip_configuration.0.name", "management_configuration"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "management_ip_configuration.0.public_ip_address_id"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withManagementIp(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_configuration.0.name").HasValue("configuration"),
+				check.That(data.ResourceName).Key("ip_configuration.0.private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("management_ip_configuration.0.name").HasValue("management_configuration"),
+				check.That(data.ResourceName).Key("management_ip_configuration.0.public_ip_address_id").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccFirewall_withMultiplePublicIPs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
+	r := FirewallResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckFirewallDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccFirewall_multiplePublicIps(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "ip_configuration.0.name", "configuration"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_configuration.0.private_ip_address"),
-					resource.TestCheckResourceAttr(data.ResourceName, "ip_configuration.1.name", "configuration_2"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_configuration.1.public_ip_address_id"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.multiplePublicIps(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_configuration.0.name").HasValue("configuration"),
+				check.That(data.ResourceName).Key("ip_configuration.0.private_ip_address").Exists(),
+				check.That(data.ResourceName).Key("ip_configuration.1.name").HasValue("configuration_2"),
+				check.That(data.ResourceName).Key("ip_configuration.1.public_ip_address_id").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccFirewall_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
+	r := FirewallResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckFirewallDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccFirewall_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccFirewall_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_firewall"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_firewall"),
 		},
 	})
 }
 
 func TestAccFirewall_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
+	r := FirewallResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckFirewallDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccFirewall_withTags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Production"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.cost_center", "MSFT"),
-				),
-			},
-			{
-				Config: testAccFirewall_withUpdatedTags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "staging"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withTags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
+				check.That(data.ResourceName).Key("tags.cost_center").HasValue("MSFT"),
+			),
 		},
+		{
+			Config: r.withUpdatedTags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("staging"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccFirewall_withZones(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
+	r := FirewallResource{}
 	zones := []string{"1"}
 	zonesUpdate := []string{"1", "3"}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckFirewallDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccFirewall_withZones(data, zones),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "zones.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "zones.0", "1"),
-				),
-			},
-			{
-				Config: testAccFirewall_withZones(data, zonesUpdate),
-				Check: resource.ComposeTestCheckFunc(
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withZones(data, zones),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("zones.#").HasValue("1"),
+				check.That(data.ResourceName).Key("zones.0").HasValue("1"),
+			),
+		},
+		{
+			Config: r.withZones(data, zonesUpdate),
+			Check: resource.ComposeTestCheckFunc(
 
-					testCheckFirewallExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "zones.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "zones.0", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "zones.1", "3"),
-				),
-			},
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("zones.#").HasValue("2"),
+				check.That(data.ResourceName).Key("zones.0").HasValue("1"),
+				check.That(data.ResourceName).Key("zones.1").HasValue("3"),
+			),
 		},
 	})
 }
 
 func TestAccFirewall_withoutZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
+	r := FirewallResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckFirewallDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccFirewall_withoutZone(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withoutZone(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccFirewall_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
+	r := FirewallResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckFirewallDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccFirewall_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallExists(data.ResourceName),
-					testCheckFirewallDisappears(data.ResourceName),
-				),
-				ExpectNonEmptyPlan: true,
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckFirewallDisappears(data.ResourceName),
+			),
+			ExpectNonEmptyPlan: true,
 		},
 	})
 }
 
 func TestAccFirewall_withFirewallPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
+	r := FirewallResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckFirewallDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccFirewall_withFirewallPolicy(data, "pol-01"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccFirewall_withFirewallPolicy(data, "pol-02"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withFirewallPolicy(data, "pol-01"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.withFirewallPolicy(data, "pol-02"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccFirewall_inVirtualHub(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
+	r := FirewallResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckFirewallDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccFirewall_inVirtualHub(data, 1),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "virtual_hub.0.public_ip_addresses.#", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_hub.0.private_ip_address"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccFirewall_inVirtualHub(data, 2),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "virtual_hub.0.public_ip_addresses.#", "2"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_hub.0.private_ip_address"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccFirewall_inVirtualHub(data, 1),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckFirewallExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "virtual_hub.0.public_ip_addresses.#", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_hub.0.private_ip_address"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.inVirtualHub(data, 1),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_hub.0.public_ip_addresses.#").HasValue("1"),
+				check.That(data.ResourceName).Key("virtual_hub.0.private_ip_address").Exists(),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.inVirtualHub(data, 2),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_hub.0.public_ip_addresses.#").HasValue("2"),
+				check.That(data.ResourceName).Key("virtual_hub.0.private_ip_address").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.inVirtualHub(data, 1),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_hub.0.public_ip_addresses.#").HasValue("1"),
+				check.That(data.ResourceName).Key("virtual_hub.0.private_ip_address").Exists(),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckFirewallExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Firewall.AzureFirewallsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Azure Firewall: %q", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Azure Firewall %q (Resource Group: %q) does not exist", name, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on azureFirewallsClient: %+v", err)
-		}
-
-		return nil
+func (FirewallResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	var id, err = azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	name := id.Path["azureFirewalls"]
+
+	resp, err := clients.Firewall.AzureFirewallsClient.Get(ctx, id.ResourceGroup, name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Azure Firewall %q (Resource Group: %q): %v", name, id.ResourceGroup, err)
+	}
+
+	return utils.Bool(resp.AzureFirewallPropertiesFormat != nil), nil
 }
 
 func testCheckFirewallDisappears(resourceName string) resource.TestCheckFunc {
@@ -366,34 +314,7 @@ func testCheckFirewallDisappears(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-func testCheckFirewallDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Firewall.AzureFirewallsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_firewall" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("Firewall still exists:\n%#v", resp.AzureFirewallPropertiesFormat)
-	}
-
-	return nil
-}
-
-func testAccFirewall_basic(data acceptance.TestData) string {
+func (FirewallResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -441,7 +362,7 @@ resource "azurerm_firewall" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccFirewall_enableDNS(data acceptance.TestData, dnsServers ...string) string {
+func (FirewallResource) enableDNS(data acceptance.TestData, dnsServers ...string) string {
 	servers := make([]string, len(dnsServers))
 	for idx, server := range dnsServers {
 		servers[idx] = fmt.Sprintf(`"%s"`, server)
@@ -495,7 +416,7 @@ resource "azurerm_firewall" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, strings.Join(servers, ","))
 }
 
-func testAccFirewall_withManagementIp(data acceptance.TestData) string {
+func (FirewallResource) withManagementIp(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -565,7 +486,7 @@ resource "azurerm_firewall" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccFirewall_multiplePublicIps(data acceptance.TestData) string {
+func (FirewallResource) multiplePublicIps(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -625,8 +546,8 @@ resource "azurerm_firewall" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccFirewall_requiresImport(data acceptance.TestData) string {
-	template := testAccFirewall_basic(data)
+func (FirewallResource) requiresImport(data acceptance.TestData) string {
+	template := FirewallResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -645,7 +566,7 @@ resource "azurerm_firewall" "import" {
 `, template)
 }
 
-func testAccFirewall_withTags(data acceptance.TestData) string {
+func (FirewallResource) withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -697,7 +618,7 @@ resource "azurerm_firewall" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccFirewall_withUpdatedTags(data acceptance.TestData) string {
+func (FirewallResource) withUpdatedTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -748,7 +669,7 @@ resource "azurerm_firewall" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccFirewall_withZones(data acceptance.TestData, zones []string) string {
+func (FirewallResource) withZones(data acceptance.TestData, zones []string) string {
 	zoneString := strings.Join(zones, ",")
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -798,7 +719,7 @@ resource "azurerm_firewall" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, zoneString)
 }
 
-func testAccFirewall_withoutZone(data acceptance.TestData) string {
+func (FirewallResource) withoutZone(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -847,7 +768,7 @@ resource "azurerm_firewall" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccFirewall_withFirewallPolicy(data acceptance.TestData, policyName string) string {
+func (FirewallResource) withFirewallPolicy(data acceptance.TestData, policyName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -906,7 +827,7 @@ resource "azurerm_firewall" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, policyName, data.RandomInteger)
 }
 
-func testAccFirewall_inVirtualHub(data acceptance.TestData, pipCount int) string {
+func (FirewallResource) inVirtualHub(data acceptance.TestData, pipCount int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
