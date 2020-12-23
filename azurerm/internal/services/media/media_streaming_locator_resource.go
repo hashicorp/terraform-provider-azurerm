@@ -293,7 +293,6 @@ func resourceMediaStreamingLocatorRead(d *schema.ResourceData, meta interface{})
 			id = props.StreamingLocatorID.String()
 		}
 		d.Set("streaming_locator_id", id)
-
 	}
 
 	return nil

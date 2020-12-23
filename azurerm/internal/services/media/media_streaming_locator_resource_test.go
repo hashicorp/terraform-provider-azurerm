@@ -119,8 +119,8 @@ resource "azurerm_media_streaming_locator" "test" {
   name                        = "Locator-1"
   resource_group_name         = azurerm_resource_group.test.name
   media_services_account_name = azurerm_media_services_account.test.name
-  streaming_policy_name = "Predefined_ClearStreamingOnly"
-  asset_name =  azurerm_media_asset.test.name
+  streaming_policy_name       = "Predefined_ClearStreamingOnly"
+  asset_name                  = azurerm_media_asset.test.name
 }
 
 `, r.template(data))
@@ -134,8 +134,8 @@ resource "azurerm_media_streaming_locator" "import" {
   name                        = azurerm_media_streaming_locator.test.name
   resource_group_name         = azurerm_media_streaming_locator.test.resource_group_name
   media_services_account_name = azurerm_media_streaming_locator.test.media_services_account_name
-  streaming_policy_name = "Predefined_ClearStreamingOnly"
-  asset_name =  azurerm_media_asset.test.name
+  streaming_policy_name       = "Predefined_ClearStreamingOnly"
+  asset_name                  = azurerm_media_asset.test.name
 }
 
 `, r.basic(data))
@@ -149,12 +149,12 @@ resource "azurerm_media_streaming_locator" "test" {
   name                        = "Job-1"
   resource_group_name         = azurerm_resource_group.test.name
   media_services_account_name = azurerm_media_services_account.test.name
-  streaming_policy_name = "Predefined_DownloadOnly"
-  asset_name =  azurerm_media_asset.test.name
-  start_time = "2018-03-01T00:00:00Z"
-  end_time =  "2028-12-31T23:59:59Z"
-  streaming_locator_id = "90000000-0000-0000-0000-000000000000"
-  alternative_media_id = "my-Alternate-MediaID"
+  streaming_policy_name       = "Predefined_DownloadOnly"
+  asset_name                  = azurerm_media_asset.test.name
+  start_time                  = "2018-03-01T00:00:00Z"
+  end_time                    = "2028-12-31T23:59:59Z"
+  streaming_locator_id        = "90000000-0000-0000-0000-000000000000"
+  alternative_media_id        = "my-Alternate-MediaID"
 }
 
 `, r.template(data))
@@ -191,9 +191,9 @@ resource "azurerm_media_services_account" "test" {
 }
 
 resource "azurerm_media_asset" "test" {
-	name                        = "test"
-	resource_group_name         = azurerm_resource_group.test.name
-	media_services_account_name = azurerm_media_services_account.test.name
+  name                        = "test"
+  resource_group_name         = azurerm_resource_group.test.name
+  media_services_account_name = azurerm_media_services_account.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
