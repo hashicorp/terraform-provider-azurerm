@@ -1,129 +1,90 @@
 package apimanagement_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMApiManagementProperty_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_property", "test")
+type ApiManagementPropertyResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAPIManagementPropertyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementProperty_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementPropertyExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("TestProperty%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "value", "Test Value"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.0", "tag1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.1", "tag2"),
-				),
-			},
-			data.ImportStep(),
+func TestAccApiManagementProperty_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_property", "test")
+	r := ApiManagementPropertyResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("display_name").HasValue(fmt.Sprintf("TestProperty%d")),
+				check.That(data.ResourceName).Key("value").HasValue("Test Value"),
+				check.That(data.ResourceName).Key("tags.0").HasValue("tag1"),
+				check.That(data.ResourceName).Key("tags.1").HasValue("tag2"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMApiManagementProperty_update(t *testing.T) {
+func TestAccApiManagementProperty_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_property", "test")
+	r := ApiManagementPropertyResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAPIManagementPropertyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementProperty_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementPropertyExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("TestProperty%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "value", "Test Value"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.0", "tag1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.1", "tag2"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMApiManagementProperty_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementPropertyExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("TestProperty2%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "secret", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.0", "tag3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.1", "tag4"),
-				),
-			},
-			data.ImportStep("value"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("display_name").HasValue(fmt.Sprintf("TestProperty%d")),
+				check.That(data.ResourceName).Key("value").HasValue("Test Value"),
+				check.That(data.ResourceName).Key("tags.0").HasValue("tag1"),
+				check.That(data.ResourceName).Key("tags.1").HasValue("tag2"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("display_name").HasValue(fmt.Sprintf("TestProperty2%d")),
+				check.That(data.ResourceName).Key("secret").HasValue("true"),
+				check.That(data.ResourceName).Key("tags.0").HasValue("tag3"),
+				check.That(data.ResourceName).Key("tags.1").HasValue("tag4"),
+			),
+		},
+		data.ImportStep("value"),
 	})
 }
 
-func testCheckAzureRMAPIManagementPropertyDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.NamedValueClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_api_management_property" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return err
-			}
-		}
-
-		return nil
+func (t ApiManagementPropertyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-	return nil
+	resourceGroup := id.ResourceGroup
+	serviceName := id.Path["service"]
+	name := id.Path["namedValues"]
+
+	resp, err := clients.ApiManagement.NamedValueClient.Get(ctx, resourceGroup, serviceName, name)
+	if err != nil {
+		return nil, fmt.Errorf("reading ApiManagement Property (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckAzureRMAPIManagementPropertyExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.NamedValueClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: API Management Property %q (Resource Group %q / API Management Service %q) does not exist", name, resourceGroup, serviceName)
-			}
-			return fmt.Errorf("Bad: Get on apiManagement.NamedValueClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-/*
-
- */
-
-func testAccAzureRMApiManagementProperty_basic(data acceptance.TestData) string {
+func (ApiManagementPropertyResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -155,7 +116,7 @@ resource "azurerm_api_management_property" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementProperty_update(data acceptance.TestData) string {
+func (ApiManagementPropertyResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

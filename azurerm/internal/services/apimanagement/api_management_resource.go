@@ -36,12 +36,12 @@ var (
 	apimHttp2Protocol         = "Microsoft.WindowsAzure.ApiManagement.Gateway.Protocols.Server.Http2"
 )
 
-func resourceArmApiManagementService() *schema.Resource {
+func resourceApiManagementService() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementServiceCreateUpdate,
-		Read:   resourceArmApiManagementServiceRead,
-		Update: resourceArmApiManagementServiceCreateUpdate,
-		Delete: resourceArmApiManagementServiceDelete,
+		Create: resourceApiManagementServiceCreateUpdate,
+		Read:   resourceApiManagementServiceRead,
+		Update: resourceApiManagementServiceCreateUpdate,
+		Delete: resourceApiManagementServiceDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -481,7 +481,7 @@ func resourceArmApiManagementService() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -635,10 +635,10 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 		}
 	}
 
-	return resourceArmApiManagementServiceRead(d, meta)
+	return resourceApiManagementServiceRead(d, meta)
 }
 
-func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
 	signInClient := meta.(*clients.Client).ApiManagement.SignInClient
 	signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
@@ -757,7 +757,7 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmApiManagementServiceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
