@@ -47,35 +47,6 @@ func TestAccApiManagementApiSchema_requiresImport(t *testing.T) {
 	})
 }
 
-func testCheckApiManagementApiSchemaExists(name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiSchemasClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
-		if !ok {
-			return fmt.Errorf("Not found: %s", name)
-		}
-
-		schemaID := rs.Primary.Attributes["schema_id"]
-		apiName := rs.Primary.Attributes["api_name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiName, schemaID)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: API Schema %q (API %q / API Management Service %q / Resource Group: %q) does not exist", schemaID, apiName, serviceName, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on apiManagementApiSchemasClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
 func (t ApiManagementApiSchemaResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {

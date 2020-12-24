@@ -23,7 +23,7 @@ func TestAccDataSourceApiManagementUser_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("user_id").HasValue("test-user"),
 				check.That(data.ResourceName).Key("first_name").HasValue("Acceptance"),
 				check.That(data.ResourceName).Key("last_name").HasValue("Test"),
-				check.That(data.ResourceName).Key("email").HasValue(fmt.Sprintf("azure-acctest%d@example.com")),
+				check.That(data.ResourceName).Key("email").HasValue(fmt.Sprintf("azure-acctest%d@example.com", data.RandomInteger)),
 				check.That(data.ResourceName).Key("state").HasValue("active"),
 				check.That(data.ResourceName).Key("note").HasValue("Used for testing in dimension C-137."),
 			),

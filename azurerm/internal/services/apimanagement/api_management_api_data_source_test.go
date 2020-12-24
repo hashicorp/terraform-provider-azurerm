@@ -66,7 +66,7 @@ data "azurerm_api_management_api" "test" {
   resource_group_name = azurerm_api_management_api.test.resource_group_name
   revision            = azurerm_api_management_api.test.revision
 }
-`, r.basic(data))
+`, ApiManagementApiResource{}.basic(data))
 }
 
 func (r ApiManagementApiDataSourceResource) complete(data acceptance.TestData) string {
@@ -79,5 +79,5 @@ data "azurerm_api_management_api" "test" {
   resource_group_name = azurerm_api_management_api.test.resource_group_name
   revision            = azurerm_api_management_api.test.revision
 }
-`, r.complete(data))
+`, ApiManagementApiResource{}.complete(data))
 }

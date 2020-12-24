@@ -87,7 +87,7 @@ func TestAccApiManagementApiVersionSet_update(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("description").HasValue("TestDescription1"),
-				check.That(data.ResourceName).Key("display_name").HasValue(fmt.Sprintf("TestApiVersionSet1%d")),
+				check.That(data.ResourceName).Key("display_name").HasValue(fmt.Sprintf("TestApiVersionSet1%d", data.RandomInteger)),
 			),
 		},
 		{
@@ -95,7 +95,7 @@ func TestAccApiManagementApiVersionSet_update(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("description").HasValue("TestDescription2"),
-				check.That(data.ResourceName).Key("display_name").HasValue(fmt.Sprintf("TestApiVersionSet2%d")),
+				check.That(data.ResourceName).Key("display_name").HasValue(fmt.Sprintf("TestApiVersionSet2%d", data.RandomInteger)),
 			),
 		},
 		data.ImportStep(),

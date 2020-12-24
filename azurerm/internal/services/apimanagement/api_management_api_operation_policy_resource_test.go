@@ -123,7 +123,7 @@ resource "azurerm_api_management_api_operation_policy" "test" {
   operation_id        = azurerm_api_management_api_operation.test.operation_id
   xml_link            = "https://gist.githubusercontent.com/riordanp/ca22f8113afae0eb38cc12d718fd048d/raw/d6ac89a2f35a6881a7729f8cb4883179dc88eea1/example.xml"
 }
-`, r.basic(data))
+`, ApiManagementApiOperationResource{}.basic(data))
 }
 
 func (r ApiManagementApiOperationPolicyResource) requiresImport(data acceptance.TestData) string {

@@ -27,7 +27,7 @@ func TestAccApiManagementProperty_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("display_name").HasValue(fmt.Sprintf("TestProperty%d")),
+				check.That(data.ResourceName).Key("display_name").HasValue(fmt.Sprintf("TestProperty%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("value").HasValue("Test Value"),
 				check.That(data.ResourceName).Key("tags.0").HasValue("tag1"),
 				check.That(data.ResourceName).Key("tags.1").HasValue("tag2"),
@@ -46,7 +46,7 @@ func TestAccApiManagementProperty_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("display_name").HasValue(fmt.Sprintf("TestProperty%d")),
+				check.That(data.ResourceName).Key("display_name").HasValue(fmt.Sprintf("TestProperty%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("value").HasValue("Test Value"),
 				check.That(data.ResourceName).Key("tags.0").HasValue("tag1"),
 				check.That(data.ResourceName).Key("tags.1").HasValue("tag2"),
@@ -57,7 +57,7 @@ func TestAccApiManagementProperty_update(t *testing.T) {
 			Config: r.update(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("display_name").HasValue(fmt.Sprintf("TestProperty2%d")),
+				check.That(data.ResourceName).Key("display_name").HasValue(fmt.Sprintf("TestProperty2%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("secret").HasValue("true"),
 				check.That(data.ResourceName).Key("tags.0").HasValue("tag3"),
 				check.That(data.ResourceName).Key("tags.1").HasValue("tag4"),
