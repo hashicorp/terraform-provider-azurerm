@@ -6,77 +6,72 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMApiManagement_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_api_management", "test")
+type ApiManagementDataSource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceApiManagement_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "publisher_email", "pub1@email.com"),
-					resource.TestCheckResourceAttr(data.ResourceName, "publisher_name", "pub1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Developer_1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_addresses.#"),
-				),
-			},
+func TestAccDataSourceApiManagement_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_api_management", "test")
+	r := ApiManagementDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("publisher_email").HasValue("pub1@email.com"),
+				check.That(data.ResourceName).Key("publisher_name").HasValue("pub1"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Developer_1"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("public_ip_addresses.#").Exists(),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMApiManagement_identitySystemAssigned(t *testing.T) {
+func TestAccDataSourceApiManagement_identitySystemAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_api_management", "test")
+	r := ApiManagementDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceApiManagement_identitySystemAssigned(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "publisher_email", "pub1@email.com"),
-					resource.TestCheckResourceAttr(data.ResourceName, "publisher_name", "pub1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Developer_1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_addresses.#"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.identitySystemAssigned(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("publisher_email").HasValue("pub1@email.com"),
+				check.That(data.ResourceName).Key("publisher_name").HasValue("pub1"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Developer_1"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("public_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMApiManagement_virtualNetwork(t *testing.T) {
+func TestAccDataSourceApiManagement_virtualNetwork(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_api_management", "test")
+	r := ApiManagementDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceApiManagement_virtualNetwork(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "publisher_email", "pub1@email.com"),
-					resource.TestCheckResourceAttr(data.ResourceName, "publisher_name", "pub1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Premium_1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_addresses.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_addresses.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "additional_location.0.public_ip_addresses.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "additional_location.0.private_ip_addresses.#"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.virtualNetwork(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("publisher_email").HasValue("pub1@email.com"),
+				check.That(data.ResourceName).Key("publisher_name").HasValue("pub1"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Premium_1"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("public_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("private_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("additional_location.0.public_ip_addresses.#").Exists(),
+				check.That(data.ResourceName).Key("additional_location.0.private_ip_addresses.#").Exists(),
+			),
 		},
 	})
 }
 
-func testAccDataSourceApiManagement_basic(data acceptance.TestData) string {
+func (ApiManagementDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -103,7 +98,7 @@ data "azurerm_api_management" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccDataSourceApiManagement_identitySystemAssigned(data acceptance.TestData) string {
+func (ApiManagementDataSource) identitySystemAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -134,7 +129,7 @@ data "azurerm_api_management" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccDataSourceApiManagement_virtualNetwork(data acceptance.TestData) string {
+func (ApiManagementDataSource) virtualNetwork(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
