@@ -1,435 +1,408 @@
 package hdinsight_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMHDInsightKafkaCluster_basic(t *testing.T) {
+type HDInsightKafkaClusterResource struct {
+}
+
+func TestAccHDInsightKafkaCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMHDInsightKafkaCluster_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
-				),
-			},
-			data.ImportStep("roles.0.head_node.0.password",
-				"roles.0.head_node.0.vm_size",
-				"roles.0.worker_node.0.password",
-				"roles.0.worker_node.0.vm_size",
-				"roles.0.zookeeper_node.0.password",
-				"roles.0.zookeeper_node.0.vm_size",
-				"storage_account"),
+	r := HDInsightKafkaClusterResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account"),
+	})
+}
+
+func TestAccHDInsightKafkaCluster_gen2storage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
+	r := HDInsightKafkaClusterResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.gen2storage(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account"),
+	})
+}
+
+func TestAccHDInsightKafkaCluster_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
+	r := HDInsightKafkaClusterResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_hdinsight_kafka_cluster"),
 		},
 	})
 }
 
-func TestAccAzureRMHDInsightKafkaCluster_gen2storage(t *testing.T) {
+func TestAccHDInsightKafkaCluster_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMHDInsightKafkaCluster_gen2storage(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
-				),
-			},
-			data.ImportStep("roles.0.head_node.0.password",
-				"roles.0.head_node.0.vm_size",
-				"roles.0.worker_node.0.password",
-				"roles.0.worker_node.0.vm_size",
-				"roles.0.zookeeper_node.0.password",
-				"roles.0.zookeeper_node.0.vm_size",
-				"storage_account"),
+	r := HDInsightKafkaClusterResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account"),
+		{
+			Config: r.updated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account"),
+	})
+}
+
+func TestAccHDInsightKafkaCluster_sshKeys(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
+	r := HDInsightKafkaClusterResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.sshKeys(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+			),
+		},
+		data.ImportStep("storage_account",
+			"roles.0.head_node.0.ssh_keys",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.ssh_keys",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.ssh_keys",
+			"roles.0.zookeeper_node.0.vm_size"),
+	})
+}
+
+func TestAccHDInsightKafkaCluster_virtualNetwork(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
+	r := HDInsightKafkaClusterResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.virtualNetwork(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account"),
+	})
+}
+
+func TestAccHDInsightKafkaCluster_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
+	r := HDInsightKafkaClusterResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account"),
+	})
+}
+
+func TestAccHDInsightKafkaCluster_tls(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
+	r := HDInsightKafkaClusterResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.tls(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account"),
+	})
+}
+
+func TestAccHDInsightKafkaCluster_allMetastores(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
+	r := HDInsightKafkaClusterResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.allMetastores(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account",
+			"metastores.0.hive.0.password",
+			"metastores.0.oozie.0.password",
+			"metastores.0.ambari.0.password"),
+	})
+}
+
+func TestAccHDInsightKafkaCluster_hiveMetastore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
+	r := HDInsightKafkaClusterResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.hiveMetastore(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMHDInsightKafkaCluster_requiresImport(t *testing.T) {
+func TestAccHDInsightKafkaCluster_updateMetastore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMHDInsightKafkaCluster_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
-				),
-			},
-			{
-				Config:      testAccAzureRMHDInsightKafkaCluster_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_hdinsight_kafka_cluster"),
-			},
+	r := HDInsightKafkaClusterResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.hiveMetastore(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+			),
 		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account",
+			"metastores.0.hive.0.password",
+			"metastores.0.oozie.0.password",
+			"metastores.0.ambari.0.password"),
+		{
+			Config: r.allMetastores(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account",
+			"metastores.0.hive.0.password",
+			"metastores.0.oozie.0.password",
+			"metastores.0.ambari.0.password"),
 	})
 }
 
-func TestAccAzureRMHDInsightKafkaCluster_update(t *testing.T) {
+func TestAccHDInsightKafkaCluster_monitor(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMHDInsightKafkaCluster_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
-				),
-			},
-			data.ImportStep("roles.0.head_node.0.password",
-				"roles.0.head_node.0.vm_size",
-				"roles.0.worker_node.0.password",
-				"roles.0.worker_node.0.vm_size",
-				"roles.0.zookeeper_node.0.password",
-				"roles.0.zookeeper_node.0.vm_size",
-				"storage_account"),
-			{
-				Config: testAccAzureRMHDInsightKafkaCluster_updated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
-				),
-			},
-			data.ImportStep("roles.0.head_node.0.password",
-				"roles.0.head_node.0.vm_size",
-				"roles.0.worker_node.0.password",
-				"roles.0.worker_node.0.vm_size",
-				"roles.0.zookeeper_node.0.password",
-				"roles.0.zookeeper_node.0.vm_size",
-				"storage_account"),
+	r := HDInsightKafkaClusterResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.monitor(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+			),
 		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account"),
 	})
 }
 
-func TestAccAzureRMHDInsightKafkaCluster_sshKeys(t *testing.T) {
+func TestAccHDInsightKafkaCluster_updateMonitor(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMHDInsightKafkaCluster_sshKeys(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
-				),
-			},
-			data.ImportStep("storage_account",
-				"roles.0.head_node.0.ssh_keys",
-				"roles.0.head_node.0.vm_size",
-				"roles.0.worker_node.0.ssh_keys",
-				"roles.0.worker_node.0.vm_size",
-				"roles.0.zookeeper_node.0.ssh_keys",
-				"roles.0.zookeeper_node.0.vm_size"),
+	r := HDInsightKafkaClusterResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		// No monitor
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+			),
 		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account"),
+		// Add monitor
+		{
+			Config: r.monitor(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account"),
+		// Change Log Analytics Workspace for the monitor
+		{
+			PreConfig: func() {
+				data.RandomString += "new"
+			},
+			Config: r.monitor(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account"),
+		// Remove monitor
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account"),
 	})
 }
 
-func TestAccAzureRMHDInsightKafkaCluster_virtualNetwork(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMHDInsightKafkaCluster_virtualNetwork(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
-				),
-			},
-			data.ImportStep("roles.0.head_node.0.password",
-				"roles.0.head_node.0.vm_size",
-				"roles.0.worker_node.0.password",
-				"roles.0.worker_node.0.vm_size",
-				"roles.0.zookeeper_node.0.password",
-				"roles.0.zookeeper_node.0.vm_size",
-				"storage_account"),
-		},
-	})
+func (t HDInsightKafkaClusterResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ClusterID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceGroup := id.ResourceGroup
+	name := id.Name
+
+	resp, err := clients.HDInsight.ClustersClient.Get(ctx, resourceGroup, name)
+	if err != nil {
+		return nil, fmt.Errorf("reading HDInsight Kafka Cluster (%s): %+v", id.String(), err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func TestAccAzureRMHDInsightKafkaCluster_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMHDInsightKafkaCluster_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
-				),
-			},
-			data.ImportStep("roles.0.head_node.0.password",
-				"roles.0.head_node.0.vm_size",
-				"roles.0.worker_node.0.password",
-				"roles.0.worker_node.0.vm_size",
-				"roles.0.zookeeper_node.0.password",
-				"roles.0.zookeeper_node.0.vm_size",
-				"storage_account"),
-		},
-	})
-}
-
-func TestAccAzureRMHDInsightKafkaCluster_tls(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMHDInsightKafkaCluster_tls(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
-				),
-			},
-			data.ImportStep("roles.0.head_node.0.password",
-				"roles.0.head_node.0.vm_size",
-				"roles.0.worker_node.0.password",
-				"roles.0.worker_node.0.vm_size",
-				"roles.0.zookeeper_node.0.password",
-				"roles.0.zookeeper_node.0.vm_size",
-				"storage_account"),
-		},
-	})
-}
-
-func TestAccAzureRMHDInsightKafkaCluster_allMetastores(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMHDInsightKafkaCluster_allMetastores(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
-				),
-			},
-			data.ImportStep("roles.0.head_node.0.password",
-				"roles.0.head_node.0.vm_size",
-				"roles.0.worker_node.0.password",
-				"roles.0.worker_node.0.vm_size",
-				"roles.0.zookeeper_node.0.password",
-				"roles.0.zookeeper_node.0.vm_size",
-				"storage_account",
-				"metastores.0.hive.0.password",
-				"metastores.0.oozie.0.password",
-				"metastores.0.ambari.0.password"),
-		},
-	})
-}
-
-func TestAccAzureRMHDInsightKafkaCluster_hiveMetastore(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMHDInsightKafkaCluster_hiveMetastore(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMHDInsightKafkaCluster_updateMetastore(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMHDInsightKafkaCluster_hiveMetastore(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
-				),
-			},
-			data.ImportStep("roles.0.head_node.0.password",
-				"roles.0.head_node.0.vm_size",
-				"roles.0.worker_node.0.password",
-				"roles.0.worker_node.0.vm_size",
-				"roles.0.zookeeper_node.0.password",
-				"roles.0.zookeeper_node.0.vm_size",
-				"storage_account",
-				"metastores.0.hive.0.password",
-				"metastores.0.oozie.0.password",
-				"metastores.0.ambari.0.password"),
-			{
-				Config: testAccAzureRMHDInsightKafkaCluster_allMetastores(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
-				),
-			},
-			data.ImportStep("roles.0.head_node.0.password",
-				"roles.0.head_node.0.vm_size",
-				"roles.0.worker_node.0.password",
-				"roles.0.worker_node.0.vm_size",
-				"roles.0.zookeeper_node.0.password",
-				"roles.0.zookeeper_node.0.vm_size",
-				"storage_account",
-				"metastores.0.hive.0.password",
-				"metastores.0.oozie.0.password",
-				"metastores.0.ambari.0.password"),
-		},
-	})
-}
-
-func TestAccAzureRMHDInsightKafkaCluster_monitor(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMHDInsightKafkaCluster_monitor(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
-				),
-			},
-			data.ImportStep("roles.0.head_node.0.password",
-				"roles.0.head_node.0.vm_size",
-				"roles.0.worker_node.0.password",
-				"roles.0.worker_node.0.vm_size",
-				"roles.0.zookeeper_node.0.password",
-				"roles.0.zookeeper_node.0.vm_size",
-				"storage_account"),
-		},
-	})
-}
-
-func TestAccAzureRMHDInsightKafkaCluster_updateMonitor(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hdinsight_kafka_cluster", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
-		Steps: []resource.TestStep{
-			// No monitor
-			{
-				Config: testAccAzureRMHDInsightKafkaCluster_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
-				),
-			},
-			data.ImportStep("roles.0.head_node.0.password",
-				"roles.0.head_node.0.vm_size",
-				"roles.0.worker_node.0.password",
-				"roles.0.worker_node.0.vm_size",
-				"roles.0.zookeeper_node.0.password",
-				"roles.0.zookeeper_node.0.vm_size",
-				"storage_account"),
-			// Add monitor
-			{
-				Config: testAccAzureRMHDInsightKafkaCluster_monitor(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
-				),
-			},
-			data.ImportStep("roles.0.head_node.0.password",
-				"roles.0.head_node.0.vm_size",
-				"roles.0.worker_node.0.password",
-				"roles.0.worker_node.0.vm_size",
-				"roles.0.zookeeper_node.0.password",
-				"roles.0.zookeeper_node.0.vm_size",
-				"storage_account"),
-			// Change Log Analytics Workspace for the monitor
-			{
-				PreConfig: func() {
-					data.RandomString += "new"
-				},
-				Config: testAccAzureRMHDInsightKafkaCluster_monitor(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
-				),
-			},
-			data.ImportStep("roles.0.head_node.0.password",
-				"roles.0.head_node.0.vm_size",
-				"roles.0.worker_node.0.password",
-				"roles.0.worker_node.0.vm_size",
-				"roles.0.zookeeper_node.0.password",
-				"roles.0.zookeeper_node.0.vm_size",
-				"storage_account"),
-			// Remove monitor
-			{
-				Config: testAccAzureRMHDInsightKafkaCluster_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
-				),
-			},
-			data.ImportStep("roles.0.head_node.0.password",
-				"roles.0.head_node.0.vm_size",
-				"roles.0.worker_node.0.password",
-				"roles.0.worker_node.0.vm_size",
-				"roles.0.zookeeper_node.0.password",
-				"roles.0.zookeeper_node.0.vm_size",
-				"storage_account"),
-		},
-	})
-}
-
-func testAccAzureRMHDInsightKafkaCluster_basic(data acceptance.TestData) string {
-	template := testAccAzureRMHDInsightKafkaCluster_template(data)
+func (r HDInsightKafkaClusterResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -478,11 +451,10 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMHDInsightKafkaCluster_gen2storage(data acceptance.TestData) string {
-	template := testAccAzureRMHDInsightKafkaCluster_gen2template(data)
+func (r HDInsightKafkaClusterResource) gen2storage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -534,11 +506,10 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.gen2template(data), data.RandomInteger)
 }
 
-func testAccAzureRMHDInsightKafkaCluster_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMHDInsightKafkaCluster_basic(data)
+func (r HDInsightKafkaClusterResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -610,11 +581,10 @@ resource "azurerm_hdinsight_kafka_cluster" "import" {
     }
   }
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMHDInsightKafkaCluster_sshKeys(data acceptance.TestData) string {
-	template := testAccAzureRMHDInsightKafkaCluster_template(data)
+func (r HDInsightKafkaClusterResource) sshKeys(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -667,11 +637,10 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMHDInsightKafkaCluster_updated(data acceptance.TestData) string {
-	template := testAccAzureRMHDInsightKafkaCluster_template(data)
+func (r HDInsightKafkaClusterResource) updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -724,11 +693,10 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     Hello = "World"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMHDInsightKafkaCluster_virtualNetwork(data acceptance.TestData) string {
-	template := testAccAzureRMHDInsightKafkaCluster_template(data)
+func (r HDInsightKafkaClusterResource) virtualNetwork(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -797,11 +765,10 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     }
   }
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMHDInsightKafkaCluster_complete(data acceptance.TestData) string {
-	template := testAccAzureRMHDInsightKafkaCluster_template(data)
+func (r HDInsightKafkaClusterResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -874,10 +841,10 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     Hello = "World"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMHDInsightKafkaCluster_template(data acceptance.TestData) string {
+func (HDInsightKafkaClusterResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -904,7 +871,7 @@ resource "azurerm_storage_container" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMHDInsightKafkaCluster_gen2template(data acceptance.TestData) string {
+func (HDInsightKafkaClusterResource) gen2template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -947,8 +914,7 @@ resource "azurerm_role_assignment" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMHDInsightKafkaCluster_tls(data acceptance.TestData) string {
-	template := testAccAzureRMHDInsightKafkaCluster_template(data)
+func (r HDInsightKafkaClusterResource) tls(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -998,11 +964,10 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMHDInsightKafkaCluster_allMetastores(data acceptance.TestData) string {
-	template := testAccAzureRMHDInsightKafkaCluster_template(data)
+func (r HDInsightKafkaClusterResource) allMetastores(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_sql_server" "test" {
@@ -1106,11 +1071,10 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     }
   }
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMHDInsightKafkaCluster_hiveMetastore(data acceptance.TestData) string {
-	template := testAccAzureRMHDInsightKafkaCluster_template(data)
+func (r HDInsightKafkaClusterResource) hiveMetastore(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_sql_server" "test" {
@@ -1184,11 +1148,10 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     }
   }
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMHDInsightKafkaCluster_monitor(data acceptance.TestData) string {
-	template := testAccAzureRMHDInsightKafkaCluster_template(data)
+func (r HDInsightKafkaClusterResource) monitor(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1249,5 +1212,5 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     primary_key                = azurerm_log_analytics_workspace.test.primary_shared_key
   }
 }
-`, template, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomString, data.RandomInteger, data.RandomInteger)
 }
