@@ -65,20 +65,20 @@ func TestAccAppServiceCertificateBinding_requiresImport(t *testing.T) {
 	})
 }
 
-func (t AppServiceCertificateBindingResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t AppServiceCertificateBindingResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.CertificateBindingID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	binding, err := client.Web.AppServicesClient.GetHostNameBinding(ctx, id.HostnameBindingId.ResourceGroup, id.HostnameBindingId.SiteName, id.HostnameBindingId.Name)
+	binding, err := clients.Web.AppServicesClient.GetHostNameBinding(ctx, id.HostnameBindingId.ResourceGroup, id.HostnameBindingId.SiteName, id.HostnameBindingId.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(binding.Response) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving App Service Hostname Binding %q (resource group %q) to check for Certificate Binding %q: %+v", id.HostnameBindingId.Name, id.HostnameBindingId.ResourceGroup, id.HostnameBindingId.Name, err)
 	}
-	certificate, err := client.Web.CertificatesClient.Get(ctx, id.CertificateId.ResourceGroup, id.CertificateId.Name)
+	certificate, err := clients.Web.CertificatesClient.Get(ctx, id.CertificateId.ResourceGroup, id.CertificateId.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(certificate.Response) {
 			return utils.Bool(false), nil

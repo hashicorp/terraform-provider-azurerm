@@ -216,13 +216,13 @@ func TestAccAppServicePlan_basicWindowsContainer(t *testing.T) {
 	})
 }
 
-func (r AppServicePlanResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r AppServicePlanResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.AppServicePlanID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Web.AppServicePlansClient.Get(ctx, id.ResourceGroup, id.ServerfarmName)
+	resp, err := clients.Web.AppServicePlansClient.Get(ctx, id.ResourceGroup, id.ServerfarmName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil

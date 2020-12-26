@@ -69,8 +69,7 @@ func resourceAppServiceActiveSlotCreateUpdate(d *schema.ResourceData, meta inter
 		return fmt.Errorf("Error making Read request on AzureRM App Service %q: %+v", appServiceName, err)
 	}
 
-	_, err = client.Get(ctx, resGroup, targetSlot)
-	if err != nil {
+	if _, err = client.Get(ctx, resGroup, targetSlot); err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("[DEBUG] App Service Target Active Slot %q/%q (resource group %q) was not found.", appServiceName, targetSlot, resGroup)
 		}

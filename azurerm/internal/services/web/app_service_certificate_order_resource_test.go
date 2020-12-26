@@ -153,13 +153,13 @@ func TestAccAppServiceCertificateOrder_update(t *testing.T) {
 	})
 }
 
-func (r AppServiceCertificateOrderResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r AppServiceCertificateOrderResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.CertificateOrderID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Web.CertificatesOrderClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Web.CertificatesOrderClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
