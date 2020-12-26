@@ -112,6 +112,9 @@ func resourceAppServiceActiveSlotRead(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error making Read request on AzureRM App Service %q: %+v", id.SiteName, err)
 	}
 
+	if resp.SiteProperties == nil || resp.SiteProperties.SlotSwapStatus == nil {
+		return fmt.Errorf("App Service Slot %q: SiteProperties or SlotSwapStatus is nil", id.SiteName)
+	}
 	d.Set("app_service_name", resp.Name)
 	d.Set("resource_group_name", resp.ResourceGroup)
 	d.Set("app_service_slot_name", resp.SiteProperties.SlotSwapStatus.SourceSlotName)

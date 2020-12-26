@@ -59,15 +59,21 @@ func (r AppServiceActiveSlotResource) Exists(ctx context.Context, clients *clien
 		return nil, err
 	}
 
-	resp, err := clients.Web.CertificatesClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Web.AppServicesClient.Get(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving App Service Certificate %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving App Service %q (Resource Group %s): %+v", id.SiteName, id.ResourceGroup, err)
 	}
 
-	return utils.Bool(true), nil
+	if resp.SiteProperties == nil || resp.SiteProperties.SlotSwapStatus == nil || resp.SiteProperties.SlotSwapStatus.SourceSlotName == nil {
+		return nil,  fmt.Errorf("App Service Slot %q: SiteProperties or SlotSwapStatus or SourceSlotName is nil", id.SiteName)
+	}
+
+	target := state.Attributes["resource_group_name"]
+
+	return utils.Bool(*resp.SiteProperties.SlotSwapStatus.SourceSlotName == target), nil
 }
 
 func (AppServiceActiveSlotResource) basic(data acceptance.TestData) string {
