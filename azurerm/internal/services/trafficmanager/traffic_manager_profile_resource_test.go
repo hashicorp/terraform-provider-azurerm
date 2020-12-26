@@ -585,22 +585,22 @@ func (r TrafficManagerProfileResource) withTrafficView(data acceptance.TestData,
 %s
 
 resource "azurerm_traffic_manager_profile" "test" {
-	name                   = "acctest-TMP-%d"
-	resource_group_name    = azurerm_resource_group.test.name
-	traffic_routing_method = "Geographic"
-  
-	dns_config {
-	  relative_name = "acctest-tmp-%d"
-	  ttl           = 30
-	}
-  
-	monitor_config {
-	  protocol = "https"
-	  port     = 443
-	  path     = "/"
-	}
-	traffic_view_enabled = %t
+  name                   = "acctest-TMP-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  traffic_routing_method = "Geographic"
+
+  dns_config {
+    relative_name = "acctest-tmp-%d"
+    ttl           = 30
   }
+
+  monitor_config {
+    protocol = "https"
+    port     = 443
+    path     = "/"
+  }
+  traffic_view_enabled = %t
+}
   `, template, data.RandomInteger, data.RandomInteger, enabled)
 }
 
