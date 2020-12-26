@@ -282,7 +282,7 @@ func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface
 
 		d.Set("dns_config", flattenAzureRMTrafficManagerProfileDNSConfig(profile.DNSConfig))
 		d.Set("monitor_config", flattenAzureRMTrafficManagerProfileMonitorConfig(profile.MonitorConfig))
-		d.Set("traffic_view_enabled", flattenArmTrafficManagerTrafficView(profile.TrafficViewEnrollmentStatus))
+		d.Set("traffic_view_enabled", profile.TrafficViewEnrollmentStatus == trafficmanager.TrafficViewEnrollmentStatusEnabled)
 
 		// fqdn is actually inside DNSConfig, inlined for simpler reference
 		if dns := profile.DNSConfig; dns != nil {
@@ -493,13 +493,6 @@ func flattenAzureRMTrafficManagerProfileMonitorConfig(cfg *trafficmanager.Monito
 	}
 
 	return []interface{}{result}
-}
-
-func flattenArmTrafficManagerTrafficView(s trafficmanager.TrafficViewEnrollmentStatus) bool {
-	if s == trafficmanager.TrafficViewEnrollmentStatusEnabled {
-		return true
-	}
-	return false
 }
 
 func validateTrafficManagerProfileStatusCodeRange(i interface{}, k string) (warnings []string, errors []error) {

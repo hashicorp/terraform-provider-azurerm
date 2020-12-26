@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -160,7 +161,7 @@ func dataSourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interfa
 
 		d.Set("dns_config", flattenAzureRMTrafficManagerProfileDNSConfig(profile.DNSConfig))
 		d.Set("monitor_config", flattenAzureRMTrafficManagerProfileMonitorConfig(profile.MonitorConfig))
-		d.Set("traffic_view_enabled", flattenArmTrafficManagerTrafficView(profile.TrafficViewEnrollmentStatus))
+		d.Set("traffic_view_enabled", profile.TrafficViewEnrollmentStatus == trafficmanager.TrafficViewEnrollmentStatusEnabled)
 
 		// fqdn is actually inside DNSConfig, inlined for simpler reference
 		if dns := profile.DNSConfig; dns != nil {
