@@ -26,7 +26,7 @@ func TestAccAppServiceActiveSlot_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("app_service_slot_name").HasValue(fmt.Sprintf("acctestASSlot-%d")),
+				check.That(data.ResourceName).Key("app_service_slot_name").HasValue(fmt.Sprintf("acctestASSlot-%d", data.RandomInteger)),
 			),
 		},
 	})
@@ -41,13 +41,13 @@ func TestAccAppServiceActiveSlot_update(t *testing.T) {
 		{
 			Config: r.update(data),
 			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("app_service_slot_name").HasValue(fmt.Sprintf("acctestASSlot-%d")),
+				check.That(data.ResourceName).Key("app_service_slot_name").HasValue(fmt.Sprintf("acctestASSlot-%d", data.RandomInteger)),
 			),
 		},
 		{
 			Config: r.updated(data),
 			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("app_service_slot_name").HasValue(fmt.Sprintf("acctestASSlot2-%d")),
+				check.That(data.ResourceName).Key("app_service_slot_name").HasValue(fmt.Sprintf("acctestASSlot2-%d", data.RandomInteger)),
 			),
 		},
 	})
@@ -68,7 +68,7 @@ func (r AppServiceActiveSlotResource) Exists(ctx context.Context, clients *clien
 	}
 
 	if resp.SiteProperties == nil || resp.SiteProperties.SlotSwapStatus == nil || resp.SiteProperties.SlotSwapStatus.SourceSlotName == nil {
-		return nil,  fmt.Errorf("App Service Slot %q: SiteProperties or SlotSwapStatus or SourceSlotName is nil", id.SiteName)
+		return nil, fmt.Errorf("App Service Slot %q: SiteProperties or SlotSwapStatus or SourceSlotName is nil", id.SiteName)
 	}
 
 	target := state.Attributes["resource_group_name"]

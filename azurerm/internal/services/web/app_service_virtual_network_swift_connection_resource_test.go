@@ -98,7 +98,7 @@ func (r AppServiceVirtualNetworkSwiftConnectionResource) Exists(ctx context.Cont
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving %s: %+v", id.String(), id.SiteName, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id.String(), err)
 	}
 
 	return utils.Bool(resp.SwiftVirtualNetworkProperties != nil), nil
