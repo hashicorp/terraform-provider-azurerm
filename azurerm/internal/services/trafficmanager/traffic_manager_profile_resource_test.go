@@ -194,6 +194,29 @@ func TestAccAzureRMTrafficManagerProfile_fastMaxReturnSettingError(t *testing.T)
 	})
 }
 
+func TestAccAzureRMTrafficManagerProfile_trafficView(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
+	r := TrafficManagerProfileResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withTrafficView(data, false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("traffic_view_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withTrafficView(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("traffic_view_enabled").HasValue("true"),
+			),
+		},
+	})
+}
+
 func TestAccAzureRMTrafficManagerProfile_updateTTL(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 	r := TrafficManagerProfileResource{}
@@ -554,6 +577,31 @@ resource "azurerm_traffic_manager_profile" "test" {
   }
 }
 `, template, data.RandomInteger, data.RandomInteger)
+}
+
+func (r TrafficManagerProfileResource) withTrafficView(data acceptance.TestData, enabled bool) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_traffic_manager_profile" "test" {
+	name                   = "acctest-TMP-%d"
+	resource_group_name    = azurerm_resource_group.test.name
+	traffic_routing_method = "Geographic"
+  
+	dns_config {
+	  relative_name = "acctest-tmp-%d"
+	  ttl           = 30
+	}
+  
+	monitor_config {
+	  protocol = "https"
+	  port     = 443
+	  path     = "/"
+	}
+	traffic_view_enabled = %t
+  }
+  `, template, data.RandomInteger, data.RandomInteger, enabled)
 }
 
 func (r TrafficManagerProfileResource) withTTL(data acceptance.TestData, method string, ttl int) string {

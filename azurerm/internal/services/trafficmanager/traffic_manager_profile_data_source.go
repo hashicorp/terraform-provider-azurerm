@@ -126,6 +126,11 @@ func dataSourceArmTrafficManagerProfile() *schema.Resource {
 				Computed: true,
 			},
 
+			"traffic_view_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -155,6 +160,7 @@ func dataSourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interfa
 
 		d.Set("dns_config", flattenAzureRMTrafficManagerProfileDNSConfig(profile.DNSConfig))
 		d.Set("monitor_config", flattenAzureRMTrafficManagerProfileMonitorConfig(profile.MonitorConfig))
+		d.Set("traffic_view_enabled", flattenArmTrafficManagerTrafficView(profile.TrafficViewEnrollmentStatus))
 
 		// fqdn is actually inside DNSConfig, inlined for simpler reference
 		if dns := profile.DNSConfig; dns != nil {

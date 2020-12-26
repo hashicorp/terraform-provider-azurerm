@@ -181,6 +181,11 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 				ValidateFunc: validation.IntBetween(1, 8),
 			},
 
+			"traffic_view_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -224,6 +229,10 @@ func resourceArmTrafficManagerProfileCreate(d *schema.ResourceData, meta interfa
 
 	if status, ok := d.GetOk("profile_status"); ok {
 		profile.ProfileStatus = trafficmanager.ProfileStatus(status.(string))
+	}
+
+	if trafficViewStatus, ok := d.GetOk("traffic_view_enabled"); ok {
+		profile.TrafficViewEnrollmentStatus = expandArmTrafficManagerTrafficView(trafficViewStatus.(bool))
 	}
 
 	if profile.ProfileProperties.TrafficRoutingMethod == trafficmanager.MultiValue &&
@@ -273,6 +282,7 @@ func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface
 
 		d.Set("dns_config", flattenAzureRMTrafficManagerProfileDNSConfig(profile.DNSConfig))
 		d.Set("monitor_config", flattenAzureRMTrafficManagerProfileMonitorConfig(profile.MonitorConfig))
+		d.Set("traffic_view_enabled", flattenArmTrafficManagerTrafficView(profile.TrafficViewEnrollmentStatus))
 
 		// fqdn is actually inside DNSConfig, inlined for simpler reference
 		if dns := profile.DNSConfig; dns != nil {
@@ -319,6 +329,12 @@ func resourceArmTrafficManagerProfileUpdate(d *schema.ResourceData, meta interfa
 
 	if d.HasChange("monitor_config") {
 		update.ProfileProperties.MonitorConfig = expandArmTrafficManagerMonitorConfig(d)
+	}
+
+	if d.HasChange("traffic_view_enabled") {
+		if trafficViewStatus, ok := d.GetOk("traffic_view_enabled"); ok {
+			update.ProfileProperties.TrafficViewEnrollmentStatus = expandArmTrafficManagerTrafficView(trafficViewStatus.(bool))
+		}
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, update); err != nil {
@@ -433,6 +449,13 @@ func expandArmTrafficManagerDNSConfig(d *schema.ResourceData) *trafficmanager.DN
 	}
 }
 
+func expandArmTrafficManagerTrafficView(s bool) trafficmanager.TrafficViewEnrollmentStatus {
+	if s {
+		return trafficmanager.TrafficViewEnrollmentStatusEnabled
+	}
+	return trafficmanager.TrafficViewEnrollmentStatusDisabled
+}
+
 func flattenAzureRMTrafficManagerProfileDNSConfig(dns *trafficmanager.DNSConfig) []interface{} {
 	result := make(map[string]interface{})
 
@@ -470,6 +493,13 @@ func flattenAzureRMTrafficManagerProfileMonitorConfig(cfg *trafficmanager.Monito
 	}
 
 	return []interface{}{result}
+}
+
+func flattenArmTrafficManagerTrafficView(s trafficmanager.TrafficViewEnrollmentStatus) bool {
+	if s == trafficmanager.TrafficViewEnrollmentStatusEnabled {
+		return true
+	}
+	return false
 }
 
 func validateTrafficManagerProfileStatusCodeRange(i interface{}, k string) (warnings []string, errors []error) {
