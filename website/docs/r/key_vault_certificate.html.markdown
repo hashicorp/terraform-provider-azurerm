@@ -16,21 +16,19 @@ Manages a Key Vault Certificate.
 ~> **Note:** this example assumed the PFX file is located in the same directory at `certificate-to-import.pfx`.
 
 ```hcl
-data "azurerm_client_config" "current" {
-}
+data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "example" {
-  name     = "key-vault-certificate-example"
+  name     = "example-resources"
   location = "West Europe"
 }
 
 resource "azurerm_key_vault" "example" {
-  name                = "keyvaultcertexample"
+  name                = "examplekeyvault"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name = "standard"
+  sku_name            = "premium"
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -80,10 +78,6 @@ resource "azurerm_key_vault" "example" {
       "restore",
       "set",
     ]
-  }
-
-  tags = {
-    environment = "Production"
   }
 }
 
@@ -118,21 +112,21 @@ resource "azurerm_key_vault_certificate" "example" {
 ## Example Usage (Generating a new certificate)
 
 ```hcl
-data "azurerm_client_config" "current" {
-}
+data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "example" {
-  name     = "key-vault-certificate-example"
+  name     = "example-resources"
   location = "West Europe"
 }
 
 resource "azurerm_key_vault" "example" {
-  name                = "keyvaultcertexample"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name = "standard"
+  name                       = "examplekeyvault"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_enabled        = true
+  soft_delete_retention_days = 7
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -149,6 +143,7 @@ resource "azurerm_key_vault" "example" {
       "listissuers",
       "managecontacts",
       "manageissuers",
+      "purge",
       "setissuers",
       "update",
     ]
@@ -182,10 +177,6 @@ resource "azurerm_key_vault" "example" {
       "restore",
       "set",
     ]
-  }
-
-  tags = {
-    environment = "Production"
   }
 }
 
@@ -356,5 +347,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Key Vault Certificates can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_key_vault_certificate.examplehttps://example-keyvault.vault.azure.net/certificates/example/fdf067c93bbb4b22bff4d8b7a9a56217
+terraform import azurerm_key_vault_certificate.example "https://example-keyvault.vault.azure.net/certificates/example/fdf067c93bbb4b22bff4d8b7a9a56217"
 ```

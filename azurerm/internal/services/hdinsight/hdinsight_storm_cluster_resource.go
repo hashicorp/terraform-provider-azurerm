@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -39,16 +41,16 @@ var hdInsightStormClusterZookeeperNodeDefinition = HDInsightNodeDefinition{
 	FixedTargetInstanceCount: utils.Int32(int32(3)),
 }
 
-func resourceArmHDInsightStormCluster() *schema.Resource {
+func resourceHDInsightStormCluster() *schema.Resource {
 	return &schema.Resource{
 		DeprecationMessage: `HDInsight 3.6 will be retired on 2020-12-31 - Storm is not supported in HDInsight 4.0 and so this resource will be removed in the next major version of the AzureRM Terraform Provider.
 		
 More information on the HDInsight 3.6 deprecation can be found at:
 
 https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#available-versions`,
-		Create: resourceArmHDInsightStormClusterCreate,
-		Read:   resourceArmHDInsightStormClusterRead,
-		Update: hdinsightClusterUpdate("Storm", resourceArmHDInsightStormClusterRead),
+		Create: resourceHDInsightStormClusterCreate,
+		Read:   resourceHDInsightStormClusterRead,
+		Update: hdinsightClusterUpdate("Storm", resourceHDInsightStormClusterRead),
 		Delete: hdinsightClusterDelete("Storm"),
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -127,14 +129,16 @@ https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#
 	}
 }
 
-func resourceArmHDInsightStormClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceHDInsightStormClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HDInsight.ClustersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewClusterID(subscriptionId, resourceGroup, name)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	clusterVersion := d.Get("cluster_version").(string)
 	t := d.Get("tags").(map[string]interface{})
@@ -221,7 +225,7 @@ func resourceArmHDInsightStormClusterCreate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("failure reading ID for HDInsight Storm Cluster %q (Resource Group %q)", name, resourceGroup)
 	}
 
-	d.SetId(*read.ID)
+	d.SetId(id.ID())
 
 	// We can only enable monitoring after creation
 	if v, ok := d.GetOk("monitor"); ok {
@@ -231,23 +235,23 @@ func resourceArmHDInsightStormClusterCreate(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	return resourceArmHDInsightStormClusterRead(d, meta)
+	return resourceHDInsightStormClusterRead(d, meta)
 }
 
-func resourceArmHDInsightStormClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceHDInsightStormClusterRead(d *schema.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
 	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resourceGroup := id.ResourceGroup
-	name := id.Path["clusters"]
+	name := id.Name
 
 	resp, err := clustersClient.Get(ctx, resourceGroup, name)
 	if err != nil {

@@ -1,102 +1,95 @@
 package mysql_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureMySqlAdministrator_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mysql_active_directory_administrator", "test")
+type MySqlAdministratorResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureMySqlAdministratorDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureMySqlAdministrator_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureMySqlAdministratorExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "login", "sqladmin"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureMySqlAdministrator_withUpdates(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureMySqlAdministratorExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "login", "sqladmin2"),
-				),
-			},
+func TestAccMySqlAdministrator_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_active_directory_administrator", "test")
+	r := MySqlAdministratorResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("login").HasValue("sqladmin"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withUpdates(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("login").HasValue("sqladmin2"),
+			),
 		},
 	})
 }
 
-func TestAccAzureMySqlAdministrator_requiresImport(t *testing.T) {
+func TestAccMySqlAdministrator_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_active_directory_administrator", "test")
+	r := MySqlAdministratorResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureMySqlAdministratorDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureMySqlAdministrator_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureMySqlAdministratorExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "login", "sqladmin"),
-				),
-			},
-			{
-				Config:      testAccAzureMySqlAdministrator_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_mysql_active_directory_administrator"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("login").HasValue("sqladmin"),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_mysql_active_directory_administrator"),
 		},
 	})
 }
 
-func TestAccAzureMySqlAdministrator_disappears(t *testing.T) {
+func TestAccMySqlAdministrator_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_active_directory_administrator", "test")
+	r := MySqlAdministratorResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureMySqlAdministratorDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureMySqlAdministrator_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureMySqlAdministratorExists(data.ResourceName),
-					testCheckAzureMySqlAdministratorDisappears(data.ResourceName),
-				),
-				ExpectNonEmptyPlan: true,
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckAzureMySqlAdministratorDisappears(data.ResourceName),
+			),
+			ExpectNonEmptyPlan: true,
 		},
 	})
 }
 
-func testCheckAzureMySqlAdministratorExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.ServerAdministratorsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serverName := rs.Primary.Attributes["server_name"]
-
-		_, err := client.Get(ctx, resourceGroup, serverName)
-		return err
+func (t MySqlAdministratorResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	resourceGroup := id.ResourceGroup
+	serverName := id.Path["servers"]
+
+	resp, err := clients.MySQL.ServerAdministratorsClient.Get(ctx, resourceGroup, serverName)
+	if err != nil {
+		return nil, fmt.Errorf("reading MySQL Administrator (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
 func testCheckAzureMySqlAdministratorDisappears(resourceName string) resource.TestCheckFunc {
@@ -120,34 +113,7 @@ func testCheckAzureMySqlAdministratorDisappears(resourceName string) resource.Te
 	}
 }
 
-func testCheckAzureMySqlAdministratorDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.ServerAdministratorsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_mysql_active_directory_administrator" {
-			continue
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serverName := rs.Primary.Attributes["server_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, serverName)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("MySQL AD Administrator (server %q / resource group %q) still exists: %+v", serverName, resourceGroup, resp)
-	}
-
-	return nil
-}
-
-func testAccAzureMySqlAdministrator_basic(data acceptance.TestData) string {
+func (MySqlAdministratorResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -190,7 +156,7 @@ resource "azurerm_mysql_active_directory_administrator" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureMySqlAdministrator_requiresImport(data acceptance.TestData) string {
+func (r MySqlAdministratorResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -201,10 +167,10 @@ resource "azurerm_mysql_active_directory_administrator" "import" {
   tenant_id           = azurerm_mysql_active_directory_administrator.test.tenant_id
   object_id           = azurerm_mysql_active_directory_administrator.test.object_id
 }
-`, testAccAzureMySqlAdministrator_basic(data))
+`, r.basic(data))
 }
 
-func testAccAzureMySqlAdministrator_withUpdates(data acceptance.TestData) string {
+func (MySqlAdministratorResource) withUpdates(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

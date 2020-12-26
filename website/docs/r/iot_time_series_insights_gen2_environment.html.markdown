@@ -75,6 +75,8 @@ A `storage` block supports the following:
 
 * `id` - The ID of the IoT Time Series Insights Gen2 Environment.
 
+* `data_access_fqdn` - The FQDN used to access the environment data.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

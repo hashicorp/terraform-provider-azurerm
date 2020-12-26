@@ -1,177 +1,126 @@
 package netapp_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMNetAppSnapshot_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_netapp_snapshot", "test")
+type NetAppSnapshotResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppSnapshotDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetAppSnapshot_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppSnapshotExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccNetAppSnapshot_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_snapshot", "test")
+	r := NetAppSnapshotResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppSnapshot_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_snapshot", "test")
+	r := NetAppSnapshotResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_netapp_snapshot"),
 		},
 	})
 }
 
-func TestAccAzureRMNetAppSnapshot_requiresImport(t *testing.T) {
+func TestAccNetAppSnapshot_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_snapshot", "test")
+	r := NetAppSnapshotResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppSnapshotDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetAppSnapshot_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppSnapshotExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMNetAppSnapshot_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_netapp_snapshot"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMNetAppSnapshot_complete(t *testing.T) {
+func TestAccNetAppSnapshot_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_snapshot", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppSnapshotDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetAppSnapshot_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppSnapshotExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.FoO", "BaR"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMNetAppSnapshot_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_netapp_snapshot", "test")
+	r := NetAppSnapshotResource{}
 	oldVolumeName := fmt.Sprintf("acctest-NetAppVolume-%d", data.RandomInteger)
 	newVolumeName := fmt.Sprintf("acctest-updated-NetAppVolume-%d", data.RandomInteger)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppSnapshotDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetAppSnapshot_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppSnapshotExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "volume_name", oldVolumeName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.FoO", "BaR"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMNetAppSnapshot_updateTags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppSnapshotExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "volume_name", oldVolumeName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.FoO", "BaZ"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMNetAppSnapshot_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppSnapshotExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "volume_name", newVolumeName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("volume_name").HasValue(oldVolumeName),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.updateTags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("volume_name").HasValue(oldVolumeName),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaZ"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("volume_name").HasValue(newVolumeName),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMNetAppSnapshotExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).NetApp.SnapshotClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("NetApp Snapshot not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		accountName := rs.Primary.Attributes["account_name"]
-		poolName := rs.Primary.Attributes["pool_name"]
-		volumeName := rs.Primary.Attributes["volume_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		if resp, err := client.Get(ctx, resourceGroup, accountName, poolName, volumeName, name); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: NetApp Snapshot %q (Resource Group %q) does not exist", name, resourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on netapp.SnapshotClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMNetAppSnapshotDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).NetApp.SnapshotClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_netapp_snapshot" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		accountName := rs.Primary.Attributes["account_name"]
-		poolName := rs.Primary.Attributes["pool_name"]
-		volumeName := rs.Primary.Attributes["volume_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		if resp, err := client.Get(ctx, resourceGroup, accountName, poolName, volumeName, name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on netapp.SnapshotClient: %+v", err)
-			}
-		}
-
-		return nil
+func (t NetAppSnapshotResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.SnapshotID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.NetApp.SnapshotClient.Get(ctx, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.VolumeName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Netapp Snapshot (%s): %+v", id.String(), err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMNetAppSnapshot_basic(data acceptance.TestData) string {
-	template := testAccAzureRMNetAppSnapshot_template(data)
+func (r NetAppSnapshotResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -183,10 +132,10 @@ resource "azurerm_netapp_snapshot" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMNetAppSnapshot_requiresImport(data acceptance.TestData) string {
+func (r NetAppSnapshotResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -198,11 +147,10 @@ resource "azurerm_netapp_snapshot" "import" {
   pool_name           = azurerm_netapp_snapshot.test.pool_name
   volume_name         = azurerm_netapp_snapshot.test.volume_name
 }
-`, testAccAzureRMNetAppSnapshot_basic(data))
+`, r.basic(data))
 }
 
-func testAccAzureRMNetAppSnapshot_complete(data acceptance.TestData) string {
-	template := testAccAzureRMNetAppSnapshot_template(data)
+func (r NetAppSnapshotResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -218,11 +166,10 @@ resource "azurerm_netapp_snapshot" "test" {
     "FoO" = "BaR"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMNetAppSnapshot_updateTags(data acceptance.TestData) string {
-	template := testAccAzureRMNetAppSnapshot_template(data)
+func (r NetAppSnapshotResource) updateTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -238,11 +185,10 @@ resource "azurerm_netapp_snapshot" "test" {
     "FoO" = "BaZ"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMNetAppSnapshot_update(data acceptance.TestData) string {
-	template := testAccAzureRMNetAppSnapshot_template(data)
+func (r NetAppSnapshotResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -289,10 +235,10 @@ resource "azurerm_netapp_snapshot" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMNetAppSnapshot_template(data acceptance.TestData) string {
+func (NetAppSnapshotResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

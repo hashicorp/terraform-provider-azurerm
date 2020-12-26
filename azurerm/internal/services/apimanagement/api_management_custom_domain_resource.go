@@ -20,7 +20,7 @@ import (
 
 var apiManagementCustomDomainResourceName = "azurerm_api_management_custom_domain"
 
-func resourceArmApiManagementCustomDomain() *schema.Resource {
+func resourceApiManagementCustomDomain() *schema.Resource {
 	return &schema.Resource{
 		Create: apiManagementCustomDomainCreateUpdate,
 		Read:   apiManagementCustomDomainRead,

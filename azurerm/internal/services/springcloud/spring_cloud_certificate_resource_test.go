@@ -85,7 +85,7 @@ resource "azurerm_spring_cloud_certificate" "import" {
   service_name             = azurerm_spring_cloud_certificate.test.service_name
   key_vault_certificate_id = azurerm_spring_cloud_certificate.test.key_vault_certificate_id
 }
-`, r.template(data))
+`, r.basic(data))
 }
 
 func (r SpringCloudCertificateResource) template(data acceptance.TestData) string {

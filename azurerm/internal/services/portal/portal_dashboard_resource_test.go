@@ -39,7 +39,7 @@ func (PortalDashboardResource) Exists(ctx context.Context, clients *clients.Clie
 
 	resp, err := clients.Portal.DashboardsClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Media Services Account (%s): %v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
 	return utils.Bool(resp.DashboardProperties != nil), nil

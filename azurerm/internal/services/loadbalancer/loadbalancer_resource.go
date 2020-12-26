@@ -252,27 +252,27 @@ func resourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	loadBalancer, exists, err := retrieveLoadBalancerById(ctx, client, *id)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
-		return fmt.Errorf("retrieving Load Balancer by ID %q: %+v", d.Id(), err)
-	}
-	if !exists {
-		d.SetId("")
-		log.Printf("[INFO] Load Balancer %q not found. Removing from state", d.Id())
-		return nil
+		if utils.ResponseWasNotFound(resp.Response) {
+			d.SetId("")
+			log.Printf("[INFO] Load Balancer %q not found. Removing from state", id.Name)
+			return nil
+		}
+		return fmt.Errorf("failed to retrieve Load Balancer By ID: %+v", err)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	if location := loadBalancer.Location; location != nil {
+	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if sku := loadBalancer.Sku; sku != nil {
+	if sku := resp.Sku; sku != nil {
 		d.Set("sku", string(sku.Name))
 	}
 
-	if props := loadBalancer.LoadBalancerPropertiesFormat; props != nil {
+	if props := resp.LoadBalancerPropertiesFormat; props != nil {
 		if feipConfigs := props.FrontendIPConfigurations; feipConfigs != nil {
 			if err := d.Set("frontend_ip_configuration", flattenLoadBalancerFrontendIpConfiguration(feipConfigs)); err != nil {
 				return fmt.Errorf("Error flattening `frontend_ip_configuration`: %+v", err)
@@ -297,7 +297,7 @@ func resourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	return tags.FlattenAndSet(d, loadBalancer.Tags)
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmLoadBalancerDelete(d *schema.ResourceData, meta interface{}) error {
