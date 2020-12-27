@@ -109,24 +109,24 @@ func testCheckAzureRMDiskAccessExists(resourceName string, d *compute.DiskAccess
 func testAccAzureRMDiskAccess_empty(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-	features{}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
-	location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_disk_access" "test" {
+  name                = "acctestda-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  tags = {
+    environment = "acctest"
+    cost-center = "ops"
   }
-  
-  resource "azurerm_disk_access" "test" {
-	name                 = "acctestda-%d"
-	location             = azurerm_resource_group.test.location
-	resource_group_name  = azurerm_resource_group.test.name
-  
-	tags = {
-	  environment = "acctest"
-	  cost-center = "ops"
-	}
-  }
+}
 
 	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -135,41 +135,41 @@ func testAccAzureRMDiskAccess_requiresImport(data acceptance.TestData) string {
 	template := testAccAzureRMDiskAccess_empty(data)
 	return fmt.Sprintf(`
 	%s
-	
-	resource "azurerm_disk_access" "import" {
-		name                 = azurerm_disk_access.test.name
-		location             = azurerm_disk_access.test.location
-		resource_group_name  = azurerm_disk_access.test.resource_group_name
 
-		tags = {
-			environment = "acctest"
-			cost-center = "ops"
-		  }
-		}
+resource "azurerm_disk_access" "import" {
+  name                = azurerm_disk_access.test.name
+  location            = azurerm_disk_access.test.location
+  resource_group_name = azurerm_disk_access.test.resource_group_name
+
+  tags = {
+    environment = "acctest"
+    cost-center = "ops"
+  }
+}
 		`, template)
 }
 
 func testAccAzureRMDiskAccess_import(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	provider "azurerm" {
-		features{}
-	}
+provider "azurerm" {
+  features {}
+}
 
-	resource "azurerm_resource_group" "test" {
-		name     = "acctestRG-%d"
-		location = "%s"
-	  }
-	  
-	  resource "azurerm_disk_access" "test" {
-		name                     = "accda%d"
-		resource_group_name      = azurerm_resource_group.test.name
-		location                 = azurerm_resource_group.test.location
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
 
-	  
-		tags = {
-		  environment = "staging"
-		}
-	  }
+resource "azurerm_disk_access" "test" {
+  name                = "accda%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+
+  tags = {
+    environment = "staging"
+  }
+}
 
 
 	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
