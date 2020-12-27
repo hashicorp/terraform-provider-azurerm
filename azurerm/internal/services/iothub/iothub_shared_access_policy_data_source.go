@@ -14,9 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmIotHubSharedAccessPolicy() *schema.Resource {
+func dataSourceIotHubSharedAccessPolicy() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmIotHubSharedAccessPolicyRead,
+		Read: dataSourceIotHubSharedAccessPolicyRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -64,7 +64,8 @@ func dataSourceArmIotHubSharedAccessPolicy() *schema.Resource {
 		},
 	}
 }
-func dataSourceArmIotHubSharedAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {
+
+func dataSourceIotHubSharedAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

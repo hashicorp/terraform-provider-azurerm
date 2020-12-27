@@ -3,6 +3,8 @@ package storage
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -27,6 +29,7 @@ type BlobUpload struct {
 
 	BlobType      string
 	ContentType   string
+	ContentMD5    string
 	MetaData      map[string]string
 	Parallelism   int
 	Size          int
@@ -41,6 +44,10 @@ func (sbu BlobUpload) Create(ctx context.Context) error {
 	if blobType == "append" {
 		if sbu.Source != "" || sbu.SourceContent != "" || sbu.SourceUri != "" {
 			return fmt.Errorf("A source cannot be specified for an Append blob")
+		}
+
+		if sbu.ContentMD5 != "" {
+			return fmt.Errorf("`content_md5` cannot be specified for an Append blob")
 		}
 
 		return sbu.createEmptyAppendBlob(ctx)
@@ -62,6 +69,9 @@ func (sbu BlobUpload) Create(ctx context.Context) error {
 	}
 
 	if blobType == "page" {
+		if sbu.ContentMD5 != "" {
+			return fmt.Errorf("`content_md5` cannot be specified for a Page blob")
+		}
 		if sbu.SourceUri != "" {
 			return sbu.copy(ctx)
 		}
@@ -103,6 +113,10 @@ func (sbu BlobUpload) createEmptyAppendBlob(ctx context.Context) error {
 }
 
 func (sbu BlobUpload) createEmptyBlockBlob(ctx context.Context) error {
+	if sbu.ContentMD5 != "" {
+		return fmt.Errorf("`content_md5` cannot be specified for empty Block blobs")
+	}
+
 	input := blobs.PutBlockBlobInput{
 		ContentType: utils.String(sbu.ContentType),
 		MetaData:    sbu.MetaData,
@@ -140,6 +154,9 @@ func (sbu BlobUpload) uploadBlockBlob(ctx context.Context) error {
 	input := blobs.PutBlockBlobInput{
 		ContentType: utils.String(sbu.ContentType),
 		MetaData:    sbu.MetaData,
+	}
+	if sbu.ContentMD5 != "" {
+		input.ContentMD5 = utils.String(sbu.ContentMD5)
 	}
 	if err := sbu.Client.PutBlockBlobFromFile(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, file, input); err != nil {
 		return fmt.Errorf("Error PutBlockBlobFromFile: %s", err)
@@ -345,4 +362,22 @@ func (sbu BlobUpload) blobPageUploadWorker(ctx context.Context, uploadCtx blobPa
 
 		uploadCtx.wg.Done()
 	}
+}
+
+func convertHexToBase64Encoding(str string) (string, error) {
+	data, err := hex.DecodeString(str)
+	if err != nil {
+		return "", fmt.Errorf("converting %q from Hex to Base64 Encoding: %+v", str, err)
+	}
+
+	return base64.StdEncoding.EncodeToString(data), nil
+}
+
+func convertBase64ToHexEncoding(str string) (string, error) {
+	data, err := base64.StdEncoding.DecodeString(str)
+	if err != nil {
+		return "", fmt.Errorf("converting %q from Base64 to Hex Encoding: %+v", str, err)
+	}
+
+	return hex.EncodeToString(data), nil
 }

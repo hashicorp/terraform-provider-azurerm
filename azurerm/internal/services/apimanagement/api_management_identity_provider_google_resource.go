@@ -16,12 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementIdentityProviderGoogle() *schema.Resource {
+func resourceApiManagementIdentityProviderGoogle() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementIdentityProviderGoogleCreateUpdate,
-		Read:   resourceArmApiManagementIdentityProviderGoogleRead,
-		Update: resourceArmApiManagementIdentityProviderGoogleCreateUpdate,
-		Delete: resourceArmApiManagementIdentityProviderGoogleDelete,
+		Create: resourceApiManagementIdentityProviderGoogleCreateUpdate,
+		Read:   resourceApiManagementIdentityProviderGoogleRead,
+		Update: resourceApiManagementIdentityProviderGoogleCreateUpdate,
+		Delete: resourceApiManagementIdentityProviderGoogleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -54,7 +54,7 @@ func resourceArmApiManagementIdentityProviderGoogle() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementIdentityProviderGoogleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderGoogleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -98,10 +98,10 @@ func resourceArmApiManagementIdentityProviderGoogleCreateUpdate(d *schema.Resour
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementIdentityProviderGoogleRead(d, meta)
+	return resourceApiManagementIdentityProviderGoogleRead(d, meta)
 }
 
-func resourceArmApiManagementIdentityProviderGoogleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderGoogleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -135,7 +135,7 @@ func resourceArmApiManagementIdentityProviderGoogleRead(d *schema.ResourceData, 
 	return nil
 }
 
-func resourceArmApiManagementIdentityProviderGoogleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderGoogleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

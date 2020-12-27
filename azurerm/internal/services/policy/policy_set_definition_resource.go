@@ -1,6 +1,7 @@
 package policy
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
@@ -152,8 +154,56 @@ func resourceArmPolicySetDefinition() *schema.Resource {
 							Optional: true,
 							Computed: true,
 						},
+
+						"policy_group_names": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
 					},
 				},
+			},
+
+			"policy_definition_group": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"display_name": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"category": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"description": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"additional_metadata_resource_id": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+				Set: resourceARMPolicySetDefinitionPolicyDefinitionGroupHash,
 			},
 		},
 	}
@@ -269,6 +319,10 @@ func resourceArmPolicySetDefinitionCreate(d *schema.ResourceData, meta interface
 			return fmt.Errorf("expanding `policy_definition_reference`: %+v", err)
 		}
 		properties.PolicyDefinitions = definitions
+	}
+
+	if v, ok := d.GetOk("policy_definition_group"); ok {
+		properties.PolicyDefinitionGroups = expandAzureRMPolicySetDefinitionPolicyGroups(v.(*schema.Set).List())
 	}
 
 	definition := policy.SetDefinition{
@@ -432,7 +486,6 @@ func resourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface{}
 	}
 
 	resp, err := getPolicySetDefinitionByName(ctx, client, id.Name, managementGroupName)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading Policy Set Definition %q - removing from state", d.Id())
@@ -463,7 +516,7 @@ func resourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface{}
 		}
 
 		if parameters := props.Parameters; parameters != nil {
-			parametersStr, err := flattenParameterDefintionsValueToString(parameters)
+			parametersStr, err := flattenParameterDefinitionsValueToString(parameters)
 			if err != nil {
 				return fmt.Errorf("flattening JSON for `parameters`: %+v", err)
 			}
@@ -486,6 +539,10 @@ func resourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface{}
 		if err := d.Set("policy_definition_reference", references); err != nil {
 			return fmt.Errorf("setting `policy_definition_reference`: %+v", err)
 		}
+
+		if err := d.Set("policy_definition_group", flattenAzureRMPolicySetDefinitionPolicyGroups(props.PolicyDefinitionGroups)); err != nil {
+			return fmt.Errorf("setting `policy_definition_group`: %+v", err)
+		}
 	}
 
 	return nil
@@ -502,8 +559,7 @@ func resourceArmPolicySetDefinitionDelete(d *schema.ResourceData, meta interface
 	}
 
 	managementGroupName := ""
-	switch scopeId := id.PolicyScopeId.(type) { // nolint gocritic
-	case parse.ScopeAtManagementGroup:
+	if scopeId, ok := id.PolicyScopeId.(parse.ScopeAtManagementGroup); ok {
 		managementGroupName = scopeId.ManagementGroupName
 	}
 
@@ -525,7 +581,7 @@ func resourceArmPolicySetDefinitionDelete(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func policySetDefinitionRefreshFunc(ctx context.Context, client *policy.SetDefinitionsClient, name string, managementGroupId string) resource.StateRefreshFunc {
+func policySetDefinitionRefreshFunc(ctx context.Context, client *policy.SetDefinitionsClient, name, managementGroupId string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := getPolicySetDefinitionByName(ctx, client, name, managementGroupId)
 		if err != nil {
@@ -601,6 +657,7 @@ func expandAzureRMPolicySetDefinitionPolicyDefinitions(input []interface{}) (*[]
 			PolicyDefinitionID:          utils.String(v["policy_definition_id"].(string)),
 			Parameters:                  parameters,
 			PolicyDefinitionReferenceID: utils.String(v["reference_id"].(string)),
+			GroupNames:                  utils.ExpandStringSlice(v["policy_group_names"].(*schema.Set).List()),
 		})
 	}
 
@@ -642,7 +699,85 @@ func flattenAzureRMPolicySetDefinitionPolicyDefinitions(input *[]policy.Definiti
 			"parameters":           parametersMap,
 			"parameter_values":     parameterValues,
 			"reference_id":         policyDefinitionReference,
+			"policy_group_names":   utils.FlattenStringSlice(definition.GroupNames),
 		})
 	}
 	return result, nil
+}
+
+func expandAzureRMPolicySetDefinitionPolicyGroups(input []interface{}) *[]policy.DefinitionGroup {
+	result := make([]policy.DefinitionGroup, 0)
+
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		group := policy.DefinitionGroup{}
+		if name := v["name"].(string); name != "" {
+			group.Name = utils.String(name)
+		}
+		if displayName := v["display_name"].(string); displayName != "" {
+			group.DisplayName = utils.String(displayName)
+		}
+		if category := v["category"].(string); category != "" {
+			group.Category = utils.String(category)
+		}
+		if description := v["description"].(string); description != "" {
+			group.Description = utils.String(description)
+		}
+		if metadataID := v["additional_metadata_resource_id"].(string); metadataID != "" {
+			group.AdditionalMetadataID = utils.String(metadataID)
+		}
+		result = append(result, group)
+	}
+
+	return &result
+}
+
+func flattenAzureRMPolicySetDefinitionPolicyGroups(input *[]policy.DefinitionGroup) []interface{} {
+	result := make([]interface{}, 0)
+	if input == nil {
+		return result
+	}
+
+	for _, group := range *input {
+		name := ""
+		if group.Name != nil {
+			name = *group.Name
+		}
+		displayName := ""
+		if group.DisplayName != nil {
+			displayName = *group.DisplayName
+		}
+		category := ""
+		if group.Category != nil {
+			category = *group.Category
+		}
+		description := ""
+		if group.Description != nil {
+			description = *group.Description
+		}
+		metadataID := ""
+		if group.AdditionalMetadataID != nil {
+			metadataID = *group.AdditionalMetadataID
+		}
+
+		result = append(result, map[string]interface{}{
+			"name":                            name,
+			"display_name":                    displayName,
+			"category":                        category,
+			"description":                     description,
+			"additional_metadata_resource_id": metadataID,
+		})
+	}
+
+	return result
+}
+
+func resourceARMPolicySetDefinitionPolicyDefinitionGroupHash(v interface{}) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(m["name"].(string))
+	}
+
+	return hashcode.String(buf.String())
 }

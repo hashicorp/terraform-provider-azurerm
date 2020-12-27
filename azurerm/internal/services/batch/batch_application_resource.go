@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmBatchApplication() *schema.Resource {
+func resourceBatchApplication() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmBatchApplicationCreate,
-		Read:   resourceArmBatchApplicationRead,
-		Update: resourceArmBatchApplicationUpdate,
-		Delete: resourceArmBatchApplicationDelete,
+		Create: resourceBatchApplicationCreate,
+		Read:   resourceBatchApplicationRead,
+		Update: resourceBatchApplicationUpdate,
+		Delete: resourceBatchApplicationDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -32,7 +32,7 @@ func resourceArmBatchApplication() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.BatchApplicationID(id)
+			_, err := parse.ApplicationID(id)
 			return err
 		}),
 
@@ -74,7 +74,7 @@ func resourceArmBatchApplication() *schema.Resource {
 	}
 }
 
-func resourceArmBatchApplicationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBatchApplicationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.ApplicationClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -118,32 +118,32 @@ func resourceArmBatchApplicationCreate(d *schema.ResourceData, meta interface{})
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmBatchApplicationRead(d, meta)
+	return resourceBatchApplicationRead(d, meta)
 }
 
-func resourceArmBatchApplicationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBatchApplicationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.ApplicationClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BatchApplicationID(d.Id())
+	id, err := parse.ApplicationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Batch Application %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Batch Application %q (Account Name %q / Resource Group %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
+		return fmt.Errorf("Error reading Batch Application %q (Account Name %q / Resource Group %q): %+v", id.Name, id.BatchAccountName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("account_name", id.AccountName)
+	d.Set("account_name", id.BatchAccountName)
 	if applicationProperties := resp.ApplicationProperties; applicationProperties != nil {
 		d.Set("allow_updates", applicationProperties.AllowUpdates)
 		d.Set("default_version", applicationProperties.DefaultVersion)
@@ -153,12 +153,12 @@ func resourceArmBatchApplicationRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceArmBatchApplicationUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBatchApplicationUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.ApplicationClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BatchApplicationID(d.Id())
+	id, err := parse.ApplicationID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -175,25 +175,25 @@ func resourceArmBatchApplicationUpdate(d *schema.ResourceData, meta interface{})
 		},
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, id.AccountName, id.Name, parameters); err != nil {
-		return fmt.Errorf("Error updating Batch Application %q (Account Name %q / Resource Group %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
+	if _, err := client.Update(ctx, id.ResourceGroup, id.BatchAccountName, id.Name, parameters); err != nil {
+		return fmt.Errorf("Error updating Batch Application %q (Account Name %q / Resource Group %q): %+v", id.Name, id.BatchAccountName, id.ResourceGroup, err)
 	}
 
-	return resourceArmBatchApplicationRead(d, meta)
+	return resourceBatchApplicationRead(d, meta)
 }
 
-func resourceArmBatchApplicationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBatchApplicationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Batch.ApplicationClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BatchApplicationID(d.Id())
+	id, err := parse.ApplicationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.AccountName, id.Name); err != nil {
-		return fmt.Errorf("Error deleting Batch Application %q (Account Name %q / Resource Group %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.BatchAccountName, id.Name); err != nil {
+		return fmt.Errorf("Error deleting Batch Application %q (Account Name %q / Resource Group %q): %+v", id.Name, id.BatchAccountName, id.ResourceGroup, err)
 	}
 
 	return nil

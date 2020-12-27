@@ -58,6 +58,8 @@ The following arguments are supported:
 
 * `policy_definition_reference` - (Optional) One or more `policy_definition_reference` blocks as defined below.
 
+* `policy_definition_group` - (Optional) One or more `policy_definition_group` blocks as defined below.
+
 * `description` - (Optional) The description of the policy set definition.
 
 * `management_group_name` - (Optional) The name of the Management Group where this policy set definition should be defined. Changing this forces a new resource to be created.
@@ -79,6 +81,22 @@ A `policy_definition_reference` block supports the following:
 * `parameter_values` - (Optional) Parameter values for the referenced policy rule. This field is a JSON string that allows you to assign parameters to this policy rule. 
 
 * `reference_id` - (Optional) A unique ID within this policy set definition for this policy definition reference.
+
+* `group_names` - (Optional) A list of names of the policy definition groups that this policy definition reference belongs to.
+
+---
+
+An `policy_definition_group` block supports the following:
+
+* `name` - (Required) The name of this policy definition group.
+
+* `display_name` - (Optional) The display name of this policy definition group. 
+
+* `category` - (Optional) The category of this policy definition group.
+
+* `description` - (Optional) The description of this policy definition group.
+
+* `additional_metadata_id` - (Optional) The ID of a resource that contains additional metadata about this policy definition group.
 
 ## Attributes Reference
 

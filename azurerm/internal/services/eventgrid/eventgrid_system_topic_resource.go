@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmEventGridSystemTopic() *schema.Resource {
+func resourceEventGridSystemTopic() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmEventGridSystemTopicCreateUpdate,
-		Read:   resourceArmEventGridSystemTopicRead,
-		Update: resourceArmEventGridSystemTopicCreateUpdate,
-		Delete: resourceArmEventGridSystemTopicDelete,
+		Create: resourceEventGridSystemTopicCreateUpdate,
+		Read:   resourceEventGridSystemTopicRead,
+		Update: resourceEventGridSystemTopicCreateUpdate,
+		Delete: resourceEventGridSystemTopicDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -35,7 +35,7 @@ func resourceArmEventGridSystemTopic() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.EventGridSystemTopicID(id)
+			_, err := parse.SystemTopicID(id)
 			return err
 		}),
 
@@ -100,7 +100,7 @@ func resourceArmEventGridSystemTopic() *schema.Resource {
 	}
 }
 
-func resourceArmEventGridSystemTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridSystemTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.SystemTopicsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -156,15 +156,15 @@ func resourceArmEventGridSystemTopicCreateUpdate(d *schema.ResourceData, meta in
 
 	d.SetId(*read.ID)
 
-	return resourceArmEventGridSystemTopicRead(d, meta)
+	return resourceEventGridSystemTopicRead(d, meta)
 }
 
-func resourceArmEventGridSystemTopicRead(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridSystemTopicRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.SystemTopicsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EventGridSystemTopicID(d.Id())
+	id, err := parse.SystemTopicID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -195,12 +195,12 @@ func resourceArmEventGridSystemTopicRead(d *schema.ResourceData, meta interface{
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmEventGridSystemTopicDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceEventGridSystemTopicDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.SystemTopicsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EventGridSystemTopicID(d.Id())
+	id, err := parse.SystemTopicID(d.Id())
 	if err != nil {
 		return err
 	}

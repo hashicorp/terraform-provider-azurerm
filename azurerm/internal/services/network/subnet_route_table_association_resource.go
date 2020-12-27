@@ -134,7 +134,6 @@ func resourceArmSubnetRouteTableAssociationRead(d *schema.ResourceData, meta int
 	subnetName := id.Path["subnets"]
 
 	resp, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Subnet %q (Virtual Network %q / Resource Group %q) could not be found - removing from state!", subnetName, virtualNetworkName, resourceGroup)

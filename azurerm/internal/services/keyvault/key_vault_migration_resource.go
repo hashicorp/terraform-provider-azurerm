@@ -10,17 +10,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func resourceAzureRMKeyVaultMigrateState(v int, is *terraform.InstanceState, _ interface{}) (*terraform.InstanceState, error) {
+func resourceKeyVaultMigrateState(v int, is *terraform.InstanceState, _ interface{}) (*terraform.InstanceState, error) {
 	switch v {
 	case 0:
-		log.Println("[INFO] Found AzureRM Key Vault State v0; migrating to v1")
-		return migrateAzureRMKeyVaultStateV0toV1(is)
+		log.Println("[INFO] Found  Key Vault State v0; migrating to v1")
+		return migrateKeyVaultStateV0toV1(is)
 	default:
 		return is, fmt.Errorf("Unexpected schema version: %d", v)
 	}
 }
 
-func migrateAzureRMKeyVaultStateV0toV1(is *terraform.InstanceState) (*terraform.InstanceState, error) {
+func migrateKeyVaultStateV0toV1(is *terraform.InstanceState) (*terraform.InstanceState, error) {
 	if is.Empty() {
 		log.Println("[DEBUG] Empty InstanceState; nothing to migrate.")
 		return is, nil
@@ -28,7 +28,7 @@ func migrateAzureRMKeyVaultStateV0toV1(is *terraform.InstanceState) (*terraform.
 
 	log.Printf("[DEBUG] ARM Key Vault Attributes before Migration: %#v", is.Attributes)
 
-	if err := migrateAzureRMKeyVaultStateV0toV1AccessPolicies(is); err != nil {
+	if err := migrateKeyVaultStateV0toV1AccessPolicies(is); err != nil {
 		return nil, err
 	}
 
@@ -37,8 +37,8 @@ func migrateAzureRMKeyVaultStateV0toV1(is *terraform.InstanceState) (*terraform.
 	return is, nil
 }
 
-func migrateAzureRMKeyVaultStateV0toV1AccessPolicies(is *terraform.InstanceState) error {
-	keyVaultSchema := resourceArmKeyVault().Schema
+func migrateKeyVaultStateV0toV1AccessPolicies(is *terraform.InstanceState) error {
+	keyVaultSchema := resourceKeyVault().Schema
 	reader := &schema.MapFieldReader{
 		Schema: keyVaultSchema,
 		Map:    schema.BasicMapReader(is.Attributes),
