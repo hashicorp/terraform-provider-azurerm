@@ -588,8 +588,8 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   auto_scaler_profile {
     balance_similar_node_groups      = true
-	max_graceful_termination_sec     = 15
-	new_pod_scale_up_delay           = "10s"
+    max_graceful_termination_sec     = 15
+    new_pod_scale_up_delay           = "10s"
     scan_interval                    = "10s"
     scale_down_delay_after_add       = "10m"
     scale_down_delay_after_delete    = "10s"
