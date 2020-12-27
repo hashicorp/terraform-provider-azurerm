@@ -12,6 +12,7 @@ IMPROVEMENTS:
 * `azurerm_monitor_diagnostic_setting` - validation that `log_analytics_workspace_id` is a Log Analytics Workspace ID [GH-9914]
 * `azurerm_monitor_diagnostic_setting` - validation that `storage_account_id` is a Storage Account ID [GH-9914]
 * `azurerm_network_security_rule` - increase allowed the number of `application_security_group` blocks allowed [GH-9884]
+* `azurerm_sentinel_alert_rule_scheduled` - support for the `alert_rule_template_guid` property [GH-9712]
 
 BUG FIXES:
 
