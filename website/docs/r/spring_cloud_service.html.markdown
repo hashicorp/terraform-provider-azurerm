@@ -153,6 +153,8 @@ The following attributes are exported:
 
 * `id` - The ID of the Spring Cloud Service.
 
+* `outbound_public_ip_addresses` - A list of the outbound Public IP Addresses used by this Spring Cloud Service.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

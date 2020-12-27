@@ -191,7 +191,9 @@ The following arguments are supported:
 
 * `cors` - (Optional) A `cors` block as defined below.
 
-* `ftps_state` - (Optional) State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`.
+* `ftps_state` - (Optional) State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`. Defaults to `AllAllowed`.
+
+* `health_check_path` - (Optional) Path which will be checked for this function app health.
 
 * `http2_enabled` - (Optional) Specifies whether or not the http2 protocol should be enabled. Defaults to `false`.
 
@@ -209,7 +211,7 @@ The following arguments are supported:
 
 -> **NOTE** User has to explicitly set `scm_ip_restriction` to empty slice (`[]`) to remove it.
 
-* `scm_type` - (Optional) The type of Source Control used by the Function App. Valid values include: `BitBucketGit`, `BitBucketHg`, `CodePlexGit`, `CodePlexHg`, `Dropbox`, `ExternalGit`, `ExternalHg`, `GitHub`, `LocalGit`, `None` (dafault), `OneDrive`, `Tfs`, `VSO`, and `VSTSRM`
+* `scm_type` - (Optional) The type of Source Control used by the Function App. Valid values include: `BitBucketGit`, `BitBucketHg`, `CodePlexGit`, `CodePlexHg`, `Dropbox`, `ExternalGit`, `ExternalHg`, `GitHub`, `LocalGit`, `None` (default), `OneDrive`, `Tfs`, `VSO`, and `VSTSRM`
 
 ~> **NOTE:** This setting is incompatible with the `source_control` block which updates this value based on the setting provided. 
 
@@ -366,6 +368,8 @@ A `source_control` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the Function App
+
+* `custom_domain_verification_id` - An identifier used by App Service to perform domain ownership verification via DNS TXT record. 
 
 * `default_hostname` - The default hostname associated with the Function App - such as `mysite.azurewebsites.net`
 

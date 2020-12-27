@@ -291,12 +291,12 @@ func testCheckAzureRMNetworkConnectionMonitorExists(resourceName string) resourc
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.NetworkConnectionMonitorID(rs.Primary.ID)
+		id, err := parse.ConnectionMonitorID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := client.Get(ctx, id.ResourceGroup, id.WatcherName, id.Name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on NetworkConnectionMonitorsClient: %s", err)
 		}
@@ -318,13 +318,12 @@ func testCheckAzureRMNetworkConnectionMonitorDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.NetworkConnectionMonitorID(rs.Primary.ID)
+		id, err := parse.ConnectionMonitorID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := client.Get(ctx, id.ResourceGroup, id.WatcherName, id.Name)
-
+		resp, err := client.Get(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name)
 		if err != nil {
 			return nil
 		}

@@ -168,6 +168,13 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 
 			"plan": planSchema(),
 
+			"platform_fault_domain_count": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				ForceNew: true,
+				Computed: true,
+			},
+
 			"priority": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -291,7 +298,11 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 	bootDiagnostics := expandBootDiagnostics(bootDiagnosticsRaw)
 
 	dataDisksRaw := d.Get("data_disk").([]interface{})
-	dataDisks := ExpandVirtualMachineScaleSetDataDisk(dataDisksRaw)
+	ultraSSDEnabled := d.Get("additional_capabilities.0.ultra_ssd_enabled").(bool)
+	dataDisks, err := ExpandVirtualMachineScaleSetDataDisk(dataDisksRaw, ultraSSDEnabled)
+	if err != nil {
+		return fmt.Errorf("expanding `data_disk`: %+v", err)
+	}
 
 	identityRaw := d.Get("identity").([]interface{})
 	identity, err := ExpandVirtualMachineScaleSetIdentity(identityRaw)
@@ -484,6 +495,10 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 		Zones: zones,
 	}
 
+	if v, ok := d.GetOk("platform_fault_domain_count"); ok {
+		props.VirtualMachineScaleSetProperties.PlatformFaultDomainCount = utils.Int32(int32(v.(int)))
+	}
+
 	if v, ok := d.GetOk("proximity_placement_group_id"); ok {
 		props.VirtualMachineScaleSetProperties.ProximityPlacementGroup = &compute.SubResource{
 			ID: utils.String(v.(string)),
@@ -662,8 +677,12 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 		}
 
 		if d.HasChange("data_disk") {
-			dataDisksRaw := d.Get("data_disk").([]interface{})
-			updateProps.VirtualMachineProfile.StorageProfile.DataDisks = ExpandVirtualMachineScaleSetDataDisk(dataDisksRaw)
+			ultraSSDEnabled := d.Get("additional_capabilities.0.ultra_ssd_enabled").(bool)
+			dataDisks, err := ExpandVirtualMachineScaleSetDataDisk(d.Get("data_disk").([]interface{}), ultraSSDEnabled)
+			if err != nil {
+				return fmt.Errorf("expanding `data_disk`: %+v", err)
+			}
+			updateProps.VirtualMachineProfile.StorageProfile.DataDisks = dataDisks
 		}
 
 		if d.HasChange("os_disk") {
@@ -870,6 +889,7 @@ func resourceArmLinuxVirtualMachineScaleSetRead(d *schema.ResourceData, meta int
 	if props.ProximityPlacementGroup != nil && props.ProximityPlacementGroup.ID != nil {
 		proximityPlacementGroupId = *props.ProximityPlacementGroup.ID
 	}
+	d.Set("platform_fault_domain_count", props.PlatformFaultDomainCount)
 	d.Set("proximity_placement_group_id", proximityPlacementGroupId)
 	d.Set("single_placement_group", props.SinglePlacementGroup)
 	d.Set("unique_id", props.UniqueID)
@@ -931,7 +951,7 @@ func resourceArmLinuxVirtualMachineScaleSetRead(d *schema.ResourceData, meta int
 				if err != nil {
 					return fmt.Errorf("Error flattening `admin_ssh_key`: %+v", err)
 				}
-				if err := d.Set("admin_ssh_key", flattenedSshKeys); err != nil {
+				if err := d.Set("admin_ssh_key", schema.NewSet(SSHKeySchemaHash, *flattenedSshKeys)); err != nil {
 					return fmt.Errorf("Error setting `admin_ssh_key`: %+v", err)
 				}
 			}

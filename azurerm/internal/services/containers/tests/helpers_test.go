@@ -1,18 +1,13 @@
 package tests
 
 import (
-	"os"
 	"testing"
 )
 
-func checkIfShouldRunTestsCombined(t *testing.T) {
-	if os.Getenv("TF_PROVIDER_SPLIT_COMBINED_TESTS") != "" {
-		t.Skip("Skipping since this is being run Individually")
-	}
-}
-
 func checkIfShouldRunTestsIndividually(t *testing.T) {
-	if os.Getenv("TF_PROVIDER_SPLIT_COMBINED_TESTS") == "" {
-		t.Skip("Skipping since this is being run as a Combined Test")
-	}
+	// NOTE: leaving this around so we can remove this gradually without
+	// causing merge conflicts on open PR's
+	//
+	// This is no longer necessary since we limit the concurrent tests
+	// for this package at the CI level
 }

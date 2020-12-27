@@ -25,12 +25,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMonitorMetricAlert() *schema.Resource {
+func resourceMonitorMetricAlert() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMonitorMetricAlertCreateUpdate,
-		Read:   resourceArmMonitorMetricAlertRead,
-		Update: resourceArmMonitorMetricAlertCreateUpdate,
-		Delete: resourceArmMonitorMetricAlertDelete,
+		Create: resourceMonitorMetricAlertCreateUpdate,
+		Read:   resourceMonitorMetricAlertRead,
+		Update: resourceMonitorMetricAlertCreateUpdate,
+		Delete: resourceMonitorMetricAlertDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -271,12 +271,12 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 						"web_test_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.ApplicationInsightsWebTestID,
+							ValidateFunc: validate.WebTestID,
 						},
 						"component_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.ApplicationInsightsID,
+							ValidateFunc: validate.ComponentID,
 						},
 						"failed_location_count": {
 							Type:         schema.TypeInt,
@@ -306,7 +306,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmMonitorMetricAlertActionHash,
+				Set: resourceMonitorMetricAlertActionHash,
 			},
 
 			"auto_mitigate": {
@@ -367,7 +367,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 	}
 }
 
-func resourceArmMonitorMetricAlertCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorMetricAlertCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.MetricAlertsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -474,10 +474,10 @@ func resourceArmMonitorMetricAlertCreateUpdate(d *schema.ResourceData, meta inte
 	}
 	d.SetId(*read.ID)
 
-	return resourceArmMonitorMetricAlertRead(d, meta)
+	return resourceMonitorMetricAlertRead(d, meta)
 }
 
-func resourceArmMonitorMetricAlertRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorMetricAlertRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.MetricAlertsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -549,7 +549,7 @@ func resourceArmMonitorMetricAlertRead(d *schema.ResourceData, meta interface{})
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmMonitorMetricAlertDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorMetricAlertDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.MetricAlertsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -924,7 +924,7 @@ func flattenMonitorMetricAlertAction(input *[]insights.MetricAlertAction) (resul
 	return result
 }
 
-func resourceArmMonitorMetricAlertActionHash(input interface{}) int {
+func resourceMonitorMetricAlertActionHash(input interface{}) int {
 	var buf bytes.Buffer
 	if v, ok := input.(map[string]interface{}); ok {
 		buf.WriteString(fmt.Sprintf("%s-", v["action_group_id"].(string)))
