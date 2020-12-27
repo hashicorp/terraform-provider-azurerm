@@ -1,5 +1,9 @@
 ## 2.42.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_media_streaming_locator` [GH-9992]
+
 IMPROVEMENTS:
 
 * Data Source: `azurerm_databricks_workspace` - support for the `tags` property [GH-9933]
