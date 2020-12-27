@@ -300,13 +300,14 @@ func resourceCdnEndpointCreate(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("Error expanding `global_delivery_rule` or `delivery_rule`: %s", err)
 		}
 
-		if deliveryPolicy != nil {
-			if profile.Sku.Name != cdn.StandardMicrosoft && len(*deliveryPolicy.Rules) > 0 {
-				return fmt.Errorf("`global_delivery_policy` and `delivery_rule` are only allowed when `Standard_Microsoft` sku is used. Profile sku:  %s", profile.Sku.Name)
-			}
+		if profile.Sku.Name != cdn.StandardMicrosoft && len(*deliveryPolicy.Rules) > 0 {
+			return fmt.Errorf("`global_delivery_rule` and `delivery_rule` are only allowed when `Standard_Microsoft` sku is used. Profile sku:  %s", profile.Sku.Name)
+		}
 
+		if profile.Sku.Name == cdn.StandardMicrosoft {
 			endpoint.EndpointProperties.DeliveryPolicy = deliveryPolicy
 		}
+
 	}
 
 	future, err := endpointsClient.Create(ctx, resourceGroup, profileName, name, endpoint)
@@ -402,13 +403,14 @@ func resourceCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("Error expanding `global_delivery_rule` or `delivery_rule`: %s", err)
 		}
 
-		if deliveryPolicy != nil {
-			if profile.Sku.Name != cdn.StandardMicrosoft && len(*deliveryPolicy.Rules) > 0 {
-				return fmt.Errorf("`global_delivery_policy` and `delivery_rule` are only allowed when `Standard_Microsoft` sku is used. Profile sku:  %s", profile.Sku.Name)
-			}
+		if profile.Sku.Name != cdn.StandardMicrosoft && len(*deliveryPolicy.Rules) > 0 {
+			return fmt.Errorf("`global_delivery_rule` and `delivery_rule` are only allowed when `Standard_Microsoft` sku is used. Profile sku:  %s", profile.Sku.Name)
+		}
 
+		if profile.Sku.Name == cdn.StandardMicrosoft {
 			endpoint.EndpointPropertiesUpdateParameters.DeliveryPolicy = deliveryPolicy
 		}
+
 	}
 
 	future, err := endpointsClient.Update(ctx, id.ResourceGroup, id.ProfileName, id.Name, endpoint)
@@ -678,10 +680,6 @@ func flattenAzureRMCdnEndpointOrigin(input *[]cdn.DeepCreatedOrigin) []interface
 }
 
 func expandArmCdnEndpointDeliveryPolicy(globalRulesRaw []interface{}, deliveryRulesRaw []interface{}) (*cdn.EndpointPropertiesUpdateParametersDeliveryPolicy, error) {
-	if len(globalRulesRaw) == 0 && len(deliveryRulesRaw) == 0 {
-		return nil, nil
-	}
-
 	deliveryRules := make([]cdn.DeliveryRule, 0)
 	deliveryPolicy := cdn.EndpointPropertiesUpdateParametersDeliveryPolicy{
 		Description: utils.String(""),
