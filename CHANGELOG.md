@@ -4,6 +4,7 @@ IMPROVEMENTS:
 
 * Data Source: `azurerm_databricks_workspace` - support for the `tags` property [GH-9933]
 * `azurerm_api_management` - support `Consumption_0` for the `sku_name` property [GH-6868]
+* `azurerm_data_factory_linked_service_azure_file_storage` - support for the `file_share` property [GH-9934]
 * `azurerm_dedicated_host` - support for addtional `sku_name` values [GH-9951]
 * `azurerm_hdinsight_hadoop_cluster` - allow the value `Standard_D4a_V4` for the `vm_type` property [GH-10000]
 * `azurerm_log_analytics_linked_service` - add validation for resource ID type [GH-9932]
