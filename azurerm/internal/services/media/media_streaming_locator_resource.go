@@ -230,8 +230,7 @@ func resourceMediaStreamingLocatorCreate(d *schema.ResourceData, meta interface{
 		parameters.StreamingLocatorProperties.StreamingLocatorID = &id
 	}
 
-	_, err := client.Create(ctx, resourceID.ResourceGroup, resourceID.MediaserviceName, resourceID.Name, parameters)
-	if err != nil {
+	if _, err := client.Create(ctx, resourceID.ResourceGroup, resourceID.MediaserviceName, resourceID.Name, parameters); err != nil {
 		return fmt.Errorf("Error creating Streaming Locator %q in Media Services Account %q (Resource Group %q): %+v", resourceID.Name, resourceID.MediaserviceName, resourceID.ResourceGroup, err)
 	}
 
@@ -308,8 +307,7 @@ func resourceMediaStreamingLocatorDelete(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	_, err = client.Delete(ctx, id.ResourceGroup, id.MediaserviceName, id.Name)
-	if err != nil {
+	if _, err = client.Delete(ctx, id.ResourceGroup, id.MediaserviceName, id.Name); err != nil {
 		return fmt.Errorf("Error deleting Streaming Locator %q in Media Services Account %q (Resource Group %q): %+v", id.Name, id.MediaserviceName, id.ResourceGroup, err)
 	}
 

@@ -14,8 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-type StreamingLocatorResource struct {
-}
+type StreamingLocatorResource struct {}
 
 func TestAccStreamingLocator_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_streaming_locator", "test")

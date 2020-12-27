@@ -3,12 +3,12 @@ subcategory: "Media"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_media_streaming_locator"
 description: |-
-  Manages a Streaming Locator.
+  Manages a Media Streaming Locator.
 ---
 
 # azurerm_media_streaming_locator
 
-Manages a Streaming Locator.
+Manages a Media Streaming Locator.
 
 ## Example Usage
 
@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Streaming Locator should exist. Changing this forces a new Streaming Locator to be created.
 
-* `streaming_policy_name` - (Required) Name of the Streaming Policy used by this Streaming Locator. Either specify the name of Streaming Policy you created or use one of the predefined Streaming Policies. The predefined Streaming Policies available are: 'Predefined_DownloadOnly', 'Predefined_ClearStreamingOnly', 'Predefined_DownloadAndClearStreaming', 'Predefined_ClearKey', 'Predefined_MultiDrmCencStreaming' and 'Predefined_MultiDrmStreaming'. Changing this forces a new Streaming Locator to be created.
+* `streaming_policy_name` - (Required) Name of the Streaming Policy used by this Streaming Locator. Either specify the name of Streaming Policy you created or use one of the predefined Streaming Policies. The predefined Streaming Policies available are: `Predefined_DownloadOnly`, `Predefined_ClearStreamingOnly`, `Predefined_DownloadAndClearStreaming`, `Predefined_ClearKey`, `Predefined_MultiDrmCencStreaming` and `Predefined_MultiDrmStreaming`. Changing this forces a new Streaming Locator to be created.
 
 ---
 
