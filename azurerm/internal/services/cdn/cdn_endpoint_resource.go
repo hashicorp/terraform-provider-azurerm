@@ -307,7 +307,6 @@ func resourceCdnEndpointCreate(d *schema.ResourceData, meta interface{}) error {
 		if profile.Sku.Name == cdn.StandardMicrosoft {
 			endpoint.EndpointProperties.DeliveryPolicy = deliveryPolicy
 		}
-
 	}
 
 	future, err := endpointsClient.Create(ctx, resourceGroup, profileName, name, endpoint)
@@ -410,7 +409,6 @@ func resourceCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
 		if profile.Sku.Name == cdn.StandardMicrosoft {
 			endpoint.EndpointPropertiesUpdateParameters.DeliveryPolicy = deliveryPolicy
 		}
-
 	}
 
 	future, err := endpointsClient.Update(ctx, id.ResourceGroup, id.ProfileName, id.Name, endpoint)
