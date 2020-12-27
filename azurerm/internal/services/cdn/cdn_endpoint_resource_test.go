@@ -283,6 +283,21 @@ func TestAccCdnEndpoint_dnsAlias(t *testing.T) {
 	})
 }
 
+func TestAccCdnEndpoint_PremiumVerizon(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
+	r := CdnEndpointResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.PremiumVerizon(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r CdnEndpointResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.EndpointID(state.ID)
 	if err != nil {
@@ -1076,4 +1091,41 @@ resource "azurerm_dns_a_record" "test" {
   target_resource_id  = azurerm_cdn_endpoint.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r CdnEndpointResource) PremiumVerizon(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_cdn_profile" "test" {
+  name                = "acctestcdnprof%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Premium_Verizon"
+}
+
+resource "azurerm_cdn_endpoint" "test" {
+  name                          = "acctestcdnend%d"
+  profile_name                  = azurerm_cdn_profile.test.name
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  is_http_allowed               = false
+  is_https_allowed              = true
+  querystring_caching_behaviour = "NotSet"
+
+  origin {
+    name       = "acceptanceTestCdnOrigin1"
+    host_name  = "www.contoso.com"
+    https_port = 443
+    http_port  = 80
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
