@@ -259,6 +259,7 @@ func TestAccKeyVault_softDeleteViaUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("soft_delete_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("purge_protection_enabled").HasValue("false"),
 			),
+			ExpectError: regexp.MustCompile("Soft Delete must be enabled on Azure Key Vault as of December 15, 2020."),
 		},
 		data.ImportStep(),
 		{

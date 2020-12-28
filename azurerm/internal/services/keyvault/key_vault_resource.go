@@ -316,7 +316,7 @@ func resourceKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 			parameters.Properties.SoftDeleteRetentionInDays = utils.Int32(int32(softDeleteRetentionInDays))
 		}
 	} else {
-		return fmt.Errorf("Error creating Key Vault %q (Resource Group %q): Soft Delete must be enabled.", name, resourceGroup)
+		return fmt.Errorf("Error creating Key Vault %q (Resource Group %q): Soft Delete must be enabled on Azure Key Vault as of December 15, 2020.", name, resourceGroup)
 	}
 	if purgeProtectionEnabled := d.Get("purge_protection_enabled").(bool); purgeProtectionEnabled {
 		parameters.Properties.EnablePurgeProtection = utils.Bool(purgeProtectionEnabled)
@@ -538,7 +538,7 @@ func resourceKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 		// whilst this should have got caught in the customizeDiff this won't work if that fields interpolated
 		// hence the double-checking here
 		if !newValue {
-			return fmt.Errorf("Error updating Key Vault %q (Resource Group %q): Soft Delete must be enabled.", name, resourceGroup)
+			return fmt.Errorf("Error updating Key Vault %q (Resource Group %q): Soft Delete must be enabled on Azure Key Vault as of December 15, 2020.", name, resourceGroup)
 		}
 
 		// existing.Properties guaranteed non-nil above
