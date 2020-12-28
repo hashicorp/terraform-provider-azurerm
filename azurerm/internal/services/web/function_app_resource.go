@@ -159,7 +159,7 @@ func resourceArmFunctionApp() *schema.Resource {
 				Optional:      true,
 				Computed:      true, // Remove this in 3.0
 				ForceNew:      true,
-				ValidateFunc:  storage.ValidateArmStorageAccountName,
+				ValidateFunc:  storage.ValidateStorageAccountName,
 				ConflictsWith: []string{"storage_connection_string"},
 			},
 

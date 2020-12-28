@@ -14,12 +14,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSiteRecoveryProtectionContainer() *schema.Resource {
+func resourceSiteRecoveryProtectionContainer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSiteRecoveryProtectionContainerCreate,
-		Read:   resourceArmSiteRecoveryProtectionContainerRead,
+		Create: resourceSiteRecoveryProtectionContainerCreate,
+		Read:   resourceSiteRecoveryProtectionContainerRead,
 		Update: nil,
-		Delete: resourceArmSiteRecoveryProtectionContainerDelete,
+		Delete: resourceSiteRecoveryProtectionContainerDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -56,7 +56,7 @@ func resourceArmSiteRecoveryProtectionContainer() *schema.Resource {
 	}
 }
 
-func resourceArmSiteRecoveryProtectionContainerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryProtectionContainerCreate(d *schema.ResourceData, meta interface{}) error {
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
 	fabricName := d.Get("recovery_fabric_name").(string)
@@ -98,10 +98,10 @@ func resourceArmSiteRecoveryProtectionContainerCreate(d *schema.ResourceData, me
 
 	d.SetId(azure.HandleAzureSdkForGoBug2824(*resp.ID))
 
-	return resourceArmSiteRecoveryProtectionContainerRead(d, meta)
+	return resourceSiteRecoveryProtectionContainerRead(d, meta)
 }
 
-func resourceArmSiteRecoveryProtectionContainerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryProtectionContainerRead(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -132,7 +132,7 @@ func resourceArmSiteRecoveryProtectionContainerRead(d *schema.ResourceData, meta
 	return nil
 }
 
-func resourceArmSiteRecoveryProtectionContainerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryProtectionContainerDelete(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err

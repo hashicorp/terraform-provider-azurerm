@@ -1,16 +1,32 @@
 ## 2.42.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_media_streaming_locator` [GH-9992]
+
 IMPROVEMENTS:
 
 * Data Source: `azurerm_databricks_workspace` - support for the `tags` property [GH-9933]
+* `azurerm_cdn_endpoint` - only send `content_types_to_compress` and `geo_filter` to the API when actually set [GH-9902]
 * `azurerm_api_management` - support `Consumption_0` for the `sku_name` property [GH-6868]
+* `azurerm_data_factory_linked_service_azure_file_storage` - support for the `file_share` property [GH-9934]
 * `azurerm_dedicated_host` - support for addtional `sku_name` values [GH-9951]
+* `azurerm_hdinsight_hadoop_cluster` - allow the value `Standard_D4a_V4` for the `vm_type` property [GH-10000]
 * `azurerm_log_analytics_linked_service` - add validation for resource ID type [GH-9932]
 * `azurerm_log_analytics_linked_service` - update validation to use generated validate functions [GH-9950]
 * `azurerm_monitor_diagnostic_setting` - validation that `eventhub_authorization_rule_id` is a EventHub Namespace Authorization Rule ID [GH-9914]
 * `azurerm_monitor_diagnostic_setting` - validation that `log_analytics_workspace_id` is a Log Analytics Workspace ID [GH-9914]
 * `azurerm_monitor_diagnostic_setting` - validation that `storage_account_id` is a Storage Account ID [GH-9914]
 * `azurerm_network_security_rule` - increase allowed the number of `application_security_group` blocks allowed [GH-9884]
+* `azurerm_sentinel_alert_rule_scheduled` - support for the `alert_rule_template_guid` property [GH-9712]
+* `azurerm_sentinel_alert_rule_ms_security_incident` - support the `alert_rule_template_guid` and `display_name_exclude_filter` properties [GH-9797]
+* `azurerm_traffic_manager_profile` - support for the `traffic_view_enabled` property [GH-10005]
+
+BUG FIXES:
+
+* `azurerm_application_gateway` - allow `750` for `file_upload_limit_mb` when the sku is `WAF_v2` [GH-8753]
+* `azurerm_cosmosdb_account` - always include `key_vault_id` in update requests for azure policy enginer compatibility [GH-9966]
+* `azurerm_cosmosdb_table` - do not call the throughput api when serverless [GH-9749]
 
 ## 2.41.0 (December 17, 2020)
 

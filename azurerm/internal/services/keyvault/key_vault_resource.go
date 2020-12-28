@@ -34,18 +34,18 @@ var armKeyVaultSkuFamily = "A"
 
 var keyVaultResourceName = "azurerm_key_vault"
 
-func resourceArmKeyVault() *schema.Resource {
+func resourceKeyVault() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKeyVaultCreate,
-		Read:   resourceArmKeyVaultRead,
-		Update: resourceArmKeyVaultUpdate,
-		Delete: resourceArmKeyVaultDelete,
+		Create: resourceKeyVaultCreate,
+		Read:   resourceKeyVaultRead,
+		Update: resourceKeyVaultUpdate,
+		Delete: resourceKeyVaultDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
-		MigrateState:  resourceAzureRMKeyVaultMigrateState,
+		MigrateState:  resourceKeyVaultMigrateState,
 		SchemaVersion: 1,
 
 		Timeouts: &schema.ResourceTimeout{
@@ -220,7 +220,7 @@ func resourceArmKeyVault() *schema.Resource {
 	}
 }
 
-func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	dataPlaneClient := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -385,10 +385,10 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	return resourceArmKeyVaultRead(d, meta)
+	return resourceKeyVaultRead(d, meta)
 }
 
-func resourceArmKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	managementClient := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -605,10 +605,10 @@ func resourceArmKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	d.Partial(false)
 
-	return resourceArmKeyVaultRead(d, meta)
+	return resourceKeyVaultRead(d, meta)
 }
 
-func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	managementClient := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -684,7 +684,7 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

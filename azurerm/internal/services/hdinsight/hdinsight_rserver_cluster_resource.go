@@ -52,16 +52,16 @@ var hdInsightRServerClusterEdgeNodeDefinition = HDInsightNodeDefinition{
 	FixedTargetInstanceCount: utils.Int32(int32(1)),
 }
 
-func resourceArmHDInsightRServerCluster() *schema.Resource {
+func resourceHDInsightRServerCluster() *schema.Resource {
 	return &schema.Resource{
 		DeprecationMessage: `HDInsight 3.6 will be retired on 2020-12-31 - R Server is not supported in HDInsight 4.0 and so this resource will be removed in the next major version of the AzureRM Terraform Provider.
 		
 More information on the HDInsight 3.6 deprecation can be found at:
 
 https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#available-versions`,
-		Create: resourceArmHDInsightRServerClusterCreate,
-		Read:   resourceArmHDInsightRServerClusterRead,
-		Update: hdinsightClusterUpdate("RServer", resourceArmHDInsightRServerClusterRead),
+		Create: resourceHDInsightRServerClusterCreate,
+		Read:   resourceHDInsightRServerClusterRead,
+		Update: hdinsightClusterUpdate("RServer", resourceHDInsightRServerClusterRead),
 		Delete: hdinsightClusterDelete("RServer"),
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -144,7 +144,7 @@ func expandHDInsightsRServerConfigurations(gateway []interface{}, rStudio bool) 
 	return config
 }
 
-func resourceArmHDInsightRServerClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceHDInsightRServerClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HDInsight.ClustersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -233,10 +233,10 @@ func resourceArmHDInsightRServerClusterCreate(d *schema.ResourceData, meta inter
 
 	d.SetId(id.ID())
 
-	return resourceArmHDInsightRServerClusterRead(d, meta)
+	return resourceHDInsightRServerClusterRead(d, meta)
 }
 
-func resourceArmHDInsightRServerClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceHDInsightRServerClusterRead(d *schema.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
 	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

@@ -10,9 +10,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmMonitorLogProfile() *schema.Resource {
+func dataSourceMonitorLogProfile() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmLogProfileRead,
+		Read: dataSourceLogProfileRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -65,7 +65,7 @@ func dataSourceArmMonitorLogProfile() *schema.Resource {
 	}
 }
 
-func dataSourceArmLogProfileRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceLogProfileRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.LogProfilesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

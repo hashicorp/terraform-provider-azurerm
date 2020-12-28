@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLogAnalyticsCluster() *schema.Resource {
+func resourceLogAnalyticsCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogAnalyticsClusterCreate,
-		Read:   resourceArmLogAnalyticsClusterRead,
-		Update: resourceArmLogAnalyticsClusterUpdate,
-		Delete: resourceArmLogAnalyticsClusterDelete,
+		Create: resourceLogAnalyticsClusterCreate,
+		Read:   resourceLogAnalyticsClusterRead,
+		Update: resourceLogAnalyticsClusterUpdate,
+		Delete: resourceLogAnalyticsClusterDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(6 * time.Hour),
@@ -103,7 +103,7 @@ func resourceArmLogAnalyticsCluster() *schema.Resource {
 	}
 }
 
-func resourceArmLogAnalyticsClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.ClusterClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -126,7 +126,7 @@ func resourceArmLogAnalyticsClusterCreate(d *schema.ResourceData, meta interface
 
 	parameters := operationalinsights.Cluster{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
-		Identity: expandArmLogAnalyticsClusterIdentity(d.Get("identity").([]interface{})),
+		Identity: expandLogAnalyticsClusterIdentity(d.Get("identity").([]interface{})),
 		Sku: &operationalinsights.ClusterSku{
 			Capacity: utils.Int64(int64(d.Get("size_gb").(int))),
 			Name:     operationalinsights.CapacityReservation,
@@ -154,10 +154,10 @@ func resourceArmLogAnalyticsClusterCreate(d *schema.ResourceData, meta interface
 	}
 
 	d.SetId(id.ID())
-	return resourceArmLogAnalyticsClusterRead(d, meta)
+	return resourceLogAnalyticsClusterRead(d, meta)
 }
 
-func resourceArmLogAnalyticsClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.ClusterClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -179,7 +179,7 @@ func resourceArmLogAnalyticsClusterRead(d *schema.ResourceData, meta interface{}
 	d.Set("name", id.ClusterName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
-	if err := d.Set("identity", flattenArmLogAnalyticsIdentity(resp.Identity)); err != nil {
+	if err := d.Set("identity", flattenLogAnalyticsIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 	if props := resp.ClusterProperties; props != nil {
@@ -197,7 +197,7 @@ func resourceArmLogAnalyticsClusterRead(d *schema.ResourceData, meta interface{}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmLogAnalyticsClusterUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.ClusterClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -234,10 +234,10 @@ func resourceArmLogAnalyticsClusterUpdate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("waiting for Log Analytics Cluster to finish updating %q (Resource Group %q): %v", id.ClusterName, id.ResourceGroup, err)
 	}
 
-	return resourceArmLogAnalyticsClusterRead(d, meta)
+	return resourceLogAnalyticsClusterRead(d, meta)
 }
 
-func resourceArmLogAnalyticsClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.ClusterClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -259,7 +259,7 @@ func resourceArmLogAnalyticsClusterDelete(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func expandArmLogAnalyticsClusterIdentity(input []interface{}) *operationalinsights.Identity {
+func expandLogAnalyticsClusterIdentity(input []interface{}) *operationalinsights.Identity {
 	if len(input) == 0 {
 		return nil
 	}
@@ -269,7 +269,7 @@ func expandArmLogAnalyticsClusterIdentity(input []interface{}) *operationalinsig
 	}
 }
 
-func flattenArmLogAnalyticsIdentity(input *operationalinsights.Identity) []interface{} {
+func flattenLogAnalyticsIdentity(input *operationalinsights.Identity) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}

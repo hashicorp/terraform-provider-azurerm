@@ -65,6 +65,26 @@ func TestAccAzureRMDataFactoryLinkedServiceAzureFileStorage_update(t *testing.T)
 	})
 }
 
+func TestAccAzureRMDataFactoryLinkedServiceAzureFileStorage_file_share_name(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_file_storage", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceAzureFileStorageDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDataFactoryLinkedServiceAzureFileStorage_file_share_name(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataFactoryLinkedServiceAzureFileStorageExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "file_share", "myshare"),
+				),
+			},
+			data.ImportStep("connection_string"),
+		},
+	})
+}
+
 func testCheckAzureRMDataFactoryLinkedServiceAzureFileStorageExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
@@ -221,6 +241,33 @@ resource "azurerm_data_factory_linked_service_azure_file_storage" "test" {
   additional_properties = {
     foo = "test1"
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMDataFactoryLinkedServiceAzureFileStorage_file_share_name(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_data_factory_linked_service_azure_file_storage" "test" {
+  name                = "acctestlsblob%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
+  connection_string   = "DefaultEndpointsProtocol=https;AccountName=foo;AccountKey=bar"
+  file_share          = "myshare"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

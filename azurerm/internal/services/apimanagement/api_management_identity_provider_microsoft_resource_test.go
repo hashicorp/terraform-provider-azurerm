@@ -1,134 +1,95 @@
 package apimanagement_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMApiManagementIdentityProviderMicrosoft_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_microsoft", "test")
-	config := testAccAzureRMApiManagementIdentityProviderMicrosoft_basic(data)
+type ApiManagementIdentityProviderMicrosoftResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderMicrosoftDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementIdentityProviderMicrosoftExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("client_secret"),
+func TestAccApiManagementIdentityProviderMicrosoft_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_microsoft", "test")
+	r := ApiManagementIdentityProviderMicrosoftResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("client_secret"),
 	})
 }
 
-func TestAccAzureRMApiManagementIdentityProviderMicrosoft_update(t *testing.T) {
+func TestAccApiManagementIdentityProviderMicrosoft_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_microsoft", "test")
-	config := testAccAzureRMApiManagementIdentityProviderMicrosoft_basic(data)
-	updateConfig := testAccAzureRMApiManagementIdentityProviderMicrosoft_update(data)
+	r := ApiManagementIdentityProviderMicrosoftResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderMicrosoftDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementIdentityProviderMicrosoftExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_id", "00000000-0000-0000-0000-000000000000"),
-				),
-			},
-			data.ImportStep("client_secret"),
-			{
-				Config: updateConfig,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementIdentityProviderMicrosoftExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_id", "11111111-1111-1111-1111-111111111111"),
-				),
-			},
-			data.ImportStep("client_secret"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("client_id").HasValue("00000000-0000-0000-0000-000000000000"),
+			),
 		},
+		data.ImportStep("client_secret"),
+		{
+			Config: r.update(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("client_id").HasValue("11111111-1111-1111-1111-111111111111"),
+			),
+		},
+		data.ImportStep("client_secret"),
 	})
 }
 
-func TestAccAzureRMApiManagementIdentityProviderMicrosoft_requiresImport(t *testing.T) {
+func TestAccApiManagementIdentityProviderMicrosoft_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_microsoft", "test")
+	r := ApiManagementIdentityProviderMicrosoftResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderMicrosoftDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementIdentityProviderMicrosoft_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementIdentityProviderMicrosoftExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMApiManagementIdentityProviderMicrosoft_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckAzureRMApiManagementIdentityProviderMicrosoftDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.IdentityProviderClient
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_api_management_identity_provider_microsoft" {
-			continue
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		resp, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.Microsoft)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return err
-			}
-		}
-
-		return nil
+func (t ApiManagementIdentityProviderMicrosoftResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-	return nil
-}
+	resourceGroup := id.ResourceGroup
+	serviceName := id.Path["service"]
+	identityProviderName := id.Path["identityProviders"]
 
-func testCheckAzureRMApiManagementIdentityProviderMicrosoftExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.IdentityProviderClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		resp, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.Microsoft)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: API Management Identity Provider %q (Resource Group %q / API Management Service %q) does not exist", apimanagement.Microsoft, resourceGroup, serviceName)
-			}
-			return fmt.Errorf("Bad: Get on apiManagementIdentityProviderClient: %+v", err)
-		}
-
-		return nil
+	resp, err := clients.ApiManagement.IdentityProviderClient.Get(ctx, resourceGroup, serviceName, apimanagement.IdentityProviderType(identityProviderName))
+	if err != nil {
+		return nil, fmt.Errorf("reading ApiManagement Identity Provider Microsoft (%s): %+v", id, err)
 	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMApiManagementIdentityProviderMicrosoft_basic(data acceptance.TestData) string {
+func (ApiManagementIdentityProviderMicrosoftResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -157,7 +118,7 @@ resource "azurerm_api_management_identity_provider_microsoft" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementIdentityProviderMicrosoft_update(data acceptance.TestData) string {
+func (ApiManagementIdentityProviderMicrosoftResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -186,8 +147,7 @@ resource "azurerm_api_management_identity_provider_microsoft" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementIdentityProviderMicrosoft_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementIdentityProviderMicrosoft_basic(data)
+func (r ApiManagementIdentityProviderMicrosoftResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -197,5 +157,5 @@ resource "azurerm_api_management_identity_provider_microsoft" "import" {
   client_id           = azurerm_api_management_identity_provider_microsoft.test.client_id
   client_secret       = azurerm_api_management_identity_provider_microsoft.test.client_secret
 }
-`, template)
+`, r.basic(data))
 }

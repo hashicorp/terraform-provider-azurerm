@@ -14,9 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmFirewallPolicy() *schema.Resource {
+func FirewallDataSourcePolicy() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmFirewallPolicyRead,
+		Read: FirewallDataSourcePolicyRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -119,7 +119,7 @@ func dataSourceArmFirewallPolicy() *schema.Resource {
 	}
 }
 
-func dataSourceArmFirewallPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func FirewallDataSourcePolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.FirewallPolicyClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -79,7 +79,7 @@ func resourceArmFunctionAppSlot() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: storage.ValidateArmStorageAccountName,
+				ValidateFunc: storage.ValidateStorageAccountName,
 			},
 
 			"storage_account_access_key": {

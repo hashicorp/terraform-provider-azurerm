@@ -41,11 +41,11 @@ var hdInsightSparkClusterZookeeperNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyDisks:          false,
 }
 
-func resourceArmHDInsightSparkCluster() *schema.Resource {
+func resourceHDInsightSparkCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmHDInsightSparkClusterCreate,
-		Read:   resourceArmHDInsightSparkClusterRead,
-		Update: hdinsightClusterUpdate("Spark", resourceArmHDInsightSparkClusterRead),
+		Create: resourceHDInsightSparkClusterCreate,
+		Read:   resourceHDInsightSparkClusterRead,
+		Update: hdinsightClusterUpdate("Spark", resourceHDInsightSparkClusterRead),
 		Delete: hdinsightClusterDelete("Spark"),
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -126,7 +126,7 @@ func resourceArmHDInsightSparkCluster() *schema.Resource {
 	}
 }
 
-func resourceArmHDInsightSparkClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceHDInsightSparkClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HDInsight.ClustersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
@@ -233,10 +233,10 @@ func resourceArmHDInsightSparkClusterCreate(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	return resourceArmHDInsightSparkClusterRead(d, meta)
+	return resourceHDInsightSparkClusterRead(d, meta)
 }
 
-func resourceArmHDInsightSparkClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceHDInsightSparkClusterRead(d *schema.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
 	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
