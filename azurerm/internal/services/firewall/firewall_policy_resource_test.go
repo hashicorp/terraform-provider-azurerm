@@ -1,182 +1,127 @@
 package firewall_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMFirewallPolicy_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
+type FirewallPolicyResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallPolicyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFirewallPolicy_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallPolicyExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccFirewallPolicy_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
+	r := FirewallPolicyResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMFirewallPolicy_complete(t *testing.T) {
+func TestAccFirewallPolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
+	r := FirewallPolicyResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallPolicyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFirewallPolicy_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallPolicyExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMFirewallPolicy_update(t *testing.T) {
+func TestAccFirewallPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
+	r := FirewallPolicyResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallPolicyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFirewallPolicy_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallPolicyExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMFirewallPolicy_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallPolicyExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMFirewallPolicy_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallPolicyExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMFirewallPolicy_requiresImport(t *testing.T) {
+func TestAccFirewallPolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
+	r := FirewallPolicyResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallPolicyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFirewallPolicy_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallPolicyExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMFirewallPolicy_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMFirewallPolicy_inherit(t *testing.T) {
+func TestAccFirewallPolicy_inherit(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
+	r := FirewallPolicyResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallPolicyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFirewallPolicy_inherit(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallPolicyExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.inherit(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMFirewallPolicyExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Firewall.FirewallPolicyClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Firewall Policy not found: %s", resourceName)
-		}
-
-		id, err := parse.FirewallPolicyID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name, ""); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Firewall Policy %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
-			}
-			return fmt.Errorf("Getting on Network.FirewallPolicies: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMFirewallPolicyDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Firewall.FirewallPolicyClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_firewall_policy" {
-			continue
-		}
-
-		id, err := parse.FirewallPolicyID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
-		if err == nil {
-			return fmt.Errorf("Network.FirewallPolicies still exists")
-		}
-		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Getting on Network.FirewallPolicies: %+v", err)
-		}
-
-		return nil
+func (FirewallPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	var id, err = parse.FirewallPolicyID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Firewall.FirewallPolicyClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
+	}
+
+	return utils.Bool(resp.FirewallPolicyPropertiesFormat != nil), nil
 }
 
-func testAccAzureRMFirewallPolicy_basic(data acceptance.TestData) string {
-	template := testAccAzureRMFirewallPolicy_template(data)
+func (FirewallPolicyResource) basic(data acceptance.TestData) string {
+	template := FirewallPolicyResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -188,8 +133,8 @@ resource "azurerm_firewall_policy" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMFirewallPolicy_complete(data acceptance.TestData) string {
-	template := testAccAzureRMFirewallPolicy_template(data)
+func (FirewallPolicyResource) complete(data acceptance.TestData) string {
+	template := FirewallPolicyResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -213,8 +158,8 @@ resource "azurerm_firewall_policy" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMFirewallPolicy_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMFirewallPolicy_basic(data)
+func (FirewallPolicyResource) requiresImport(data acceptance.TestData) string {
+	template := FirewallPolicyResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -226,8 +171,8 @@ resource "azurerm_firewall_policy" "import" {
 `, template)
 }
 
-func testAccAzureRMFirewallPolicy_inherit(data acceptance.TestData) string {
-	template := testAccAzureRMFirewallPolicy_template(data)
+func (FirewallPolicyResource) inherit(data acceptance.TestData) string {
+	template := FirewallPolicyResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -257,7 +202,7 @@ resource "azurerm_firewall_policy" "test" {
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMFirewallPolicy_template(data acceptance.TestData) string {
+func (FirewallPolicyResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

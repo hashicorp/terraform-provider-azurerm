@@ -47,11 +47,11 @@ var hdInsightHadoopClusterZookeeperNodeDefinition = HDInsightNodeDefinition{
 	FixedTargetInstanceCount: utils.Int32(int32(3)),
 }
 
-func resourceArmHDInsightHadoopCluster() *schema.Resource {
+func resourceHDInsightHadoopCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmHDInsightHadoopClusterCreate,
-		Read:   resourceArmHDInsightHadoopClusterRead,
-		Update: hdinsightClusterUpdate("Hadoop", resourceArmHDInsightHadoopClusterRead),
+		Create: resourceHDInsightHadoopClusterCreate,
+		Read:   resourceHDInsightHadoopClusterRead,
+		Update: hdinsightClusterUpdate("Hadoop", resourceHDInsightHadoopClusterRead),
 		Delete: hdinsightClusterDelete("Hadoop"),
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -173,7 +173,7 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 	}
 }
 
-func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HDInsight.ClustersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
@@ -306,10 +306,10 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 		}
 	}
 
-	return resourceArmHDInsightHadoopClusterRead(d, meta)
+	return resourceHDInsightHadoopClusterRead(d, meta)
 }
 
-func resourceArmHDInsightHadoopClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceHDInsightHadoopClusterRead(d *schema.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
 	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient

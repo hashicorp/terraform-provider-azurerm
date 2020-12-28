@@ -39,7 +39,8 @@ resource "azurerm_function_app" "main" {
   resource_group_name       = azurerm_resource_group.main.name
   location                  = azurerm_resource_group.main.location
   app_service_plan_id       = azurerm_app_service_plan.main.id
-  storage_connection_string = azurerm_storage_account.main.primary_connection_string
+  storage_account_name      = azurerm_storage_account.main.name
+  storage_account_access_key = azurerm_storage_account.main.primary_access_key
 
   app_settings = {
     AppInsights_InstrumentationKey = azurerm_application_insights.main.instrumentation_key

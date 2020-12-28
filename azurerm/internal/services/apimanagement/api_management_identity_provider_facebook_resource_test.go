@@ -1,134 +1,95 @@
 package apimanagement_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMApiManagementIdentityProviderFacebook_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_facebook", "test")
-	config := testAccAzureRMApiManagementIdentityProviderFacebook_basic(data)
+type ApiManagementIdentityProviderFacebookResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderFacebookDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementIdentityProviderFacebookExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("app_secret"),
+func TestAccApiManagementIdentityProviderFacebook_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_facebook", "test")
+	r := ApiManagementIdentityProviderFacebookResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("app_secret"),
 	})
 }
 
-func TestAccAzureRMApiManagementIdentityProviderFacebook_update(t *testing.T) {
+func TestAccApiManagementIdentityProviderFacebook_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_facebook", "test")
-	config := testAccAzureRMApiManagementIdentityProviderFacebook_basic(data)
-	updateConfig := testAccAzureRMApiManagementIdentityProviderFacebook_update(data)
+	r := ApiManagementIdentityProviderFacebookResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderFacebookDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementIdentityProviderFacebookExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "app_id", "00000000000000000000000000000000"),
-				),
-			},
-			data.ImportStep("app_secret"),
-			{
-				Config: updateConfig,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementIdentityProviderFacebookExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "app_id", "11111111111111111111111111111111"),
-				),
-			},
-			data.ImportStep("app_secret"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_id").HasValue("00000000000000000000000000000000"),
+			),
 		},
+		data.ImportStep("app_secret"),
+		{
+			Config: r.update(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("app_id").HasValue("11111111111111111111111111111111"),
+			),
+		},
+		data.ImportStep("app_secret"),
 	})
 }
 
-func TestAccAzureRMApiManagementIdentityProviderFacebook_requiresImport(t *testing.T) {
+func TestAccApiManagementIdentityProviderFacebook_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_facebook", "test")
+	r := ApiManagementIdentityProviderFacebookResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderFacebookDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementIdentityProviderFacebook_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementIdentityProviderFacebookExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMApiManagementIdentityProviderFacebook_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckAzureRMApiManagementIdentityProviderFacebookDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.IdentityProviderClient
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_api_management_identity_provider_facebook" {
-			continue
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		resp, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.Facebook)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return err
-			}
-		}
-
-		return nil
+func (t ApiManagementIdentityProviderFacebookResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-	return nil
-}
+	resourceGroup := id.ResourceGroup
+	serviceName := id.Path["service"]
+	identityProviderName := id.Path["identityProviders"]
 
-func testCheckAzureRMApiManagementIdentityProviderFacebookExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.IdentityProviderClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		resp, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.Facebook)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: API Management Identity Provider %q (Resource Group %q / API Management Service %q) does not exist", apimanagement.Facebook, resourceGroup, serviceName)
-			}
-			return fmt.Errorf("Bad: Get on apiManagementIdentityProviderClient: %+v", err)
-		}
-
-		return nil
+	resp, err := clients.ApiManagement.IdentityProviderClient.Get(ctx, resourceGroup, serviceName, apimanagement.IdentityProviderType(identityProviderName))
+	if err != nil {
+		return nil, fmt.Errorf("reading ApiManagement Identity Provider Facebook (%s): %+v", id, err)
 	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMApiManagementIdentityProviderFacebook_basic(data acceptance.TestData) string {
+func (ApiManagementIdentityProviderFacebookResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -157,7 +118,7 @@ resource "azurerm_api_management_identity_provider_facebook" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementIdentityProviderFacebook_update(data acceptance.TestData) string {
+func (ApiManagementIdentityProviderFacebookResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -186,8 +147,7 @@ resource "azurerm_api_management_identity_provider_facebook" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementIdentityProviderFacebook_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementIdentityProviderFacebook_basic(data)
+func (r ApiManagementIdentityProviderFacebookResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -197,5 +157,5 @@ resource "azurerm_api_management_identity_provider_facebook" "import" {
   app_id              = azurerm_api_management_identity_provider_facebook.test.app_id
   app_secret          = azurerm_api_management_identity_provider_facebook.test.app_secret
 }
-`, template)
+`, r.basic(data))
 }

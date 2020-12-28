@@ -36,7 +36,6 @@ resource "azurerm_data_factory_linked_service_azure_file_storage" "example" {
   resource_group_name = azurerm_resource_group.example.name
   data_factory_name   = azurerm_data_factory.example.name
   connection_string   = data.azurerm_storage_account.example.primary_connection_string
-
 }
 ```
 
@@ -63,6 +62,8 @@ The following supported arguments are common across all Azure Data Factory Linke
 The following supported arguments are specific to Azure File Storage Linked Service:
 
 * `connection_string` - (Required) The connection string.
+
+* `file_share` - (Optional) The name of the file share.
 
 ## Attributes Reference
 
