@@ -182,7 +182,6 @@ func resourceKeyVault() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
-				ValidateFunc: validatealwaystrue
 			},
 
 			"soft_delete_retention_days": {
