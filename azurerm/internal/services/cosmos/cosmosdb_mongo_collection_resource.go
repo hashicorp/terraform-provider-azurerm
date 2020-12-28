@@ -322,9 +322,11 @@ func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interfa
 			}
 			accountIsVersion36 := false
 			if accProps := accResp.DatabaseAccountGetProperties; accProps != nil {
-				for _, v := range *accProps.Capabilities {
-					if *v.Name == "EnableMongo" {
-						accountIsVersion36 = true
+				if capabilities := accProps.Capabilities; capabilities != nil {
+					for _, v := range *capabilities {
+						if v.Name != nil && *v.Name == "EnableMongo" {
+							accountIsVersion36 = true
+						}
 					}
 				}
 			}
