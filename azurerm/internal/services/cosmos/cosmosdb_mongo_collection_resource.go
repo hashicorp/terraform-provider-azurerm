@@ -307,7 +307,6 @@ func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interfa
 	if err != nil {
 		return fmt.Errorf("reading Cosmos Account %q : %+v", id.DatabaseAccountName, err)
 	}
-	d.Set("database_name", id.MongodbDatabaseName)
 	if props := resp.MongoDBCollectionGetProperties; props != nil {
 		if res := props.Resource; res != nil {
 			d.Set("name", res.ID)
