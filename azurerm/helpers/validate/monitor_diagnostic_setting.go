@@ -12,12 +12,9 @@ func MonitorDiagnosticSettingName(v interface{}, k string) (warnings []string, e
 			"characters <, >, *, %%, &, :, \\, ?, +, / are not allowed in %q: %q", k, value))
 	}
 
-	if len(value) < 1 {
-		errors = append(errors, fmt.Errorf("%q must be longer than 0 characters: %q %d", k, value, len(value)))
-	}
-
-	if len(value) > 260 {
-		errors = append(errors, fmt.Errorf("%q cannot be longer than 260 characters: %q %d", k, value, len(value)))
+	if len(value) < 1 || len(value) > 260 {
+		errors = append(errors, fmt.Errorf(
+			"%q must be between 1 and 260 characters: %q", k, value))
 	}
 
 	return warnings, errors
