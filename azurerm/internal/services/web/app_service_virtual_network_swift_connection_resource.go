@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAppServiceVirtualNetworkSwiftConnection() *schema.Resource {
+func resourceAppServiceVirtualNetworkSwiftConnection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAppServiceVirtualNetworkSwiftConnectionCreateUpdate,
-		Read:   resourceArmAppServiceVirtualNetworkSwiftConnectionRead,
-		Update: resourceArmAppServiceVirtualNetworkSwiftConnectionCreateUpdate,
-		Delete: resourceArmAppServiceVirtualNetworkSwiftConnectionDelete,
+		Create: resourceAppServiceVirtualNetworkSwiftConnectionCreateUpdate,
+		Read:   resourceAppServiceVirtualNetworkSwiftConnectionRead,
+		Update: resourceAppServiceVirtualNetworkSwiftConnectionCreateUpdate,
+		Delete: resourceAppServiceVirtualNetworkSwiftConnectionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -50,7 +50,7 @@ func resourceArmAppServiceVirtualNetworkSwiftConnection() *schema.Resource {
 	}
 }
 
-func resourceArmAppServiceVirtualNetworkSwiftConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceVirtualNetworkSwiftConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -112,10 +112,10 @@ func resourceArmAppServiceVirtualNetworkSwiftConnectionCreateUpdate(d *schema.Re
 	}
 	d.SetId(*read.ID)
 
-	return resourceArmAppServiceVirtualNetworkSwiftConnectionRead(d, meta)
+	return resourceAppServiceVirtualNetworkSwiftConnectionRead(d, meta)
 }
 
-func resourceArmAppServiceVirtualNetworkSwiftConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceVirtualNetworkSwiftConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -156,7 +156,7 @@ func resourceArmAppServiceVirtualNetworkSwiftConnectionRead(d *schema.ResourceDa
 	return nil
 }
 
-func resourceArmAppServiceVirtualNetworkSwiftConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceVirtualNetworkSwiftConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

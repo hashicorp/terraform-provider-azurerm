@@ -20,7 +20,7 @@ import (
 
 type FunctionAppResource struct{}
 
-func TestAccAzureRMFunctionApp_basic(t *testing.T) {
+func TestAccFunctionApp_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -29,7 +29,7 @@ func TestAccAzureRMFunctionApp_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckAzureRMFunctionAppHasNoContentShare(data.ResourceName),
+				testCheckFunctionAppHasNoContentShare(data.ResourceName),
 				check.That(data.ResourceName).Key("version").HasValue("~1"),
 				check.That(data.ResourceName).Key("outbound_ip_addresses").Exists(),
 				check.That(data.ResourceName).Key("possible_outbound_ip_addresses").Exists(),
@@ -45,7 +45,7 @@ func TestAccAzureRMFunctionApp_basic(t *testing.T) {
 }
 
 // TODO remove in 3.0
-func TestAccAzureRMFunctionApp_deprecatedConnectionString(t *testing.T) {
+func TestAccFunctionApp_deprecatedConnectionString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -61,7 +61,7 @@ func TestAccAzureRMFunctionApp_deprecatedConnectionString(t *testing.T) {
 }
 
 // TODO remove in 3.0
-func TestAccAzureRMFunctionApp_deprecatedConnectionStringMissingError(t *testing.T) {
+func TestAccFunctionApp_deprecatedConnectionStringMissingError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -74,7 +74,7 @@ func TestAccAzureRMFunctionApp_deprecatedConnectionStringMissingError(t *testing
 }
 
 // TODO remove in 3.0
-func TestAccAzureRMFunctionApp_deprecatedNeedBothSAAtrributesError(t *testing.T) {
+func TestAccFunctionApp_deprecatedNeedBothSAAtrributesError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -86,7 +86,7 @@ func TestAccAzureRMFunctionApp_deprecatedNeedBothSAAtrributesError(t *testing.T)
 	})
 }
 
-func TestAccAzureRMFunctionApp_requiresImport(t *testing.T) {
+func TestAccFunctionApp_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -95,14 +95,14 @@ func TestAccAzureRMFunctionApp_requiresImport(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckAzureRMFunctionAppHasNoContentShare(data.ResourceName),
+				testCheckFunctionAppHasNoContentShare(data.ResourceName),
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMFunctionApp_tags(t *testing.T) {
+func TestAccFunctionApp_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -119,7 +119,7 @@ func TestAccAzureRMFunctionApp_tags(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_tagsUpdate(t *testing.T) {
+func TestAccFunctionApp_tagsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -144,7 +144,7 @@ func TestAccAzureRMFunctionApp_tagsUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_appSettings(t *testing.T) {
+func TestAccFunctionApp_appSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -180,7 +180,7 @@ func TestAccAzureRMFunctionApp_appSettings(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_siteConfig(t *testing.T) {
+func TestAccFunctionApp_siteConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -196,7 +196,7 @@ func TestAccAzureRMFunctionApp_siteConfig(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_healthCheck(t *testing.T) {
+func TestAccFunctionApp_healthCheck(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -212,7 +212,7 @@ func TestAccAzureRMFunctionApp_healthCheck(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_linuxFxVersion(t *testing.T) {
+func TestAccFunctionApp_linuxFxVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -229,7 +229,7 @@ func TestAccAzureRMFunctionApp_linuxFxVersion(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_connectionStrings(t *testing.T) {
+func TestAccFunctionApp_connectionStrings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -249,7 +249,7 @@ func TestAccAzureRMFunctionApp_connectionStrings(t *testing.T) {
 }
 
 // TODO - Refactor this into more granular tests - currently fails due to race condition in a `ForceNew` step when changed to `kind = linux`
-func TestAccAzureRMFunctionApp_siteConfigMulti(t *testing.T) {
+func TestAccFunctionApp_siteConfigMulti(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -306,7 +306,7 @@ func TestAccAzureRMFunctionApp_siteConfigMulti(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_updateVersion(t *testing.T) {
+func TestAccFunctionApp_updateVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -328,7 +328,7 @@ func TestAccAzureRMFunctionApp_updateVersion(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_3264bit(t *testing.T) {
+func TestAccFunctionApp_3264bit(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -350,7 +350,7 @@ func TestAccAzureRMFunctionApp_3264bit(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_httpsOnly(t *testing.T) {
+func TestAccFunctionApp_httpsOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -365,7 +365,7 @@ func TestAccAzureRMFunctionApp_httpsOnly(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_dailyMemoryTimeQuota(t *testing.T) {
+func TestAccFunctionApp_dailyMemoryTimeQuota(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -389,7 +389,7 @@ func TestAccAzureRMFunctionApp_dailyMemoryTimeQuota(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_consumptionPlan(t *testing.T) {
+func TestAccFunctionApp_consumptionPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -398,14 +398,14 @@ func TestAccAzureRMFunctionApp_consumptionPlan(t *testing.T) {
 			Config: r.consumptionPlan(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckAzureRMFunctionAppHasContentShare(data.ResourceName),
+				testCheckFunctionAppHasContentShare(data.ResourceName),
 				check.That(data.ResourceName).Key("site_config.0.use_32_bit_worker_process").HasValue("true"),
 			),
 		},
 	})
 }
 
-func TestAccAzureRMFunctionApp_consumptionPlanUppercaseName(t *testing.T) {
+func TestAccFunctionApp_consumptionPlanUppercaseName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -414,7 +414,7 @@ func TestAccAzureRMFunctionApp_consumptionPlanUppercaseName(t *testing.T) {
 			Config: r.consumptionPlanUppercaseName(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckAzureRMFunctionAppHasContentShare(data.ResourceName),
+				testCheckFunctionAppHasContentShare(data.ResourceName),
 				check.That(data.ResourceName).Key("site_config.0.use_32_bit_worker_process").HasValue("true"),
 			),
 		},
@@ -422,7 +422,7 @@ func TestAccAzureRMFunctionApp_consumptionPlanUppercaseName(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_createIdentity(t *testing.T) {
+func TestAccFunctionApp_createIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -440,7 +440,7 @@ func TestAccAzureRMFunctionApp_createIdentity(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_updateIdentity(t *testing.T) {
+func TestAccFunctionApp_updateIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -465,7 +465,7 @@ func TestAccAzureRMFunctionApp_updateIdentity(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_userAssignedIdentity(t *testing.T) {
+func TestAccFunctionApp_userAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -495,7 +495,7 @@ func TestAccAzureRMFunctionApp_userAssignedIdentity(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_loggingDisabled(t *testing.T) {
+func TestAccFunctionApp_loggingDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -504,7 +504,7 @@ func TestAccAzureRMFunctionApp_loggingDisabled(t *testing.T) {
 			Config: r.loggingDisabled(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckAzureRMFunctionAppHasNoContentShare(data.ResourceName),
+				testCheckFunctionAppHasNoContentShare(data.ResourceName),
 				check.That(data.ResourceName).Key("enable_builtin_logging").HasValue("false"),
 			),
 		},
@@ -512,7 +512,7 @@ func TestAccAzureRMFunctionApp_loggingDisabled(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_updateLogging(t *testing.T) {
+func TestAccFunctionApp_updateLogging(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -541,7 +541,7 @@ func TestAccAzureRMFunctionApp_updateLogging(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_authSettings(t *testing.T) {
+func TestAccFunctionApp_authSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	tenantID := os.Getenv("ARM_TENANT_ID")
 	r := FunctionAppResource{}
@@ -569,7 +569,7 @@ func TestAccAzureRMFunctionApp_authSettings(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_corsSettings(t *testing.T) {
+func TestAccFunctionApp_corsSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -587,7 +587,7 @@ func TestAccAzureRMFunctionApp_corsSettings(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_enableHttp2(t *testing.T) {
+func TestAccFunctionApp_enableHttp2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -603,7 +603,7 @@ func TestAccAzureRMFunctionApp_enableHttp2(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_minTlsVersion(t *testing.T) {
+func TestAccFunctionApp_minTlsVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -619,7 +619,7 @@ func TestAccAzureRMFunctionApp_minTlsVersion(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_ftpsState(t *testing.T) {
+func TestAccFunctionApp_ftpsState(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -635,7 +635,7 @@ func TestAccAzureRMFunctionApp_ftpsState(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_preWarmedInstanceCount(t *testing.T) {
+func TestAccFunctionApp_preWarmedInstanceCount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -651,7 +651,7 @@ func TestAccAzureRMFunctionApp_preWarmedInstanceCount(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_oneIpRestriction(t *testing.T) {
+func TestAccFunctionApp_oneIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -667,7 +667,7 @@ func TestAccAzureRMFunctionApp_oneIpRestriction(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_oneVNetSubnetIpRestriction(t *testing.T) {
+func TestAccFunctionApp_oneVNetSubnetIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -682,7 +682,7 @@ func TestAccAzureRMFunctionApp_oneVNetSubnetIpRestriction(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_ipRestrictionRemoved(t *testing.T) {
+func TestAccFunctionApp_ipRestrictionRemoved(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -714,7 +714,7 @@ func TestAccAzureRMFunctionApp_ipRestrictionRemoved(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_manyIpRestrictions(t *testing.T) {
+func TestAccFunctionApp_manyIpRestrictions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -729,7 +729,7 @@ func TestAccAzureRMFunctionApp_manyIpRestrictions(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_scmUseMainIPRestriction(t *testing.T) {
+func TestAccFunctionApp_scmUseMainIPRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -744,7 +744,7 @@ func TestAccAzureRMFunctionApp_scmUseMainIPRestriction(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_scmOneIpRestriction(t *testing.T) {
+func TestAccFunctionApp_scmOneIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -759,7 +759,7 @@ func TestAccAzureRMFunctionApp_scmOneIpRestriction(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_updateStorageAccountKey(t *testing.T) {
+func TestAccFunctionApp_updateStorageAccountKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -788,7 +788,7 @@ func TestAccAzureRMFunctionApp_updateStorageAccountKey(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_withSourceControl(t *testing.T) {
+func TestAccFunctionApp_withSourceControl(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -803,7 +803,7 @@ func TestAccAzureRMFunctionApp_withSourceControl(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_sourceControlUpdate(t *testing.T) {
+func TestAccFunctionApp_sourceControlUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	r := FunctionAppResource{}
 
@@ -825,13 +825,13 @@ func TestAccAzureRMFunctionApp_sourceControlUpdate(t *testing.T) {
 	})
 }
 
-func (r FunctionAppResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r FunctionAppResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.FunctionAppID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Web.AppServicesClient.Get(ctx, id.ResourceGroup, id.SiteName)
+	resp, err := clients.Web.AppServicesClient.Get(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
@@ -847,7 +847,7 @@ func (r FunctionAppResource) Exists(ctx context.Context, client *clients.Client,
 	return utils.Bool(true), nil
 }
 
-func testCheckAzureRMFunctionAppHasContentShare(resourceName string) resource.TestCheckFunc {
+func testCheckFunctionAppHasContentShare(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServicesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -879,7 +879,7 @@ func testCheckAzureRMFunctionAppHasContentShare(resourceName string) resource.Te
 	}
 }
 
-func testCheckAzureRMFunctionAppHasNoContentShare(resourceName string) resource.TestCheckFunc {
+func testCheckFunctionAppHasNoContentShare(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServicesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext

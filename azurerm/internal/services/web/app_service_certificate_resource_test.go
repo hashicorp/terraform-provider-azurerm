@@ -16,7 +16,7 @@ import (
 
 type AppServiceCertificateResource struct{}
 
-func TestAccAzureRMAppServiceCertificate_Pfx(t *testing.T) {
+func TestAccAppServiceCertificate_Pfx(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate", "test")
 	r := AppServiceCertificateResource{}
 
@@ -32,7 +32,7 @@ func TestAccAzureRMAppServiceCertificate_Pfx(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceCertificate_PfxNoPassword(t *testing.T) {
+func TestAccAppServiceCertificate_PfxNoPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate", "test")
 	r := AppServiceCertificateResource{}
 
@@ -47,7 +47,7 @@ func TestAccAzureRMAppServiceCertificate_PfxNoPassword(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceCertificate_KeyVault(t *testing.T) {
+func TestAccAppServiceCertificate_KeyVault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate", "test")
 	r := AppServiceCertificateResource{}
 
@@ -62,13 +62,13 @@ func TestAccAzureRMAppServiceCertificate_KeyVault(t *testing.T) {
 	})
 }
 
-func (r AppServiceCertificateResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r AppServiceCertificateResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.CertificateID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Web.CertificatesClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Web.CertificatesClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
