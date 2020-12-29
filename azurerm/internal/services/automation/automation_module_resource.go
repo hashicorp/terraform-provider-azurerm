@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAutomationModule() *schema.Resource {
+func resourceAutomationModule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAutomationModuleCreateUpdate,
-		Read:   resourceArmAutomationModuleRead,
-		Update: resourceArmAutomationModuleCreateUpdate,
-		Delete: resourceArmAutomationModuleDelete,
+		Create: resourceAutomationModuleCreateUpdate,
+		Read:   resourceAutomationModuleRead,
+		Update: resourceAutomationModuleCreateUpdate,
+		Delete: resourceAutomationModuleDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -47,7 +47,7 @@ func resourceArmAutomationModule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.AutomationAccountName(),
+				ValidateFunc: validate.AutomationAccount(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -87,7 +87,7 @@ func resourceArmAutomationModule() *schema.Resource {
 	}
 }
 
-func resourceArmAutomationModuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationModuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.ModuleClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -181,10 +181,10 @@ func resourceArmAutomationModuleCreateUpdate(d *schema.ResourceData, meta interf
 
 	d.SetId(*read.ID)
 
-	return resourceArmAutomationModuleRead(d, meta)
+	return resourceAutomationModuleRead(d, meta)
 }
 
-func resourceArmAutomationModuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationModuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.ModuleClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -214,7 +214,7 @@ func resourceArmAutomationModuleRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceArmAutomationModuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationModuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.ModuleClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMonitorScheduledQueryRulesAlert() *schema.Resource {
+func resourceMonitorScheduledQueryRulesAlert() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMonitorScheduledQueryRulesAlertCreateUpdate,
-		Read:   resourceArmMonitorScheduledQueryRulesAlertRead,
-		Update: resourceArmMonitorScheduledQueryRulesAlertCreateUpdate,
-		Delete: resourceArmMonitorScheduledQueryRulesAlertDelete,
+		Create: resourceMonitorScheduledQueryRulesAlertCreateUpdate,
+		Read:   resourceMonitorScheduledQueryRulesAlertRead,
+		Update: resourceMonitorScheduledQueryRulesAlertCreateUpdate,
+		Delete: resourceMonitorScheduledQueryRulesAlertDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -200,7 +200,7 @@ func resourceArmMonitorScheduledQueryRulesAlert() *schema.Resource {
 	}
 }
 
-func resourceArmMonitorScheduledQueryRulesAlertCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	action := expandMonitorScheduledQueryRulesAlertingAction(d)
 	schedule := expandMonitorScheduledQueryRulesAlertSchedule(d)
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
@@ -279,10 +279,10 @@ func resourceArmMonitorScheduledQueryRulesAlertCreateUpdate(d *schema.ResourceDa
 	}
 	d.SetId(*read.ID)
 
-	return resourceArmMonitorScheduledQueryRulesAlertRead(d, meta)
+	return resourceMonitorScheduledQueryRulesAlertRead(d, meta)
 }
 
-func resourceArmMonitorScheduledQueryRulesAlertRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorScheduledQueryRulesAlertRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -359,7 +359,7 @@ func resourceArmMonitorScheduledQueryRulesAlertRead(d *schema.ResourceData, meta
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmMonitorScheduledQueryRulesAlertDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMonitorScheduledQueryRulesAlertDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

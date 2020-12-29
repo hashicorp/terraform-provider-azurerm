@@ -14,9 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmMySqlServer() *schema.Resource {
+func dataSourceMySqlServer() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmMySqlServerRead,
+		Read: dataSourceMySqlServerRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -26,7 +26,7 @@ func dataSourceArmMySqlServer() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.MySQLServerName,
+				ValidateFunc: validate.ServerName,
 			},
 
 			"administrator_login": {
@@ -178,7 +178,7 @@ func dataSourceArmMySqlServer() *schema.Resource {
 	}
 }
 
-func dataSourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMySqlServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.ServersClient
 	securityClient := meta.(*clients.Client).MySQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

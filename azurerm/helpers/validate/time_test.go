@@ -114,6 +114,7 @@ func TestRFC3339DateInFutureBy(t *testing.T) {
 		})
 	}
 }
+
 func TestISO8601Duration(t *testing.T) {
 	cases := []struct {
 		Value  string

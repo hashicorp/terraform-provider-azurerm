@@ -372,6 +372,16 @@ func resourceArmContainerGroup() *schema.Resource {
 											},
 										},
 									},
+
+									"secret": {
+										Type:      schema.TypeMap,
+										ForceNew:  true,
+										Optional:  true,
+										Sensitive: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
 								},
 							},
 						},
@@ -592,7 +602,6 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 	name := id.Path["containerGroups"]
 
 	resp, err := client.Get(ctx, resourceGroup, name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Container Group %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
@@ -978,15 +987,24 @@ func expandContainerVolumes(input interface{}) (*[]containerinstance.VolumeMount
 			Name: utils.String(name),
 		}
 
+		secret := expandSecrets(volumeConfig["secret"].(map[string]interface{}))
+
 		gitRepoVolume := expandGitRepoVolume(volumeConfig["git_repo"].([]interface{}))
-		if gitRepoVolume != nil {
-			if shareName != "" || storageAccountName != "" || storageAccountKey != "" {
-				return nil, nil, fmt.Errorf("only one of `git_repo` volume or `share_name`, `storage_account_name`, and `storage_account_key` can be specified")
+
+		switch {
+		case gitRepoVolume != nil:
+			if shareName != "" || storageAccountName != "" || storageAccountKey != "" || secret != nil {
+				return nil, nil, fmt.Errorf("only one of `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) can be specified")
 			}
 			cv.GitRepo = gitRepoVolume
-		} else {
+		case secret != nil:
+			if shareName != "" || storageAccountName != "" || storageAccountKey != "" {
+				return nil, nil, fmt.Errorf("only one of `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) can be specified")
+			}
+			cv.Secret = secret
+		default:
 			if shareName == "" && storageAccountName == "" && storageAccountKey == "" {
-				return nil, nil, fmt.Errorf("one of `git_repo` or `share_name`, `storage_account_name`, and `storage_account_key` must be specified")
+				return nil, nil, fmt.Errorf("only one of `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) can be specified")
 			} else if shareName == "" || storageAccountName == "" || storageAccountKey == "" {
 				return nil, nil, fmt.Errorf("when using a storage account volume, all of `share_name`, `storage_account_name`, `storage_account_key` must be specified")
 			}
@@ -1019,6 +1037,19 @@ func expandGitRepoVolume(input []interface{}) *containerinstance.GitRepoVolume {
 		gitRepoVolume.Revision = utils.String(revision)
 	}
 	return gitRepoVolume
+}
+
+func expandSecrets(secretsMap map[string]interface{}) map[string]*string {
+	if len(secretsMap) == 0 {
+		return nil
+	}
+	output := make(map[string]*string, len(secretsMap))
+
+	for name, value := range secretsMap {
+		output[name] = utils.String(value.(string))
+	}
+
+	return output
 }
 
 func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
@@ -1323,6 +1354,7 @@ func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, cont
 				if vm.Name != nil && *vm.Name == rawName {
 					storageAccountKey := cv["storage_account_key"].(string)
 					volumeConfig["storage_account_key"] = storageAccountKey
+					volumeConfig["secret"] = cv["secret"]
 				}
 			}
 		}
@@ -1509,21 +1541,21 @@ func flattenContainerGroupDnsConfig(input *containerinstance.DNSConfiguration) [
 		return make([]interface{}, 0)
 	}
 
-	//We're converting to TypeSet here from an API response that looks like "a b c" (assumes space delimited)
+	// We're converting to TypeSet here from an API response that looks like "a b c" (assumes space delimited)
 	var searchDomains []string
 	if input.SearchDomains != nil {
 		searchDomains = strings.Split(*input.SearchDomains, " ")
 	}
 	output["search_domains"] = searchDomains
 
-	//We're converting to TypeSet here from an API response that looks like "a b c" (assumes space delimited)
+	// We're converting to TypeSet here from an API response that looks like "a b c" (assumes space delimited)
 	var options []string
 	if input.Options != nil {
 		options = strings.Split(*input.Options, " ")
 	}
 	output["options"] = options
 
-	//Nameservers is already an array from the API
+	// Nameservers is already an array from the API
 	var nameservers []string
 	if input.NameServers != nil {
 		nameservers = *input.NameServers

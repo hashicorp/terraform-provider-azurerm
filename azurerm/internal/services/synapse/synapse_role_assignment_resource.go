@@ -19,11 +19,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSynapseRoleAssignment() *schema.Resource {
+func resourceSynapseRoleAssignment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSynapseRoleAssignmentCreate,
-		Read:   resourceArmSynapseRoleAssignmentRead,
-		Delete: resourceArmSynapseRoleAssignmentDelete,
+		Create: resourceSynapseRoleAssignmentCreate,
+		Read:   resourceSynapseRoleAssignmentRead,
+		Delete: resourceSynapseRoleAssignmentDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -32,7 +32,7 @@ func resourceArmSynapseRoleAssignment() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.SynapseRoleAssignmentID(id)
+			_, err := parse.RoleAssignmentID(id)
 			return err
 		}),
 
@@ -41,7 +41,7 @@ func resourceArmSynapseRoleAssignment() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.SynapseWorkspaceID,
+				ValidateFunc: validate.WorkspaceID,
 			},
 
 			"principal_id": {
@@ -65,20 +65,23 @@ func resourceArmSynapseRoleAssignment() *schema.Resource {
 	}
 }
 
-func resourceArmSynapseRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) error {
 	synapseClient := meta.(*clients.Client).Synapse
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	environment := meta.(*clients.Client).Account.Environment
 
-	workspaceId, err := parse.SynapseWorkspaceID(d.Get("synapse_workspace_id").(string))
+	workspaceId, err := parse.WorkspaceID(d.Get("synapse_workspace_id").(string))
 	if err != nil {
 		return err
 	}
 	principalID := d.Get("principal_id").(string)
 	roleName := d.Get("role_name").(string)
 
-	client := synapseClient.AccessControlClient(workspaceId.Name, environment.SynapseEndpointSuffix)
+	client, err := synapseClient.AccessControlClient(workspaceId.Name, environment.SynapseEndpointSuffix)
+	if err != nil {
+		return err
+	}
 	roleId, err := getRoleIdByName(ctx, client, roleName)
 	if err != nil {
 		return err
@@ -88,13 +91,14 @@ func resourceArmSynapseRoleAssignmentCreate(d *schema.ResourceData, meta interfa
 	listResp, err := client.GetRoleAssignments(ctx, roleId, principalID, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(listResp.Response) {
-			return fmt.Errorf("checking for present of existing Synapse Role Assignment (workspace %q): %+v", workspaceId.Name, err)
+			return fmt.Errorf("checking for presence of existing Synapse Role Assignment (workspace %q): %+v", workspaceId.Name, err)
 		}
 	}
 	if listResp.Value != nil && len(*listResp.Value) != 0 {
 		existing := (*listResp.Value)[0]
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_synapse_role_assignment", *existing.ID)
+			resourceId := parse.NewRoleAssignmentId(*workspaceId, *existing.ID).ID()
+			return tf.ImportAsExistsError("azurerm_synapse_role_assignment", resourceId)
 		}
 	}
 
@@ -112,24 +116,27 @@ func resourceArmSynapseRoleAssignmentCreate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("empty or nil ID returned for Synapse RoleAssignment %q", roleName)
 	}
 
-	id := fmt.Sprintf("%s|%s", workspaceId.String(), *resp.ID)
-	d.SetId(id)
-	return resourceArmSynapseRoleAssignmentRead(d, meta)
+	resourceId := parse.NewRoleAssignmentId(*workspaceId, *resp.ID).ID()
+	d.SetId(resourceId)
+	return resourceSynapseRoleAssignmentRead(d, meta)
 }
 
-func resourceArmSynapseRoleAssignmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseRoleAssignmentRead(d *schema.ResourceData, meta interface{}) error {
 	synapseClient := meta.(*clients.Client).Synapse
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	environment := meta.(*clients.Client).Account.Environment
 
-	id, err := parse.SynapseRoleAssignmentID(d.Id())
+	id, err := parse.RoleAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	client := synapseClient.AccessControlClient(id.Workspace.Name, environment.SynapseEndpointSuffix)
-	resp, err := client.GetRoleAssignmentByID(ctx, id.Id)
+	client, err := synapseClient.AccessControlClient(id.Workspace.Name, environment.SynapseEndpointSuffix)
+	if err != nil {
+		return err
+	}
+	resp, err := client.GetRoleAssignmentByID(ctx, id.DataPlaneAssignmentId)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] synapse role assignment %q does not exist - removing from state", d.Id())
@@ -147,24 +154,27 @@ func resourceArmSynapseRoleAssignmentRead(d *schema.ResourceData, meta interface
 		d.Set("role_name", role.Name)
 	}
 
-	d.Set("synapse_workspace_id", id.Workspace.String())
+	d.Set("synapse_workspace_id", id.Workspace.ID())
 	d.Set("principal_id", resp.PrincipalID)
 	return nil
 }
 
-func resourceArmSynapseRoleAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseRoleAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
 	synapseClient := meta.(*clients.Client).Synapse
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	environment := meta.(*clients.Client).Account.Environment
 
-	id, err := parse.SynapseRoleAssignmentID(d.Id())
+	id, err := parse.RoleAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	client := synapseClient.AccessControlClient(id.Workspace.Name, environment.SynapseEndpointSuffix)
-	if _, err := client.DeleteRoleAssignmentByID(ctx, id.Id); err != nil {
+	client, err := synapseClient.AccessControlClient(id.Workspace.Name, environment.SynapseEndpointSuffix)
+	if err != nil {
+		return err
+	}
+	if _, err := client.DeleteRoleAssignmentByID(ctx, id.DataPlaneAssignmentId); err != nil {
 		return fmt.Errorf("deleting Synapse RoleAssignment %q (workspace %q): %+v", id, id.Workspace.Name, err)
 	}
 

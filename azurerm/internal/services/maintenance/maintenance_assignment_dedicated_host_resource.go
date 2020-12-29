@@ -93,7 +93,7 @@ func resourceArmMaintenanceAssignmentDedicatedHostCreate(d *schema.ResourceData,
 
 	// It may take a few minutes after starting a VM for it to become available to assign to a configuration
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		if _, err := client.CreateOrUpdateParent(ctx, dedicatedHostId.ResourceGroup, "Microsoft.Compute", "hostGroups", dedicatedHostId.HostGroup, "hosts", dedicatedHostId.Name, assignmentName, assignment); err != nil {
+		if _, err := client.CreateOrUpdateParent(ctx, dedicatedHostId.ResourceGroup, "Microsoft.Compute", "hostGroups", dedicatedHostId.HostGroupName, "hosts", dedicatedHostId.HostName, assignmentName, assignment); err != nil {
 			if strings.Contains(err.Error(), "It may take a few minutes after starting a VM for it to become available to assign to a configuration") {
 				return resource.RetryableError(fmt.Errorf("expected VM is available to assign to a configuration but was in pending state, retrying"))
 			}
@@ -154,7 +154,7 @@ func resourceArmMaintenanceAssignmentDedicatedHostDelete(d *schema.ResourceData,
 		return err
 	}
 
-	if _, err := client.DeleteParent(ctx, id.DedicatedHostId.ResourceGroup, "Microsoft.Compute", "hostGroups", id.DedicatedHostId.HostGroup, "hosts", id.DedicatedHostId.Name, id.Name); err != nil {
+	if _, err := client.DeleteParent(ctx, id.DedicatedHostId.ResourceGroup, "Microsoft.Compute", "hostGroups", id.DedicatedHostId.HostGroupName, "hosts", id.DedicatedHostId.HostName, id.Name); err != nil {
 		return fmt.Errorf("deleting Maintenance Assignment to resource %q: %+v", id.DedicatedHostIdRaw, err)
 	}
 
@@ -162,8 +162,7 @@ func resourceArmMaintenanceAssignmentDedicatedHostDelete(d *schema.ResourceData,
 }
 
 func getMaintenanceAssignmentDedicatedHost(ctx context.Context, client *maintenance.ConfigurationAssignmentsClient, id *parseCompute.DedicatedHostId, dedicatedHostId string) (result maintenance.ConfigurationAssignment, err error) {
-	resp, err := client.ListParent(ctx, id.ResourceGroup, "Microsoft.Compute", "hostGroups", id.HostGroup, "hosts", id.Name)
-
+	resp, err := client.ListParent(ctx, id.ResourceGroup, "Microsoft.Compute", "hostGroups", id.HostGroupName, "hosts", id.HostName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
 			err = fmt.Errorf("checking for presence of existing Maintenance assignment (Dedicated Host ID %q): %+v", dedicatedHostId, err)

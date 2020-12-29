@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
@@ -15,9 +16,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmMsSqlDatabase() *schema.Resource {
+func dataSourceMsSqlDatabase() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmMsSqlDatabaseRead,
+		Read: dataSourceMsSqlDatabaseRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -33,7 +34,7 @@ func dataSourceArmMsSqlDatabase() *schema.Resource {
 			"server_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.MsSqlServerID,
+				ValidateFunc: validate.ServerID,
 			},
 
 			"collation": {
@@ -81,14 +82,14 @@ func dataSourceArmMsSqlDatabase() *schema.Resource {
 	}
 }
 
-func dataSourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	mssqlServerId := d.Get("server_id").(string)
-	serverId, err := parse.MsSqlServerID(mssqlServerId)
+	serverId, err := parse.ServerID(mssqlServerId)
 	if err != nil {
 		return err
 	}

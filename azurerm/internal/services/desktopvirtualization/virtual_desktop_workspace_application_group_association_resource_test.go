@@ -1,8 +1,8 @@
 package desktopvirtualization_test
 
 import (
+	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 	"testing"
@@ -10,173 +10,113 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociation_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_workspace_application_group_association", "test")
+type VirtualDesktopWorkspaceApplicationGroupAssociationResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociation_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociationExists(data.ResourceName),
-				),
-			},
+func TestAccVirtualDesktopWorkspaceApplicationGroupAssociation_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_workspace_application_group_association", "test")
+	r := VirtualDesktopWorkspaceApplicationGroupAssociationResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociation_complete(t *testing.T) {
+func TestAccVirtualDesktopWorkspaceApplicationGroupAssociation_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_workspace_application_group_association", "test")
+	r := VirtualDesktopWorkspaceApplicationGroupAssociationResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociation_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociationExists(data.ResourceName),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociation_update(t *testing.T) {
+func TestAccVirtualDesktopWorkspaceApplicationGroupAssociation_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_workspace_application_group_association", "test")
+	r := VirtualDesktopWorkspaceApplicationGroupAssociationResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociation_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociationExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociation_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociationExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociation_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociationExists(data.ResourceName),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociation_requiresImport(t *testing.T) {
+func TestAccVirtualDesktopWorkspaceApplicationGroupAssociation_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_workspace_application_group_association", "test")
+	r := VirtualDesktopWorkspaceApplicationGroupAssociationResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociation_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociationExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociation_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociationExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).DesktopVirtualization.WorkspacesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		toBeSplitID := rs.Primary.ID
-		splitID := strings.Split(toBeSplitID, "|")
-		if len(splitID) != 2 {
-			return fmt.Errorf("Expected ID to be in the format {workspaceID}/{applicationGroup} but got %q", toBeSplitID)
-		}
-
-		id, err := parse.DesktopVirtualizationWorkspaceID(splitID[0])
-		if err != nil {
-			return err
-		}
-
-		result, err := client.Get(ctx, id.ResourceGroup, id.Name)
-		if err == nil {
-			return nil
-		}
-
-		if result.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Virtual Desktop Workspace Application Group Association %q (Resource Group: %q) does not exist", id.Name, id.ResourceGroup)
-		}
-
-		if result.ApplicationGroupReferences == nil {
-			return fmt.Errorf("No Virtual Desktop Workspace <==> Application Group Associations exists for Workspace %q (Resource Group: %q)", id.Name, id.ResourceGroup)
-		}
-
-		output := make([]string, 0)
-		output = append(output, *result.ApplicationGroupReferences...)
-
-		if !utils.SliceContainsValue(output, splitID[1]) {
-			return fmt.Errorf("No Virtual Desktop Workspace <==> Application Group Association exists for Workspace %q and Application Group %q (Resource Group: %q)", id.Name, splitID[1], id.ResourceGroup)
-		}
-
-		return nil
+func (t VirtualDesktopWorkspaceApplicationGroupAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.WorkspaceApplicationGroupAssociationID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-}
 
-func testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociationDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).DesktopVirtualization.ApplicationGroupsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+	resp, err := clients.DesktopVirtualization.WorkspacesClient.Get(ctx, id.Workspace.ResourceGroup, id.Workspace.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Virtual Desktop Workspace Application Group Association %q (Resource Group: %q) does not exist", id.Workspace.Name, id.Workspace.ResourceGroup)
+	}
 
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_virtual_desktop_application_group" {
-			continue
-		}
+	if resp.StatusCode == http.StatusNotFound {
+		return utils.Bool(false), nil
+	}
 
-		log.Printf("[WARN] azurerm_virtual_desktop_application_group still exists in state file.")
+	if resp.WorkspaceProperties == nil || resp.ApplicationGroupReferences == nil {
+		return utils.Bool(false), nil
+	}
 
-		id, err := parse.VirtualDesktopApplicationGroupID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		result, err := client.Get(ctx, id.ResourceGroup, id.Name)
-
-		if err == nil {
-			return fmt.Errorf("Virtual Desktop Host Pool still exists:\n%#v", result)
-		}
-
-		if result.StatusCode != http.StatusNotFound {
-			return err
+	for _, app := range *resp.ApplicationGroupReferences {
+		if strings.EqualFold(app, id.ApplicationGroup.ID()) {
+			return utils.Bool(true), nil
 		}
 	}
 
-	return nil
+	return utils.Bool(false), nil
 }
 
-func testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociation_basic(data acceptance.TestData) string {
+func (VirtualDesktopWorkspaceApplicationGroupAssociationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -220,7 +160,7 @@ resource "azurerm_virtual_desktop_workspace_application_group_association" "test
 `, data.RandomInteger, data.Locations.Secondary, data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8))
 }
 
-func testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociation_complete(data acceptance.TestData) string {
+func (VirtualDesktopWorkspaceApplicationGroupAssociationResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -288,8 +228,7 @@ resource "azurerm_virtual_desktop_workspace_application_group_association" "pers
 `, data.RandomInteger, data.Locations.Secondary, data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8))
 }
 
-func testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociation_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociation_basic(data)
+func (r VirtualDesktopWorkspaceApplicationGroupAssociationResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -297,5 +236,5 @@ resource "azurerm_virtual_desktop_workspace_application_group_association" "impo
   workspace_id         = azurerm_virtual_desktop_workspace_application_group_association.test.workspace_id
   application_group_id = azurerm_virtual_desktop_workspace_application_group_association.test.application_group_id
 }
-`, template)
+`, r.basic(data))
 }

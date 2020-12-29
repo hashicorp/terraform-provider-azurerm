@@ -29,8 +29,8 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_notification_hub_authorization_rule": resourceArmNotificationHubAuthorizationRule(),
-		"azurerm_notification_hub_namespace":          resourceArmNotificationHubNamespace(),
-		"azurerm_notification_hub":                    resourceArmNotificationHub(),
+		"azurerm_notification_hub_authorization_rule": resourceNotificationHubAuthorizationRule(),
+		"azurerm_notification_hub_namespace":          resourceNotificationHubNamespace(),
+		"azurerm_notification_hub":                    resourceNotificationHub(),
 	}
 }

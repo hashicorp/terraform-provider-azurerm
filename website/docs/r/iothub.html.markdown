@@ -128,8 +128,9 @@ The following arguments are supported:
 
 * `endpoint` - (Optional) An `endpoint` block as defined below.
 
-
 * `fallback_route` - (Optional) A `fallback_route` block as defined below. If the fallback route is enabled, messages that don't match any of the supplied routes are automatically sent to this route. Defaults to messages/events.
+
+~> **NOTE:** If `fallback_route` isn't explicitly specified, the fallback route wouldn't be enabled by default.
 
 * `file_upload` - (Optional) A `file_upload` block as defined below.
 
@@ -138,6 +139,8 @@ The following arguments are supported:
 * `route` - (Optional) A `route` block as defined below.
 
 * `public_network_access_enabled` - (Optional) Is the IotHub resource accessible from a public network? 
+
+* `min_tls_version` - (Optional) Specifies the minimum TLS version to support for this hub. The only valid value is `1.2`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

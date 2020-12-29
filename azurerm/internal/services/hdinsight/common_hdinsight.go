@@ -6,10 +6,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/parse"
+
+	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -23,13 +24,13 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 		ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 		defer cancel()
 
-		id, err := azure.ParseAzureResourceID(d.Id())
+		id, err := parse.ClusterID(d.Id())
 		if err != nil {
 			return err
 		}
 
 		resourceGroup := id.ResourceGroup
-		name := id.Path["clusters"]
+		name := id.Name
 
 		if d.HasChange("tags") {
 			t := d.Get("tags").(map[string]interface{})
@@ -131,7 +132,6 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 				UserName:            utils.String(username),
 				Password:            utils.String(password),
 			})
-
 			if err != nil {
 				return err
 			}
@@ -151,13 +151,13 @@ func hdinsightClusterDelete(clusterKind string) schema.DeleteFunc {
 		ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 		defer cancel()
 
-		id, err := azure.ParseAzureResourceID(d.Id())
+		id, err := parse.ClusterID(d.Id())
 		if err != nil {
 			return err
 		}
 
 		resourceGroup := id.ResourceGroup
-		name := id.Path["clusters"]
+		name := id.Name
 
 		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
@@ -296,7 +296,6 @@ func createHDInsightEdgeNodes(ctx context.Context, client *hdinsight.Application
 
 func deleteHDInsightEdgeNodes(ctx context.Context, client *hdinsight.ApplicationsClient, resourceGroup string, name string) error {
 	future, err := client.Delete(ctx, resourceGroup, name, name)
-
 	if err != nil {
 		return fmt.Errorf("Error deleting edge nodes for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -370,7 +369,8 @@ func flattenHDInsightMonitoring(monitor hdinsight.ClusterMonitoringResponse) []i
 			map[string]string{
 				"log_analytics_workspace_id": *monitor.WorkspaceID,
 				"primary_key":                "*****",
-			}}
+			},
+		}
 	}
 
 	return nil
