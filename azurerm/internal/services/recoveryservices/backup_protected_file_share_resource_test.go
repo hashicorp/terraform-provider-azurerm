@@ -162,11 +162,7 @@ resource "azurerm_recovery_services_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
 
-  soft_delete_enabled = false
-
-  lifecycle {
-    ignore_changes = [soft_delete_enabled] // Ignore changes to prevent tests from flakiness
-  }
+  soft_delete_enabled = true
 }
 
 resource "azurerm_backup_policy_file_share" "test1" {
@@ -328,11 +324,7 @@ resource "azurerm_recovery_services_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
 
-  soft_delete_enabled = false
-
-  lifecycle {
-    ignore_changes = [soft_delete_enabled] // Ignore changes to prevent tests from flakiness
-  }
+  soft_delete_enabled = true
 }
 
 resource "azurerm_backup_policy_file_share" "test" {
