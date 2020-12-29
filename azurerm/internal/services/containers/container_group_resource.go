@@ -1353,6 +1353,10 @@ func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, cont
 						// skip storage_account_key, is always nil
 					}
 
+					if cgv.EmptyDir != nil {
+						volumeConfig["empty_dir"] = true
+					}
+
 					volumeConfig["git_repo"] = flattenGitRepoVolume(cgv.GitRepo)
 				}
 			}
