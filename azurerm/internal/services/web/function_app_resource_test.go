@@ -651,23 +651,19 @@ func TestAccFunctionApp_preWarmedInstanceCount(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_defaultPreWarmedInstanceCount(t *testing.T) {
+func TestAccAzureRMFunctionApp_computedPreWarmedInstanceCount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+	r := FunctionAppResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFunctionApp_defaultPreWarmedInstanceCount(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.pre_warmed_instance_count", "1"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.preWarmedInstanceCount(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.pre_warmed_instance_count").HasValue("1"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
