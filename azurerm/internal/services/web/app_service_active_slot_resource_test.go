@@ -1,58 +1,82 @@
 package web_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMAppServiceActiveSlot_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_app_service_active_slot", "test")
+type AppServiceActiveSlotResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+func TestAccAppServiceActiveSlot_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_active_slot", "test")
+	r := AppServiceActiveSlotResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
 		// Destroy actually does nothing so we just return nil
-		CheckDestroy: nil,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppServiceActiveSlot_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "app_service_slot_name", fmt.Sprintf("acctestASSlot-%d", data.RandomInteger)),
-				),
-			},
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("app_service_slot_name").HasValue(fmt.Sprintf("acctestASSlot-%d", data.RandomInteger)),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMAppServiceActiveSlot_update(t *testing.T) {
+func TestAccAppServiceActiveSlot_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_active_slot", "test")
+	r := AppServiceActiveSlotResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+	data.ResourceTest(t, r, []resource.TestStep{
 		// Destroy actually does nothing so we just return nil
-		CheckDestroy: nil,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppServiceActiveSlot_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "app_service_slot_name", fmt.Sprintf("acctestASSlot-%d", data.RandomInteger)),
-				),
-			},
-			{
-				Config: testAccAzureRMAppServiceActiveSlot_updated(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "app_service_slot_name", fmt.Sprintf("acctestASSlot2-%d", data.RandomInteger)),
-				),
-			},
+		{
+			Config: r.update(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("app_service_slot_name").HasValue(fmt.Sprintf("acctestASSlot-%d", data.RandomInteger)),
+			),
+		},
+		{
+			Config: r.updated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("app_service_slot_name").HasValue(fmt.Sprintf("acctestASSlot2-%d", data.RandomInteger)),
+			),
 		},
 	})
 }
 
-func testAccAzureRMAppServiceActiveSlot_basic(data acceptance.TestData) string {
+func (r AppServiceActiveSlotResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.AppServiceID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := clients.Web.AppServicesClient.Get(ctx, id.ResourceGroup, id.SiteName)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
+		}
+		return nil, fmt.Errorf("retrieving App Service %q (Resource Group %s): %+v", id.SiteName, id.ResourceGroup, err)
+	}
+
+	if resp.SiteProperties == nil || resp.SiteProperties.SlotSwapStatus == nil || resp.SiteProperties.SlotSwapStatus.SourceSlotName == nil {
+		return nil, fmt.Errorf("App Service Slot %q: SiteProperties or SlotSwapStatus or SourceSlotName is nil", id.SiteName)
+	}
+
+	target := state.Attributes["resource_group_name"]
+
+	return utils.Bool(*resp.SiteProperties.SlotSwapStatus.SourceSlotName == target), nil
+}
+
+func (AppServiceActiveSlotResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -97,7 +121,7 @@ resource "azurerm_app_service_active_slot" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceActiveSlot_update(data acceptance.TestData) string {
+func (AppServiceActiveSlotResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -150,7 +174,7 @@ resource "azurerm_app_service_active_slot" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceActiveSlot_updated(data acceptance.TestData) string {
+func (AppServiceActiveSlotResource) updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

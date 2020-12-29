@@ -24,12 +24,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAppServiceHybridConnection() *schema.Resource {
+func resourceAppServiceHybridConnection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAppServiceHybridConnectionCreateUpdate,
-		Read:   resourceArmAppServiceHybridConnectionRead,
-		Update: resourceArmAppServiceHybridConnectionCreateUpdate,
-		Delete: resourceArmAppServiceHybridConnectionDelete,
+		Create: resourceAppServiceHybridConnectionCreateUpdate,
+		Read:   resourceAppServiceHybridConnectionRead,
+		Update: resourceAppServiceHybridConnectionCreateUpdate,
+		Delete: resourceAppServiceHybridConnectionDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.HybridConnectionID(id)
@@ -108,7 +108,7 @@ func resourceArmAppServiceHybridConnection() *schema.Resource {
 	}
 }
 
-func resourceArmAppServiceHybridConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceHybridConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -158,10 +158,10 @@ func resourceArmAppServiceHybridConnectionCreateUpdate(d *schema.ResourceData, m
 	}
 	d.SetId(*hybridConnection.ID)
 
-	return resourceArmAppServiceHybridConnectionRead(d, meta)
+	return resourceAppServiceHybridConnectionRead(d, meta)
 }
 
-func resourceArmAppServiceHybridConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceHybridConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -212,7 +212,7 @@ func resourceArmAppServiceHybridConnectionRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceArmAppServiceHybridConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceHybridConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

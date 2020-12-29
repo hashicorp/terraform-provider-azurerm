@@ -20,11 +20,11 @@ import (
 
 var appServiceCustomHostnameBindingResourceName = "azurerm_app_service_custom_hostname_binding"
 
-func resourceArmAppServiceCustomHostnameBinding() *schema.Resource {
+func resourceAppServiceCustomHostnameBinding() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAppServiceCustomHostnameBindingCreate,
-		Read:   resourceArmAppServiceCustomHostnameBindingRead,
-		Delete: resourceArmAppServiceCustomHostnameBindingDelete,
+		Create: resourceAppServiceCustomHostnameBindingCreate,
+		Read:   resourceAppServiceCustomHostnameBindingRead,
+		Delete: resourceAppServiceCustomHostnameBindingDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.AppServiceCustomHostnameBindingID(id)
 			return err
@@ -79,7 +79,7 @@ func resourceArmAppServiceCustomHostnameBinding() *schema.Resource {
 	}
 }
 
-func resourceArmAppServiceCustomHostnameBindingCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceCustomHostnameBindingCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -144,10 +144,10 @@ func resourceArmAppServiceCustomHostnameBindingCreate(d *schema.ResourceData, me
 
 	d.SetId(*read.ID)
 
-	return resourceArmAppServiceCustomHostnameBindingRead(d, meta)
+	return resourceAppServiceCustomHostnameBindingRead(d, meta)
 }
 
-func resourceArmAppServiceCustomHostnameBindingRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceCustomHostnameBindingRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -180,7 +180,7 @@ func resourceArmAppServiceCustomHostnameBindingRead(d *schema.ResourceData, meta
 	return nil
 }
 
-func resourceArmAppServiceCustomHostnameBindingDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceCustomHostnameBindingDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

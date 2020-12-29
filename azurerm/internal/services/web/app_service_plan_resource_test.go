@@ -16,7 +16,7 @@ import (
 
 type AppServicePlanResource struct{}
 
-func TestAccAzureRMAppServicePlan_basicWindows(t *testing.T) {
+func TestAccAppServicePlan_basicWindows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
@@ -33,7 +33,7 @@ func TestAccAzureRMAppServicePlan_basicWindows(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServicePlan_basicLinux(t *testing.T) {
+func TestAccAppServicePlan_basicLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
@@ -56,7 +56,7 @@ func TestAccAzureRMAppServicePlan_basicLinux(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServicePlan_requiresImport(t *testing.T) {
+func TestAccAppServicePlan_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
@@ -71,7 +71,7 @@ func TestAccAzureRMAppServicePlan_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServicePlan_standardWindows(t *testing.T) {
+func TestAccAppServicePlan_standardWindows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
@@ -86,7 +86,7 @@ func TestAccAzureRMAppServicePlan_standardWindows(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServicePlan_premiumWindows(t *testing.T) {
+func TestAccAppServicePlan_premiumWindows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
@@ -101,7 +101,7 @@ func TestAccAzureRMAppServicePlan_premiumWindows(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServicePlan_premiumWindowsUpdated(t *testing.T) {
+func TestAccAppServicePlan_premiumWindowsUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
@@ -124,7 +124,7 @@ func TestAccAzureRMAppServicePlan_premiumWindowsUpdated(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServicePlan_completeWindows(t *testing.T) {
+func TestAccAppServicePlan_completeWindows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
@@ -149,7 +149,7 @@ func TestAccAzureRMAppServicePlan_completeWindows(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServicePlan_consumptionPlan(t *testing.T) {
+func TestAccAppServicePlan_consumptionPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
@@ -165,7 +165,7 @@ func TestAccAzureRMAppServicePlan_consumptionPlan(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServicePlan_linuxConsumptionPlan(t *testing.T) {
+func TestAccAppServicePlan_linuxConsumptionPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
@@ -180,7 +180,7 @@ func TestAccAzureRMAppServicePlan_linuxConsumptionPlan(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServicePlan_premiumConsumptionPlan(t *testing.T) {
+func TestAccAppServicePlan_premiumConsumptionPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
@@ -197,7 +197,7 @@ func TestAccAzureRMAppServicePlan_premiumConsumptionPlan(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServicePlan_basicWindowsContainer(t *testing.T) {
+func TestAccAppServicePlan_basicWindowsContainer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	r := AppServicePlanResource{}
 
@@ -216,13 +216,13 @@ func TestAccAzureRMAppServicePlan_basicWindowsContainer(t *testing.T) {
 	})
 }
 
-func (r AppServicePlanResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r AppServicePlanResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.AppServicePlanID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Web.AppServicePlansClient.Get(ctx, id.ResourceGroup, id.ServerfarmName)
+	resp, err := clients.Web.AppServicePlansClient.Get(ctx, id.ResourceGroup, id.ServerfarmName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil

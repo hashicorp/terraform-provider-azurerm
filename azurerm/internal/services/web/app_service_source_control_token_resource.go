@@ -18,12 +18,12 @@ import (
 
 var appServiceSourceControlTokenResourceName = "azurerm_app_service_source_control_token"
 
-func resourceArmAppServiceSourceControlToken() *schema.Resource {
+func resourceAppServiceSourceControlToken() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAppServiceSourceControlTokenCreateUpdate,
-		Read:   resourceArmAppServiceSourceControlTokenRead,
-		Update: resourceArmAppServiceSourceControlTokenCreateUpdate,
-		Delete: resourceArmAppServiceSourceControlTokenDelete,
+		Create: resourceAppServiceSourceControlTokenCreateUpdate,
+		Read:   resourceAppServiceSourceControlTokenRead,
+		Update: resourceAppServiceSourceControlTokenCreateUpdate,
+		Delete: resourceAppServiceSourceControlTokenDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := validate.SourceControlTokenName()(id, "id")
 			if len(err) > 0 {
@@ -64,7 +64,7 @@ func resourceArmAppServiceSourceControlToken() *schema.Resource {
 	}
 }
 
-func resourceArmAppServiceSourceControlTokenCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceSourceControlTokenCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.BaseClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -99,10 +99,10 @@ func resourceArmAppServiceSourceControlTokenCreateUpdate(d *schema.ResourceData,
 
 	d.SetId(*read.Name)
 
-	return resourceArmAppServiceSourceControlTokenRead(d, meta)
+	return resourceAppServiceSourceControlTokenRead(d, meta)
 }
 
-func resourceArmAppServiceSourceControlTokenRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceSourceControlTokenRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.BaseClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -128,7 +128,7 @@ func resourceArmAppServiceSourceControlTokenRead(d *schema.ResourceData, meta in
 	return nil
 }
 
-func resourceArmAppServiceSourceControlTokenDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceSourceControlTokenDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.BaseClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

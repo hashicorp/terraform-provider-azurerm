@@ -19,7 +19,7 @@ import (
 
 type AppServiceResource struct{}
 
-func TestAccAzureRMAppService_basic(t *testing.T) {
+func TestAccAppService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -39,7 +39,7 @@ func TestAccAzureRMAppService_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_requiresImport(t *testing.T) {
+func TestAccAppService_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -54,7 +54,7 @@ func TestAccAzureRMAppService_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_movingAppService(t *testing.T) {
+func TestAccAppService_movingAppService(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -74,7 +74,7 @@ func TestAccAzureRMAppService_movingAppService(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_freeTier(t *testing.T) {
+func TestAccAppService_freeTier(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -89,7 +89,7 @@ func TestAccAzureRMAppService_freeTier(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_sharedTier(t *testing.T) {
+func TestAccAppService_sharedTier(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -104,7 +104,7 @@ func TestAccAzureRMAppService_sharedTier(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_32Bit(t *testing.T) {
+func TestAccAppService_32Bit(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -120,7 +120,7 @@ func TestAccAzureRMAppService_32Bit(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_backup(t *testing.T) {
+func TestAccAppService_backup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -164,7 +164,7 @@ func TestAccAzureRMAppService_backup(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_http2Enabled(t *testing.T) {
+func TestAccAppService_http2Enabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -180,7 +180,7 @@ func TestAccAzureRMAppService_http2Enabled(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_alwaysOn(t *testing.T) {
+func TestAccAppService_alwaysOn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -196,7 +196,7 @@ func TestAccAzureRMAppService_alwaysOn(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_appCommandLine(t *testing.T) {
+func TestAccAppService_appCommandLine(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -212,7 +212,7 @@ func TestAccAzureRMAppService_appCommandLine(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_httpsOnly(t *testing.T) {
+func TestAccAppService_httpsOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -228,7 +228,7 @@ func TestAccAzureRMAppService_httpsOnly(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_clientCertEnabled(t *testing.T) {
+func TestAccAppService_clientCertEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -251,7 +251,7 @@ func TestAccAzureRMAppService_clientCertEnabled(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_appSettings(t *testing.T) {
+func TestAccAppService_appSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -267,7 +267,7 @@ func TestAccAzureRMAppService_appSettings(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_clientAffinityEnabled(t *testing.T) {
+func TestAccAppService_clientAffinityEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -283,7 +283,7 @@ func TestAccAzureRMAppService_clientAffinityEnabled(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_clientAffinityDisabled(t *testing.T) {
+func TestAccAppService_clientAffinityDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -299,7 +299,7 @@ func TestAccAzureRMAppService_clientAffinityDisabled(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_enableManageServiceIdentity(t *testing.T) {
+func TestAccAppService_enableManageServiceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -316,7 +316,7 @@ func TestAccAzureRMAppService_enableManageServiceIdentity(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_updateResourceByEnablingManageServiceIdentity(t *testing.T) {
+func TestAccAppService_updateResourceByEnablingManageServiceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -340,7 +340,7 @@ func TestAccAzureRMAppService_updateResourceByEnablingManageServiceIdentity(t *t
 	})
 }
 
-func TestAccAzureRMAppService_userAssignedIdentity(t *testing.T) {
+func TestAccAppService_userAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -358,7 +358,7 @@ func TestAccAzureRMAppService_userAssignedIdentity(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_clientAffinityUpdate(t *testing.T) {
+func TestAccAppService_clientAffinityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -382,7 +382,7 @@ func TestAccAzureRMAppService_clientAffinityUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_connectionStrings(t *testing.T) {
+func TestAccAppService_connectionStrings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -415,7 +415,7 @@ func TestAccAzureRMAppService_connectionStrings(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_storageAccounts(t *testing.T) {
+func TestAccAppService_storageAccounts(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -438,7 +438,7 @@ func TestAccAzureRMAppService_storageAccounts(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_oneIpv4Restriction(t *testing.T) {
+func TestAccAppService_oneIpv4Restriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -455,7 +455,7 @@ func TestAccAzureRMAppService_oneIpv4Restriction(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_oneIpv6Restriction(t *testing.T) {
+func TestAccAppService_oneIpv6Restriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -472,7 +472,7 @@ func TestAccAzureRMAppService_oneIpv6Restriction(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_completeIpRestriction(t *testing.T) {
+func TestAccAppService_completeIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -524,7 +524,7 @@ func TestAccAzureRMAppService_completeIpRestriction(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_oneVNetSubnetIpRestriction(t *testing.T) {
+func TestAccAppService_oneVNetSubnetIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -539,7 +539,7 @@ func TestAccAzureRMAppService_oneVNetSubnetIpRestriction(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_zeroedIpRestriction(t *testing.T) {
+func TestAccAppService_zeroedIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -571,7 +571,7 @@ func TestAccAzureRMAppService_zeroedIpRestriction(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_manyIpRestrictions(t *testing.T) {
+func TestAccAppService_manyIpRestrictions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -590,7 +590,7 @@ func TestAccAzureRMAppService_manyIpRestrictions(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_scmUseMainIPRestriction(t *testing.T) {
+func TestAccAppService_scmUseMainIPRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -605,7 +605,7 @@ func TestAccAzureRMAppService_scmUseMainIPRestriction(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_scmOneIpRestriction(t *testing.T) {
+func TestAccAppService_scmOneIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -620,7 +620,7 @@ func TestAccAzureRMAppService_scmOneIpRestriction(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_completeScmIpRestriction(t *testing.T) {
+func TestAccAppService_completeScmIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -649,7 +649,7 @@ func TestAccAzureRMAppService_completeScmIpRestriction(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_oneVNetSubnetScmIpRestriction(t *testing.T) {
+func TestAccAppService_oneVNetSubnetScmIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -664,7 +664,7 @@ func TestAccAzureRMAppService_oneVNetSubnetScmIpRestriction(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_zeroedScmIpRestriction(t *testing.T) {
+func TestAccAppService_zeroedScmIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -696,7 +696,7 @@ func TestAccAzureRMAppService_zeroedScmIpRestriction(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_manyScmIpRestrictions(t *testing.T) {
+func TestAccAppService_manyScmIpRestrictions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -711,7 +711,7 @@ func TestAccAzureRMAppService_manyScmIpRestrictions(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_defaultDocuments(t *testing.T) {
+func TestAccAppService_defaultDocuments(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -729,7 +729,7 @@ func TestAccAzureRMAppService_defaultDocuments(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_enabled(t *testing.T) {
+func TestAccAppService_enabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -745,7 +745,7 @@ func TestAccAzureRMAppService_enabled(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_localMySql(t *testing.T) {
+func TestAccAppService_localMySql(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -761,7 +761,7 @@ func TestAccAzureRMAppService_localMySql(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_applicationBlobStorageLogs(t *testing.T) {
+func TestAccAppService_applicationBlobStorageLogs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -791,7 +791,7 @@ func TestAccAzureRMAppService_applicationBlobStorageLogs(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_httpFileSystemLogs(t *testing.T) {
+func TestAccAppService_httpFileSystemLogs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -813,7 +813,7 @@ func TestAccAzureRMAppService_httpFileSystemLogs(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_httpBlobStorageLogs(t *testing.T) {
+func TestAccAppService_httpBlobStorageLogs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -835,7 +835,7 @@ func TestAccAzureRMAppService_httpBlobStorageLogs(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_httpFileSystemAndStorageBlobLogs(t *testing.T) {
+func TestAccAppService_httpFileSystemAndStorageBlobLogs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -850,7 +850,7 @@ func TestAccAzureRMAppService_httpFileSystemAndStorageBlobLogs(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_managedPipelineMode(t *testing.T) {
+func TestAccAppService_managedPipelineMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -866,7 +866,7 @@ func TestAccAzureRMAppService_managedPipelineMode(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_tagsUpdate(t *testing.T) {
+func TestAccAppService_tagsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -891,7 +891,7 @@ func TestAccAzureRMAppService_tagsUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_remoteDebugging(t *testing.T) {
+func TestAccAppService_remoteDebugging(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -908,7 +908,7 @@ func TestAccAzureRMAppService_remoteDebugging(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_windowsDotNet2(t *testing.T) {
+func TestAccAppService_windowsDotNet2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -924,7 +924,7 @@ func TestAccAzureRMAppService_windowsDotNet2(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_windowsDotNet4(t *testing.T) {
+func TestAccAppService_windowsDotNet4(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -940,7 +940,7 @@ func TestAccAzureRMAppService_windowsDotNet4(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_windowsDotNet5(t *testing.T) {
+func TestAccAppService_windowsDotNet5(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -956,7 +956,7 @@ func TestAccAzureRMAppService_windowsDotNet5(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_windowsDotNetUpdate(t *testing.T) {
+func TestAccAppService_windowsDotNetUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -985,7 +985,7 @@ func TestAccAzureRMAppService_windowsDotNetUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_windowsJava7Java(t *testing.T) {
+func TestAccAppService_windowsJava7Java(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1003,7 +1003,7 @@ func TestAccAzureRMAppService_windowsJava7Java(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_windowsJava8Java(t *testing.T) {
+func TestAccAppService_windowsJava8Java(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1021,7 +1021,7 @@ func TestAccAzureRMAppService_windowsJava8Java(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_windowsJava11Java(t *testing.T) {
+func TestAccAppService_windowsJava11Java(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1039,7 +1039,7 @@ func TestAccAzureRMAppService_windowsJava11Java(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_windowsJava7Jetty(t *testing.T) {
+func TestAccAppService_windowsJava7Jetty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1057,7 +1057,7 @@ func TestAccAzureRMAppService_windowsJava7Jetty(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_windowsJava8Jetty(t *testing.T) {
+func TestAccAppService_windowsJava8Jetty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1075,7 +1075,7 @@ func TestAccAzureRMAppService_windowsJava8Jetty(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_windowsJava11Jetty(t *testing.T) {
+func TestAccAppService_windowsJava11Jetty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1093,7 +1093,7 @@ func TestAccAzureRMAppService_windowsJava11Jetty(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_windowsJava7Tomcat(t *testing.T) {
+func TestAccAppService_windowsJava7Tomcat(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1111,7 +1111,7 @@ func TestAccAzureRMAppService_windowsJava7Tomcat(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_windowsJava8Tomcat(t *testing.T) {
+func TestAccAppService_windowsJava8Tomcat(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1129,7 +1129,7 @@ func TestAccAzureRMAppService_windowsJava8Tomcat(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_windowsJava11Tomcat(t *testing.T) {
+func TestAccAppService_windowsJava11Tomcat(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1147,7 +1147,7 @@ func TestAccAzureRMAppService_windowsJava11Tomcat(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_windowsJava7Minor(t *testing.T) {
+func TestAccAppService_windowsJava7Minor(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1165,7 +1165,7 @@ func TestAccAzureRMAppService_windowsJava7Minor(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_windowsJava8Minor(t *testing.T) {
+func TestAccAppService_windowsJava8Minor(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1183,7 +1183,7 @@ func TestAccAzureRMAppService_windowsJava8Minor(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_windowsPHP7(t *testing.T) {
+func TestAccAppService_windowsPHP7(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1199,7 +1199,7 @@ func TestAccAzureRMAppService_windowsPHP7(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_windowsPython(t *testing.T) {
+func TestAccAppService_windowsPython(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1215,7 +1215,7 @@ func TestAccAzureRMAppService_windowsPython(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_webSockets(t *testing.T) {
+func TestAccAppService_webSockets(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1231,7 +1231,7 @@ func TestAccAzureRMAppService_webSockets(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_scmType(t *testing.T) {
+func TestAccAppService_scmType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1249,7 +1249,7 @@ func TestAccAzureRMAppService_scmType(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_withSourceControl(t *testing.T) {
+func TestAccAppService_withSourceControl(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1264,7 +1264,7 @@ func TestAccAzureRMAppService_withSourceControl(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_withSourceControlUpdate(t *testing.T) {
+func TestAccAppService_withSourceControlUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1286,7 +1286,7 @@ func TestAccAzureRMAppService_withSourceControlUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_ftpsState(t *testing.T) {
+func TestAccAppService_ftpsState(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1302,7 +1302,7 @@ func TestAccAzureRMAppService_ftpsState(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_healthCheckPath(t *testing.T) {
+func TestAccAppService_healthCheckPath(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1319,7 +1319,7 @@ func TestAccAzureRMAppService_healthCheckPath(t *testing.T) {
 }
 
 // Note: to specify `linux_fx_version` the App Service Plan must be of `kind = "Linux"`, and `reserved = true`
-func TestAccAzureRMAppService_linuxFxVersion(t *testing.T) {
+func TestAccAppService_linuxFxVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1334,7 +1334,7 @@ func TestAccAzureRMAppService_linuxFxVersion(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_minTls(t *testing.T) {
+func TestAccAppService_minTls(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1358,7 +1358,7 @@ func TestAccAzureRMAppService_minTls(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_corsSettings(t *testing.T) {
+func TestAccAppService_corsSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1376,7 +1376,7 @@ func TestAccAzureRMAppService_corsSettings(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_authSettingsAdditionalLoginParams(t *testing.T) {
+func TestAccAppService_authSettingsAdditionalLoginParams(t *testing.T) {
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
@@ -1399,7 +1399,7 @@ func TestAccAzureRMAppService_authSettingsAdditionalLoginParams(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_authSettingsAdditionalAllowedExternalRedirectUrls(t *testing.T) {
+func TestAccAppService_authSettingsAdditionalAllowedExternalRedirectUrls(t *testing.T) {
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
@@ -1423,7 +1423,7 @@ func TestAccAzureRMAppService_authSettingsAdditionalAllowedExternalRedirectUrls(
 	})
 }
 
-func TestAccAzureRMAppService_authSettingsRuntimeVersion(t *testing.T) {
+func TestAccAppService_authSettingsRuntimeVersion(t *testing.T) {
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
@@ -1446,7 +1446,7 @@ func TestAccAzureRMAppService_authSettingsRuntimeVersion(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_authSettingsTokenRefreshExtensionHours(t *testing.T) {
+func TestAccAppService_authSettingsTokenRefreshExtensionHours(t *testing.T) {
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
@@ -1469,7 +1469,7 @@ func TestAccAzureRMAppService_authSettingsTokenRefreshExtensionHours(t *testing.
 	})
 }
 
-func TestAccAzureRMAppService_authSettingsUnauthenticatedClientAction(t *testing.T) {
+func TestAccAppService_authSettingsUnauthenticatedClientAction(t *testing.T) {
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
@@ -1492,7 +1492,7 @@ func TestAccAzureRMAppService_authSettingsUnauthenticatedClientAction(t *testing
 	})
 }
 
-func TestAccAzureRMAppService_authSettingsTokenStoreEnabled(t *testing.T) {
+func TestAccAppService_authSettingsTokenStoreEnabled(t *testing.T) {
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
@@ -1515,7 +1515,7 @@ func TestAccAzureRMAppService_authSettingsTokenStoreEnabled(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_aadAuthSettings(t *testing.T) {
+func TestAccAppService_aadAuthSettings(t *testing.T) {
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
@@ -1537,7 +1537,7 @@ func TestAccAzureRMAppService_aadAuthSettings(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_facebookAuthSettings(t *testing.T) {
+func TestAccAppService_facebookAuthSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1556,7 +1556,7 @@ func TestAccAzureRMAppService_facebookAuthSettings(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_googleAuthSettings(t *testing.T) {
+func TestAccAppService_googleAuthSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1575,7 +1575,7 @@ func TestAccAzureRMAppService_googleAuthSettings(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_microsoftAuthSettings(t *testing.T) {
+func TestAccAppService_microsoftAuthSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1594,7 +1594,7 @@ func TestAccAzureRMAppService_microsoftAuthSettings(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_twitterAuthSettings(t *testing.T) {
+func TestAccAppService_twitterAuthSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1612,7 +1612,7 @@ func TestAccAzureRMAppService_twitterAuthSettings(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_multiAuthSettings(t *testing.T) {
+func TestAccAppService_multiAuthSettings(t *testing.T) {
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
@@ -1649,7 +1649,7 @@ func TestAccAzureRMAppService_multiAuthSettings(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_basicWindowsContainer(t *testing.T) {
+func TestAccAppService_basicWindowsContainer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1667,7 +1667,7 @@ func TestAccAzureRMAppService_basicWindowsContainer(t *testing.T) {
 }
 
 // (@jackofallops) - renamed to allow filtering out long running test from AppService
-func TestAccAzureRMAppServiceEnvironment_scopeNameCheck(t *testing.T) {
+func TestAccAppServiceEnvironment_scopeNameCheck(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	r := AppServiceResource{}
 
@@ -1682,13 +1682,13 @@ func TestAccAzureRMAppServiceEnvironment_scopeNameCheck(t *testing.T) {
 	})
 }
 
-func (r AppServiceResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r AppServiceResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.AppServiceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Web.AppServicesClient.Get(ctx, id.ResourceGroup, id.SiteName)
+	resp, err := clients.Web.AppServicesClient.Get(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
