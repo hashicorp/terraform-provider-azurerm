@@ -8,6 +8,7 @@ IMPROVEMENTS:
 
 * Data Source: `azurerm_databricks_workspace` - support for the `tags` property [GH-9933]
 * `azurerm_cdn_endpoint` - only send `content_types_to_compress` and `geo_filter` to the API when actually set [GH-9902]
+* `azurerm_container_group` - support for the `volume.empty_dir` property [GH-9836]
 * `azurerm_api_management` - support `Consumption_0` for the `sku_name` property [GH-6868]
 * `azurerm_data_factory_linked_service_azure_file_storage` - support for the `file_share` property [GH-9934]
 * `azurerm_dedicated_host` - support for addtional `sku_name` values [GH-9951]
