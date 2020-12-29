@@ -657,7 +657,7 @@ func TestAccAzureRMFunctionApp_computedPreWarmedInstanceCount(t *testing.T) {
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
-			Config: r.preWarmedInstanceCount(data),
+			Config: r.computedPreWarmedInstanceCount(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.pre_warmed_instance_count").HasValue("1"),
@@ -2319,7 +2319,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMFunctionApp_defaultPreWarmedInstanceCount(data acceptance.TestData) string {
+func (r FunctionAppResource) computedPreWarmedInstanceCount(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
