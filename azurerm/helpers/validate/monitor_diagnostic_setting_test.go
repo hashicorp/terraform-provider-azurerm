@@ -2,6 +2,8 @@ package validate
 
 import (
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 )
 
 func TestMonitorDiagnosticSettingName(t *testing.T) {
@@ -18,7 +20,7 @@ func TestMonitorDiagnosticSettingName(t *testing.T) {
 			Errors: 1,
 		},
 		{
-			Name:   "abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghija",
+			Name:   acctest.RandString(261),
 			Errors: 1,
 		},
 		{
