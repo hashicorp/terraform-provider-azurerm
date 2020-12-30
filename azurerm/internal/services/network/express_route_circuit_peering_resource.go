@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -412,7 +413,7 @@ func expandExpressRouteCircuitIpv6PeeringConfig(input []interface{}) (*network.I
 	}
 	routeFilterId := v["route_filter_id"].(string)
 	if routeFilterId != "" {
-		if _, err := ParseRouteFilterID(routeFilterId); err != nil {
+		if _, err := parse.RouteFilterID(routeFilterId); err != nil {
 			return nil, err
 		}
 		peeringConfig.RouteFilter = &network.SubResource{

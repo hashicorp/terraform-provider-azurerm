@@ -101,7 +101,7 @@ func testCheckAzureRMVirtualHubSecurityPartnerProviderExists(resourceName string
 			return fmt.Errorf("Security Partner Provider not found: %s", resourceName)
 		}
 
-		id, err := parse.VirtualHubSecurityPartnerProviderID(rs.Primary.ID)
+		id, err := parse.SecurityPartnerProviderID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -126,7 +126,7 @@ func testCheckAzureRMVirtualHubSecurityPartnerProviderDestroy(s *terraform.State
 			continue
 		}
 
-		id, err := parse.VirtualHubSecurityPartnerProviderID(rs.Primary.ID)
+		id, err := parse.SecurityPartnerProviderID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

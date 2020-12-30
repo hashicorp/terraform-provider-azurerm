@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -22,7 +23,16 @@ func NewDiskEncryptionSetID(subscriptionId, resourceGroup, name string) DiskEncr
 	}
 }
 
-func (id DiskEncryptionSetId) ID(_ string) string {
+func (id DiskEncryptionSetId) String() string {
+	segments := []string{
+		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Disk Encryption Set", segmentsStr)
+}
+
+func (id DiskEncryptionSetId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/diskEncryptionSets/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
@@ -37,6 +47,14 @@ func DiskEncryptionSetID(input string) (*DiskEncryptionSetId, error) {
 	resourceId := DiskEncryptionSetId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.Name, err = id.PopSegment("diskEncryptionSets"); err != nil {

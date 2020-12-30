@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -22,7 +23,16 @@ func NewActionGroupID(subscriptionId, resourceGroup, name string) ActionGroupId 
 	}
 }
 
-func (id ActionGroupId) ID(_ string) string {
+func (id ActionGroupId) String() string {
+	segments := []string{
+		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Action Group", segmentsStr)
+}
+
+func (id ActionGroupId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/actionGroups/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
@@ -37,6 +47,14 @@ func ActionGroupID(input string) (*ActionGroupId, error) {
 	resourceId := ActionGroupId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.Name, err = id.PopSegment("actionGroups"); err != nil {

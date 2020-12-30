@@ -19,11 +19,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPostgreSQLFirewallRule() *schema.Resource {
+func resourcePostgreSQLFirewallRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPostgreSQLFirewallRuleCreate,
-		Read:   resourceArmPostgreSQLFirewallRuleRead,
-		Delete: resourceArmPostgreSQLFirewallRuleDelete,
+		Create: resourcePostgreSQLFirewallRuleCreate,
+		Read:   resourcePostgreSQLFirewallRuleRead,
+		Delete: resourcePostgreSQLFirewallRuleDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.FirewallRuleID(id)
 			return err
@@ -49,7 +49,7 @@ func resourceArmPostgreSQLFirewallRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.PostgreSQLServerName,
+				ValidateFunc: validate.ServerName,
 			},
 
 			"start_ip_address": {
@@ -69,7 +69,7 @@ func resourceArmPostgreSQLFirewallRule() *schema.Resource {
 	}
 }
 
-func resourceArmPostgreSQLFirewallRuleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLFirewallRuleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.FirewallRulesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -119,10 +119,10 @@ func resourceArmPostgreSQLFirewallRuleCreate(d *schema.ResourceData, meta interf
 
 	d.SetId(*read.ID)
 
-	return resourceArmPostgreSQLFirewallRuleRead(d, meta)
+	return resourcePostgreSQLFirewallRuleRead(d, meta)
 }
 
-func resourceArmPostgreSQLFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.FirewallRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -155,7 +155,7 @@ func resourceArmPostgreSQLFirewallRuleRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceArmPostgreSQLFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.FirewallRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

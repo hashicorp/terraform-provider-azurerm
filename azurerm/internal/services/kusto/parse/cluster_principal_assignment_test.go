@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = ClusterPrincipalAssignmentId{}
 
 func TestClusterPrincipalAssignmentIDFormatter(t *testing.T) {
-	actual := NewClusterPrincipalAssignmentID("12345678-1234-9876-4563-123456789012", "resGroup1", "cluster1", "assignment1").ID("")
+	actual := NewClusterPrincipalAssignmentID("12345678-1234-9876-4563-123456789012", "resGroup1", "cluster1", "assignment1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Kusto/Clusters/cluster1/PrincipalAssignments/assignment1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

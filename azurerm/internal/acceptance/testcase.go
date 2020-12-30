@@ -32,12 +32,26 @@ func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, s
 		PreCheck: func() { PreCheck(t) },
 		CheckDestroy: func(s *terraform.State) error {
 			client := buildClient()
-			return helpers.CheckDestroyedFunc(client, testResource, td.ResourceType, td.resourceLabel)(s)
+			return helpers.CheckDestroyedFunc(client, testResource, td.ResourceType, td.ResourceName)(s)
 		},
 		Steps: steps,
 	}
 
 	td.runAcceptanceTest(t, testCase)
+}
+
+func RunTestsInSequence(t *testing.T, tests map[string]map[string]func(t *testing.T)) {
+	for group, m := range tests {
+		m := m
+		t.Run(group, func(t *testing.T) {
+			for name, tc := range m {
+				tc := tc
+				t.Run(name, func(t *testing.T) {
+					tc(t)
+				})
+			}
+		})
+	}
 }
 
 func buildClient() *clients.Client {

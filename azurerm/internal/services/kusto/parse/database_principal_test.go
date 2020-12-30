@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = DatabasePrincipalId{}
 
 func TestDatabasePrincipalIDFormatter(t *testing.T) {
-	actual := NewDatabasePrincipalID("12345678-1234-9876-4563-123456789012", "resGroup1", "cluster1", "database1", "Viewer", "aaduser=11111111-1111-1111-1111-111111111111;22222222-2222-2222-2222-222222222222").ID("")
+	actual := NewDatabasePrincipalID("12345678-1234-9876-4563-123456789012", "resGroup1", "cluster1", "database1", "Viewer", "aaduser=11111111-1111-1111-1111-111111111111;22222222-2222-2222-2222-222222222222").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Kusto/Clusters/cluster1/Databases/database1/Role/Viewer/FQN/aaduser=11111111-1111-1111-1111-111111111111;22222222-2222-2222-2222-222222222222"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

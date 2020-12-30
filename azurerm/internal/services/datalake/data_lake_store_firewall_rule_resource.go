@@ -17,7 +17,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataLakeStoreFirewallRule() *schema.Resource {
+func resourceDataLakeStoreFirewallRule() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmDateLakeStoreAccountFirewallRuleCreateUpdate,
 		Read:   resourceArmDateLakeStoreAccountFirewallRuleRead,
@@ -39,14 +39,14 @@ func resourceArmDataLakeStoreFirewallRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DataLakeFirewallRuleName(),
+				ValidateFunc: validate.FirewallRuleName(),
 			},
 
 			"account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DataLakeAccountName(),
+				ValidateFunc: validate.AccountName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),

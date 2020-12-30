@@ -20,7 +20,7 @@ import (
 
 var apiManagementCustomDomainResourceName = "azurerm_api_management_custom_domain"
 
-func resourceArmApiManagementCustomDomain() *schema.Resource {
+func resourceApiManagementCustomDomain() *schema.Resource {
 	return &schema.Resource{
 		Create: apiManagementCustomDomainCreateUpdate,
 		Read:   apiManagementCustomDomainRead,
@@ -165,7 +165,7 @@ func apiManagementCustomDomainRead(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ApiManagementCustomDomainID(d.Id())
+	id, err := parse.CustomDomainID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -205,7 +205,7 @@ func apiManagementCustomDomainDelete(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ApiManagementCustomDomainID(d.Id())
+	id, err := parse.CustomDomainID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -43,7 +43,6 @@ func dataSourceCdnProfile() *schema.Resource {
 }
 
 func dataSourceCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Cdn.ProfilesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -64,7 +63,7 @@ func dataSourceCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	d.SetId(id.ID(subscriptionId))
+	d.SetId(id.ID())
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)

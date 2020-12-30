@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-02-15/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKustoEventHubDataConnection() *schema.Resource {
+func resourceKustoEventHubDataConnection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKustoEventHubDataConnectionCreateUpdate,
-		Read:   resourceArmKustoEventHubDataConnectionRead,
-		Update: resourceArmKustoEventHubDataConnectionCreateUpdate,
-		Delete: resourceArmKustoEventHubDataConnectionDelete,
+		Create: resourceKustoEventHubDataConnectionCreateUpdate,
+		Read:   resourceKustoEventHubDataConnectionRead,
+		Update: resourceKustoEventHubDataConnectionCreateUpdate,
+		Delete: resourceKustoEventHubDataConnectionDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -53,6 +53,17 @@ func resourceArmKustoEventHubDataConnection() *schema.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validateAzureRMKustoClusterName,
+			},
+
+			"compression": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  kusto.CompressionNone,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(kusto.CompressionGZip),
+					string(kusto.CompressionNone),
+				}, false),
 			},
 
 			"database_name": {
@@ -120,7 +131,7 @@ func resourceArmKustoEventHubDataConnection() *schema.Resource {
 	}
 }
 
-func resourceArmKustoEventHubDataConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoEventHubDataConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -180,10 +191,10 @@ func resourceArmKustoEventHubDataConnectionCreateUpdate(d *schema.ResourceData, 
 		d.SetId(*dataConnection.ID)
 	}
 
-	return resourceArmKustoEventHubDataConnectionRead(d, meta)
+	return resourceKustoEventHubDataConnectionRead(d, meta)
 }
 
-func resourceArmKustoEventHubDataConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoEventHubDataConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -218,13 +229,14 @@ func resourceArmKustoEventHubDataConnectionRead(d *schema.ResourceData, meta int
 			d.Set("table_name", props.TableName)
 			d.Set("mapping_rule_name", props.MappingRuleName)
 			d.Set("data_format", props.DataFormat)
+			d.Set("compression", props.Compression)
 		}
 	}
 
 	return nil
 }
 
-func resourceArmKustoEventHubDataConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoEventHubDataConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -303,6 +315,10 @@ func expandKustoEventHubDataConnectionProperties(d *schema.ResourceData) *kusto.
 
 	if df, ok := d.GetOk("data_format"); ok {
 		eventHubConnectionProperties.DataFormat = kusto.EventHubDataFormat(df.(string))
+	}
+
+	if compression, ok := d.GetOk("compression"); ok {
+		eventHubConnectionProperties.Compression = kusto.Compression(compression.(string))
 	}
 
 	return eventHubConnectionProperties

@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -24,7 +25,17 @@ func NewAzureActiveDirectoryAdministratorID(subscriptionId, resourceGroup, serve
 	}
 }
 
-func (id AzureActiveDirectoryAdministratorId) ID(_ string) string {
+func (id AzureActiveDirectoryAdministratorId) String() string {
+	segments := []string{
+		fmt.Sprintf("Administrator Name %q", id.AdministratorName),
+		fmt.Sprintf("Server Name %q", id.ServerName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Azure Active Directory Administrator", segmentsStr)
+}
+
+func (id AzureActiveDirectoryAdministratorId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DBforPostgreSQL/servers/%s/administrators/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServerName, id.AdministratorName)
 }
@@ -39,6 +50,14 @@ func AzureActiveDirectoryAdministratorID(input string) (*AzureActiveDirectoryAdm
 	resourceId := AzureActiveDirectoryAdministratorId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.ServerName, err = id.PopSegment("servers"); err != nil {

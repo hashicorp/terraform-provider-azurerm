@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -24,7 +25,17 @@ func NewSrvRecordID(subscriptionId, resourceGroup, dnszoneName, sRVName string) 
 	}
 }
 
-func (id SrvRecordId) ID(_ string) string {
+func (id SrvRecordId) String() string {
+	segments := []string{
+		fmt.Sprintf("S R V Name %q", id.SRVName),
+		fmt.Sprintf("Dnszone Name %q", id.DnszoneName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Srv Record", segmentsStr)
+}
+
+func (id SrvRecordId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/dnszones/%s/SRV/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DnszoneName, id.SRVName)
 }
@@ -39,6 +50,14 @@ func SrvRecordID(input string) (*SrvRecordId, error) {
 	resourceId := SrvRecordId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.DnszoneName, err = id.PopSegment("dnszones"); err != nil {

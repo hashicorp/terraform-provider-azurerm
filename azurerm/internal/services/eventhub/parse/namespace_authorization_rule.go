@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -24,7 +25,17 @@ func NewNamespaceAuthorizationRuleID(subscriptionId, resourceGroup, namespaceNam
 	}
 }
 
-func (id NamespaceAuthorizationRuleId) ID(_ string) string {
+func (id NamespaceAuthorizationRuleId) String() string {
+	segments := []string{
+		fmt.Sprintf("Authorization Rule Name %q", id.AuthorizationRuleName),
+		fmt.Sprintf("Namespace Name %q", id.NamespaceName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Namespace Authorization Rule", segmentsStr)
+}
+
+func (id NamespaceAuthorizationRuleId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.EventHub/namespaces/%s/authorizationRules/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.AuthorizationRuleName)
 }
@@ -39,6 +50,14 @@ func NamespaceAuthorizationRuleID(input string) (*NamespaceAuthorizationRuleId, 
 	resourceId := NamespaceAuthorizationRuleId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.NamespaceName, err = id.PopSegment("namespaces"); err != nil {

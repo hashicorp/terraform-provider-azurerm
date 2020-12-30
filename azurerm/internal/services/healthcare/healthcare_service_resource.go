@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmHealthcareService() *schema.Resource {
+func resourceHealthcareService() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmHealthcareServiceCreateUpdate,
-		Read:   resourceArmHealthcareServiceRead,
-		Update: resourceArmHealthcareServiceCreateUpdate,
-		Delete: resourceArmHealthcareServiceDelete,
+		Create: resourceHealthcareServiceCreateUpdate,
+		Read:   resourceHealthcareServiceRead,
+		Update: resourceHealthcareServiceCreateUpdate,
+		Delete: resourceHealthcareServiceDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -159,7 +159,7 @@ func resourceArmHealthcareService() *schema.Resource {
 	}
 }
 
-func resourceArmHealthcareServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceHealthcareServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -221,10 +221,10 @@ func resourceArmHealthcareServiceCreateUpdate(d *schema.ResourceData, meta inter
 
 	d.SetId(*read.ID)
 
-	return resourceArmHealthcareServiceRead(d, meta)
+	return resourceHealthcareServiceRead(d, meta)
 }
 
-func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceHealthcareServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -277,7 +277,7 @@ func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmHealthcareServiceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceHealthcareServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

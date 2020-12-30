@@ -21,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPostgreSQLServerKey() *schema.Resource {
+func resourcePostgreSQLServerKey() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPostgreSQLServerKeyCreateUpdate,
-		Read:   resourceArmPostgreSQLServerKeyRead,
-		Update: resourceArmPostgreSQLServerKeyCreateUpdate,
-		Delete: resourceArmPostgreSQLServerKeyDelete,
+		Create: resourcePostgreSQLServerKeyCreateUpdate,
+		Read:   resourcePostgreSQLServerKeyRead,
+		Update: resourcePostgreSQLServerKeyCreateUpdate,
+		Delete: resourcePostgreSQLServerKeyDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.ServerKeyID(id)
@@ -45,7 +45,7 @@ func resourceArmPostgreSQLServerKey() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.PostgreSQLServerID,
+				ValidateFunc: validate.ServerID,
 			},
 
 			"key_vault_key_id": {
@@ -77,7 +77,7 @@ func getPostgreSQLServerKeyName(ctx context.Context, vaultsClient *keyvault.Vaul
 	return utils.String(fmt.Sprintf("%s_%s_%s", keyVaultID.Name, keyVaultKeyID.Name, keyVaultKeyID.Version)), nil
 }
 
-func resourceArmPostgreSQLServerKeyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLServerKeyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	keysClient := meta.(*clients.Client).Postgres.ServerKeysClient
 	vaultsClient := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -137,10 +137,10 @@ func resourceArmPostgreSQLServerKeyCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	d.SetId(*resp.ID)
-	return resourceArmPostgreSQLServerKeyRead(d, meta)
+	return resourcePostgreSQLServerKeyRead(d, meta)
 }
 
-func resourceArmPostgreSQLServerKeyRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLServerKeyRead(d *schema.ResourceData, meta interface{}) error {
 	serversClient := meta.(*clients.Client).Postgres.ServersClient
 	keysClient := meta.(*clients.Client).Postgres.ServerKeysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -175,7 +175,7 @@ func resourceArmPostgreSQLServerKeyRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceArmPostgreSQLServerKeyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLServerKeyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.ServerKeysClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

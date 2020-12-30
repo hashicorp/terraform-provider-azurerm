@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-02-15/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -16,12 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKustoAttachedDatabaseConfiguration() *schema.Resource {
+func resourceKustoAttachedDatabaseConfiguration() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKustoAttachedDatabaseConfigurationCreateUpdate,
-		Read:   resourceArmKustoAttachedDatabaseConfigurationRead,
-		Update: resourceArmKustoAttachedDatabaseConfigurationCreateUpdate,
-		Delete: resourceArmKustoAttachedDatabaseConfigurationDelete,
+		Create: resourceKustoAttachedDatabaseConfigurationCreateUpdate,
+		Read:   resourceKustoAttachedDatabaseConfigurationRead,
+		Update: resourceKustoAttachedDatabaseConfigurationCreateUpdate,
+		Delete: resourceKustoAttachedDatabaseConfigurationDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -89,7 +89,7 @@ func resourceArmKustoAttachedDatabaseConfiguration() *schema.Resource {
 	}
 }
 
-func resourceArmKustoAttachedDatabaseConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoAttachedDatabaseConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.AttachedDatabaseConfigurationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -138,10 +138,10 @@ func resourceArmKustoAttachedDatabaseConfigurationCreateUpdate(d *schema.Resourc
 
 	d.SetId(*configuration.ID)
 
-	return resourceArmKustoAttachedDatabaseConfigurationRead(d, meta)
+	return resourceKustoAttachedDatabaseConfigurationRead(d, meta)
 }
 
-func resourceArmKustoAttachedDatabaseConfigurationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoAttachedDatabaseConfigurationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.AttachedDatabaseConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -178,7 +178,7 @@ func resourceArmKustoAttachedDatabaseConfigurationRead(d *schema.ResourceData, m
 	return nil
 }
 
-func resourceArmKustoAttachedDatabaseConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoAttachedDatabaseConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.AttachedDatabaseConfigurationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

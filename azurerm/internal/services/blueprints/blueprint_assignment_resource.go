@@ -61,7 +61,7 @@ func resourceBlueprintAssignment() *schema.Resource {
 			"version_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.BlueprintVersionID,
+				ValidateFunc: validate.VersionID,
 			},
 
 			"parameter_values": {

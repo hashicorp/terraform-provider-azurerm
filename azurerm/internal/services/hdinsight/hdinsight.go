@@ -636,6 +636,7 @@ func ValidateSchemaHDInsightNodeDefinitionVMSize() schema.SchemaValidateFunc {
 		"Standard_DS12_V2",
 		"Standard_DS13_V2",
 		"Standard_DS14_V2",
+		"Standard_D4a_V4",
 		"Standard_E2_V3",
 		"Standard_E4_V3",
 		"Standard_E8_V3",

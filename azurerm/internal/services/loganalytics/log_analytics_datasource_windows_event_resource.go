@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2020-03-01-preview/operationalinsights"
+	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/state"
@@ -22,12 +23,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLogAnalyticsDataSourceWindowsEvent() *schema.Resource {
+func resourceLogAnalyticsDataSourceWindowsEvent() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogAnalyticsDataSourceWindowsEventCreateUpdate,
-		Read:   resourceArmLogAnalyticsDataSourceWindowsEventRead,
-		Update: resourceArmLogAnalyticsDataSourceWindowsEventCreateUpdate,
-		Delete: resourceArmLogAnalyticsDataSourceWindowsEventDelete,
+		Create: resourceLogAnalyticsDataSourceWindowsEventCreateUpdate,
+		Read:   resourceLogAnalyticsDataSourceWindowsEventRead,
+		Update: resourceLogAnalyticsDataSourceWindowsEventCreateUpdate,
+		Delete: resourceLogAnalyticsDataSourceWindowsEventDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			_, err := parse.LogAnalyticsDataSourceID(id)
@@ -56,7 +57,7 @@ func resourceArmLogAnalyticsDataSourceWindowsEvent() *schema.Resource {
 				Required:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     ValidateAzureRmLogAnalyticsWorkspaceName,
+				ValidateFunc:     validate.LogAnalyticsWorkspaceName,
 			},
 
 			"event_log_name": {
@@ -93,7 +94,7 @@ type dataSourceWindowsEventEventType struct {
 	EventType string `json:"eventType"`
 }
 
-func resourceArmLogAnalyticsDataSourceWindowsEventCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsDataSourceWindowsEventCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.DataSourcesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -136,10 +137,10 @@ func resourceArmLogAnalyticsDataSourceWindowsEventCreateUpdate(d *schema.Resourc
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmLogAnalyticsDataSourceWindowsEventRead(d, meta)
+	return resourceLogAnalyticsDataSourceWindowsEventRead(d, meta)
 }
 
-func resourceArmLogAnalyticsDataSourceWindowsEventRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsDataSourceWindowsEventRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.DataSourcesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -181,7 +182,7 @@ func resourceArmLogAnalyticsDataSourceWindowsEventRead(d *schema.ResourceData, m
 	return nil
 }
 
-func resourceArmLogAnalyticsDataSourceWindowsEventDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsDataSourceWindowsEventDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.DataSourcesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -26,7 +27,18 @@ func NewVolumeID(subscriptionId, resourceGroup, netAppAccountName, capacityPoolN
 	}
 }
 
-func (id VolumeId) ID(_ string) string {
+func (id VolumeId) String() string {
+	segments := []string{
+		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Capacity Pool Name %q", id.CapacityPoolName),
+		fmt.Sprintf("Net App Account Name %q", id.NetAppAccountName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Volume", segmentsStr)
+}
+
+func (id VolumeId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.NetApp/netAppAccounts/%s/capacityPools/%s/volumes/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.Name)
 }
@@ -41,6 +53,14 @@ func VolumeID(input string) (*VolumeId, error) {
 	resourceId := VolumeId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SubscriptionId == "" {
+		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+	}
+
+	if resourceId.ResourceGroup == "" {
+		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.NetAppAccountName, err = id.PopSegment("netAppAccounts"); err != nil {

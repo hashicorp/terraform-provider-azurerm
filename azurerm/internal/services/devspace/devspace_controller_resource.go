@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDevSpaceController() *schema.Resource {
+func resourceDevSpaceController() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDevSpaceControllerCreate,
-		Read:   resourceArmDevSpaceControllerRead,
-		Update: resourceArmDevSpaceControllerUpdate,
-		Delete: resourceArmDevSpaceControllerDelete,
+		Create: resourceDevSpaceControllerCreate,
+		Read:   resourceDevSpaceControllerRead,
+		Update: resourceDevSpaceControllerUpdate,
+		Delete: resourceDevSpaceControllerDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -89,7 +89,7 @@ func resourceArmDevSpaceController() *schema.Resource {
 	}
 }
 
-func resourceArmDevSpaceControllerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDevSpaceControllerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevSpace.ControllersClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -149,10 +149,10 @@ func resourceArmDevSpaceControllerCreate(d *schema.ResourceData, meta interface{
 	}
 	d.SetId(*result.ID)
 
-	return resourceArmDevSpaceControllerRead(d, meta)
+	return resourceDevSpaceControllerRead(d, meta)
 }
 
-func resourceArmDevSpaceControllerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDevSpaceControllerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevSpace.ControllersClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -177,10 +177,10 @@ func resourceArmDevSpaceControllerUpdate(d *schema.ResourceData, meta interface{
 	}
 	d.SetId(*result.ID)
 
-	return resourceArmDevSpaceControllerRead(d, meta)
+	return resourceDevSpaceControllerRead(d, meta)
 }
 
-func resourceArmDevSpaceControllerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDevSpaceControllerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevSpace.ControllersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -220,7 +220,7 @@ func resourceArmDevSpaceControllerRead(d *schema.ResourceData, meta interface{})
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmDevSpaceControllerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDevSpaceControllerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevSpace.ControllersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

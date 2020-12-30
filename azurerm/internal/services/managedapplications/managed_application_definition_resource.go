@@ -45,7 +45,7 @@ func resourceManagedApplicationDefinition() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ManagedApplicationDefinitionName,
+				ValidateFunc: validate.ApplicationDefinitionName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -55,7 +55,7 @@ func resourceManagedApplicationDefinition() *schema.Resource {
 			"display_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ManagedApplicationDefinitionDisplayName,
+				ValidateFunc: validate.ApplicationDefinitionDisplayName,
 			},
 
 			"lock_level": {
@@ -100,7 +100,7 @@ func resourceManagedApplicationDefinition() *schema.Resource {
 			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.ManagedApplicationDefinitionDescription,
+				ValidateFunc: validate.ApplicationDefinitionDescription,
 			},
 
 			"main_template": {

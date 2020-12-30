@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
@@ -17,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMsSqlServerExtendedAuditingPolicy() *schema.Resource {
+func resourceMsSqlServerExtendedAuditingPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMsSqlServerExtendedAuditingPolicyCreateUpdate,
-		Read:   resourceArmMsSqlServerExtendedAuditingPolicyRead,
-		Update: resourceArmMsSqlServerExtendedAuditingPolicyCreateUpdate,
-		Delete: resourceArmMsSqlServerExtendedAuditingPolicyDelete,
+		Create: resourceMsSqlServerExtendedAuditingPolicyCreateUpdate,
+		Read:   resourceMsSqlServerExtendedAuditingPolicyRead,
+		Update: resourceMsSqlServerExtendedAuditingPolicyCreateUpdate,
+		Delete: resourceMsSqlServerExtendedAuditingPolicyDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.ServerExtendedAuditingPolicyID(id)
@@ -41,7 +42,7 @@ func resourceArmMsSqlServerExtendedAuditingPolicy() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.MsSqlServerID,
+				ValidateFunc: validate.ServerID,
 			},
 
 			"storage_endpoint": {
@@ -73,7 +74,7 @@ func resourceArmMsSqlServerExtendedAuditingPolicy() *schema.Resource {
 	}
 }
 
-func resourceArmMsSqlServerExtendedAuditingPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServerExtendedBlobAuditingPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -136,10 +137,10 @@ func resourceArmMsSqlServerExtendedAuditingPolicyCreateUpdate(d *schema.Resource
 
 	d.SetId(*read.ID)
 
-	return resourceArmMsSqlServerExtendedAuditingPolicyRead(d, meta)
+	return resourceMsSqlServerExtendedAuditingPolicyRead(d, meta)
 }
 
-func resourceArmMsSqlServerExtendedAuditingPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlServerExtendedAuditingPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServerExtendedBlobAuditingPoliciesClient
 	serverClient := meta.(*clients.Client).MSSQL.ServersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -175,7 +176,7 @@ func resourceArmMsSqlServerExtendedAuditingPolicyRead(d *schema.ResourceData, me
 	return nil
 }
 
-func resourceArmMsSqlServerExtendedAuditingPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlServerExtendedAuditingPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServerExtendedBlobAuditingPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

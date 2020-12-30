@@ -88,7 +88,11 @@ The following arguments are supported:
 
 * `cluster_name` - (Required) Specifies the name of the Kusto Cluster this data connection will be added to. Changing this forces a new resource to be created.
 
+* `compression` - (Optional) Specifies compression type for the connection. Allowed values: `GZip` and `None`. Defaults to `None`. Changing this forces a new resource to be created.
+
 * `database_name` - (Required) Specifies the name of the Kusto Database this data connection will be added to. Changing this forces a new resource to be created.
+
+* `data_format` - (Optional) Specifies the data format of the EventHub messages. Allowed values: `AVRO`, `CSV`, `JSON`, `MULTIJSON`, `PSV`, `RAW`, `SCSV`, `SINGLEJSON`, `SOHSV`, `TSV` and `TXT`
 
 * `eventhub_id` - (Required) Specifies the resource id of the EventHub this data connection will use for ingestion. Changing this forces a new resource to be created.
 
@@ -98,7 +102,6 @@ The following arguments are supported:
 
 * `mapping_rule_name` - (Optional) Specifies the mapping rule used for the message ingestion. Mapping rule must exist before resource is created.
 
-* `data_format` - (Optional) Specifies the data format of the EventHub messages. Allowed values: `AVRO`, `CSV`, `JSON`, `MULTIJSON`, `PSV`, `RAW`, `SCSV`, `SINGLEJSON`, `SOHSV`, `TSV` and `TXT`
 
 ## Attributes Reference
 
