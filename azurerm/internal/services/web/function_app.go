@@ -6,10 +6,11 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -68,6 +69,7 @@ func schemaAppServiceFunctionAppSiteConfig() *schema.Schema {
 				"pre_warmed_instance_count": {
 					Type:         schema.TypeInt,
 					Optional:     true,
+					Computed:     true,
 					ValidateFunc: validation.IntBetween(0, 10),
 				},
 
@@ -115,6 +117,11 @@ func schemaAppServiceFunctionAppSiteConfig() *schema.Schema {
 
 				// The following is only used for "slots"
 				"auto_swap_slot_name": {
+					Type:     schema.TypeString,
+					Optional: true,
+				},
+
+				"health_check_path": {
 					Type:     schema.TypeString,
 					Optional: true,
 				},
@@ -188,6 +195,11 @@ func schemaFunctionAppDataSourceSiteConfig() *schema.Schema {
 
 				"scm_use_main_ip_restriction": {
 					Type:     schema.TypeBool,
+					Computed: true,
+				},
+
+				"health_check_path": {
+					Type:     schema.TypeString,
 					Computed: true,
 				},
 			},
@@ -264,15 +276,15 @@ func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier, endp
 }
 
 func getFunctionAppServiceTier(ctx context.Context, appServicePlanId string, meta interface{}) (string, error) {
-	id, err := ParseAppServicePlanID(appServicePlanId)
+	id, err := parse.AppServicePlanID(appServicePlanId)
 	if err != nil {
 		return "", fmt.Errorf("[ERROR] Unable to parse App Service Plan ID %q: %+v", appServicePlanId, err)
 	}
 
-	log.Printf("[DEBUG] Retrieving App Service Plan %q (Resource Group %q)", id.Name, id.ResourceGroup)
+	log.Printf("[DEBUG] Retrieving App Service Plan %q (Resource Group %q)", id.ServerfarmName, id.ResourceGroup)
 
 	appServicePlansClient := meta.(*clients.Client).Web.AppServicePlansClient
-	appServicePlan, err := appServicePlansClient.Get(ctx, id.ResourceGroup, id.Name)
+	appServicePlan, err := appServicePlansClient.Get(ctx, id.ResourceGroup, id.ServerfarmName)
 	if err != nil {
 		return "", fmt.Errorf("[ERROR] Could not retrieve App Service Plan ID %q: %+v", appServicePlanId, err)
 	}
@@ -378,6 +390,10 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) (web.SiteConfig, error)
 		siteConfig.AutoSwapSlotName = utils.String(v.(string))
 	}
 
+	if v, ok := config["health_check_path"]; ok {
+		siteConfig.HealthCheckPath = utils.String(v.(string))
+	}
+
 	return siteConfig, nil
 }
 
@@ -429,6 +445,10 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 
 	if input.AutoSwapSlotName != nil {
 		result["auto_swap_slot_name"] = *input.AutoSwapSlotName
+	}
+
+	if input.HealthCheckPath != nil {
+		result["health_check_path"] = *input.HealthCheckPath
 	}
 
 	results = append(results, result)
@@ -487,4 +507,28 @@ func flattenFunctionAppSiteCredential(input *web.UserProperties) []interface{} {
 	}
 
 	return append(results, result)
+}
+
+func flattenFunctionAppIdentity(input *web.ManagedServiceIdentity) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	principalID := ""
+	if input.PrincipalID != nil {
+		principalID = *input.PrincipalID
+	}
+
+	tenantID := ""
+	if input.TenantID != nil {
+		tenantID = *input.TenantID
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"type":         string(input.Type),
+			"principal_id": principalID,
+			"tenant_id":    tenantID,
+		},
+	}
 }

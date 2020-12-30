@@ -11,17 +11,16 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMySqlDatabase() *schema.Resource {
+func resourceMySqlDatabase() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMySqlDatabaseCreate,
-		Read:   resourceArmMySqlDatabaseRead,
-		Delete: resourceArmMySqlDatabaseDelete,
+		Create: resourceMySqlDatabaseCreate,
+		Read:   resourceMySqlDatabaseRead,
+		Delete: resourceMySqlDatabaseDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -47,7 +46,7 @@ func resourceArmMySqlDatabase() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.MysqlServerServerName,
+				ValidateFunc: validate.ServerName,
 			},
 
 			"charset": {
@@ -66,7 +65,7 @@ func resourceArmMySqlDatabase() *schema.Resource {
 	}
 }
 
-func resourceArmMySqlDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMySqlDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.DatabasesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -80,7 +79,7 @@ func resourceArmMySqlDatabaseCreate(d *schema.ResourceData, meta interface{}) er
 	charset := d.Get("charset").(string)
 	collation := d.Get("collation").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -119,10 +118,10 @@ func resourceArmMySqlDatabaseCreate(d *schema.ResourceData, meta interface{}) er
 
 	d.SetId(*read.ID)
 
-	return resourceArmMySqlDatabaseRead(d, meta)
+	return resourceMySqlDatabaseRead(d, meta)
 }
 
-func resourceArmMySqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMySqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.DatabasesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -154,7 +153,7 @@ func resourceArmMySqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceArmMySqlDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMySqlDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.DatabasesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

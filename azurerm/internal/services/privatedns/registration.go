@@ -21,21 +21,21 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_private_dns_zone": dataSourceArmPrivateDnsZone(),
+		"azurerm_private_dns_zone": dataSourcePrivateDnsZone(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_private_dns_zone":                      resourceArmPrivateDnsZone(),
-		"azurerm_private_dns_a_record":                  resourceArmPrivateDnsARecord(),
-		"azurerm_private_dns_aaaa_record":               resourceArmPrivateDnsAaaaRecord(),
-		"azurerm_private_dns_cname_record":              resourceArmPrivateDnsCNameRecord(),
-		"azurerm_private_dns_mx_record":                 resourceArmPrivateDnsMxRecord(),
-		"azurerm_private_dns_ptr_record":                resourceArmPrivateDnsPtrRecord(),
-		"azurerm_private_dns_srv_record":                resourceArmPrivateDnsSrvRecord(),
-		"azurerm_private_dns_txt_record":                resourceArmPrivateDnsTxtRecord(),
-		"azurerm_private_dns_zone_virtual_network_link": resourceArmPrivateDnsZoneVirtualNetworkLink(),
+		"azurerm_private_dns_zone":                      resourcePrivateDnsZone(),
+		"azurerm_private_dns_a_record":                  resourcePrivateDnsARecord(),
+		"azurerm_private_dns_aaaa_record":               resourcePrivateDnsAaaaRecord(),
+		"azurerm_private_dns_cname_record":              resourcePrivateDnsCNameRecord(),
+		"azurerm_private_dns_mx_record":                 resourcePrivateDnsMxRecord(),
+		"azurerm_private_dns_ptr_record":                resourcePrivateDnsPtrRecord(),
+		"azurerm_private_dns_srv_record":                resourcePrivateDnsSrvRecord(),
+		"azurerm_private_dns_txt_record":                resourcePrivateDnsTxtRecord(),
+		"azurerm_private_dns_zone_virtual_network_link": resourcePrivateDnsZoneVirtualNetworkLink(),
 	}
 }

@@ -8,19 +8,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmIotHubConsumerGroup() *schema.Resource {
+func resourceIotHubConsumerGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIotHubConsumerGroupCreate,
-		Read:   resourceArmIotHubConsumerGroupRead,
-		Delete: resourceArmIotHubConsumerGroupDelete,
+		Create: resourceIotHubConsumerGroupCreate,
+		Read:   resourceIotHubConsumerGroupRead,
+		Delete: resourceIotHubConsumerGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -58,7 +57,7 @@ func resourceArmIotHubConsumerGroup() *schema.Resource {
 	}
 }
 
-func resourceArmIotHubConsumerGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubConsumerGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -72,7 +71,7 @@ func resourceArmIotHubConsumerGroupCreate(d *schema.ResourceData, meta interface
 	locks.ByName(iotHubName, IothubResourceName)
 	defer locks.UnlockByName(iotHubName, IothubResourceName)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.GetEventHubConsumerGroup(ctx, resourceGroup, iotHubName, endpointName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -100,10 +99,10 @@ func resourceArmIotHubConsumerGroupCreate(d *schema.ResourceData, meta interface
 
 	d.SetId(*read.ID)
 
-	return resourceArmIotHubConsumerGroupRead(d, meta)
+	return resourceIotHubConsumerGroupRead(d, meta)
 }
 
-func resourceArmIotHubConsumerGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubConsumerGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -135,7 +134,7 @@ func resourceArmIotHubConsumerGroupRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceArmIotHubConsumerGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubConsumerGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -153,7 +152,6 @@ func resourceArmIotHubConsumerGroupDelete(d *schema.ResourceData, meta interface
 	defer locks.UnlockByName(iotHubName, IothubResourceName)
 
 	resp, err := client.DeleteEventHubConsumerGroup(ctx, resourceGroup, iotHubName, endpointName, name)
-
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return fmt.Errorf("Error deleting Consumer Group %q (Endpoint %q / IoTHub %q / Resource Group %q): %+v", name, endpointName, iotHubName, resourceGroup, err)

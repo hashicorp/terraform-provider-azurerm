@@ -30,121 +30,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices"
 
-// ConnectionMode enumerates the values for connection mode.
-type ConnectionMode string
-
-const (
-	// All ...
-	All ConnectionMode = "All"
-	// ReadOnly ...
-	ReadOnly ConnectionMode = "ReadOnly"
-)
-
-// PossibleConnectionModeValues returns an array of possible values for the ConnectionMode const type.
-func PossibleConnectionModeValues() []ConnectionMode {
-	return []ConnectionMode{All, ReadOnly}
-}
-
-// ProvisioningState enumerates the values for provisioning state.
-type ProvisioningState string
-
-const (
-	// Deleting ...
-	Deleting ProvisioningState = "Deleting"
-	// Failed ...
-	Failed ProvisioningState = "Failed"
-	// Paused ...
-	Paused ProvisioningState = "Paused"
-	// Pausing ...
-	Pausing ProvisioningState = "Pausing"
-	// Preparing ...
-	Preparing ProvisioningState = "Preparing"
-	// Provisioning ...
-	Provisioning ProvisioningState = "Provisioning"
-	// Resuming ...
-	Resuming ProvisioningState = "Resuming"
-	// Scaling ...
-	Scaling ProvisioningState = "Scaling"
-	// Succeeded ...
-	Succeeded ProvisioningState = "Succeeded"
-	// Suspended ...
-	Suspended ProvisioningState = "Suspended"
-	// Suspending ...
-	Suspending ProvisioningState = "Suspending"
-	// Updating ...
-	Updating ProvisioningState = "Updating"
-)
-
-// PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
-func PossibleProvisioningStateValues() []ProvisioningState {
-	return []ProvisioningState{Deleting, Failed, Paused, Pausing, Preparing, Provisioning, Resuming, Scaling, Succeeded, Suspended, Suspending, Updating}
-}
-
-// SkuTier enumerates the values for sku tier.
-type SkuTier string
-
-const (
-	// Basic ...
-	Basic SkuTier = "Basic"
-	// Development ...
-	Development SkuTier = "Development"
-	// Standard ...
-	Standard SkuTier = "Standard"
-)
-
-// PossibleSkuTierValues returns an array of possible values for the SkuTier const type.
-func PossibleSkuTierValues() []SkuTier {
-	return []SkuTier{Basic, Development, Standard}
-}
-
-// State enumerates the values for state.
-type State string
-
-const (
-	// StateDeleting ...
-	StateDeleting State = "Deleting"
-	// StateFailed ...
-	StateFailed State = "Failed"
-	// StatePaused ...
-	StatePaused State = "Paused"
-	// StatePausing ...
-	StatePausing State = "Pausing"
-	// StatePreparing ...
-	StatePreparing State = "Preparing"
-	// StateProvisioning ...
-	StateProvisioning State = "Provisioning"
-	// StateResuming ...
-	StateResuming State = "Resuming"
-	// StateScaling ...
-	StateScaling State = "Scaling"
-	// StateSucceeded ...
-	StateSucceeded State = "Succeeded"
-	// StateSuspended ...
-	StateSuspended State = "Suspended"
-	// StateSuspending ...
-	StateSuspending State = "Suspending"
-	// StateUpdating ...
-	StateUpdating State = "Updating"
-)
-
-// PossibleStateValues returns an array of possible values for the State const type.
-func PossibleStateValues() []State {
-	return []State{StateDeleting, StateFailed, StatePaused, StatePausing, StatePreparing, StateProvisioning, StateResuming, StateScaling, StateSucceeded, StateSuspended, StateSuspending, StateUpdating}
-}
-
-// Status enumerates the values for status.
-type Status string
-
-const (
-	// Live ...
-	Live Status = "Live"
-)
-
-// PossibleStatusValues returns an array of possible values for the Status const type.
-func PossibleStatusValues() []Status {
-	return []Status{Live}
-}
-
 // CheckServerNameAvailabilityParameters details of server name request body.
 type CheckServerNameAvailabilityParameters struct {
 	// Name - Name for checking availability.
@@ -180,6 +65,15 @@ type GatewayDetails struct {
 	GatewayObjectID *string `json:"gatewayObjectId,omitempty"`
 	// DmtsClusterURI - READ-ONLY; Uri of the DMTS cluster.
 	DmtsClusterURI *string `json:"dmtsClusterUri,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for GatewayDetails.
+func (gd GatewayDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if gd.GatewayResourceID != nil {
+		objectMap["gatewayResourceId"] = gd.GatewayResourceID
+	}
+	return json.Marshal(objectMap)
 }
 
 // GatewayError detail of gateway errors.
@@ -227,6 +121,15 @@ type Operation struct {
 	Name *string `json:"name,omitempty"`
 	// Display - The object that represents the operation.
 	Display *OperationDisplay `json:"display,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Operation.
+func (o Operation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if o.Display != nil {
+		objectMap["display"] = o.Display
+	}
+	return json.Marshal(objectMap)
 }
 
 // OperationDisplay the object that represents the operation.
@@ -317,10 +220,15 @@ func (olr OperationListResult) IsEmpty() bool {
 	return olr.Value == nil || len(*olr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (olr OperationListResult) hasNextLink() bool {
+	return olr.NextLink != nil && len(*olr.NextLink) != 0
+}
+
 // operationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (olr OperationListResult) operationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if olr.NextLink == nil || len(to.String(olr.NextLink)) < 1 {
+	if !olr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -348,11 +256,16 @@ func (page *OperationListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.olr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.olr)
+		if err != nil {
+			return err
+		}
+		page.olr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.olr = next
 	return nil
 }
 
@@ -565,8 +478,7 @@ type ServerAdministrators struct {
 	Members *[]string `json:"members,omitempty"`
 }
 
-// ServerMutableProperties an object that represents a set of mutable Analysis Services resource
-// properties.
+// ServerMutableProperties an object that represents a set of mutable Analysis Services resource properties.
 type ServerMutableProperties struct {
 	// AsAdministrators - A collection of AS server administrators
 	AsAdministrators *ServerAdministrators `json:"asAdministrators,omitempty"`
@@ -600,6 +512,27 @@ type ServerProperties struct {
 	QuerypoolConnectionMode ConnectionMode `json:"querypoolConnectionMode,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ServerProperties.
+func (sp ServerProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sp.AsAdministrators != nil {
+		objectMap["asAdministrators"] = sp.AsAdministrators
+	}
+	if sp.BackupBlobContainerURI != nil {
+		objectMap["backupBlobContainerUri"] = sp.BackupBlobContainerURI
+	}
+	if sp.GatewayDetails != nil {
+		objectMap["gatewayDetails"] = sp.GatewayDetails
+	}
+	if sp.IPV4FirewallSettings != nil {
+		objectMap["ipV4FirewallSettings"] = sp.IPV4FirewallSettings
+	}
+	if sp.QuerypoolConnectionMode != "" {
+		objectMap["querypoolConnectionMode"] = sp.QuerypoolConnectionMode
+	}
+	return json.Marshal(objectMap)
+}
+
 // Servers an array of Analysis Services resources.
 type Servers struct {
 	autorest.Response `json:"-"`
@@ -607,8 +540,7 @@ type Servers struct {
 	Value *[]Server `json:"value,omitempty"`
 }
 
-// ServersCreateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ServersCreateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type ServersCreateFuture struct {
 	azure.Future
 }
@@ -636,8 +568,7 @@ func (future *ServersCreateFuture) Result(client ServersClient) (s Server, err e
 	return
 }
 
-// ServersDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ServersDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type ServersDeleteFuture struct {
 	azure.Future
 }
@@ -659,8 +590,7 @@ func (future *ServersDeleteFuture) Result(client ServersClient) (ar autorest.Res
 	return
 }
 
-// ServersResumeFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ServersResumeFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type ServersResumeFuture struct {
 	azure.Future
 }
@@ -682,8 +612,7 @@ func (future *ServersResumeFuture) Result(client ServersClient) (ar autorest.Res
 	return
 }
 
-// ServersSuspendFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ServersSuspendFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type ServersSuspendFuture struct {
 	azure.Future
 }
@@ -705,8 +634,7 @@ func (future *ServersSuspendFuture) Result(client ServersClient) (ar autorest.Re
 	return
 }
 
-// ServersUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ServersUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type ServersUpdateFuture struct {
 	azure.Future
 }
@@ -807,8 +735,7 @@ type SkuDetailsForExistingResource struct {
 	Sku *ResourceSku `json:"sku,omitempty"`
 }
 
-// SkuEnumerationForExistingResourceResult an object that represents enumerating SKUs for existing
-// resources.
+// SkuEnumerationForExistingResourceResult an object that represents enumerating SKUs for existing resources.
 type SkuEnumerationForExistingResourceResult struct {
 	autorest.Response `json:"-"`
 	// Value - The collection of available SKUs for existing resources.

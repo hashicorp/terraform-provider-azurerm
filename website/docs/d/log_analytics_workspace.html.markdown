@@ -42,11 +42,11 @@ The following attributes are exported:
 
 * `workspace_id` - The Workspace (or Customer) ID for the Log Analytics Workspace.
 
-* `portal_url` - The Portal URL for the Log Analytics Workspace.
-
 * `sku` - The Sku of the Log Analytics Workspace.
 
 * `retention_in_days` - The workspace data retention in days.
+
+* `daily_quota_gb` - The workspace daily quota for ingestion in GB.
 
 * `tags` - A mapping of tags assigned to the resource.
 

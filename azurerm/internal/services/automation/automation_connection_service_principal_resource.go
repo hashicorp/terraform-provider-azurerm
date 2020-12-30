@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -18,15 +18,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAutomationConnectionServicePrincipal() *schema.Resource {
+func resourceAutomationConnectionServicePrincipal() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAutomationConnectionServicePrincipalCreateUpdate,
-		Read:   resourceArmAutomationConnectionServicePrincipalRead,
-		Update: resourceArmAutomationConnectionServicePrincipalCreateUpdate,
-		Delete: resourceArmAutomationConnectionServicePrincipalDelete,
+		Create: resourceAutomationConnectionServicePrincipalCreateUpdate,
+		Read:   resourceAutomationConnectionServicePrincipalRead,
+		Update: resourceAutomationConnectionServicePrincipalCreateUpdate,
+		Delete: resourceAutomationConnectionServicePrincipalDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
-			_, err := parse.AutomationConnectionID(id)
+			_, err := parse.ConnectionID(id)
 			return err
 		}, importAutomationConnection("AzureServicePrincipal")),
 
@@ -42,7 +42,7 @@ func resourceArmAutomationConnectionServicePrincipal() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.AutomationConnectionName,
+				ValidateFunc: validate.ConnectionName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -51,7 +51,7 @@ func resourceArmAutomationConnectionServicePrincipal() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.AutomationAccountName(),
+				ValidateFunc: validate.AutomationAccount(),
 			},
 
 			"application_id": {
@@ -86,7 +86,7 @@ func resourceArmAutomationConnectionServicePrincipal() *schema.Resource {
 	}
 }
 
-func resourceArmAutomationConnectionServicePrincipalCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionServicePrincipalCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.ConnectionClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -141,20 +141,20 @@ func resourceArmAutomationConnectionServicePrincipalCreateUpdate(d *schema.Resou
 
 	d.SetId(*read.ID)
 
-	return resourceArmAutomationConnectionServicePrincipalRead(d, meta)
+	return resourceAutomationConnectionServicePrincipalRead(d, meta)
 }
 
-func resourceArmAutomationConnectionServicePrincipalRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionServicePrincipalRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.ConnectionClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AutomationConnectionID(d.Id())
+	id, err := parse.ConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -166,7 +166,7 @@ func resourceArmAutomationConnectionServicePrincipalRead(d *schema.ResourceData,
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("automation_account_name", id.AccountName)
+	d.Set("automation_account_name", id.AutomationAccountName)
 	d.Set("description", resp.Description)
 
 	if props := resp.ConnectionProperties; props != nil {
@@ -187,17 +187,17 @@ func resourceArmAutomationConnectionServicePrincipalRead(d *schema.ResourceData,
 	return nil
 }
 
-func resourceArmAutomationConnectionServicePrincipalDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionServicePrincipalDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.ConnectionClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AutomationConnectionID(d.Id())
+	id, err := parse.ConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.AccountName, id.Name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil

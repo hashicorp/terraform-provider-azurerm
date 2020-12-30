@@ -11,7 +11,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -19,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmHealthcareService() *schema.Resource {
+func resourceHealthcareService() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmHealthcareServiceCreateUpdate,
-		Read:   resourceArmHealthcareServiceRead,
-		Update: resourceArmHealthcareServiceCreateUpdate,
-		Delete: resourceArmHealthcareServiceDelete,
+		Create: resourceHealthcareServiceCreateUpdate,
+		Read:   resourceHealthcareServiceRead,
+		Update: resourceHealthcareServiceCreateUpdate,
+		Delete: resourceHealthcareServiceDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -34,7 +33,7 @@ func resourceArmHealthcareService() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.HealthcareServiceID(id)
+			_, err := parse.ServiceID(id)
 			return err
 		}),
 
@@ -138,7 +137,8 @@ func resourceArmHealthcareService() *schema.Resource {
 									"MERGE",
 									"POST",
 									"OPTIONS",
-									"PUT"}, false),
+									"PUT",
+								}, false),
 							},
 						},
 						"max_age_in_seconds": {
@@ -159,7 +159,7 @@ func resourceArmHealthcareService() *schema.Resource {
 	}
 }
 
-func resourceArmHealthcareServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceHealthcareServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -175,7 +175,7 @@ func resourceArmHealthcareServiceCreateUpdate(d *schema.ResourceData, meta inter
 	kind := d.Get("kind").(string)
 	cdba := int32(d.Get("cosmosdb_throughput").(int))
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -221,15 +221,15 @@ func resourceArmHealthcareServiceCreateUpdate(d *schema.ResourceData, meta inter
 
 	d.SetId(*read.ID)
 
-	return resourceArmHealthcareServiceRead(d, meta)
+	return resourceHealthcareServiceRead(d, meta)
 }
 
-func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceHealthcareServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.HealthcareServiceID(d.Id())
+	id, err := parse.ServiceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -277,12 +277,12 @@ func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmHealthcareServiceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceHealthcareServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HealthCare.HealthcareServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.HealthcareServiceID(d.Id())
+	id, err := parse.ServiceID(d.Id())
 	if err != nil {
 		return fmt.Errorf("Error Parsing Azure Resource ID: %+v", err)
 	}

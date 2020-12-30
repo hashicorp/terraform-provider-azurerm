@@ -31,266 +31,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/sqlvirtualmachine/mgmt/2017-03-01-preview/sqlvirtualmachine"
 
-// BackupScheduleType enumerates the values for backup schedule type.
-type BackupScheduleType string
-
-const (
-	// Automated ...
-	Automated BackupScheduleType = "Automated"
-	// Manual ...
-	Manual BackupScheduleType = "Manual"
-)
-
-// PossibleBackupScheduleTypeValues returns an array of possible values for the BackupScheduleType const type.
-func PossibleBackupScheduleTypeValues() []BackupScheduleType {
-	return []BackupScheduleType{Automated, Manual}
-}
-
-// ClusterConfiguration enumerates the values for cluster configuration.
-type ClusterConfiguration string
-
-const (
-	// Domainful ...
-	Domainful ClusterConfiguration = "Domainful"
-)
-
-// PossibleClusterConfigurationValues returns an array of possible values for the ClusterConfiguration const type.
-func PossibleClusterConfigurationValues() []ClusterConfiguration {
-	return []ClusterConfiguration{Domainful}
-}
-
-// ClusterManagerType enumerates the values for cluster manager type.
-type ClusterManagerType string
-
-const (
-	// WSFC ...
-	WSFC ClusterManagerType = "WSFC"
-)
-
-// PossibleClusterManagerTypeValues returns an array of possible values for the ClusterManagerType const type.
-func PossibleClusterManagerTypeValues() []ClusterManagerType {
-	return []ClusterManagerType{WSFC}
-}
-
-// ConnectivityType enumerates the values for connectivity type.
-type ConnectivityType string
-
-const (
-	// LOCAL ...
-	LOCAL ConnectivityType = "LOCAL"
-	// PRIVATE ...
-	PRIVATE ConnectivityType = "PRIVATE"
-	// PUBLIC ...
-	PUBLIC ConnectivityType = "PUBLIC"
-)
-
-// PossibleConnectivityTypeValues returns an array of possible values for the ConnectivityType const type.
-func PossibleConnectivityTypeValues() []ConnectivityType {
-	return []ConnectivityType{LOCAL, PRIVATE, PUBLIC}
-}
-
-// DayOfWeek enumerates the values for day of week.
-type DayOfWeek string
-
-const (
-	// Friday ...
-	Friday DayOfWeek = "Friday"
-	// Monday ...
-	Monday DayOfWeek = "Monday"
-	// Saturday ...
-	Saturday DayOfWeek = "Saturday"
-	// Sunday ...
-	Sunday DayOfWeek = "Sunday"
-	// Thursday ...
-	Thursday DayOfWeek = "Thursday"
-	// Tuesday ...
-	Tuesday DayOfWeek = "Tuesday"
-	// Wednesday ...
-	Wednesday DayOfWeek = "Wednesday"
-)
-
-// PossibleDayOfWeekValues returns an array of possible values for the DayOfWeek const type.
-func PossibleDayOfWeekValues() []DayOfWeek {
-	return []DayOfWeek{Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday}
-}
-
-// DiskConfigurationType enumerates the values for disk configuration type.
-type DiskConfigurationType string
-
-const (
-	// ADD ...
-	ADD DiskConfigurationType = "ADD"
-	// EXTEND ...
-	EXTEND DiskConfigurationType = "EXTEND"
-	// NEW ...
-	NEW DiskConfigurationType = "NEW"
-)
-
-// PossibleDiskConfigurationTypeValues returns an array of possible values for the DiskConfigurationType const type.
-func PossibleDiskConfigurationTypeValues() []DiskConfigurationType {
-	return []DiskConfigurationType{ADD, EXTEND, NEW}
-}
-
-// FullBackupFrequencyType enumerates the values for full backup frequency type.
-type FullBackupFrequencyType string
-
-const (
-	// Daily ...
-	Daily FullBackupFrequencyType = "Daily"
-	// Weekly ...
-	Weekly FullBackupFrequencyType = "Weekly"
-)
-
-// PossibleFullBackupFrequencyTypeValues returns an array of possible values for the FullBackupFrequencyType const type.
-func PossibleFullBackupFrequencyTypeValues() []FullBackupFrequencyType {
-	return []FullBackupFrequencyType{Daily, Weekly}
-}
-
-// IdentityType enumerates the values for identity type.
-type IdentityType string
-
-const (
-	// SystemAssigned ...
-	SystemAssigned IdentityType = "SystemAssigned"
-)
-
-// PossibleIdentityTypeValues returns an array of possible values for the IdentityType const type.
-func PossibleIdentityTypeValues() []IdentityType {
-	return []IdentityType{SystemAssigned}
-}
-
-// OperationOrigin enumerates the values for operation origin.
-type OperationOrigin string
-
-const (
-	// System ...
-	System OperationOrigin = "system"
-	// User ...
-	User OperationOrigin = "user"
-)
-
-// PossibleOperationOriginValues returns an array of possible values for the OperationOrigin const type.
-func PossibleOperationOriginValues() []OperationOrigin {
-	return []OperationOrigin{System, User}
-}
-
-// ScaleType enumerates the values for scale type.
-type ScaleType string
-
-const (
-	// HA ...
-	HA ScaleType = "HA"
-)
-
-// PossibleScaleTypeValues returns an array of possible values for the ScaleType const type.
-func PossibleScaleTypeValues() []ScaleType {
-	return []ScaleType{HA}
-}
-
-// SQLImageSku enumerates the values for sql image sku.
-type SQLImageSku string
-
-const (
-	// Developer ...
-	Developer SQLImageSku = "Developer"
-	// Enterprise ...
-	Enterprise SQLImageSku = "Enterprise"
-	// Express ...
-	Express SQLImageSku = "Express"
-	// Standard ...
-	Standard SQLImageSku = "Standard"
-	// Web ...
-	Web SQLImageSku = "Web"
-)
-
-// PossibleSQLImageSkuValues returns an array of possible values for the SQLImageSku const type.
-func PossibleSQLImageSkuValues() []SQLImageSku {
-	return []SQLImageSku{Developer, Enterprise, Express, Standard, Web}
-}
-
-// SQLManagementMode enumerates the values for sql management mode.
-type SQLManagementMode string
-
-const (
-	// Full ...
-	Full SQLManagementMode = "Full"
-	// LightWeight ...
-	LightWeight SQLManagementMode = "LightWeight"
-	// NoAgent ...
-	NoAgent SQLManagementMode = "NoAgent"
-)
-
-// PossibleSQLManagementModeValues returns an array of possible values for the SQLManagementMode const type.
-func PossibleSQLManagementModeValues() []SQLManagementMode {
-	return []SQLManagementMode{Full, LightWeight, NoAgent}
-}
-
-// SQLServerLicenseType enumerates the values for sql server license type.
-type SQLServerLicenseType string
-
-const (
-	// AHUB ...
-	AHUB SQLServerLicenseType = "AHUB"
-	// DR ...
-	DR SQLServerLicenseType = "DR"
-	// PAYG ...
-	PAYG SQLServerLicenseType = "PAYG"
-)
-
-// PossibleSQLServerLicenseTypeValues returns an array of possible values for the SQLServerLicenseType const type.
-func PossibleSQLServerLicenseTypeValues() []SQLServerLicenseType {
-	return []SQLServerLicenseType{AHUB, DR, PAYG}
-}
-
-// SQLVMGroupImageSku enumerates the values for sqlvm group image sku.
-type SQLVMGroupImageSku string
-
-const (
-	// SQLVMGroupImageSkuDeveloper ...
-	SQLVMGroupImageSkuDeveloper SQLVMGroupImageSku = "Developer"
-	// SQLVMGroupImageSkuEnterprise ...
-	SQLVMGroupImageSkuEnterprise SQLVMGroupImageSku = "Enterprise"
-)
-
-// PossibleSQLVMGroupImageSkuValues returns an array of possible values for the SQLVMGroupImageSku const type.
-func PossibleSQLVMGroupImageSkuValues() []SQLVMGroupImageSku {
-	return []SQLVMGroupImageSku{SQLVMGroupImageSkuDeveloper, SQLVMGroupImageSkuEnterprise}
-}
-
-// SQLWorkloadType enumerates the values for sql workload type.
-type SQLWorkloadType string
-
-const (
-	// DW ...
-	DW SQLWorkloadType = "DW"
-	// GENERAL ...
-	GENERAL SQLWorkloadType = "GENERAL"
-	// OLTP ...
-	OLTP SQLWorkloadType = "OLTP"
-)
-
-// PossibleSQLWorkloadTypeValues returns an array of possible values for the SQLWorkloadType const type.
-func PossibleSQLWorkloadTypeValues() []SQLWorkloadType {
-	return []SQLWorkloadType{DW, GENERAL, OLTP}
-}
-
-// StorageWorkloadType enumerates the values for storage workload type.
-type StorageWorkloadType string
-
-const (
-	// StorageWorkloadTypeDW ...
-	StorageWorkloadTypeDW StorageWorkloadType = "DW"
-	// StorageWorkloadTypeGENERAL ...
-	StorageWorkloadTypeGENERAL StorageWorkloadType = "GENERAL"
-	// StorageWorkloadTypeOLTP ...
-	StorageWorkloadTypeOLTP StorageWorkloadType = "OLTP"
-)
-
-// PossibleStorageWorkloadTypeValues returns an array of possible values for the StorageWorkloadType const type.
-func PossibleStorageWorkloadTypeValues() []StorageWorkloadType {
-	return []StorageWorkloadType{StorageWorkloadTypeDW, StorageWorkloadTypeGENERAL, StorageWorkloadTypeOLTP}
-}
-
 // AdditionalFeaturesServerConfigurations additional SQL Server feature settings.
 type AdditionalFeaturesServerConfigurations struct {
 	// IsRServicesEnabled - Enable or disable R services (SQL 2016 onwards).
@@ -488,10 +228,15 @@ func (agllr AvailabilityGroupListenerListResult) IsEmpty() bool {
 	return agllr.Value == nil || len(*agllr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (agllr AvailabilityGroupListenerListResult) hasNextLink() bool {
+	return agllr.NextLink != nil && len(*agllr.NextLink) != 0
+}
+
 // availabilityGroupListenerListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (agllr AvailabilityGroupListenerListResult) availabilityGroupListenerListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if agllr.NextLink == nil || len(to.String(agllr.NextLink)) < 1 {
+	if !agllr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -519,11 +264,16 @@ func (page *AvailabilityGroupListenerListResultPage) NextWithContext(ctx context
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.agllr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.agllr)
+		if err != nil {
+			return err
+		}
+		page.agllr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.agllr = next
 	return nil
 }
 
@@ -571,8 +321,26 @@ type AvailabilityGroupListenerProperties struct {
 	Port *int32 `json:"port,omitempty"`
 }
 
-// AvailabilityGroupListenersCreateOrUpdateFuture an abstraction for monitoring and retrieving the results
-// of a long-running operation.
+// MarshalJSON is the custom marshaler for AvailabilityGroupListenerProperties.
+func (aglp AvailabilityGroupListenerProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if aglp.AvailabilityGroupName != nil {
+		objectMap["availabilityGroupName"] = aglp.AvailabilityGroupName
+	}
+	if aglp.LoadBalancerConfigurations != nil {
+		objectMap["loadBalancerConfigurations"] = aglp.LoadBalancerConfigurations
+	}
+	if aglp.CreateDefaultAvailabilityGroupIfNotExist != nil {
+		objectMap["createDefaultAvailabilityGroupIfNotExist"] = aglp.CreateDefaultAvailabilityGroupIfNotExist
+	}
+	if aglp.Port != nil {
+		objectMap["port"] = aglp.Port
+	}
+	return json.Marshal(objectMap)
+}
+
+// AvailabilityGroupListenersCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type AvailabilityGroupListenersCreateOrUpdateFuture struct {
 	azure.Future
 }
@@ -801,10 +569,15 @@ func (glr GroupListResult) IsEmpty() bool {
 	return glr.Value == nil || len(*glr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (glr GroupListResult) hasNextLink() bool {
+	return glr.NextLink != nil && len(*glr.NextLink) != 0
+}
+
 // groupListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (glr GroupListResult) groupListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if glr.NextLink == nil || len(to.String(glr.NextLink)) < 1 {
+	if !glr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -832,11 +605,16 @@ func (page *GroupListResultPage) NextWithContext(ctx context.Context) (err error
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.glr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.glr)
+		if err != nil {
+			return err
+		}
+		page.glr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.glr = next
 	return nil
 }
 
@@ -886,6 +664,21 @@ type GroupProperties struct {
 	ClusterConfiguration ClusterConfiguration `json:"clusterConfiguration,omitempty"`
 	// WsfcDomainProfile - Cluster Active Directory domain profile.
 	WsfcDomainProfile *WsfcDomainProfile `json:"wsfcDomainProfile,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for GroupProperties.
+func (gp GroupProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if gp.SQLImageOffer != nil {
+		objectMap["sqlImageOffer"] = gp.SQLImageOffer
+	}
+	if gp.SQLImageSku != "" {
+		objectMap["sqlImageSku"] = gp.SQLImageSku
+	}
+	if gp.WsfcDomainProfile != nil {
+		objectMap["wsfcDomainProfile"] = gp.WsfcDomainProfile
+	}
+	return json.Marshal(objectMap)
 }
 
 // GroupsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -982,8 +775,8 @@ func (gu GroupUpdate) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// KeyVaultCredentialSettings configure your SQL virtual machine to be able to connect to the Azure Key
-// Vault service.
+// KeyVaultCredentialSettings configure your SQL virtual machine to be able to connect to the Azure Key Vault
+// service.
 type KeyVaultCredentialSettings struct {
 	// Enable - Enable or disable key vault credential setting.
 	Enable *bool `json:"enable,omitempty"`
@@ -1074,10 +867,15 @@ func (lr ListResult) IsEmpty() bool {
 	return lr.Value == nil || len(*lr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (lr ListResult) hasNextLink() bool {
+	return lr.NextLink != nil && len(*lr.NextLink) != 0
+}
+
 // listResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (lr ListResult) listResultPreparer(ctx context.Context) (*http.Request, error) {
-	if lr.NextLink == nil || len(to.String(lr.NextLink)) < 1 {
+	if !lr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1105,11 +903,16 @@ func (page *ListResultPage) NextWithContext(ctx context.Context) (err error) {
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.lr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.lr)
+		if err != nil {
+			return err
+		}
+		page.lr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.lr = next
 	return nil
 }
 
@@ -1264,10 +1067,15 @@ func (olr OperationListResult) IsEmpty() bool {
 	return olr.Value == nil || len(*olr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (olr OperationListResult) hasNextLink() bool {
+	return olr.NextLink != nil && len(*olr.NextLink) != 0
+}
+
 // operationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (olr OperationListResult) operationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if olr.NextLink == nil || len(to.String(olr.NextLink)) < 1 {
+	if !olr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1295,11 +1103,16 @@ func (page *OperationListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.olr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.olr)
+		if err != nil {
+			return err
+		}
+		page.olr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.olr = next
 	return nil
 }
 
@@ -1371,6 +1184,48 @@ type Properties struct {
 	StorageConfigurationSettings *StorageConfigurationSettings `json:"storageConfigurationSettings,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Properties.
+func (p Properties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if p.VirtualMachineResourceID != nil {
+		objectMap["virtualMachineResourceId"] = p.VirtualMachineResourceID
+	}
+	if p.SQLImageOffer != nil {
+		objectMap["sqlImageOffer"] = p.SQLImageOffer
+	}
+	if p.SQLServerLicenseType != "" {
+		objectMap["sqlServerLicenseType"] = p.SQLServerLicenseType
+	}
+	if p.SQLManagement != "" {
+		objectMap["sqlManagement"] = p.SQLManagement
+	}
+	if p.SQLImageSku != "" {
+		objectMap["sqlImageSku"] = p.SQLImageSku
+	}
+	if p.SQLVirtualMachineGroupResourceID != nil {
+		objectMap["sqlVirtualMachineGroupResourceId"] = p.SQLVirtualMachineGroupResourceID
+	}
+	if p.WsfcDomainCredentials != nil {
+		objectMap["wsfcDomainCredentials"] = p.WsfcDomainCredentials
+	}
+	if p.AutoPatchingSettings != nil {
+		objectMap["autoPatchingSettings"] = p.AutoPatchingSettings
+	}
+	if p.AutoBackupSettings != nil {
+		objectMap["autoBackupSettings"] = p.AutoBackupSettings
+	}
+	if p.KeyVaultCredentialSettings != nil {
+		objectMap["keyVaultCredentialSettings"] = p.KeyVaultCredentialSettings
+	}
+	if p.ServerConfigurationsManagementSettings != nil {
+		objectMap["serverConfigurationsManagementSettings"] = p.ServerConfigurationsManagementSettings
+	}
+	if p.StorageConfigurationSettings != nil {
+		objectMap["storageConfigurationSettings"] = p.StorageConfigurationSettings
+	}
+	return json.Marshal(objectMap)
+}
+
 // ProxyResource ARM proxy resource.
 type ProxyResource struct {
 	// ID - READ-ONLY; Resource ID.
@@ -1399,6 +1254,15 @@ type ResourceIdentity struct {
 	Type IdentityType `json:"type,omitempty"`
 	// TenantID - READ-ONLY; The Azure Active Directory tenant id.
 	TenantID *uuid.UUID `json:"tenantId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ResourceIdentity.
+func (ri ResourceIdentity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ri.Type != "" {
+		objectMap["type"] = ri.Type
+	}
+	return json.Marshal(objectMap)
 }
 
 // ServerConfigurationsManagementSettings set the connectivity, storage and workload settings.
@@ -1700,8 +1564,8 @@ func (u Update) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// WsfcDomainCredentials domain credentials for setting up Windows Server Failover Cluster for SQL
-// availability group.
+// WsfcDomainCredentials domain credentials for setting up Windows Server Failover Cluster for SQL availability
+// group.
 type WsfcDomainCredentials struct {
 	// ClusterBootstrapAccountPassword - Cluster bootstrap account password.
 	ClusterBootstrapAccountPassword *string `json:"clusterBootstrapAccountPassword,omitempty"`

@@ -6,24 +6,23 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2019-03-22-preview/devices"
+	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2020-03-01/devices"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmIotHubEndpointEventHub() *schema.Resource {
+func resourceIotHubEndpointEventHub() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIotHubEndpointEventHubCreateUpdate,
-		Read:   resourceArmIotHubEndpointEventHubRead,
-		Update: resourceArmIotHubEndpointEventHubCreateUpdate,
-		Delete: resourceArmIotHubEndpointEventHubDelete,
+		Create: resourceIotHubEndpointEventHubCreateUpdate,
+		Read:   resourceIotHubEndpointEventHubRead,
+		Update: resourceIotHubEndpointEventHubCreateUpdate,
+		Delete: resourceIotHubEndpointEventHubDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -69,7 +68,7 @@ func resourceArmIotHubEndpointEventHub() *schema.Resource {
 	}
 }
 
-func resourceArmIotHubEndpointEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -119,7 +118,7 @@ func resourceArmIotHubEndpointEventHubCreateUpdate(d *schema.ResourceData, meta 
 	for _, existingEndpoint := range *routing.Endpoints.EventHubs {
 		if existingEndpointName := existingEndpoint.Name; existingEndpointName != nil {
 			if strings.EqualFold(*existingEndpointName, endpointName) {
-				if d.IsNewResource() && features.ShouldResourcesBeImported() {
+				if d.IsNewResource() {
 					return tf.ImportAsExistsError("azurerm_iothub_endpoint_eventhub", resourceId)
 				}
 				endpoints = append(endpoints, eventhubEndpoint)
@@ -147,10 +146,10 @@ func resourceArmIotHubEndpointEventHubCreateUpdate(d *schema.ResourceData, meta 
 	}
 
 	d.SetId(resourceId)
-	return resourceArmIotHubEndpointEventHubRead(d, meta)
+	return resourceIotHubEndpointEventHubRead(d, meta)
 }
 
-func resourceArmIotHubEndpointEventHubRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointEventHubRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -190,7 +189,7 @@ func resourceArmIotHubEndpointEventHubRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceArmIotHubEndpointEventHubDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointEventHubDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

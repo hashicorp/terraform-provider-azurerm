@@ -36,9 +36,12 @@ func TestAccAzureRMExpressRouteCircuit(t *testing.T) {
 			"requiresImport":                testAccAzureRMExpressRouteCircuitPeering_requiresImport,
 		},
 		"MicrosoftPeering": {
-			"microsoftPeering":                testAccAzureRMExpressRouteCircuitPeering_microsoftPeering,
-			"microsoftPeeringCustomerRouting": testAccAzureRMExpressRouteCircuitPeering_microsoftPeeringCustomerRouting,
-			"microsoftPeeringWithRouteFilter": testAccAzureRMExpressRouteCircuitPeering_microsoftPeeringWithRouteFilter,
+			"microsoftPeering":                    testAccAzureRMExpressRouteCircuitPeering_microsoftPeering,
+			"microsoftPeeringCustomerRouting":     testAccAzureRMExpressRouteCircuitPeering_microsoftPeeringCustomerRouting,
+			"microsoftPeeringWithRouteFilter":     testAccAzureRMExpressRouteCircuitPeering_microsoftPeeringWithRouteFilter,
+			"microsoftPeeringIpv6":                testAccAzureRMExpressRouteCircuitPeering_microsoftPeeringIpv6,
+			"microsoftPeeringIpv6CustomerRouting": testAccAzureRMExpressRouteCircuitPeering_microsoftPeeringIpv6CustomerRouting,
+			"microsoftPeeringIpv6WithRouteFilter": testAccAzureRMExpressRouteCircuitPeering_microsoftPeeringIpv6WithRouteFilter,
 		},
 		"authorization": {
 			"basic":          testAccAzureRMExpressRouteCircuitAuthorization_basic,
@@ -346,7 +349,6 @@ func testCheckAzureRMExpressRouteCircuitDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := client.Get(ctx, resourceGroup, name)
-
 		if err != nil {
 			return nil
 		}

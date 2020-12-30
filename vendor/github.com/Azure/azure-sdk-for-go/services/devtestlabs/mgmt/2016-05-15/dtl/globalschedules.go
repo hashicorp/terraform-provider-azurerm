@@ -389,6 +389,9 @@ func (client GlobalSchedulesClient) ListByResourceGroup(ctx context.Context, res
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.GlobalSchedulesClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.rwcs.hasNextLink() && result.rwcs.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -514,6 +517,9 @@ func (client GlobalSchedulesClient) ListBySubscription(ctx context.Context, expa
 	result.rwcs, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.GlobalSchedulesClient", "ListBySubscription", resp, "Failure responding to request")
+	}
+	if result.rwcs.hasNextLink() && result.rwcs.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

@@ -14,18 +14,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks/parse"
+	resourcesParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDatabricksWorkspace() *schema.Resource {
+func resourceDatabricksWorkspace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDatabricksWorkspaceCreateUpdate,
-		Read:   resourceArmDatabricksWorkspaceRead,
-		Update: resourceArmDatabricksWorkspaceCreateUpdate,
-		Delete: resourceArmDatabricksWorkspaceDelete,
+		Create: resourceDatabricksWorkspaceCreateUpdate,
+		Read:   resourceDatabricksWorkspaceRead,
+		Update: resourceDatabricksWorkspaceCreateUpdate,
+		Delete: resourceDatabricksWorkspaceDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -35,7 +36,7 @@ func resourceArmDatabricksWorkspace() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DatabricksWorkspaceID(id)
+			_, err := parse.WorkspaceID(id)
 			return err
 		}),
 
@@ -125,7 +126,7 @@ func resourceArmDatabricksWorkspace() *schema.Resource {
 	}
 }
 
-func resourceArmDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataBricks.WorkspacesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -200,21 +201,20 @@ func resourceArmDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta int
 
 	d.SetId(*read.ID)
 
-	return resourceArmDatabricksWorkspaceRead(d, meta)
+	return resourceDatabricksWorkspaceRead(d, meta)
 }
 
-func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataBricks.WorkspacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DatabricksWorkspaceID(d.Id())
+	id, err := parse.WorkspaceID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Databricks Workspace %q was not found in Resource Group %q - removing from state", id.Name, id.ResourceGroup)
@@ -237,7 +237,7 @@ func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}
 	}
 
 	if props := resp.WorkspaceProperties; props != nil {
-		managedResourceGroupID, err := azure.ParseAzureResourceID(*props.ManagedResourceGroupID)
+		managedResourceGroupID, err := resourcesParse.ResourceGroupID(*props.ManagedResourceGroupID)
 		if err != nil {
 			return err
 		}
@@ -245,7 +245,7 @@ func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}
 		d.Set("managed_resource_group_name", managedResourceGroupID.ResourceGroup)
 
 		if err := d.Set("custom_parameters", flattenWorkspaceCustomParameters(props.Parameters)); err != nil {
-			return fmt.Errorf("Error setting `custom_parameters`: %+v", err)
+			return fmt.Errorf("setting `custom_parameters`: %+v", err)
 		}
 
 		d.Set("workspace_url", props.WorkspaceURL)
@@ -255,12 +255,12 @@ func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmDatabricksWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDatabricksWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataBricks.WorkspacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DatabricksWorkspaceID(d.Id())
+	id, err := parse.WorkspaceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -355,23 +355,29 @@ func ValidateDatabricksWorkspaceName(i interface{}, k string) (warnings []string
 		return warnings, errors
 	}
 
-	// Cannot be empty
+	// The Azure Portal shows the following validation criteria:
+
+	// 1) Cannot be empty
 	if len(v) == 0 {
 		errors = append(errors, fmt.Errorf("%q cannot be an empty string: %q", k, v))
+		// Treating this as a special case and returning early to match Azure Portal behaviour.
 		return warnings, errors
 	}
 
-	// First, second, and last characters must be a letter or number with a total length between 3 to 64 characters
-	// NOTE: Restricted name to 30 characters because that is the restriction in Azure Portal even though the API supports 64 characters
-	if !regexp.MustCompile("^[a-zA-Z0-9]{2}[-_a-zA-Z0-9]{0,27}[a-zA-Z0-9]{1}$").MatchString(v) {
-		errors = append(errors, fmt.Errorf("%q must be 3 - 30 characters in length", k))
-		errors = append(errors, fmt.Errorf("%q first, second, and last characters must be a letter or number", k))
-		errors = append(errors, fmt.Errorf("%q can only contain letters, numbers, underscores, and hyphens", k))
+	// 2) Must be at least 3 characters:
+	if len(v) < 3 {
+		errors = append(errors, fmt.Errorf("%q must be at least 3 characters: %q", k, v))
 	}
 
-	// No consecutive hyphens
-	if regexp.MustCompile("(--)").MatchString(v) {
-		errors = append(errors, fmt.Errorf("%q must not contain any consecutive hyphens", k))
+	// 3) The value must have a length of at most 30.
+	// NOTE: Restricted name to 30 characters because that is the restriction in Azure Portal even though the API supports 64 characters
+	if len(v) > 30 {
+		errors = append(errors, fmt.Errorf("%q must be no more than 30 characters: %q", k, v))
+	}
+
+	// 4) Only alphanumeric characters, underscores, and hyphens are allowed.
+	if !regexp.MustCompile("^[a-zA-Z0-9_-]*$").MatchString(v) {
+		errors = append(errors, fmt.Errorf("%q can contain only alphanumeric characters, underscores, and hyphens: %q", k, v))
 	}
 
 	return warnings, errors

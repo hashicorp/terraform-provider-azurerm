@@ -13,7 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -21,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmNetAppSnapshot() *schema.Resource {
+func resourceNetAppSnapshot() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetAppSnapshotCreate,
-		Read:   resourceArmNetAppSnapshotRead,
-		Update: resourceArmNetAppSnapshotUpdate,
-		Delete: resourceArmNetAppSnapshotDelete,
+		Create: resourceNetAppSnapshotCreate,
+		Read:   resourceNetAppSnapshotRead,
+		Update: resourceNetAppSnapshotUpdate,
+		Delete: resourceNetAppSnapshotDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -35,7 +34,7 @@ func resourceArmNetAppSnapshot() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.NetAppSnapshotID(id)
+			_, err := parse.SnapshotID(id)
 			return err
 		}),
 
@@ -77,7 +76,7 @@ func resourceArmNetAppSnapshot() *schema.Resource {
 	}
 }
 
-func resourceArmNetAppSnapshotCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppSnapshotCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.SnapshotClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -88,7 +87,7 @@ func resourceArmNetAppSnapshotCreate(d *schema.ResourceData, meta interface{}) e
 	poolName := d.Get("pool_name").(string)
 	volumeName := d.Get("volume_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		resp, err := client.Get(ctx, resourceGroup, accountName, poolName, volumeName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
@@ -124,20 +123,20 @@ func resourceArmNetAppSnapshotCreate(d *schema.ResourceData, meta interface{}) e
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmNetAppSnapshotRead(d, meta)
+	return resourceNetAppSnapshotRead(d, meta)
 }
 
-func resourceArmNetAppSnapshotRead(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.SnapshotClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NetAppSnapshotID(d.Id())
+	id, err := parse.SnapshotID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.PoolName, id.VolumeName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.VolumeName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] NetApp Snapshots %q does not exist - removing from state", d.Id())
@@ -149,8 +148,8 @@ func resourceArmNetAppSnapshotRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("account_name", id.AccountName)
-	d.Set("pool_name", id.PoolName)
+	d.Set("account_name", id.NetAppAccountName)
+	d.Set("pool_name", id.CapacityPoolName)
 	d.Set("volume_name", id.VolumeName)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -159,12 +158,12 @@ func resourceArmNetAppSnapshotRead(d *schema.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmNetAppSnapshotUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppSnapshotUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.SnapshotClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NetAppSnapshotID(d.Id())
+	id, err := parse.SnapshotID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -173,11 +172,11 @@ func resourceArmNetAppSnapshotUpdate(d *schema.ResourceData, meta interface{}) e
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err = client.Update(ctx, parameters, id.ResourceGroup, id.AccountName, id.PoolName, id.VolumeName, id.Name); err != nil {
+	if _, err = client.Update(ctx, parameters, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.VolumeName, id.Name); err != nil {
 		return fmt.Errorf("Error updating NetApp Snapshot %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.PoolName, id.VolumeName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.VolumeName, id.Name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving NetApp Snapshot %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
@@ -185,20 +184,20 @@ func resourceArmNetAppSnapshotUpdate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Cannot read NetApp Snapshot %q (Resource Group %q) ID", id.Name, id.ResourceGroup)
 	}
 
-	return resourceArmNetAppSnapshotRead(d, meta)
+	return resourceNetAppSnapshotRead(d, meta)
 }
 
-func resourceArmNetAppSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceNetAppSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.SnapshotClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NetAppSnapshotID(d.Id())
+	id, err := parse.SnapshotID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err = client.Delete(ctx, id.ResourceGroup, id.AccountName, id.PoolName, id.VolumeName, id.Name); err != nil {
+	if _, err = client.Delete(ctx, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.VolumeName, id.Name); err != nil {
 		return fmt.Errorf("Error deleting NetApp Snapshot %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
@@ -214,7 +213,7 @@ func resourceArmNetAppSnapshotDelete(d *schema.ResourceData, meta interface{}) e
 		MinTimeout:                10 * time.Second,
 		Pending:                   []string{"200", "202"},
 		Target:                    []string{"204", "404"},
-		Refresh:                   netappSnapshotDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.AccountName, id.PoolName, id.VolumeName, id.Name),
+		Refresh:                   netappSnapshotDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.NetAppAccountName, id.CapacityPoolName, id.VolumeName, id.Name),
 		Timeout:                   d.Timeout(schema.TimeoutDelete),
 	}
 

@@ -241,6 +241,9 @@ func (client DatabaseBlobAuditingPoliciesClient) ListByDatabase(ctx context.Cont
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabaseBlobAuditingPoliciesClient", "ListByDatabase", resp, "Failure responding to request")
 	}
+	if result.dbaplr.hasNextLink() && result.dbaplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

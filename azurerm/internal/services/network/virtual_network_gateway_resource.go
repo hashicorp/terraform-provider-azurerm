@@ -16,7 +16,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -80,6 +79,12 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Computed: true,
+			},
+
+			"private_ip_address_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
 			},
 
 			"active_active": {
@@ -171,11 +176,45 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 							},
 						},
 
+						"aad_tenant": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ConflictsWith: []string{
+								"vpn_client_configuration.0.radius_server_address",
+								"vpn_client_configuration.0.radius_server_secret",
+								"vpn_client_configuration.0.root_certificate",
+								"vpn_client_configuration.0.revoked_certificate",
+							},
+						},
+						"aad_audience": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ConflictsWith: []string{
+								"vpn_client_configuration.0.radius_server_address",
+								"vpn_client_configuration.0.radius_server_secret",
+								"vpn_client_configuration.0.root_certificate",
+								"vpn_client_configuration.0.revoked_certificate",
+							},
+						},
+						"aad_issuer": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ConflictsWith: []string{
+								"vpn_client_configuration.0.radius_server_address",
+								"vpn_client_configuration.0.radius_server_secret",
+								"vpn_client_configuration.0.root_certificate",
+								"vpn_client_configuration.0.revoked_certificate",
+							},
+						},
+
 						"root_certificate": {
 							Type:     schema.TypeSet,
 							Optional: true,
 
 							ConflictsWith: []string{
+								"vpn_client_configuration.0.aad_tenant",
+								"vpn_client_configuration.0.aad_audience",
+								"vpn_client_configuration.0.aad_issuer",
 								"vpn_client_configuration.0.radius_server_address",
 								"vpn_client_configuration.0.radius_server_secret",
 							},
@@ -198,6 +237,9 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 							Type:     schema.TypeSet,
 							Optional: true,
 							ConflictsWith: []string{
+								"vpn_client_configuration.0.aad_tenant",
+								"vpn_client_configuration.0.aad_audience",
+								"vpn_client_configuration.0.aad_issuer",
 								"vpn_client_configuration.0.radius_server_address",
 								"vpn_client_configuration.0.radius_server_secret",
 							},
@@ -220,6 +262,9 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							ConflictsWith: []string{
+								"vpn_client_configuration.0.aad_tenant",
+								"vpn_client_configuration.0.aad_audience",
+								"vpn_client_configuration.0.aad_issuer",
 								"vpn_client_configuration.0.root_certificate",
 								"vpn_client_configuration.0.revoked_certificate",
 							},
@@ -230,6 +275,9 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							ConflictsWith: []string{
+								"vpn_client_configuration.0.aad_tenant",
+								"vpn_client_configuration.0.aad_audience",
+								"vpn_client_configuration.0.aad_issuer",
 								"vpn_client_configuration.0.root_certificate",
 								"vpn_client_configuration.0.revoked_certificate",
 							},
@@ -279,6 +327,25 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 				},
 			},
 
+			"custom_route": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"address_prefixes": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							ForceNew: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+					},
+				},
+			},
+
 			"default_local_network_gateway_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -300,7 +367,7 @@ func resourceArmVirtualNetworkGatewayCreateUpdate(d *schema.ResourceData, meta i
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -378,6 +445,7 @@ func resourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface
 	if gw := resp.VirtualNetworkGatewayPropertiesFormat; gw != nil {
 		d.Set("type", string(gw.GatewayType))
 		d.Set("enable_bgp", gw.EnableBgp)
+		d.Set("private_ip_address_enabled", gw.EnablePrivateIPAddress)
 		d.Set("active_active", gw.ActiveActive)
 		d.Set("generation", string(gw.VpnGatewayGeneration))
 
@@ -403,6 +471,10 @@ func resourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface
 
 		if err := d.Set("bgp_settings", flattenArmVirtualNetworkGatewayBgpSettings(gw.BgpSettings)); err != nil {
 			return fmt.Errorf("Error setting `bgp_settings`: %+v", err)
+		}
+
+		if err := d.Set("custom_route", flattenArmVirtualNetworkGatewayAddressSpace(gw.CustomRoutes)); err != nil {
+			return fmt.Errorf("setting `custom_route`: %+v", err)
 		}
 	}
 
@@ -435,17 +507,21 @@ func getArmVirtualNetworkGatewayProperties(d *schema.ResourceData) (*network.Vir
 	gatewayType := network.VirtualNetworkGatewayType(d.Get("type").(string))
 	vpnType := network.VpnType(d.Get("vpn_type").(string))
 	enableBgp := d.Get("enable_bgp").(bool)
+	enablePrivateIpAddress := d.Get("private_ip_address_enabled").(bool)
 	activeActive := d.Get("active_active").(bool)
 	generation := network.VpnGatewayGeneration(d.Get("generation").(string))
+	customRoute := d.Get("custom_route").([]interface{})
 
 	props := &network.VirtualNetworkGatewayPropertiesFormat{
-		GatewayType:          gatewayType,
-		VpnType:              vpnType,
-		EnableBgp:            &enableBgp,
-		ActiveActive:         &activeActive,
-		VpnGatewayGeneration: generation,
-		Sku:                  expandArmVirtualNetworkGatewaySku(d),
-		IPConfigurations:     expandArmVirtualNetworkGatewayIPConfigurations(d),
+		GatewayType:            gatewayType,
+		VpnType:                vpnType,
+		EnableBgp:              &enableBgp,
+		EnablePrivateIPAddress: &enablePrivateIpAddress,
+		ActiveActive:           &activeActive,
+		VpnGatewayGeneration:   generation,
+		Sku:                    expandArmVirtualNetworkGatewaySku(d),
+		IPConfigurations:       expandArmVirtualNetworkGatewayIPConfigurations(d),
+		CustomRoutes:           expandArmVirtualNetworkGatewayAddressSpace(customRoute),
 	}
 
 	if gatewayDefaultSiteID := d.Get("default_local_network_gateway_id").(string); gatewayDefaultSiteID != "" {
@@ -559,6 +635,10 @@ func expandArmVirtualNetworkGatewayVpnClientConfig(d *schema.ResourceData) *netw
 		addresses = append(addresses, addr.(string))
 	}
 
+	confAadTenant := conf["aad_tenant"].(string)
+	confAadAudience := conf["aad_audience"].(string)
+	confAadIssuer := conf["aad_issuer"].(string)
+
 	var rootCerts []network.VpnClientRootCertificate
 	for _, rootCertSet := range conf["root_certificate"].(*schema.Set).List() {
 		rootCert := rootCertSet.(map[string]interface{})
@@ -600,6 +680,9 @@ func expandArmVirtualNetworkGatewayVpnClientConfig(d *schema.ResourceData) *netw
 		VpnClientAddressPool: &network.AddressSpace{
 			AddressPrefixes: &addresses,
 		},
+		AadTenant:                    &confAadTenant,
+		AadAudience:                  &confAadAudience,
+		AadIssuer:                    &confAadIssuer,
 		VpnClientRootCertificates:    &rootCerts,
 		VpnClientRevokedCertificates: &revokedCerts,
 		VpnClientProtocols:           &vpnClientProtocols,
@@ -614,6 +697,16 @@ func expandArmVirtualNetworkGatewaySku(d *schema.ResourceData) *network.VirtualN
 	return &network.VirtualNetworkGatewaySku{
 		Name: network.VirtualNetworkGatewaySkuName(sku),
 		Tier: network.VirtualNetworkGatewaySkuTier(sku),
+	}
+}
+
+func expandArmVirtualNetworkGatewayAddressSpace(input []interface{}) *network.AddressSpace {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+	return &network.AddressSpace{
+		AddressPrefixes: utils.ExpandStringSlice(v["address_prefixes"].(*schema.Set).List()),
 	}
 }
 
@@ -681,6 +774,18 @@ func flattenArmVirtualNetworkGatewayVpnClientConfig(cfg *network.VpnClientConfig
 		flat["address_space"] = utils.FlattenStringSlice(pool.AddressPrefixes)
 	} else {
 		flat["address_space"] = []interface{}{}
+	}
+
+	if v := cfg.AadTenant; v != nil {
+		flat["aad_tenant"] = *v
+	}
+
+	if v := cfg.AadAudience; v != nil {
+		flat["aad_audience"] = *v
+	}
+
+	if v := cfg.AadIssuer; v != nil {
+		flat["aad_issuer"] = *v
 	}
 
 	rootCerts := make([]interface{}, 0)
@@ -830,6 +935,20 @@ func validateArmVirtualNetworkGatewayExpressRouteSku() schema.SchemaValidateFunc
 func resourceArmVirtualNetworkGatewayCustomizeDiff(diff *schema.ResourceDiff, _ interface{}) error {
 	if vpnClient, ok := diff.GetOk("vpn_client_configuration"); ok {
 		if vpnClientConfig, ok := vpnClient.([]interface{})[0].(map[string]interface{}); ok {
+			hasAadTenant := vpnClientConfig["aad_tenant"] != ""
+			hasAadAudience := vpnClientConfig["aad_audience"] != ""
+			hasAadIssuer := vpnClientConfig["aad_issuer"] != ""
+
+			if hasAadTenant && (!hasAadAudience || !hasAadIssuer) {
+				return fmt.Errorf("if aad_tenant is set aad_audience and aad_issuer must also be set")
+			}
+			if hasAadAudience && (!hasAadTenant || !hasAadIssuer) {
+				return fmt.Errorf("if aad_audience is set aad_tenant and aad_issuer must also be set")
+			}
+			if hasAadIssuer && (!hasAadTenant || !hasAadAudience) {
+				return fmt.Errorf("if aad_issuer is set aad_tenant and aad_audience must also be set")
+			}
+
 			hasRadiusAddress := vpnClientConfig["radius_server_address"] != ""
 			hasRadiusSecret := vpnClientConfig["radius_server_secret"] != ""
 
@@ -842,4 +961,16 @@ func resourceArmVirtualNetworkGatewayCustomizeDiff(diff *schema.ResourceDiff, _ 
 		}
 	}
 	return nil
+}
+
+func flattenArmVirtualNetworkGatewayAddressSpace(input *network.AddressSpace) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"address_prefixes": utils.FlattenStringSlice(input.AddressPrefixes),
+		},
+	}
 }

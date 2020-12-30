@@ -109,7 +109,7 @@ func resourceArmDataFactoryLinkedServiceKeyVaultCreateUpdate(d *schema.ResourceD
 	dataFactoryName := d.Get("data_factory_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	keyVaultIdRaw := d.Get("key_vault_id").(string)
-	_, err := keyVaultParse.KeyVaultID(keyVaultIdRaw)
+	_, err := keyVaultParse.VaultID(keyVaultIdRaw)
 	if err != nil {
 		return err
 	}

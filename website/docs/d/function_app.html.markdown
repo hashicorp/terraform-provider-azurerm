@@ -40,9 +40,13 @@ The following attributes are exported:
 
 * `connection_string` - An `connection_string` block as defined below.
 
+* `custom_domain_verification_id` - An identifier used by App Service to perform domain ownership verification via DNS TXT record.
+
 * `default_hostname` - The default hostname associated with the Function App.
 
 * `enabled` - Is the Function App enabled?
+
+* `identity` - A `identity` block as defined below.
 
 * `site_credential` - A `site_credential` block as defined below, which contains the site-level credentials used to publish to this App Service.
 
@@ -142,6 +146,15 @@ A `source_control` block exports the following:
 
 * `use_mercurial` - Uses Mercurial if `true`, otherwise uses Git. 
 
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The ID of the System Managed Service Principal assigned to the function app.
+
+* `tenant_id` - The ID of the Tenant of the System Managed Service Principal assigned to the function app.
+
+* `type` - The identity type of the Managed Identity assigned to the function app.
 
 ## Timeouts
 

@@ -3,30 +3,27 @@ package iothub
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/provisioningservices/mgmt/2018-01-22/iothub"
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmIotHubDPSSharedAccessPolicy() *schema.Resource {
+func resourceIotHubDPSSharedAccessPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIotHubDPSSharedAccessPolicyCreateUpdate,
-		Read:   resourceArmIotHubDPSSharedAccessPolicyRead,
-		Update: resourceArmIotHubDPSSharedAccessPolicyCreateUpdate,
-		Delete: resourceArmIotHubDPSSharedAccessPolicyDelete,
+		Create: resourceIotHubDPSSharedAccessPolicyCreateUpdate,
+		Read:   resourceIotHubDPSSharedAccessPolicyRead,
+		Update: resourceIotHubDPSSharedAccessPolicyCreateUpdate,
+		Delete: resourceIotHubDPSSharedAccessPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -40,11 +37,10 @@ func resourceArmIotHubDPSSharedAccessPolicy() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringMatch(regexp.MustCompile(`[a-zA-Z0-9!._-]{1,64}`), ""+
-					"The shared access policy key name must not be empty, and must not exceed 64 characters in length.  The shared access policy key name can only contain alphanumeric characters, exclamation marks, periods, underscores and hyphens."),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.IotHubSharedAccessPolicyName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -113,7 +109,7 @@ func resourceArmIotHubDPSSharedAccessPolicy() *schema.Resource {
 	}
 }
 
-func resourceArmIotHubDPSSharedAccessPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubDPSSharedAccessPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.DPSResourceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -167,7 +163,7 @@ func resourceArmIotHubDPSSharedAccessPolicyCreateUpdate(d *schema.ResourceData, 
 		existingAccessPolicy := accessPolicyIterator.Value()
 
 		if strings.EqualFold(*existingAccessPolicy.KeyName, keyName) {
-			if features.ShouldResourcesBeImported() && d.IsNewResource() {
+			if d.IsNewResource() {
 				return tf.ImportAsExistsError("azurerm_iothub_dps_shared_access_policy", resourceID)
 			}
 			accessPolicies = append(accessPolicies, expandedAccessPolicy)
@@ -196,10 +192,10 @@ func resourceArmIotHubDPSSharedAccessPolicyCreateUpdate(d *schema.ResourceData, 
 
 	d.SetId(resourceID)
 
-	return resourceArmIotHubDPSSharedAccessPolicyRead(d, meta)
+	return resourceIotHubDPSSharedAccessPolicyRead(d, meta)
 }
 
-func resourceArmIotHubDPSSharedAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubDPSSharedAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.DPSResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -258,7 +254,7 @@ func resourceArmIotHubDPSSharedAccessPolicyRead(d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceArmIotHubDPSSharedAccessPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubDPSSharedAccessPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.DPSResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

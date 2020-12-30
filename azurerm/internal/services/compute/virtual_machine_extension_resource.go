@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -196,24 +196,24 @@ func resourceArmVirtualMachineExtensionsRead(d *schema.ResourceData, meta interf
 		return err
 	}
 
-	virtualMachine, err := vmClient.Get(ctx, id.ResourceGroup, id.VirtualMachine, "")
+	virtualMachine, err := vmClient.Get(ctx, id.ResourceGroup, id.VirtualMachineName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(virtualMachine.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Virtual Machine %s: %s", id.Name, err)
+		return fmt.Errorf("Error making Read request on Virtual Machine %s: %s", id.ExtensionName, err)
 	}
 
 	d.Set("virtual_machine_id", virtualMachine.ID)
 
-	resp, err := vmExtensionClient.Get(ctx, id.ResourceGroup, id.VirtualMachine, id.Name, "")
+	resp, err := vmExtensionClient.Get(ctx, id.ResourceGroup, id.VirtualMachineName, id.ExtensionName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Virtual Machine Extension %s: %s", id.Name, err)
+		return fmt.Errorf("Error making Read request on Virtual Machine Extension %s: %s", id.ExtensionName, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -247,7 +247,7 @@ func resourceArmVirtualMachineExtensionsDelete(d *schema.ResourceData, meta inte
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.VirtualMachine, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.VirtualMachineName, id.ExtensionName)
 	if err != nil {
 		return err
 	}

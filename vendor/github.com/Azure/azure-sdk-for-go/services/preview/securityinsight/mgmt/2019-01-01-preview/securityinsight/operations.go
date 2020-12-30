@@ -71,6 +71,9 @@ func (client OperationsClient) List(ctx context.Context) (result OperationsListP
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.OperationsClient", "List", resp, "Failure responding to request")
 	}
+	if result.ol.hasNextLink() && result.ol.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -101,7 +104,6 @@ func (client OperationsClient) ListSender(req *http.Request) (*http.Response, er
 func (client OperationsClient) ListResponder(resp *http.Response) (result OperationsList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

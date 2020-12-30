@@ -1,12 +1,13 @@
 package keyvault
 
 import (
+	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -19,14 +20,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKeyVaultSecret() *schema.Resource {
+func resourceKeyVaultSecret() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKeyVaultSecretCreate,
-		Read:   resourceArmKeyVaultSecretRead,
-		Update: resourceArmKeyVaultSecretUpdate,
-		Delete: resourceArmKeyVaultSecretDelete,
+		Create: resourceKeyVaultSecretCreate,
+		Read:   resourceKeyVaultSecretRead,
+		Update: resourceKeyVaultSecretUpdate,
+		Delete: resourceKeyVaultSecretDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceArmKeyVaultChildResourceImporter,
+			State: nestedItemResourceImporter,
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -84,7 +85,7 @@ func resourceArmKeyVaultSecret() *schema.Resource {
 	}
 }
 
-func resourceArmKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) error {
 	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -178,10 +179,10 @@ func resourceArmKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) e
 
 	d.SetId(*read.ID)
 
-	return resourceArmKeyVaultSecretRead(d, meta)
+	return resourceKeyVaultSecretRead(d, meta)
 }
 
-func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) error {
 	keyVaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -241,19 +242,6 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 		if _, err = client.SetSecret(ctx, id.KeyVaultBaseUrl, id.Name, parameters); err != nil {
 			return err
 		}
-
-		// "" indicates the latest version
-		read, err2 := client.GetSecret(ctx, id.KeyVaultBaseUrl, id.Name, "")
-		if err2 != nil {
-			return fmt.Errorf("Error getting Key Vault Secret %q : %+v", id.Name, err2)
-		}
-
-		if _, err = azure.ParseKeyVaultChildID(*read.ID); err != nil {
-			return err
-		}
-
-		// the ID is suffixed with the secret version
-		d.SetId(*read.ID)
 	} else {
 		parameters := keyvault.SecretUpdateParameters{
 			ContentType:      utils.String(contentType),
@@ -261,15 +249,28 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 			SecretAttributes: secretAttributes,
 		}
 
-		if _, err = client.UpdateSecret(ctx, id.KeyVaultBaseUrl, id.Name, id.Version, parameters); err != nil {
+		if _, err = client.UpdateSecret(ctx, id.KeyVaultBaseUrl, id.Name, "", parameters); err != nil {
 			return err
 		}
 	}
 
-	return resourceArmKeyVaultSecretRead(d, meta)
+	// "" indicates the latest version
+	read, err2 := client.GetSecret(ctx, id.KeyVaultBaseUrl, id.Name, "")
+	if err2 != nil {
+		return fmt.Errorf("Error getting Key Vault Secret %q : %+v", id.Name, err2)
+	}
+
+	if _, err = azure.ParseKeyVaultChildID(*read.ID); err != nil {
+		return err
+	}
+
+	// the ID is suffixed with the secret version
+	d.SetId(*read.ID)
+
+	return resourceKeyVaultSecretRead(d, meta)
 }
 
-func resourceArmKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) error {
 	keyVaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -335,7 +336,7 @@ func resourceArmKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmKeyVaultSecretDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultSecretDelete(d *schema.ResourceData, meta interface{}) error {
 	keyVaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -364,29 +365,43 @@ func resourceArmKeyVaultSecretDelete(d *schema.ResourceData, meta interface{}) e
 		return nil
 	}
 
-	_, err = client.DeleteSecret(ctx, id.KeyVaultBaseUrl, id.Name)
-	return err
+	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy
+	description := fmt.Sprintf("Secret %q (Key Vault %q)", id.Name, id.KeyVaultBaseUrl)
+	deleter := deleteAndPurgeSecret{
+		client:      client,
+		keyVaultUri: id.KeyVaultBaseUrl,
+		name:        id.Name,
+	}
+	if err := deleteAndOptionallyPurge(ctx, description, shouldPurge, deleter); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func keyVaultChildItemRefreshFunc(secretUri string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		log.Printf("[DEBUG] Checking to see if KeyVault Secret %q is available..", secretUri)
+var _ deleteAndPurgeNestedItem = deleteAndPurgeSecret{}
 
-		var PTransport = &http.Transport{Proxy: http.ProxyFromEnvironment}
+type deleteAndPurgeSecret struct {
+	client      *keyvault.BaseClient
+	keyVaultUri string
+	name        string
+}
 
-		client := &http.Client{
-			Transport: PTransport,
-		}
+func (d deleteAndPurgeSecret) DeleteNestedItem(ctx context.Context) (autorest.Response, error) {
+	resp, err := d.client.DeleteSecret(ctx, d.keyVaultUri, d.name)
+	return resp.Response, err
+}
 
-		conn, err := client.Get(secretUri)
-		if err != nil {
-			log.Printf("[DEBUG] Didn't find KeyVault secret at %q", secretUri)
-			return nil, "pending", fmt.Errorf("Error checking secret at %q: %s", secretUri, err)
-		}
+func (d deleteAndPurgeSecret) NestedItemHasBeenDeleted(ctx context.Context) (autorest.Response, error) {
+	resp, err := d.client.GetSecret(ctx, d.keyVaultUri, d.name, "")
+	return resp.Response, err
+}
 
-		defer conn.Body.Close()
+func (d deleteAndPurgeSecret) PurgeNestedItem(ctx context.Context) (autorest.Response, error) {
+	return d.client.PurgeDeletedSecret(ctx, d.keyVaultUri, d.name)
+}
 
-		log.Printf("[DEBUG] Found KeyVault Secret %q", secretUri)
-		return "available", "available", nil
-	}
+func (d deleteAndPurgeSecret) NestedItemHasBeenPurged(ctx context.Context) (autorest.Response, error) {
+	resp, err := d.client.GetDeletedSecret(ctx, d.keyVaultUri, d.name)
+	return resp.Response, err
 }

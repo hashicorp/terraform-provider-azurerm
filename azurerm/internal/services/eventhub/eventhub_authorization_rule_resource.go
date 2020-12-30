@@ -11,18 +11,17 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmEventHubAuthorizationRule() *schema.Resource {
+func resourceEventHubAuthorizationRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmEventHubAuthorizationRuleCreateUpdate,
-		Read:   resourceArmEventHubAuthorizationRuleRead,
-		Update: resourceArmEventHubAuthorizationRuleCreateUpdate,
-		Delete: resourceArmEventHubAuthorizationRuleDelete,
+		Create: resourceEventHubAuthorizationRuleCreateUpdate,
+		Read:   resourceEventHubAuthorizationRuleRead,
+		Update: resourceEventHubAuthorizationRuleCreateUpdate,
+		Delete: resourceEventHubAuthorizationRuleDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -64,7 +63,7 @@ func resourceArmEventHubAuthorizationRule() *schema.Resource {
 	}
 }
 
-func resourceArmEventHubAuthorizationRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubAuthorizationRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.EventHubsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -76,7 +75,7 @@ func resourceArmEventHubAuthorizationRuleCreateUpdate(d *schema.ResourceData, me
 	eventHubName := d.Get("eventhub_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, eventHubName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -121,11 +120,11 @@ func resourceArmEventHubAuthorizationRuleCreateUpdate(d *schema.ResourceData, me
 
 		d.SetId(*read.ID)
 
-		return resource.NonRetryableError(resourceArmEventHubAuthorizationRuleRead(d, meta))
+		return resource.NonRetryableError(resourceEventHubAuthorizationRuleRead(d, meta))
 	})
 }
 
-func resourceArmEventHubAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.EventHubsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -176,7 +175,7 @@ func resourceArmEventHubAuthorizationRuleRead(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func resourceArmEventHubAuthorizationRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubAuthorizationRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	eventhubClient := meta.(*clients.Client).Eventhub.EventHubsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

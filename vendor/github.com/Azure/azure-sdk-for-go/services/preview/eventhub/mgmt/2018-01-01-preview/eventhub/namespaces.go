@@ -1406,6 +1406,9 @@ func (client NamespacesClient) List(ctx context.Context) (result EHNamespaceList
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.NamespacesClient", "List", resp, "Failure responding to request")
 	}
+	if result.enlr.hasNextLink() && result.enlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -1527,6 +1530,9 @@ func (client NamespacesClient) ListAuthorizationRules(ctx context.Context, resou
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.NamespacesClient", "ListAuthorizationRules", resp, "Failure responding to request")
 	}
+	if result.arlr.hasNextLink() && result.arlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -1645,6 +1651,9 @@ func (client NamespacesClient) ListByResourceGroup(ctx context.Context, resource
 	result.enlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.NamespacesClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.enlr.hasNextLink() && result.enlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -1767,6 +1776,9 @@ func (client NamespacesClient) ListIPFilterRules(ctx context.Context, resourceGr
 	result.ifrlr, err = client.ListIPFilterRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.NamespacesClient", "ListIPFilterRules", resp, "Failure responding to request")
+	}
+	if result.ifrlr.hasNextLink() && result.ifrlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -1979,6 +1991,9 @@ func (client NamespacesClient) ListVirtualNetworkRules(ctx context.Context, reso
 	result.vnrlr, err = client.ListVirtualNetworkRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.NamespacesClient", "ListVirtualNetworkRules", resp, "Failure responding to request")
+	}
+	if result.vnrlr.hasNextLink() && result.vnrlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

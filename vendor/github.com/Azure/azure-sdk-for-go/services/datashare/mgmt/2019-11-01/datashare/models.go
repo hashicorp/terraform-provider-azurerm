@@ -31,344 +31,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/datashare/mgmt/2019-11-01/datashare"
 
-// DataSetMappingStatus enumerates the values for data set mapping status.
-type DataSetMappingStatus string
-
-const (
-	// Broken ...
-	Broken DataSetMappingStatus = "Broken"
-	// Ok ...
-	Ok DataSetMappingStatus = "Ok"
-)
-
-// PossibleDataSetMappingStatusValues returns an array of possible values for the DataSetMappingStatus const type.
-func PossibleDataSetMappingStatusValues() []DataSetMappingStatus {
-	return []DataSetMappingStatus{Broken, Ok}
-}
-
-// DataSetType enumerates the values for data set type.
-type DataSetType string
-
-const (
-	// AdlsGen1File ...
-	AdlsGen1File DataSetType = "AdlsGen1File"
-	// AdlsGen1Folder ...
-	AdlsGen1Folder DataSetType = "AdlsGen1Folder"
-	// AdlsGen2File ...
-	AdlsGen2File DataSetType = "AdlsGen2File"
-	// AdlsGen2FileSystem ...
-	AdlsGen2FileSystem DataSetType = "AdlsGen2FileSystem"
-	// AdlsGen2Folder ...
-	AdlsGen2Folder DataSetType = "AdlsGen2Folder"
-	// Blob ...
-	Blob DataSetType = "Blob"
-	// BlobFolder ...
-	BlobFolder DataSetType = "BlobFolder"
-	// Container ...
-	Container DataSetType = "Container"
-	// KustoCluster ...
-	KustoCluster DataSetType = "KustoCluster"
-	// KustoDatabase ...
-	KustoDatabase DataSetType = "KustoDatabase"
-	// SQLDBTable ...
-	SQLDBTable DataSetType = "SqlDBTable"
-	// SQLDWTable ...
-	SQLDWTable DataSetType = "SqlDWTable"
-)
-
-// PossibleDataSetTypeValues returns an array of possible values for the DataSetType const type.
-func PossibleDataSetTypeValues() []DataSetType {
-	return []DataSetType{AdlsGen1File, AdlsGen1Folder, AdlsGen2File, AdlsGen2FileSystem, AdlsGen2Folder, Blob, BlobFolder, Container, KustoCluster, KustoDatabase, SQLDBTable, SQLDWTable}
-}
-
-// InvitationStatus enumerates the values for invitation status.
-type InvitationStatus string
-
-const (
-	// Accepted ...
-	Accepted InvitationStatus = "Accepted"
-	// Pending ...
-	Pending InvitationStatus = "Pending"
-	// Rejected ...
-	Rejected InvitationStatus = "Rejected"
-	// Withdrawn ...
-	Withdrawn InvitationStatus = "Withdrawn"
-)
-
-// PossibleInvitationStatusValues returns an array of possible values for the InvitationStatus const type.
-func PossibleInvitationStatusValues() []InvitationStatus {
-	return []InvitationStatus{Accepted, Pending, Rejected, Withdrawn}
-}
-
-// Kind enumerates the values for kind.
-type Kind string
-
-const (
-	// KindAdlsGen1File ...
-	KindAdlsGen1File Kind = "AdlsGen1File"
-	// KindAdlsGen1Folder ...
-	KindAdlsGen1Folder Kind = "AdlsGen1Folder"
-	// KindAdlsGen2File ...
-	KindAdlsGen2File Kind = "AdlsGen2File"
-	// KindAdlsGen2FileSystem ...
-	KindAdlsGen2FileSystem Kind = "AdlsGen2FileSystem"
-	// KindAdlsGen2Folder ...
-	KindAdlsGen2Folder Kind = "AdlsGen2Folder"
-	// KindBlob ...
-	KindBlob Kind = "Blob"
-	// KindBlobFolder ...
-	KindBlobFolder Kind = "BlobFolder"
-	// KindContainer ...
-	KindContainer Kind = "Container"
-	// KindDataSet ...
-	KindDataSet Kind = "DataSet"
-	// KindKustoCluster ...
-	KindKustoCluster Kind = "KustoCluster"
-	// KindKustoDatabase ...
-	KindKustoDatabase Kind = "KustoDatabase"
-	// KindSQLDBTable ...
-	KindSQLDBTable Kind = "SqlDBTable"
-	// KindSQLDWTable ...
-	KindSQLDWTable Kind = "SqlDWTable"
-)
-
-// PossibleKindValues returns an array of possible values for the Kind const type.
-func PossibleKindValues() []Kind {
-	return []Kind{KindAdlsGen1File, KindAdlsGen1Folder, KindAdlsGen2File, KindAdlsGen2FileSystem, KindAdlsGen2Folder, KindBlob, KindBlobFolder, KindContainer, KindDataSet, KindKustoCluster, KindKustoDatabase, KindSQLDBTable, KindSQLDWTable}
-}
-
-// KindBasicDataSetMapping enumerates the values for kind basic data set mapping.
-type KindBasicDataSetMapping string
-
-const (
-	// KindBasicDataSetMappingKindAdlsGen2File ...
-	KindBasicDataSetMappingKindAdlsGen2File KindBasicDataSetMapping = "AdlsGen2File"
-	// KindBasicDataSetMappingKindAdlsGen2FileSystem ...
-	KindBasicDataSetMappingKindAdlsGen2FileSystem KindBasicDataSetMapping = "AdlsGen2FileSystem"
-	// KindBasicDataSetMappingKindAdlsGen2Folder ...
-	KindBasicDataSetMappingKindAdlsGen2Folder KindBasicDataSetMapping = "AdlsGen2Folder"
-	// KindBasicDataSetMappingKindBlob ...
-	KindBasicDataSetMappingKindBlob KindBasicDataSetMapping = "Blob"
-	// KindBasicDataSetMappingKindBlobFolder ...
-	KindBasicDataSetMappingKindBlobFolder KindBasicDataSetMapping = "BlobFolder"
-	// KindBasicDataSetMappingKindContainer ...
-	KindBasicDataSetMappingKindContainer KindBasicDataSetMapping = "Container"
-	// KindBasicDataSetMappingKindDataSetMapping ...
-	KindBasicDataSetMappingKindDataSetMapping KindBasicDataSetMapping = "DataSetMapping"
-	// KindBasicDataSetMappingKindKustoCluster ...
-	KindBasicDataSetMappingKindKustoCluster KindBasicDataSetMapping = "KustoCluster"
-	// KindBasicDataSetMappingKindKustoDatabase ...
-	KindBasicDataSetMappingKindKustoDatabase KindBasicDataSetMapping = "KustoDatabase"
-	// KindBasicDataSetMappingKindSQLDBTable ...
-	KindBasicDataSetMappingKindSQLDBTable KindBasicDataSetMapping = "SqlDBTable"
-	// KindBasicDataSetMappingKindSQLDWTable ...
-	KindBasicDataSetMappingKindSQLDWTable KindBasicDataSetMapping = "SqlDWTable"
-)
-
-// PossibleKindBasicDataSetMappingValues returns an array of possible values for the KindBasicDataSetMapping const type.
-func PossibleKindBasicDataSetMappingValues() []KindBasicDataSetMapping {
-	return []KindBasicDataSetMapping{KindBasicDataSetMappingKindAdlsGen2File, KindBasicDataSetMappingKindAdlsGen2FileSystem, KindBasicDataSetMappingKindAdlsGen2Folder, KindBasicDataSetMappingKindBlob, KindBasicDataSetMappingKindBlobFolder, KindBasicDataSetMappingKindContainer, KindBasicDataSetMappingKindDataSetMapping, KindBasicDataSetMappingKindKustoCluster, KindBasicDataSetMappingKindKustoDatabase, KindBasicDataSetMappingKindSQLDBTable, KindBasicDataSetMappingKindSQLDWTable}
-}
-
-// KindBasicSourceShareSynchronizationSetting enumerates the values for kind basic source share synchronization
-// setting.
-type KindBasicSourceShareSynchronizationSetting string
-
-const (
-	// KindScheduleBased ...
-	KindScheduleBased KindBasicSourceShareSynchronizationSetting = "ScheduleBased"
-	// KindSourceShareSynchronizationSetting ...
-	KindSourceShareSynchronizationSetting KindBasicSourceShareSynchronizationSetting = "SourceShareSynchronizationSetting"
-)
-
-// PossibleKindBasicSourceShareSynchronizationSettingValues returns an array of possible values for the KindBasicSourceShareSynchronizationSetting const type.
-func PossibleKindBasicSourceShareSynchronizationSettingValues() []KindBasicSourceShareSynchronizationSetting {
-	return []KindBasicSourceShareSynchronizationSetting{KindScheduleBased, KindSourceShareSynchronizationSetting}
-}
-
-// KindBasicSynchronizationSetting enumerates the values for kind basic synchronization setting.
-type KindBasicSynchronizationSetting string
-
-const (
-	// KindBasicSynchronizationSettingKindScheduleBased ...
-	KindBasicSynchronizationSettingKindScheduleBased KindBasicSynchronizationSetting = "ScheduleBased"
-	// KindBasicSynchronizationSettingKindSynchronizationSetting ...
-	KindBasicSynchronizationSettingKindSynchronizationSetting KindBasicSynchronizationSetting = "SynchronizationSetting"
-)
-
-// PossibleKindBasicSynchronizationSettingValues returns an array of possible values for the KindBasicSynchronizationSetting const type.
-func PossibleKindBasicSynchronizationSettingValues() []KindBasicSynchronizationSetting {
-	return []KindBasicSynchronizationSetting{KindBasicSynchronizationSettingKindScheduleBased, KindBasicSynchronizationSettingKindSynchronizationSetting}
-}
-
-// KindBasicTrigger enumerates the values for kind basic trigger.
-type KindBasicTrigger string
-
-const (
-	// KindBasicTriggerKindScheduleBased ...
-	KindBasicTriggerKindScheduleBased KindBasicTrigger = "ScheduleBased"
-	// KindBasicTriggerKindTrigger ...
-	KindBasicTriggerKindTrigger KindBasicTrigger = "Trigger"
-)
-
-// PossibleKindBasicTriggerValues returns an array of possible values for the KindBasicTrigger const type.
-func PossibleKindBasicTriggerValues() []KindBasicTrigger {
-	return []KindBasicTrigger{KindBasicTriggerKindScheduleBased, KindBasicTriggerKindTrigger}
-}
-
-// OutputType enumerates the values for output type.
-type OutputType string
-
-const (
-	// Csv ...
-	Csv OutputType = "Csv"
-	// Parquet ...
-	Parquet OutputType = "Parquet"
-)
-
-// PossibleOutputTypeValues returns an array of possible values for the OutputType const type.
-func PossibleOutputTypeValues() []OutputType {
-	return []OutputType{Csv, Parquet}
-}
-
-// ProvisioningState enumerates the values for provisioning state.
-type ProvisioningState string
-
-const (
-	// Creating ...
-	Creating ProvisioningState = "Creating"
-	// Deleting ...
-	Deleting ProvisioningState = "Deleting"
-	// Failed ...
-	Failed ProvisioningState = "Failed"
-	// Moving ...
-	Moving ProvisioningState = "Moving"
-	// Succeeded ...
-	Succeeded ProvisioningState = "Succeeded"
-)
-
-// PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
-func PossibleProvisioningStateValues() []ProvisioningState {
-	return []ProvisioningState{Creating, Deleting, Failed, Moving, Succeeded}
-}
-
-// RecurrenceInterval enumerates the values for recurrence interval.
-type RecurrenceInterval string
-
-const (
-	// Day ...
-	Day RecurrenceInterval = "Day"
-	// Hour ...
-	Hour RecurrenceInterval = "Hour"
-)
-
-// PossibleRecurrenceIntervalValues returns an array of possible values for the RecurrenceInterval const type.
-func PossibleRecurrenceIntervalValues() []RecurrenceInterval {
-	return []RecurrenceInterval{Day, Hour}
-}
-
-// ShareKind enumerates the values for share kind.
-type ShareKind string
-
-const (
-	// CopyBased ...
-	CopyBased ShareKind = "CopyBased"
-	// InPlace ...
-	InPlace ShareKind = "InPlace"
-)
-
-// PossibleShareKindValues returns an array of possible values for the ShareKind const type.
-func PossibleShareKindValues() []ShareKind {
-	return []ShareKind{CopyBased, InPlace}
-}
-
-// ShareSubscriptionStatus enumerates the values for share subscription status.
-type ShareSubscriptionStatus string
-
-const (
-	// Active ...
-	Active ShareSubscriptionStatus = "Active"
-	// Revoked ...
-	Revoked ShareSubscriptionStatus = "Revoked"
-	// Revoking ...
-	Revoking ShareSubscriptionStatus = "Revoking"
-	// SourceDeleted ...
-	SourceDeleted ShareSubscriptionStatus = "SourceDeleted"
-)
-
-// PossibleShareSubscriptionStatusValues returns an array of possible values for the ShareSubscriptionStatus const type.
-func PossibleShareSubscriptionStatusValues() []ShareSubscriptionStatus {
-	return []ShareSubscriptionStatus{Active, Revoked, Revoking, SourceDeleted}
-}
-
-// Status enumerates the values for status.
-type Status string
-
-const (
-	// StatusAccepted ...
-	StatusAccepted Status = "Accepted"
-	// StatusCanceled ...
-	StatusCanceled Status = "Canceled"
-	// StatusFailed ...
-	StatusFailed Status = "Failed"
-	// StatusInProgress ...
-	StatusInProgress Status = "InProgress"
-	// StatusSucceeded ...
-	StatusSucceeded Status = "Succeeded"
-	// StatusTransientFailure ...
-	StatusTransientFailure Status = "TransientFailure"
-)
-
-// PossibleStatusValues returns an array of possible values for the Status const type.
-func PossibleStatusValues() []Status {
-	return []Status{StatusAccepted, StatusCanceled, StatusFailed, StatusInProgress, StatusSucceeded, StatusTransientFailure}
-}
-
-// SynchronizationMode enumerates the values for synchronization mode.
-type SynchronizationMode string
-
-const (
-	// FullSync ...
-	FullSync SynchronizationMode = "FullSync"
-	// Incremental ...
-	Incremental SynchronizationMode = "Incremental"
-)
-
-// PossibleSynchronizationModeValues returns an array of possible values for the SynchronizationMode const type.
-func PossibleSynchronizationModeValues() []SynchronizationMode {
-	return []SynchronizationMode{FullSync, Incremental}
-}
-
-// TriggerStatus enumerates the values for trigger status.
-type TriggerStatus string
-
-const (
-	// TriggerStatusActive ...
-	TriggerStatusActive TriggerStatus = "Active"
-	// TriggerStatusInactive ...
-	TriggerStatusInactive TriggerStatus = "Inactive"
-	// TriggerStatusSourceSynchronizationSettingDeleted ...
-	TriggerStatusSourceSynchronizationSettingDeleted TriggerStatus = "SourceSynchronizationSettingDeleted"
-)
-
-// PossibleTriggerStatusValues returns an array of possible values for the TriggerStatus const type.
-func PossibleTriggerStatusValues() []TriggerStatus {
-	return []TriggerStatus{TriggerStatusActive, TriggerStatusInactive, TriggerStatusSourceSynchronizationSettingDeleted}
-}
-
-// Type enumerates the values for type.
-type Type string
-
-const (
-	// SystemAssigned ...
-	SystemAssigned Type = "SystemAssigned"
-)
-
-// PossibleTypeValues returns an array of possible values for the Type const type.
-func PossibleTypeValues() []Type {
-	return []Type{SystemAssigned}
-}
-
 // Account an account data transfer object.
 type Account struct {
 	autorest.Response `json:"-"`
@@ -561,10 +223,15 @@ func (al AccountList) IsEmpty() bool {
 	return al.Value == nil || len(*al.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (al AccountList) hasNextLink() bool {
+	return al.NextLink != nil && len(*al.NextLink) != 0
+}
+
 // accountListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (al AccountList) accountListPreparer(ctx context.Context) (*http.Request, error) {
-	if al.NextLink == nil || len(to.String(al.NextLink)) < 1 {
+	if !al.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -592,11 +259,16 @@ func (page *AccountListPage) NextWithContext(ctx context.Context) (err error) {
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.al)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.al)
+		if err != nil {
+			return err
+		}
+		page.al = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.al = next
 	return nil
 }
 
@@ -642,8 +314,7 @@ type AccountProperties struct {
 	UserName *string `json:"userName,omitempty"`
 }
 
-// AccountsCreateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// AccountsCreateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type AccountsCreateFuture struct {
 	azure.Future
 }
@@ -671,8 +342,7 @@ func (future *AccountsCreateFuture) Result(client AccountsClient) (a Account, er
 	return
 }
 
-// AccountsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// AccountsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type AccountsDeleteFuture struct {
 	azure.Future
 }
@@ -888,6 +558,27 @@ type ADLSGen1FileProperties struct {
 	SubscriptionID *string `json:"subscriptionId,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ADLSGen1FileProperties.
+func (ag1fp ADLSGen1FileProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ag1fp.AccountName != nil {
+		objectMap["accountName"] = ag1fp.AccountName
+	}
+	if ag1fp.FileName != nil {
+		objectMap["fileName"] = ag1fp.FileName
+	}
+	if ag1fp.FolderPath != nil {
+		objectMap["folderPath"] = ag1fp.FolderPath
+	}
+	if ag1fp.ResourceGroup != nil {
+		objectMap["resourceGroup"] = ag1fp.ResourceGroup
+	}
+	if ag1fp.SubscriptionID != nil {
+		objectMap["subscriptionId"] = ag1fp.SubscriptionID
+	}
+	return json.Marshal(objectMap)
+}
+
 // ADLSGen1FolderDataSet an ADLS Gen 1 folder data set.
 type ADLSGen1FolderDataSet struct {
 	// ADLSGen1FolderProperties - ADLS Gen 1 folder data set properties.
@@ -1057,6 +748,24 @@ type ADLSGen1FolderProperties struct {
 	ResourceGroup *string `json:"resourceGroup,omitempty"`
 	// SubscriptionID - Subscription id of ADLS account.
 	SubscriptionID *string `json:"subscriptionId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ADLSGen1FolderProperties.
+func (ag1fp ADLSGen1FolderProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ag1fp.AccountName != nil {
+		objectMap["accountName"] = ag1fp.AccountName
+	}
+	if ag1fp.FolderPath != nil {
+		objectMap["folderPath"] = ag1fp.FolderPath
+	}
+	if ag1fp.ResourceGroup != nil {
+		objectMap["resourceGroup"] = ag1fp.ResourceGroup
+	}
+	if ag1fp.SubscriptionID != nil {
+		objectMap["subscriptionId"] = ag1fp.SubscriptionID
+	}
+	return json.Marshal(objectMap)
 }
 
 // ADLSGen2FileDataSet an ADLS Gen 2 file data set.
@@ -1385,6 +1094,33 @@ type ADLSGen2FileDataSetMappingProperties struct {
 	SubscriptionID *string `json:"subscriptionId,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ADLSGen2FileDataSetMappingProperties.
+func (ag2fdsmp ADLSGen2FileDataSetMappingProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ag2fdsmp.DataSetID != nil {
+		objectMap["dataSetId"] = ag2fdsmp.DataSetID
+	}
+	if ag2fdsmp.FilePath != nil {
+		objectMap["filePath"] = ag2fdsmp.FilePath
+	}
+	if ag2fdsmp.FileSystem != nil {
+		objectMap["fileSystem"] = ag2fdsmp.FileSystem
+	}
+	if ag2fdsmp.OutputType != "" {
+		objectMap["outputType"] = ag2fdsmp.OutputType
+	}
+	if ag2fdsmp.ResourceGroup != nil {
+		objectMap["resourceGroup"] = ag2fdsmp.ResourceGroup
+	}
+	if ag2fdsmp.StorageAccountName != nil {
+		objectMap["storageAccountName"] = ag2fdsmp.StorageAccountName
+	}
+	if ag2fdsmp.SubscriptionID != nil {
+		objectMap["subscriptionId"] = ag2fdsmp.SubscriptionID
+	}
+	return json.Marshal(objectMap)
+}
+
 // ADLSGen2FileProperties properties of the ADLS Gen2 file data set.
 type ADLSGen2FileProperties struct {
 	// DataSetID - READ-ONLY; Unique id for identifying a data set resource
@@ -1399,6 +1135,27 @@ type ADLSGen2FileProperties struct {
 	StorageAccountName *string `json:"storageAccountName,omitempty"`
 	// SubscriptionID - Subscription id of storage account
 	SubscriptionID *string `json:"subscriptionId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ADLSGen2FileProperties.
+func (ag2fp ADLSGen2FileProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ag2fp.FilePath != nil {
+		objectMap["filePath"] = ag2fp.FilePath
+	}
+	if ag2fp.FileSystem != nil {
+		objectMap["fileSystem"] = ag2fp.FileSystem
+	}
+	if ag2fp.ResourceGroup != nil {
+		objectMap["resourceGroup"] = ag2fp.ResourceGroup
+	}
+	if ag2fp.StorageAccountName != nil {
+		objectMap["storageAccountName"] = ag2fp.StorageAccountName
+	}
+	if ag2fp.SubscriptionID != nil {
+		objectMap["subscriptionId"] = ag2fp.SubscriptionID
+	}
+	return json.Marshal(objectMap)
 }
 
 // ADLSGen2FileSystemDataSet an ADLS Gen 2 file system data set.
@@ -1723,6 +1480,27 @@ type ADLSGen2FileSystemDataSetMappingProperties struct {
 	SubscriptionID *string `json:"subscriptionId,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ADLSGen2FileSystemDataSetMappingProperties.
+func (ag2fsdsmp ADLSGen2FileSystemDataSetMappingProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ag2fsdsmp.DataSetID != nil {
+		objectMap["dataSetId"] = ag2fsdsmp.DataSetID
+	}
+	if ag2fsdsmp.FileSystem != nil {
+		objectMap["fileSystem"] = ag2fsdsmp.FileSystem
+	}
+	if ag2fsdsmp.ResourceGroup != nil {
+		objectMap["resourceGroup"] = ag2fsdsmp.ResourceGroup
+	}
+	if ag2fsdsmp.StorageAccountName != nil {
+		objectMap["storageAccountName"] = ag2fsdsmp.StorageAccountName
+	}
+	if ag2fsdsmp.SubscriptionID != nil {
+		objectMap["subscriptionId"] = ag2fsdsmp.SubscriptionID
+	}
+	return json.Marshal(objectMap)
+}
+
 // ADLSGen2FileSystemProperties properties of the ADLS Gen2 file system data set.
 type ADLSGen2FileSystemProperties struct {
 	// DataSetID - READ-ONLY; Unique id for identifying a data set resource
@@ -1735,6 +1513,24 @@ type ADLSGen2FileSystemProperties struct {
 	StorageAccountName *string `json:"storageAccountName,omitempty"`
 	// SubscriptionID - Subscription id of storage account
 	SubscriptionID *string `json:"subscriptionId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ADLSGen2FileSystemProperties.
+func (ag2fsp ADLSGen2FileSystemProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ag2fsp.FileSystem != nil {
+		objectMap["fileSystem"] = ag2fsp.FileSystem
+	}
+	if ag2fsp.ResourceGroup != nil {
+		objectMap["resourceGroup"] = ag2fsp.ResourceGroup
+	}
+	if ag2fsp.StorageAccountName != nil {
+		objectMap["storageAccountName"] = ag2fsp.StorageAccountName
+	}
+	if ag2fsp.SubscriptionID != nil {
+		objectMap["subscriptionId"] = ag2fsp.SubscriptionID
+	}
+	return json.Marshal(objectMap)
 }
 
 // ADLSGen2FolderDataSet an ADLS Gen 2 folder data set.
@@ -2061,6 +1857,30 @@ type ADLSGen2FolderDataSetMappingProperties struct {
 	SubscriptionID *string `json:"subscriptionId,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ADLSGen2FolderDataSetMappingProperties.
+func (ag2fdsmp ADLSGen2FolderDataSetMappingProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ag2fdsmp.DataSetID != nil {
+		objectMap["dataSetId"] = ag2fdsmp.DataSetID
+	}
+	if ag2fdsmp.FileSystem != nil {
+		objectMap["fileSystem"] = ag2fdsmp.FileSystem
+	}
+	if ag2fdsmp.FolderPath != nil {
+		objectMap["folderPath"] = ag2fdsmp.FolderPath
+	}
+	if ag2fdsmp.ResourceGroup != nil {
+		objectMap["resourceGroup"] = ag2fdsmp.ResourceGroup
+	}
+	if ag2fdsmp.StorageAccountName != nil {
+		objectMap["storageAccountName"] = ag2fdsmp.StorageAccountName
+	}
+	if ag2fdsmp.SubscriptionID != nil {
+		objectMap["subscriptionId"] = ag2fdsmp.SubscriptionID
+	}
+	return json.Marshal(objectMap)
+}
+
 // ADLSGen2FolderProperties properties of the ADLS Gen2 folder data set.
 type ADLSGen2FolderProperties struct {
 	// DataSetID - READ-ONLY; Unique id for identifying a data set resource
@@ -2075,6 +1895,27 @@ type ADLSGen2FolderProperties struct {
 	StorageAccountName *string `json:"storageAccountName,omitempty"`
 	// SubscriptionID - Subscription id of storage account
 	SubscriptionID *string `json:"subscriptionId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ADLSGen2FolderProperties.
+func (ag2fp ADLSGen2FolderProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ag2fp.FileSystem != nil {
+		objectMap["fileSystem"] = ag2fp.FileSystem
+	}
+	if ag2fp.FolderPath != nil {
+		objectMap["folderPath"] = ag2fp.FolderPath
+	}
+	if ag2fp.ResourceGroup != nil {
+		objectMap["resourceGroup"] = ag2fp.ResourceGroup
+	}
+	if ag2fp.StorageAccountName != nil {
+		objectMap["storageAccountName"] = ag2fp.StorageAccountName
+	}
+	if ag2fp.SubscriptionID != nil {
+		objectMap["subscriptionId"] = ag2fp.SubscriptionID
+	}
+	return json.Marshal(objectMap)
 }
 
 // BlobContainerDataSet an Azure storage blob container data set.
@@ -2399,6 +2240,27 @@ type BlobContainerMappingProperties struct {
 	SubscriptionID *string `json:"subscriptionId,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for BlobContainerMappingProperties.
+func (bcmp BlobContainerMappingProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if bcmp.ContainerName != nil {
+		objectMap["containerName"] = bcmp.ContainerName
+	}
+	if bcmp.DataSetID != nil {
+		objectMap["dataSetId"] = bcmp.DataSetID
+	}
+	if bcmp.ResourceGroup != nil {
+		objectMap["resourceGroup"] = bcmp.ResourceGroup
+	}
+	if bcmp.StorageAccountName != nil {
+		objectMap["storageAccountName"] = bcmp.StorageAccountName
+	}
+	if bcmp.SubscriptionID != nil {
+		objectMap["subscriptionId"] = bcmp.SubscriptionID
+	}
+	return json.Marshal(objectMap)
+}
+
 // BlobContainerProperties properties of the BLOB container data set.
 type BlobContainerProperties struct {
 	// ContainerName - BLOB Container name.
@@ -2411,6 +2273,24 @@ type BlobContainerProperties struct {
 	StorageAccountName *string `json:"storageAccountName,omitempty"`
 	// SubscriptionID - Subscription id of storage account
 	SubscriptionID *string `json:"subscriptionId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for BlobContainerProperties.
+func (bcp BlobContainerProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if bcp.ContainerName != nil {
+		objectMap["containerName"] = bcp.ContainerName
+	}
+	if bcp.ResourceGroup != nil {
+		objectMap["resourceGroup"] = bcp.ResourceGroup
+	}
+	if bcp.StorageAccountName != nil {
+		objectMap["storageAccountName"] = bcp.StorageAccountName
+	}
+	if bcp.SubscriptionID != nil {
+		objectMap["subscriptionId"] = bcp.SubscriptionID
+	}
+	return json.Marshal(objectMap)
 }
 
 // BlobDataSet an Azure storage blob data set.
@@ -3041,6 +2921,30 @@ type BlobFolderMappingProperties struct {
 	SubscriptionID *string `json:"subscriptionId,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for BlobFolderMappingProperties.
+func (bfmp BlobFolderMappingProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if bfmp.ContainerName != nil {
+		objectMap["containerName"] = bfmp.ContainerName
+	}
+	if bfmp.DataSetID != nil {
+		objectMap["dataSetId"] = bfmp.DataSetID
+	}
+	if bfmp.Prefix != nil {
+		objectMap["prefix"] = bfmp.Prefix
+	}
+	if bfmp.ResourceGroup != nil {
+		objectMap["resourceGroup"] = bfmp.ResourceGroup
+	}
+	if bfmp.StorageAccountName != nil {
+		objectMap["storageAccountName"] = bfmp.StorageAccountName
+	}
+	if bfmp.SubscriptionID != nil {
+		objectMap["subscriptionId"] = bfmp.SubscriptionID
+	}
+	return json.Marshal(objectMap)
+}
+
 // BlobFolderProperties properties of the blob folder data set.
 type BlobFolderProperties struct {
 	// ContainerName - Container that has the file path.
@@ -3055,6 +2959,27 @@ type BlobFolderProperties struct {
 	StorageAccountName *string `json:"storageAccountName,omitempty"`
 	// SubscriptionID - Subscription id of storage account
 	SubscriptionID *string `json:"subscriptionId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for BlobFolderProperties.
+func (bfp BlobFolderProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if bfp.ContainerName != nil {
+		objectMap["containerName"] = bfp.ContainerName
+	}
+	if bfp.Prefix != nil {
+		objectMap["prefix"] = bfp.Prefix
+	}
+	if bfp.ResourceGroup != nil {
+		objectMap["resourceGroup"] = bfp.ResourceGroup
+	}
+	if bfp.StorageAccountName != nil {
+		objectMap["storageAccountName"] = bfp.StorageAccountName
+	}
+	if bfp.SubscriptionID != nil {
+		objectMap["subscriptionId"] = bfp.SubscriptionID
+	}
+	return json.Marshal(objectMap)
 }
 
 // BlobMappingProperties azure storage Blob data set mapping property bag.
@@ -3079,6 +3004,33 @@ type BlobMappingProperties struct {
 	SubscriptionID *string `json:"subscriptionId,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for BlobMappingProperties.
+func (bmp BlobMappingProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if bmp.ContainerName != nil {
+		objectMap["containerName"] = bmp.ContainerName
+	}
+	if bmp.DataSetID != nil {
+		objectMap["dataSetId"] = bmp.DataSetID
+	}
+	if bmp.FilePath != nil {
+		objectMap["filePath"] = bmp.FilePath
+	}
+	if bmp.OutputType != "" {
+		objectMap["outputType"] = bmp.OutputType
+	}
+	if bmp.ResourceGroup != nil {
+		objectMap["resourceGroup"] = bmp.ResourceGroup
+	}
+	if bmp.StorageAccountName != nil {
+		objectMap["storageAccountName"] = bmp.StorageAccountName
+	}
+	if bmp.SubscriptionID != nil {
+		objectMap["subscriptionId"] = bmp.SubscriptionID
+	}
+	return json.Marshal(objectMap)
+}
+
 // BlobProperties properties of the blob data set.
 type BlobProperties struct {
 	// ContainerName - Container that has the file path.
@@ -3093,6 +3045,27 @@ type BlobProperties struct {
 	StorageAccountName *string `json:"storageAccountName,omitempty"`
 	// SubscriptionID - Subscription id of storage account
 	SubscriptionID *string `json:"subscriptionId,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for BlobProperties.
+func (bp BlobProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if bp.ContainerName != nil {
+		objectMap["containerName"] = bp.ContainerName
+	}
+	if bp.FilePath != nil {
+		objectMap["filePath"] = bp.FilePath
+	}
+	if bp.ResourceGroup != nil {
+		objectMap["resourceGroup"] = bp.ResourceGroup
+	}
+	if bp.StorageAccountName != nil {
+		objectMap["storageAccountName"] = bp.StorageAccountName
+	}
+	if bp.SubscriptionID != nil {
+		objectMap["subscriptionId"] = bp.SubscriptionID
+	}
+	return json.Marshal(objectMap)
 }
 
 // ConsumerInvitation a consumer Invitation data transfer object.
@@ -3245,10 +3218,15 @@ func (cil ConsumerInvitationList) IsEmpty() bool {
 	return cil.Value == nil || len(*cil.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (cil ConsumerInvitationList) hasNextLink() bool {
+	return cil.NextLink != nil && len(*cil.NextLink) != 0
+}
+
 // consumerInvitationListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (cil ConsumerInvitationList) consumerInvitationListPreparer(ctx context.Context) (*http.Request, error) {
-	if cil.NextLink == nil || len(to.String(cil.NextLink)) < 1 {
+	if !cil.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -3276,11 +3254,16 @@ func (page *ConsumerInvitationListPage) NextWithContext(ctx context.Context) (er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.cil)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.cil)
+		if err != nil {
+			return err
+		}
+		page.cil = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.cil = next
 	return nil
 }
 
@@ -3344,6 +3327,15 @@ type ConsumerInvitationProperties struct {
 	UserEmail *string `json:"userEmail,omitempty"`
 	// UserName - READ-ONLY; Name of the user who created the resource
 	UserName *string `json:"userName,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ConsumerInvitationProperties.
+func (cip ConsumerInvitationProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cip.InvitationID != nil {
+		objectMap["invitationId"] = cip.InvitationID
+	}
+	return json.Marshal(objectMap)
 }
 
 // ConsumerSourceDataSet a consumer side dataSet data transfer object.
@@ -3495,10 +3487,15 @@ func (csdsl ConsumerSourceDataSetList) IsEmpty() bool {
 	return csdsl.Value == nil || len(*csdsl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (csdsl ConsumerSourceDataSetList) hasNextLink() bool {
+	return csdsl.NextLink != nil && len(*csdsl.NextLink) != 0
+}
+
 // consumerSourceDataSetListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (csdsl ConsumerSourceDataSetList) consumerSourceDataSetListPreparer(ctx context.Context) (*http.Request, error) {
-	if csdsl.NextLink == nil || len(to.String(csdsl.NextLink)) < 1 {
+	if !csdsl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -3526,11 +3523,16 @@ func (page *ConsumerSourceDataSetListPage) NextWithContext(ctx context.Context) 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.csdsl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.csdsl)
+		if err != nil {
+			return err
+		}
+		page.csdsl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.csdsl = next
 	return nil
 }
 
@@ -3878,10 +3880,15 @@ func (dsl DataSetList) IsEmpty() bool {
 	return dsl.Value == nil || len(*dsl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (dsl DataSetList) hasNextLink() bool {
+	return dsl.NextLink != nil && len(*dsl.NextLink) != 0
+}
+
 // dataSetListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (dsl DataSetList) dataSetListPreparer(ctx context.Context) (*http.Request, error) {
-	if dsl.NextLink == nil || len(to.String(dsl.NextLink)) < 1 {
+	if !dsl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -3909,11 +3916,16 @@ func (page *DataSetListPage) NextWithContext(ctx context.Context) (err error) {
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.dsl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.dsl)
+		if err != nil {
+			return err
+		}
+		page.dsl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.dsl = next
 	return nil
 }
 
@@ -4227,10 +4239,15 @@ func (dsml DataSetMappingList) IsEmpty() bool {
 	return dsml.Value == nil || len(*dsml.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (dsml DataSetMappingList) hasNextLink() bool {
+	return dsml.NextLink != nil && len(*dsml.NextLink) != 0
+}
+
 // dataSetMappingListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (dsml DataSetMappingList) dataSetMappingListPreparer(ctx context.Context) (*http.Request, error) {
-	if dsml.NextLink == nil || len(to.String(dsml.NextLink)) < 1 {
+	if !dsml.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -4258,11 +4275,16 @@ func (page *DataSetMappingListPage) NextWithContext(ctx context.Context) (err er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.dsml)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.dsml)
+		if err != nil {
+			return err
+		}
+		page.dsml = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.dsml = next
 	return nil
 }
 
@@ -4330,8 +4352,7 @@ func (dsm *DataSetModel) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// DataSetsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// DataSetsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type DataSetsDeleteFuture struct {
 	azure.Future
 }
@@ -4413,6 +4434,15 @@ type Identity struct {
 	TenantID *string `json:"tenantId,omitempty"`
 	// Type - Identity Type. Possible values include: 'SystemAssigned'
 	Type Type `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Identity.
+func (i Identity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if i.Type != "" {
+		objectMap["type"] = i.Type
+	}
+	return json.Marshal(objectMap)
 }
 
 // Invitation a Invitation data transfer object.
@@ -4565,10 +4595,15 @@ func (il InvitationList) IsEmpty() bool {
 	return il.Value == nil || len(*il.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (il InvitationList) hasNextLink() bool {
+	return il.NextLink != nil && len(*il.NextLink) != 0
+}
+
 // invitationListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (il InvitationList) invitationListPreparer(ctx context.Context) (*http.Request, error) {
-	if il.NextLink == nil || len(to.String(il.NextLink)) < 1 {
+	if !il.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -4596,11 +4631,16 @@ func (page *InvitationListPage) NextWithContext(ctx context.Context) (err error)
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.il)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.il)
+		if err != nil {
+			return err
+		}
+		page.il = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.il = next
 	return nil
 }
 
@@ -4656,6 +4696,21 @@ type InvitationProperties struct {
 	UserEmail *string `json:"userEmail,omitempty"`
 	// UserName - READ-ONLY; Name of the user who created the resource
 	UserName *string `json:"userName,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for InvitationProperties.
+func (IP InvitationProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if IP.TargetActiveDirectoryID != nil {
+		objectMap["targetActiveDirectoryId"] = IP.TargetActiveDirectoryID
+	}
+	if IP.TargetEmail != nil {
+		objectMap["targetEmail"] = IP.TargetEmail
+	}
+	if IP.TargetObjectID != nil {
+		objectMap["targetObjectId"] = IP.TargetObjectID
+	}
+	return json.Marshal(objectMap)
 }
 
 // KustoClusterDataSet a kusto cluster data set.
@@ -4976,6 +5031,18 @@ type KustoClusterDataSetMappingProperties struct {
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for KustoClusterDataSetMappingProperties.
+func (kcdsmp KustoClusterDataSetMappingProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if kcdsmp.DataSetID != nil {
+		objectMap["dataSetId"] = kcdsmp.DataSetID
+	}
+	if kcdsmp.KustoClusterResourceID != nil {
+		objectMap["kustoClusterResourceId"] = kcdsmp.KustoClusterResourceID
+	}
+	return json.Marshal(objectMap)
+}
+
 // KustoClusterDataSetProperties properties of the kusto cluster data set.
 type KustoClusterDataSetProperties struct {
 	// DataSetID - READ-ONLY; Unique id for identifying a data set resource
@@ -4986,6 +5053,15 @@ type KustoClusterDataSetProperties struct {
 	Location *string `json:"location,omitempty"`
 	// ProvisioningState - READ-ONLY; Provisioning state of the kusto cluster data set. Possible values include: 'Succeeded', 'Creating', 'Deleting', 'Moving', 'Failed'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for KustoClusterDataSetProperties.
+func (kcdsp KustoClusterDataSetProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if kcdsp.KustoClusterResourceID != nil {
+		objectMap["kustoClusterResourceId"] = kcdsp.KustoClusterResourceID
+	}
+	return json.Marshal(objectMap)
 }
 
 // KustoDatabaseDataSet a kusto database data set.
@@ -5306,6 +5382,18 @@ type KustoDatabaseDataSetMappingProperties struct {
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for KustoDatabaseDataSetMappingProperties.
+func (kddsmp KustoDatabaseDataSetMappingProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if kddsmp.DataSetID != nil {
+		objectMap["dataSetId"] = kddsmp.DataSetID
+	}
+	if kddsmp.KustoClusterResourceID != nil {
+		objectMap["kustoClusterResourceId"] = kddsmp.KustoClusterResourceID
+	}
+	return json.Marshal(objectMap)
+}
+
 // KustoDatabaseDataSetProperties properties of the kusto database data set.
 type KustoDatabaseDataSetProperties struct {
 	// DataSetID - READ-ONLY; Unique id for identifying a data set resource
@@ -5316,6 +5404,15 @@ type KustoDatabaseDataSetProperties struct {
 	Location *string `json:"location,omitempty"`
 	// ProvisioningState - READ-ONLY; Provisioning state of the kusto database data set. Possible values include: 'Succeeded', 'Creating', 'Deleting', 'Moving', 'Failed'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for KustoDatabaseDataSetProperties.
+func (kddsp KustoDatabaseDataSetProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if kddsp.KustoDatabaseResourceID != nil {
+		objectMap["kustoDatabaseResourceId"] = kddsp.KustoDatabaseResourceID
+	}
+	return json.Marshal(objectMap)
 }
 
 // OperationList list response for get operations.
@@ -5395,10 +5492,15 @@ func (ol OperationList) IsEmpty() bool {
 	return ol.Value == nil || len(*ol.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (ol OperationList) hasNextLink() bool {
+	return ol.NextLink != nil && len(*ol.NextLink) != 0
+}
+
 // operationListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (ol OperationList) operationListPreparer(ctx context.Context) (*http.Request, error) {
-	if ol.NextLink == nil || len(to.String(ol.NextLink)) < 1 {
+	if !ol.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -5426,11 +5528,16 @@ func (page *OperationListPage) NextWithContext(ctx context.Context) (err error) 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.ol)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.ol)
+		if err != nil {
+			return err
+		}
+		page.ol = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.ol = next
 	return nil
 }
 
@@ -5771,10 +5878,15 @@ func (pssl ProviderShareSubscriptionList) IsEmpty() bool {
 	return pssl.Value == nil || len(*pssl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (pssl ProviderShareSubscriptionList) hasNextLink() bool {
+	return pssl.NextLink != nil && len(*pssl.NextLink) != 0
+}
+
 // providerShareSubscriptionListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (pssl ProviderShareSubscriptionList) providerShareSubscriptionListPreparer(ctx context.Context) (*http.Request, error) {
-	if pssl.NextLink == nil || len(to.String(pssl.NextLink)) < 1 {
+	if !pssl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -5802,11 +5914,16 @@ func (page *ProviderShareSubscriptionListPage) NextWithContext(ctx context.Conte
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.pssl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.pssl)
+		if err != nil {
+			return err
+		}
+		page.pssl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.pssl = next
 	return nil
 }
 
@@ -6095,6 +6212,18 @@ type ScheduledSynchronizationSettingProperties struct {
 	UserName *string `json:"userName,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ScheduledSynchronizationSettingProperties.
+func (sssp ScheduledSynchronizationSettingProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sssp.RecurrenceInterval != "" {
+		objectMap["recurrenceInterval"] = sssp.RecurrenceInterval
+	}
+	if sssp.SynchronizationTime != nil {
+		objectMap["synchronizationTime"] = sssp.SynchronizationTime
+	}
+	return json.Marshal(objectMap)
+}
+
 // ScheduledTrigger a type of trigger based on schedule
 type ScheduledTrigger struct {
 	// ScheduledTriggerProperties - Properties of scheduled synchronization
@@ -6213,6 +6342,21 @@ type ScheduledTriggerProperties struct {
 	TriggerStatus TriggerStatus `json:"triggerStatus,omitempty"`
 	// UserName - READ-ONLY; Name of the user who created the trigger.
 	UserName *string `json:"userName,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ScheduledTriggerProperties.
+func (stp ScheduledTriggerProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if stp.RecurrenceInterval != "" {
+		objectMap["recurrenceInterval"] = stp.RecurrenceInterval
+	}
+	if stp.SynchronizationMode != "" {
+		objectMap["synchronizationMode"] = stp.SynchronizationMode
+	}
+	if stp.SynchronizationTime != nil {
+		objectMap["synchronizationTime"] = stp.SynchronizationTime
+	}
+	return json.Marshal(objectMap)
 }
 
 // Share a share data transfer object.
@@ -6365,10 +6509,15 @@ func (sl ShareList) IsEmpty() bool {
 	return sl.Value == nil || len(*sl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (sl ShareList) hasNextLink() bool {
+	return sl.NextLink != nil && len(*sl.NextLink) != 0
+}
+
 // shareListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (sl ShareList) shareListPreparer(ctx context.Context) (*http.Request, error) {
-	if sl.NextLink == nil || len(to.String(sl.NextLink)) < 1 {
+	if !sl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -6396,11 +6545,16 @@ func (page *ShareListPage) NextWithContext(ctx context.Context) (err error) {
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.sl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.sl)
+		if err != nil {
+			return err
+		}
+		page.sl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.sl = next
 	return nil
 }
 
@@ -6450,6 +6604,21 @@ type ShareProperties struct {
 	UserEmail *string `json:"userEmail,omitempty"`
 	// UserName - READ-ONLY; Name of the user who created the resource
 	UserName *string `json:"userName,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ShareProperties.
+func (sp ShareProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sp.Description != nil {
+		objectMap["description"] = sp.Description
+	}
+	if sp.ShareKind != "" {
+		objectMap["shareKind"] = sp.ShareKind
+	}
+	if sp.Terms != nil {
+		objectMap["terms"] = sp.Terms
+	}
+	return json.Marshal(objectMap)
 }
 
 // SharesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
@@ -6630,10 +6799,15 @@ func (ssl ShareSubscriptionList) IsEmpty() bool {
 	return ssl.Value == nil || len(*ssl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (ssl ShareSubscriptionList) hasNextLink() bool {
+	return ssl.NextLink != nil && len(*ssl.NextLink) != 0
+}
+
 // shareSubscriptionListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (ssl ShareSubscriptionList) shareSubscriptionListPreparer(ctx context.Context) (*http.Request, error) {
-	if ssl.NextLink == nil || len(to.String(ssl.NextLink)) < 1 {
+	if !ssl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -6661,11 +6835,16 @@ func (page *ShareSubscriptionListPage) NextWithContext(ctx context.Context) (err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.ssl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.ssl)
+		if err != nil {
+			return err
+		}
+		page.ssl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.ssl = next
 	return nil
 }
 
@@ -6731,8 +6910,20 @@ type ShareSubscriptionProperties struct {
 	UserName *string `json:"userName,omitempty"`
 }
 
-// ShareSubscriptionsCancelSynchronizationFuture an abstraction for monitoring and retrieving the results
-// of a long-running operation.
+// MarshalJSON is the custom marshaler for ShareSubscriptionProperties.
+func (ssp ShareSubscriptionProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ssp.InvitationID != nil {
+		objectMap["invitationId"] = ssp.InvitationID
+	}
+	if ssp.SourceShareLocation != nil {
+		objectMap["sourceShareLocation"] = ssp.SourceShareLocation
+	}
+	return json.Marshal(objectMap)
+}
+
+// ShareSubscriptionsCancelSynchronizationFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type ShareSubscriptionsCancelSynchronizationFuture struct {
 	azure.Future
 }
@@ -6760,8 +6951,8 @@ func (future *ShareSubscriptionsCancelSynchronizationFuture) Result(client Share
 	return
 }
 
-// ShareSubscriptionsDeleteFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// ShareSubscriptionsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ShareSubscriptionsDeleteFuture struct {
 	azure.Future
 }
@@ -6835,6 +7026,15 @@ type ShareSubscriptionSynchronization struct {
 	SynchronizationID *string `json:"synchronizationId,omitempty"`
 	// SynchronizationMode - READ-ONLY; Synchronization Mode. Possible values include: 'Incremental', 'FullSync'
 	SynchronizationMode SynchronizationMode `json:"synchronizationMode,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ShareSubscriptionSynchronization.
+func (sss ShareSubscriptionSynchronization) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sss.SynchronizationID != nil {
+		objectMap["synchronizationId"] = sss.SynchronizationID
+	}
+	return json.Marshal(objectMap)
 }
 
 // ShareSubscriptionSynchronizationList a consumer side list of share subscription synchronizations
@@ -6915,10 +7115,15 @@ func (sssl ShareSubscriptionSynchronizationList) IsEmpty() bool {
 	return sssl.Value == nil || len(*sssl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (sssl ShareSubscriptionSynchronizationList) hasNextLink() bool {
+	return sssl.NextLink != nil && len(*sssl.NextLink) != 0
+}
+
 // shareSubscriptionSynchronizationListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (sssl ShareSubscriptionSynchronizationList) shareSubscriptionSynchronizationListPreparer(ctx context.Context) (*http.Request, error) {
-	if sssl.NextLink == nil || len(to.String(sssl.NextLink)) < 1 {
+	if !sssl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -6946,11 +7151,16 @@ func (page *ShareSubscriptionSynchronizationListPage) NextWithContext(ctx contex
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.sssl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.sssl)
+		if err != nil {
+			return err
+		}
+		page.sssl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.sssl = next
 	return nil
 }
 
@@ -7006,6 +7216,39 @@ type ShareSynchronization struct {
 	SynchronizationID *string `json:"synchronizationId,omitempty"`
 	// SynchronizationMode - READ-ONLY; Synchronization mode. Possible values include: 'Incremental', 'FullSync'
 	SynchronizationMode SynchronizationMode `json:"synchronizationMode,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ShareSynchronization.
+func (ss ShareSynchronization) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ss.ConsumerEmail != nil {
+		objectMap["consumerEmail"] = ss.ConsumerEmail
+	}
+	if ss.ConsumerName != nil {
+		objectMap["consumerName"] = ss.ConsumerName
+	}
+	if ss.ConsumerTenantName != nil {
+		objectMap["consumerTenantName"] = ss.ConsumerTenantName
+	}
+	if ss.DurationMs != nil {
+		objectMap["durationMs"] = ss.DurationMs
+	}
+	if ss.EndTime != nil {
+		objectMap["endTime"] = ss.EndTime
+	}
+	if ss.Message != nil {
+		objectMap["message"] = ss.Message
+	}
+	if ss.StartTime != nil {
+		objectMap["startTime"] = ss.StartTime
+	}
+	if ss.Status != nil {
+		objectMap["status"] = ss.Status
+	}
+	if ss.SynchronizationID != nil {
+		objectMap["synchronizationId"] = ss.SynchronizationID
+	}
+	return json.Marshal(objectMap)
 }
 
 // ShareSynchronizationList list response for get ShareSynchronization.
@@ -7085,10 +7328,15 @@ func (ssl ShareSynchronizationList) IsEmpty() bool {
 	return ssl.Value == nil || len(*ssl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (ssl ShareSynchronizationList) hasNextLink() bool {
+	return ssl.NextLink != nil && len(*ssl.NextLink) != 0
+}
+
 // shareSynchronizationListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (ssl ShareSynchronizationList) shareSynchronizationListPreparer(ctx context.Context) (*http.Request, error) {
-	if ssl.NextLink == nil || len(to.String(ssl.NextLink)) < 1 {
+	if !ssl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -7116,11 +7364,16 @@ func (page *ShareSynchronizationListPage) NextWithContext(ctx context.Context) (
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.ssl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.ssl)
+		if err != nil {
+			return err
+		}
+		page.ssl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.ssl = next
 	return nil
 }
 
@@ -7338,10 +7591,15 @@ func (ssssl SourceShareSynchronizationSettingList) IsEmpty() bool {
 	return ssssl.Value == nil || len(*ssssl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (ssssl SourceShareSynchronizationSettingList) hasNextLink() bool {
+	return ssssl.NextLink != nil && len(*ssssl.NextLink) != 0
+}
+
 // sourceShareSynchronizationSettingListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (ssssl SourceShareSynchronizationSettingList) sourceShareSynchronizationSettingListPreparer(ctx context.Context) (*http.Request, error) {
-	if ssssl.NextLink == nil || len(to.String(ssssl.NextLink)) < 1 {
+	if !ssssl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -7350,8 +7608,7 @@ func (ssssl SourceShareSynchronizationSettingList) sourceShareSynchronizationSet
 		autorest.WithBaseURL(to.String(ssssl.NextLink)))
 }
 
-// SourceShareSynchronizationSettingListPage contains a page of BasicSourceShareSynchronizationSetting
-// values.
+// SourceShareSynchronizationSettingListPage contains a page of BasicSourceShareSynchronizationSetting values.
 type SourceShareSynchronizationSettingListPage struct {
 	fn    func(context.Context, SourceShareSynchronizationSettingList) (SourceShareSynchronizationSettingList, error)
 	ssssl SourceShareSynchronizationSettingList
@@ -7370,11 +7627,16 @@ func (page *SourceShareSynchronizationSettingListPage) NextWithContext(ctx conte
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.ssssl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.ssssl)
+		if err != nil {
+			return err
+		}
+		page.ssssl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.ssssl = next
 	return nil
 }
 
@@ -7730,6 +7992,27 @@ type SQLDBTableDataSetMappingProperties struct {
 	TableName *string `json:"tableName,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for SQLDBTableDataSetMappingProperties.
+func (sdtdsmp SQLDBTableDataSetMappingProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sdtdsmp.DatabaseName != nil {
+		objectMap["databaseName"] = sdtdsmp.DatabaseName
+	}
+	if sdtdsmp.DataSetID != nil {
+		objectMap["dataSetId"] = sdtdsmp.DataSetID
+	}
+	if sdtdsmp.SchemaName != nil {
+		objectMap["schemaName"] = sdtdsmp.SchemaName
+	}
+	if sdtdsmp.SQLServerResourceID != nil {
+		objectMap["sqlServerResourceId"] = sdtdsmp.SQLServerResourceID
+	}
+	if sdtdsmp.TableName != nil {
+		objectMap["tableName"] = sdtdsmp.TableName
+	}
+	return json.Marshal(objectMap)
+}
+
 // SQLDBTableProperties properties of the SQL DB table data set.
 type SQLDBTableProperties struct {
 	// DatabaseName - Database name of the source data set
@@ -7742,6 +8025,24 @@ type SQLDBTableProperties struct {
 	SQLServerResourceID *string `json:"sqlServerResourceId,omitempty"`
 	// TableName - SQL DB table name.
 	TableName *string `json:"tableName,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SQLDBTableProperties.
+func (sdtp SQLDBTableProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sdtp.DatabaseName != nil {
+		objectMap["databaseName"] = sdtp.DatabaseName
+	}
+	if sdtp.SchemaName != nil {
+		objectMap["schemaName"] = sdtp.SchemaName
+	}
+	if sdtp.SQLServerResourceID != nil {
+		objectMap["sqlServerResourceId"] = sdtp.SQLServerResourceID
+	}
+	if sdtp.TableName != nil {
+		objectMap["tableName"] = sdtp.TableName
+	}
+	return json.Marshal(objectMap)
 }
 
 // SQLDWTableDataSet a SQL DW table data set.
@@ -8066,6 +8367,27 @@ type SQLDWTableDataSetMappingProperties struct {
 	TableName *string `json:"tableName,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for SQLDWTableDataSetMappingProperties.
+func (sdtdsmp SQLDWTableDataSetMappingProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sdtdsmp.DataSetID != nil {
+		objectMap["dataSetId"] = sdtdsmp.DataSetID
+	}
+	if sdtdsmp.DataWarehouseName != nil {
+		objectMap["dataWarehouseName"] = sdtdsmp.DataWarehouseName
+	}
+	if sdtdsmp.SchemaName != nil {
+		objectMap["schemaName"] = sdtdsmp.SchemaName
+	}
+	if sdtdsmp.SQLServerResourceID != nil {
+		objectMap["sqlServerResourceId"] = sdtdsmp.SQLServerResourceID
+	}
+	if sdtdsmp.TableName != nil {
+		objectMap["tableName"] = sdtdsmp.TableName
+	}
+	return json.Marshal(objectMap)
+}
+
 // SQLDWTableProperties properties of the SQL DW table data set.
 type SQLDWTableProperties struct {
 	// DataSetID - READ-ONLY; Unique id for identifying a data set resource
@@ -8078,6 +8400,24 @@ type SQLDWTableProperties struct {
 	SQLServerResourceID *string `json:"sqlServerResourceId,omitempty"`
 	// TableName - SQL DW table name.
 	TableName *string `json:"tableName,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SQLDWTableProperties.
+func (sdtp SQLDWTableProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sdtp.DataWarehouseName != nil {
+		objectMap["dataWarehouseName"] = sdtp.DataWarehouseName
+	}
+	if sdtp.SchemaName != nil {
+		objectMap["schemaName"] = sdtp.SchemaName
+	}
+	if sdtp.SQLServerResourceID != nil {
+		objectMap["sqlServerResourceId"] = sdtp.SQLServerResourceID
+	}
+	if sdtp.TableName != nil {
+		objectMap["tableName"] = sdtp.TableName
+	}
+	return json.Marshal(objectMap)
 }
 
 // SynchronizationDetails synchronization details at data set level
@@ -8123,8 +8463,7 @@ type SynchronizationDetailsList struct {
 	Value *[]SynchronizationDetails `json:"value,omitempty"`
 }
 
-// SynchronizationDetailsListIterator provides access to a complete listing of SynchronizationDetails
-// values.
+// SynchronizationDetailsListIterator provides access to a complete listing of SynchronizationDetails values.
 type SynchronizationDetailsListIterator struct {
 	i    int
 	page SynchronizationDetailsListPage
@@ -8192,10 +8531,15 @@ func (sdl SynchronizationDetailsList) IsEmpty() bool {
 	return sdl.Value == nil || len(*sdl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (sdl SynchronizationDetailsList) hasNextLink() bool {
+	return sdl.NextLink != nil && len(*sdl.NextLink) != 0
+}
+
 // synchronizationDetailsListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (sdl SynchronizationDetailsList) synchronizationDetailsListPreparer(ctx context.Context) (*http.Request, error) {
-	if sdl.NextLink == nil || len(to.String(sdl.NextLink)) < 1 {
+	if !sdl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -8223,11 +8567,16 @@ func (page *SynchronizationDetailsListPage) NextWithContext(ctx context.Context)
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.sdl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.sdl)
+		if err != nil {
+			return err
+		}
+		page.sdl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.sdl = next
 	return nil
 }
 
@@ -8383,8 +8732,7 @@ func (ssl *SynchronizationSettingList) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// SynchronizationSettingListIterator provides access to a complete listing of SynchronizationSetting
-// values.
+// SynchronizationSettingListIterator provides access to a complete listing of SynchronizationSetting values.
 type SynchronizationSettingListIterator struct {
 	i    int
 	page SynchronizationSettingListPage
@@ -8452,10 +8800,15 @@ func (ssl SynchronizationSettingList) IsEmpty() bool {
 	return ssl.Value == nil || len(*ssl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (ssl SynchronizationSettingList) hasNextLink() bool {
+	return ssl.NextLink != nil && len(*ssl.NextLink) != 0
+}
+
 // synchronizationSettingListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (ssl SynchronizationSettingList) synchronizationSettingListPreparer(ctx context.Context) (*http.Request, error) {
-	if ssl.NextLink == nil || len(to.String(ssl.NextLink)) < 1 {
+	if !ssl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -8483,11 +8836,16 @@ func (page *SynchronizationSettingListPage) NextWithContext(ctx context.Context)
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.ssl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.ssl)
+		if err != nil {
+			return err
+		}
+		page.ssl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.ssl = next
 	return nil
 }
 
@@ -8763,10 +9121,15 @@ func (tl TriggerList) IsEmpty() bool {
 	return tl.Value == nil || len(*tl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (tl TriggerList) hasNextLink() bool {
+	return tl.NextLink != nil && len(*tl.NextLink) != 0
+}
+
 // triggerListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (tl TriggerList) triggerListPreparer(ctx context.Context) (*http.Request, error) {
-	if tl.NextLink == nil || len(to.String(tl.NextLink)) < 1 {
+	if !tl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -8794,11 +9157,16 @@ func (page *TriggerListPage) NextWithContext(ctx context.Context) (err error) {
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.tl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.tl)
+		if err != nil {
+			return err
+		}
+		page.tl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.tl = next
 	return nil
 }
 
@@ -8849,8 +9217,7 @@ func (tm *TriggerModel) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// TriggersCreateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// TriggersCreateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type TriggersCreateFuture struct {
 	azure.Future
 }
@@ -8878,8 +9245,7 @@ func (future *TriggersCreateFuture) Result(client TriggersClient) (tm TriggerMod
 	return
 }
 
-// TriggersDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// TriggersDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type TriggersDeleteFuture struct {
 	azure.Future
 }

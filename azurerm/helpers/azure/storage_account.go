@@ -14,7 +14,8 @@ func SchemaStorageAccountCorsRule(patchEnabled bool) *schema.Schema {
 		"MERGE",
 		"POST",
 		"OPTIONS",
-		"PUT"}
+		"PUT",
+	}
 
 	if patchEnabled {
 		allowedMethods = append(allowedMethods, "PATCH")

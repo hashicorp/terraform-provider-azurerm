@@ -51,6 +51,7 @@ func testAccAzureRMNetworkPacketCapture_requiresImport(t *testing.T) {
 		},
 	})
 }
+
 func testAccAzureRMNetworkPacketCapture_storageAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
 
@@ -149,7 +150,6 @@ func testCheckAzureRMNetworkPacketCaptureDestroy(s *terraform.State) error {
 		NetworkPacketCaptureName := rs.Primary.Attributes["name"]
 
 		resp, err := client.Get(ctx, resourceGroup, watcherName, NetworkPacketCaptureName)
-
 		if err != nil {
 			return nil
 		}
@@ -239,7 +239,7 @@ resource "azurerm_virtual_machine" "test" {
 
 resource "azurerm_virtual_machine_extension" "test" {
   name                       = "network-watcher"
-  virtual_machine_id         = azurerm_virtual_machine.src.id
+  virtual_machine_id         = azurerm_virtual_machine.test.id
   publisher                  = "Microsoft.Azure.NetworkWatcher"
   type                       = "NetworkWatcherAgentLinux"
   type_handler_version       = "1.4"

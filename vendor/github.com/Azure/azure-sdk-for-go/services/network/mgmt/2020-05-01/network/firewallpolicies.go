@@ -306,6 +306,9 @@ func (client FirewallPoliciesClient) List(ctx context.Context, resourceGroupName
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.FirewallPoliciesClient", "List", resp, "Failure responding to request")
 	}
+	if result.fplr.hasNextLink() && result.fplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -414,6 +417,9 @@ func (client FirewallPoliciesClient) ListAll(ctx context.Context) (result Firewa
 	result.fplr, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.FirewallPoliciesClient", "ListAll", resp, "Failure responding to request")
+	}
+	if result.fplr.hasNextLink() && result.fplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

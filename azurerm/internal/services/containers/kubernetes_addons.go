@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-04-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-09-01/containerservice"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -99,13 +99,11 @@ func schemaKubernetesAddOnProfiles() *schema.Schema {
 				"http_application_routing": {
 					Type:     schema.TypeList,
 					MaxItems: 1,
-					ForceNew: true,
 					Optional: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"enabled": {
 								Type:     schema.TypeBool,
-								ForceNew: true,
 								Required: true,
 							},
 							"http_application_routing_zone_name": {
@@ -248,7 +246,7 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 }
 
 func filterUnsupportedKubernetesAddOns(input map[string]*containerservice.ManagedClusterAddonProfile, env azure.Environment) (*map[string]*containerservice.ManagedClusterAddonProfile, error) {
-	var filter = func(input map[string]*containerservice.ManagedClusterAddonProfile, key string) (*map[string]*containerservice.ManagedClusterAddonProfile, error) {
+	filter := func(input map[string]*containerservice.ManagedClusterAddonProfile, key string) (*map[string]*containerservice.ManagedClusterAddonProfile, error) {
 		output := input
 		if v, ok := output[key]; ok {
 			if v.Enabled != nil && *v.Enabled {
@@ -277,20 +275,8 @@ func filterUnsupportedKubernetesAddOns(input map[string]*containerservice.Manage
 }
 
 func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.ManagedClusterAddonProfile) []interface{} {
-	// when the Kubernetes Cluster is updated in the Portal - Azure updates the casing on the keys
-	// meaning what's submitted could be different to what's returned..
-	var locateInProfile = func(key string) *containerservice.ManagedClusterAddonProfile {
-		for k, v := range profile {
-			if strings.EqualFold(k, key) {
-				return v
-			}
-		}
-
-		return nil
-	}
-
 	aciConnectors := make([]interface{}, 0)
-	if aciConnector := locateInProfile(aciConnectorKey); aciConnector != nil {
+	if aciConnector := kubernetesAddonProfileLocate(profile, aciConnectorKey); aciConnector != nil {
 		enabled := false
 		if enabledVal := aciConnector.Enabled; enabledVal != nil {
 			enabled = *enabledVal
@@ -308,7 +294,7 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 	}
 
 	azurePolicies := make([]interface{}, 0)
-	if azurePolicy := locateInProfile(azurePolicyKey); azurePolicy != nil {
+	if azurePolicy := kubernetesAddonProfileLocate(profile, azurePolicyKey); azurePolicy != nil {
 		enabled := false
 		if enabledVal := azurePolicy.Enabled; enabledVal != nil {
 			enabled = *enabledVal
@@ -320,14 +306,14 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 	}
 
 	httpApplicationRoutes := make([]interface{}, 0)
-	if httpApplicationRouting := locateInProfile(httpApplicationRoutingKey); httpApplicationRouting != nil {
+	if httpApplicationRouting := kubernetesAddonProfileLocate(profile, httpApplicationRoutingKey); httpApplicationRouting != nil {
 		enabled := false
 		if enabledVal := httpApplicationRouting.Enabled; enabledVal != nil {
 			enabled = *enabledVal
 		}
 
 		zoneName := ""
-		if v := httpApplicationRouting.Config["HTTPApplicationRoutingZoneName"]; v != nil {
+		if v := kubernetesAddonProfilelocateInConfig(httpApplicationRouting.Config, "HTTPApplicationRoutingZoneName"); v != nil {
 			zoneName = *v
 		}
 
@@ -338,7 +324,7 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 	}
 
 	kubeDashboards := make([]interface{}, 0)
-	if kubeDashboard := locateInProfile(kubernetesDashboardKey); kubeDashboard != nil {
+	if kubeDashboard := kubernetesAddonProfileLocate(profile, kubernetesDashboardKey); kubeDashboard != nil {
 		enabled := false
 		if enabledVal := kubeDashboard.Enabled; enabledVal != nil {
 			enabled = *enabledVal
@@ -350,15 +336,15 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 	}
 
 	omsAgents := make([]interface{}, 0)
-	if omsAgent := locateInProfile(omsAgentKey); omsAgent != nil {
+	if omsAgent := kubernetesAddonProfileLocate(profile, omsAgentKey); omsAgent != nil {
 		enabled := false
 		if enabledVal := omsAgent.Enabled; enabledVal != nil {
 			enabled = *enabledVal
 		}
 
 		workspaceID := ""
-		if workspaceResourceID := omsAgent.Config["logAnalyticsWorkspaceResourceID"]; workspaceResourceID != nil {
-			workspaceID = *workspaceResourceID
+		if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "logAnalyticsWorkspaceResourceID"); v != nil {
+			workspaceID = *v
 		}
 
 		omsagentIdentity := flattenKubernetesClusterOmsAgentIdentityProfile(omsAgent.Identity)
@@ -414,4 +400,29 @@ func flattenKubernetesClusterOmsAgentIdentityProfile(profile *containerservice.M
 	})
 
 	return identity
+}
+
+// when the Kubernetes Cluster is updated in the Portal - Azure updates the casing on the keys
+// meaning what's submitted could be different to what's returned..
+func kubernetesAddonProfileLocate(profile map[string]*containerservice.ManagedClusterAddonProfile, key string) *containerservice.ManagedClusterAddonProfile {
+	for k, v := range profile {
+		if strings.EqualFold(k, key) {
+			return v
+		}
+	}
+
+	return nil
+}
+
+// when the Kubernetes Cluster is updated in the Portal - Azure updates the casing on the keys
+// meaning what's submitted could be different to what's returned..
+// Related issue: https://github.com/Azure/azure-rest-api-specs/issues/10716
+func kubernetesAddonProfilelocateInConfig(config map[string]*string, key string) *string {
+	for k, v := range config {
+		if strings.EqualFold(k, key) {
+			return v
+		}
+	}
+
+	return nil
 }

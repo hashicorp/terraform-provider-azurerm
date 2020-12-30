@@ -440,6 +440,9 @@ func (client IdentityProviderClient) ListByService(ctx context.Context, resource
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.IdentityProviderClient", "ListByService", resp, "Failure responding to request")
 	}
+	if result.ipl.hasNextLink() && result.ipl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

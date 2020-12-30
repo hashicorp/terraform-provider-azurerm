@@ -232,6 +232,9 @@ func (client WorkflowTriggersClient) List(ctx context.Context, resourceGroupName
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowTriggersClient", "List", resp, "Failure responding to request")
 	}
+	if result.wtlr.hasNextLink() && result.wtlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

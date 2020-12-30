@@ -327,6 +327,9 @@ func (client SyncMembersClient) ListBySyncGroup(ctx context.Context, resourceGro
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncMembersClient", "ListBySyncGroup", resp, "Failure responding to request")
 	}
+	if result.smlr.hasNextLink() && result.smlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -445,6 +448,9 @@ func (client SyncMembersClient) ListMemberSchemas(ctx context.Context, resourceG
 	result.sfsplr, err = client.ListMemberSchemasResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncMembersClient", "ListMemberSchemas", resp, "Failure responding to request")
+	}
+	if result.sfsplr.hasNextLink() && result.sfsplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

@@ -72,6 +72,9 @@ func (client PremiumMessagingRegionsClient) List(ctx context.Context) (result Pr
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.PremiumMessagingRegionsClient", "List", resp, "Failure responding to request")
 	}
+	if result.pmrlr.hasNextLink() && result.pmrlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

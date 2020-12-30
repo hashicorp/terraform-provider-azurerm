@@ -299,6 +299,9 @@ func (client ReplicationJobsClient) List(ctx context.Context, filter string) (re
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationJobsClient", "List", resp, "Failure responding to request")
 	}
+	if result.jc.hasNextLink() && result.jc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
