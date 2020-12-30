@@ -151,6 +151,7 @@ resource "azurerm_synapse_workspace" "test" {
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
   managed_virtual_network_enabled      = true
+  workspace_identity_control_for_sql_enabled = true
 
   tags = {
     ENV = "Test"
@@ -174,6 +175,7 @@ resource "azurerm_synapse_workspace" "test" {
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR4!"
+  workspace_identity_control_for_sql_enabled = true
 
   aad_admin {
     login     = "AzureAD Admin"
@@ -182,7 +184,7 @@ resource "azurerm_synapse_workspace" "test" {
   }
 
   tags = {
-    ENV = "Test"
+    ENV = "Test2"
   }
 }
 `, template, data.RandomInteger)
