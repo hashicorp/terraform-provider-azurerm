@@ -1745,12 +1745,14 @@ func flattenAppServiceIpRestriction(input *[]web.IPSecurityRestriction) []interf
 			if *ip == "Any" {
 				continue
 			} else {
-				if v.Tag == web.Default {
+				switch v.Tag {
+				case web.Default:
 					restriction["ip_address"] = *ip
-				} else if v.Tag == web.ServiceTag {
+				case web.ServiceTag:
 					restriction["service_tag"] = *ip
-				} else {
-					// FIXME: I want to error here if we got XffProxy. I don't remember being able to set this in the portal
+				default:
+					// FIXME: I want to error here if we got XffProxy. It doesn't seem possible to set in the portal
+					// but can theoretically come back from the API as defined
 				}
 			}
 		}
