@@ -143,6 +143,11 @@ func resourceSynapseWorkspace() *schema.Resource {
 				Computed: true,
 			},
 
+			"workspace_identity_control_for_sql_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -151,6 +156,7 @@ func resourceSynapseWorkspace() *schema.Resource {
 func resourceSynapseWorkspaceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceClient
 	aadAdminClient := meta.(*clients.Client).Synapse.WorkspaceAadAdminsClient
+	identitySQLControlClient := meta.(*clients.Client).Synapse.WorkspaceManagedIdentitySQLControlSettingsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -207,6 +213,12 @@ func resourceSynapseWorkspaceCreate(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
+	sqlControlSettings := expandIdentityControlSQLSettings(d.Get("workspace_identity_control_for_sql_enabled").(bool))
+	_, err = identitySQLControlClient.CreateOrUpdate(ctx, resourceGroup, name, *sqlControlSettings)
+	if err != nil {
+		return fmt.Errorf("Granting workspace identity control for SQL pool: %+v", err)
+	}
+
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("retrieving Synapse Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -223,6 +235,7 @@ func resourceSynapseWorkspaceCreate(d *schema.ResourceData, meta interface{}) er
 func resourceSynapseWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceClient
 	aadAdminClient := meta.(*clients.Client).Synapse.WorkspaceAadAdminsClient
+	identitySQLControlClient := meta.(*clients.Client).Synapse.WorkspaceManagedIdentitySQLControlSettingsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -248,6 +261,11 @@ func resourceSynapseWorkspaceRead(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
+	sqlControlSettings, err := identitySQLControlClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf("retrieving workspace identity control for SQL pool: %+v", err)
+	}
+
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
@@ -266,7 +284,10 @@ func resourceSynapseWorkspaceRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("connectivity_endpoints", utils.FlattenMapStringPtrString(props.ConnectivityEndpoints))
 	}
 	if err := d.Set("aad_admin", flattenArmWorkspaceAadAdmin(aadAdmin.AadAdminProperties)); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
+		return fmt.Errorf("setting `aad_admin`: %+v", err)
+	}
+	if err := d.Set("workspace_identity_control_for_sql_enabled", flattenIdentityControlSQLSettings(sqlControlSettings)); err != nil {
+		return fmt.Errorf("setting `workspace_identity_control_for_sql_enabled`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -275,6 +296,7 @@ func resourceSynapseWorkspaceRead(d *schema.ResourceData, meta interface{}) erro
 func resourceSynapseWorkspaceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceClient
 	aadAdminClient := meta.(*clients.Client).Synapse.WorkspaceAadAdminsClient
+	identitySQLControlClient := meta.(*clients.Client).Synapse.WorkspaceManagedIdentitySQLControlSettingsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -325,6 +347,15 @@ func resourceSynapseWorkspaceUpdate(d *schema.ResourceData, meta interface{}) er
 			}
 		}
 	}
+
+	if d.HasChange("workspace_identity_control_for_sql_enabled") {
+		sqlControlSettings := expandIdentityControlSQLSettings(d.Get("workspace_identity_control_for_sql_enabled").(bool))
+		_, err = identitySQLControlClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *sqlControlSettings)
+		if err != nil {
+			return fmt.Errorf("Updating workspace identity control for SQL pool: %+v", err)
+		}
+	}
+
 	return resourceSynapseWorkspaceRead(d, meta)
 }
 
@@ -372,6 +403,23 @@ func expandArmWorkspaceAadAdmin(input []interface{}) *synapse.WorkspaceAadAdminI
 			Login:             utils.String(v["login"].(string)),
 			AdministratorType: utils.String("ActiveDirectory"),
 			Sid:               utils.String(v["object_id"].(string)),
+		},
+	}
+}
+
+func expandIdentityControlSQLSettings(enabled bool) *synapse.ManagedIdentitySQLControlSettingsModel {
+	var desiredState synapse.DesiredState
+	if enabled {
+		desiredState = synapse.DesiredStateEnabled
+	} else {
+		desiredState = synapse.DesiredStateDisabled
+	}
+
+	return &synapse.ManagedIdentitySQLControlSettingsModel{
+		ManagedIdentitySQLControlSettingsModelProperties: &synapse.ManagedIdentitySQLControlSettingsModelProperties{
+			GrantSQLControlToManagedIdentity: &synapse.ManagedIdentitySQLControlSettingsModelPropertiesGrantSQLControlToManagedIdentity{
+				DesiredState: desiredState,
+			},
 		},
 	}
 }
@@ -426,4 +474,16 @@ func flattenArmWorkspaceAadAdmin(input *synapse.AadAdminProperties) []interface{
 			"object_id": sid,
 		},
 	}
+}
+
+func flattenIdentityControlSQLSettings(settings synapse.ManagedIdentitySQLControlSettingsModel) bool {
+	if prop := settings.ManagedIdentitySQLControlSettingsModelProperties; prop != nil {
+		if sqlControl := prop.GrantSQLControlToManagedIdentity; sqlControl != nil {
+			if sqlControl.DesiredState == synapse.DesiredStateEnabled {
+				return true
+			}
+		}
+	}
+
+	return false
 }
