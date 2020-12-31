@@ -12,18 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMDataFactoryLinkedServiceSynapse_ConnectionString(t *testing.T) {
+func TestAccDataFactoryLinkedServiceSynapse_ConnectionString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_synapse", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceSynapseDestroy,
+		CheckDestroy: testCheckDataFactoryLinkedServiceSynapseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataFactoryLinkedServiceSynapse_connection_string(data),
+				Config: testAccDataFactoryLinkedServiceSynapse_connection_string(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceSynapseExists(data.ResourceName),
+					testCheckDataFactoryLinkedServiceSynapseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "2"),
@@ -36,18 +36,18 @@ func TestAccAzureRMDataFactoryLinkedServiceSynapse_ConnectionString(t *testing.T
 	})
 }
 
-func TestAccAzureRMDataFactoryLinkedServiceSynapse_KeyVaultReference(t *testing.T) {
+func TestAccDataFactoryLinkedServiceSynapse_KeyVaultReference(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_synapse", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceSynapseDestroy,
+		CheckDestroy: testCheckDataFactoryLinkedServiceSynapseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataFactoryLinkedServiceSynapse_key_vault_reference(data),
+				Config: testAccDataFactoryLinkedServiceSynapse_key_vault_reference(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceSynapseExists(data.ResourceName),
+					testCheckDataFactoryLinkedServiceSynapseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "2"),
@@ -62,7 +62,7 @@ func TestAccAzureRMDataFactoryLinkedServiceSynapse_KeyVaultReference(t *testing.
 	})
 }
 
-func testCheckAzureRMDataFactoryLinkedServiceSynapseExists(name string) resource.TestCheckFunc {
+func testCheckDataFactoryLinkedServiceSynapseExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -93,7 +93,7 @@ func testCheckAzureRMDataFactoryLinkedServiceSynapseExists(name string) resource
 	}
 }
 
-func testCheckAzureRMDataFactoryLinkedServiceSynapseDestroy(s *terraform.State) error {
+func testCheckDataFactoryLinkedServiceSynapseDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -119,7 +119,7 @@ func testCheckAzureRMDataFactoryLinkedServiceSynapseDestroy(s *terraform.State) 
 	return nil
 }
 
-func testAccAzureRMDataFactoryLinkedServiceSynapse_connection_string(data acceptance.TestData) string {
+func testAccDataFactoryLinkedServiceSynapse_connection_string(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -159,7 +159,7 @@ resource "azurerm_data_factory_linked_service_synapse" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryLinkedServiceSynapse_key_vault_reference(data acceptance.TestData) string {
+func testAccDataFactoryLinkedServiceSynapse_key_vault_reference(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
