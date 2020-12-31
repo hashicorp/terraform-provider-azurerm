@@ -156,6 +156,8 @@ The following arguments are supported:
 
 * `plan` - (Optional) A `plan` block as defined below. Changing this forces a new resource to be created.
 
+* `platform_fault_domain` - (Optional) Specifies the virtual machine scale set logical fault domain into which this Linux Virtual Machine will be created. Defaults to `-1`. By specifying the default value, this Linux Virtual Machine will be automatically assigned to a fault domain that best maintains balance across available fault domains.
+
 * `priority`- (Optional) Specifies the priority of this Virtual Machine. Possible values are `Regular` and `Spot`. Defaults to `Regular`. Changing this forces a new resource to be created.
 
 * `provision_vm_agent` - (Optional) Should the Azure VM Agent be provisioned on this Virtual Machine? Defaults to `true`. Changing this forces a new resource to be created.
