@@ -24,6 +24,7 @@ IMPROVEMENTS:
 * `azurerm_network_security_rule` - increase allowed the number of `application_security_group` blocks allowed [GH-9884]
 * `azurerm_sentinel_alert_rule_ms_security_incident` - support the `alert_rule_template_guid` and `display_name_exclude_filter` properties [GH-9797]
 * `azurerm_sentinel_alert_rule_scheduled` - support for the `alert_rule_template_guid` property [GH-9712]
+* `azurerm_synapse_workspace` - support for the `managed_resource_group_name` property [GH-10017]
 * `azurerm_traffic_manager_profile` - support for the `traffic_view_enabled` property [GH-10005]
 
 BUG FIXES:
