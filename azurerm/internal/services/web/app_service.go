@@ -812,7 +812,7 @@ func schemaAppServiceIpRestriction() *schema.Schema {
 				"ip_address": {
 					Type:         schema.TypeString,
 					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					ValidateFunc: validation.IsCIDR,
 				},
 
 				"service_tag": {
