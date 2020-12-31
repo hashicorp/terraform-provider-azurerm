@@ -36,6 +36,7 @@ A `public_ips` block contains:
 * `domain_name_label` - The Domain Name Label of the Public IP Address
 * `fqdn` - The FQDN of the Public IP Address
 * `name` - The Name of the Public IP Address
+* `ip_address` - The IP address of the Public IP Address
 
 ## Timeouts
 

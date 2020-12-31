@@ -9,9 +9,12 @@ import (
 
 func ExtendedAuditingSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeList,
-		Optional: true,
-		MaxItems: 1,
+		Type:       schema.TypeList,
+		Optional:   true,
+		Computed:   true,
+		Deprecated: "the `extended_auditing_policy` block has been moved to `azurerm_mssql_server_extended_auditing_policy` and `azurerm_mssql_database_extended_auditing_policy`. This block will be removed in version 3.0 of the provider.",
+		ConfigMode: schema.SchemaConfigModeAttr,
+		MaxItems:   1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"storage_account_access_key": {
@@ -42,10 +45,14 @@ func ExtendedAuditingSchema() *schema.Schema {
 	}
 }
 
-func ExpandAzureRmSqlServerBlobAuditingPolicies(input []interface{}) *sql.ExtendedServerBlobAuditingPolicyProperties {
+func ExpandSqlServerBlobAuditingPolicies(input []interface{}) *sql.ExtendedServerBlobAuditingPolicyProperties {
 	if len(input) == 0 || input[0] == nil {
 		return &sql.ExtendedServerBlobAuditingPolicyProperties{
 			State: sql.BlobAuditingPolicyStateDisabled,
+
+			// NOTE: this works around a regression in the Azure API detailed here:
+			// https://github.com/Azure/azure-rest-api-specs/issues/11271
+			IsAzureMonitorTargetEnabled: utils.Bool(true),
 		}
 	}
 	serverBlobAuditingPolicies := input[0].(map[string]interface{})
@@ -65,7 +72,7 @@ func ExpandAzureRmSqlServerBlobAuditingPolicies(input []interface{}) *sql.Extend
 	return &ExtendedServerBlobAuditingPolicyProperties
 }
 
-func FlattenAzureRmSqlServerBlobAuditingPolicies(extendedServerBlobAuditingPolicy *sql.ExtendedServerBlobAuditingPolicy, d *schema.ResourceData) []interface{} {
+func FlattenSqlServerBlobAuditingPolicies(extendedServerBlobAuditingPolicy *sql.ExtendedServerBlobAuditingPolicy, d *schema.ResourceData) []interface{} {
 	if extendedServerBlobAuditingPolicy == nil || extendedServerBlobAuditingPolicy.State == sql.BlobAuditingPolicyStateDisabled {
 		return []interface{}{}
 	}
@@ -97,10 +104,14 @@ func FlattenAzureRmSqlServerBlobAuditingPolicies(extendedServerBlobAuditingPolic
 	}
 }
 
-func ExpandAzureRmMsSqlDBBlobAuditingPolicies(input []interface{}) *sql.ExtendedDatabaseBlobAuditingPolicyProperties {
+func ExpandMsSqlDBBlobAuditingPolicies(input []interface{}) *sql.ExtendedDatabaseBlobAuditingPolicyProperties {
 	if len(input) == 0 || input[0] == nil {
 		return &sql.ExtendedDatabaseBlobAuditingPolicyProperties{
 			State: sql.BlobAuditingPolicyStateDisabled,
+
+			// NOTE: this works around a regression in the Azure API detailed here:
+			// https://github.com/Azure/azure-rest-api-specs/issues/11271
+			IsAzureMonitorTargetEnabled: utils.Bool(true),
 		}
 	}
 	dbBlobAuditingPolicies := input[0].(map[string]interface{})
@@ -120,7 +131,7 @@ func ExpandAzureRmMsSqlDBBlobAuditingPolicies(input []interface{}) *sql.Extended
 	return &ExtendedDatabaseBlobAuditingPolicyProperties
 }
 
-func FlattenAzureRmMsSqlDBBlobAuditingPolicies(extendedDatabaseBlobAuditingPolicy *sql.ExtendedDatabaseBlobAuditingPolicy, d *schema.ResourceData) []interface{} {
+func FlattenMsSqlDBBlobAuditingPolicies(extendedDatabaseBlobAuditingPolicy *sql.ExtendedDatabaseBlobAuditingPolicy, d *schema.ResourceData) []interface{} {
 	if extendedDatabaseBlobAuditingPolicy == nil || extendedDatabaseBlobAuditingPolicy.State == sql.BlobAuditingPolicyStateDisabled {
 		return []interface{}{}
 	}

@@ -49,6 +49,17 @@ func SchemaApiManagementChildName() *schema.Schema {
 	}
 }
 
+// SchemaApiManagementChildName returns the Schema for the identifier
+// used by resources within nested under the API Management Service resource
+func SchemaApiManagementApiName() *schema.Schema {
+	return &schema.Schema{
+		Type:         schema.TypeString,
+		Required:     true,
+		ForceNew:     true,
+		ValidateFunc: validate.ApiManagementApiName,
+	}
+}
+
 // SchemaApiManagementChildDataSourceName returns the Schema for the identifier
 // used by resources within nested under the API Management Service resource
 func SchemaApiManagementChildDataSourceName() *schema.Schema {
@@ -297,4 +308,21 @@ func FlattenApiManagementOperationParameterContract(input *[]apimanagement.Param
 	}
 
 	return outputs
+}
+
+// CopyCertificateAndPassword copies any certificate and password attributes
+// from the old config to the current to avoid state diffs.
+// Iterate through old state to find sensitive props not returned by API.
+// This must be done in order to avoid state diffs.
+// NOTE: this information won't be available during times like Import, so this is a best-effort.
+func CopyCertificateAndPassword(vals []interface{}, hostName string, output map[string]interface{}) {
+	for _, val := range vals {
+		oldConfig := val.(map[string]interface{})
+
+		if oldConfig["host_name"] == hostName {
+			output["certificate_password"] = oldConfig["certificate_password"]
+			output["certificate"] = oldConfig["certificate"]
+			break
+		}
+	}
 }

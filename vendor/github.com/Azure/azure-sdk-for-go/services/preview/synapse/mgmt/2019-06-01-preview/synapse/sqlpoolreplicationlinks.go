@@ -87,6 +87,9 @@ func (client SQLPoolReplicationLinksClient) List(ctx context.Context, resourceGr
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolReplicationLinksClient", "List", resp, "Failure responding to request")
 	}
+	if result.rllr.hasNextLink() && result.rllr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

@@ -144,6 +144,9 @@ func (client RecommendationMetadataClient) List(ctx context.Context) (result Met
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.RecommendationMetadataClient", "List", resp, "Failure responding to request")
 	}
+	if result.melr.hasNextLink() && result.melr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

@@ -393,6 +393,9 @@ func (client UsersClient) List(ctx context.Context, filter string, expand string
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "graphrbac.UsersClient", "List", resp, "Failure responding to request")
 	}
+	if result.ulr.hasNextLink() && result.ulr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

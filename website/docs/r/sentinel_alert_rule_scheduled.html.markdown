@@ -59,6 +59,8 @@ The following arguments are supported:
 
 ---
 
+* `alert_rule_template_guid` - (Optional) The GUID of the alert rule template which is used for this Sentinel Scheduled Alert Rule. Changing this forces a new Sentinel Scheduled Alert Rule to be created.
+
 * `description` - (Optional) The description of this Sentinel Scheduled Alert Rule.
 
 * `enabled` - (Optional) Should the Sentinel Scheduled Alert Rule be enabled? Defaults to `true`.

@@ -15,7 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -68,9 +68,32 @@ func resourceArmDedicatedHost() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"DSv3-Type1",
 					"DSv3-Type2",
+					"DSv4-Type1",
 					"ESv3-Type1",
 					"ESv3-Type2",
 					"FSv2-Type2",
+					"DASv4-Type1",
+					"DCSv2-Type1",
+					"DDSv4-Type1",
+					"DSv3-Type1",
+					"DSv3-Type2",
+					"DSv3-Type3",
+					"DSv4-Type1",
+					"EASv4-Type1",
+					"EDSv4-Type1",
+					"ESv3-Type1",
+					"ESv3-Type2",
+					"ESv3-Type3",
+					"ESv4-Type1",
+					"FSv2-Type2",
+					"FSv2-Type3",
+					"LSv2-Type1",
+					"MS-Type1",
+					"MSm-Type1",
+					"MSmv2-Type1",
+					"MSv2-Type1",
+					"NVASv4-Type1",
+					"NVSv3-Type1",
 				}, false),
 			},
 
@@ -114,7 +137,7 @@ func resourceArmDedicatedHostCreate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	resourceGroupName := dedicatedHostGroupId.ResourceGroup
-	hostGroupName := dedicatedHostGroupId.Name
+	hostGroupName := dedicatedHostGroupId.HostGroupName
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroupName, hostGroupName, name, "")
@@ -172,7 +195,7 @@ func resourceArmDedicatedHostRead(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	group, err := groupsClient.Get(ctx, id.ResourceGroup, id.HostGroup)
+	group, err := groupsClient.Get(ctx, id.ResourceGroup, id.HostGroupName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(group.Response) {
 			log.Printf("[INFO] Parent Dedicated Host Group %q does not exist - removing from state", d.Id())
@@ -180,10 +203,10 @@ func resourceArmDedicatedHostRead(d *schema.ResourceData, meta interface{}) erro
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Dedicated Host Group %q (Resource Group %q): %+v", id.HostGroup, id.ResourceGroup, err)
+		return fmt.Errorf("Error retrieving Dedicated Host Group %q (Resource Group %q): %+v", id.HostGroupName, id.ResourceGroup, err)
 	}
 
-	resp, err := hostsClient.Get(ctx, id.ResourceGroup, id.HostGroup, id.Name, "")
+	resp, err := hostsClient.Get(ctx, id.ResourceGroup, id.HostGroupName, id.HostName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Dedicated Host %q does not exist - removing from state", d.Id())
@@ -191,7 +214,7 @@ func resourceArmDedicatedHostRead(d *schema.ResourceData, meta interface{}) erro
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.Name, id.HostGroup, id.ResourceGroup, err)
+		return fmt.Errorf("Error retrieving Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.HostName, id.HostGroupName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -233,12 +256,12 @@ func resourceArmDedicatedHostUpdate(d *schema.ResourceData, meta interface{}) er
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.Update(ctx, id.ResourceGroup, id.HostGroup, id.Name, parameters)
+	future, err := client.Update(ctx, id.ResourceGroup, id.HostGroupName, id.HostName, parameters)
 	if err != nil {
-		return fmt.Errorf("Error updating Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.Name, id.HostGroup, id.ResourceGroup, err)
+		return fmt.Errorf("Error updating Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.HostName, id.HostGroupName, id.ResourceGroup, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for update of Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.Name, id.HostGroup, id.ResourceGroup, err)
+		return fmt.Errorf("Error waiting for update of Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.HostName, id.HostGroupName, id.ResourceGroup, err)
 	}
 
 	return resourceArmDedicatedHostRead(d, meta)
@@ -254,19 +277,19 @@ func resourceArmDedicatedHostDelete(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.HostGroup, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.HostGroupName, id.HostName)
 	if err != nil {
-		return fmt.Errorf("Error deleting Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.Name, id.HostGroup, id.ResourceGroup, err)
+		return fmt.Errorf("Error deleting Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.HostName, id.HostGroupName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deleting Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.Name, id.HostGroup, id.ResourceGroup, err)
+			return fmt.Errorf("Error waiting for deleting Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.HostName, id.HostGroupName, id.ResourceGroup, err)
 		}
 	}
 
 	// API has bug, which appears to be eventually consistent. Tracked by this issue: https://github.com/Azure/azure-rest-api-specs/issues/8137
-	log.Printf("[DEBUG] Waiting for Dedicated Host %q (Host Group Name %q / Resource Group %q) to disappear", id.Name, id.HostGroup, id.ResourceGroup)
+	log.Printf("[DEBUG] Waiting for Dedicated Host %q (Host Group Name %q / Resource Group %q) to disappear", id.HostName, id.HostGroupName, id.ResourceGroup)
 	stateConf := &resource.StateChangeConf{
 		Pending:                   []string{"Exists"},
 		Target:                    []string{"NotFound"},
@@ -277,7 +300,7 @@ func resourceArmDedicatedHostDelete(d *schema.ResourceData, meta interface{}) er
 	}
 
 	if _, err = stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for Dedicated Host %q (Host Group Name %q / Resource Group %q) to become available: %+v", id.Name, id.HostGroup, id.ResourceGroup, err)
+		return fmt.Errorf("Error waiting for Dedicated Host %q (Host Group Name %q / Resource Group %q) to become available: %+v", id.HostName, id.HostGroupName, id.ResourceGroup, err)
 	}
 
 	return nil
@@ -285,7 +308,7 @@ func resourceArmDedicatedHostDelete(d *schema.ResourceData, meta interface{}) er
 
 func dedicatedHostDeletedRefreshFunc(ctx context.Context, client *compute.DedicatedHostsClient, id *parse.DedicatedHostId) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id.ResourceGroup, id.HostGroup, id.Name, "")
+		res, err := client.Get(ctx, id.ResourceGroup, id.HostGroupName, id.HostName, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(res.Response) {
 				return "NotFound", "NotFound", nil

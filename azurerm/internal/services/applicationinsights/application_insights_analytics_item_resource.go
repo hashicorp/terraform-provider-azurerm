@@ -12,12 +12,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-func resourceArmApplicationInsightsAnalyticsItem() *schema.Resource {
+func resourceApplicationInsightsAnalyticsItem() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApplicationInsightsAnalyticsItemCreate,
-		Read:   resourceArmApplicationInsightsAnalyticsItemRead,
-		Update: resourceArmApplicationInsightsAnalyticsItemUpdate,
-		Delete: resourceArmApplicationInsightsAnalyticsItemDelete,
+		Create: resourceApplicationInsightsAnalyticsItemCreate,
+		Read:   resourceApplicationInsightsAnalyticsItemRead,
+		Update: resourceApplicationInsightsAnalyticsItemUpdate,
+		Delete: resourceApplicationInsightsAnalyticsItemDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -94,13 +94,15 @@ func resourceArmApplicationInsightsAnalyticsItem() *schema.Resource {
 	}
 }
 
-func resourceArmApplicationInsightsAnalyticsItemCreate(d *schema.ResourceData, meta interface{}) error {
-	return resourceArmApplicationInsightsAnalyticsItemCreateUpdate(d, meta, false)
+func resourceApplicationInsightsAnalyticsItemCreate(d *schema.ResourceData, meta interface{}) error {
+	return resourceApplicationInsightsAnalyticsItemCreateUpdate(d, meta, false)
 }
-func resourceArmApplicationInsightsAnalyticsItemUpdate(d *schema.ResourceData, meta interface{}) error {
-	return resourceArmApplicationInsightsAnalyticsItemCreateUpdate(d, meta, true)
+
+func resourceApplicationInsightsAnalyticsItemUpdate(d *schema.ResourceData, meta interface{}) error {
+	return resourceApplicationInsightsAnalyticsItemCreateUpdate(d, meta, true)
 }
-func resourceArmApplicationInsightsAnalyticsItemCreateUpdate(d *schema.ResourceData, meta interface{}, overwrite bool) error {
+
+func resourceApplicationInsightsAnalyticsItemCreateUpdate(d *schema.ResourceData, meta interface{}, overwrite bool) error {
 	client := meta.(*clients.Client).AppInsights.AnalyticsItemsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -159,10 +161,10 @@ func resourceArmApplicationInsightsAnalyticsItemCreateUpdate(d *schema.ResourceD
 	generatedID := appInsightsID + resourcesArmApplicationInsightsAnalyticsItemGenerateIDSuffix(itemScope, *result.ID)
 	d.SetId(generatedID)
 
-	return resourceArmApplicationInsightsAnalyticsItemRead(d, meta)
+	return resourceApplicationInsightsAnalyticsItemRead(d, meta)
 }
 
-func resourceArmApplicationInsightsAnalyticsItemRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsAnalyticsItemRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.AnalyticsItemsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -196,7 +198,7 @@ func resourceArmApplicationInsightsAnalyticsItemRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceArmApplicationInsightsAnalyticsItemDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsAnalyticsItemDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.AnalyticsItemsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

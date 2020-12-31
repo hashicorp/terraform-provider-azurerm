@@ -77,6 +77,9 @@ func (client IntegrationServiceEnvironmentManagedAPIOperationsClient) List(ctx c
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedAPIOperationsClient", "List", resp, "Failure responding to request")
 	}
+	if result.aolr.hasNextLink() && result.aolr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

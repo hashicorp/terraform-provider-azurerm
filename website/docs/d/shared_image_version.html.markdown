@@ -52,6 +52,8 @@ The following attributes are exported:
 
 * `os_disk_snapshot_id` - The ID of the OS disk snapshot which was the source of this Shared Image Version.
 
+* `os_disk_image_size_gb` - The size of the OS disk snapshot (in Gigabytes) which was the source of this Shared Image Version. 
+
 * `tags` - A mapping of tags assigned to the Shared Image.
 
 ---

@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementApiSchema() *schema.Resource {
+func resourceApiManagementApiSchema() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementApiSchemaCreateUpdate,
-		Read:   resourceArmApiManagementApiSchemaRead,
-		Update: resourceArmApiManagementApiSchemaCreateUpdate,
-		Delete: resourceArmApiManagementApiSchemaDelete,
+		Create: resourceApiManagementApiSchemaCreateUpdate,
+		Read:   resourceApiManagementApiSchemaRead,
+		Update: resourceApiManagementApiSchemaCreateUpdate,
+		Delete: resourceApiManagementApiSchemaDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -35,7 +35,7 @@ func resourceArmApiManagementApiSchema() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"schema_id": azure.SchemaApiManagementChildName(),
 
-			"api_name": azure.SchemaApiManagementChildName(),
+			"api_name": azure.SchemaApiManagementApiName(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
@@ -56,7 +56,7 @@ func resourceArmApiManagementApiSchema() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementApiSchemaCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiSchemaCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiSchemasClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -103,10 +103,10 @@ func resourceArmApiManagementApiSchemaCreateUpdate(d *schema.ResourceData, meta 
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementApiSchemaRead(d, meta)
+	return resourceApiManagementApiSchemaRead(d, meta)
 }
 
-func resourceArmApiManagementApiSchemaRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiSchemaRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiSchemasClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -146,7 +146,7 @@ func resourceArmApiManagementApiSchemaRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceArmApiManagementApiSchemaDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiSchemaDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiSchemasClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

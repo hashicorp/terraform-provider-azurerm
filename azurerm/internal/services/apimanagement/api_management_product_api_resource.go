@@ -13,11 +13,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementProductApi() *schema.Resource {
+func resourceApiManagementProductApi() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementProductApiCreate,
-		Read:   resourceArmApiManagementProductApiRead,
-		Delete: resourceArmApiManagementProductApiDelete,
+		Create: resourceApiManagementProductApiCreate,
+		Read:   resourceApiManagementProductApiRead,
+		Delete: resourceApiManagementProductApiDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -30,7 +30,7 @@ func resourceArmApiManagementProductApi() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"api_name": azure.SchemaApiManagementChildName(),
+			"api_name": azure.SchemaApiManagementApiName(),
 
 			"product_id": azure.SchemaApiManagementChildName(),
 
@@ -41,7 +41,7 @@ func resourceArmApiManagementProductApi() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementProductApiCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementProductApiCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductApisClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -73,10 +73,10 @@ func resourceArmApiManagementProductApiCreate(d *schema.ResourceData, meta inter
 	// there's no Read so this is best-effort
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementProductApiRead(d, meta)
+	return resourceApiManagementProductApiRead(d, meta)
 }
 
-func resourceArmApiManagementProductApiRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementProductApiRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductApisClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -117,7 +117,7 @@ func resourceArmApiManagementProductApiRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceArmApiManagementProductApiDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementProductApiDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductApisClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

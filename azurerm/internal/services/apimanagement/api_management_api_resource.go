@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementApi() *schema.Resource {
+func resourceApiManagementApi() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementApiCreateUpdate,
-		Read:   resourceArmApiManagementApiRead,
-		Update: resourceArmApiManagementApiCreateUpdate,
-		Delete: resourceArmApiManagementApiDelete,
+		Create: resourceApiManagementApiCreateUpdate,
+		Read:   resourceApiManagementApiRead,
+		Update: resourceApiManagementApiCreateUpdate,
+		Delete: resourceApiManagementApiDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -35,12 +35,7 @@ func resourceArmApiManagementApi() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.ApiManagementApiName,
-			},
+			"name": azure.SchemaApiManagementApiName(),
 
 			"api_management_name": azure.SchemaApiManagementName(),
 
@@ -166,7 +161,7 @@ func resourceArmApiManagementApi() *schema.Resource {
 			"subscription_required": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Computed: true,
+				Default:  true,
 			},
 
 			"soap_pass_through": {
@@ -247,7 +242,7 @@ func resourceArmApiManagementApi() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -311,7 +306,7 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 		}
 		wsdlSelectorVs := importV["wsdl_selector"].([]interface{})
 
-		//`wsdl_selector` is necessary under format `wsdl`
+		// `wsdl_selector` is necessary under format `wsdl`
 		if len(wsdlSelectorVs) == 0 && contentFormat == string(apimanagement.Wsdl) {
 			return fmt.Errorf("`wsdl_selector` is required when content format is `wsdl` in API Management API %q", name)
 		}
@@ -401,10 +396,10 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	d.SetId(*read.ID)
-	return resourceArmApiManagementApiRead(d, meta)
+	return resourceApiManagementApiRead(d, meta)
 }
 
-func resourceArmApiManagementApiRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -473,7 +468,7 @@ func resourceArmApiManagementApiRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceArmApiManagementApiDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

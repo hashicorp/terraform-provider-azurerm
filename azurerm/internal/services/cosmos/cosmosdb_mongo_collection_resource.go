@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2020-04-01/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -92,13 +92,16 @@ func resourceArmCosmosDbMongoCollection() *schema.Resource {
 				Computed:     true,
 				ValidateFunc: validate.CosmosThroughput,
 			},
+
+			"autoscale_settings": common.MongoCollectionAutoscaleSettingsSchema(),
+
 			"index": {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"keys": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Required: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
@@ -173,7 +176,13 @@ func resourceArmCosmosDbMongoCollectionCreate(d *schema.ResourceData, meta inter
 	}
 
 	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
-		db.MongoDBCollectionCreateUpdateProperties.Options.Throughput = common.ConvertThroughputFromResourceData(throughput)
+		if throughput != 0 {
+			db.MongoDBCollectionCreateUpdateProperties.Options.Throughput = common.ConvertThroughputFromResourceData(throughput)
+		}
+	}
+
+	if _, hasAutoscaleSettings := d.GetOk("autoscale_settings"); hasAutoscaleSettings {
+		db.MongoDBCollectionCreateUpdateProperties.Options.AutoscaleSettings = common.ExpandCosmosDbAutoscaleSettings(d)
 	}
 
 	if shardKey := d.Get("shard_key").(string); shardKey != "" {
@@ -210,9 +219,14 @@ func resourceArmCosmosDbMongoCollectionUpdate(d *schema.ResourceData, meta inter
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MongoDbCollectionID(d.Id())
+	id, err := parse.MongodbCollectionID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	err = common.CheckForChangeFromAutoscaleAndManualThroughput(d)
+	if err != nil {
+		return fmt.Errorf("Error updating Cosmos Mongo Collection %q (Account: %q, Database: %q): %+v", id.CollectionName, id.DatabaseAccountName, id.MongodbDatabaseName, err)
 	}
 
 	var ttl *int
@@ -223,7 +237,7 @@ func resourceArmCosmosDbMongoCollectionUpdate(d *schema.ResourceData, meta inter
 	db := documentdb.MongoDBCollectionCreateUpdateParameters{
 		MongoDBCollectionCreateUpdateProperties: &documentdb.MongoDBCollectionCreateUpdateProperties{
 			Resource: &documentdb.MongoDBCollectionResource{
-				ID:      &id.Name,
+				ID:      &id.CollectionName,
 				Indexes: expandCosmosMongoCollectionIndex(d.Get("index").(*schema.Set).List(), ttl),
 			},
 			Options: &documentdb.CreateUpdateOptions{},
@@ -236,34 +250,27 @@ func resourceArmCosmosDbMongoCollectionUpdate(d *schema.ResourceData, meta inter
 		}
 	}
 
-	future, err := client.CreateUpdateMongoDBCollection(ctx, id.ResourceGroup, id.Account, id.Database, id.Name, db)
+	future, err := client.CreateUpdateMongoDBCollection(ctx, id.ResourceGroup, id.DatabaseAccountName, id.MongodbDatabaseName, id.CollectionName, db)
 	if err != nil {
-		return fmt.Errorf("Error issuing create/update request for Cosmos Mongo Collection %q (Account: %q, Database: %q): %+v", id.Name, id.Account, id.Database, err)
+		return fmt.Errorf("Error issuing create/update request for Cosmos Mongo Collection %q (Account: %q, Database: %q): %+v", id.CollectionName, id.DatabaseAccountName, id.MongodbDatabaseName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting on create/update future for Cosmos Mongo Collection %q (Account: %q, Database: %q): %+v", id.Name, id.Account, id.Database, err)
+		return fmt.Errorf("Error waiting on create/update future for Cosmos Mongo Collection %q (Account: %q, Database: %q): %+v", id.CollectionName, id.DatabaseAccountName, id.MongodbDatabaseName, err)
 	}
 
-	if d.HasChange("throughput") {
-		throughputParameters := documentdb.ThroughputSettingsUpdateParameters{
-			ThroughputSettingsUpdateProperties: &documentdb.ThroughputSettingsUpdateProperties{
-				Resource: &documentdb.ThroughputSettingsResource{
-					Throughput: common.ConvertThroughputFromResourceData(d.Get("throughput")),
-				},
-			},
-		}
-
-		throughputFuture, err := client.UpdateMongoDBCollectionThroughput(ctx, id.ResourceGroup, id.Account, id.Database, id.Name, throughputParameters)
+	if common.HasThroughputChange(d) {
+		throughputParameters := common.ExpandCosmosDBThroughputSettingsUpdateParameters(d)
+		throughputFuture, err := client.UpdateMongoDBCollectionThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.MongodbDatabaseName, id.CollectionName, *throughputParameters)
 		if err != nil {
 			if response.WasNotFound(throughputFuture.Response()) {
 				return fmt.Errorf("Error setting Throughput for Cosmos MongoDB Collection %q (Account: %q, Database: %q): %+v - "+
-					"If the collection has not been created with an initial throughput, you cannot configure it later.", id.Name, id.Account, id.Database, err)
+					"If the collection has not been created with an initial throughput, you cannot configure it later.", id.CollectionName, id.DatabaseAccountName, id.MongodbDatabaseName, err)
 			}
 		}
 
 		if err = throughputFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting on ThroughputUpdate future for Cosmos Mongo Collection %q (Account: %q, Database: %q): %+v", id.Name, id.Account, id.Database, err)
+			return fmt.Errorf("Error waiting on ThroughputUpdate future for Cosmos Mongo Collection %q (Account: %q, Database: %q): %+v", id.CollectionName, id.DatabaseAccountName, id.MongodbDatabaseName, err)
 		}
 	}
 
@@ -272,28 +279,34 @@ func resourceArmCosmosDbMongoCollectionUpdate(d *schema.ResourceData, meta inter
 
 func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.MongoDbClient
+	accClient := meta.(*clients.Client).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MongoDbCollectionID(d.Id())
+	id, err := parse.MongodbCollectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.GetMongoDBCollection(ctx, id.ResourceGroup, id.Account, id.Database, id.Name)
+	resp, err := client.GetMongoDBCollection(ctx, id.ResourceGroup, id.DatabaseAccountName, id.MongodbDatabaseName, id.CollectionName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading Cosmos Mongo Collection %q (Account: %q, Database: %q)", id.Name, id.Account, id.Database)
+			log.Printf("[INFO] Error reading Cosmos Mongo Collection %q (Account: %q, Database: %q)", id.CollectionName, id.DatabaseAccountName, id.MongodbDatabaseName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Cosmos Mongo Collection %q (Account: %q, Database: %q): %+v", id.Name, id.Account, id.Database, err)
+		return fmt.Errorf("Error reading Cosmos Mongo Collection %q (Account: %q, Database: %q): %+v", id.CollectionName, id.DatabaseAccountName, id.MongodbDatabaseName, err)
 	}
 
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("account_name", id.Account)
-	d.Set("database_name", id.Database)
+	d.Set("account_name", id.DatabaseAccountName)
+	d.Set("database_name", id.MongodbDatabaseName)
+
+	accResp, err := accClient.Get(ctx, id.ResourceGroup, id.DatabaseAccountName)
+	if err != nil {
+		return fmt.Errorf("reading Cosmos Account %q : %+v", id.DatabaseAccountName, err)
+	}
 	if props := resp.MongoDBCollectionGetProperties; props != nil {
 		if res := props.Resource; res != nil {
 			d.Set("name", res.ID)
@@ -306,8 +319,18 @@ func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interfa
 			for k := range res.ShardKey {
 				d.Set("shard_key", k)
 			}
+			accountIsVersion36 := false
+			if accProps := accResp.DatabaseAccountGetProperties; accProps != nil {
+				if capabilities := accProps.Capabilities; capabilities != nil {
+					for _, v := range *capabilities {
+						if v.Name != nil && *v.Name == "EnableMongo" {
+							accountIsVersion36 = true
+						}
+					}
+				}
+			}
 
-			indexes, systemIndexes, ttl := flattenCosmosMongoCollectionIndex(res.Indexes)
+			indexes, systemIndexes, ttl := flattenCosmosMongoCollectionIndex(res.Indexes, accountIsVersion36)
 			if err := d.Set("default_ttl_seconds", ttl); err != nil {
 				return fmt.Errorf("failed to set `default_ttl_seconds`: %+v", err)
 			}
@@ -320,15 +343,16 @@ func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	throughputResp, err := client.GetMongoDBCollectionThroughput(ctx, id.ResourceGroup, id.Account, id.Database, id.Name)
+	throughputResp, err := client.GetMongoDBCollectionThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.MongodbDatabaseName, id.CollectionName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(throughputResp.Response) {
-			return fmt.Errorf("Error reading Throughput on Cosmos Mongo Collection %q (Account: %q, Database: %q): %+v", id.Name, id.Account, id.Database, err)
+			return fmt.Errorf("Error reading Throughput on Cosmos Mongo Collection %q (Account: %q, Database: %q): %+v", id.CollectionName, id.DatabaseAccountName, id.MongodbDatabaseName, err)
 		} else {
 			d.Set("throughput", nil)
+			d.Set("autoscale_settings", nil)
 		}
 	} else {
-		d.Set("throughput", common.GetThroughputFromResult(throughputResp))
+		common.SetResourceDataThroughputFromResponse(throughputResp, d)
 	}
 
 	return nil
@@ -339,21 +363,21 @@ func resourceArmCosmosDbMongoCollectionDelete(d *schema.ResourceData, meta inter
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MongoDbCollectionID(d.Id())
+	id, err := parse.MongodbCollectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.DeleteMongoDBCollection(ctx, id.ResourceGroup, id.Account, id.Database, id.Name)
+	future, err := client.DeleteMongoDBCollection(ctx, id.ResourceGroup, id.DatabaseAccountName, id.MongodbDatabaseName, id.CollectionName)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error deleting Cosmos Mongo Collection %q (Account: %q, Database: %q): %+v", id.Name, id.Account, id.Database, err)
+			return fmt.Errorf("Error deleting Cosmos Mongo Collection %q (Account: %q, Database: %q): %+v", id.CollectionName, id.DatabaseAccountName, id.MongodbDatabaseName, err)
 		}
 	}
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Error waiting on delete future for Cosmos Mongo Collection %q (Account: %q, Database: %q): %+v", id.Name, id.Account, id.Database, err)
+		return fmt.Errorf("Error waiting on delete future for Cosmos Mongo Collection %q (Account: %q, Database: %q): %+v", id.CollectionName, id.DatabaseAccountName, id.MongodbDatabaseName, err)
 	}
 
 	return nil
@@ -368,7 +392,7 @@ func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) *[
 
 			results = append(results, documentdb.MongoIndex{
 				Key: &documentdb.MongoIndexKeys{
-					Keys: utils.ExpandStringSlice(index["keys"].(*schema.Set).List()),
+					Keys: utils.ExpandStringSlice(index["keys"].([]interface{})),
 				},
 				Options: &documentdb.MongoIndexOptions{
 					Unique: utils.Bool(index["unique"].(bool)),
@@ -391,7 +415,7 @@ func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) *[
 	return &results
 }
 
-func flattenCosmosMongoCollectionIndex(input *[]documentdb.MongoIndex) (*[]map[string]interface{}, *[]map[string]interface{}, *int32) {
+func flattenCosmosMongoCollectionIndex(input *[]documentdb.MongoIndex, accountIsVersion36 bool) (*[]map[string]interface{}, *[]map[string]interface{}, *int32) {
 	indexes := make([]map[string]interface{}, 0)
 	systemIndexes := make([]map[string]interface{}, 0)
 	var ttl *int32
@@ -414,6 +438,13 @@ func flattenCosmosMongoCollectionIndex(input *[]documentdb.MongoIndex) (*[]map[s
 				systemIndex["unique"] = true
 
 				systemIndexes = append(systemIndexes, systemIndex)
+
+				if accountIsVersion36 {
+					index["keys"] = utils.FlattenStringSlice(v.Key.Keys)
+					index["unique"] = true
+					indexes = append(indexes, index)
+				}
+
 			case "DocumentDBDefaultIndex":
 				// Updating system index `DocumentDBDefaultIndex` is not a supported scenario.
 				systemIndex["keys"] = utils.FlattenStringSlice(v.Key.Keys)

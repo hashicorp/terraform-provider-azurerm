@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -68,7 +68,7 @@ func resourceAutomationVariableCommonSchema(attType schema.ValueType, validateFu
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.AutomationRunbookName(),
+			ValidateFunc: validate.RunbookName(),
 		},
 
 		"description": {
@@ -103,7 +103,7 @@ func datasourceAutomationVariableCommonSchema(attType schema.ValueType) map[stri
 		"automation_account_name": {
 			Type:         schema.TypeString,
 			Required:     true,
-			ValidateFunc: validate.AutomationRunbookName(),
+			ValidateFunc: validate.RunbookName(),
 		},
 
 		"description": {

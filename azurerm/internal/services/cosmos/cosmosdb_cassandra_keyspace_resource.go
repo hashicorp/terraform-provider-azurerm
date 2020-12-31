@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2020-04-01/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -69,6 +69,8 @@ func resourceArmCosmosDbCassandraKeyspace() *schema.Resource {
 				Computed:     true,
 				ValidateFunc: validate.CosmosThroughput,
 			},
+
+			"autoscale_settings": common.DatabaseAutoscaleSettingsSchema(),
 		},
 	}
 }
@@ -105,7 +107,13 @@ func resourceArmCosmosDbCassandraKeyspaceCreate(d *schema.ResourceData, meta int
 	}
 
 	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
-		db.CassandraKeyspaceCreateUpdateProperties.Options.Throughput = common.ConvertThroughputFromResourceData(throughput)
+		if throughput != 0 {
+			db.CassandraKeyspaceCreateUpdateProperties.Options.Throughput = common.ConvertThroughputFromResourceData(throughput)
+		}
+	}
+
+	if _, hasAutoscaleSettings := d.GetOk("autoscale_settings"); hasAutoscaleSettings {
+		db.CassandraKeyspaceCreateUpdateProperties.Options.AutoscaleSettings = common.ExpandCosmosDbAutoscaleSettings(d)
 	}
 
 	future, err := client.CreateUpdateCassandraKeyspace(ctx, resourceGroup, account, name, db)
@@ -141,6 +149,11 @@ func resourceArmCosmosDbCassandraKeyspaceUpdate(d *schema.ResourceData, meta int
 		return err
 	}
 
+	err = common.CheckForChangeFromAutoscaleAndManualThroughput(d)
+	if err != nil {
+		return fmt.Errorf("Error updating Cosmos Cassandra Keyspace %q (Account: %q) - %+v", id.Name, id.DatabaseAccountName, err)
+	}
+
 	db := documentdb.CassandraKeyspaceCreateUpdateParameters{
 		CassandraKeyspaceCreateUpdateProperties: &documentdb.CassandraKeyspaceCreateUpdateProperties{
 			Resource: &documentdb.CassandraKeyspaceResource{
@@ -150,34 +163,27 @@ func resourceArmCosmosDbCassandraKeyspaceUpdate(d *schema.ResourceData, meta int
 		},
 	}
 
-	future, err := client.CreateUpdateCassandraKeyspace(ctx, id.ResourceGroup, id.Account, id.Name, db)
+	future, err := client.CreateUpdateCassandraKeyspace(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name, db)
 	if err != nil {
-		return fmt.Errorf("Error issuing create/update request for Cosmos Cassandra Keyspace %q (Account: %q): %+v", id.ResourceGroup, id.Account, err)
+		return fmt.Errorf("Error issuing create/update request for Cosmos Cassandra Keyspace %q (Account: %q): %+v", id.ResourceGroup, id.DatabaseAccountName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting on create/update future for Cosmos Cassandra Keyspace %q (Account: %q): %+v", id.ResourceGroup, id.Account, err)
+		return fmt.Errorf("Error waiting on create/update future for Cosmos Cassandra Keyspace %q (Account: %q): %+v", id.ResourceGroup, id.DatabaseAccountName, err)
 	}
 
-	if d.HasChange("throughput") {
-		throughputParameters := documentdb.ThroughputSettingsUpdateParameters{
-			ThroughputSettingsUpdateProperties: &documentdb.ThroughputSettingsUpdateProperties{
-				Resource: &documentdb.ThroughputSettingsResource{
-					Throughput: common.ConvertThroughputFromResourceData(d.Get("throughput")),
-				},
-			},
-		}
-
-		throughputFuture, err := client.UpdateCassandraKeyspaceThroughput(ctx, id.ResourceGroup, id.Account, id.Name, throughputParameters)
+	if common.HasThroughputChange(d) {
+		throughputParameters := common.ExpandCosmosDBThroughputSettingsUpdateParameters(d)
+		throughputFuture, err := client.UpdateCassandraKeyspaceThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name, *throughputParameters)
 		if err != nil {
 			if response.WasNotFound(throughputFuture.Response()) {
 				return fmt.Errorf("Error setting Throughput for Cosmos Cassandra Keyspace %q (Account: %q): %+v - "+
-					"If the collection has not been created with an initial throughput, you cannot configure it later.", id.Name, id.Account, err)
+					"If the collection has not been created with an initial throughput, you cannot configure it later.", id.Name, id.DatabaseAccountName, err)
 			}
 		}
 
 		if err = throughputFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting on ThroughputUpdate future for Cosmos Cassandra Keyspace %q (Account: %q): %+v", id.Name, id.Account, err)
+			return fmt.Errorf("Error waiting on ThroughputUpdate future for Cosmos Cassandra Keyspace %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
 		}
 	}
 
@@ -194,34 +200,35 @@ func resourceArmCosmosDbCassandraKeyspaceRead(d *schema.ResourceData, meta inter
 		return err
 	}
 
-	resp, err := client.GetCassandraKeyspace(ctx, id.ResourceGroup, id.Account, id.Name)
+	resp, err := client.GetCassandraKeyspace(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading Cosmos Cassandra Keyspace %q (Account: %q) - removing from state", id.Name, id.Account)
+			log.Printf("[INFO] Error reading Cosmos Cassandra Keyspace %q (Account: %q) - removing from state", id.Name, id.DatabaseAccountName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Cosmos Cassandra Keyspace %q (Account: %q): %+v", id.Name, id.Account, err)
+		return fmt.Errorf("Error reading Cosmos Cassandra Keyspace %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
 	}
 
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("account_name", id.Account)
+	d.Set("account_name", id.DatabaseAccountName)
 	if props := resp.CassandraKeyspaceGetProperties; props != nil {
 		if res := props.Resource; res != nil {
 			d.Set("name", res.ID)
 		}
 	}
 
-	throughputResp, err := client.GetCassandraKeyspaceThroughput(ctx, id.ResourceGroup, id.Account, id.Name)
+	throughputResp, err := client.GetCassandraKeyspaceThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(throughputResp.Response) {
-			return fmt.Errorf("Error reading Throughput on Cosmos Cassandra Keyspace %q (Account: %q): %+v", id.Name, id.Account, err)
+			return fmt.Errorf("Error reading Throughput on Cosmos Cassandra Keyspace %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
 		} else {
 			d.Set("throughput", nil)
+			d.Set("autoscale_settings", nil)
 		}
 	} else {
-		d.Set("throughput", common.GetThroughputFromResult(throughputResp))
+		common.SetResourceDataThroughputFromResponse(throughputResp, d)
 	}
 
 	return nil
@@ -237,16 +244,16 @@ func resourceArmCosmosDbCassandraKeyspaceDelete(d *schema.ResourceData, meta int
 		return err
 	}
 
-	future, err := client.DeleteCassandraKeyspace(ctx, id.ResourceGroup, id.Account, id.Name)
+	future, err := client.DeleteCassandraKeyspace(ctx, id.ResourceGroup, id.DatabaseAccountName, id.Name)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error deleting Cosmos Cassandra Keyspace %q (Account: %q): %+v", id.Name, id.Account, err)
+			return fmt.Errorf("Error deleting Cosmos Cassandra Keyspace %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
 		}
 	}
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Error waiting on delete future for Cosmos Cassandra Keyspace %q (Account: %q): %+v", id.Name, id.Account, err)
+		return fmt.Errorf("Error waiting on delete future for Cosmos Cassandra Keyspace %q (Account: %q): %+v", id.Name, id.DatabaseAccountName, err)
 	}
 
 	return nil

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAutomationDscNodeConfiguration() *schema.Resource {
+func resourceAutomationDscNodeConfiguration() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAutomationDscNodeConfigurationCreateUpdate,
-		Read:   resourceArmAutomationDscNodeConfigurationRead,
-		Update: resourceArmAutomationDscNodeConfigurationCreateUpdate,
-		Delete: resourceArmAutomationDscNodeConfigurationDelete,
+		Create: resourceAutomationDscNodeConfigurationCreateUpdate,
+		Read:   resourceAutomationDscNodeConfigurationRead,
+		Update: resourceAutomationDscNodeConfigurationCreateUpdate,
+		Delete: resourceAutomationDscNodeConfigurationDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -47,7 +47,7 @@ func resourceArmAutomationDscNodeConfiguration() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.AutomationAccountName(),
+				ValidateFunc: validate.AutomationAccount(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -66,7 +66,7 @@ func resourceArmAutomationDscNodeConfiguration() *schema.Resource {
 	}
 }
 
-func resourceArmAutomationDscNodeConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationDscNodeConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.DscNodeConfigurationClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -98,12 +98,14 @@ func resourceArmAutomationDscNodeConfigurationCreateUpdate(d *schema.ResourceDat
 	configurationName := strings.Split(name, ".")[0]
 
 	parameters := automation.DscNodeConfigurationCreateOrUpdateParameters{
-		Source: &automation.ContentSource{
-			Type:  automation.EmbeddedContent,
-			Value: utils.String(content),
-		},
-		Configuration: &automation.DscConfigurationAssociationProperty{
-			Name: utils.String(configurationName),
+		DscNodeConfigurationCreateOrUpdateParametersProperties: &automation.DscNodeConfigurationCreateOrUpdateParametersProperties{
+			Source: &automation.ContentSource{
+				Type:  automation.EmbeddedContent,
+				Value: utils.String(content),
+			},
+			Configuration: &automation.DscConfigurationAssociationProperty{
+				Name: utils.String(configurationName),
+			},
 		},
 		Name: utils.String(name),
 	}
@@ -123,10 +125,10 @@ func resourceArmAutomationDscNodeConfigurationCreateUpdate(d *schema.ResourceDat
 
 	d.SetId(*read.ID)
 
-	return resourceArmAutomationDscNodeConfigurationRead(d, meta)
+	return resourceAutomationDscNodeConfigurationRead(d, meta)
 }
 
-func resourceArmAutomationDscNodeConfigurationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationDscNodeConfigurationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.DscNodeConfigurationClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -159,7 +161,7 @@ func resourceArmAutomationDscNodeConfigurationRead(d *schema.ResourceData, meta 
 	return nil
 }
 
-func resourceArmAutomationDscNodeConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAutomationDscNodeConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.DscNodeConfigurationClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

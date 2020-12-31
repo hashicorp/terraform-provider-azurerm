@@ -24,7 +24,8 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskCaching(t *testing.T
 			},
 			data.ImportStep(
 				"admin_password",
-			), {
+			),
+			{
 				Config: testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskCaching(data, "ReadOnly"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
@@ -32,7 +33,8 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskCaching(t *testing.T
 			},
 			data.ImportStep(
 				"admin_password",
-			), {
+			),
+			{
 				Config: testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskCaching(data, "ReadWrite"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
@@ -296,7 +298,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 func testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDisk_diskEncryptionSetDependencies(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 locals {
-  vm_name = "acctestVM-%d"
+  vm_name = "accVM-%d"
 }
 data "azurerm_client_config" "current" {}
 

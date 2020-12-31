@@ -26,15 +26,17 @@ import (
 
 // Default Authorization Rule/Policy created by Azure, used to populate the
 // default connection strings and keys
-var eventHubNamespaceDefaultAuthorizationRule = "RootManageSharedAccessKey"
-var eventHubNamespaceResourceName = "azurerm_eventhub_namespace"
+var (
+	eventHubNamespaceDefaultAuthorizationRule = "RootManageSharedAccessKey"
+	eventHubNamespaceResourceName             = "azurerm_eventhub_namespace"
+)
 
-func resourceArmEventHubNamespace() *schema.Resource {
+func resourceEventHubNamespace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmEventHubNamespaceCreateUpdate,
-		Read:   resourceArmEventHubNamespaceRead,
-		Update: resourceArmEventHubNamespaceCreateUpdate,
-		Delete: resourceArmEventHubNamespaceDelete,
+		Create: resourceEventHubNamespaceCreateUpdate,
+		Read:   resourceEventHubNamespaceRead,
+		Update: resourceEventHubNamespaceCreateUpdate,
+		Delete: resourceEventHubNamespaceDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.NamespaceID(id)
@@ -94,7 +96,7 @@ func resourceArmEventHubNamespace() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ValidateEventHubDedicatedClusterID,
+				ValidateFunc: validate.ClusterID,
 			},
 
 			"identity": {
@@ -244,7 +246,7 @@ func resourceArmEventHubNamespace() *schema.Resource {
 	}
 }
 
-func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.NamespacesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -337,10 +339,10 @@ func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta inter
 		}
 	}
 
-	return resourceArmEventHubNamespaceRead(d, meta)
+	return resourceEventHubNamespaceRead(d, meta)
 }
 
-func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.NamespacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -405,7 +407,7 @@ func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmEventHubNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.NamespacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -17,14 +17,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKeyVaultCertificateIssuer() *schema.Resource {
+func resourceKeyVaultCertificateIssuer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKeyVaultCertificateIssuerCreateOrUpdate,
-		Update: resourceArmKeyVaultCertificateIssuerCreateOrUpdate,
-		Read:   resourceArmKeyVaultCertificateIssuerRead,
-		Delete: resourceArmKeyVaultCertificateIssuerDelete,
+		Create: resourceKeyVaultCertificateIssuerCreateOrUpdate,
+		Update: resourceKeyVaultCertificateIssuerCreateOrUpdate,
+		Read:   resourceKeyVaultCertificateIssuerRead,
+		Delete: resourceKeyVaultCertificateIssuerDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceArmKeyVaultChildResourceImporter,
+			State: nestedItemResourceImporter,
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -49,19 +49,22 @@ func resourceArmKeyVaultCertificateIssuer() *schema.Resource {
 				ValidateFunc: validate.KeyVaultCertificateIssuerName,
 			},
 
-			"org_id": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
 			"provider_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"DigiCert",
 					"GlobalSign",
+					"OneCertV2-PrivateCA",
+					"OneCertV2-PublicCA",
+					"SslAdminV2",
 				}, false),
+			},
+
+			"org_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"account_id": {
@@ -103,7 +106,7 @@ func resourceArmKeyVaultCertificateIssuer() *schema.Resource {
 	}
 }
 
-func resourceArmKeyVaultCertificateIssuerCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultCertificateIssuerCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
 	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -131,18 +134,17 @@ func resourceArmKeyVaultCertificateIssuerCreateOrUpdate(d *schema.ResourceData, 
 	}
 
 	parameter := keyvault.CertificateIssuerSetParameters{
-		Provider: utils.String(d.Get("provider_name").(string)),
+		Provider:            utils.String(d.Get("provider_name").(string)),
+		OrganizationDetails: &keyvault.OrganizationDetails{},
 	}
 
-	orgDetails := &keyvault.OrganizationDetails{
-		ID: utils.String(d.Get("org_id").(string)),
+	if orgIdRaw, ok := d.GetOk("org_id"); ok {
+		parameter.OrganizationDetails.ID = utils.String(orgIdRaw.(string))
 	}
 
 	if adminsRaw, ok := d.GetOk("admin"); ok {
-		orgDetails.AdminDetails = expandKeyVaultCertificateIssuerOrganizationDetailsAdminDetails(adminsRaw.([]interface{}))
+		parameter.OrganizationDetails.AdminDetails = expandKeyVaultCertificateIssuerOrganizationDetailsAdminDetails(adminsRaw.([]interface{}))
 	}
-
-	parameter.OrganizationDetails = orgDetails
 
 	accountId, gotAccountId := d.GetOk("account_id")
 	password, gotPassword := d.GetOk("password")
@@ -169,16 +171,16 @@ func resourceArmKeyVaultCertificateIssuerCreateOrUpdate(d *schema.ResourceData, 
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmKeyVaultCertificateIssuerRead(d, meta)
+	return resourceKeyVaultCertificateIssuerRead(d, meta)
 }
 
-func resourceArmKeyVaultCertificateIssuerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultCertificateIssuerRead(d *schema.ResourceData, meta interface{}) error {
 	keyVaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KeyVaultCertificateIssuerId(d.Id())
+	id, err := parse.IssuerID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -234,13 +236,13 @@ func resourceArmKeyVaultCertificateIssuerRead(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func resourceArmKeyVaultCertificateIssuerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKeyVaultCertificateIssuerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	keyVaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KeyVaultCertificateIssuerId(d.Id())
+	id, err := parse.IssuerID(d.Id())
 	if err != nil {
 		return err
 	}

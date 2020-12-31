@@ -315,6 +315,9 @@ func (client ProjectsClient) ListByResourceGroup(ctx context.Context, groupName 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.ProjectsClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.pl.hasNextLink() && result.pl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

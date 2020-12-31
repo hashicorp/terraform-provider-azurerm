@@ -1201,7 +1201,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"file_upload_limit_mb": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntBetween(1, 500),
+							ValidateFunc: validation.IntBetween(1, 750),
 							Default:      100,
 						},
 						"request_body_check": {
@@ -1440,6 +1440,13 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 
 	if _, ok := d.GetOk("waf_configuration"); ok {
 		gateway.ApplicationGatewayPropertiesFormat.WebApplicationFirewallConfiguration = expandApplicationGatewayWafConfig(d)
+	}
+
+	appGWSkuTier := d.Get("sku.0.tier").(string)
+	wafFileUploadLimit := d.Get("waf_configuration.0.file_upload_limit_mb").(int)
+
+	if appGWSkuTier != string(network.WAFV2) && wafFileUploadLimit > 500 {
+		return fmt.Errorf("Only SKU `%s` allows `file_upload_limit_mb` to exceed 500MB", network.WAFV2)
 	}
 
 	if v, ok := d.GetOk("firewall_policy_id"); ok {
@@ -3243,6 +3250,7 @@ func expandApplicationGatewaySslCertificates(d *schema.ResourceData) (*[]network
 		data := v["data"].(string)
 		password := v["password"].(string)
 		kvsid := v["key_vault_secret_id"].(string)
+		cert := v["public_cert_data"].(string)
 
 		output := network.ApplicationGatewaySslCertificate{
 			Name: utils.String(name),
@@ -3263,6 +3271,8 @@ func expandApplicationGatewaySslCertificates(d *schema.ResourceData) (*[]network
 			}
 
 			output.ApplicationGatewaySslCertificatePropertiesFormat.KeyVaultSecretID = utils.String(kvsid)
+		} else if cert != "" {
+			output.ApplicationGatewaySslCertificatePropertiesFormat.PublicCertData = utils.String(cert)
 		} else {
 			return nil, fmt.Errorf("either `key_vault_secret_id` or `data` must be specified for the `ssl_certificate` block %q", name)
 		}

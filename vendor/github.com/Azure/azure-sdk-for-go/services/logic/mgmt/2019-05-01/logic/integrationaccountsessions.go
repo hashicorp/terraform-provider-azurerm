@@ -317,6 +317,9 @@ func (client IntegrationAccountSessionsClient) List(ctx context.Context, resourc
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountSessionsClient", "List", resp, "Failure responding to request")
 	}
+	if result.iaslr.hasNextLink() && result.iaslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

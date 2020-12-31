@@ -30,44 +30,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/hardwaresecuritymodules/mgmt/2018-10-31-preview/hardwaresecuritymodules"
 
-// JSONWebKeyType enumerates the values for json web key type.
-type JSONWebKeyType string
-
-const (
-	// Allocating A device is currently being allocated for the dedicated HSM resource.
-	Allocating JSONWebKeyType = "Allocating"
-	// CheckingQuota Validating the subscription has sufficient quota to allocate a dedicated HSM device.
-	CheckingQuota JSONWebKeyType = "CheckingQuota"
-	// Connecting The dedicated HSM is being connected to the virtual network.
-	Connecting JSONWebKeyType = "Connecting"
-	// Deleting The dedicated HSM is currently being deleted.
-	Deleting JSONWebKeyType = "Deleting"
-	// Failed Provisioning of the dedicated HSM has failed.
-	Failed JSONWebKeyType = "Failed"
-	// Provisioning The dedicated HSM is currently being provisioned.
-	Provisioning JSONWebKeyType = "Provisioning"
-	// Succeeded The dedicated HSM has been full provisioned.
-	Succeeded JSONWebKeyType = "Succeeded"
-)
-
-// PossibleJSONWebKeyTypeValues returns an array of possible values for the JSONWebKeyType const type.
-func PossibleJSONWebKeyTypeValues() []JSONWebKeyType {
-	return []JSONWebKeyType{Allocating, CheckingQuota, Connecting, Deleting, Failed, Provisioning, Succeeded}
-}
-
-// Name enumerates the values for name.
-type Name string
-
-const (
-	// SafeNetLunaNetworkHSMA790 ...
-	SafeNetLunaNetworkHSMA790 Name = "SafeNet Luna Network HSM A790"
-)
-
-// PossibleNameValues returns an array of possible values for the Name const type.
-func PossibleNameValues() []Name {
-	return []Name{SafeNetLunaNetworkHSMA790}
-}
-
 // APIEntityReference the API entity reference.
 type APIEntityReference struct {
 	// ID - The ARM resource id in the form of /subscriptions/{SubscriptionId}/resourceGroups/{ResourceGroupName}/...
@@ -203,8 +165,8 @@ func (dh *DedicatedHsm) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// DedicatedHsmCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// DedicatedHsmCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type DedicatedHsmCreateOrUpdateFuture struct {
 	azure.Future
 }
@@ -338,10 +300,15 @@ func (dhlr DedicatedHsmListResult) IsEmpty() bool {
 	return dhlr.Value == nil || len(*dhlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (dhlr DedicatedHsmListResult) hasNextLink() bool {
+	return dhlr.NextLink != nil && len(*dhlr.NextLink) != 0
+}
+
 // dedicatedHsmListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (dhlr DedicatedHsmListResult) dedicatedHsmListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if dhlr.NextLink == nil || len(to.String(dhlr.NextLink)) < 1 {
+	if !dhlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -369,11 +336,16 @@ func (page *DedicatedHsmListResultPage) NextWithContext(ctx context.Context) (er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.dhlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.dhlr)
+		if err != nil {
+			return err
+		}
+		page.dhlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.dhlr = next
 	return nil
 }
 
@@ -416,6 +388,18 @@ type DedicatedHsmOperation struct {
 	Display      *DedicatedHsmOperationDisplay `json:"display,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DedicatedHsmOperation.
+func (dho DedicatedHsmOperation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dho.Name != nil {
+		objectMap["name"] = dho.Name
+	}
+	if dho.Display != nil {
+		objectMap["display"] = dho.Display
+	}
+	return json.Marshal(objectMap)
+}
+
 // DedicatedHsmOperationDisplay ...
 type DedicatedHsmOperationDisplay struct {
 	// Provider - The Resource Provider of the operation
@@ -428,8 +412,8 @@ type DedicatedHsmOperationDisplay struct {
 	Description *string `json:"description,omitempty"`
 }
 
-// DedicatedHsmOperationListResult result of the request to list Dedicated HSM Provider operations. It
-// contains a list of operations.
+// DedicatedHsmOperationListResult result of the request to list Dedicated HSM Provider operations. It contains
+// a list of operations.
 type DedicatedHsmOperationListResult struct {
 	autorest.Response `json:"-"`
 	// Value - List of Dedicated HSM Resource Provider operations.
@@ -461,6 +445,18 @@ type DedicatedHsmProperties struct {
 	StatusMessage *string `json:"statusMessage,omitempty"`
 	// ProvisioningState - READ-ONLY; Provisioning state. Possible values include: 'Succeeded', 'Provisioning', 'Allocating', 'Connecting', 'Failed', 'CheckingQuota', 'Deleting'
 	ProvisioningState JSONWebKeyType `json:"provisioningState,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DedicatedHsmProperties.
+func (dhp DedicatedHsmProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dhp.NetworkProfile != nil {
+		objectMap["networkProfile"] = dhp.NetworkProfile
+	}
+	if dhp.StampID != nil {
+		objectMap["stampId"] = dhp.StampID
+	}
+	return json.Marshal(objectMap)
 }
 
 // DedicatedHsmUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -508,6 +504,15 @@ type NetworkInterface struct {
 	ID *string `json:"id,omitempty"`
 	// PrivateIPAddress - Private Ip address of the interface
 	PrivateIPAddress *string `json:"privateIpAddress,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for NetworkInterface.
+func (ni NetworkInterface) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ni.PrivateIPAddress != nil {
+		objectMap["privateIpAddress"] = ni.PrivateIPAddress
+	}
+	return json.Marshal(objectMap)
 }
 
 // NetworkProfile ...

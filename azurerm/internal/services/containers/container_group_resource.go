@@ -325,24 +325,69 @@ func resourceArmContainerGroup() *schema.Resource {
 
 									"share_name": {
 										Type:         schema.TypeString,
-										Required:     true,
+										Optional:     true,
 										ForceNew:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"storage_account_name": {
 										Type:         schema.TypeString,
-										Required:     true,
+										Optional:     true,
 										ForceNew:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"storage_account_key": {
 										Type:         schema.TypeString,
-										Required:     true,
+										Optional:     true,
 										Sensitive:    true,
 										ForceNew:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"empty_dir": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										ForceNew: true,
+										Default:  false,
+									},
+
+									"git_repo": {
+										Type:     schema.TypeList,
+										Optional: true,
+										ForceNew: true,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"url": {
+													Type:     schema.TypeString,
+													Required: true,
+													ForceNew: true,
+												},
+
+												"directory": {
+													Type:     schema.TypeString,
+													Optional: true,
+													ForceNew: true,
+												},
+
+												"revision": {
+													Type:     schema.TypeString,
+													Optional: true,
+													ForceNew: true,
+												},
+											},
+										},
+									},
+
+									"secret": {
+										Type:      schema.TypeMap,
+										ForceNew:  true,
+										Optional:  true,
+										Sensitive: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
 									},
 								},
 							},
@@ -418,6 +463,43 @@ func resourceArmContainerGroup() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"dns_config": {
+				Optional: true,
+				MaxItems: 1,
+				ForceNew: true,
+				Type:     schema.TypeList,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"nameservers": {
+							Type:     schema.TypeList,
+							Required: true,
+							ForceNew: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"search_domains": {
+							Type:     schema.TypeSet,
+							Required: true,
+							ForceNew: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+						"options": {
+							Type:     schema.TypeSet,
+							Required: true,
+							ForceNew: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -450,8 +532,11 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 	restartPolicy := d.Get("restart_policy").(string)
 	diagnosticsRaw := d.Get("diagnostics").([]interface{})
 	diagnostics := expandContainerGroupDiagnostics(diagnosticsRaw)
-
-	containers, containerGroupPorts, containerGroupVolumes := expandContainerGroupContainers(d)
+	dnsConfig := d.Get("dns_config").([]interface{})
+	containers, containerGroupPorts, containerGroupVolumes, err := expandContainerGroupContainers(d)
+	if err != nil {
+		return err
+	}
 	containerGroup := containerinstance.ContainerGroup{
 		Name:     &name,
 		Location: &location,
@@ -468,6 +553,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 			OsType:                   containerinstance.OperatingSystemTypes(OSType),
 			Volumes:                  containerGroupVolumes,
 			ImageRegistryCredentials: expandContainerImageRegistryCredentials(d),
+			DNSConfig:                expandContainerGroupDnsConfig(dnsConfig),
 		},
 	}
 
@@ -523,7 +609,6 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 	name := id.Path["containerGroups"]
 
 	resp, err := client.Get(ctx, resourceGroup, name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Container Group %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
@@ -562,6 +647,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 
 		d.Set("restart_policy", string(props.RestartPolicy))
 		d.Set("os_type", string(props.OsType))
+		d.Set("dns_config", flattenContainerGroupDnsConfig(resp.DNSConfig))
 
 		if err := d.Set("diagnostics", flattenContainerGroupDiagnostics(d, props.Diagnostics)); err != nil {
 			return fmt.Errorf("Error setting `diagnostics`: %+v", err)
@@ -687,7 +773,7 @@ func containerGroupEnsureDetachedFromNetworkProfileRefreshFunc(ctx context.Conte
 	}
 }
 
-func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstance.Container, *[]containerinstance.Port, *[]containerinstance.Volume) {
+func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstance.Container, *[]containerinstance.Port, *[]containerinstance.Volume, error) {
 	containersConfig := d.Get("container").([]interface{})
 	containers := make([]containerinstance.Container, 0)
 	containerGroupPorts := make([]containerinstance.Port, 0)
@@ -780,7 +866,10 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 		}
 
 		if v, ok := data["volume"]; ok {
-			volumeMounts, containerGroupVolumesPartial := expandContainerVolumes(v)
+			volumeMounts, containerGroupVolumesPartial, err := expandContainerVolumes(v)
+			if err != nil {
+				return nil, nil, nil, err
+			}
 			container.VolumeMounts = volumeMounts
 			if containerGroupVolumesPartial != nil {
 				containerGroupVolumes = append(containerGroupVolumes, *containerGroupVolumesPartial...)
@@ -798,7 +887,7 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 		containers = append(containers, container)
 	}
 
-	return &containers, &containerGroupPorts, &containerGroupVolumes
+	return &containers, &containerGroupPorts, &containerGroupVolumes, nil
 }
 
 func expandContainerEnvironmentVariables(input interface{}, secure bool) *[]containerinstance.EnvironmentVariable {
@@ -873,11 +962,11 @@ func expandContainerImageRegistryCredentials(d *schema.ResourceData) *[]containe
 	return &output
 }
 
-func expandContainerVolumes(input interface{}) (*[]containerinstance.VolumeMount, *[]containerinstance.Volume) {
+func expandContainerVolumes(input interface{}) (*[]containerinstance.VolumeMount, *[]containerinstance.Volume, error) {
 	volumesRaw := input.([]interface{})
 
 	if len(volumesRaw) == 0 {
-		return nil, nil
+		return nil, nil, nil
 	}
 
 	volumeMounts := make([]containerinstance.VolumeMount, 0)
@@ -889,6 +978,7 @@ func expandContainerVolumes(input interface{}) (*[]containerinstance.VolumeMount
 		name := volumeConfig["name"].(string)
 		mountPath := volumeConfig["mount_path"].(string)
 		readOnly := volumeConfig["read_only"].(bool)
+		emptyDir := volumeConfig["empty_dir"].(bool)
 		shareName := volumeConfig["share_name"].(string)
 		storageAccountName := volumeConfig["storage_account_name"].(string)
 		storageAccountKey := volumeConfig["storage_account_key"].(string)
@@ -903,18 +993,76 @@ func expandContainerVolumes(input interface{}) (*[]containerinstance.VolumeMount
 
 		cv := containerinstance.Volume{
 			Name: utils.String(name),
-			AzureFile: &containerinstance.AzureFileVolume{
+		}
+
+		secret := expandSecrets(volumeConfig["secret"].(map[string]interface{}))
+
+		gitRepoVolume := expandGitRepoVolume(volumeConfig["git_repo"].([]interface{}))
+
+		switch {
+		case emptyDir:
+			if shareName != "" || storageAccountName != "" || storageAccountKey != "" || secret != nil || gitRepoVolume != nil {
+				return nil, nil, fmt.Errorf("only one of `empty_dir` volume, `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) can be specified")
+			}
+			cv.EmptyDir = map[string]string{}
+		case gitRepoVolume != nil:
+			if shareName != "" || storageAccountName != "" || storageAccountKey != "" || secret != nil {
+				return nil, nil, fmt.Errorf("only one of `empty_dir` volume, `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) can be specified")
+			}
+			cv.GitRepo = gitRepoVolume
+		case secret != nil:
+			if shareName != "" || storageAccountName != "" || storageAccountKey != "" {
+				return nil, nil, fmt.Errorf("only one of `empty_dir` volume, `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) can be specified")
+			}
+			cv.Secret = secret
+		default:
+			if shareName == "" && storageAccountName == "" && storageAccountKey == "" {
+				return nil, nil, fmt.Errorf("only one of `empty_dir` volume, `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) can be specified")
+			} else if shareName == "" || storageAccountName == "" || storageAccountKey == "" {
+				return nil, nil, fmt.Errorf("when using a storage account volume, all of `share_name`, `storage_account_name`, `storage_account_key` must be specified")
+			}
+			cv.AzureFile = &containerinstance.AzureFileVolume{
 				ShareName:          utils.String(shareName),
 				ReadOnly:           utils.Bool(readOnly),
 				StorageAccountName: utils.String(storageAccountName),
 				StorageAccountKey:  utils.String(storageAccountKey),
-			},
+			}
 		}
 
 		containerGroupVolumes = append(containerGroupVolumes, cv)
 	}
 
-	return &volumeMounts, &containerGroupVolumes
+	return &volumeMounts, &containerGroupVolumes, nil
+}
+
+func expandGitRepoVolume(input []interface{}) *containerinstance.GitRepoVolume {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+	gitRepoVolume := &containerinstance.GitRepoVolume{
+		Repository: utils.String(v["url"].(string)),
+	}
+	if directory := v["directory"].(string); directory != "" {
+		gitRepoVolume.Directory = utils.String(directory)
+	}
+	if revision := v["revision"].(string); revision != "" {
+		gitRepoVolume.Revision = utils.String(revision)
+	}
+	return gitRepoVolume
+}
+
+func expandSecrets(secretsMap map[string]interface{}) map[string]*string {
+	if len(secretsMap) == 0 {
+		return nil
+	}
+	output := make(map[string]*string, len(secretsMap))
+
+	for name, value := range secretsMap {
+		output[name] = utils.String(value.(string))
+	}
+
+	return output
 }
 
 func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
@@ -1204,6 +1352,12 @@ func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, cont
 						}
 						// skip storage_account_key, is always nil
 					}
+
+					if cgv.EmptyDir != nil {
+						volumeConfig["empty_dir"] = true
+					}
+
+					volumeConfig["git_repo"] = flattenGitRepoVolume(cgv.GitRepo)
 				}
 			}
 		}
@@ -1217,6 +1371,7 @@ func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, cont
 				if vm.Name != nil && *vm.Name == rawName {
 					storageAccountKey := cv["storage_account_key"].(string)
 					volumeConfig["storage_account_key"] = storageAccountKey
+					volumeConfig["secret"] = cv["secret"]
 				}
 			}
 		}
@@ -1225,6 +1380,29 @@ func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, cont
 	}
 
 	return volumeConfigs
+}
+
+func flattenGitRepoVolume(input *containerinstance.GitRepoVolume) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+	var revision, directory, repository string
+	if input.Directory != nil {
+		directory = *input.Directory
+	}
+	if input.Revision != nil {
+		revision = *input.Revision
+	}
+	if input.Repository != nil {
+		repository = *input.Repository
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"url":       repository,
+			"directory": directory,
+			"revision":  revision,
+		},
+	}
 }
 
 func flattenContainerProbes(input *containerinstance.ContainerProbe) []interface{} {
@@ -1371,4 +1549,63 @@ func resourceArmContainerGroupPortsHash(v interface{}) int {
 	}
 
 	return hashcode.String(buf.String())
+}
+
+func flattenContainerGroupDnsConfig(input *containerinstance.DNSConfiguration) []interface{} {
+	output := make(map[string]interface{})
+
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	// We're converting to TypeSet here from an API response that looks like "a b c" (assumes space delimited)
+	var searchDomains []string
+	if input.SearchDomains != nil {
+		searchDomains = strings.Split(*input.SearchDomains, " ")
+	}
+	output["search_domains"] = searchDomains
+
+	// We're converting to TypeSet here from an API response that looks like "a b c" (assumes space delimited)
+	var options []string
+	if input.Options != nil {
+		options = strings.Split(*input.Options, " ")
+	}
+	output["options"] = options
+
+	// Nameservers is already an array from the API
+	var nameservers []string
+	if input.NameServers != nil {
+		nameservers = *input.NameServers
+	}
+	output["nameservers"] = nameservers
+
+	return []interface{}{output}
+}
+
+func expandContainerGroupDnsConfig(input interface{}) *containerinstance.DNSConfiguration {
+	dnsConfigRaw := input.([]interface{})
+	if len(dnsConfigRaw) > 0 {
+		config := dnsConfigRaw[0].(map[string]interface{})
+
+		nameservers := []string{}
+		for _, v := range config["nameservers"].([]interface{}) {
+			nameservers = append(nameservers, v.(string))
+		}
+		options := []string{}
+		for _, v := range config["options"].(*schema.Set).List() {
+			options = append(options, v.(string))
+		}
+		searchDomains := []string{}
+		for _, v := range config["search_domains"].(*schema.Set).List() {
+			searchDomains = append(searchDomains, v.(string))
+		}
+
+		return &containerinstance.DNSConfiguration{
+			Options:       utils.String(strings.Join(options, " ")),
+			SearchDomains: utils.String(strings.Join(searchDomains, " ")),
+			NameServers:   &nameservers,
+		}
+	}
+
+	return nil
 }

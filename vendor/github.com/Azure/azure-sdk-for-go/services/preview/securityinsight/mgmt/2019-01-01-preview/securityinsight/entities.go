@@ -132,7 +132,6 @@ func (client EntitiesClient) ExpandSender(req *http.Request) (*http.Response, er
 func (client EntitiesClient) ExpandResponder(resp *http.Response) (result EntityExpandResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -227,7 +226,6 @@ func (client EntitiesClient) GetSender(req *http.Request) (*http.Response, error
 func (client EntitiesClient) GetResponder(resp *http.Response) (result EntityModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -284,6 +282,9 @@ func (client EntitiesClient) List(ctx context.Context, resourceGroupName string,
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.EntitiesClient", "List", resp, "Failure responding to request")
 	}
+	if result.el.hasNextLink() && result.el.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -321,7 +322,6 @@ func (client EntitiesClient) ListSender(req *http.Request) (*http.Response, erro
 func (client EntitiesClient) ListResponder(resp *http.Response) (result EntityList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

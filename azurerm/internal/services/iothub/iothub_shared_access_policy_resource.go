@@ -3,29 +3,27 @@ package iothub
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2019-03-22-preview/devices"
+	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2020-03-01/devices"
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmIotHubSharedAccessPolicy() *schema.Resource {
+func resourceIotHubSharedAccessPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIotHubSharedAccessPolicyCreateUpdate,
-		Read:   resourceArmIotHubSharedAccessPolicyRead,
-		Update: resourceArmIotHubSharedAccessPolicyCreateUpdate,
-		Delete: resourceArmIotHubSharedAccessPolicyDelete,
+		Create: resourceIotHubSharedAccessPolicyCreateUpdate,
+		Read:   resourceIotHubSharedAccessPolicyRead,
+		Update: resourceIotHubSharedAccessPolicyCreateUpdate,
+		Delete: resourceIotHubSharedAccessPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -39,11 +37,10 @@ func resourceArmIotHubSharedAccessPolicy() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringMatch(regexp.MustCompile(`[a-zA-Z0-9!._-]{1,64}`), ""+
-					"The shared access policy key name must not be empty, and must not exceed 64 characters in length.  The shared access policy key name can only contain alphanumeric characters, exclamation marks, periods, underscores and hyphens."),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.IotHubSharedAccessPolicyName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -128,7 +125,7 @@ func iothubSharedAccessPolicyCustomizeDiff(d *schema.ResourceDiff, _ interface{}
 	return
 }
 
-func resourceArmIotHubSharedAccessPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubSharedAccessPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -205,16 +202,15 @@ func resourceArmIotHubSharedAccessPolicyCreateUpdate(d *schema.ResourceData, met
 
 	d.SetId(resourceId)
 
-	return resourceArmIotHubSharedAccessPolicyRead(d, meta)
+	return resourceIotHubSharedAccessPolicyRead(d, meta)
 }
 
-func resourceArmIotHubSharedAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubSharedAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	parsedIothubSAPId, err := azure.ParseAzureResourceID(d.Id())
-
 	if err != nil {
 		return err
 	}
@@ -261,13 +257,12 @@ func resourceArmIotHubSharedAccessPolicyRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceArmIotHubSharedAccessPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubSharedAccessPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	parsedIothubSAPId, err := azure.ParseAzureResourceID(d.Id())
-
 	if err != nil {
 		return err
 	}
@@ -323,7 +318,7 @@ type accessRights struct {
 }
 
 func expandAccessRights(d *schema.ResourceData) string {
-	var possibleAccessRights = []struct {
+	possibleAccessRights := []struct {
 		schema string
 		right  string
 	}{

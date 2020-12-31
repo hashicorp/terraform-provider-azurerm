@@ -312,6 +312,9 @@ func (client DomainTopicsClient) ListByDomain(ctx context.Context, resourceGroup
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.DomainTopicsClient", "ListByDomain", resp, "Failure responding to request")
 	}
+	if result.dtlr.hasNextLink() && result.dtlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

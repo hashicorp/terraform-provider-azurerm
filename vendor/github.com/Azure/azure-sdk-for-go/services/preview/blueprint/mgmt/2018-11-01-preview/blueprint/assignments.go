@@ -322,6 +322,9 @@ func (client AssignmentsClient) List(ctx context.Context, resourceScope string) 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blueprint.AssignmentsClient", "List", resp, "Failure responding to request")
 	}
+	if result.al.hasNextLink() && result.al.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

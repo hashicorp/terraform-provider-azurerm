@@ -318,6 +318,9 @@ func (client TrustedIDProvidersClient) ListByAccount(ctx context.Context, resour
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.TrustedIDProvidersClient", "ListByAccount", resp, "Failure responding to request")
 	}
+	if result.tiplr.hasNextLink() && result.tiplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

@@ -9,18 +9,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMySqlFirewallRule() *schema.Resource {
+func resourceMySqlFirewallRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMySqlFirewallRuleCreateUpdate,
-		Read:   resourceArmMySqlFirewallRuleRead,
-		Update: resourceArmMySqlFirewallRuleCreateUpdate,
-		Delete: resourceArmMySqlFirewallRuleDelete,
+		Create: resourceMySqlFirewallRuleCreateUpdate,
+		Read:   resourceMySqlFirewallRuleRead,
+		Update: resourceMySqlFirewallRuleCreateUpdate,
+		Delete: resourceMySqlFirewallRuleDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -46,23 +47,25 @@ func resourceArmMySqlFirewallRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.MysqlServerServerName,
+				ValidateFunc: validate.ServerName,
 			},
 
 			"start_ip_address": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: azValidate.IPv4Address,
 			},
 
 			"end_ip_address": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: azValidate.IPv4Address,
 			},
 		},
 	}
 }
 
-func resourceArmMySqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMySqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.FirewallRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -114,10 +117,10 @@ func resourceArmMySqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta inter
 
 	d.SetId(*read.ID)
 
-	return resourceArmMySqlFirewallRuleRead(d, meta)
+	return resourceMySqlFirewallRuleRead(d, meta)
 }
 
-func resourceArmMySqlFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMySqlFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.FirewallRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -148,7 +151,7 @@ func resourceArmMySqlFirewallRuleRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceArmMySqlFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMySqlFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.FirewallRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -40,9 +40,19 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+* `identity` - (Optional) An `identity` block as defined below. 
+
 * `sku` - (Required) Sets the vault's SKU. Possible values include: `Standard`, `RS0`.
 
 * `soft_delete_enabled` - (Optional) Is soft delete enable for this Vault? Defaults to `true`.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) The Type of Identity which should be used for this Recovery Services Vault. At this time the only possible value is `SystemAssigned`.
+
+---
 
 ## Attributes Reference
 

@@ -30,7 +30,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "main" {
   admin_username                  = "adminuser"
   admin_password                  = "P@ssw0rd1234!"
   disable_password_authentication = false
-  custom_data                     = base64_encode("example custom data")
+  custom_data                     = base64encode("example custom data")
 
   source_image_reference {
     publisher = "Canonical"

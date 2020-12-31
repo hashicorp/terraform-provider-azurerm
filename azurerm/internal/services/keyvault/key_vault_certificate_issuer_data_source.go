@@ -12,9 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmKeyVaultCertificateIssuer() *schema.Resource {
+func dataSourceKeyVaultCertificateIssuer() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmKeyVaultCertificateIssuerRead,
+		Read: dataSourceKeyVaultCertificateIssuerRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -24,7 +24,6 @@ func dataSourceArmKeyVaultCertificateIssuer() *schema.Resource {
 			"key_vault_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
@@ -77,7 +76,7 @@ func dataSourceArmKeyVaultCertificateIssuer() *schema.Resource {
 	}
 }
 
-func dataSourceArmKeyVaultCertificateIssuerRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceKeyVaultCertificateIssuerRead(d *schema.ResourceData, meta interface{}) error {
 	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

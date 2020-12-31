@@ -58,13 +58,13 @@ The following supported arguments are common across all Azure Data Factory Linke
 
 * `annotations` - (Optional) List of tags that can be used for describing the Data Factory Linked Service.
 
-* `parameters` - (Optional) A map of parameters to associate with the Data Factory Linfked Service.
+* `parameters` - (Optional) A map of parameters to associate with the Data Factory Linked Service.
 
 * `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Linked Service.
 
 The following supported arguments are specific to CosmosDB Linked Service:
 
-* `account_endpoint` - (Optional) The endpoint of he Azure CosmosDB account. Required if `connection_string` is unspecified.
+* `account_endpoint` - (Optional) The endpoint of the Azure CosmosDB account. Required if `connection_string` is unspecified.
 
 * `account_key` - (Optional) The account key of the Azure Cosmos DB account. Required if `connection_string` is unspecified.
 

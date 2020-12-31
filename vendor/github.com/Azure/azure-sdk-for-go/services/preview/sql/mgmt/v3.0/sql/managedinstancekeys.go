@@ -316,6 +316,9 @@ func (client ManagedInstanceKeysClient) ListByInstance(ctx context.Context, reso
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceKeysClient", "ListByInstance", resp, "Failure responding to request")
 	}
+	if result.miklr.hasNextLink() && result.miklr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

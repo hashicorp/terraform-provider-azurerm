@@ -99,6 +99,9 @@ func (client EntitiesRelationsClient) List(ctx context.Context, resourceGroupNam
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.EntitiesRelationsClient", "List", resp, "Failure responding to request")
 	}
+	if result.rl.hasNextLink() && result.rl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -149,7 +152,6 @@ func (client EntitiesRelationsClient) ListSender(req *http.Request) (*http.Respo
 func (client EntitiesRelationsClient) ListResponder(resp *http.Response) (result RelationList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -3,6 +3,7 @@ package eventhub
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
@@ -20,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmEventHubCluster() *schema.Resource {
+func resourceEventHubCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmEventHubClusterCreateUpdate,
-		Read:   resourceArmEventHubClusterRead,
-		Update: resourceArmEventHubClusterCreateUpdate,
-		Delete: resourceArmEventHubClusterDelete,
+		Create: resourceEventHubClusterCreateUpdate,
+		Read:   resourceEventHubClusterRead,
+		Update: resourceEventHubClusterCreateUpdate,
+		Delete: resourceEventHubClusterDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.ClusterID(id)
 			return err
@@ -55,9 +56,10 @@ func resourceArmEventHubCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"Dedicated_1",
-				}, false),
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile(`^Dedicated_[1-9][0-9]*$`),
+					"SKU name must match /^Dedicated_[1-9][0-9]*$/.",
+				),
 			},
 
 			"tags": tags.Schema(),
@@ -65,7 +67,7 @@ func resourceArmEventHubCluster() *schema.Resource {
 	}
 }
 
-func resourceArmEventHubClusterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubClusterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.ClusterClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -100,10 +102,10 @@ func resourceArmEventHubClusterCreateUpdate(d *schema.ResourceData, meta interfa
 
 	d.SetId(*read.ID)
 
-	return resourceArmEventHubClusterRead(d, meta)
+	return resourceEventHubClusterRead(d, meta)
 }
 
-func resourceArmEventHubClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.ClusterClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -131,7 +133,7 @@ func resourceArmEventHubClusterRead(d *schema.ResourceData, meta interface{}) er
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmEventHubClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.ClusterClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

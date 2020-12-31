@@ -5,13 +5,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2020-04-01/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/common"
@@ -78,6 +78,8 @@ func resourceArmCosmosDbGremlinGraph() *schema.Resource {
 				Computed:     true,
 				ValidateFunc: validate.CosmosThroughput,
 			},
+
+			"autoscale_settings": common.ContainerAutoscaleSettingsSchema(),
 
 			"partition_key_path": {
 				Type:         schema.TypeString,
@@ -232,7 +234,13 @@ func resourceArmCosmosDbGremlinGraphCreate(d *schema.ResourceData, meta interfac
 	}
 
 	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
-		db.GremlinGraphCreateUpdateProperties.Options.Throughput = common.ConvertThroughputFromResourceData(throughput)
+		if throughput != 0 {
+			db.GremlinGraphCreateUpdateProperties.Options.Throughput = common.ConvertThroughputFromResourceData(throughput)
+		}
+	}
+
+	if _, hasAutoscaleSettings := d.GetOk("autoscale_settings"); hasAutoscaleSettings {
+		db.GremlinGraphCreateUpdateProperties.Options.AutoscaleSettings = common.ExpandCosmosDbAutoscaleSettings(d)
 	}
 
 	future, err := client.CreateUpdateGremlinGraph(ctx, resourceGroup, account, database, name, db)
@@ -268,12 +276,17 @@ func resourceArmCosmosDbGremlinGraphUpdate(d *schema.ResourceData, meta interfac
 		return err
 	}
 
+	err = common.CheckForChangeFromAutoscaleAndManualThroughput(d)
+	if err != nil {
+		return fmt.Errorf("Error updating Cosmos Gremlin Graph %q (Account: %q, Database: %q): %+v", id.GraphName, id.DatabaseAccountName, id.GremlinDatabaseName, err)
+	}
+
 	partitionkeypaths := d.Get("partition_key_path").(string)
 
 	db := documentdb.GremlinGraphCreateUpdateParameters{
 		GremlinGraphCreateUpdateProperties: &documentdb.GremlinGraphCreateUpdateProperties{
 			Resource: &documentdb.GremlinGraphResource{
-				ID:                       &id.Name,
+				ID:                       &id.GraphName,
 				IndexingPolicy:           expandAzureRmCosmosDbGrelinGraphIndexingPolicy(d),
 				ConflictResolutionPolicy: expandAzureRmCosmosDbGremlinGraphConflicResolutionPolicy(d),
 			},
@@ -293,34 +306,27 @@ func resourceArmCosmosDbGremlinGraphUpdate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	future, err := client.CreateUpdateGremlinGraph(ctx, id.ResourceGroup, id.Account, id.Database, id.Name, db)
+	future, err := client.CreateUpdateGremlinGraph(ctx, id.ResourceGroup, id.DatabaseAccountName, id.GremlinDatabaseName, id.GraphName, db)
 	if err != nil {
-		return fmt.Errorf("Error issuing create/update request for Cosmos Gremlin Graph %q (Account: %q, Database: %q): %+v", id.Name, id.Account, id.Database, err)
+		return fmt.Errorf("Error issuing create/update request for Cosmos Gremlin Graph %q (Account: %q, Database: %q): %+v", id.GraphName, id.DatabaseAccountName, id.GremlinDatabaseName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting on create/update future for Cosmos Gremlin Graph %q (Account: %q, Database: %q): %+v", id.Name, id.Account, id.Database, err)
+		return fmt.Errorf("Error waiting on create/update future for Cosmos Gremlin Graph %q (Account: %q, Database: %q): %+v", id.GraphName, id.DatabaseAccountName, id.GremlinDatabaseName, err)
 	}
 
-	if d.HasChange("throughput") {
-		throughputParameters := documentdb.ThroughputSettingsUpdateParameters{
-			ThroughputSettingsUpdateProperties: &documentdb.ThroughputSettingsUpdateProperties{
-				Resource: &documentdb.ThroughputSettingsResource{
-					Throughput: common.ConvertThroughputFromResourceData(d.Get("throughput")),
-				},
-			},
-		}
-
-		throughputFuture, err := client.UpdateGremlinGraphThroughput(ctx, id.ResourceGroup, id.Account, id.Database, id.Name, throughputParameters)
+	if common.HasThroughputChange(d) {
+		throughputParameters := common.ExpandCosmosDBThroughputSettingsUpdateParameters(d)
+		throughputFuture, err := client.UpdateGremlinGraphThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.GremlinDatabaseName, id.GraphName, *throughputParameters)
 		if err != nil {
 			if response.WasNotFound(throughputFuture.Response()) {
 				return fmt.Errorf("Error setting Throughput for Cosmos Gremlin Graph %q (Account: %q, Database: %q): %+v - "+
-					"If the graph has not been created with an initial throughput, you cannot configure it later.", id.Name, id.Account, id.Database, err)
+					"If the graph has not been created with an initial throughput, you cannot configure it later.", id.GraphName, id.DatabaseAccountName, id.GremlinDatabaseName, err)
 			}
 		}
 
 		if err = throughputFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting on ThroughputUpdate future for Cosmos Gremlin Graph %q (Account: %q, Database: %q): %+v", id.Name, id.Account, id.Database, err)
+			return fmt.Errorf("Error waiting on ThroughputUpdate future for Cosmos Gremlin Graph %q (Account: %q, Database: %q): %+v", id.GraphName, id.DatabaseAccountName, id.GremlinDatabaseName, err)
 		}
 	}
 
@@ -337,21 +343,21 @@ func resourceArmCosmosDbGremlinGraphRead(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	resp, err := client.GetGremlinGraph(ctx, id.ResourceGroup, id.Account, id.Database, id.Name)
+	resp, err := client.GetGremlinGraph(ctx, id.ResourceGroup, id.DatabaseAccountName, id.GremlinDatabaseName, id.GraphName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading Cosmos Gremlin Graph %q (Account: %q) - removing from state", id.Name, id.Account)
+			log.Printf("[INFO] Error reading Cosmos Gremlin Graph %q (Account: %q) - removing from state", id.GraphName, id.DatabaseAccountName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Cosmos Gremlin Graph %q (Account: %q): %+v", id.Name, id.Account, err)
+		return fmt.Errorf("Error reading Cosmos Gremlin Graph %q (Account: %q): %+v", id.GraphName, id.DatabaseAccountName, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.GraphName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("account_name", id.Account)
-	d.Set("database_name", id.Database)
+	d.Set("account_name", id.DatabaseAccountName)
+	d.Set("database_name", id.GremlinDatabaseName)
 
 	if graphProperties := resp.GremlinGraphGetProperties; graphProperties != nil {
 		if props := graphProperties.Resource; props != nil {
@@ -385,15 +391,16 @@ func resourceArmCosmosDbGremlinGraphRead(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	throughputResp, err := client.GetGremlinGraphThroughput(ctx, id.ResourceGroup, id.Account, id.Database, id.Name)
+	throughputResp, err := client.GetGremlinGraphThroughput(ctx, id.ResourceGroup, id.DatabaseAccountName, id.GremlinDatabaseName, id.GraphName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(throughputResp.Response) {
-			return fmt.Errorf("Error reading Throughput on Gremlin Graph %q (Account: %q, Database: %q) ID: %v", id.Name, id.Account, id.Database, err)
+			return fmt.Errorf("Error reading Throughput on Gremlin Graph %q (Account: %q, Database: %q) ID: %v", id.GraphName, id.DatabaseAccountName, id.GremlinDatabaseName, err)
 		} else {
 			d.Set("throughput", nil)
+			d.Set("autoscale_settings", nil)
 		}
 	} else {
-		d.Set("throughput", common.GetThroughputFromResult(throughputResp))
+		common.SetResourceDataThroughputFromResponse(throughputResp, d)
 	}
 
 	return nil
@@ -409,15 +416,15 @@ func resourceArmCosmosDbGremlinGraphDelete(d *schema.ResourceData, meta interfac
 		return err
 	}
 
-	future, err := client.DeleteGremlinGraph(ctx, id.ResourceGroup, id.Account, id.Database, id.Name)
+	future, err := client.DeleteGremlinGraph(ctx, id.ResourceGroup, id.DatabaseAccountName, id.GremlinDatabaseName, id.GraphName)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error deleting Cosmos Gremlin Graph %q (Account: %q): %+v", id.Database, id.Name, err)
+			return fmt.Errorf("Error deleting Cosmos Gremlin Graph %q (Account: %q): %+v", id.GremlinDatabaseName, id.GraphName, err)
 		}
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting on delete future for Comos Gremlin Graph %q (Account: %q): %+v", id.Database, id.Account, err)
+		return fmt.Errorf("Error waiting on delete future for Comos Gremlin Graph %q (Account: %q): %+v", id.GremlinDatabaseName, id.DatabaseAccountName, err)
 	}
 
 	return nil

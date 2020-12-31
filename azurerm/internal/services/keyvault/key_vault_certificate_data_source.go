@@ -17,9 +17,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmKeyVaultCertificate() *schema.Resource {
+func dataSourceKeyVaultCertificate() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmKeyVaultCertificateRead,
+		Read: dataSourceKeyVaultCertificateRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -220,7 +220,7 @@ func dataSourceArmKeyVaultCertificate() *schema.Resource {
 	}
 }
 
-func dataSourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -288,6 +288,10 @@ func dataSourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface
 }
 
 func flattenKeyVaultCertificatePolicyForDataSource(input *keyvault.CertificatePolicy) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
 	policy := make(map[string]interface{})
 
 	if params := input.IssuerParameters; params != nil {

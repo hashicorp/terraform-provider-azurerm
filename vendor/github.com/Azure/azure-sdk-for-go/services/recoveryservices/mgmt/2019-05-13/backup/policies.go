@@ -76,6 +76,9 @@ func (client PoliciesClient) List(ctx context.Context, vaultName string, resourc
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.PoliciesClient", "List", resp, "Failure responding to request")
 	}
+	if result.pprl.hasNextLink() && result.pprl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
