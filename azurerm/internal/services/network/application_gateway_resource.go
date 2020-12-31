@@ -89,6 +89,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Required: true,
 							MinItems: 1,
 							MaxItems: 1,
+							DiffSuppressFunc: suppress.CaseDifference,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
 								ValidateFunc: validation.NoZeroValues,
