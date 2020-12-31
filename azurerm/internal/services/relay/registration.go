@@ -26,7 +26,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_relay_hybrid_connection": resourceArmHybridConnection(),
-		"azurerm_relay_namespace":         resourceArmRelayNamespace(),
+		"azurerm_relay_hybrid_connection": resourceArmRelayHybridConnection(),
+		"azurerm_relay_namespace":         resourceRelayNamespace(),
 	}
 }

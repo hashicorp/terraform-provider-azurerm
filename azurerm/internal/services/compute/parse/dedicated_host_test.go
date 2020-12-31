@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"testing"
 
@@ -9,10 +11,8 @@ import (
 var _ resourceid.Formatter = DedicatedHostId{}
 
 func TestDedicatedHostIDFormatter(t *testing.T) {
-	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	hostGroupId := NewDedicatedHostGroupId("group1", "hostGroup1")
-	actual := NewDedicatedHostId(hostGroupId, "host1").ID(subscriptionId)
-	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Compute/hostGroups/hostGroup1/hosts/host1"
+	actual := NewDedicatedHostID("12345678-1234-9876-4563-123456789012", "resGroup1", "hostGroup1", "host1").ID()
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/hostGroups/hostGroup1/hosts/host1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
@@ -20,65 +20,85 @@ func TestDedicatedHostIDFormatter(t *testing.T) {
 
 func TestDedicatedHostID(t *testing.T) {
 	testData := []struct {
-		Name   string
-		Input  string
-		Error  bool
-		Expect *DedicatedHostId
+		Input    string
+		Error    bool
+		Expected *DedicatedHostId
 	}{
+
 		{
-			Name:  "Empty",
+			// empty
 			Input: "",
 			Error: true,
 		},
+
 		{
-			Name:  "No Resource Groups Segment",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000",
+			// missing SubscriptionId
+			Input: "/",
 			Error: true,
 		},
+
 		{
-			Name:  "No Resource Groups Value",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/",
+			// missing value for SubscriptionId
+			Input: "/subscriptions/",
 			Error: true,
 		},
+
 		{
-			Name:  "Resource Group ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/",
+			// missing ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/",
 			Error: true,
 		},
+
 		{
-			Name:  "Missing Host Group Value",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Compute/hostGroups/",
+			// missing value for ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
 			Error: true,
 		},
+
 		{
-			Name:  "Host Group ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Compute/hostGroups/group1/",
+			// missing HostGroupName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/",
 			Error: true,
 		},
+
 		{
-			Name:  "Missing Host Value",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Compute/hostGroups/group1/hosts/",
+			// missing value for HostGroupName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/hostGroups/",
 			Error: true,
 		},
+
 		{
-			Name:  "Host ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Compute/hostGroups/group1/hosts/host1",
-			Error: false,
-			Expect: &DedicatedHostId{
-				ResourceGroup: "resGroup1",
-				HostGroup:     "group1",
-				Name:          "host1",
+			// missing HostName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/hostGroups/hostGroup1/",
+			Error: true,
+		},
+
+		{
+			// missing value for HostName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/hostGroups/hostGroup1/hosts/",
+			Error: true,
+		},
+
+		{
+			// valid
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/hostGroups/hostGroup1/hosts/host1",
+			Expected: &DedicatedHostId{
+				SubscriptionId: "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:  "resGroup1",
+				HostGroupName:  "hostGroup1",
+				HostName:       "host1",
 			},
 		},
+
 		{
-			Name:  "Wrong Casing",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Compute/hostGroups/group1/Hosts/host1",
+			// upper-cased
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.COMPUTE/HOSTGROUPS/HOSTGROUP1/HOSTS/HOST1",
 			Error: true,
 		},
 	}
 
 	for _, v := range testData {
-		t.Logf("[DEBUG] Testing %q", v.Name)
+		t.Logf("[DEBUG] Testing %q", v.Input)
 
 		actual, err := DedicatedHostID(v.Input)
 		if err != nil {
@@ -86,19 +106,23 @@ func TestDedicatedHostID(t *testing.T) {
 				continue
 			}
 
-			t.Fatalf("Expected a value but got an error: %s", err)
+			t.Fatalf("Expect a value but got an error: %s", err)
+		}
+		if v.Error {
+			t.Fatal("Expect an error but didn't get one")
 		}
 
-		if actual.Name != v.Expect.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expect.Name, actual.Name)
+		if actual.SubscriptionId != v.Expected.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
 		}
-
-		if actual.HostGroup != v.Expect.HostGroup {
-			t.Fatalf("Expected %q but got %q for HostGroup", v.Expect.HostGroup, actual.HostGroup)
+		if actual.ResourceGroup != v.Expected.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
-
-		if actual.ResourceGroup != v.Expect.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for Resource Group", v.Expect.ResourceGroup, actual.ResourceGroup)
+		if actual.HostGroupName != v.Expected.HostGroupName {
+			t.Fatalf("Expected %q but got %q for HostGroupName", v.Expected.HostGroupName, actual.HostGroupName)
+		}
+		if actual.HostName != v.Expected.HostName {
+			t.Fatalf("Expected %q but got %q for HostName", v.Expected.HostName, actual.HostName)
 		}
 	}
 }

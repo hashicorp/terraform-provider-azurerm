@@ -21,17 +21,19 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_netapp_account":  dataSourceArmNetAppAccount(),
-		"azurerm_netapp_pool":     dataSourceArmNetAppPool(),
-		"azurerm_netapp_volume":   dataSourceArmNetAppVolume(),
-		"azurerm_netapp_snapshot": dataSourceArmNetAppSnapshot()}
+		"azurerm_netapp_account":  dataSourceNetAppAccount(),
+		"azurerm_netapp_pool":     dataSourceNetAppPool(),
+		"azurerm_netapp_volume":   dataSourceNetAppVolume(),
+		"azurerm_netapp_snapshot": dataSourceNetAppSnapshot(),
+	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_netapp_account":  resourceArmNetAppAccount(),
-		"azurerm_netapp_pool":     resourceArmNetAppPool(),
-		"azurerm_netapp_volume":   resourceArmNetAppVolume(),
-		"azurerm_netapp_snapshot": resourceArmNetAppSnapshot()}
+		"azurerm_netapp_account":  resourceNetAppAccount(),
+		"azurerm_netapp_pool":     resourceNetAppPool(),
+		"azurerm_netapp_volume":   resourceNetAppVolume(),
+		"azurerm_netapp_snapshot": resourceNetAppSnapshot(),
+	}
 }

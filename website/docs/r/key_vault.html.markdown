@@ -50,6 +50,11 @@ resource "azurerm_key_vault" "example" {
     tenant_id = data.azurerm_client_config.current.tenant_id
     object_id = data.azurerm_client_config.current.object_id
 
+    certificate_permissions = [
+      "get",
+      "managecontacts",
+    ]
+
     key_permissions = [
       "get",
     ]
@@ -66,6 +71,12 @@ resource "azurerm_key_vault" "example" {
   network_acls {
     default_action = "Deny"
     bypass         = "AzureServices"
+  }
+
+  contact {
+    email = "example@example.com"
+    name  = "example"
+    phone = "0123456789"
   }
 
   tags = {
@@ -118,6 +129,10 @@ The following arguments are supported:
 
 ~> **Note:** This field can only be set once Soft Delete is Enabled and cannot be updated.
 
+* `contact` - (Optional) One or more `contact` block as defined below.
+
+~> **Note:** This field can only be set once user has `managecontacts` certificate permission.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -149,6 +164,16 @@ A `network_acls` block supports the following:
 * `ip_rules` - (Optional) One or more IP Addresses, or CIDR Blocks which should be able to access the Key Vault.
 
 * `virtual_network_subnet_ids` - (Optional) One or more Subnet ID's which should be able to access this Key Vault.
+
+---
+
+A `contact` block supports the following:
+
+* `email` - (Required) E-mail address of the contact.
+
+* `name` - (Optional) Name of the contact.
+
+* `phone` - (Optional) Phone number of the contact.
 
 ## Attributes Reference
 

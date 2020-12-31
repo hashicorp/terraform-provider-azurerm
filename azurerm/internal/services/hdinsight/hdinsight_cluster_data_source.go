@@ -13,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmHDInsightSparkCluster() *schema.Resource {
+func dataSourceHDInsightSparkCluster() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmHDInsightClusterRead,
+		Read: dataSourceHDInsightClusterRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -98,7 +98,7 @@ func dataSourceArmHDInsightSparkCluster() *schema.Resource {
 	}
 }
 
-func dataSourceArmHDInsightClusterRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceHDInsightClusterRead(d *schema.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
 	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

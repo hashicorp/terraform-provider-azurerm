@@ -53,12 +53,12 @@ func supressWhenAll(fs ...schema.SchemaDiffSuppressFunc) schema.SchemaDiffSuppre
 	}
 }
 
-func resourceArmIotHub() *schema.Resource {
+func resourceIotHub() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIotHubCreateUpdate,
-		Read:   resourceArmIotHubRead,
-		Update: resourceArmIotHubCreateUpdate,
-		Delete: resourceArmIotHubDelete,
+		Create: resourceIotHubCreateUpdate,
+		Read:   resourceIotHubRead,
+		Update: resourceIotHubCreateUpdate,
+		Delete: resourceIotHubDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.IotHubID(id)
@@ -229,6 +229,7 @@ func resourceArmIotHub() *schema.Resource {
 								"AzureIotHub.EventHub",
 							}, false),
 						},
+
 						"connection_string": {
 							Type:     schema.TypeString,
 							Required: true,
@@ -244,11 +245,13 @@ func resourceArmIotHub() *schema.Resource {
 							},
 							Sensitive: true,
 						},
+
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: iothubValidate.IoTHubEndpointName,
 						},
+
 						"batch_frequency_in_seconds": {
 							Type:             schema.TypeInt,
 							Optional:         true,
@@ -256,6 +259,7 @@ func resourceArmIotHub() *schema.Resource {
 							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
 							ValidateFunc:     validation.IntBetween(60, 720),
 						},
+
 						"max_chunk_size_in_bytes": {
 							Type:             schema.TypeInt,
 							Optional:         true,
@@ -263,11 +267,13 @@ func resourceArmIotHub() *schema.Resource {
 							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
 							ValidateFunc:     validation.IntBetween(10485760, 524288000),
 						},
+
 						"container_name": {
 							Type:             schema.TypeString,
 							Optional:         true,
 							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
 						},
+
 						"encoding": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -280,11 +286,14 @@ func resourceArmIotHub() *schema.Resource {
 								string(devices.JSON),
 							}, true),
 						},
+
 						"file_name_format": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validateIoTHubFileNameFormat,
 						},
+
+						"resource_group_name": azure.SchemaResourceGroupNameOptional(),
 					},
 				},
 			},
@@ -408,6 +417,15 @@ func resourceArmIotHub() *schema.Resource {
 				},
 			},
 
+			"min_tls_version": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"1.2",
+				}, false),
+			},
+
 			"public_network_access_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -446,7 +464,7 @@ func resourceArmIotHub() *schema.Resource {
 	}
 }
 
-func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -543,6 +561,10 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
+	if v, ok := d.GetOk("min_tls_version"); ok {
+		props.Properties.MinTLSVersion = utils.String(v.(string))
+	}
+
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, props, "")
 	if err != nil {
 		return fmt.Errorf("Error creating/updating IotHub %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -559,10 +581,10 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 
 	d.SetId(*resp.ID)
 
-	return resourceArmIotHubRead(d, meta)
+	return resourceIotHubRead(d, meta)
 }
 
-func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -642,6 +664,8 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 		if enabled := properties.PublicNetworkAccess; enabled != "" {
 			d.Set("public_network_access_enabled", enabled == devices.Enabled)
 		}
+
+		d.Set("min_tls_version", properties.MinTLSVersion)
 	}
 
 	d.Set("name", id.Name)
@@ -657,7 +681,7 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, hub.Tags)
 }
 
-func resourceArmIotHubDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubDelete(d *schema.ResourceData, meta interface{}) error {
 	id, err := parse.IotHubID(d.Id())
 	if err != nil {
 		return err
@@ -791,8 +815,8 @@ func expandIoTHubEndpoints(d *schema.ResourceData, subscriptionId string) *devic
 		t := endpoint["type"]
 		connectionStr := endpoint["connection_string"].(string)
 		name := endpoint["name"].(string)
+		resourceGroup := endpoint["resource_group_name"].(string)
 		subscriptionID := subscriptionId
-		resourceGroup := d.Get("resource_group_name").(string)
 
 		switch t {
 		case "AzureIotHub.StorageContainer":
@@ -983,6 +1007,9 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 				if chunkSize := container.MaxChunkSizeInBytes; chunkSize != nil {
 					output["max_chunk_size_in_bytes"] = *chunkSize
 				}
+				if resourceGroup := container.ResourceGroup; resourceGroup != nil {
+					output["resource_group_name"] = *resourceGroup
+				}
 
 				output["encoding"] = string(container.Encoding)
 				output["type"] = "AzureIotHub.StorageContainer"
@@ -1001,6 +1028,9 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 				if name := queue.Name; name != nil {
 					output["name"] = *name
 				}
+				if resourceGroup := queue.ResourceGroup; resourceGroup != nil {
+					output["resource_group_name"] = *resourceGroup
+				}
 
 				output["type"] = "AzureIotHub.ServiceBusQueue"
 
@@ -1018,6 +1048,9 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 				if name := topic.Name; name != nil {
 					output["name"] = *name
 				}
+				if resourceGroup := topic.ResourceGroup; resourceGroup != nil {
+					output["resource_group_name"] = *resourceGroup
+				}
 
 				output["type"] = "AzureIotHub.ServiceBusTopic"
 
@@ -1034,6 +1067,9 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 				}
 				if name := eventHub.Name; name != nil {
 					output["name"] = *name
+				}
+				if resourceGroup := eventHub.ResourceGroup; resourceGroup != nil {
+					output["resource_group_name"] = *resourceGroup
 				}
 
 				output["type"] = "AzureIotHub.EventHub"
@@ -1118,6 +1154,7 @@ func validateIoTHubFileNameFormat(v interface{}, k string) (warnings []string, e
 
 	return warnings, errors
 }
+
 func expandIPFilterRules(d *schema.ResourceData) *[]devices.IPFilterRule {
 	ipFilterRuleList := d.Get("ip_filter_rule").(*schema.Set).List()
 	if len(ipFilterRuleList) == 0 {
