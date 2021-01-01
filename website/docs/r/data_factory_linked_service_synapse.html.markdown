@@ -72,9 +72,9 @@ resource "azurerm_data_factory_linked_service_synapse" "example" {
   data_factory_name   = azurerm_data_factory.example.name
 
   connection_string = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;"
-  key_vault_password_reference {
+  key_vault_password {
     linked_service_name  = azurerm_data_factory_linked_service_key_vault.example.name
-    password_secret_name = "secret"
+    secret_name = "secret"
   }
 }
 ```
@@ -103,15 +103,15 @@ The following supported arguments are specific to Data Factory Synapse Linked Se
 
 * `connection_string` - (Required) The connection string in which to authenticate with the Synapse.
 
-* `key_vault_password_reference` - (Optional) A `key_vault_password_reference` block as defined below. Use this argument to store Synapse password in an existing Key Vault. It needs an existing Key Vault Data Factory Linked Service.
+* `key_vault_password` - (Optional) A `key_vault_password` block as defined below. Use this argument to store Synapse password in an existing Key Vault. It needs an existing Key Vault Data Factory Linked Service.
 
 ---
 
-A `key_vault_password_reference` block supports the following:
+A `key_vault_password` block supports the following:
 
 * `linked_service_name` - (Required) Specifies the name of an existing Key Vault Data Factory Linked Service.
 
-* `password_secret_name` - (Required) Specifies the secret name in Azure Key Vault that stores Synapse password.
+* `secret_name` - (Required) Specifies the secret name in Azure Key Vault that stores Synapse password.
 
 ---
 

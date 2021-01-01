@@ -200,8 +200,8 @@ resource "azurerm_data_factory_linked_service_synapse" "test" {
 
   connection_string = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;"
   key_vault_password {
-    linked_service_name  = azurerm_data_factory_linked_service_key_vault.test.name
-    secret_name = "secret"
+    linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
+    secret_name         = "secret"
   }
 
   annotations = ["test1", "test2", "test3"]
