@@ -493,7 +493,7 @@ func TestAccAppService_completeIpRestriction(t *testing.T) {
 			Config: r.manyCompleteIpRestrictions(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("3"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("4"),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.ip_address").HasValue("10.10.10.10/32"),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.name").HasValue("test-restriction"),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.priority").HasValue("123"),
@@ -506,6 +506,10 @@ func TestAccAppService_completeIpRestriction(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.2.name").HasValue("test-restriction-3"),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.2.priority").HasValue("65000"),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.2.action").HasValue("Deny"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.3.service_tag").HasValue("AzureEventGrid"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.3.name").HasValue("test-restriction-4"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.3.priority").HasValue("65000"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.3.action").HasValue("Allow"),
 			),
 		},
 		data.ImportStep(),
@@ -2761,6 +2765,12 @@ resource "azurerm_app_service" "test" {
       ip_address = "2400:cb00::/32"
       name       = "test-restriction-3"
       action     = "Deny"
+    }
+
+    ip_restriction {
+      service_tag = "AzureEventGrid"
+      name       = "test-restriction-4"
+      action     = "Allow"
     }
   }
 }
