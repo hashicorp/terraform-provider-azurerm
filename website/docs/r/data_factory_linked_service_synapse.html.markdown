@@ -73,8 +73,8 @@ resource "azurerm_data_factory_linked_service_synapse" "example" {
 
   connection_string = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;"
   key_vault_password {
-    linked_service_name  = azurerm_data_factory_linked_service_key_vault.example.name
-    secret_name = "secret"
+    linked_service_name = azurerm_data_factory_linked_service_key_vault.example.name
+    secret_name         = "secret"
   }
 }
 ```
