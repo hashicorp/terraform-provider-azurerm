@@ -85,10 +85,10 @@ func resourceArmApplicationGateway() *schema.Resource {
 							}, false),
 						},
 						"identity_ids": {
-							Type:     schema.TypeList,
-							Required: true,
-							MinItems: 1,
-							MaxItems: 1,
+							Type:             schema.TypeList,
+							Required:         true,
+							MinItems:         1,
+							MaxItems:         1,
 							DiffSuppressFunc: suppress.CaseDifference,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
