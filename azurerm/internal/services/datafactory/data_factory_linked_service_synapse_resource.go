@@ -61,7 +61,7 @@ func resourceArmDataFactoryLinkedServiceSynapse() *schema.Resource {
 				ValidateFunc:     validation.StringIsNotEmpty,
 			},
 
-			"key_vault_password_reference": {
+			"key_vault_password": {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -73,7 +73,7 @@ func resourceArmDataFactoryLinkedServiceSynapse() *schema.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
-						"password_secret_name": {
+						"secret_name": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -146,13 +146,13 @@ func resourceArmDataFactoryLinkedServiceSynapseCreateUpdate(d *schema.ResourceDa
 		}
 	}
 
-	passwordReference := d.Get("key_vault_password_reference").([]interface{})
+	password := d.Get("key_vault_password").([]interface{})
 
 	sqlDWLinkedService := &datafactory.AzureSQLDWLinkedService{
 		Description: utils.String(d.Get("description").(string)),
 		AzureSQLDWLinkedServiceTypeProperties: &datafactory.AzureSQLDWLinkedServiceTypeProperties{
 			ConnectionString: d.Get("connection_string").(string),
-			Password:         expandAzureKeyVaultPasswordReference(passwordReference),
+			Password:         expandAzureKeyVaultPassword(password),
 		},
 		Type: datafactory.TypeAzureSQLDW,
 	}
@@ -254,8 +254,8 @@ func resourceArmDataFactoryLinkedServiceSynapseRead(d *schema.ResourceData, meta
 			}
 		}
 
-		if err := d.Set("key_vault_password_reference", flattenAzureKeyVaultPasswordReference(properties.Password)); err != nil {
-			return fmt.Errorf("setting `key_vault_password_reference`: %+v", err)
+		if err := d.Set("key_vault_password", flattenAzureKeyVaultPassword(properties.Password)); err != nil {
+			return fmt.Errorf("setting `key_vault_password`: %+v", err)
 		}
 	}
 

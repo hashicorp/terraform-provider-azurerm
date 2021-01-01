@@ -53,8 +53,8 @@ func TestAccDataFactoryLinkedServiceSynapse_KeyVaultReference(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "key_vault_password_reference.0.linked_service_name"),
-					resource.TestCheckResourceAttr(data.ResourceName, "key_vault_password_reference.0.password_secret_name", "secret"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "key_vault_password.0.linked_service_name"),
+					resource.TestCheckResourceAttr(data.ResourceName, "key_vault_password.0.secret_name", "secret"),
 				),
 			},
 			data.ImportStep(),
@@ -199,9 +199,9 @@ resource "azurerm_data_factory_linked_service_synapse" "test" {
   data_factory_name   = azurerm_data_factory.test.name
 
   connection_string = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;"
-  key_vault_password_reference {
+  key_vault_password {
     linked_service_name  = azurerm_data_factory_linked_service_key_vault.test.name
-    password_secret_name = "secret"
+    secret_name = "secret"
   }
 
   annotations = ["test1", "test2", "test3"]

@@ -228,27 +228,23 @@ func suppressJsonOrderingDifference(_, old, new string, _ *schema.ResourceData) 
 	return utils.NormalizeJson(old) == utils.NormalizeJson(new)
 }
 
-func expandAzureKeyVaultPasswordReference(input []interface{}) *datafactory.AzureKeyVaultSecretReference {
+func expandAzureKeyVaultPassword(input []interface{}) *datafactory.AzureKeyVaultSecretReference {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	config := input[0].(map[string]interface{})
 
-	keyVaultLinkedServiceName := config["linked_service_name"].(string)
-	keyVaultPasswordSecretName := config["password_secret_name"].(string)
-	linkedServiceType := "LinkedServiceReference"
-
 	return &datafactory.AzureKeyVaultSecretReference{
-		SecretName: keyVaultPasswordSecretName,
+		SecretName: config["secret_name"].(string),
 		Store: &datafactory.LinkedServiceReference{
-			Type:          &linkedServiceType,
-			ReferenceName: &keyVaultLinkedServiceName,
+			Type:          utils.String("LinkedServiceReference"),
+			ReferenceName: utils.String(config["linked_service_name"].(string)),
 		},
 	}
 }
 
-func flattenAzureKeyVaultPasswordReference(secretReference *datafactory.AzureKeyVaultSecretReference) []interface{} {
+func flattenAzureKeyVaultPassword(secretReference *datafactory.AzureKeyVaultSecretReference) []interface{} {
 	if secretReference == nil {
 		return nil
 	}
@@ -261,7 +257,7 @@ func flattenAzureKeyVaultPasswordReference(secretReference *datafactory.AzureKey
 		}
 	}
 
-	parameters["password_secret_name"] = secretReference.SecretName
+	parameters["secret_name"] = secretReference.SecretName
 
 	return []interface{}{parameters}
 }
