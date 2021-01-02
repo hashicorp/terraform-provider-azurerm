@@ -254,8 +254,10 @@ func resourceArmDataFactoryLinkedServiceSQLServerRead(d *schema.ResourceData, me
 			}
 		}
 
-		if err := d.Set("key_vault_password", flattenAzureKeyVaultPassword(properties.Password)); err != nil {
-			return fmt.Errorf("setting `key_vault_password`: %+v", err)
+		if keyVaultPassword, ok := properties.Password.AsAzureKeyVaultSecretReference(); ok {
+			if err := d.Set("key_vault_password", flattenAzureKeyVaultPassword(keyVaultPassword)); err != nil {
+				return fmt.Errorf("setting `key_vault_password`: %+v", err)
+			}
 		}
 	}
 
