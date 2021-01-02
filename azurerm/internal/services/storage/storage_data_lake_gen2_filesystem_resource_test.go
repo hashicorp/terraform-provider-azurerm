@@ -289,8 +289,8 @@ resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
     permissions = "---"
   }
   depends_on = [
-	azurerm_role_assignment.storageAccountRoleAssignment,
-	azuread_service_principal.test
+    azurerm_role_assignment.storageAccountRoleAssignment,
+    azuread_service_principal.test
   ]
 }
 `, template, data.RandomInteger)
