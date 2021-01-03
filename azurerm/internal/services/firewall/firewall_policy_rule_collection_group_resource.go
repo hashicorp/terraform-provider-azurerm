@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/parse"
@@ -257,7 +258,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *schema.Resource {
 										Required: true,
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
-											ValidateFunc: validate.FirewallPolicyNetworkRulePort,
+											ValidateFunc: azValidate.PortOrPortRangeWithin(1, 65535),
 										},
 									},
 								},
@@ -349,7 +350,7 @@ func resourceFirewallPolicyRuleCollectionGroup() *schema.Resource {
 										Optional: true,
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
-											ValidateFunc: validate.FirewallPolicyNATRulePort,
+											ValidateFunc: azValidate.PortOrPortRangeWithin(1, 64000),
 										},
 									},
 									"translated_address": {
