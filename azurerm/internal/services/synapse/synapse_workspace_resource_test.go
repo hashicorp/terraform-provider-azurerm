@@ -147,14 +147,14 @@ func (r SynapseWorkspaceResource) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_synapse_workspace" "test" {
-  name                                 = "acctestsw%d"
-  resource_group_name                  = azurerm_resource_group.test.name
-  location                             = azurerm_resource_group.test.location
-  storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
-  sql_administrator_login              = "sqladminuser"
-  sql_administrator_login_password     = "H@Sh1CoR3!"
-  managed_virtual_network_enabled      = true
-  managed_resource_group_name          = "acctest-ManagedSynapse-%d"
+  name                                       = "acctestsw%d"
+  resource_group_name                        = azurerm_resource_group.test.name
+  location                                   = azurerm_resource_group.test.location
+  storage_data_lake_gen2_filesystem_id       = azurerm_storage_data_lake_gen2_filesystem.test.id
+  sql_administrator_login                    = "sqladminuser"
+  sql_administrator_login_password           = "H@Sh1CoR3!"
+  managed_virtual_network_enabled            = true
+  managed_resource_group_name                = "acctest-ManagedSynapse-%d"
   workspace_identity_control_for_sql_enabled = true
 
   tags = {
@@ -173,12 +173,12 @@ data "azurerm_client_config" "current" {
 }
 
 resource "azurerm_synapse_workspace" "test" {
-  name                                 = "acctestsw%d"
-  resource_group_name                  = azurerm_resource_group.test.name
-  location                             = azurerm_resource_group.test.location
-  storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
-  sql_administrator_login              = "sqladminuser"
-  sql_administrator_login_password     = "H@Sh1CoR4!"
+  name                                       = "acctestsw%d"
+  resource_group_name                        = azurerm_resource_group.test.name
+  location                                   = azurerm_resource_group.test.location
+  storage_data_lake_gen2_filesystem_id       = azurerm_storage_data_lake_gen2_filesystem.test.id
+  sql_administrator_login                    = "sqladminuser"
+  sql_administrator_login_password           = "H@Sh1CoR4!"
   workspace_identity_control_for_sql_enabled = true
 
   aad_admin {
