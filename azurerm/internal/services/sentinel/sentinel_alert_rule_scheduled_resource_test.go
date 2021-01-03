@@ -157,18 +157,28 @@ resource "azurerm_sentinel_alert_rule_scheduled" "test" {
   tactics                    = ["Collection", "CommandAndControl"]
   severity                   = "Low"
   enabled                    = false
-  query                      = <<QUERY
+  incident_configuration {
+    create_incident = true
+    grouping {
+      enabled                 = true
+      lookback_duration       = "P7D"
+      reopen_closed_incidents = true
+      entity_matching_method  = "Custom"
+      group_by                = ["Account", "Host"]
+    }
+  }
+  query                = <<QUERY
 AzureActivity |
   where OperationName == "Create or Update Virtual Machine" or OperationName =="Create Deployment" |
   where ActivityStatus == "Succeeded" |
   make-series dcount(ResourceId) default=0 on EventSubmissionTimestamp in range(ago(3d), now(), 1d) by Caller
 QUERY
-  query_frequency            = "PT20M"
-  query_period               = "PT40M"
-  trigger_operator           = "Equal"
-  trigger_threshold          = 5
-  suppression_enabled        = true
-  suppression_duration       = "PT40M"
+  query_frequency      = "PT20M"
+  query_period         = "PT40M"
+  trigger_operator     = "Equal"
+  trigger_threshold    = 5
+  suppression_enabled  = true
+  suppression_duration = "PT40M"
 }
 `, r.template(data), data.RandomInteger)
 }

@@ -73,6 +73,8 @@ The following arguments are supported:
 
 * `workspace_identity_control_for_sql_enabled` - (Optional) Are pipelines (running as workspace's system assigned identity) allowed to access SQL pools?
 
+* `managed_resource_group_name` - Workspace managed resource group.
+
 * `aad_admin` - (Optional) An `aad_admin` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Synapse Workspace.
@@ -94,8 +96,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the synapse Workspace.
 
 * `connectivity_endpoints` - A list of Connectivity endpoints for this Synapse Workspace.
-
-* `managed_resource_group_name` - Workspace managed resource group.
 
 * `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this Synapse Workspace.
 

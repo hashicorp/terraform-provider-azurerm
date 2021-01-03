@@ -2,13 +2,16 @@
 
 FEATURES:
 
+* **New Resource:** `azurerm_data_factory_linked_service_synapse` [GH-9928]
 * **New Resource:** `azurerm_media_streaming_locator` [GH-9992]
+* **New Resource:** `azurerm_sentinel_alert_rule_fusion` [GH-9829]
 
 IMPROVEMENTS:
 
 * Data Source: `azurerm_databricks_workspace` - support for the `tags` property [GH-9933]
 * `azurerm_api_management` - support `Consumption_0` for the `sku_name` property [GH-6868]
 * `azurerm_cdn_endpoint` - only send `content_types_to_compress` and `geo_filter` to the API when actually set [GH-9902]
+* `azurerm_cosmosdb_mongo_collection` - correctly read back the `_id` index when mongo 3.6 [GH-8690]
 * `azurerm_container_group` - support for the `volume.empty_dir` property [GH-9836]
 * `azurerm_data_factory_linked_service_azure_file_storage` - support for the `file_share` property [GH-9934]
 * `azurerm_dedicated_host` - support for addtional `sku_name` values [GH-9951]
@@ -20,15 +23,19 @@ IMPROVEMENTS:
 * `azurerm_monitor_diagnostic_setting` - validation that `log_analytics_workspace_id` is a Log Analytics Workspace ID [GH-9914]
 * `azurerm_monitor_diagnostic_setting` - validation that `storage_account_id` is a Storage Account ID [GH-9914]
 * `azurerm_network_security_rule` - increase allowed the number of `application_security_group` blocks allowed [GH-9884]
-* `azurerm_sentinel_alert_rule_scheduled` - support for the `alert_rule_template_guid` property [GH-9712]
 * `azurerm_sentinel_alert_rule_ms_security_incident` - support the `alert_rule_template_guid` and `display_name_exclude_filter` properties [GH-9797]
+* `azurerm_sentinel_alert_rule_scheduled` - support for the `alert_rule_template_guid` property [GH-9712]
+* `azurerm_sentinel_alert_rule_scheduled` - support for creating incidents [GH-8564]
+* `azurerm_synapse_workspace` - support for the `managed_resource_group_name` property [GH-10017]
 * `azurerm_traffic_manager_profile` - support for the `traffic_view_enabled` property [GH-10005]
 
 BUG FIXES:
 
 * `azurerm_application_gateway` - allow `750` for `file_upload_limit_mb` when the sku is `WAF_v2` [GH-8753]
+* `azurerm_cdn_endpoint` - changing many `delivery_rule` condition `match_values` to optional [GH-8850]
 * `azurerm_cosmosdb_account` - always include `key_vault_id` in update requests for azure policy enginer compatibility [GH-9966]
 * `azurerm_cosmosdb_table` - do not call the throughput api when serverless [GH-9749]
+* `azurerm_storage_account` - allow hns when `account_tier` is `Premium` [GH-9548]
 
 ## 2.41.0 (December 17, 2020)
 
