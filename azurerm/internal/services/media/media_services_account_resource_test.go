@@ -33,6 +33,21 @@ func TestAccMediaServicesAccount_basic(t *testing.T) {
 	})
 }
 
+func TestAccMediaServicesAccount_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_media_services_account", "test")
+	r := MediaServicesAccountResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).Key("storage_account.#").HasValue("1"),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
 func TestAccMediaServicesAccount_multipleAccounts(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_media_services_account", "test")
 	r := MediaServicesAccountResource{}
@@ -63,7 +78,6 @@ func TestAccMediaServicesAccount_multiplePrimaries(t *testing.T) {
 			Config:      r.multiplePrimaries(data),
 			ExpectError: regexp.MustCompile("Only one Storage Account can be set as Primary"),
 		},
-		data.ImportStep(),
 	})
 }
 
@@ -96,8 +110,8 @@ func (MediaServicesAccountResource) Exists(ctx context.Context, clients *clients
 	return utils.Bool(resp.ServiceProperties != nil), nil
 }
 
-func (MediaServicesAccountResource) basic(data acceptance.TestData) string {
-	template := MediaServicesAccountResource{}.template(data)
+func (r MediaServicesAccountResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -116,6 +130,28 @@ resource "azurerm_media_services_account" "test" {
   }
 }
 `, template, data.RandomString)
+}
+
+func (r MediaServicesAccountResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_media_services_account" "import" {
+  name                = azurerm_media_services_account.test.name
+  location            = azurerm_media_services_account.test.location
+  resource_group_name = azurerm_media_services_account.test.resource_group_name
+
+  storage_account {
+    id         = azurerm_storage_account.first.id
+    is_primary = true
+  }
+
+  tags = {
+    environment = "staging"
+  }
+}
+`, template)
 }
 
 func (MediaServicesAccountResource) multipleAccounts(data acceptance.TestData) string {

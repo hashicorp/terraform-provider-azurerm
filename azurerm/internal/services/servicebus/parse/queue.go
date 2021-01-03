@@ -27,14 +27,15 @@ func NewQueueID(subscriptionId, resourceGroup, namespaceName, name string) Queue
 
 func (id QueueId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Namespace Name %q", id.NamespaceName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Namespace Name %q", id.NamespaceName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Queue", segmentsStr)
 }
 
-func (id QueueId) ID(_ string) string {
+func (id QueueId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ServiceBus/namespaces/%s/queues/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.Name)
 }

@@ -25,13 +25,14 @@ func NewDedicatedHardwareSecurityModuleID(subscriptionId, resourceGroup, dedicat
 
 func (id DedicatedHardwareSecurityModuleId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Dedicated H S M Name %q", id.DedicatedHSMName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Dedicated Hardware Security Module", segmentsStr)
 }
 
-func (id DedicatedHardwareSecurityModuleId) ID(_ string) string {
+func (id DedicatedHardwareSecurityModuleId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.HardwareSecurityModules/dedicatedHSMs/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DedicatedHSMName)
 }

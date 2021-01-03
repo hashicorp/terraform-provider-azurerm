@@ -21,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmBackupProtectionPolicyFileShare() *schema.Resource {
+func resourceBackupProtectionPolicyFileShare() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmBackupProtectionPolicyFileShareCreateUpdate,
-		Read:   resourceArmBackupProtectionPolicyFileShareRead,
-		Update: resourceArmBackupProtectionPolicyFileShareCreateUpdate,
-		Delete: resourceArmBackupProtectionPolicyFileShareDelete,
+		Create: resourceBackupProtectionPolicyFileShareCreateUpdate,
+		Read:   resourceBackupProtectionPolicyFileShareRead,
+		Update: resourceBackupProtectionPolicyFileShareCreateUpdate,
+		Delete: resourceBackupProtectionPolicyFileShareDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -112,7 +112,7 @@ func resourceArmBackupProtectionPolicyFileShare() *schema.Resource {
 	}
 }
 
-func resourceArmBackupProtectionPolicyFileShareCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBackupProtectionPolicyFileShareCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectionPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -149,10 +149,10 @@ func resourceArmBackupProtectionPolicyFileShareCreateUpdate(d *schema.ResourceDa
 			TimeZone:             utils.String(d.Get("timezone").(string)),
 			BackupManagementType: backup.BackupManagementTypeAzureStorage,
 			WorkLoadType:         backup.WorkloadTypeAzureFileShare,
-			SchedulePolicy:       expandArmBackupProtectionPolicyFileShareSchedule(d, times),
+			SchedulePolicy:       expandBackupProtectionPolicyFileShareSchedule(d, times),
 			RetentionPolicy: &backup.LongTermRetentionPolicy{ // SimpleRetentionPolicy only has duration property ¯\_(ツ)_/¯
 				RetentionPolicyType: backup.RetentionPolicyTypeLongTermRetentionPolicy,
-				DailySchedule:       expandArmBackupProtectionPolicyFileShareRetentionDaily(d, times),
+				DailySchedule:       expandBackupProtectionPolicyFileShareRetentionDaily(d, times),
 			},
 		},
 	}
@@ -160,7 +160,7 @@ func resourceArmBackupProtectionPolicyFileShareCreateUpdate(d *schema.ResourceDa
 		return fmt.Errorf("Error creating/updating Recovery Service Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
 	}
 
-	resp, err := resourceArmBackupProtectionPolicyFileShareWaitForUpdate(ctx, client, vaultName, resourceGroup, policyName, d)
+	resp, err := resourceBackupProtectionPolicyFileShareWaitForUpdate(ctx, client, vaultName, resourceGroup, policyName, d)
 	if err != nil {
 		return err
 	}
@@ -168,10 +168,10 @@ func resourceArmBackupProtectionPolicyFileShareCreateUpdate(d *schema.ResourceDa
 	id := strings.Replace(*resp.ID, "Subscriptions", "subscriptions", 1)
 	d.SetId(id)
 
-	return resourceArmBackupProtectionPolicyFileShareRead(d, meta)
+	return resourceBackupProtectionPolicyFileShareRead(d, meta)
 }
 
-func resourceArmBackupProtectionPolicyFileShareRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBackupProtectionPolicyFileShareRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectionPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -205,14 +205,14 @@ func resourceArmBackupProtectionPolicyFileShareRead(d *schema.ResourceData, meta
 		d.Set("timezone", properties.TimeZone)
 
 		if schedule, ok := properties.SchedulePolicy.AsSimpleSchedulePolicy(); ok && schedule != nil {
-			if err := d.Set("backup", flattenArmBackupProtectionPolicyFileShareSchedule(schedule)); err != nil {
+			if err := d.Set("backup", flattenBackupProtectionPolicyFileShareSchedule(schedule)); err != nil {
 				return fmt.Errorf("Error setting `backup`: %+v", err)
 			}
 		}
 
 		if retention, ok := properties.RetentionPolicy.AsLongTermRetentionPolicy(); ok && retention != nil {
 			if s := retention.DailySchedule; s != nil {
-				if err := d.Set("retention_daily", flattenArmBackupProtectionPolicyFileShareRetentionDaily(s)); err != nil {
+				if err := d.Set("retention_daily", flattenBackupProtectionPolicyFileShareRetentionDaily(s)); err != nil {
 					return fmt.Errorf("Error setting `retention_daily`: %+v", err)
 				}
 			} else {
@@ -224,7 +224,7 @@ func resourceArmBackupProtectionPolicyFileShareRead(d *schema.ResourceData, meta
 	return nil
 }
 
-func resourceArmBackupProtectionPolicyFileShareDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBackupProtectionPolicyFileShareDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectionPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -247,14 +247,14 @@ func resourceArmBackupProtectionPolicyFileShareDelete(d *schema.ResourceData, me
 		}
 	}
 
-	if _, err := resourceArmBackupProtectionPolicyFileShareWaitForDeletion(ctx, client, vaultName, resourceGroup, policyName, d); err != nil {
+	if _, err := resourceBackupProtectionPolicyFileShareWaitForDeletion(ctx, client, vaultName, resourceGroup, policyName, d); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func expandArmBackupProtectionPolicyFileShareSchedule(d *schema.ResourceData, times []date.Time) *backup.SimpleSchedulePolicy {
+func expandBackupProtectionPolicyFileShareSchedule(d *schema.ResourceData, times []date.Time) *backup.SimpleSchedulePolicy {
 	if bb, ok := d.Get("backup").([]interface{}); ok && len(bb) > 0 {
 		block := bb[0].(map[string]interface{})
 
@@ -273,7 +273,7 @@ func expandArmBackupProtectionPolicyFileShareSchedule(d *schema.ResourceData, ti
 	return nil
 }
 
-func expandArmBackupProtectionPolicyFileShareRetentionDaily(d *schema.ResourceData, times []date.Time) *backup.DailyRetentionSchedule {
+func expandBackupProtectionPolicyFileShareRetentionDaily(d *schema.ResourceData, times []date.Time) *backup.DailyRetentionSchedule {
 	if rb, ok := d.Get("retention_daily").([]interface{}); ok && len(rb) > 0 {
 		block := rb[0].(map[string]interface{})
 
@@ -289,7 +289,7 @@ func expandArmBackupProtectionPolicyFileShareRetentionDaily(d *schema.ResourceDa
 	return nil
 }
 
-func flattenArmBackupProtectionPolicyFileShareSchedule(schedule *backup.SimpleSchedulePolicy) []interface{} {
+func flattenBackupProtectionPolicyFileShareSchedule(schedule *backup.SimpleSchedulePolicy) []interface{} {
 	block := map[string]interface{}{}
 
 	block["frequency"] = string(schedule.ScheduleRunFrequency)
@@ -301,7 +301,7 @@ func flattenArmBackupProtectionPolicyFileShareSchedule(schedule *backup.SimpleSc
 	return []interface{}{block}
 }
 
-func flattenArmBackupProtectionPolicyFileShareRetentionDaily(daily *backup.DailyRetentionSchedule) []interface{} {
+func flattenBackupProtectionPolicyFileShareRetentionDaily(daily *backup.DailyRetentionSchedule) []interface{} {
 	block := map[string]interface{}{}
 
 	if duration := daily.RetentionDuration; duration != nil {
@@ -313,13 +313,13 @@ func flattenArmBackupProtectionPolicyFileShareRetentionDaily(daily *backup.Daily
 	return []interface{}{block}
 }
 
-func resourceArmBackupProtectionPolicyFileShareWaitForUpdate(ctx context.Context, client *backup.ProtectionPoliciesClient, vaultName, resourceGroup, policyName string, d *schema.ResourceData) (backup.ProtectionPolicyResource, error) {
+func resourceBackupProtectionPolicyFileShareWaitForUpdate(ctx context.Context, client *backup.ProtectionPoliciesClient, vaultName, resourceGroup, policyName string, d *schema.ResourceData) (backup.ProtectionPolicyResource, error) {
 	state := &resource.StateChangeConf{
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
 		Pending:    []string{"NotFound"},
 		Target:     []string{"Found"},
-		Refresh:    resourceArmBackupProtectionPolicyFileShareRefreshFunc(ctx, client, vaultName, resourceGroup, policyName),
+		Refresh:    resourceBackupProtectionPolicyFileShareRefreshFunc(ctx, client, vaultName, resourceGroup, policyName),
 	}
 
 	if d.IsNewResource() {
@@ -336,13 +336,13 @@ func resourceArmBackupProtectionPolicyFileShareWaitForUpdate(ctx context.Context
 	return resp.(backup.ProtectionPolicyResource), nil
 }
 
-func resourceArmBackupProtectionPolicyFileShareWaitForDeletion(ctx context.Context, client *backup.ProtectionPoliciesClient, vaultName, resourceGroup, policyName string, d *schema.ResourceData) (backup.ProtectionPolicyResource, error) {
+func resourceBackupProtectionPolicyFileShareWaitForDeletion(ctx context.Context, client *backup.ProtectionPoliciesClient, vaultName, resourceGroup, policyName string, d *schema.ResourceData) (backup.ProtectionPolicyResource, error) {
 	state := &resource.StateChangeConf{
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
 		Pending:    []string{"Found"},
 		Target:     []string{"NotFound"},
-		Refresh:    resourceArmBackupProtectionPolicyFileShareRefreshFunc(ctx, client, vaultName, resourceGroup, policyName),
+		Refresh:    resourceBackupProtectionPolicyFileShareRefreshFunc(ctx, client, vaultName, resourceGroup, policyName),
 		Timeout:    d.Timeout(schema.TimeoutDelete),
 	}
 
@@ -354,7 +354,7 @@ func resourceArmBackupProtectionPolicyFileShareWaitForDeletion(ctx context.Conte
 	return resp.(backup.ProtectionPolicyResource), nil
 }
 
-func resourceArmBackupProtectionPolicyFileShareRefreshFunc(ctx context.Context, client *backup.ProtectionPoliciesClient, vaultName, resourceGroup, policyName string) resource.StateRefreshFunc {
+func resourceBackupProtectionPolicyFileShareRefreshFunc(ctx context.Context, client *backup.ProtectionPoliciesClient, vaultName, resourceGroup, policyName string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := client.Get(ctx, vaultName, resourceGroup, policyName)
 		if err != nil {

@@ -25,13 +25,14 @@ func NewVpnGatewayID(subscriptionId, resourceGroup, name string) VpnGatewayId {
 
 func (id VpnGatewayId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Vpn Gateway", segmentsStr)
 }
 
-func (id VpnGatewayId) ID(_ string) string {
+func (id VpnGatewayId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/vpnGateways/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

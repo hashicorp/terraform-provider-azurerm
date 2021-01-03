@@ -12,9 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceEventHubConsumerGroup() *schema.Resource {
+func EventHubConsumerGroupDataSource() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmEventHubConsumerGroupRead,
+		Read: EventHubConsumerGroupDataSourceRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -54,7 +54,7 @@ func dataSourceEventHubConsumerGroup() *schema.Resource {
 	}
 }
 
-func dataSourceArmEventHubConsumerGroupRead(d *schema.ResourceData, meta interface{}) error {
+func EventHubConsumerGroupDataSourceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.ConsumerGroupClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

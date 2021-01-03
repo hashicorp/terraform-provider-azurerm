@@ -50,9 +50,13 @@ resource "azurerm_key_vault" "example" {
     tenant_id = data.azurerm_client_config.current.tenant_id
     object_id = data.azurerm_client_config.current.object_id
 
+    certificate_permissions = [
+      "get",
+      "managecontacts",
+    ]
+
     key_permissions = [
       "get",
-      "ManageContacts",
     ]
 
     secret_permissions = [
@@ -127,7 +131,7 @@ The following arguments are supported:
 
 * `contact` - (Optional) One or more `contact` block as defined below.
 
-~> **Note:** This field can only be set once user has `ManageContacts` permission.
+~> **Note:** This field can only be set once user has `managecontacts` certificate permission.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

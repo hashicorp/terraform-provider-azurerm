@@ -125,7 +125,7 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 			// lintignore:S018
 			"source_application_security_group_ids": {
 				Type:     schema.TypeSet,
-				MaxItems: 1,
+				MaxItems: 10,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Set:      schema.HashString,
@@ -134,7 +134,7 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 			// lintignore:S018
 			"destination_application_security_group_ids": {
 				Type:     schema.TypeSet,
-				MaxItems: 1,
+				MaxItems: 10,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Set:      schema.HashString,

@@ -27,14 +27,15 @@ func NewStorageSyncGroupID(subscriptionId, resourceGroup, storageSyncServiceName
 
 func (id StorageSyncGroupId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Storage Sync Service Name %q", id.StorageSyncServiceName),
 		fmt.Sprintf("Sync Group Name %q", id.SyncGroupName),
+		fmt.Sprintf("Storage Sync Service Name %q", id.StorageSyncServiceName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Storage Sync Group", segmentsStr)
 }
 
-func (id StorageSyncGroupId) ID(_ string) string {
+func (id StorageSyncGroupId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.StorageSync/storageSyncServices/%s/syncGroups/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.StorageSyncServiceName, id.SyncGroupName)
 }

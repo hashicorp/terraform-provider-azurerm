@@ -14,12 +14,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-func resourceArmSecurityCenterSetting() *schema.Resource {
+func resourceSecurityCenterSetting() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSecurityCenterSettingUpdate,
-		Read:   resourceArmSecurityCenterSettingRead,
-		Update: resourceArmSecurityCenterSettingUpdate,
-		Delete: resourceArmSecurityCenterSettingDelete,
+		Create: resourceSecurityCenterSettingUpdate,
+		Read:   resourceSecurityCenterSettingRead,
+		Update: resourceSecurityCenterSettingUpdate,
+		Delete: resourceSecurityCenterSettingDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -49,7 +49,7 @@ func resourceArmSecurityCenterSetting() *schema.Resource {
 	}
 }
 
-func resourceArmSecurityCenterSettingUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterSettingUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.SettingClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -79,10 +79,10 @@ func resourceArmSecurityCenterSettingUpdate(d *schema.ResourceData, meta interfa
 
 	d.SetId(*resp.ID)
 
-	return resourceArmSecurityCenterSettingRead(d, meta)
+	return resourceSecurityCenterSettingRead(d, meta)
 }
 
-func resourceArmSecurityCenterSettingRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterSettingRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.SettingClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -110,7 +110,7 @@ func resourceArmSecurityCenterSettingRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func resourceArmSecurityCenterSettingDelete(_ *schema.ResourceData, _ interface{}) error {
+func resourceSecurityCenterSettingDelete(_ *schema.ResourceData, _ interface{}) error {
 	log.Printf("[DEBUG] Security Center deletion invocation")
 	return nil // cannot be deleted.
 }

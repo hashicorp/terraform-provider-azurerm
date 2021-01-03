@@ -85,7 +85,7 @@ func (t BotChannelDirectlineResource) Exists(ctx context.Context, clients *clien
 
 	resp, err := clients.Bot.ChannelClient.Get(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameDirectLineChannel1))
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Bot Channel DirectLine (%s): %v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
 	return utils.Bool(resp.Properties != nil), nil

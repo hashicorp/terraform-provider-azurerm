@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmServiceBusSubscription() *schema.Resource {
+func resourceServiceBusSubscription() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceBusSubscriptionCreateUpdate,
-		Read:   resourceArmServiceBusSubscriptionRead,
-		Update: resourceArmServiceBusSubscriptionCreateUpdate,
-		Delete: resourceArmServiceBusSubscriptionDelete,
+		Create: resourceServiceBusSubscriptionCreateUpdate,
+		Read:   resourceServiceBusSubscriptionRead,
+		Update: resourceServiceBusSubscriptionCreateUpdate,
+		Delete: resourceServiceBusSubscriptionDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.SubscriptionID(id)
@@ -131,7 +131,7 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 	}
 }
 
-func resourceArmServiceBusSubscriptionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusSubscriptionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.SubscriptionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -148,7 +148,7 @@ func resourceArmServiceBusSubscriptionCreateUpdate(d *schema.ResourceData, meta 
 		}
 
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_servicebus_subscription", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_servicebus_subscription", resourceId.ID())
 		}
 	}
 
@@ -187,11 +187,11 @@ func resourceArmServiceBusSubscriptionCreateUpdate(d *schema.ResourceData, meta 
 		return fmt.Errorf("creating/updating %s: %v", resourceId, err)
 	}
 
-	d.SetId(resourceId.ID(""))
-	return resourceArmServiceBusSubscriptionRead(d, meta)
+	d.SetId(resourceId.ID())
+	return resourceServiceBusSubscriptionRead(d, meta)
 }
 
-func resourceArmServiceBusSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.SubscriptionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -235,7 +235,7 @@ func resourceArmServiceBusSubscriptionRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceArmServiceBusSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceServiceBusSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.SubscriptionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

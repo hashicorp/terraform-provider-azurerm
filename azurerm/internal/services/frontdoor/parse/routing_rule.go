@@ -27,14 +27,15 @@ func NewRoutingRuleID(subscriptionId, resourceGroup, frontDoorName, name string)
 
 func (id RoutingRuleId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Front Door Name %q", id.FrontDoorName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Front Door Name %q", id.FrontDoorName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Routing Rule", segmentsStr)
 }
 
-func (id RoutingRuleId) ID(_ string) string {
+func (id RoutingRuleId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/frontDoors/%s/routingRules/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.FrontDoorName, id.Name)
 }

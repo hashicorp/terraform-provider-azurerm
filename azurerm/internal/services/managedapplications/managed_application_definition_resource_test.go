@@ -109,7 +109,7 @@ func TestAccManagedApplicationDefinition_update(t *testing.T) {
 }
 
 func (ManagedApplicationDefinitionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.ApplicationID(state.ID)
+	id, err := parse.ApplicationDefinitionID(state.ID)
 	if err != nil {
 		return nil, err
 	}

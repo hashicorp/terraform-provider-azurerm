@@ -13,11 +13,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementProductGroup() *schema.Resource {
+func resourceApiManagementProductGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementProductGroupCreate,
-		Read:   resourceArmApiManagementProductGroupRead,
-		Delete: resourceArmApiManagementProductGroupDelete,
+		Create: resourceApiManagementProductGroupCreate,
+		Read:   resourceApiManagementProductGroupRead,
+		Delete: resourceApiManagementProductGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -41,7 +41,7 @@ func resourceArmApiManagementProductGroup() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementProductGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementProductGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductGroupsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -73,10 +73,10 @@ func resourceArmApiManagementProductGroupCreate(d *schema.ResourceData, meta int
 	// there's no Read so this is best-effort
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementProductGroupRead(d, meta)
+	return resourceApiManagementProductGroupRead(d, meta)
 }
 
-func resourceArmApiManagementProductGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementProductGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -109,7 +109,7 @@ func resourceArmApiManagementProductGroupRead(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func resourceArmApiManagementProductGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementProductGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductGroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

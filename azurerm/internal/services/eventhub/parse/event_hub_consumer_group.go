@@ -29,15 +29,16 @@ func NewEventHubConsumerGroupID(subscriptionId, resourceGroup, namespaceName, ev
 
 func (id EventHubConsumerGroupId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Namespace Name %q", id.NamespaceName),
-		fmt.Sprintf("Eventhub Name %q", id.EventhubName),
 		fmt.Sprintf("Consumergroup Name %q", id.ConsumergroupName),
+		fmt.Sprintf("Eventhub Name %q", id.EventhubName),
+		fmt.Sprintf("Namespace Name %q", id.NamespaceName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Event Hub Consumer Group", segmentsStr)
 }
 
-func (id EventHubConsumerGroupId) ID(_ string) string {
+func (id EventHubConsumerGroupId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.EventHub/namespaces/%s/eventhubs/%s/consumergroups/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.NamespaceName, id.EventhubName, id.ConsumergroupName)
 }

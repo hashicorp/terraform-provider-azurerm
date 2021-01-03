@@ -27,14 +27,15 @@ func NewSubnetID(subscriptionId, resourceGroup, virtualNetworkName, name string)
 
 func (id SubnetId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Virtual Network Name %q", id.VirtualNetworkName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Virtual Network Name %q", id.VirtualNetworkName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Subnet", segmentsStr)
 }
 
-func (id SubnetId) ID(_ string) string {
+func (id SubnetId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualNetworks/%s/subnets/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.VirtualNetworkName, id.Name)
 }

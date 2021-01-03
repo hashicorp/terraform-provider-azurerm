@@ -1,166 +1,111 @@
 package privatedns_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMPrivateDnsARecord_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_private_dns_a_record", "test")
+type PrivateDnsARecordResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateDnsARecordDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPrivateDnsARecord_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateDnsARecordExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
-				),
-			},
-			data.ImportStep(),
+func TestAccPrivateDnsARecord_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_a_record", "test")
+	r := PrivateDnsARecordResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("fqdn").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPrivateDnsARecord_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_a_record", "test")
+	r := PrivateDnsARecordResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccPrivateDnsARecord_updateRecords(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_a_record", "test")
+	r := PrivateDnsARecordResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("records.#").HasValue("2"),
+			),
+		},
+		{
+			Config: r.updateRecords(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("records.#").HasValue("3"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMPrivateDnsARecord_requiresImport(t *testing.T) {
+func TestAccPrivateDnsARecord_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_a_record", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateDnsARecordDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPrivateDnsARecord_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateDnsARecordExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMPrivateDnsARecord_requiresImport),
+	r := PrivateDnsARecordResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withTags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+			),
 		},
+		{
+			Config: r.withTagsUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMPrivateDnsARecord_updateRecords(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_private_dns_a_record", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateDnsARecordDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPrivateDnsARecord_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateDnsARecordExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "records.#", "2"),
-				),
-			},
-			{
-				Config: testAccAzureRMPrivateDnsARecord_updateRecords(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateDnsARecordExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "records.#", "3"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMPrivateDnsARecord_withTags(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_private_dns_a_record", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateDnsARecordDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPrivateDnsARecord_withTags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateDnsARecordExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
-				),
-			},
-			{
-				Config: testAccAzureRMPrivateDnsARecord_withTagsUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateDnsARecordExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testCheckAzureRMPrivateDnsARecordExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).PrivateDns.RecordSetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		aName := rs.Primary.Attributes["name"]
-		zoneName := rs.Primary.Attributes["zone_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Private DNS A record: %s", aName)
-		}
-
-		resp, err := conn.Get(ctx, resourceGroup, zoneName, privatedns.A, aName)
-		if err != nil {
-			return fmt.Errorf("Bad: Get A RecordSet: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Private DNS A record %s (resource group: %s) does not exist", aName, resourceGroup)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMPrivateDnsARecordDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).PrivateDns.RecordSetsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_private_dns_a_record" {
-			continue
-		}
-
-		aName := rs.Primary.Attributes["name"]
-		zoneName := rs.Primary.Attributes["zone_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, zoneName, privatedns.A, aName)
-		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("Private DNS A record still exists:\n%#v", resp.RecordSetProperties)
+func (t PrivateDnsARecordResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ARecordID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.PrivateDns.RecordSetsClient.Get(ctx, id.ResourceGroup, id.PrivateDnsZoneName, privatedns.A, id.AName)
+	if err != nil {
+		return nil, fmt.Errorf("reading Private DNS AAAA Record (%s): %+v", id.String(), err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMPrivateDnsARecord_basic(data acceptance.TestData) string {
+func (PrivateDnsARecordResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -186,8 +131,7 @@ resource "azurerm_private_dns_a_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMPrivateDnsARecord_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMPrivateDnsARecord_basic(data)
+func (r PrivateDnsARecordResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -198,10 +142,10 @@ resource "azurerm_private_dns_a_record" "import" {
   ttl                 = 300
   records             = ["1.2.3.4", "1.2.4.5"]
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMPrivateDnsARecord_updateRecords(data acceptance.TestData) string {
+func (PrivateDnsARecordResource) updateRecords(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -227,7 +171,7 @@ resource "azurerm_private_dns_a_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMPrivateDnsARecord_withTags(data acceptance.TestData) string {
+func (PrivateDnsARecordResource) withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -258,7 +202,7 @@ resource "azurerm_private_dns_a_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMPrivateDnsARecord_withTagsUpdate(data acceptance.TestData) string {
+func (PrivateDnsARecordResource) withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

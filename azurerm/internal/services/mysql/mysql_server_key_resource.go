@@ -21,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMySQLServerKey() *schema.Resource {
+func resourceMySQLServerKey() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMySQLServerKeyCreateUpdate,
-		Read:   resourceArmMySQLServerKeyRead,
-		Update: resourceArmMySQLServerKeyCreateUpdate,
-		Delete: resourceArmMySQLServerKeyDelete,
+		Create: resourceMySQLServerKeyCreateUpdate,
+		Read:   resourceMySQLServerKeyRead,
+		Update: resourceMySQLServerKeyCreateUpdate,
+		Delete: resourceMySQLServerKeyDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.KeyID(id)
@@ -73,7 +73,7 @@ func getMySQLServerKeyName(ctx context.Context, vaultsClient *keyvault.VaultsCli
 	return utils.String(fmt.Sprintf("%s_%s_%s", keyVaultID.Name, keyVaultKeyID.Name, keyVaultKeyID.Version)), nil
 }
 
-func resourceArmMySQLServerKeyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMySQLServerKeyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	keysClient := meta.(*clients.Client).MySQL.ServerKeysClient
 	vaultsClient := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -134,10 +134,10 @@ func resourceArmMySQLServerKeyCreateUpdate(d *schema.ResourceData, meta interfac
 
 	d.SetId(*resp.ID)
 
-	return resourceArmMySQLServerKeyRead(d, meta)
+	return resourceMySQLServerKeyRead(d, meta)
 }
 
-func resourceArmMySQLServerKeyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMySQLServerKeyRead(d *schema.ResourceData, meta interface{}) error {
 	serversClient := meta.(*clients.Client).MySQL.ServersClient
 	keysClient := meta.(*clients.Client).MySQL.ServerKeysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -172,7 +172,7 @@ func resourceArmMySQLServerKeyRead(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceArmMySQLServerKeyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMySQLServerKeyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.ServerKeysClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

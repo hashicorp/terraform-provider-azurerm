@@ -132,7 +132,7 @@ func dataSourceSpringCloudServiceRead(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error reading Spring Cloud %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	d.SetId(parse.NewSpringCloudServiceID(subscriptionId, resourceGroup, name).ID(""))
+	d.SetId(parse.NewSpringCloudServiceID(subscriptionId, resourceGroup, name).ID())
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)

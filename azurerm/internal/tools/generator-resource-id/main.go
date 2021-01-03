@@ -387,15 +387,22 @@ func (id ResourceIdGenerator) codeForDescription() string {
 		humanReadableKey := makeHumanReadable(segment.FieldName)
 		formatKeys = append(formatKeys, fmt.Sprintf("\t\tfmt.Sprintf(\"%[1]s %%q\", id.%[2]s),", humanReadableKey, segment.FieldName))
 	}
-	formatKeysString := strings.Join(formatKeys, "\n")
+
+	reversedKeys := make([]string, 0)
+	for i := len(formatKeys); i != 0; i-- {
+		reversedKeys = append(reversedKeys, formatKeys[i-1])
+	}
+
+	formatKeysString := strings.Join(reversedKeys, "\n")
 	return fmt.Sprintf(`
 func (id %[1]sId) String() string {
 	segments := []string{
 %s
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%%s: (%%s)", %[3]q, segmentsStr)
 }
-`, id.TypeName, formatKeysString)
+`, id.TypeName, formatKeysString, makeHumanReadable(id.TypeName))
 }
 
 func (id ResourceIdGenerator) codeForFormatter() string {
@@ -405,7 +412,7 @@ func (id ResourceIdGenerator) codeForFormatter() string {
 	}
 	formatKeysString := strings.Join(formatKeys, ", ")
 	return fmt.Sprintf(`
-func (id %[1]sId) ID(_ string) string {
+func (id %[1]sId) ID() string {
 	fmtString := %[2]q
 	return fmt.Sprintf(fmtString, %[3]s)
 }
@@ -564,7 +571,7 @@ func (id ResourceIdGenerator) testCodeForFormatter() string {
 var _ resourceid.Formatter = %[1]sId{}
 
 func Test%[1]sIDFormatter(t *testing.T) {
-	actual := New%[1]sID(%[2]s).ID("")
+	actual := New%[1]sID(%[2]s).ID()
 	expected := %[3]q
 	if actual != expected {
 		t.Fatalf("Expected %%q but got %%q", expected, actual)

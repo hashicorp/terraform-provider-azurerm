@@ -130,7 +130,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-datashare-%d"
+  name     = "acctestRG-datashare-%d"
   location = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary)

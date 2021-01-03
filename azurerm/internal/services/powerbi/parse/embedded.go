@@ -25,13 +25,14 @@ func NewEmbeddedID(subscriptionId, resourceGroup, capacityName string) EmbeddedI
 
 func (id EmbeddedId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Capacity Name %q", id.CapacityName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Embedded", segmentsStr)
 }
 
-func (id EmbeddedId) ID(_ string) string {
+func (id EmbeddedId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.PowerBIDedicated/capacities/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.CapacityName)
 }

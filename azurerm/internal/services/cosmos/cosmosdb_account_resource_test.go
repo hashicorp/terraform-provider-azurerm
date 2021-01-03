@@ -97,11 +97,7 @@ func testAccAzureRMCosmosDBAccount_public_network_access_enabled(t *testing.T, k
 	})
 }
 
-func TestAccAzureRMCosmosDBAccount_key_vault_uri(t *testing.T) {
-	testAccAzureRMCosmosDBAccount_key_vault_uri(t, documentdb.MongoDB, documentdb.Strong)
-}
-
-func testAccAzureRMCosmosDBAccount_key_vault_uri(t *testing.T, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) {
+func TestAccCosmosDBAccount_keyVaultUri(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -110,9 +106,35 @@ func testAccAzureRMCosmosDBAccount_key_vault_uri(t *testing.T, kind documentdb.D
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: checkAccAzureRMCosmosDBAccount_key_vault_uri(data, kind, consistency),
+				Config: checkAccAzureRMCosmosDBAccount_key_vault_uri(data, documentdb.MongoDB, documentdb.Strong),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMCosmosDBAccount_basic(data, consistency, 1),
+					checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Strong, 1),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccCosmosDBAccount_keyVaultUriUpdateConsistancy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: checkAccAzureRMCosmosDBAccount_key_vault_uri(data, documentdb.MongoDB, documentdb.Strong),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Strong, 1),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: checkAccAzureRMCosmosDBAccount_key_vault_uri(data, documentdb.MongoDB, documentdb.Session),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Strong, 1),
 				),
 			},
 			data.ImportStep(),

@@ -117,31 +117,32 @@ func resourceArmLoadBalancerOutboundRule() *schema.Resource {
 
 func resourceArmLoadBalancerOutboundRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
 	loadBalancerId, err := parse.LoadBalancerID(d.Get("loadbalancer_id").(string))
 	if err != nil {
 		return err
 	}
-	loadBalancerIDRaw := loadBalancerId.ID("")
+	loadBalancerIDRaw := loadBalancerId.ID()
+	id := parse.NewLoadBalancerOutboundRuleID(subscriptionId, loadBalancerId.ResourceGroup, loadBalancerId.Name, d.Get("name").(string))
 	locks.ByID(loadBalancerIDRaw)
 	defer locks.UnlockByID(loadBalancerIDRaw)
 
-	loadBalancer, exists, err := retrieveLoadBalancerById(ctx, client, *loadBalancerId)
+	loadBalancer, err := client.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
 	if err != nil {
-		return fmt.Errorf("Error Getting Load Balancer By ID: %+v", err)
-	}
-	if !exists {
-		d.SetId("")
-		log.Printf("[INFO] Load Balancer %q not found. Removing from state", name)
-		return nil
+		if utils.ResponseWasNotFound(loadBalancer.Response) {
+			d.SetId("")
+			log.Printf("[INFO] Load Balancer %q not found. Removing from state", id.LoadBalancerName)
+			return nil
+		}
+		return fmt.Errorf("failed to retrieve Load Balancer %q (resource group %q) for Outbound Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.OutboundRuleName, err)
 	}
 
-	newOutboundRule, err := expandAzureRmLoadBalancerOutboundRule(d, loadBalancer)
+	newOutboundRule, err := expandAzureRmLoadBalancerOutboundRule(d, &loadBalancer)
 	if err != nil {
-		return fmt.Errorf("expanding Load Balancer Rule: %+v", err)
+		return fmt.Errorf("expanding Load Balancer Outbound Rule: %+v", err)
 	}
 
 	outboundRules := make([]network.OutboundRule, 0)
@@ -150,9 +151,9 @@ func resourceArmLoadBalancerOutboundRuleCreateUpdate(d *schema.ResourceData, met
 		outboundRules = *loadBalancer.LoadBalancerPropertiesFormat.OutboundRules
 	}
 
-	existingOutboundRule, existingOutboundRuleIndex, exists := FindLoadBalancerOutboundRuleByName(loadBalancer, name)
+	existingOutboundRule, existingOutboundRuleIndex, exists := FindLoadBalancerOutboundRuleByName(&loadBalancer, id.OutboundRuleName)
 	if exists {
-		if name == *existingOutboundRule.Name {
+		if id.OutboundRuleName == *existingOutboundRule.Name {
 			if d.IsNewResource() {
 				return tf.ImportAsExistsError("azurerm_lb_outbound_rule", *existingOutboundRule.ID)
 			}
@@ -166,36 +167,16 @@ func resourceArmLoadBalancerOutboundRuleCreateUpdate(d *schema.ResourceData, met
 
 	loadBalancer.LoadBalancerPropertiesFormat.OutboundRules = &outboundRules
 
-	future, err := client.CreateOrUpdate(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, *loadBalancer)
+	future, err := client.CreateOrUpdate(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, loadBalancer)
 	if err != nil {
-		return fmt.Errorf("Error Creating/Updating LoadBalancer: %+v", err)
+		return fmt.Errorf("updating LoadBalancer %q (resource group %q) for Outbound Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.OutboundRuleName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion for Load Balancer updates: %+v", err)
+		return fmt.Errorf("waiting for update of Load Balancer %q (resource group %q) for Outbound Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.OutboundRuleName, err)
 	}
 
-	read, err := client.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
-	if err != nil {
-		return fmt.Errorf("Error Getting LoadBalancer: %+v", err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Load Balancer %s (resource group %s) ID", loadBalancerId.Name, loadBalancerId.ResourceGroup)
-	}
-
-	var outboundRuleId string
-	for _, OutboundRule := range *read.LoadBalancerPropertiesFormat.OutboundRules {
-		if *OutboundRule.Name == name {
-			outboundRuleId = *OutboundRule.ID
-		}
-	}
-
-	if outboundRuleId == "" {
-		return fmt.Errorf("Cannot find created Load Balancer Outbound Rule ID %q", outboundRuleId)
-	}
-
-	d.SetId(outboundRuleId)
+	d.SetId(id.ID())
 
 	return resourceArmLoadBalancerOutboundRuleRead(d, meta)
 }
@@ -210,18 +191,17 @@ func resourceArmLoadBalancerOutboundRuleRead(d *schema.ResourceData, meta interf
 		return err
 	}
 
-	loadBalancerId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
-	loadBalancer, exists, err := retrieveLoadBalancerById(ctx, client, loadBalancerId)
+	loadBalancer, err := client.Get(ctx, id.ResourceGroup, id.LoadBalancerName, "")
 	if err != nil {
-		return fmt.Errorf("Error Getting Load Balancer By ID: %+v", err)
-	}
-	if !exists {
-		d.SetId("")
-		log.Printf("[INFO] Load Balancer %q not found. Removing from state", id.LoadBalancerName)
-		return nil
+		if utils.ResponseWasNotFound(loadBalancer.Response) {
+			d.SetId("")
+			log.Printf("[INFO] Load Balancer %q not found. Removing from state", id.LoadBalancerName)
+			return nil
+		}
+		return fmt.Errorf("failed to retrieve Load Balancer %q (resource group %q) for Outbound Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.OutboundRuleName, err)
 	}
 
-	config, _, exists := FindLoadBalancerOutboundRuleByName(loadBalancer, id.OutboundRuleName)
+	config, _, exists := FindLoadBalancerOutboundRuleByName(&loadBalancer, id.OutboundRuleName)
 	if !exists {
 		d.SetId("")
 		log.Printf("[INFO] Load Balancer Outbound Rule %q not found. Removing from state", id.OutboundRuleName)
@@ -245,7 +225,7 @@ func resourceArmLoadBalancerOutboundRuleRead(d *schema.ResourceData, meta interf
 				return err
 			}
 
-			backendAddressPoolId = bapid.ID("")
+			backendAddressPoolId = bapid.ID()
 		}
 		d.Set("backend_address_pool_id", backendAddressPoolId)
 		d.Set("enable_tcp_reset", props.EnableTCPReset)
@@ -261,7 +241,7 @@ func resourceArmLoadBalancerOutboundRuleRead(d *schema.ResourceData, meta interf
 			}
 
 			frontendIpConfigurations = append(frontendIpConfigurations, map[string]interface{}{
-				"id":   feid.ID(""),
+				"id":   feid.ID(),
 				"name": feid.FrontendIPConfigurationName,
 			})
 		}
@@ -289,20 +269,20 @@ func resourceArmLoadBalancerOutboundRuleDelete(d *schema.ResourceData, meta inte
 	}
 
 	loadBalancerId := parse.NewLoadBalancerID(id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName)
-	loadBalancerID := loadBalancerId.ID("")
+	loadBalancerID := loadBalancerId.ID()
 	locks.ByID(loadBalancerID)
 	defer locks.UnlockByID(loadBalancerID)
 
-	loadBalancer, exists, err := retrieveLoadBalancerById(ctx, client, loadBalancerId)
+	loadBalancer, err := client.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
 	if err != nil {
-		return fmt.Errorf("retrieving Load Balancer By ID: %+v", err)
-	}
-	if !exists {
-		d.SetId("")
-		return nil
+		if utils.ResponseWasNotFound(loadBalancer.Response) {
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("failed to retrieve Load Balancer %q (resource group %q) for Outbound Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.OutboundRuleName, err)
 	}
 
-	_, index, exists := FindLoadBalancerOutboundRuleByName(loadBalancer, id.OutboundRuleName)
+	_, index, exists := FindLoadBalancerOutboundRuleByName(&loadBalancer, id.OutboundRuleName)
 	if !exists {
 		return nil
 	}
@@ -311,21 +291,13 @@ func resourceArmLoadBalancerOutboundRuleDelete(d *schema.ResourceData, meta inte
 	newOutboundRules := append(oldOutboundRules[:index], oldOutboundRules[index+1:]...)
 	loadBalancer.LoadBalancerPropertiesFormat.OutboundRules = &newOutboundRules
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, *loadBalancer)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, loadBalancer)
 	if err != nil {
-		return fmt.Errorf("Creating/Updating Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
+		return fmt.Errorf("updating Load Balancer %q (Resource Group %q) for Outbound Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.OutboundRuleName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
-	}
-
-	read, err := client.Get(ctx, id.ResourceGroup, id.LoadBalancerName, "")
-	if err != nil {
-		return fmt.Errorf("Error Getting LoadBalancer: %+v", err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read ID of Load Balancer %q (resource group %s)", id.LoadBalancerName, id.ResourceGroup)
+		return fmt.Errorf("waiting for update of Load Balancer %q (Resource Group %q) for Outbound Rule %q: %+v", id.LoadBalancerName, id.ResourceGroup, id.OutboundRuleName, err)
 	}
 
 	return nil

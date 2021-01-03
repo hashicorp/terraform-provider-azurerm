@@ -1,152 +1,110 @@
 package monitor_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMMonitorSmartDetectorAlertRule_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_monitor_smart_detector_alert_rule", "test")
+type MonitorSmartDetectorAlertRuleResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testAccAzureRMMonitorSmartDetectorAlertRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorSmartDetectorAlertRule_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testAccAzureRMMonitorSmartDetectorAlertRuleExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccMonitorSmartDetectorAlertRule_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_smart_detector_alert_rule", "test")
+	r := MonitorSmartDetectorAlertRuleResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMMonitorSmartDetectorAlertRule_requiresImport(t *testing.T) {
+func TestAccMonitorSmartDetectorAlertRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_smart_detector_alert_rule", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testAccAzureRMMonitorSmartDetectorAlertRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorSmartDetectorAlertRule_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testAccAzureRMMonitorSmartDetectorAlertRuleExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMMonitorSmartDetectorAlertRule_requiresImport),
+	r := MonitorSmartDetectorAlertRuleResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMMonitorSmartDetectorAlertRule_complete(t *testing.T) {
+func TestAccMonitorSmartDetectorAlertRule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_smart_detector_alert_rule", "test")
+	r := MonitorSmartDetectorAlertRuleResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testAccAzureRMMonitorSmartDetectorAlertRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorSmartDetectorAlertRule_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testAccAzureRMMonitorSmartDetectorAlertRuleExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMMonitorSmartDetectorAlertRule_update(t *testing.T) {
+func TestAccMonitorSmartDetectorAlertRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_smart_detector_alert_rule", "test")
+	r := MonitorSmartDetectorAlertRuleResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testAccAzureRMMonitorSmartDetectorAlertRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorSmartDetectorAlertRule_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testAccAzureRMMonitorSmartDetectorAlertRuleExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMMonitorSmartDetectorAlertRule_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testAccAzureRMMonitorSmartDetectorAlertRuleExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMMonitorSmartDetectorAlertRule_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testAccAzureRMMonitorSmartDetectorAlertRuleExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testAccAzureRMMonitorSmartDetectorAlertRuleExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.SmartDetectorAlertRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("can not found Monitor Smart Detector Alert Rule: %s", resourceName)
-		}
-		id, err := parse.SmartDetectorAlertRuleID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name, nil); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Monitor Smart Detector Alert Rule %q does not exist", id.Name)
-			}
-			return fmt.Errorf("bad: Get on Monitor SmartDetectorAlertRulesClient: %+v", err)
-		}
-		return nil
+func (t MonitorSmartDetectorAlertRuleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.SmartDetectorAlertRuleID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-}
 
-func testAccAzureRMMonitorSmartDetectorAlertRuleDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.SmartDetectorAlertRulesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_monitor_smart_detector_alert_rule" {
-			continue
-		}
-		id, err := parse.SmartDetectorAlertRuleID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name, nil); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Get on Monitor SmartDetectorAlertRulesClient: %+v", err)
-			}
-		}
-		return nil
+	resp, err := clients.Monitor.SmartDetectorAlertRulesClient.Get(ctx, id.ResourceGroup, id.Name, utils.Bool(true))
+	if err != nil {
+		return nil, fmt.Errorf("reading action rule (%s): %+v", id, err)
 	}
-	return nil
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMMonitorSmartDetectorAlertRule_basic(data acceptance.TestData) string {
-	template := testAccAzureRMMonitorSmartDetectorAlertRule_template(data)
+func (r MonitorSmartDetectorAlertRuleResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -162,11 +120,10 @@ resource "azurerm_monitor_smart_detector_alert_rule" "test" {
     ids = [azurerm_monitor_action_group.test.id]
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMMonitorSmartDetectorAlertRule_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMMonitorSmartDetectorAlertRule_basic(data)
+func (r MonitorSmartDetectorAlertRuleResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -182,11 +139,10 @@ resource "azurerm_monitor_smart_detector_alert_rule" "import" {
     ids = [azurerm_monitor_action_group.test.id]
   }
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMMonitorSmartDetectorAlertRule_complete(data acceptance.TestData) string {
-	template := testAccAzureRMMonitorSmartDetectorAlertRule_template(data)
+func (r MonitorSmartDetectorAlertRuleResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -213,10 +169,10 @@ BODY
 
   throttling_duration = "PT20M"
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMMonitorSmartDetectorAlertRule_template(data acceptance.TestData) string {
+func (MonitorSmartDetectorAlertRuleResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

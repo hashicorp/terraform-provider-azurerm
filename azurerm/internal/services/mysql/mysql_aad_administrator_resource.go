@@ -16,12 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMySQLAdministrator() *schema.Resource {
+func resourceMySQLAdministrator() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMySQLAdministratorCreateUpdate,
-		Read:   resourceArmMySQLAdministratorRead,
-		Update: resourceArmMySQLAdministratorCreateUpdate,
-		Delete: resourceArmMySQLAdministratorDelete,
+		Create: resourceMySQLAdministratorCreateUpdate,
+		Read:   resourceMySQLAdministratorRead,
+		Update: resourceMySQLAdministratorCreateUpdate,
+		Delete: resourceMySQLAdministratorDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -62,7 +62,7 @@ func resourceArmMySQLAdministrator() *schema.Resource {
 	}
 }
 
-func resourceArmMySQLAdministratorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMySQLAdministratorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.ServerAdministratorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -114,7 +114,7 @@ func resourceArmMySQLAdministratorCreateUpdate(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceArmMySQLAdministratorRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMySQLAdministratorRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.ServerAdministratorsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -147,7 +147,7 @@ func resourceArmMySQLAdministratorRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceArmMySQLAdministratorDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMySQLAdministratorDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.ServerAdministratorsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

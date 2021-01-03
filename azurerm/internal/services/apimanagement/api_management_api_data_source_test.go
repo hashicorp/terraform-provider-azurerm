@@ -6,60 +6,57 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
+
+type ApiManagementApiDataSourceResource struct {
+}
 
 func TestAccDataSourceAzureRMApiManagementApi_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_api_management_api", "test")
+	r := ApiManagementApiDataSourceResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceApiManagementApi_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "api1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "path", "api1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "protocols.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "protocols.0", "https"),
-					resource.TestCheckResourceAttr(data.ResourceName, "soap_pass_through", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "subscription_required", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "is_current", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "is_online", "false"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("display_name").HasValue("api1"),
+				check.That(data.ResourceName).Key("path").HasValue("api1"),
+				check.That(data.ResourceName).Key("protocols.#").HasValue("1"),
+				check.That(data.ResourceName).Key("protocols.0").HasValue("https"),
+				check.That(data.ResourceName).Key("soap_pass_through").HasValue("false"),
+				check.That(data.ResourceName).Key("subscription_required").HasValue("false"),
+				check.That(data.ResourceName).Key("is_current").HasValue("true"),
+				check.That(data.ResourceName).Key("is_online").HasValue("false"),
+			),
 		},
 	})
 }
 
 func TestAccDataSourceAzureRMApiManagementApi_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_api_management_api", "test")
+	r := ApiManagementApiDataSourceResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceApiManagementApi_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "Butter Parser"),
-					resource.TestCheckResourceAttr(data.ResourceName, "path", "butter-parser"),
-					resource.TestCheckResourceAttr(data.ResourceName, "protocols.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "What is my purpose? You parse butter."),
-					resource.TestCheckResourceAttr(data.ResourceName, "service_url", "https://example.com/foo/bar"),
-					resource.TestCheckResourceAttr(data.ResourceName, "soap_pass_through", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "subscription_key_parameter_names.0.header", "X-Butter-Robot-API-Key"),
-					resource.TestCheckResourceAttr(data.ResourceName, "subscription_key_parameter_names.0.query", "location"),
-					resource.TestCheckResourceAttr(data.ResourceName, "is_current", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "is_online", "false"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("display_name").HasValue("Butter Parser"),
+				check.That(data.ResourceName).Key("path").HasValue("butter-parser"),
+				check.That(data.ResourceName).Key("protocols.#").HasValue("2"),
+				check.That(data.ResourceName).Key("description").HasValue("What is my purpose? You parse butter."),
+				check.That(data.ResourceName).Key("service_url").HasValue("https://example.com/foo/bar"),
+				check.That(data.ResourceName).Key("soap_pass_through").HasValue("false"),
+				check.That(data.ResourceName).Key("subscription_key_parameter_names.0.header").HasValue("X-Butter-Robot-API-Key"),
+				check.That(data.ResourceName).Key("subscription_key_parameter_names.0.query").HasValue("location"),
+				check.That(data.ResourceName).Key("is_current").HasValue("true"),
+				check.That(data.ResourceName).Key("is_online").HasValue("false"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceApiManagementApi_basic(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementApi_basic(data)
+func (r ApiManagementApiDataSourceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -69,11 +66,10 @@ data "azurerm_api_management_api" "test" {
   resource_group_name = azurerm_api_management_api.test.resource_group_name
   revision            = azurerm_api_management_api.test.revision
 }
-`, template)
+`, ApiManagementApiResource{}.basic(data))
 }
 
-func testAccDataSourceApiManagementApi_complete(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementApi_complete(data)
+func (r ApiManagementApiDataSourceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -83,5 +79,5 @@ data "azurerm_api_management_api" "test" {
   resource_group_name = azurerm_api_management_api.test.resource_group_name
   revision            = azurerm_api_management_api.test.revision
 }
-`, template)
+`, ApiManagementApiResource{}.complete(data))
 }

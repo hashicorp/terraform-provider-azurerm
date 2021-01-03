@@ -395,14 +395,26 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_application_security_group" "first" {
-  name                = "acctest-first%d"
+resource "azurerm_application_security_group" "source1" {
+  name                = "acctest-source1-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_application_security_group" "second" {
-  name                = "acctest-second%d"
+resource "azurerm_application_security_group" "source2" {
+  name                = "acctest-source2-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_application_security_group" "destination1" {
+  name                = "acctest-destination1-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_application_security_group" "destination2" {
+  name                = "acctest-destination2-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
@@ -421,10 +433,10 @@ resource "azurerm_network_security_rule" "test1" {
   direction                                  = "Outbound"
   access                                     = "Allow"
   protocol                                   = "Tcp"
-  source_application_security_group_ids      = [azurerm_application_security_group.first.id]
-  destination_application_security_group_ids = [azurerm_application_security_group.second.id]
+  source_application_security_group_ids      = [azurerm_application_security_group.source1.id, azurerm_application_security_group.source2.id]
+  destination_application_security_group_ids = [azurerm_application_security_group.destination1.id, azurerm_application_security_group.destination2.id]
   source_port_ranges                         = ["10000-40000"]
   destination_port_ranges                    = ["80", "443", "8080", "8190"]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
