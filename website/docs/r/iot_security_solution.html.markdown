@@ -114,7 +114,7 @@ A `user_defined_resource` block supports the following:
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The ID of the Advanced Threat Protection resource.
+* `id` - The ID of the Iot Security Solution resource.
 
 ## Timeouts
 
