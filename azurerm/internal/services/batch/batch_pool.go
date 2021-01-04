@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2019-08-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2020-03-01/batch"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -583,7 +583,7 @@ func ExpandBatchPoolNetworkConfiguration(list []interface{}) (*batch.NetworkConf
 
 	if v, ok := networkConfigValue["public_ips"]; ok {
 		publicIPsRaw := v.(*schema.Set).List()
-		networkConfiguration.PublicIPs = utils.ExpandStringSlice(publicIPsRaw)
+		networkConfiguration.PublicIPAddressConfiguration.IPAddressIds = utils.ExpandStringSlice(publicIPsRaw)
 	}
 
 	if v, ok := networkConfigValue["endpoint_configuration"]; ok {
@@ -592,6 +592,12 @@ func ExpandBatchPoolNetworkConfiguration(list []interface{}) (*batch.NetworkConf
 			return nil, err
 		}
 		networkConfiguration.EndpointConfiguration = endpoint
+	}
+
+	if v, ok := networkConfigValue["public_address_provisioning_type"]; ok {
+		if value := v.(string); value != "" {
+			networkConfiguration.PublicIPAddressConfiguration.Provision = batch.IPAddressProvisioningType(value)
+		}
 	}
 
 	return networkConfiguration, nil
@@ -676,8 +682,9 @@ func FlattenBatchPoolNetworkConfiguration(networkConfig *batch.NetworkConfigurat
 		result["subnet_id"] = *networkConfig.SubnetID
 	}
 
-	if networkConfig.PublicIPs != nil {
-		result["public_ips"] = schema.NewSet(schema.HashString, utils.FlattenStringSlice(networkConfig.PublicIPs))
+	if networkConfig.PublicIPAddressConfiguration != nil {
+		result["public_ips"] = schema.NewSet(schema.HashString, utils.FlattenStringSlice(networkConfig.PublicIPAddressConfiguration.IPAddressIds))
+		result["public_address_provisioning_type"] = string(networkConfig.PublicIPAddressConfiguration.Provision)
 	}
 
 	if cfg := networkConfig.EndpointConfiguration; cfg != nil && cfg.InboundNatPools != nil && len(*cfg.InboundNatPools) != 0 {

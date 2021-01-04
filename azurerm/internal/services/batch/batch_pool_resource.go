@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2019-08-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2020-03-01/batch"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -412,6 +412,15 @@ func resourceBatchPool() *schema.Resource {
 								Type: schema.TypeString,
 							},
 							Set: schema.HashString,
+						},
+						"public_address_provisioning_type": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(batch.BatchManaged),
+								string(batch.UserManaged),
+								string(batch.NoPublicIPAddresses),
+							}, false),
 						},
 						"endpoint_configuration": {
 							Type:     schema.TypeList,
