@@ -73,6 +73,7 @@ func (client Client) Get(ctx context.Context, subscriptionID string) (result Sub
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "subscriptions.Client", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -144,6 +145,7 @@ func (client Client) List(ctx context.Context) (result ListResultPage, err error
 	result.lr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "subscriptions.Client", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.lr.hasNextLink() && result.lr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -202,6 +204,7 @@ func (client Client) listNextResults(ctx context.Context, lastResults ListResult
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "subscriptions.Client", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -253,6 +256,7 @@ func (client Client) ListLocations(ctx context.Context, subscriptionID string) (
 	result, err = client.ListLocationsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "subscriptions.Client", "ListLocations", resp, "Failure responding to request")
+		return
 	}
 
 	return

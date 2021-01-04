@@ -232,6 +232,7 @@ func (client VirtualHubRouteTableV2sClient) Get(ctx context.Context, resourceGro
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualHubRouteTableV2sClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -309,6 +310,7 @@ func (client VirtualHubRouteTableV2sClient) List(ctx context.Context, resourceGr
 	result.lvhrtvr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualHubRouteTableV2sClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.lvhrtvr.hasNextLink() && result.lvhrtvr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -373,6 +375,7 @@ func (client VirtualHubRouteTableV2sClient) listNextResults(ctx context.Context,
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualHubRouteTableV2sClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

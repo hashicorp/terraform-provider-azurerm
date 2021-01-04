@@ -171,6 +171,7 @@ func (client PrivateEndpointConnectionsClient) Get(ctx context.Context, resource
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerservice.PrivateEndpointConnectionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -258,6 +259,7 @@ func (client PrivateEndpointConnectionsClient) List(ctx context.Context, resourc
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerservice.PrivateEndpointConnectionsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -348,6 +350,7 @@ func (client PrivateEndpointConnectionsClient) Update(ctx context.Context, resou
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerservice.PrivateEndpointConnectionsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -216,8 +216,11 @@ func (page AppResourceCollectionPage) Values() []AppResource {
 }
 
 // Creates a new instance of the AppResourceCollectionPage type.
-func NewAppResourceCollectionPage(getNextPage func(context.Context, AppResourceCollection) (AppResourceCollection, error)) AppResourceCollectionPage {
-	return AppResourceCollectionPage{fn: getNextPage}
+func NewAppResourceCollectionPage(cur AppResourceCollection, getNextPage func(context.Context, AppResourceCollection) (AppResourceCollection, error)) AppResourceCollectionPage {
+	return AppResourceCollectionPage{
+		fn:  getNextPage,
+		arc: cur,
+	}
 }
 
 // AppResourceProperties app resource properties payload
@@ -476,8 +479,11 @@ func (page AvailableOperationsPage) Values() []OperationDetail {
 }
 
 // Creates a new instance of the AvailableOperationsPage type.
-func NewAvailableOperationsPage(getNextPage func(context.Context, AvailableOperations) (AvailableOperations, error)) AvailableOperationsPage {
-	return AvailableOperationsPage{fn: getNextPage}
+func NewAvailableOperationsPage(cur AvailableOperations, getNextPage func(context.Context, AvailableOperations) (AvailableOperations, error)) AvailableOperationsPage {
+	return AvailableOperationsPage{
+		fn: getNextPage,
+		ao: cur,
+	}
 }
 
 // AvailableRuntimeVersions ...
@@ -509,8 +515,8 @@ func (br BindingResource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// BindingResourceCollection object that includes an array of Binding resources and a possible link for next
-// set
+// BindingResourceCollection object that includes an array of Binding resources and a possible link for
+// next set
 type BindingResourceCollection struct {
 	autorest.Response `json:"-"`
 	// Value - Collection of Binding resources
@@ -663,8 +669,11 @@ func (page BindingResourceCollectionPage) Values() []BindingResource {
 }
 
 // Creates a new instance of the BindingResourceCollectionPage type.
-func NewBindingResourceCollectionPage(getNextPage func(context.Context, BindingResourceCollection) (BindingResourceCollection, error)) BindingResourceCollectionPage {
-	return BindingResourceCollectionPage{fn: getNextPage}
+func NewBindingResourceCollectionPage(cur BindingResourceCollection, getNextPage func(context.Context, BindingResourceCollection) (BindingResourceCollection, error)) BindingResourceCollectionPage {
+	return BindingResourceCollectionPage{
+		fn:  getNextPage,
+		brc: cur,
+	}
 }
 
 // BindingResourceProperties binding resource properties payload
@@ -763,8 +772,8 @@ func (cr CertificateResource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// CertificateResourceCollection collection compose of certificate resources list and a possible link for next
-// page.
+// CertificateResourceCollection collection compose of certificate resources list and a possible link for
+// next page.
 type CertificateResourceCollection struct {
 	autorest.Response `json:"-"`
 	// Value - The certificate resources list.
@@ -773,7 +782,8 @@ type CertificateResourceCollection struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// CertificateResourceCollectionIterator provides access to a complete listing of CertificateResource values.
+// CertificateResourceCollectionIterator provides access to a complete listing of CertificateResource
+// values.
 type CertificateResourceCollectionIterator struct {
 	i    int
 	page CertificateResourceCollectionPage
@@ -916,8 +926,11 @@ func (page CertificateResourceCollectionPage) Values() []CertificateResource {
 }
 
 // Creates a new instance of the CertificateResourceCollectionPage type.
-func NewCertificateResourceCollectionPage(getNextPage func(context.Context, CertificateResourceCollection) (CertificateResourceCollection, error)) CertificateResourceCollectionPage {
-	return CertificateResourceCollectionPage{fn: getNextPage}
+func NewCertificateResourceCollectionPage(cur CertificateResourceCollection, getNextPage func(context.Context, CertificateResourceCollection) (CertificateResourceCollection, error)) CertificateResourceCollectionPage {
+	return CertificateResourceCollectionPage{
+		fn:  getNextPage,
+		crc: cur,
+	}
 }
 
 // CloudError an error response from the service.
@@ -1064,8 +1077,8 @@ func (cdr CustomDomainResource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// CustomDomainResourceCollection collection compose of a custom domain resources list and a possible link for
-// next page.
+// CustomDomainResourceCollection collection compose of a custom domain resources list and a possible link
+// for next page.
 type CustomDomainResourceCollection struct {
 	autorest.Response `json:"-"`
 	// Value - The custom domain resources list.
@@ -1074,7 +1087,8 @@ type CustomDomainResourceCollection struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// CustomDomainResourceCollectionIterator provides access to a complete listing of CustomDomainResource values.
+// CustomDomainResourceCollectionIterator provides access to a complete listing of CustomDomainResource
+// values.
 type CustomDomainResourceCollectionIterator struct {
 	i    int
 	page CustomDomainResourceCollectionPage
@@ -1217,8 +1231,11 @@ func (page CustomDomainResourceCollectionPage) Values() []CustomDomainResource {
 }
 
 // Creates a new instance of the CustomDomainResourceCollectionPage type.
-func NewCustomDomainResourceCollectionPage(getNextPage func(context.Context, CustomDomainResourceCollection) (CustomDomainResourceCollection, error)) CustomDomainResourceCollectionPage {
-	return CustomDomainResourceCollectionPage{fn: getNextPage}
+func NewCustomDomainResourceCollectionPage(cur CustomDomainResourceCollection, getNextPage func(context.Context, CustomDomainResourceCollection) (CustomDomainResourceCollection, error)) CustomDomainResourceCollectionPage {
+	return CustomDomainResourceCollectionPage{
+		fn:   getNextPage,
+		cdrc: cur,
+	}
 }
 
 // CustomDomainValidatePayload custom domain validate payload.
@@ -1272,7 +1289,8 @@ func (dr DeploymentResource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// DeploymentResourceCollection object that includes an array of App resources and a possible link for next set
+// DeploymentResourceCollection object that includes an array of App resources and a possible link for next
+// set
 type DeploymentResourceCollection struct {
 	autorest.Response `json:"-"`
 	// Value - Collection of Deployment resources
@@ -1425,8 +1443,11 @@ func (page DeploymentResourceCollectionPage) Values() []DeploymentResource {
 }
 
 // Creates a new instance of the DeploymentResourceCollectionPage type.
-func NewDeploymentResourceCollectionPage(getNextPage func(context.Context, DeploymentResourceCollection) (DeploymentResourceCollection, error)) DeploymentResourceCollectionPage {
-	return DeploymentResourceCollectionPage{fn: getNextPage}
+func NewDeploymentResourceCollectionPage(cur DeploymentResourceCollection, getNextPage func(context.Context, DeploymentResourceCollection) (DeploymentResourceCollection, error)) DeploymentResourceCollectionPage {
+	return DeploymentResourceCollectionPage{
+		fn:  getNextPage,
+		drc: cur,
+	}
 }
 
 // DeploymentResourceProperties deployment resource properties payload
@@ -1461,8 +1482,8 @@ func (drp DeploymentResourceProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// DeploymentsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// DeploymentsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type DeploymentsCreateOrUpdateFuture struct {
 	azure.Future
 }
@@ -1558,7 +1579,8 @@ func (future *DeploymentsRestartFuture) Result(client DeploymentsClient) (ar aut
 	return
 }
 
-// DeploymentsStartFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// DeploymentsStartFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type DeploymentsStartFuture struct {
 	azure.Future
 }
@@ -1580,7 +1602,8 @@ func (future *DeploymentsStartFuture) Result(client DeploymentsClient) (ar autor
 	return
 }
 
-// DeploymentsStopFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// DeploymentsStopFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type DeploymentsStopFuture struct {
 	azure.Future
 }
@@ -2045,8 +2068,11 @@ func (page ResourceSkuCollectionPage) Values() []ResourceSku {
 }
 
 // Creates a new instance of the ResourceSkuCollectionPage type.
-func NewResourceSkuCollectionPage(getNextPage func(context.Context, ResourceSkuCollection) (ResourceSkuCollection, error)) ResourceSkuCollectionPage {
-	return ResourceSkuCollectionPage{fn: getNextPage}
+func NewResourceSkuCollectionPage(cur ResourceSkuCollection, getNextPage func(context.Context, ResourceSkuCollection) (ResourceSkuCollection, error)) ResourceSkuCollectionPage {
+	return ResourceSkuCollectionPage{
+		fn:  getNextPage,
+		rsc: cur,
+	}
 }
 
 // ResourceSkuLocationInfo ...
@@ -2289,8 +2315,11 @@ func (page ServiceResourceListPage) Values() []ServiceResource {
 }
 
 // Creates a new instance of the ServiceResourceListPage type.
-func NewServiceResourceListPage(getNextPage func(context.Context, ServiceResourceList) (ServiceResourceList, error)) ServiceResourceListPage {
-	return ServiceResourceListPage{fn: getNextPage}
+func NewServiceResourceListPage(cur ServiceResourceList, getNextPage func(context.Context, ServiceResourceList) (ServiceResourceList, error)) ServiceResourceListPage {
+	return ServiceResourceListPage{
+		fn:  getNextPage,
+		srl: cur,
+	}
 }
 
 // ServicesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -2322,7 +2351,8 @@ func (future *ServicesCreateOrUpdateFuture) Result(client ServicesClient) (sr Se
 	return
 }
 
-// ServicesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// ServicesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ServicesDeleteFuture struct {
 	azure.Future
 }
@@ -2352,7 +2382,8 @@ type ServiceSpecification struct {
 	MetricSpecifications *[]MetricSpecification `json:"metricSpecifications,omitempty"`
 }
 
-// ServicesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// ServicesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ServicesUpdateFuture struct {
 	azure.Future
 }

@@ -254,6 +254,7 @@ func (client AccountsClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "netapp.AccountsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -336,6 +337,7 @@ func (client AccountsClient) List(ctx context.Context, resourceGroupName string)
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "netapp.AccountsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -419,6 +421,7 @@ func (client AccountsClient) Update(ctx context.Context, body AccountPatch, reso
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "netapp.AccountsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

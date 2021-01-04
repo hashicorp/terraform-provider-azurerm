@@ -80,6 +80,7 @@ func (client LocationClient) CheckNameAvailability(ctx context.Context, location
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.LocationClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -155,6 +156,7 @@ func (client LocationClient) GetQuotas(ctx context.Context, locationName string)
 	result, err = client.GetQuotasResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.LocationClient", "GetQuotas", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -83,6 +83,7 @@ func (client NodeCountInformationClient) Get(ctx context.Context, resourceGroupN
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.NodeCountInformationClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -157,6 +157,7 @@ func (client ManagedServerSecurityAlertPoliciesClient) Get(ctx context.Context, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedServerSecurityAlertPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -235,6 +236,7 @@ func (client ManagedServerSecurityAlertPoliciesClient) ListByInstance(ctx contex
 	result.mssaplr, err = client.ListByInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedServerSecurityAlertPoliciesClient", "ListByInstance", resp, "Failure responding to request")
+		return
 	}
 	if result.mssaplr.hasNextLink() && result.mssaplr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -299,6 +301,7 @@ func (client ManagedServerSecurityAlertPoliciesClient) listByInstanceNextResults
 	result, err = client.ListByInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedServerSecurityAlertPoliciesClient", "listByInstanceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

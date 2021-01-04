@@ -1,0 +1,108 @@
+Generated from https://github.com/Azure/azure-rest-api-specs/tree/3c764635e7d442b3e74caf593029fcd440b3ef82
+
+Code generator @microsoft.azure/autorest.go@~2.1.161
+
+## Breaking Changes
+
+- Const `Creating` type has been changed from `EntityStatus` to `EndPointProvisioningState`
+- Const `Deleting` type has been changed from `EntityStatus` to `EndPointProvisioningState`
+- Const `Failed` type has been changed from `ProvisioningStateDR` to `EndPointProvisioningState`
+- Const `Succeeded` type has been changed from `ProvisioningStateDR` to `EndPointProvisioningState`
+- Function `NewVirtualNetworkRuleListResultPage` parameter(s) have been changed from `(func(context.Context, VirtualNetworkRuleListResult) (VirtualNetworkRuleListResult, error))` to `(VirtualNetworkRuleListResult, func(context.Context, VirtualNetworkRuleListResult) (VirtualNetworkRuleListResult, error))`
+- Function `NewMessagingRegionsListResultPage` parameter(s) have been changed from `(func(context.Context, MessagingRegionsListResult) (MessagingRegionsListResult, error))` to `(MessagingRegionsListResult, func(context.Context, MessagingRegionsListResult) (MessagingRegionsListResult, error))`
+- Function `NewListResultPage` parameter(s) have been changed from `(func(context.Context, ListResult) (ListResult, error))` to `(ListResult, func(context.Context, ListResult) (ListResult, error))`
+- Function `NewClusterListResultPage` parameter(s) have been changed from `(func(context.Context, ClusterListResult) (ClusterListResult, error))` to `(ClusterListResult, func(context.Context, ClusterListResult) (ClusterListResult, error))`
+- Function `NewIPFilterRuleListResultPage` parameter(s) have been changed from `(func(context.Context, IPFilterRuleListResult) (IPFilterRuleListResult, error))` to `(IPFilterRuleListResult, func(context.Context, IPFilterRuleListResult) (IPFilterRuleListResult, error))`
+- Function `NewConsumerGroupListResultPage` parameter(s) have been changed from `(func(context.Context, ConsumerGroupListResult) (ConsumerGroupListResult, error))` to `(ConsumerGroupListResult, func(context.Context, ConsumerGroupListResult) (ConsumerGroupListResult, error))`
+- Function `NewAuthorizationRuleListResultPage` parameter(s) have been changed from `(func(context.Context, AuthorizationRuleListResult) (AuthorizationRuleListResult, error))` to `(AuthorizationRuleListResult, func(context.Context, AuthorizationRuleListResult) (AuthorizationRuleListResult, error))`
+- Function `NewEHNamespaceListResultPage` parameter(s) have been changed from `(func(context.Context, EHNamespaceListResult) (EHNamespaceListResult, error))` to `(EHNamespaceListResult, func(context.Context, EHNamespaceListResult) (EHNamespaceListResult, error))`
+- Function `NewArmDisasterRecoveryListResultPage` parameter(s) have been changed from `(func(context.Context, ArmDisasterRecoveryListResult) (ArmDisasterRecoveryListResult, error))` to `(ArmDisasterRecoveryListResult, func(context.Context, ArmDisasterRecoveryListResult) (ArmDisasterRecoveryListResult, error))`
+- Function `NewOperationListResultPage` parameter(s) have been changed from `(func(context.Context, OperationListResult) (OperationListResult, error))` to `(OperationListResult, func(context.Context, OperationListResult) (OperationListResult, error))`
+- Const `Accepted` has been removed
+- Const `SendDisabled` has been removed
+- Const `Active` has been removed
+- Const `Restoring` has been removed
+- Const `Renaming` has been removed
+- Const `Unknown` has been removed
+- Const `ReceiveDisabled` has been removed
+- Const `Disabled` has been removed
+
+## New Content
+
+- New const `EntityStatusRenaming`
+- New const `EntityStatusSendDisabled`
+- New const `Approved`
+- New const `EntityStatusDeleting`
+- New const `ProvisioningStateDRFailed`
+- New const `Updating`
+- New const `EntityStatusRestoring`
+- New const `ProvisioningStateDRSucceeded`
+- New const `ProvisioningStateDRAccepted`
+- New const `EntityStatusDisabled`
+- New const `EntityStatusReceiveDisabled`
+- New const `EntityStatusUnknown`
+- New const `EntityStatusCreating`
+- New const `Pending`
+- New const `Rejected`
+- New const `Disconnected`
+- New const `Canceled`
+- New const `EntityStatusActive`
+- New function `PrivateLinkResourcesClient.GetSender(*http.Request) (*http.Response, error)`
+- New function `*PrivateLinkResource.UnmarshalJSON([]byte) error`
+- New function `PrivateEndpointConnectionsClient.CreateOrUpdateSender(*http.Request) (*http.Response, error)`
+- New function `PrivateEndpointConnectionsClient.ListResponder(*http.Response) (PrivateEndpointConnectionListResult, error)`
+- New function `*PrivateEndpointConnectionListResultPage.NextWithContext(context.Context) error`
+- New function `PrivateEndpointConnectionsClient.DeleteSender(*http.Request) (PrivateEndpointConnectionsDeleteFuture, error)`
+- New function `NewPrivateLinkResourcesClientWithBaseURI(string, string) PrivateLinkResourcesClient`
+- New function `NewPrivateLinkResourcesClient(string) PrivateLinkResourcesClient`
+- New function `PrivateEndpointConnectionsClient.ListSender(*http.Request) (*http.Response, error)`
+- New function `PrivateLinkResourcesClient.GetPreparer(context.Context, string, string) (*http.Request, error)`
+- New function `PrivateLinkResourcesClient.Get(context.Context, string, string) (PrivateLinkResourcesListResult, error)`
+- New function `PrivateEndpointConnectionListResultPage.NotDone() bool`
+- New function `PrivateEndpointConnectionsClient.GetSender(*http.Request) (*http.Response, error)`
+- New function `PrivateLinkResource.MarshalJSON() ([]byte, error)`
+- New function `*PrivateEndpointConnectionListResultPage.Next() error`
+- New function `PossiblePrivateLinkConnectionStatusValues() []PrivateLinkConnectionStatus`
+- New function `NewPrivateEndpointConnectionListResultPage(PrivateEndpointConnectionListResult, func(context.Context, PrivateEndpointConnectionListResult) (PrivateEndpointConnectionListResult, error)) PrivateEndpointConnectionListResultPage`
+- New function `PrivateEndpointConnectionsClient.DeletePreparer(context.Context, string, string, string) (*http.Request, error)`
+- New function `PrivateEndpointConnectionsClient.List(context.Context, string, string) (PrivateEndpointConnectionListResultPage, error)`
+- New function `NewPrivateEndpointConnectionListResultIterator(PrivateEndpointConnectionListResultPage) PrivateEndpointConnectionListResultIterator`
+- New function `PrivateEndpointConnectionListResultIterator.Response() PrivateEndpointConnectionListResult`
+- New function `PrivateEndpointConnectionsClient.Delete(context.Context, string, string, string) (PrivateEndpointConnectionsDeleteFuture, error)`
+- New function `PrivateEndpointConnectionsClient.GetResponder(*http.Response) (PrivateEndpointConnection, error)`
+- New function `*PrivateEndpointConnection.UnmarshalJSON([]byte) error`
+- New function `NewPrivateEndpointConnectionsClient(string) PrivateEndpointConnectionsClient`
+- New function `PrivateEndpointConnectionsClient.CreateOrUpdateResponder(*http.Response) (PrivateEndpointConnection, error)`
+- New function `PrivateEndpointConnectionListResult.IsEmpty() bool`
+- New function `PrivateEndpointConnectionsClient.GetPreparer(context.Context, string, string, string) (*http.Request, error)`
+- New function `PrivateEndpointConnectionsClient.DeleteResponder(*http.Response) (autorest.Response, error)`
+- New function `PrivateEndpointConnectionsClient.ListComplete(context.Context, string, string) (PrivateEndpointConnectionListResultIterator, error)`
+- New function `PrivateEndpointConnectionsClient.CreateOrUpdatePreparer(context.Context, string, string, string, PrivateEndpointConnection) (*http.Request, error)`
+- New function `PrivateEndpointConnectionsClient.Get(context.Context, string, string, string) (PrivateEndpointConnection, error)`
+- New function `PrivateEndpointConnectionListResultPage.Values() []PrivateEndpointConnection`
+- New function `PrivateEndpointConnectionListResultIterator.NotDone() bool`
+- New function `PrivateEndpointConnectionListResultPage.Response() PrivateEndpointConnectionListResult`
+- New function `PrivateEndpointConnection.MarshalJSON() ([]byte, error)`
+- New function `PrivateEndpointConnectionsClient.CreateOrUpdate(context.Context, string, string, string, PrivateEndpointConnection) (PrivateEndpointConnection, error)`
+- New function `*PrivateEndpointConnectionListResultIterator.Next() error`
+- New function `*PrivateEndpointConnectionsDeleteFuture.Result(PrivateEndpointConnectionsClient) (autorest.Response, error)`
+- New function `PrivateEndpointConnectionListResultIterator.Value() PrivateEndpointConnection`
+- New function `*PrivateEndpointConnectionListResultIterator.NextWithContext(context.Context) error`
+- New function `NewPrivateEndpointConnectionsClientWithBaseURI(string, string) PrivateEndpointConnectionsClient`
+- New function `PossibleEndPointProvisioningStateValues() []EndPointProvisioningState`
+- New function `PrivateLinkResourcesClient.GetResponder(*http.Response) (PrivateLinkResourcesListResult, error)`
+- New function `PrivateEndpointConnectionsClient.ListPreparer(context.Context, string, string) (*http.Request, error)`
+- New struct `ConnectionState`
+- New struct `PrivateEndpoint`
+- New struct `PrivateEndpointConnection`
+- New struct `PrivateEndpointConnectionListResult`
+- New struct `PrivateEndpointConnectionListResultIterator`
+- New struct `PrivateEndpointConnectionListResultPage`
+- New struct `PrivateEndpointConnectionProperties`
+- New struct `PrivateEndpointConnectionsClient`
+- New struct `PrivateEndpointConnectionsDeleteFuture`
+- New struct `PrivateLinkResource`
+- New struct `PrivateLinkResourceProperties`
+- New struct `PrivateLinkResourcesClient`
+- New struct `PrivateLinkResourcesListResult`
+- New field `TrustedServiceAccessEnabled` in struct `NetworkRuleSetProperties`

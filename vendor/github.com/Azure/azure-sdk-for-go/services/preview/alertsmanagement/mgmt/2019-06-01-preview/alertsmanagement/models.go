@@ -486,8 +486,11 @@ func (page ActionRulesListPage) Values() []ActionRule {
 }
 
 // Creates a new instance of the ActionRulesListPage type.
-func NewActionRulesListPage(getNextPage func(context.Context, ActionRulesList) (ActionRulesList, error)) ActionRulesListPage {
-	return ActionRulesListPage{fn: getNextPage}
+func NewActionRulesListPage(cur ActionRulesList, getNextPage func(context.Context, ActionRulesList) (ActionRulesList, error)) ActionRulesListPage {
+	return ActionRulesListPage{
+		fn:  getNextPage,
+		arl: cur,
+	}
 }
 
 // Alert an alert created in alert management service.
@@ -949,8 +952,11 @@ func (page AlertRulesListPage) Values() []AlertRule {
 }
 
 // Creates a new instance of the AlertRulesListPage type.
-func NewAlertRulesListPage(getNextPage func(context.Context, AlertRulesList) (AlertRulesList, error)) AlertRulesListPage {
-	return AlertRulesListPage{fn: getNextPage}
+func NewAlertRulesListPage(cur AlertRulesList, getNextPage func(context.Context, AlertRulesList) (AlertRulesList, error)) AlertRulesListPage {
+	return AlertRulesListPage{
+		fn:  getNextPage,
+		arl: cur,
+	}
 }
 
 // AlertsList list the alerts.
@@ -1105,8 +1111,11 @@ func (page AlertsListPage) Values() []Alert {
 }
 
 // Creates a new instance of the AlertsListPage type.
-func NewAlertsListPage(getNextPage func(context.Context, AlertsList) (AlertsList, error)) AlertsListPage {
-	return AlertsListPage{fn: getNextPage}
+func NewAlertsListPage(cur AlertsList, getNextPage func(context.Context, AlertsList) (AlertsList, error)) AlertsListPage {
+	return AlertsListPage{
+		fn: getNextPage,
+		al: cur,
+	}
 }
 
 // AlertsMetaData alert meta data information.
@@ -1316,7 +1325,8 @@ type Conditions struct {
 	AlertContext *Condition `json:"alertContext,omitempty"`
 }
 
-// Detector the detector information. By default this is not populated, unless it's specified in expandDetector
+// Detector the detector information. By default this is not populated, unless it's specified in
+// expandDetector
 type Detector struct {
 	// ID - The detector id.
 	ID *string `json:"id,omitempty"`
@@ -1740,8 +1750,11 @@ func (page OperationsListPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationsListPage type.
-func NewOperationsListPage(getNextPage func(context.Context, OperationsList) (OperationsList, error)) OperationsListPage {
-	return OperationsListPage{fn: getNextPage}
+func NewOperationsListPage(cur OperationsList, getNextPage func(context.Context, OperationsList) (OperationsList, error)) OperationsListPage {
+	return OperationsListPage{
+		fn: getNextPage,
+		ol: cur,
+	}
 }
 
 // PatchObject data contract for patch
@@ -1813,8 +1826,8 @@ type Resource struct {
 	Name *string `json:"name,omitempty"`
 }
 
-// Scope target scope for a given action rule. By default scope will be the subscription. User can also provide
-// list of resource groups or list of resources from the scope subscription as well.
+// Scope target scope for a given action rule. By default scope will be the subscription. User can also
+// provide list of resource groups or list of resources from the scope subscription as well.
 type Scope struct {
 	// ScopeType - type of target scope. Possible values include: 'ScopeTypeResourceGroup', 'ScopeTypeResource', 'ScopeTypeSubscription'
 	ScopeType ScopeType `json:"scopeType,omitempty"`
@@ -2188,8 +2201,11 @@ func (page SmartGroupsListPage) Values() []SmartGroup {
 }
 
 // Creates a new instance of the SmartGroupsListPage type.
-func NewSmartGroupsListPage(getNextPage func(context.Context, SmartGroupsList) (SmartGroupsList, error)) SmartGroupsListPage {
-	return SmartGroupsListPage{fn: getNextPage}
+func NewSmartGroupsListPage(cur SmartGroupsList, getNextPage func(context.Context, SmartGroupsList) (SmartGroupsList, error)) SmartGroupsListPage {
+	return SmartGroupsListPage{
+		fn:  getNextPage,
+		sgl: cur,
+	}
 }
 
 // Suppression action rule with suppression configuration

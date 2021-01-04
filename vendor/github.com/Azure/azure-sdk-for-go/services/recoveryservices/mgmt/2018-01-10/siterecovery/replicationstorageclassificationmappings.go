@@ -236,6 +236,7 @@ func (client ReplicationStorageClassificationMappingsClient) Get(ctx context.Con
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationStorageClassificationMappingsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -312,6 +313,7 @@ func (client ReplicationStorageClassificationMappingsClient) List(ctx context.Co
 	result.scmc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationStorageClassificationMappingsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.scmc.hasNextLink() && result.scmc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -376,6 +378,7 @@ func (client ReplicationStorageClassificationMappingsClient) listNextResults(ctx
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationStorageClassificationMappingsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -428,6 +431,7 @@ func (client ReplicationStorageClassificationMappingsClient) ListByReplicationSt
 	result.scmc, err = client.ListByReplicationStorageClassificationsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationStorageClassificationMappingsClient", "ListByReplicationStorageClassifications", resp, "Failure responding to request")
+		return
 	}
 	if result.scmc.hasNextLink() && result.scmc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -494,6 +498,7 @@ func (client ReplicationStorageClassificationMappingsClient) listByReplicationSt
 	result, err = client.ListByReplicationStorageClassificationsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationStorageClassificationMappingsClient", "listByReplicationStorageClassificationsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

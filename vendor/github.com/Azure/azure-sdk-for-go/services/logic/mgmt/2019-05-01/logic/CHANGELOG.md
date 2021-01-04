@@ -1,0 +1,31 @@
+Generated from https://github.com/Azure/azure-rest-api-specs/tree/3c764635e7d442b3e74caf593029fcd440b3ef82
+
+Code generator @microsoft.azure/autorest.go@~2.1.161
+
+## Breaking Changes
+
+- Function `NewWorkflowTriggerHistoryListResultPage` parameter(s) have been changed from `(func(context.Context, WorkflowTriggerHistoryListResult) (WorkflowTriggerHistoryListResult, error))` to `(WorkflowTriggerHistoryListResult, func(context.Context, WorkflowTriggerHistoryListResult) (WorkflowTriggerHistoryListResult, error))`
+- Function `NewWorkflowRunActionListResultPage` parameter(s) have been changed from `(func(context.Context, WorkflowRunActionListResult) (WorkflowRunActionListResult, error))` to `(WorkflowRunActionListResult, func(context.Context, WorkflowRunActionListResult) (WorkflowRunActionListResult, error))`
+- Function `NewIntegrationAccountPartnerListResultPage` parameter(s) have been changed from `(func(context.Context, IntegrationAccountPartnerListResult) (IntegrationAccountPartnerListResult, error))` to `(IntegrationAccountPartnerListResult, func(context.Context, IntegrationAccountPartnerListResult) (IntegrationAccountPartnerListResult, error))`
+- Function `NewIntegrationAccountSchemaListResultPage` parameter(s) have been changed from `(func(context.Context, IntegrationAccountSchemaListResult) (IntegrationAccountSchemaListResult, error))` to `(IntegrationAccountSchemaListResult, func(context.Context, IntegrationAccountSchemaListResult) (IntegrationAccountSchemaListResult, error))`
+- Function `NewWorkflowVersionListResultPage` parameter(s) have been changed from `(func(context.Context, WorkflowVersionListResult) (WorkflowVersionListResult, error))` to `(WorkflowVersionListResult, func(context.Context, WorkflowVersionListResult) (WorkflowVersionListResult, error))`
+- Function `NewWorkflowListResultPage` parameter(s) have been changed from `(func(context.Context, WorkflowListResult) (WorkflowListResult, error))` to `(WorkflowListResult, func(context.Context, WorkflowListResult) (WorkflowListResult, error))`
+- Function `NewIntegrationServiceEnvironmentListResultPage` parameter(s) have been changed from `(func(context.Context, IntegrationServiceEnvironmentListResult) (IntegrationServiceEnvironmentListResult, error))` to `(IntegrationServiceEnvironmentListResult, func(context.Context, IntegrationServiceEnvironmentListResult) (IntegrationServiceEnvironmentListResult, error))`
+- Function `NewIntegrationAccountMapListResultPage` parameter(s) have been changed from `(func(context.Context, IntegrationAccountMapListResult) (IntegrationAccountMapListResult, error))` to `(IntegrationAccountMapListResult, func(context.Context, IntegrationAccountMapListResult) (IntegrationAccountMapListResult, error))`
+- Function `NewIntegrationAccountAgreementListResultPage` parameter(s) have been changed from `(func(context.Context, IntegrationAccountAgreementListResult) (IntegrationAccountAgreementListResult, error))` to `(IntegrationAccountAgreementListResult, func(context.Context, IntegrationAccountAgreementListResult) (IntegrationAccountAgreementListResult, error))`
+- Function `NewManagedAPIListResultPage` parameter(s) have been changed from `(func(context.Context, ManagedAPIListResult) (ManagedAPIListResult, error))` to `(ManagedAPIListResult, func(context.Context, ManagedAPIListResult) (ManagedAPIListResult, error))`
+- Function `NewAPIOperationListResultPage` parameter(s) have been changed from `(func(context.Context, APIOperationListResult) (APIOperationListResult, error))` to `(APIOperationListResult, func(context.Context, APIOperationListResult) (APIOperationListResult, error))`
+- Function `NewIntegrationAccountListResultPage` parameter(s) have been changed from `(func(context.Context, IntegrationAccountListResult) (IntegrationAccountListResult, error))` to `(IntegrationAccountListResult, func(context.Context, IntegrationAccountListResult) (IntegrationAccountListResult, error))`
+- Function `NewIntegrationAccountCertificateListResultPage` parameter(s) have been changed from `(func(context.Context, IntegrationAccountCertificateListResult) (IntegrationAccountCertificateListResult, error))` to `(IntegrationAccountCertificateListResult, func(context.Context, IntegrationAccountCertificateListResult) (IntegrationAccountCertificateListResult, error))`
+- Function `NewWorkflowRunListResultPage` parameter(s) have been changed from `(func(context.Context, WorkflowRunListResult) (WorkflowRunListResult, error))` to `(WorkflowRunListResult, func(context.Context, WorkflowRunListResult) (WorkflowRunListResult, error))`
+- Function `NewIntegrationAccountSessionListResultPage` parameter(s) have been changed from `(func(context.Context, IntegrationAccountSessionListResult) (IntegrationAccountSessionListResult, error))` to `(IntegrationAccountSessionListResult, func(context.Context, IntegrationAccountSessionListResult) (IntegrationAccountSessionListResult, error))`
+- Function `NewOperationListResultPage` parameter(s) have been changed from `(func(context.Context, OperationListResult) (OperationListResult, error))` to `(OperationListResult, func(context.Context, OperationListResult) (OperationListResult, error))`
+- Function `NewIntegrationServiceEnvironmentSkuListPage` parameter(s) have been changed from `(func(context.Context, IntegrationServiceEnvironmentSkuList) (IntegrationServiceEnvironmentSkuList, error))` to `(IntegrationServiceEnvironmentSkuList, func(context.Context, IntegrationServiceEnvironmentSkuList) (IntegrationServiceEnvironmentSkuList, error))`
+- Function `NewRequestHistoryListResultPage` parameter(s) have been changed from `(func(context.Context, RequestHistoryListResult) (RequestHistoryListResult, error))` to `(RequestHistoryListResult, func(context.Context, RequestHistoryListResult) (RequestHistoryListResult, error))`
+- Function `NewWorkflowTriggerListResultPage` parameter(s) have been changed from `(func(context.Context, WorkflowTriggerListResult) (WorkflowTriggerListResult, error))` to `(WorkflowTriggerListResult, func(context.Context, WorkflowTriggerListResult) (WorkflowTriggerListResult, error))`
+
+## New Content
+
+- New struct `IntegrationServiceEnvironmenEncryptionConfiguration`
+- New struct `IntegrationServiceEnvironmenEncryptionKeyReference`
+- New field `EncryptionConfiguration` in struct `IntegrationServiceEnvironmentProperties`

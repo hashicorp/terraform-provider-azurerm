@@ -87,6 +87,7 @@ func (client AnalyticsItemsClient) Delete(ctx context.Context, resourceGroupName
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AnalyticsItemsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -182,6 +183,7 @@ func (client AnalyticsItemsClient) Get(ctx context.Context, resourceGroupName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AnalyticsItemsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -281,6 +283,7 @@ func (client AnalyticsItemsClient) List(ctx context.Context, resourceGroupName s
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AnalyticsItemsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -386,6 +389,7 @@ func (client AnalyticsItemsClient) Put(ctx context.Context, resourceGroupName st
 	result, err = client.PutResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AnalyticsItemsClient", "Put", resp, "Failure responding to request")
+		return
 	}
 
 	return

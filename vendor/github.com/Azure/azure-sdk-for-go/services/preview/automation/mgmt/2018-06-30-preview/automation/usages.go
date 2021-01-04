@@ -81,6 +81,7 @@ func (client UsagesClient) ListByAutomationAccount(ctx context.Context, resource
 	result, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.UsagesClient", "ListByAutomationAccount", resp, "Failure responding to request")
+		return
 	}
 
 	return

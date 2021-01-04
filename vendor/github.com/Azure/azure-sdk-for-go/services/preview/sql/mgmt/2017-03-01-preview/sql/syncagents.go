@@ -234,6 +234,7 @@ func (client SyncAgentsClient) GenerateKey(ctx context.Context, resourceGroupNam
 	result, err = client.GenerateKeyResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncAgentsClient", "GenerateKey", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -312,6 +313,7 @@ func (client SyncAgentsClient) Get(ctx context.Context, resourceGroupName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncAgentsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -390,6 +392,7 @@ func (client SyncAgentsClient) ListByServer(ctx context.Context, resourceGroupNa
 	result.salr, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncAgentsClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 	if result.salr.hasNextLink() && result.salr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -454,6 +457,7 @@ func (client SyncAgentsClient) listByServerNextResults(ctx context.Context, last
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncAgentsClient", "listByServerNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -508,6 +512,7 @@ func (client SyncAgentsClient) ListLinkedDatabases(ctx context.Context, resource
 	result.saldlr, err = client.ListLinkedDatabasesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncAgentsClient", "ListLinkedDatabases", resp, "Failure responding to request")
+		return
 	}
 	if result.saldlr.hasNextLink() && result.saldlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -573,6 +578,7 @@ func (client SyncAgentsClient) listLinkedDatabasesNextResults(ctx context.Contex
 	result, err = client.ListLinkedDatabasesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncAgentsClient", "listLinkedDatabasesNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

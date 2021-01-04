@@ -165,6 +165,7 @@ func (client RestorePointsClient) Delete(ctx context.Context, resourceGroupName 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.RestorePointsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -244,6 +245,7 @@ func (client RestorePointsClient) Get(ctx context.Context, resourceGroupName str
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.RestorePointsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -323,6 +325,7 @@ func (client RestorePointsClient) ListByDatabase(ctx context.Context, resourceGr
 	result, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.RestorePointsClient", "ListByDatabase", resp, "Failure responding to request")
+		return
 	}
 
 	return

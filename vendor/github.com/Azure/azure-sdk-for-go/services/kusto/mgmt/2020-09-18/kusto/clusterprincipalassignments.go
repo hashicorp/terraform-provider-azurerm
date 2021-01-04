@@ -84,6 +84,7 @@ func (client ClusterPrincipalAssignmentsClient) CheckNameAvailability(ctx contex
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "kusto.ClusterPrincipalAssignmentsClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -325,6 +326,7 @@ func (client ClusterPrincipalAssignmentsClient) Get(ctx context.Context, resourc
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "kusto.ClusterPrincipalAssignmentsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -401,6 +403,7 @@ func (client ClusterPrincipalAssignmentsClient) List(ctx context.Context, resour
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "kusto.ClusterPrincipalAssignmentsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -96,6 +96,7 @@ func (client BaseClient) CheckResourceName(ctx context.Context, resourceNameDefi
 	result, err = client.CheckResourceNameResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "subscriptions.BaseClient", "CheckResourceName", resp, "Failure responding to request")
+		return
 	}
 
 	return

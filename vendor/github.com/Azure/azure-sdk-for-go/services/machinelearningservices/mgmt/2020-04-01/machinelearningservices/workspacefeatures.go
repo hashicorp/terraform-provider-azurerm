@@ -74,6 +74,7 @@ func (client WorkspaceFeaturesClient) List(ctx context.Context, resourceGroupNam
 	result.laufr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspaceFeaturesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.laufr.hasNextLink() && result.laufr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -138,6 +139,7 @@ func (client WorkspaceFeaturesClient) listNextResults(ctx context.Context, lastR
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspaceFeaturesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

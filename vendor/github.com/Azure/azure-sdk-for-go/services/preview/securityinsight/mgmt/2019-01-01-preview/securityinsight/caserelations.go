@@ -92,6 +92,7 @@ func (client CaseRelationsClient) CreateOrUpdateRelation(ctx context.Context, re
 	result, err = client.CreateOrUpdateRelationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.CaseRelationsClient", "CreateOrUpdateRelation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -190,6 +191,7 @@ func (client CaseRelationsClient) DeleteRelation(ctx context.Context, resourceGr
 	result, err = client.DeleteRelationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.CaseRelationsClient", "DeleteRelation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -285,6 +287,7 @@ func (client CaseRelationsClient) GetRelation(ctx context.Context, resourceGroup
 	result, err = client.GetRelationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.CaseRelationsClient", "GetRelation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -387,6 +390,7 @@ func (client CaseRelationsClient) List(ctx context.Context, resourceGroupName st
 	result.crl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.CaseRelationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.crl.hasNextLink() && result.crl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -465,6 +469,7 @@ func (client CaseRelationsClient) listNextResults(ctx context.Context, lastResul
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.CaseRelationsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

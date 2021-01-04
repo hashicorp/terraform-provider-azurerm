@@ -74,6 +74,7 @@ func (client VirtualHubBgpConnectionsClient) List(ctx context.Context, resourceG
 	result.lvhbcr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualHubBgpConnectionsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.lvhbcr.hasNextLink() && result.lvhbcr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -138,6 +139,7 @@ func (client VirtualHubBgpConnectionsClient) listNextResults(ctx context.Context
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualHubBgpConnectionsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

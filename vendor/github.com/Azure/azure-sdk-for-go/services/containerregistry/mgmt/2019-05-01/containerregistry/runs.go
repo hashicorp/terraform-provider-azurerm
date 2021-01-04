@@ -170,6 +170,7 @@ func (client RunsClient) Get(ctx context.Context, resourceGroupName string, regi
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerregistry.RunsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -257,6 +258,7 @@ func (client RunsClient) GetLogSasURL(ctx context.Context, resourceGroupName str
 	result, err = client.GetLogSasURLResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerregistry.RunsClient", "GetLogSasURL", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -347,6 +349,7 @@ func (client RunsClient) List(ctx context.Context, resourceGroupName string, reg
 	result.rlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerregistry.RunsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.rlr.hasNextLink() && result.rlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -417,6 +420,7 @@ func (client RunsClient) listNextResults(ctx context.Context, lastResults RunLis
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerregistry.RunsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
