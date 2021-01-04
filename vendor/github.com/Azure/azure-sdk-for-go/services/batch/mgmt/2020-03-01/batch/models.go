@@ -29,7 +29,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2019-08-01/batch"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2020-03-01/batch"
 
 // Account contains information about an Azure Batch account.
 type Account struct {
@@ -229,6 +229,9 @@ type AccountCreateProperties struct {
 	PoolAllocationMode PoolAllocationMode `json:"poolAllocationMode,omitempty"`
 	// KeyVaultReference - A reference to the Azure key vault associated with the Batch account.
 	KeyVaultReference *KeyVaultReference `json:"keyVaultReference,omitempty"`
+	// PublicNetworkAccess - If not specified, the default value is 'enabled'. Possible values include: 'PublicNetworkAccessTypeEnabled', 'PublicNetworkAccessTypeDisabled'
+	PublicNetworkAccess PublicNetworkAccessType `json:"publicNetworkAccess,omitempty"`
+	Encryption          *EncryptionProperties   `json:"encryption,omitempty"`
 }
 
 // AccountDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
@@ -430,8 +433,14 @@ type AccountProperties struct {
 	PoolAllocationMode PoolAllocationMode `json:"poolAllocationMode,omitempty"`
 	// KeyVaultReference - READ-ONLY
 	KeyVaultReference *KeyVaultReference `json:"keyVaultReference,omitempty"`
+	// PublicNetworkAccess - READ-ONLY; If not specified, the default value is 'enabled'. Possible values include: 'PublicNetworkAccessTypeEnabled', 'PublicNetworkAccessTypeDisabled'
+	PublicNetworkAccess PublicNetworkAccessType `json:"publicNetworkAccess,omitempty"`
+	// PrivateEndpointConnections - READ-ONLY; List of private endpoint connections associated with the Batch account
+	PrivateEndpointConnections *[]PrivateEndpointConnection `json:"privateEndpointConnections,omitempty"`
 	// AutoStorage - READ-ONLY
 	AutoStorage *AutoStorageProperties `json:"autoStorage,omitempty"`
+	// Encryption - READ-ONLY
+	Encryption *EncryptionProperties `json:"encryption,omitempty"`
 	// DedicatedCoreQuota - READ-ONLY; For accounts with PoolAllocationMode set to UserSubscription, quota is managed on the subscription so this value is not returned.
 	DedicatedCoreQuota *int32 `json:"dedicatedCoreQuota,omitempty"`
 	// LowPriorityCoreQuota - READ-ONLY; For accounts with PoolAllocationMode set to UserSubscription, quota is managed on the subscription so this value is not returned.
@@ -509,6 +518,7 @@ func (aup *AccountUpdateParameters) UnmarshalJSON(body []byte) error {
 type AccountUpdateProperties struct {
 	// AutoStorage - The properties related to the auto-storage account.
 	AutoStorage *AutoStorageBaseProperties `json:"autoStorage,omitempty"`
+	Encryption  *EncryptionProperties      `json:"encryption,omitempty"`
 }
 
 // ActivateApplicationPackageParameters parameters for an activating an application package.
@@ -998,7 +1008,7 @@ func (ccoup *CertificateCreateOrUpdateParameters) UnmarshalJSON(body []byte) err
 type CertificateCreateOrUpdateProperties struct {
 	// Data - The maximum size is 10KB.
 	Data *string `json:"data,omitempty"`
-	// Password - This is required if the certificate format is pfx and must be omitted if the certificate format is cer.
+	// Password - This must not be specified if the certificate format is Cer.
 	Password *string `json:"password,omitempty"`
 	// ThumbprintAlgorithm - This must match the first portion of the certificate name. Currently required to be 'SHA1'.
 	ThumbprintAlgorithm *string `json:"thumbprintAlgorithm,omitempty"`
@@ -1082,7 +1092,7 @@ type CertificateReference struct {
 type CheckNameAvailabilityParameters struct {
 	// Name - The name to check for availability
 	Name *string `json:"name,omitempty"`
-	// Type - The resource type. Must be set to Microsoft.Batch/batchAccounts
+	// Type - The resource type.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1188,6 +1198,22 @@ type DeploymentConfiguration struct {
 	VirtualMachineConfiguration *VirtualMachineConfiguration `json:"virtualMachineConfiguration,omitempty"`
 }
 
+// DiskEncryptionConfiguration the disk encryption configuration applied on compute nodes in the pool. Disk
+// encryption configuration is not supported on Linux pool created with Virtual Machine Image or Shared Image
+// Gallery Image.
+type DiskEncryptionConfiguration struct {
+	// Targets - On Linux pool, only "TemporaryDisk" is supported; on Windows pool, "OsDisk" and "TemporaryDisk" must be specified.
+	Targets *[]DiskEncryptionTarget `json:"targets,omitempty"`
+}
+
+// EncryptionProperties ...
+type EncryptionProperties struct {
+	// KeySource - Type of the key source. Possible values include: 'MicrosoftBatch', 'MicrosoftKeyVault'
+	KeySource KeySource `json:"keySource,omitempty"`
+	// KeyVaultProperties - Additional details when using Microsoft.KeyVault
+	KeyVaultProperties *KeyVaultProperties `json:"keyVaultProperties,omitempty"`
+}
+
 // EnvironmentSetting ...
 type EnvironmentSetting struct {
 	Name  *string `json:"name,omitempty"`
@@ -1198,9 +1224,9 @@ type EnvironmentSetting struct {
 type FixedScaleSettings struct {
 	// ResizeTimeout - The default value is 15 minutes. Timeout values use ISO 8601 format. For example, use PT10M for 10 minutes. The minimum value is 5 minutes. If you specify a value less than 5 minutes, the Batch service rejects the request with an error; if you are calling the REST API directly, the HTTP status code is 400 (Bad Request).
 	ResizeTimeout *string `json:"resizeTimeout,omitempty"`
-	// TargetDedicatedNodes - At least one of targetDedicatedNodes, targetLowPriority nodes must be set.
+	// TargetDedicatedNodes - At least one of targetDedicatedNodes, targetLowPriorityNodes must be set.
 	TargetDedicatedNodes *int32 `json:"targetDedicatedNodes,omitempty"`
-	// TargetLowPriorityNodes - At least one of targetDedicatedNodes, targetLowPriority nodes must be set.
+	// TargetLowPriorityNodes - At least one of targetDedicatedNodes, targetLowPriorityNodes must be set.
 	TargetLowPriorityNodes *int32 `json:"targetLowPriorityNodes,omitempty"`
 	// NodeDeallocationOption - If omitted, the default value is Requeue. Possible values include: 'Requeue', 'Terminate', 'TaskCompletion', 'RetainedData'
 	NodeDeallocationOption ComputeNodeDeallocationOption `json:"nodeDeallocationOption,omitempty"`
@@ -1216,7 +1242,7 @@ type ImageReference struct {
 	Sku *string `json:"sku,omitempty"`
 	// Version - A value of 'latest' can be specified to select the latest version of an image. If omitted, the default is 'latest'.
 	Version *string `json:"version,omitempty"`
-	// ID - This property is mutually exclusive with other properties. For Virtual Machine Image it must be in the same region and subscription as the Azure Batch account. For SIG image it must have replicas in the same region as the Azure Batch account. For information about the firewall settings for the Batch node agent to communicate with the Batch service see https://docs.microsoft.com/en-us/azure/batch/batch-api-basics#virtual-network-vnet-and-firewall-configuration.
+	// ID - This property is mutually exclusive with other properties. The Shared Image Gallery image must have replicas in the same region as the Azure Batch account. For information about the firewall settings for the Batch node agent to communicate with the Batch service see https://docs.microsoft.com/en-us/azure/batch/batch-api-basics#virtual-network-vnet-and-firewall-configuration.
 	ID *string `json:"id,omitempty"`
 }
 
@@ -1234,6 +1260,12 @@ type InboundNatPool struct {
 	FrontendPortRangeEnd *int32 `json:"frontendPortRangeEnd,omitempty"`
 	// NetworkSecurityGroupRules - The maximum number of rules that can be specified across all the endpoints on a Batch pool is 25. If no network security group rules are specified, a default rule will be created to allow inbound access to the specified backendPort. If the maximum number of network security group rules is exceeded the request fails with HTTP status code 400.
 	NetworkSecurityGroupRules *[]NetworkSecurityGroupRule `json:"networkSecurityGroupRules,omitempty"`
+}
+
+// KeyVaultProperties ...
+type KeyVaultProperties struct {
+	// KeyIdentifier - Full path to the versioned secret. Example https://mykeyvault.vault.azure.net/keys/testkey/6e34a81fef704045975661e297a4c053
+	KeyIdentifier *string `json:"keyIdentifier,omitempty"`
 }
 
 // KeyVaultReference identifies the Azure key vault associated with a Batch account.
@@ -1878,6 +1910,319 @@ func NewListPoolsResultPage(getNextPage func(context.Context, ListPoolsResult) (
 	return ListPoolsResultPage{fn: getNextPage}
 }
 
+// ListPrivateEndpointConnectionsResult values returned by the List operation.
+type ListPrivateEndpointConnectionsResult struct {
+	autorest.Response `json:"-"`
+	// Value - The collection of returned private endpoint connection.
+	Value *[]PrivateEndpointConnection `json:"value,omitempty"`
+	// NextLink - The continuation token.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// ListPrivateEndpointConnectionsResultIterator provides access to a complete listing of
+// PrivateEndpointConnection values.
+type ListPrivateEndpointConnectionsResultIterator struct {
+	i    int
+	page ListPrivateEndpointConnectionsResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ListPrivateEndpointConnectionsResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ListPrivateEndpointConnectionsResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ListPrivateEndpointConnectionsResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ListPrivateEndpointConnectionsResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ListPrivateEndpointConnectionsResultIterator) Response() ListPrivateEndpointConnectionsResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ListPrivateEndpointConnectionsResultIterator) Value() PrivateEndpointConnection {
+	if !iter.page.NotDone() {
+		return PrivateEndpointConnection{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the ListPrivateEndpointConnectionsResultIterator type.
+func NewListPrivateEndpointConnectionsResultIterator(page ListPrivateEndpointConnectionsResultPage) ListPrivateEndpointConnectionsResultIterator {
+	return ListPrivateEndpointConnectionsResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (lpecr ListPrivateEndpointConnectionsResult) IsEmpty() bool {
+	return lpecr.Value == nil || len(*lpecr.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (lpecr ListPrivateEndpointConnectionsResult) hasNextLink() bool {
+	return lpecr.NextLink != nil && len(*lpecr.NextLink) != 0
+}
+
+// listPrivateEndpointConnectionsResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (lpecr ListPrivateEndpointConnectionsResult) listPrivateEndpointConnectionsResultPreparer(ctx context.Context) (*http.Request, error) {
+	if !lpecr.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(lpecr.NextLink)))
+}
+
+// ListPrivateEndpointConnectionsResultPage contains a page of PrivateEndpointConnection values.
+type ListPrivateEndpointConnectionsResultPage struct {
+	fn    func(context.Context, ListPrivateEndpointConnectionsResult) (ListPrivateEndpointConnectionsResult, error)
+	lpecr ListPrivateEndpointConnectionsResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ListPrivateEndpointConnectionsResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ListPrivateEndpointConnectionsResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.lpecr)
+		if err != nil {
+			return err
+		}
+		page.lpecr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ListPrivateEndpointConnectionsResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ListPrivateEndpointConnectionsResultPage) NotDone() bool {
+	return !page.lpecr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ListPrivateEndpointConnectionsResultPage) Response() ListPrivateEndpointConnectionsResult {
+	return page.lpecr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ListPrivateEndpointConnectionsResultPage) Values() []PrivateEndpointConnection {
+	if page.lpecr.IsEmpty() {
+		return nil
+	}
+	return *page.lpecr.Value
+}
+
+// Creates a new instance of the ListPrivateEndpointConnectionsResultPage type.
+func NewListPrivateEndpointConnectionsResultPage(getNextPage func(context.Context, ListPrivateEndpointConnectionsResult) (ListPrivateEndpointConnectionsResult, error)) ListPrivateEndpointConnectionsResultPage {
+	return ListPrivateEndpointConnectionsResultPage{fn: getNextPage}
+}
+
+// ListPrivateLinkResourcesResult values returned by the List operation.
+type ListPrivateLinkResourcesResult struct {
+	autorest.Response `json:"-"`
+	// Value - The collection of returned private link resources.
+	Value *[]PrivateLinkResource `json:"value,omitempty"`
+	// NextLink - The continuation token.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// ListPrivateLinkResourcesResultIterator provides access to a complete listing of PrivateLinkResource values.
+type ListPrivateLinkResourcesResultIterator struct {
+	i    int
+	page ListPrivateLinkResourcesResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ListPrivateLinkResourcesResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ListPrivateLinkResourcesResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ListPrivateLinkResourcesResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ListPrivateLinkResourcesResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ListPrivateLinkResourcesResultIterator) Response() ListPrivateLinkResourcesResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ListPrivateLinkResourcesResultIterator) Value() PrivateLinkResource {
+	if !iter.page.NotDone() {
+		return PrivateLinkResource{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the ListPrivateLinkResourcesResultIterator type.
+func NewListPrivateLinkResourcesResultIterator(page ListPrivateLinkResourcesResultPage) ListPrivateLinkResourcesResultIterator {
+	return ListPrivateLinkResourcesResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (lplrr ListPrivateLinkResourcesResult) IsEmpty() bool {
+	return lplrr.Value == nil || len(*lplrr.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (lplrr ListPrivateLinkResourcesResult) hasNextLink() bool {
+	return lplrr.NextLink != nil && len(*lplrr.NextLink) != 0
+}
+
+// listPrivateLinkResourcesResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (lplrr ListPrivateLinkResourcesResult) listPrivateLinkResourcesResultPreparer(ctx context.Context) (*http.Request, error) {
+	if !lplrr.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(lplrr.NextLink)))
+}
+
+// ListPrivateLinkResourcesResultPage contains a page of PrivateLinkResource values.
+type ListPrivateLinkResourcesResultPage struct {
+	fn    func(context.Context, ListPrivateLinkResourcesResult) (ListPrivateLinkResourcesResult, error)
+	lplrr ListPrivateLinkResourcesResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ListPrivateLinkResourcesResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ListPrivateLinkResourcesResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.lplrr)
+		if err != nil {
+			return err
+		}
+		page.lplrr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ListPrivateLinkResourcesResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ListPrivateLinkResourcesResultPage) NotDone() bool {
+	return !page.lplrr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ListPrivateLinkResourcesResultPage) Response() ListPrivateLinkResourcesResult {
+	return page.lplrr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ListPrivateLinkResourcesResultPage) Values() []PrivateLinkResource {
+	if page.lplrr.IsEmpty() {
+		return nil
+	}
+	return *page.lplrr.Value
+}
+
+// Creates a new instance of the ListPrivateLinkResourcesResultPage type.
+func NewListPrivateLinkResourcesResultPage(getNextPage func(context.Context, ListPrivateLinkResourcesResult) (ListPrivateLinkResourcesResult, error)) ListPrivateLinkResourcesResultPage {
+	return ListPrivateLinkResourcesResultPage{fn: getNextPage}
+}
+
 // LocationQuota quotas associated with a Batch region for a particular subscription.
 type LocationQuota struct {
 	autorest.Response `json:"-"`
@@ -1906,17 +2251,17 @@ type MountConfiguration struct {
 
 // NetworkConfiguration the network configuration for a pool.
 type NetworkConfiguration struct {
-	// SubnetID - The virtual network must be in the same region and subscription as the Azure Batch account. The specified subnet should have enough free IP addresses to accommodate the number of nodes in the pool. If the subnet doesn't have enough free IP addresses, the pool will partially allocate compute nodes, and a resize error will occur. The 'MicrosoftAzureBatch' service principal must have the 'Classic Virtual Machine Contributor' Role-Based Access Control (RBAC) role for the specified VNet. The specified subnet must allow communication from the Azure Batch service to be able to schedule tasks on the compute nodes. This can be verified by checking if the specified VNet has any associated Network Security Groups (NSG). If communication to the compute nodes in the specified subnet is denied by an NSG, then the Batch service will set the state of the compute nodes to unusable. For pools created via virtualMachineConfiguration the Batch account must have poolAllocationMode userSubscription in order to use a VNet. If the specified VNet has any associated Network Security Groups (NSG), then a few reserved system ports must be enabled for inbound communication. For pools created with a virtual machine configuration, enable ports 29876 and 29877, as well as port 22 for Linux and port 3389 for Windows. For pools created with a cloud service configuration, enable ports 10100, 20100, and 30100. Also enable outbound connections to Azure Storage on port 443. For more details see: https://docs.microsoft.com/en-us/azure/batch/batch-api-basics#virtual-network-vnet-and-firewall-configuration
+	// SubnetID - The virtual network must be in the same region and subscription as the Azure Batch account. The specified subnet should have enough free IP addresses to accommodate the number of nodes in the pool. If the subnet doesn't have enough free IP addresses, the pool will partially allocate compute nodes and a resize error will occur. The 'MicrosoftAzureBatch' service principal must have the 'Classic Virtual Machine Contributor' Role-Based Access Control (RBAC) role for the specified VNet. The specified subnet must allow communication from the Azure Batch service to be able to schedule tasks on the compute nodes. This can be verified by checking if the specified VNet has any associated Network Security Groups (NSG). If communication to the compute nodes in the specified subnet is denied by an NSG, then the Batch service will set the state of the compute nodes to unusable. If the specified VNet has any associated Network Security Groups (NSG), then a few reserved system ports must be enabled for inbound communication. For pools created with a virtual machine configuration, enable ports 29876 and 29877, as well as port 22 for Linux and port 3389 for Windows. For pools created with a cloud service configuration, enable ports 10100, 20100, and 30100. Also enable outbound connections to Azure Storage on port 443. For cloudServiceConfiguration pools, only 'classic' VNETs are supported. For more details see: https://docs.microsoft.com/en-us/azure/batch/batch-api-basics#virtual-network-vnet-and-firewall-configuration
 	SubnetID *string `json:"subnetId,omitempty"`
 	// EndpointConfiguration - Pool endpoint configuration is only supported on pools with the virtualMachineConfiguration property.
 	EndpointConfiguration *PoolEndpointConfiguration `json:"endpointConfiguration,omitempty"`
-	// PublicIPs - The number of IPs specified here limits the maximum size of the Pool - 50 dedicated nodes or 20 low-priority nodes can be allocated for each public IP. For example, a pool needing 150 dedicated VMs would need at least 3 public IPs specified. Each element of this collection is of the form: /subscriptions/{subscription}/resourceGroups/{group}/providers/Microsoft.Network/publicIPAddresses/{ip}.
-	PublicIPs *[]string `json:"publicIPs,omitempty"`
+	// PublicIPAddressConfiguration - This property is only supported on Pools with the virtualMachineConfiguration property.
+	PublicIPAddressConfiguration *PublicIPAddressConfiguration `json:"publicIPAddressConfiguration,omitempty"`
 }
 
 // NetworkSecurityGroupRule ...
 type NetworkSecurityGroupRule struct {
-	// Priority - Priorities within a pool must be unique and are evaluated in order of priority. The lower the number the higher the priority. For example, rules could be specified with order numbers of 150, 250, and 350. The rule with the order number of 150 takes precedence over the rule that has an order of 250. Allowed priorities are 150 to 3500. If any reserved or duplicate values are provided the request fails with HTTP status code 400.
+	// Priority - Priorities within a pool must be unique and are evaluated in order of priority. The lower the number the higher the priority. For example, rules could be specified with order numbers of 150, 250, and 350. The rule with the order number of 150 takes precedence over the rule that has an order of 250. Allowed priorities are 150 to 4096. If any reserved or duplicate values are provided the request fails with HTTP status code 400.
 	Priority *int32 `json:"priority,omitempty"`
 	// Access - Possible values include: 'Allow', 'Deny'
 	Access NetworkSecurityGroupRuleAccess `json:"access,omitempty"`
@@ -2349,6 +2694,232 @@ func (pp PoolProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// PrivateEndpoint the private endpoint of the private endpoint connection.
+type PrivateEndpoint struct {
+	// ID - READ-ONLY
+	ID *string `json:"id,omitempty"`
+}
+
+// PrivateEndpointConnection contains information about a private link resource.
+type PrivateEndpointConnection struct {
+	autorest.Response `json:"-"`
+	// PrivateEndpointConnectionProperties - The properties associated with the private endpoint connection.
+	*PrivateEndpointConnectionProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; The ID of the resource.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource.
+	Type *string `json:"type,omitempty"`
+	// Etag - READ-ONLY; The ETag of the resource, used for concurrency statements.
+	Etag *string `json:"etag,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpointConnection.
+func (pec PrivateEndpointConnection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pec.PrivateEndpointConnectionProperties != nil {
+		objectMap["properties"] = pec.PrivateEndpointConnectionProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for PrivateEndpointConnection struct.
+func (pec *PrivateEndpointConnection) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var privateEndpointConnectionProperties PrivateEndpointConnectionProperties
+				err = json.Unmarshal(*v, &privateEndpointConnectionProperties)
+				if err != nil {
+					return err
+				}
+				pec.PrivateEndpointConnectionProperties = &privateEndpointConnectionProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				pec.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				pec.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				pec.Type = &typeVar
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				pec.Etag = &etag
+			}
+		}
+	}
+
+	return nil
+}
+
+// PrivateEndpointConnectionProperties private endpoint connection properties.
+type PrivateEndpointConnectionProperties struct {
+	// ProvisioningState - READ-ONLY; Possible values include: 'PrivateEndpointConnectionProvisioningStateSucceeded', 'PrivateEndpointConnectionProvisioningStateUpdating', 'PrivateEndpointConnectionProvisioningStateFailed'
+	ProvisioningState                 PrivateEndpointConnectionProvisioningState `json:"provisioningState,omitempty"`
+	PrivateEndpoint                   *PrivateEndpoint                           `json:"privateEndpoint,omitempty"`
+	PrivateLinkServiceConnectionState *PrivateLinkServiceConnectionState         `json:"privateLinkServiceConnectionState,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpointConnectionProperties.
+func (pecp PrivateEndpointConnectionProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pecp.PrivateEndpoint != nil {
+		objectMap["privateEndpoint"] = pecp.PrivateEndpoint
+	}
+	if pecp.PrivateLinkServiceConnectionState != nil {
+		objectMap["privateLinkServiceConnectionState"] = pecp.PrivateLinkServiceConnectionState
+	}
+	return json.Marshal(objectMap)
+}
+
+// PrivateLinkResource contains information about a private link resource.
+type PrivateLinkResource struct {
+	autorest.Response `json:"-"`
+	// PrivateLinkResourceProperties - The properties associated with the private link resource.
+	*PrivateLinkResourceProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; The ID of the resource.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource.
+	Type *string `json:"type,omitempty"`
+	// Etag - READ-ONLY; The ETag of the resource, used for concurrency statements.
+	Etag *string `json:"etag,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateLinkResource.
+func (plr PrivateLinkResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if plr.PrivateLinkResourceProperties != nil {
+		objectMap["properties"] = plr.PrivateLinkResourceProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for PrivateLinkResource struct.
+func (plr *PrivateLinkResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var privateLinkResourceProperties PrivateLinkResourceProperties
+				err = json.Unmarshal(*v, &privateLinkResourceProperties)
+				if err != nil {
+					return err
+				}
+				plr.PrivateLinkResourceProperties = &privateLinkResourceProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				plr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				plr.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				plr.Type = &typeVar
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				plr.Etag = &etag
+			}
+		}
+	}
+
+	return nil
+}
+
+// PrivateLinkResourceProperties private link resource properties.
+type PrivateLinkResourceProperties struct {
+	// GroupID - READ-ONLY; The group id is used to establish the private link connection.
+	GroupID *string `json:"groupId,omitempty"`
+	// RequiredMembers - READ-ONLY
+	RequiredMembers *[]string `json:"requiredMembers,omitempty"`
+	// RequiredZoneNames - READ-ONLY
+	RequiredZoneNames *[]string `json:"requiredZoneNames,omitempty"`
+}
+
+// PrivateLinkServiceConnectionState the private link service connection state of the private endpoint
+// connection
+type PrivateLinkServiceConnectionState struct {
+	// Status - Possible values include: 'PrivateLinkServiceConnectionStatusApproved', 'PrivateLinkServiceConnectionStatusPending', 'PrivateLinkServiceConnectionStatusRejected', 'PrivateLinkServiceConnectionStatusDisconnected'
+	Status      PrivateLinkServiceConnectionStatus `json:"status,omitempty"`
+	Description *string                            `json:"description,omitempty"`
+	// ActionRequired - READ-ONLY
+	ActionRequired *string `json:"actionRequired,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateLinkServiceConnectionState.
+func (plscs PrivateLinkServiceConnectionState) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if plscs.Status != "" {
+		objectMap["status"] = plscs.Status
+	}
+	if plscs.Description != nil {
+		objectMap["description"] = plscs.Description
+	}
+	return json.Marshal(objectMap)
+}
+
 // ProxyResource a definition of an Azure resource.
 type ProxyResource struct {
 	// ID - READ-ONLY; The ID of the resource.
@@ -2359,6 +2930,14 @@ type ProxyResource struct {
 	Type *string `json:"type,omitempty"`
 	// Etag - READ-ONLY; The ETag of the resource, used for concurrency statements.
 	Etag *string `json:"etag,omitempty"`
+}
+
+// PublicIPAddressConfiguration the public IP Address configuration of the networking configuration of a Pool.
+type PublicIPAddressConfiguration struct {
+	// Provision - The default value is BatchManaged. Possible values include: 'BatchManaged', 'UserManaged', 'NoPublicIPAddresses'
+	Provision IPAddressProvisioningType `json:"provision,omitempty"`
+	// IPAddressIds - The number of IPs specified here limits the maximum size of the Pool - 50 dedicated nodes or 20 low-priority nodes can be allocated for each public IP. For example, a pool needing 150 dedicated VMs would need at least 3 public IPs specified. Each element of this collection is of the form: /subscriptions/{subscription}/resourceGroups/{group}/providers/Microsoft.Network/publicIPAddresses/{ip}.
+	IPAddressIds *[]string `json:"ipAddressIds,omitempty"`
 }
 
 // ResizeError ...
@@ -2502,6 +3081,8 @@ type VirtualMachineConfiguration struct {
 	LicenseType *string `json:"licenseType,omitempty"`
 	// ContainerConfiguration - If specified, setup is performed on each node in the pool to allow tasks to run in containers. All regular tasks and job manager tasks run on this pool must specify the containerSettings property, and all other tasks may specify it.
 	ContainerConfiguration *ContainerConfiguration `json:"containerConfiguration,omitempty"`
+	// DiskEncryptionConfiguration - If specified, encryption is performed on each node in the pool during node provisioning.
+	DiskEncryptionConfiguration *DiskEncryptionConfiguration `json:"diskEncryptionConfiguration,omitempty"`
 }
 
 // VirtualMachineFamilyCoreQuota a VM Family and its associated core quota for the Batch account.

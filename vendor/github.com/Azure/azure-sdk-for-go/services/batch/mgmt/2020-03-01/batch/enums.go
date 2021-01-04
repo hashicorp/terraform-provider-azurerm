@@ -214,6 +214,22 @@ func PossibleContainerWorkingDirectoryValues() []ContainerWorkingDirectory {
 	return []ContainerWorkingDirectory{ContainerImageDefault, TaskWorkingDirectory}
 }
 
+// DiskEncryptionTarget enumerates the values for disk encryption target.
+type DiskEncryptionTarget string
+
+const (
+	// OsDisk The OS Disk on the compute node is encrypted.
+	OsDisk DiskEncryptionTarget = "OsDisk"
+	// TemporaryDisk The temporary disk on the compute node is encrypted. On Linux this encryption applies to
+	// other partitions (such as those on mounted data disks) when encryption occurs at boot time.
+	TemporaryDisk DiskEncryptionTarget = "TemporaryDisk"
+)
+
+// PossibleDiskEncryptionTargetValues returns an array of possible values for the DiskEncryptionTarget const type.
+func PossibleDiskEncryptionTargetValues() []DiskEncryptionTarget {
+	return []DiskEncryptionTarget{OsDisk, TemporaryDisk}
+}
+
 // ElevationLevel enumerates the values for elevation level.
 type ElevationLevel string
 
@@ -257,6 +273,40 @@ const (
 // PossibleInterNodeCommunicationStateValues returns an array of possible values for the InterNodeCommunicationState const type.
 func PossibleInterNodeCommunicationStateValues() []InterNodeCommunicationState {
 	return []InterNodeCommunicationState{Disabled, Enabled}
+}
+
+// IPAddressProvisioningType enumerates the values for ip address provisioning type.
+type IPAddressProvisioningType string
+
+const (
+	// BatchManaged A public IP will be created and managed by Batch. There may be multiple public IPs
+	// depending on the size of the Pool.
+	BatchManaged IPAddressProvisioningType = "BatchManaged"
+	// NoPublicIPAddresses No public IP Address will be created for the Compute Nodes in the Pool.
+	NoPublicIPAddresses IPAddressProvisioningType = "NoPublicIPAddresses"
+	// UserManaged Public IPs are provided by the user and will be used to provision the Compute Nodes.
+	UserManaged IPAddressProvisioningType = "UserManaged"
+)
+
+// PossibleIPAddressProvisioningTypeValues returns an array of possible values for the IPAddressProvisioningType const type.
+func PossibleIPAddressProvisioningTypeValues() []IPAddressProvisioningType {
+	return []IPAddressProvisioningType{BatchManaged, NoPublicIPAddresses, UserManaged}
+}
+
+// KeySource enumerates the values for key source.
+type KeySource string
+
+const (
+	// MicrosoftBatch Batch creates and manages the encryption keys used to protect the account data.
+	MicrosoftBatch KeySource = "Microsoft.Batch"
+	// MicrosoftKeyVault The encryption keys used to protect the account data are stored in an external key
+	// vault.
+	MicrosoftKeyVault KeySource = "Microsoft.KeyVault"
+)
+
+// PossibleKeySourceValues returns an array of possible values for the KeySource const type.
+func PossibleKeySourceValues() []KeySource {
+	return []KeySource{MicrosoftBatch, MicrosoftKeyVault}
 }
 
 // LoginMode enumerates the values for login mode.
@@ -354,6 +404,51 @@ func PossiblePoolProvisioningStateValues() []PoolProvisioningState {
 	return []PoolProvisioningState{PoolProvisioningStateDeleting, PoolProvisioningStateSucceeded}
 }
 
+// PrivateEndpointConnectionProvisioningState enumerates the values for private endpoint connection
+// provisioning state.
+type PrivateEndpointConnectionProvisioningState string
+
+const (
+	// PrivateEndpointConnectionProvisioningStateFailed The user requested that the connection be updated and
+	// it failed. You may retry the update operation.
+	PrivateEndpointConnectionProvisioningStateFailed PrivateEndpointConnectionProvisioningState = "Failed"
+	// PrivateEndpointConnectionProvisioningStateSucceeded The connection status is final and is ready for use
+	// if Status is Approved.
+	PrivateEndpointConnectionProvisioningStateSucceeded PrivateEndpointConnectionProvisioningState = "Succeeded"
+	// PrivateEndpointConnectionProvisioningStateUpdating The user has requested that the connection status be
+	// updated, but the update operation has not yet completed. You may not reference the connection when
+	// connecting the Batch account.
+	PrivateEndpointConnectionProvisioningStateUpdating PrivateEndpointConnectionProvisioningState = "Updating"
+)
+
+// PossiblePrivateEndpointConnectionProvisioningStateValues returns an array of possible values for the PrivateEndpointConnectionProvisioningState const type.
+func PossiblePrivateEndpointConnectionProvisioningStateValues() []PrivateEndpointConnectionProvisioningState {
+	return []PrivateEndpointConnectionProvisioningState{PrivateEndpointConnectionProvisioningStateFailed, PrivateEndpointConnectionProvisioningStateSucceeded, PrivateEndpointConnectionProvisioningStateUpdating}
+}
+
+// PrivateLinkServiceConnectionStatus enumerates the values for private link service connection status.
+type PrivateLinkServiceConnectionStatus string
+
+const (
+	// PrivateLinkServiceConnectionStatusApproved The private endpoint connection is approved and can be used
+	// to access Batch account
+	PrivateLinkServiceConnectionStatusApproved PrivateLinkServiceConnectionStatus = "Approved"
+	// PrivateLinkServiceConnectionStatusDisconnected The private endpoint connection is disconnected and
+	// cannot be used to access Batch account
+	PrivateLinkServiceConnectionStatusDisconnected PrivateLinkServiceConnectionStatus = "Disconnected"
+	// PrivateLinkServiceConnectionStatusPending The private endpoint connection is pending and cannot be used
+	// to access Batch account
+	PrivateLinkServiceConnectionStatusPending PrivateLinkServiceConnectionStatus = "Pending"
+	// PrivateLinkServiceConnectionStatusRejected The private endpoint connection is rejected and cannot be
+	// used to access Batch account
+	PrivateLinkServiceConnectionStatusRejected PrivateLinkServiceConnectionStatus = "Rejected"
+)
+
+// PossiblePrivateLinkServiceConnectionStatusValues returns an array of possible values for the PrivateLinkServiceConnectionStatus const type.
+func PossiblePrivateLinkServiceConnectionStatusValues() []PrivateLinkServiceConnectionStatus {
+	return []PrivateLinkServiceConnectionStatus{PrivateLinkServiceConnectionStatusApproved, PrivateLinkServiceConnectionStatusDisconnected, PrivateLinkServiceConnectionStatusPending, PrivateLinkServiceConnectionStatusRejected}
+}
+
 // ProvisioningState enumerates the values for provisioning state.
 type ProvisioningState string
 
@@ -375,6 +470,22 @@ const (
 // PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
 func PossibleProvisioningStateValues() []ProvisioningState {
 	return []ProvisioningState{ProvisioningStateCancelled, ProvisioningStateCreating, ProvisioningStateDeleting, ProvisioningStateFailed, ProvisioningStateInvalid, ProvisioningStateSucceeded}
+}
+
+// PublicNetworkAccessType enumerates the values for public network access type.
+type PublicNetworkAccessType string
+
+const (
+	// PublicNetworkAccessTypeDisabled Disables public connectivity and enables private connectivity to Azure
+	// Batch Service through private endpoint resource.
+	PublicNetworkAccessTypeDisabled PublicNetworkAccessType = "Disabled"
+	// PublicNetworkAccessTypeEnabled Enables connectivity to Azure Batch through public DNS.
+	PublicNetworkAccessTypeEnabled PublicNetworkAccessType = "Enabled"
+)
+
+// PossiblePublicNetworkAccessTypeValues returns an array of possible values for the PublicNetworkAccessType const type.
+func PossiblePublicNetworkAccessTypeValues() []PublicNetworkAccessType {
+	return []PublicNetworkAccessType{PublicNetworkAccessTypeDisabled, PublicNetworkAccessTypeEnabled}
 }
 
 // StorageAccountType enumerates the values for storage account type.

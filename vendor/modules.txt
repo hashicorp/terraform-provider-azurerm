@@ -14,7 +14,7 @@ github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimana
 github.com/Azure/azure-sdk-for-go/services/appconfiguration/mgmt/2019-10-01/appconfiguration
 github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights
 github.com/Azure/azure-sdk-for-go/services/azurestackhci/mgmt/2020-10-01/azurestackhci
-github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2019-08-01/batch
+github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2020-03-01/batch
 github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn
 github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices
 github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute

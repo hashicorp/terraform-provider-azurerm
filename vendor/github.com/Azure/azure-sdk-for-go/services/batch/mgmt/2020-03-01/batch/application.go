@@ -63,7 +63,7 @@ func (client ApplicationClient) Create(ctx context.Context, resourceGroupName st
 		{TargetValue: accountName,
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 24, Chain: nil},
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil},
-				{Target: "accountName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}},
+				{Target: "accountName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]+$`, Chain: nil}}},
 		{TargetValue: applicationName,
 			Constraints: []validation.Constraint{{Target: "applicationName", Name: validation.MaxLength, Rule: 64, Chain: nil},
 				{Target: "applicationName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -101,7 +101,7 @@ func (client ApplicationClient) CreatePreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -157,7 +157,7 @@ func (client ApplicationClient) Delete(ctx context.Context, resourceGroupName st
 		{TargetValue: accountName,
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 24, Chain: nil},
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil},
-				{Target: "accountName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}},
+				{Target: "accountName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]+$`, Chain: nil}}},
 		{TargetValue: applicationName,
 			Constraints: []validation.Constraint{{Target: "applicationName", Name: validation.MaxLength, Rule: 64, Chain: nil},
 				{Target: "applicationName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -195,7 +195,7 @@ func (client ApplicationClient) DeletePreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -245,7 +245,7 @@ func (client ApplicationClient) Get(ctx context.Context, resourceGroupName strin
 		{TargetValue: accountName,
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 24, Chain: nil},
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil},
-				{Target: "accountName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}},
+				{Target: "accountName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]+$`, Chain: nil}}},
 		{TargetValue: applicationName,
 			Constraints: []validation.Constraint{{Target: "applicationName", Name: validation.MaxLength, Rule: 64, Chain: nil},
 				{Target: "applicationName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -283,7 +283,7 @@ func (client ApplicationClient) GetPreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -334,7 +334,7 @@ func (client ApplicationClient) List(ctx context.Context, resourceGroupName stri
 		{TargetValue: accountName,
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 24, Chain: nil},
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil},
-				{Target: "accountName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+				{Target: "accountName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("batch.ApplicationClient", "List", err.Error())
 	}
 
@@ -371,7 +371,7 @@ func (client ApplicationClient) ListPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -463,7 +463,7 @@ func (client ApplicationClient) Update(ctx context.Context, resourceGroupName st
 		{TargetValue: accountName,
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 24, Chain: nil},
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil},
-				{Target: "accountName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}},
+				{Target: "accountName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]+$`, Chain: nil}}},
 		{TargetValue: applicationName,
 			Constraints: []validation.Constraint{{Target: "applicationName", Name: validation.MaxLength, Rule: 64, Chain: nil},
 				{Target: "applicationName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -501,7 +501,7 @@ func (client ApplicationClient) UpdatePreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
