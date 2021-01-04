@@ -71,7 +71,7 @@ The following arguments are supported:
 
 * `managed_virtual_network_enabled` - (Optional) Is Virtual Network enabled for all computes in this workspace? Changing this forces a new resource to be created.
 
-* `workspace_identity_control_for_sql_enabled` - (Optional) Are pipelines (running as workspace's system assigned identity) allowed to access SQL pools?
+* `sql_identity_control_enabled` - (Optional) Are pipelines (running as workspace's system assigned identity) allowed to access SQL pools?
 
 * `managed_resource_group_name` - Workspace managed resource group.
 

@@ -146,7 +146,7 @@ func resourceSynapseWorkspace() *schema.Resource {
 				ValidateFunc: validate.ManagedResourceGroupName(),
 			},
 
-			"workspace_identity_control_for_sql_enabled": {
+			"sql_identity_control_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
@@ -217,7 +217,7 @@ func resourceSynapseWorkspaceCreate(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
-	sqlControlSettings := expandIdentityControlSQLSettings(d.Get("workspace_identity_control_for_sql_enabled").(bool))
+	sqlControlSettings := expandIdentityControlSQLSettings(d.Get("sql_identity_control_enabled").(bool))
 	_, err = identitySQLControlClient.CreateOrUpdate(ctx, resourceGroup, name, *sqlControlSettings)
 	if err != nil {
 		return fmt.Errorf("Granting workspace identity control for SQL pool: %+v", err)
@@ -290,8 +290,8 @@ func resourceSynapseWorkspaceRead(d *schema.ResourceData, meta interface{}) erro
 	if err := d.Set("aad_admin", flattenArmWorkspaceAadAdmin(aadAdmin.AadAdminProperties)); err != nil {
 		return fmt.Errorf("setting `aad_admin`: %+v", err)
 	}
-	if err := d.Set("workspace_identity_control_for_sql_enabled", flattenIdentityControlSQLSettings(sqlControlSettings)); err != nil {
-		return fmt.Errorf("setting `workspace_identity_control_for_sql_enabled`: %+v", err)
+	if err := d.Set("sql_identity_control_enabled", flattenIdentityControlSQLSettings(sqlControlSettings)); err != nil {
+		return fmt.Errorf("setting `sql_identity_control_enabled`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -352,8 +352,8 @@ func resourceSynapseWorkspaceUpdate(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
-	if d.HasChange("workspace_identity_control_for_sql_enabled") {
-		sqlControlSettings := expandIdentityControlSQLSettings(d.Get("workspace_identity_control_for_sql_enabled").(bool))
+	if d.HasChange("sql_identity_control_enabled") {
+		sqlControlSettings := expandIdentityControlSQLSettings(d.Get("sql_identity_control_enabled").(bool))
 		_, err = identitySQLControlClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *sqlControlSettings)
 		if err != nil {
 			return fmt.Errorf("Updating workspace identity control for SQL pool: %+v", err)
