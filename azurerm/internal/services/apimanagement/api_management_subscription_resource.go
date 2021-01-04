@@ -104,7 +104,6 @@ func resourceApiManagementSubscription() *schema.Resource {
 
 func resourceApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.SubscriptionsClient
-	azureSubscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -114,8 +113,6 @@ func resourceApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, meta 
 	if subscriptionId == "" {
 		subscriptionId = uuid.NewV4().String()
 	}
-
-	id := parse.NewSubscriptionID(azureSubscriptionId, resourceGroup, serviceName, subscriptionId)
 
 	if d.IsNewResource() {
 		resp, err := client.Get(ctx, resourceGroup, serviceName, subscriptionId)
@@ -160,12 +157,12 @@ func resourceApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, meta 
 		return fmt.Errorf("creating/updating Subscription %q (API Management Service %q / Resource Group %q): %+v", subscriptionId, serviceName, resourceGroup, err)
 	}
 
-	_, err = client.Get(ctx, resourceGroup, serviceName, subscriptionId)
+	resp, err := client.Get(ctx, resourceGroup, serviceName, subscriptionId)
 	if err != nil {
 		return fmt.Errorf("retrieving Subscription %q (API Management Service %q / Resource Group %q): %+v", subscriptionId, serviceName, resourceGroup, err)
 	}
 
-	d.SetId(id.ID())
+	d.SetId(*resp.ID)
 
 	return resourceApiManagementSubscriptionRead(d, meta)
 }

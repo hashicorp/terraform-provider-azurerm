@@ -96,7 +96,6 @@ func resourceApiManagementUser() *schema.Resource {
 
 func resourceApiManagementUserCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.UsersClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -112,7 +111,6 @@ func resourceApiManagementUserCreateUpdate(d *schema.ResourceData, meta interfac
 	state := d.Get("state").(string)
 	note := d.Get("note").(string)
 	password := d.Get("password").(string)
-	id := parse.NewUserID(subscriptionId, resourceGroup, serviceName, userId)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, userId)
@@ -154,11 +152,16 @@ func resourceApiManagementUserCreateUpdate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("creating/updating User %q (API Management Service %q / Resource Group %q): %+v", userId, serviceName, resourceGroup, err)
 	}
 
-	if _, err := client.Get(ctx, resourceGroup, serviceName, userId); err != nil {
+	resp, err := client.Get(ctx, resourceGroup, serviceName, userId)
+	if err != nil {
 		return fmt.Errorf("retrieving User %q (API Management Service %q / Resource Group %q): %+v", userId, serviceName, resourceGroup, err)
 	}
 
-	d.SetId(id.ID())
+	if resp.ID == nil {
+		return fmt.Errorf("Cannot read ID for User %q (API Management Service %q / Resource Group %q)", userId, serviceName, resourceGroup)
+	}
+
+	d.SetId(*resp.ID)
 
 	return resourceApiManagementUserRead(d, meta)
 }

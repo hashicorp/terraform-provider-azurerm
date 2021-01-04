@@ -63,14 +63,13 @@ func resourceApiManagementProductPolicy() *schema.Resource {
 
 func resourceApiManagementProductPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductPoliciesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	serviceName := d.Get("api_management_name").(string)
 	productID := d.Get("product_id").(string)
-	id := parse.NewProductPolicyID(subscriptionId, resourceGroup, serviceName, productID, apiManagementPolicyName)
+
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, productID, apimanagement.PolicyExportFormatXML)
 		if err != nil {
@@ -111,12 +110,14 @@ func resourceApiManagementProductPolicyCreateUpdate(d *schema.ResourceData, meta
 		return fmt.Errorf("creating or updating Product Policy (Resource Group %q / API Management Service %q / Product %q): %+v", resourceGroup, serviceName, productID, err)
 	}
 
-	_, err := client.Get(ctx, resourceGroup, serviceName, productID, apimanagement.PolicyExportFormatXML)
+	resp, err := client.Get(ctx, resourceGroup, serviceName, productID, apimanagement.PolicyExportFormatXML)
 	if err != nil {
 		return fmt.Errorf("retrieving Product Policy (Resource Group %q / API Management Service %q / Product %q): %+v", resourceGroup, serviceName, productID, err)
 	}
-
-	d.SetId(id.ID())
+	if resp.ID == nil {
+		return fmt.Errorf("Cannot read ID for Product Policy (Resource Group %q / API Management Service %q / Product %q): %+v", resourceGroup, serviceName, productID, err)
+	}
+	d.SetId(*resp.ID)
 
 	return resourceApiManagementProductPolicyRead(d, meta)
 }

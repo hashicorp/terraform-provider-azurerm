@@ -82,7 +82,6 @@ func resourceApiManagementProduct() *schema.Resource {
 
 func resourceApiManagementProductCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -91,7 +90,6 @@ func resourceApiManagementProductCreateUpdate(d *schema.ResourceData, meta inter
 	resourceGroup := d.Get("resource_group_name").(string)
 	serviceName := d.Get("api_management_name").(string)
 	productId := d.Get("product_id").(string)
-	id := parse.NewProductID(subscriptionId, resourceGroup, serviceName, productId)
 
 	displayName := d.Get("display_name").(string)
 	description := d.Get("description").(string)
@@ -141,11 +139,16 @@ func resourceApiManagementProductCreateUpdate(d *schema.ResourceData, meta inter
 		return fmt.Errorf("creating/updating Product %q (API Management Service %q / Resource Group %q): %+v", productId, serviceName, resourceGroup, err)
 	}
 
-	if _, err := client.Get(ctx, resourceGroup, serviceName, productId); err != nil {
+	resp, err := client.Get(ctx, resourceGroup, serviceName, productId)
+	if err != nil {
 		return fmt.Errorf("retrieving Product %q (API Management Service %q / Resource Group %q): %+v", productId, serviceName, resourceGroup, err)
 	}
 
-	d.SetId(id.ID())
+	if resp.ID == nil {
+		return fmt.Errorf("Cannot read ID for Product %q (API Management Service %q / Resource Group %q)", productId, serviceName, resourceGroup)
+	}
+
+	d.SetId(*resp.ID)
 
 	return resourceApiManagementProductRead(d, meta)
 }

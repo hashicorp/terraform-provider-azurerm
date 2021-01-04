@@ -45,7 +45,6 @@ func resourceApiManagementProductGroup() *schema.Resource {
 
 func resourceApiManagementProductGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductGroupsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -53,7 +52,6 @@ func resourceApiManagementProductGroupCreate(d *schema.ResourceData, meta interf
 	serviceName := d.Get("api_management_name").(string)
 	groupName := d.Get("group_name").(string)
 	productId := d.Get("product_id").(string)
-	id := parse.NewProductGroupID(subscriptionId, resourceGroup, serviceName, productId, groupName)
 
 	exists, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, productId, groupName)
 	if err != nil {
@@ -69,12 +67,12 @@ func resourceApiManagementProductGroupCreate(d *schema.ResourceData, meta interf
 		return tf.ImportAsExistsError("azurerm_api_management_product_group", resourceId)
 	}
 
-	_, err = client.CreateOrUpdate(ctx, resourceGroup, serviceName, productId, groupName)
+	resp, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, productId, groupName)
 	if err != nil {
 		return fmt.Errorf("adding Product %q to Group %q (API Management Service %q / Resource Group %q): %+v", productId, groupName, serviceName, resourceGroup, err)
 	}
 
-	d.SetId(id.ID())
+	d.SetId(*resp.ID)
 
 	return resourceApiManagementProductGroupRead(d, meta)
 }

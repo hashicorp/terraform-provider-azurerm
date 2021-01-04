@@ -85,14 +85,12 @@ func resourceApiManagementProperty() *schema.Resource {
 
 func resourceApiManagementPropertyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.NamedValueClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	serviceName := d.Get("api_management_name").(string)
-	id := parse.NewPropertyID(subscriptionId, resourceGroup, serviceName, name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, name)
@@ -128,12 +126,16 @@ func resourceApiManagementPropertyCreateUpdate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("waiting on creating/updating Property %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
 	}
 
-	_, err = client.Get(ctx, resourceGroup, serviceName, name)
+	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 	if err != nil {
 		return fmt.Errorf("retrieving Property %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
 	}
 
-	d.SetId(id.ID())
+	if resp.ID == nil {
+		return fmt.Errorf("Cannot read ID for Property %q (Resource Group %q / API Management Service %q)", name, resourceGroup, serviceName)
+	}
+
+	d.SetId(*resp.ID)
 
 	return resourceApiManagementPropertyRead(d, meta)
 }
