@@ -583,6 +583,10 @@ func ExpandBatchPoolNetworkConfiguration(list []interface{}) (*batch.NetworkConf
 
 	if v, ok := networkConfigValue["public_ips"]; ok {
 		publicIPsRaw := v.(*schema.Set).List()
+		if networkConfiguration.PublicIPAddressConfiguration == nil {
+			networkConfiguration.PublicIPAddressConfiguration = &batch.PublicIPAddressConfiguration{}
+		}
+
 		networkConfiguration.PublicIPAddressConfiguration.IPAddressIds = utils.ExpandStringSlice(publicIPsRaw)
 	}
 
