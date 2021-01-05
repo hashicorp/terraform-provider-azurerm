@@ -17,6 +17,7 @@ IMPROVEMENTS:
 * `azurerm_container_group` - support for the `volume.empty_dir` property [GH-9836]
 * `azurerm_data_factory_linked_service_azure_file_storage` - support for the `file_share` property [GH-9934]
 * `azurerm_dedicated_host` - support for addtional `sku_name` values [GH-9951]
+* `azurerm_devspace_controller` - deprecating since new DevSpace Controllers can no longer be provisioned, this will be removed in version 3.0 of the Azure Provider [GH-10049]
 * `azurerm_function_app` - make `pre_warmed_instance_count` computed to use azure's default [GH-9069]
 * `azurerm_hdinsight_hadoop_cluster` - allow the value `Standard_D4a_V4` for the `vm_type` property [GH-10000]
 * `azurerm_log_analytics_linked_service` - add validation for resource ID type [GH-9932]
