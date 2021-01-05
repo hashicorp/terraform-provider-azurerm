@@ -8,6 +8,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* dependencies: upgrading to `v0.15.1` of `github.com/tombuildsstuff/giovanni` [GH-10035]
 * Data Source: `azurerm_databricks_workspace` - support for the `tags` property [GH-9933]
 * `azurerm_batch_pool` support for the `public_address_provisioning_type` property [GH-10036]
 * `azurerm_api_management` - support `Consumption_0` for the `sku_name` property [GH-6868]
@@ -38,6 +39,7 @@ BUG FIXES:
 * `azurerm_cosmosdb_account` - always include `key_vault_id` in update requests for azure policy enginer compatibility [GH-9966]
 * `azurerm_cosmosdb_table` - do not call the throughput api when serverless [GH-9749]
 * `azurerm_storage_account` - allow hns when `account_tier` is `Premium` [GH-9548]
+* `azurerm_storage_share_file` - allowing files smaller than 4KB to be uploaded [GH-10035]
 
 ## 2.41.0 (December 17, 2020)
 
