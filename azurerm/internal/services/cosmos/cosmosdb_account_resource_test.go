@@ -1215,6 +1215,7 @@ resource "azurerm_key_vault" "test" {
       "create",
       "delete",
       "get",
+      "purge",
       "update",
     ]
 
