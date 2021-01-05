@@ -1214,12 +1214,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_cosmosdb_account" "test" {
-  name                          = "acctest-ca-%d"
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  offer_type                    = "Standard"
-  kind                          = "%s"
-  enable_analytical_storage     = true
+  name                      = "acctest-ca-%d"
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
+  offer_type                = "Standard"
+  kind                      = "%s"
+  enable_analytical_storage = true
 
   consistency_policy {
     consistency_level = "%s"
