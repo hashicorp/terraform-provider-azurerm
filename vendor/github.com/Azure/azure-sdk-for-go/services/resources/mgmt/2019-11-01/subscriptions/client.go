@@ -1,4 +1,4 @@
-// Package subscriptions implements the Azure ARM Subscriptions service API version 2018-06-01.
+// Package subscriptions implements the Azure ARM Subscriptions service API version 2019-11-01.
 //
 // All resource groups and resources exist within subscriptions. These operation enable you get information about your
 // subscriptions and tenants. A tenant is a dedicated instance of Azure Active Directory (Azure AD) for your
@@ -103,7 +103,7 @@ func (client BaseClient) CheckResourceName(ctx context.Context, resourceNameDefi
 
 // CheckResourceNamePreparer prepares the CheckResourceName request.
 func (client BaseClient) CheckResourceNamePreparer(ctx context.Context, resourceNameDefinition *ResourceName) (*http.Request, error) {
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2019-11-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
