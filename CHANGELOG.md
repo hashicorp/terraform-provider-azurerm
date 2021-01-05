@@ -8,7 +8,10 @@ FEATURES:
 
 IMPROVEMENTS:
 
+azurerm_hdinsight_kafka_cluster: support rest proxy #8064
+
 * dependencies: upgrading to `v0.15.1` of `github.com/tombuildsstuff/giovanni` [GH-10035]
+* Data Source: `azurerm_hdinsight_cluster` - support for the `kafka_rest_proxy_endpoint` property [GH-8064]
 * Data Source: `azurerm_databricks_workspace` - support for the `tags` property [GH-9933]
 * `azurerm_batch_pool` support for the `public_address_provisioning_type` property [GH-10036]
 * `azurerm_api_management` - support `Consumption_0` for the `sku_name` property [GH-6868]
@@ -20,6 +23,7 @@ IMPROVEMENTS:
 * `azurerm_devspace_controller` - deprecating since new DevSpace Controllers can no longer be provisioned, this will be removed in version 3.0 of the Azure Provider [GH-10049]
 * `azurerm_function_app` - make `pre_warmed_instance_count` computed to use azure's default [GH-9069]
 * `azurerm_hdinsight_hadoop_cluster` - allow the value `Standard_D4a_V4` for the `vm_type` property [GH-10000]
+* `azurerm_hdinsight_kafka_cluster` - support for the `rest_proxy` and `kafka_management_node` blocks [GH-8064]
 * `azurerm_log_analytics_linked_service` - add validation for resource ID type [GH-9932]
 * `azurerm_log_analytics_linked_service` - update validation to use generated validate functions [GH-9950]
 * `azurerm_monitor_diagnostic_setting` - validation that `eventhub_authorization_rule_id` is a EventHub Namespace Authorization Rule ID [GH-9914]
