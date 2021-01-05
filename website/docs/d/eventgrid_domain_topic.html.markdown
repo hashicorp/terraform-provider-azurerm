@@ -3,7 +3,7 @@ subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventgrid_domain_topic"
 description: |-
-Gets information about an existing EventGrid Domain Topic
+  Gets information about an existing EventGrid Domain Topic
 
 ---
 
