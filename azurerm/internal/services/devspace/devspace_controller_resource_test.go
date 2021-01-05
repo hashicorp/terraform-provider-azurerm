@@ -19,6 +19,8 @@ type DevSpaceControllerResource struct {
 }
 
 func TestAccDevSpaceController_basic(t *testing.T) {
+	t.Skip("A breaking API change has means new DevSpace Controllers cannot be provisioned, so skipping..")
+
 	data := acceptance.BuildTestData(t, "azurerm_devspace_controller", "test")
 	r := DevSpaceControllerResource{}
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -36,6 +38,8 @@ func TestAccDevSpaceController_basic(t *testing.T) {
 }
 
 func TestAccDevSpaceController_requiresImport(t *testing.T) {
+	t.Skip("A breaking API change has means new DevSpace Controllers cannot be provisioned, so skipping..")
+
 	data := acceptance.BuildTestData(t, "azurerm_devspace_controller", "test")
 	r := DevSpaceControllerResource{}
 	clientId := os.Getenv("ARM_CLIENT_ID")
