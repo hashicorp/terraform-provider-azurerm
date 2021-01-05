@@ -111,6 +111,13 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"enable_analytical_storage": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
+			},
+
 			"public_network_access_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -227,7 +234,6 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 								"mongoEnableDocLevelTTL",
 								"DisableRateLimitingResponses",
 								"AllowSelfServeUpgradeToMongo36",
-								"EnableAnalyticalStorage",
 							}, true),
 						},
 					},
@@ -386,6 +392,7 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 	enableFreeTier := d.Get("enable_free_tier").(bool)
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
 	enableMultipleWriteLocations := d.Get("enable_multiple_write_locations").(bool)
+	enableAnalyticalStorage := d.Get("enable_analytical_storage").(bool)
 
 	r, err := client.CheckNameExists(ctx, name)
 	if err != nil {
@@ -423,6 +430,7 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 			VirtualNetworkRules:           expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
 			EnableMultipleWriteLocations:  utils.Bool(enableMultipleWriteLocations),
 			PublicNetworkAccess:           publicNetworkAccess,
+			EnableAnalyticalStorage:       utils.Bool(enableAnalyticalStorage),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -481,6 +489,7 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 	enableFreeTier := d.Get("enable_free_tier").(bool)
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
 	enableMultipleWriteLocations := d.Get("enable_multiple_write_locations").(bool)
+	enableAnalyticalStorage := d.Get("enable_analytical_storage").(bool)
 
 	newLocations, err := expandAzureRmCosmosDBAccountGeoLocations(d)
 	if err != nil {
@@ -530,6 +539,7 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 			VirtualNetworkRules:           expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
 			EnableMultipleWriteLocations:  resp.EnableMultipleWriteLocations,
 			PublicNetworkAccess:           publicNetworkAccess,
+			EnableAnalyticalStorage:       utils.Bool(enableAnalyticalStorage),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -629,6 +639,7 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("endpoint", resp.DocumentEndpoint)
 
 	d.Set("enable_free_tier", resp.EnableFreeTier)
+	d.Set("enable_analytical_storage", resp.EnableAnalyticalStorage)
 	d.Set("public_network_access_enabled", resp.PublicNetworkAccess == documentdb.Enabled)
 
 	if v := resp.IsVirtualNetworkFilterEnabled; v != nil {
