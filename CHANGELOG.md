@@ -39,6 +39,7 @@ BUG FIXES:
 * `azurerm_cdn_endpoint` - changing many `delivery_rule` condition `match_values` to optional [GH-8850]
 * `azurerm_cosmosdb_account` - always include `key_vault_id` in update requests for azure policy enginer compatibility [GH-9966]
 * `azurerm_cosmosdb_table` - do not call the throughput api when serverless [GH-9749]
+* `azurerm_role_assignment` fix crash in retry logic [GH-10051]
 * `azurerm_storage_account` - allow hns when `account_tier` is `Premium` [GH-9548]
 * `azurerm_storage_share_file` - allowing files smaller than 4KB to be uploaded [GH-10035]
 
