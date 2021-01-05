@@ -103,13 +103,13 @@ https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"head_node": SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightRServerClusterHeadNodeDefinition),
+						"head_node": SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightRServerClusterHeadNodeDefinition, true),
 
-						"worker_node": SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightRServerClusterWorkerNodeDefinition),
+						"worker_node": SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightRServerClusterWorkerNodeDefinition, true),
 
-						"zookeeper_node": SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightRServerClusterZookeeperNodeDefinition),
+						"zookeeper_node": SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightRServerClusterZookeeperNodeDefinition, true),
 
-						"edge_node": SchemaHDInsightNodeDefinition("roles.0.edge_node", hdInsightRServerClusterEdgeNodeDefinition),
+						"edge_node": SchemaHDInsightNodeDefinition("roles.0.edge_node", hdInsightRServerClusterEdgeNodeDefinition, true),
 					},
 				},
 			},

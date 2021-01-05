@@ -80,6 +80,24 @@ func TestAccDataSourceHDInsightCluster_kafka(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceHDInsightCluster_kafkaWithRestProxy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_hdinsight_cluster", "test")
+	r := HDInsightClusterDataSourceResource{}
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.kafkaWithRestProxy(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("kind").HasValue("kafka"),
+				check.That(data.ResourceName).Key("tier").HasValue("standard"),
+				check.That(data.ResourceName).Key("edge_ssh_endpoint").HasValue(""),
+				check.That(data.ResourceName).Key("https_endpoint").Exists(),
+				check.That(data.ResourceName).Key("ssh_endpoint").Exists(),
+				check.That(data.ResourceName).Key("kafka_rest_proxy_endpoint").Exists(),
+			),
+		},
+	})
+}
+
 func TestAccDataSourceHDInsightCluster_mlServices(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_hdinsight_cluster", "test")
 	r := HDInsightClusterDataSourceResource{}
@@ -191,6 +209,17 @@ data "azurerm_hdinsight_cluster" "test" {
   resource_group_name = azurerm_hdinsight_kafka_cluster.test.resource_group_name
 }
 `, HDInsightKafkaClusterResource{}.basic(data))
+}
+
+func (HDInsightClusterDataSourceResource) kafkaWithRestProxy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_hdinsight_cluster" "test" {
+  name                = azurerm_hdinsight_kafka_cluster.test.name
+  resource_group_name = azurerm_hdinsight_kafka_cluster.test.resource_group_name
+}
+`, HDInsightKafkaClusterResource{}.restProxy(data))
 }
 
 func (HDInsightClusterDataSourceResource) mlServices(data acceptance.TestData) string {
