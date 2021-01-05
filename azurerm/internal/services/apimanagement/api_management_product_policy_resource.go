@@ -17,10 +17,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-const apiManagementPolicyName = "policy"
-
 func resourceApiManagementProductPolicy() *schema.Resource {
-
 	return &schema.Resource{
 		Create: resourceApiManagementProductPolicyCreateUpdate,
 		Read:   resourceApiManagementProductPolicyRead,
