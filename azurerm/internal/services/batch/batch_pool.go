@@ -626,13 +626,16 @@ func expandPoolEndpointConfiguration(list []interface{}) (*batch.PoolEndpointCon
 		backendPort := int32(inboundNatPool["backend_port"].(int))
 		frontendPortRange := inboundNatPool["frontend_port_range"].(string)
 		parts := strings.Split(frontendPortRange, "-")
-		frontendPortRangeStart, _ := strconv.Atoi(parts[0])
-		frontendPortRangeEnd, _ := strconv.Atoi(parts[1])
-
-		networkSecurityGroupRules, err := expandPoolNetworkSecurityGroupRule(inboundNatPool["network_security_group_rules"].([]interface{}))
+		frontendPortRangeStart, err := strconv.Atoi(parts[0])
 		if err != nil {
 			return nil, err
 		}
+		frontendPortRangeEnd, err := strconv.Atoi(parts[1])
+		if err != nil {
+			return nil, err
+		}
+
+		networkSecurityGroupRules := expandPoolNetworkSecurityGroupRule(inboundNatPool["network_security_group_rules"].([]interface{}))
 
 		inboundNatPools[i] = batch.InboundNatPool{
 			Name:                      &name,
@@ -649,28 +652,27 @@ func expandPoolEndpointConfiguration(list []interface{}) (*batch.PoolEndpointCon
 	}, nil
 }
 
-func expandPoolNetworkSecurityGroupRule(list []interface{}) ([]batch.NetworkSecurityGroupRule, error) {
+func expandPoolNetworkSecurityGroupRule(list []interface{}) []batch.NetworkSecurityGroupRule {
 	if len(list) == 0 {
-		return nil, nil
+		return []batch.NetworkSecurityGroupRule{}
 	}
 
-	networkSecurityGroupRule := make([]batch.NetworkSecurityGroupRule, len(list))
-
-	for i, groupRule := range list {
+	networkSecurityGroupRule := make([]batch.NetworkSecurityGroupRule, 0)
+	for _, groupRule := range list {
 		groupRuleMap := groupRule.(map[string]interface{})
 
 		priority := int32(groupRuleMap["priority"].(int))
 		sourceAddressPrefix := groupRuleMap["source_address_prefix"].(string)
 		access := batch.NetworkSecurityGroupRuleAccess(groupRuleMap["access"].(string))
 
-		networkSecurityGroupRule[i] = batch.NetworkSecurityGroupRule{
+		networkSecurityGroupRule = append(networkSecurityGroupRule, batch.NetworkSecurityGroupRule{
 			Priority:            &priority,
 			SourceAddressPrefix: &sourceAddressPrefix,
 			Access:              access,
-		}
+		})
 	}
 
-	return networkSecurityGroupRule, nil
+	return networkSecurityGroupRule
 }
 
 func flattenBatchPoolNetworkConfiguration(input *batch.NetworkConfiguration) []interface{} {
