@@ -15,6 +15,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+// temporarily works around the unused test, since the tests are skipped
+var _ interface{} = DevSpaceControllerResource{}
+var _ interface{} = DevSpaceControllerResource{}.basic(acceptance.TestData{}, "", "")
+var _ interface{} = DevSpaceControllerResource{}.requiresImport(acceptance.TestData{}, "", "")
+
 type DevSpaceControllerResource struct {
 }
 
