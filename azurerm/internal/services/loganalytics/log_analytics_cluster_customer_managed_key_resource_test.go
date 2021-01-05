@@ -91,8 +91,9 @@ resource "azurerm_key_vault_access_policy" "terraform" {
     "create",
     "delete",
     "get",
-    "update",
     "list",
+    "purge",
+    "update",
   ]
 
   secret_permissions = [
