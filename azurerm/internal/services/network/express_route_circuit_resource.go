@@ -59,25 +59,6 @@ func resourceArmExpressRouteCircuit() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"service_provider_name": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
-			},
-
-			"peering_location": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
-			},
-
-			"bandwidth_in_mbps": {
-				Type:     schema.TypeInt,
-				Required: true,
-			},
-
 			"sku": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -109,10 +90,46 @@ func resourceArmExpressRouteCircuit() *schema.Resource {
 				},
 			},
 
+			"peering_location": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
+				RequiredWith:     []string{"service_provider_name", "bandwidth_in_mbps"},
+			},
+
+			"service_provider_name": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
+				RequiredWith:     []string{"peering_location", "bandwidth_in_mbps"},
+			},
+
 			"allow_classic_operations": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false,
+			},
+
+			"bandwidth_in_gbps": {
+				Type:          schema.TypeFloat,
+				Optional:      true,
+				RequiredWith:  []string{"express_route_port_id"},
+				ConflictsWith: []string{"service_provider_name", "peering_location", "bandwidth_in_mbps"},
+			},
+
+			"bandwidth_in_mbps": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				RequiredWith: []string{"service_provider_name", "peering_location"},
+			},
+
+			"express_route_port_id": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				RequiredWith:  []string{"bandwidth_in_gbps"},
+				ConflictsWith: []string{"service_provider_name", "peering_location", "bandwidth_in_mbps"},
+				ValidateFunc:  azure.ValidateResourceID,
 			},
 
 			"service_provider_provisioning_state": {
@@ -158,11 +175,7 @@ func resourceArmExpressRouteCircuitCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	serviceProviderName := d.Get("service_provider_name").(string)
-	peeringLocation := d.Get("peering_location").(string)
-	bandwidthInMbps := int32(d.Get("bandwidth_in_mbps").(int))
 	sku := expandExpressRouteCircuitSku(d)
-	allowRdfeOps := d.Get("allow_classic_operations").(bool)
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
 
@@ -195,21 +208,49 @@ func resourceArmExpressRouteCircuitCreateUpdate(d *schema.ResourceData, meta int
 	erc.Sku = sku
 	erc.Tags = expandedTags
 
-	if erc.ExpressRouteCircuitPropertiesFormat != nil {
-		erc.ExpressRouteCircuitPropertiesFormat.AllowClassicOperations = &allowRdfeOps
-		if erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties != nil {
-			erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.ServiceProviderName = &serviceProviderName
-			erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.PeeringLocation = &peeringLocation
-			erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.BandwidthInMbps = &bandwidthInMbps
+	if erc.ExpressRouteCircuitPropertiesFormat == nil {
+		erc.ExpressRouteCircuitPropertiesFormat = &network.ExpressRouteCircuitPropertiesFormat{
+			ServiceProviderProperties: &network.ExpressRouteCircuitServiceProviderProperties{},
+		}
+	}
+
+	if v, ok := d.GetOk("service_provider_name"); ok {
+		erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.ServiceProviderName = utils.String(v.(string))
+	} else {
+		erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.ServiceProviderName = nil
+	}
+
+	if v, ok := d.GetOk("peering_location"); ok {
+		erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.PeeringLocation = utils.String(v.(string))
+	} else {
+		erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.PeeringLocation = nil
+	}
+
+	if v, ok := d.GetOk("bandwidth_in_mbps"); ok {
+		erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.BandwidthInMbps = utils.Int32(int32(v.(int)))
+	} else {
+		erc.ExpressRouteCircuitPropertiesFormat.ServiceProviderProperties.BandwidthInMbps = nil
+	}
+
+	if v, ok := d.GetOk("express_route_port_id"); ok {
+		erc.ExpressRouteCircuitPropertiesFormat.ExpressRoutePort = &network.SubResource{
+			ID: utils.String(v.(string)),
 		}
 	} else {
-		erc.ExpressRouteCircuitPropertiesFormat = &network.ExpressRouteCircuitPropertiesFormat{
-			AllowClassicOperations: &allowRdfeOps,
-			ServiceProviderProperties: &network.ExpressRouteCircuitServiceProviderProperties{
-				ServiceProviderName: &serviceProviderName,
-				PeeringLocation:     &peeringLocation,
-				BandwidthInMbps:     &bandwidthInMbps,
-			},
+		erc.ExpressRouteCircuitPropertiesFormat.ExpressRoutePort = nil
+	}
+
+	if v, ok := d.GetOk("bandwidth_in_gbps"); ok {
+		erc.ExpressRouteCircuitPropertiesFormat.BandwidthInGbps = utils.Float(v.(float64))
+	} else {
+		erc.ExpressRouteCircuitPropertiesFormat.BandwidthInGbps = nil
+	}
+
+	if v, ok := d.GetOk("allow_classic_operations"); ok {
+		if erc.ExpressRouteCircuitPropertiesFormat.ExpressRoutePort == nil {
+			erc.ExpressRouteCircuitPropertiesFormat.AllowClassicOperations = utils.Bool(v.(bool))
+		} else if ok {
+			return fmt.Errorf("`allow_classic_operations` shouldn't be set while using the Express Route Port")
 		}
 	}
 
@@ -287,10 +328,24 @@ func resourceArmExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}
 		}
 	}
 
+	if resp.BandwidthInGbps != nil {
+		d.Set("bandwidth_in_gbps", resp.BandwidthInGbps)
+	}
+
+	if resp.ExpressRoutePort != nil {
+		d.Set("express_route_port_id", resp.ExpressRoutePort.ID)
+	}
+
 	if props := resp.ServiceProviderProperties; props != nil {
-		d.Set("service_provider_name", props.ServiceProviderName)
-		d.Set("peering_location", props.PeeringLocation)
-		d.Set("bandwidth_in_mbps", props.BandwidthInMbps)
+		if props.ServiceProviderName != nil {
+			d.Set("service_provider_name", props.ServiceProviderName)
+		}
+		if props.PeeringLocation != nil {
+			d.Set("peering_location", props.PeeringLocation)
+		}
+		if props.BandwidthInMbps != nil {
+			d.Set("bandwidth_in_mbps", props.BandwidthInMbps)
+		}
 	}
 
 	d.Set("service_provider_provisioning_state", string(resp.ServiceProviderProvisioningState))

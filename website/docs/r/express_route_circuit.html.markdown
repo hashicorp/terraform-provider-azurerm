@@ -47,17 +47,27 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `service_provider_name` - (Required) The name of the ExpressRoute Service Provider.
+* `sku` - (Required) A `sku` block for the ExpressRoute circuit as documented below.
 
-* `peering_location` - (Required) The name of the peering location and **not** the Azure resource location.
+* `service_provider_name` - (Optional) The name of the ExpressRoute Service Provider.
 
-* `bandwidth_in_mbps` - (Required) The bandwidth in Mbps of the circuit being created.
+* `peering_location` - (Optional) The name of the peering location and **not** the Azure resource location.
+
+* `bandwidth_in_mbps` - (Optional) The bandwidth in Mbps of the circuit being created on the Service Provider.
 
 ~> **NOTE:** Once you increase your bandwidth, you will not be able to decrease it to its previous value.
 
-* `sku` - (Required) A `sku` block for the ExpressRoute circuit as documented below.
+~> **NOTE:** The `service_provider_name`, the `peering_location` and the `bandwidth_in_mbps` should be set together and they conflict with `express_route_port_id` and `bandwidth_in_gbps`.
 
-* `allow_classic_operations` - (Optional) Allow the circuit to interact with classic (RDFE) resources. The default value is `false`.
+* `allow_classic_operations` - (Optional) Allow the circuit to interact with classic (RDFE) resources.
+
+~> **NOTE:** The `allow_classic_operations` cannot be set while using the Express Route Port.
+
+* `express_route_port_id` - (Optional) The ID of the Express Route Port which this circuit should be based on.
+
+* `bandwidth_in_gbps` - (Optional) The bandwidth in Gbps of the circuit being created on the Express Route Port.
+
+~> **NOTE:** The `express_route_port_id` and the `bandwidth_in_gbps` should be set together and they conflict with `service_provider_name`, `peering_location` and `bandwidth_in_mbps`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -80,8 +90,6 @@ The following attributes are exported:
 * `service_key` - The string needed by the service provider to provision the ExpressRoute circuit.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
