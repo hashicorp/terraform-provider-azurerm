@@ -1205,8 +1205,8 @@ type DeploymentConfiguration struct {
 }
 
 // DiskEncryptionConfiguration the disk encryption configuration applied on compute nodes in the pool. Disk
-// encryption configuration is not supported on Linux pool created with Virtual Machine Image or Shared Image
-// Gallery Image.
+// encryption configuration is not supported on Linux pool created with Virtual Machine Image or Shared
+// Image Gallery Image.
 type DiskEncryptionConfiguration struct {
 	// Targets - On Linux pool, only "TemporaryDisk" is supported; on Windows pool, "OsDisk" and "TemporaryDisk" must be specified.
 	Targets *[]DiskEncryptionTarget `json:"targets,omitempty"`
@@ -2082,8 +2082,11 @@ func (page ListPrivateEndpointConnectionsResultPage) Values() []PrivateEndpointC
 }
 
 // Creates a new instance of the ListPrivateEndpointConnectionsResultPage type.
-func NewListPrivateEndpointConnectionsResultPage(getNextPage func(context.Context, ListPrivateEndpointConnectionsResult) (ListPrivateEndpointConnectionsResult, error)) ListPrivateEndpointConnectionsResultPage {
-	return ListPrivateEndpointConnectionsResultPage{fn: getNextPage}
+func NewListPrivateEndpointConnectionsResultPage(cur ListPrivateEndpointConnectionsResult, getNextPage func(context.Context, ListPrivateEndpointConnectionsResult) (ListPrivateEndpointConnectionsResult, error)) ListPrivateEndpointConnectionsResultPage {
+	return ListPrivateEndpointConnectionsResultPage{
+		fn:    getNextPage,
+		lpecr: cur,
+	}
 }
 
 // ListPrivateLinkResourcesResult values returned by the List operation.
@@ -2095,7 +2098,8 @@ type ListPrivateLinkResourcesResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// ListPrivateLinkResourcesResultIterator provides access to a complete listing of PrivateLinkResource values.
+// ListPrivateLinkResourcesResultIterator provides access to a complete listing of PrivateLinkResource
+// values.
 type ListPrivateLinkResourcesResultIterator struct {
 	i    int
 	page ListPrivateLinkResourcesResultPage
@@ -2238,8 +2242,11 @@ func (page ListPrivateLinkResourcesResultPage) Values() []PrivateLinkResource {
 }
 
 // Creates a new instance of the ListPrivateLinkResourcesResultPage type.
-func NewListPrivateLinkResourcesResultPage(getNextPage func(context.Context, ListPrivateLinkResourcesResult) (ListPrivateLinkResourcesResult, error)) ListPrivateLinkResourcesResultPage {
-	return ListPrivateLinkResourcesResultPage{fn: getNextPage}
+func NewListPrivateLinkResourcesResultPage(cur ListPrivateLinkResourcesResult, getNextPage func(context.Context, ListPrivateLinkResourcesResult) (ListPrivateLinkResourcesResult, error)) ListPrivateLinkResourcesResultPage {
+	return ListPrivateLinkResourcesResultPage{
+		fn:    getNextPage,
+		lplrr: cur,
+	}
 }
 
 // LocationQuota quotas associated with a Batch region for a particular subscription.
@@ -2954,7 +2961,8 @@ type ProxyResource struct {
 	Etag *string `json:"etag,omitempty"`
 }
 
-// PublicIPAddressConfiguration the public IP Address configuration of the networking configuration of a Pool.
+// PublicIPAddressConfiguration the public IP Address configuration of the networking configuration of a
+// Pool.
 type PublicIPAddressConfiguration struct {
 	// Provision - The default value is BatchManaged. Possible values include: 'BatchManaged', 'UserManaged', 'NoPublicIPAddresses'
 	Provision IPAddressProvisioningType `json:"provision,omitempty"`
