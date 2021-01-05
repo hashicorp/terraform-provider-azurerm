@@ -2769,8 +2769,8 @@ resource "azurerm_app_service" "test" {
 
     ip_restriction {
       service_tag = "AzureEventGrid"
-      name       = "test-restriction-4"
-      action     = "Allow"
+      name        = "test-restriction-4"
+      action      = "Allow"
     }
   }
 }
