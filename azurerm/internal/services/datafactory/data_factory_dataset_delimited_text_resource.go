@@ -371,16 +371,16 @@ func resourceArmDataFactoryDatasetDelimitedTextRead(d *schema.ResourceData, meta
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): %s", id.Name, id.FactoryName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("data_factory_name", dataFactoryName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("data_factory_name", id.FactoryName)
 
 	delimited_textTable, ok := resp.Properties.AsDelimitedTextDataset()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeRelationalTable, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeRelationalTable, *resp.Type)
 	}
 
 	d.Set("additional_properties", delimited_textTable.AdditionalProperties)
@@ -498,7 +498,7 @@ func resourceArmDataFactoryDatasetDelimitedTextDelete(d *schema.ResourceData, me
 	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("Error deleting Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+			return fmt.Errorf("Error deleting Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): %s", id.Name, id.FactoryName, id.ResourceGroup, err)
 		}
 	}
 
