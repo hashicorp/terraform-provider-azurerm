@@ -43,8 +43,6 @@ The following arguments are supported:
 
 * `implementation_effort` - (Optional) The implementation effort which is used to remediate this assessment. Possible values are `Low`, `Moderate` and `High`.
 
-* `partner_data` - (Optional)  A `partner_data` block as defined below.
-
 * `preview` - (Optional) Is this assessment in preview release status?
 
 * `remediation_description` - (Optional) The description which is used to mitigate this security issue.
@@ -52,18 +50,6 @@ The following arguments are supported:
 * `threats` - (Optional) A list of the threat impacts for the Security Center Assessment. Possible values are `AccountBreach`, `DataExfiltration`, `DataSpillage`, `DenialOfService`, `ElevationOfPrivilege`, `MaliciousInsider`, `MissingCoverage` and `ThreatResistance`.
 
 * `user_impact` - (Optional) The user impact of the Security Center Assessment. Possible values are `Low`, `Moderate` and `High`.
-
----
-
-An `partner_data` block exports the following:
-
-* `partner_name` - (Required) The name of the company of the partner.
-
-* `secret` - (Required) The secret which is used to authenticate the partner and verify if it created the Security Center Assessment with write-only.
-
----
-
-* `product_name` - (Optional) The name of the product of the partner that created the Security Center Assessment.
 
 ## Attributes Reference
 

@@ -108,30 +108,6 @@ func resourceArmSecurityCenterAssessmentMetadata() *schema.Resource {
 				Optional: true,
 			},
 
-			"partner_data": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"partner_name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-
-						"secret": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-
-						"product_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-					},
-				},
-			},
-
 			"remediation_description": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -233,10 +209,6 @@ func resourceArmSecurityCenterAssessmentMetadataCreateUpdate(d *schema.ResourceD
 		params.AssessmentMetadataProperties.UserImpact = security.UserImpact(v.(string))
 	}
 
-	if v, ok := d.GetOk("partner_data"); ok {
-		params.AssessmentMetadataProperties.PartnerData = expandSecurityCenterAssessmentMetadataPartnerData(v.([]interface{}))
-	}
-
 	if _, err := client.CreateInSubscription(ctx, name, params); err != nil {
 		return fmt.Errorf("creating/updating Security Center Assessment Metadata %q : %+v", name, err)
 	}
@@ -273,7 +245,6 @@ func resourceArmSecurityCenterAssessmentMetadataRead(d *schema.ResourceData, met
 		d.Set("description", props.Description)
 		d.Set("display_name", props.DisplayName)
 		d.Set("severity", props.Severity)
-
 		d.Set("implementation_effort", props.ImplementationEffort)
 		d.Set("is_preview", props.Preview)
 		d.Set("remediation_description", props.RemediationDescription)
@@ -294,10 +265,6 @@ func resourceArmSecurityCenterAssessmentMetadataRead(d *schema.ResourceData, met
 			}
 		}
 		d.Set("threats", utils.FlattenStringSlice(&threats))
-
-		if err := d.Set("partner_data", flattenSecurityCenterAssessmentMetadataPartnerData(props.PartnerData)); err != nil {
-			return fmt.Errorf("setting `partner_data`: %+v", err)
-		}
 	}
 
 	return nil
@@ -318,47 +285,4 @@ func resourceArmSecurityCenterAssessmentMetadataDelete(d *schema.ResourceData, m
 	}
 
 	return nil
-}
-
-func expandSecurityCenterAssessmentMetadataPartnerData(input []interface{}) *security.AssessmentMetadataPartnerData {
-	if len(input) == 0 {
-		return nil
-	}
-
-	v := input[0].(map[string]interface{})
-
-	return &security.AssessmentMetadataPartnerData{
-		PartnerName: utils.String(v["partner_name"].(string)),
-		ProductName: utils.String(v["product_name"].(string)),
-		Secret:      utils.String(v["secret"].(string)),
-	}
-}
-
-func flattenSecurityCenterAssessmentMetadataPartnerData(input *security.AssessmentMetadataPartnerData) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	var partnerName string
-	if input.PartnerName != nil {
-		partnerName = *input.PartnerName
-	}
-
-	var secret string
-	if input.Secret != nil {
-		secret = *input.Secret
-	}
-
-	var productName string
-	if input.ProductName != nil {
-		productName = *input.ProductName
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"partner_name": partnerName,
-			"secret":       secret,
-			"product_name": productName,
-		},
-	}
 }
