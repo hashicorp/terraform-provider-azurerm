@@ -98,8 +98,7 @@ data "azurerm_advisor_recommendations" "test" {
 }
 
 func (AdvisorRecommendationsDataSourceTests) categoriesFilterConfig() string {
-	return `
-provider "azurerm" {
+	return `provider "azurerm" {
   features {}
 }
 
