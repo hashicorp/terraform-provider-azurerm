@@ -299,7 +299,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
 
-  sku_name = "premium"
+  sku_name = "standard"
 
   tags = {
     environment = "Production"
