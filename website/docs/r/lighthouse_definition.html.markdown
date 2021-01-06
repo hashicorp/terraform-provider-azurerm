@@ -9,7 +9,7 @@ description: |-
 
 # azurerm_lighthouse_definition
 
-Manages a Lighthouse Definition.
+Manages a [Lighthouse](https://docs.microsoft.com/en-us/azure/lighthouse) Definition.
 
 ## Example Usage
 

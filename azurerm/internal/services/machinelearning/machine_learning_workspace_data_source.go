@@ -13,7 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmMachineLearningWorkspace() *schema.Resource {
+func dataSourceMachineLearningWorkspace() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmAMLWorkspaceRead,
 		Timeouts: &schema.ResourceTimeout{
@@ -30,6 +30,29 @@ func dataSourceArmMachineLearningWorkspace() *schema.Resource {
 			"location": azure.SchemaLocationForDataSource(),
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+
+			"identity": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 
 			"tags": tags.SchemaDataSource(),
 		},
@@ -58,6 +81,10 @@ func dataSourceArmAMLWorkspaceRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
+
+	if err := d.Set("identity", flattenMachineLearningWorkspaceIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

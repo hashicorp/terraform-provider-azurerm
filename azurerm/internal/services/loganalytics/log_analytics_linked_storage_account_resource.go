@@ -6,7 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2020-03-01-preview/operationalinsights"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
+
+	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -14,17 +16,16 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLogAnalyticsLinkedStorageAccount() *schema.Resource {
+func resourceLogAnalyticsLinkedStorageAccount() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogAnalyticsLinkedStorageAccountCreateUpdate,
-		Read:   resourceArmLogAnalyticsLinkedStorageAccountRead,
-		Update: resourceArmLogAnalyticsLinkedStorageAccountCreateUpdate,
-		Delete: resourceArmLogAnalyticsLinkedStorageAccountDelete,
+		Create: resourceLogAnalyticsLinkedStorageAccountCreateUpdate,
+		Read:   resourceLogAnalyticsLinkedStorageAccountRead,
+		Update: resourceLogAnalyticsLinkedStorageAccountCreateUpdate,
+		Delete: resourceLogAnalyticsLinkedStorageAccountDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -47,8 +48,9 @@ func resourceArmLogAnalyticsLinkedStorageAccount() *schema.Resource {
 					strings.ToLower(string(operationalinsights.CustomLogs)),
 					strings.ToLower(string(operationalinsights.AzureWatson)),
 					strings.ToLower(string(operationalinsights.Query)),
-					strings.ToLower(string(operationalinsights.Ingestion)),
 					strings.ToLower(string(operationalinsights.Alerts)),
+					// Value removed from enum in 2020-08-01, but effectively still works
+					"Ingestion",
 				}, false),
 			},
 
@@ -58,9 +60,7 @@ func resourceArmLogAnalyticsLinkedStorageAccount() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
-				// https://github.com/Azure/azure-rest-api-specs/issues/9633
-				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc: validate.LogAnalyticsWorkspaceID,
 			},
 
 			"storage_account_ids": {
@@ -76,7 +76,7 @@ func resourceArmLogAnalyticsLinkedStorageAccount() *schema.Resource {
 	}
 }
 
-func resourceArmLogAnalyticsLinkedStorageAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsLinkedStorageAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.LinkedStorageAccountClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -89,10 +89,10 @@ func resourceArmLogAnalyticsLinkedStorageAccountCreateUpdate(d *schema.ResourceD
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, workspace.Name, dataSourceType)
+		existing, err := client.Get(ctx, resourceGroup, workspace.WorkspaceName, dataSourceType)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing Log Analytics Linked Storage Account %q (Resource Group %q / workspaceName %q): %+v", dataSourceType, resourceGroup, workspace.Name, err)
+				return fmt.Errorf("checking for present of existing Log Analytics Linked Storage Account %q (Resource Group %q / workspaceName %q): %+v", dataSourceType, resourceGroup, workspace.WorkspaceName, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -105,24 +105,24 @@ func resourceArmLogAnalyticsLinkedStorageAccountCreateUpdate(d *schema.ResourceD
 			StorageAccountIds: utils.ExpandStringSlice(d.Get("storage_account_ids").(*schema.Set).List()),
 		},
 	}
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, workspace.Name, dataSourceType, parameters); err != nil {
-		return fmt.Errorf("creating/updating Log Analytics Linked Storage Account %q (Resource Group %q / workspaceName %q): %+v", dataSourceType, resourceGroup, workspace.Name, err)
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, workspace.WorkspaceName, dataSourceType, parameters); err != nil {
+		return fmt.Errorf("creating/updating Log Analytics Linked Storage Account %q (Resource Group %q / workspaceName %q): %+v", dataSourceType, resourceGroup, workspace.WorkspaceName, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, workspace.Name, dataSourceType)
+	resp, err := client.Get(ctx, resourceGroup, workspace.WorkspaceName, dataSourceType)
 	if err != nil {
-		return fmt.Errorf("retrieving Log Analytics Linked Storage Account %q (Resource Group %q / workspaceName %q): %+v", dataSourceType, resourceGroup, workspace.Name, err)
+		return fmt.Errorf("retrieving Log Analytics Linked Storage Account %q (Resource Group %q / workspaceName %q): %+v", dataSourceType, resourceGroup, workspace.WorkspaceName, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Log Analytics Linked Storage Account %q (Resource Group %q / workspaceName %q) ID", dataSourceType, resourceGroup, workspace.Name)
+		return fmt.Errorf("empty or nil ID returned for Log Analytics Linked Storage Account %q (Resource Group %q / workspaceName %q) ID", dataSourceType, resourceGroup, workspace.WorkspaceName)
 	}
 
 	d.SetId(*resp.ID)
-	return resourceArmLogAnalyticsLinkedStorageAccountRead(d, meta)
+	return resourceLogAnalyticsLinkedStorageAccountRead(d, meta)
 }
 
-func resourceArmLogAnalyticsLinkedStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsLinkedStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.LinkedStorageAccountClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -132,7 +132,7 @@ func resourceArmLogAnalyticsLinkedStorageAccountRead(d *schema.ResourceData, met
 		return err
 	}
 
-	dataSourceType := operationalinsights.DataSourceType(id.Name)
+	dataSourceType := operationalinsights.DataSourceType(id.LinkedStorageAccountName)
 	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, dataSourceType)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -140,12 +140,12 @@ func resourceArmLogAnalyticsLinkedStorageAccountRead(d *schema.ResourceData, met
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Log Analytics Linked Storage Account %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.ResourceGroup, id.WorkspaceName, err)
+		return fmt.Errorf("retrieving Log Analytics Linked Storage Account %q (Resource Group %q / workspaceName %q): %+v", id.LinkedStorageAccountName, id.ResourceGroup, id.WorkspaceName, err)
 	}
 
-	d.Set("data_source_type", *resp.Name)
+	d.Set("data_source_type", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("workspace_resource_id", id.WorkspaceID)
+	d.Set("workspace_resource_id", parse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID())
 	if props := resp.LinkedStorageAccountsProperties; props != nil {
 		d.Set("storage_account_ids", utils.FlattenStringSlice(props.StorageAccountIds))
 	}
@@ -153,7 +153,7 @@ func resourceArmLogAnalyticsLinkedStorageAccountRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceArmLogAnalyticsLinkedStorageAccountDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsLinkedStorageAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.LinkedStorageAccountClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -163,9 +163,9 @@ func resourceArmLogAnalyticsLinkedStorageAccountDelete(d *schema.ResourceData, m
 		return err
 	}
 
-	dataSourceType := operationalinsights.DataSourceType(id.Name)
+	dataSourceType := operationalinsights.DataSourceType(id.LinkedStorageAccountName)
 	if _, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, dataSourceType); err != nil {
-		return fmt.Errorf("deleting Log Analytics Linked Storage Account %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.ResourceGroup, id.WorkspaceName, err)
+		return fmt.Errorf("deleting Log Analytics Linked Storage Account %q (Resource Group %q / workspaceName %q): %+v", id.LinkedStorageAccountName, id.ResourceGroup, id.WorkspaceName, err)
 	}
 	return nil
 }

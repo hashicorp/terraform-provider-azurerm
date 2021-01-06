@@ -6,16 +6,15 @@ import (
 	"time"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-func dataSourceArmSubscriptions() *schema.Resource {
+func dataSourceSubscriptions() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmSubscriptionsRead,
+		Read: dataSourceSubscriptionsRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -78,10 +77,9 @@ func dataSourceArmSubscriptions() *schema.Resource {
 	}
 }
 
-func dataSourceArmSubscriptionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceSubscriptionsRead(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*clients.Client)
 	subClient := armClient.Subscription.Client
-	tagsClient := armClient.Subscription.TagsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -142,20 +140,7 @@ func dataSourceArmSubscriptionsRead(d *schema.ResourceData, meta interface{}) er
 			}
 		}
 
-		if subscriptionId := val.SubscriptionID; subscriptionId != nil {
-			subscriptionId := *subscriptionId
-			tagsResp, err := tagsClient.GetAtScope(ctx, "subscriptions/"+subscriptionId)
-			if err != nil {
-				if utils.ResponseWasNotFound(tagsResp.Response) {
-					return fmt.Errorf("Error: default tags for Subscription %q was not found", subscriptionId)
-				}
-				return fmt.Errorf("Error reading default tags for Subscription: %+v", err)
-			}
-			if tagsResp.Properties == nil {
-				return fmt.Errorf("nil tags properties of Subscription %q", subscriptionId)
-			}
-			s["tags"] = tags.Flatten(tagsResp.Properties.Tags)
-		}
+		s["tags"] = tags.Flatten(val.Tags)
 
 		subscriptions = append(subscriptions, s)
 	}

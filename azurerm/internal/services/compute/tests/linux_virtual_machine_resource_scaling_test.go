@@ -66,6 +66,46 @@ func TestAccLinuxVirtualMachine_scalingDedicatedHost(t *testing.T) {
 	})
 }
 
+func TestAccLinuxVirtualMachine_scalingDedicatedHostUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testLinuxVirtualMachine_scalingDedicatedHostInitial(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkLinuxVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testLinuxVirtualMachine_scalingDedicatedHost(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkLinuxVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testLinuxVirtualMachine_scalingDedicatedHostUpdate(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkLinuxVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testLinuxVirtualMachine_scalingDedicatedHostRemoved(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkLinuxVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccLinuxVirtualMachine_scalingProximityPlacementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
@@ -220,6 +260,48 @@ resource "azurerm_linux_virtual_machine" "test" {
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
+func testLinuxVirtualMachine_scalingDedicatedHostInitial(data acceptance.TestData) string {
+	template := testLinuxVirtualMachine_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_dedicated_host_group" "test" {
+  name                        = "acctestDHG-%d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  platform_fault_domain_count = 2
+}
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_D2s_v3" # NOTE: SKU's are limited by the Dedicated Host
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
 func testLinuxVirtualMachine_scalingDedicatedHost(data acceptance.TestData) string {
 	template := testLinuxVirtualMachine_template(data)
 	return fmt.Sprintf(`
@@ -247,6 +329,115 @@ resource "azurerm_linux_virtual_machine" "test" {
   size                = "Standard_D2s_v3" # NOTE: SKU's are limited by the Dedicated Host
   admin_username      = "adminuser"
   dedicated_host_id   = azurerm_dedicated_host.test.id
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testLinuxVirtualMachine_scalingDedicatedHostUpdate(data acceptance.TestData) string {
+	template := testLinuxVirtualMachine_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_dedicated_host_group" "test" {
+  name                        = "acctestDHG-%d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  platform_fault_domain_count = 2
+}
+
+resource "azurerm_dedicated_host" "test" {
+  name                    = "acctestDH-%d"
+  dedicated_host_group_id = azurerm_dedicated_host_group.test.id
+  location                = azurerm_resource_group.test.location
+  sku_name                = "DSv3-Type1"
+  platform_fault_domain   = 1
+}
+
+resource "azurerm_dedicated_host" "second" {
+  name                    = "acctestDH2-%d"
+  dedicated_host_group_id = azurerm_dedicated_host_group.test.id
+  location                = azurerm_resource_group.test.location
+  sku_name                = "DSv3-Type1"
+  platform_fault_domain   = 1
+}
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_D2s_v3" # NOTE: SKU's are limited by the Dedicated Host
+  admin_username      = "adminuser"
+  dedicated_host_id   = azurerm_dedicated_host.second.id
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testLinuxVirtualMachine_scalingDedicatedHostRemoved(data acceptance.TestData) string {
+	template := testLinuxVirtualMachine_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_dedicated_host_group" "test" {
+  name                        = "acctestDHG-%d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  platform_fault_domain_count = 2
+}
+
+resource "azurerm_dedicated_host" "second" {
+  name                    = "acctestDH2-%d"
+  dedicated_host_group_id = azurerm_dedicated_host_group.test.id
+  location                = azurerm_resource_group.test.location
+  sku_name                = "DSv3-Type1"
+  platform_fault_domain   = 1
+}
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_D2s_v3" # NOTE: SKU's are limited by the Dedicated Host
+  admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]

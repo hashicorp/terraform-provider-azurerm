@@ -15,9 +15,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmKeyVault() *schema.Resource {
+func dataSourceKeyVault() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmKeyVaultRead,
+		Read: dataSourceKeyVaultRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -157,7 +157,7 @@ func dataSourceArmKeyVault() *schema.Resource {
 	}
 }
 
-func dataSourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

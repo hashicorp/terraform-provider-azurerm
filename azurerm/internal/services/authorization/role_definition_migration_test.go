@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestAzureRMRoleDefinitionMigrateState(t *testing.T) {
+func TestRoleDefinitionMigrateState(t *testing.T) {
 	cases := map[string]struct {
 		StateVersion    int
 		InputAttributes map[string]interface{}

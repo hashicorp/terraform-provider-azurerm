@@ -8,9 +8,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 )
 
 func testAccAzureRMNetworkConnectionMonitor_addressBasic(t *testing.T) {
@@ -25,10 +25,6 @@ func testAccAzureRMNetworkConnectionMonitor_addressBasic(t *testing.T) {
 				Config: testAccAzureRMNetworkConnectionMonitor_basicAddressConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkConnectionMonitorExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttr(data.ResourceName, "location", azure.NormalizeLocation(data.Locations.Primary)),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_start", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "interval_in_seconds", "60"),
 				),
 			},
 			data.ImportStep(),
@@ -61,22 +57,15 @@ func testAccAzureRMNetworkConnectionMonitor_requiresImport(t *testing.T) {
 func testAccAzureRMNetworkConnectionMonitor_addressComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 
-	autoStart := "false"
-
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkConnectionMonitor_completeAddressConfig(data, autoStart),
+				Config: testAccAzureRMNetworkConnectionMonitor_completeAddressConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkConnectionMonitorExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_start", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "interval_in_seconds", "30"),
-					resource.TestCheckResourceAttr(data.ResourceName, "source.0.port", "20020"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.env", "test"),
 				),
 			},
 			data.ImportStep(),
@@ -86,8 +75,6 @@ func testAccAzureRMNetworkConnectionMonitor_addressComplete(t *testing.T) {
 
 func testAccAzureRMNetworkConnectionMonitor_addressUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
-
-	autoStart := "true"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -101,14 +88,9 @@ func testAccAzureRMNetworkConnectionMonitor_addressUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMNetworkConnectionMonitor_completeAddressConfig(data, autoStart),
+				Config: testAccAzureRMNetworkConnectionMonitor_completeAddressConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkConnectionMonitorExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_start", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "interval_in_seconds", "30"),
-					resource.TestCheckResourceAttr(data.ResourceName, "source.0.port", "20020"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.env", "test"),
 				),
 			},
 			data.ImportStep(),
@@ -128,10 +110,6 @@ func testAccAzureRMNetworkConnectionMonitor_vmBasic(t *testing.T) {
 				Config: testAccAzureRMNetworkConnectionMonitor_basicVmConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkConnectionMonitorExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttr(data.ResourceName, "location", azure.NormalizeLocation(data.Locations.Primary)),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_start", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "interval_in_seconds", "60"),
 				),
 			},
 			data.ImportStep(),
@@ -142,22 +120,15 @@ func testAccAzureRMNetworkConnectionMonitor_vmBasic(t *testing.T) {
 func testAccAzureRMNetworkConnectionMonitor_vmComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 
-	autoStart := "false"
-
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkConnectionMonitor_completeVmConfig(data, autoStart),
+				Config: testAccAzureRMNetworkConnectionMonitor_completeVmConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkConnectionMonitorExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_start", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "interval_in_seconds", "30"),
-					resource.TestCheckResourceAttr(data.ResourceName, "source.0.port", "20020"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.env", "test"),
 				),
 			},
 			data.ImportStep(),
@@ -180,14 +151,9 @@ func testAccAzureRMNetworkConnectionMonitor_vmUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMNetworkConnectionMonitor_completeVmConfig(data, "true"),
+				Config: testAccAzureRMNetworkConnectionMonitor_completeVmConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkConnectionMonitorExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_start", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "interval_in_seconds", "30"),
-					resource.TestCheckResourceAttr(data.ResourceName, "source.0.port", "20020"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.env", "test"),
 				),
 			},
 			data.ImportStep(),
@@ -207,21 +173,18 @@ func testAccAzureRMNetworkConnectionMonitor_destinationUpdate(t *testing.T) {
 				Config: testAccAzureRMNetworkConnectionMonitor_basicAddressConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkConnectionMonitorExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "destination.0.address"),
 				),
 			},
 			{
 				Config: testAccAzureRMNetworkConnectionMonitor_basicVmConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkConnectionMonitorExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "destination.0.virtual_machine_id"),
 				),
 			},
 			{
 				Config: testAccAzureRMNetworkConnectionMonitor_basicAddressConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkConnectionMonitorExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "destination.0.address"),
 				),
 			},
 			data.ImportStep(),
@@ -239,7 +202,7 @@ func testAccAzureRMNetworkConnectionMonitor_missingDestination(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAzureRMNetworkConnectionMonitor_missingDestinationConfig(data),
-				ExpectError: regexp.MustCompile("Error: either `destination.virtual_machine_id` or `destination.address` must be specified"),
+				ExpectError: regexp.MustCompile("must have at least 2 endpoints"),
 			},
 		},
 	})
@@ -255,8 +218,65 @@ func testAccAzureRMNetworkConnectionMonitor_conflictingDestinations(t *testing.T
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAzureRMNetworkConnectionMonitor_conflictingDestinationsConfig(data),
-				ExpectError: regexp.MustCompile("conflicts with destination.0.address"),
+				ExpectError: regexp.MustCompile("don't allow creating different endpoints for the same VM"),
 			},
+		},
+	})
+}
+
+func testAccAzureRMNetworkConnectionMonitor_withAddressAndVirtualMachineId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkConnectionMonitor_withAddressAndVirtualMachineIdConfig(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkConnectionMonitorExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func testAccAzureRMNetworkConnectionMonitor_httpConfiguration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkConnectionMonitor_httpConfigurationConfig(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkConnectionMonitorExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func testAccAzureRMNetworkConnectionMonitor_icmpConfiguration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkConnectionMonitor_icmpConfigurationConfig(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkConnectionMonitorExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -271,17 +291,18 @@ func testCheckAzureRMNetworkConnectionMonitorExists(resourceName string) resourc
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		watcherName := rs.Primary.Attributes["network_watcher_name"]
-		NetworkConnectionMonitorName := rs.Primary.Attributes["name"]
+		id, err := parse.ConnectionMonitorID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := client.Get(ctx, resourceGroup, watcherName, NetworkConnectionMonitorName)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on NetworkConnectionMonitorsClient: %s", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Connection Monitor does not exist: %s", NetworkConnectionMonitorName)
+			return fmt.Errorf("Connection Monitor does not exist: %s", id.Name)
 		}
 
 		return nil
@@ -297,12 +318,12 @@ func testCheckAzureRMNetworkConnectionMonitorDestroy(s *terraform.State) error {
 			continue
 		}
 
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		watcherName := rs.Primary.Attributes["network_watcher_name"]
-		NetworkConnectionMonitorName := rs.Primary.Attributes["name"]
+		id, err := parse.ConnectionMonitorID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := client.Get(ctx, resourceGroup, watcherName, NetworkConnectionMonitorName)
-
+		resp, err := client.Get(ctx, id.ResourceGroup, id.NetworkWatcherName, id.Name)
 		if err != nil {
 			return nil
 		}
@@ -322,18 +343,18 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-watcher-%d"
+  name     = "acctestRG-Watcher-%d"
   location = "%s"
 }
 
 resource "azurerm_network_watcher" "test" {
-  name                = "acctnw-%d"
+  name                = "acctest-Watcher-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%d"
+  name                = "acctest-Vnet-%d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -347,7 +368,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_network_interface" "src" {
-  name                = "acctni-src%d"
+  name                = "acctest-SrcNIC-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -359,7 +380,7 @@ resource "azurerm_network_interface" "src" {
 }
 
 resource "azurerm_virtual_machine" "src" {
-  name                  = "acctvm-src%d"
+  name                  = "acctest-SrcVM-%d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.src.id]
@@ -391,7 +412,7 @@ resource "azurerm_virtual_machine" "src" {
 }
 
 resource "azurerm_virtual_machine_extension" "src" {
-  name                       = "network-watcher"
+  name                       = "acctest-VMExtension"
   virtual_machine_id         = azurerm_virtual_machine.src.id
   publisher                  = "Microsoft.Azure.NetworkWatcher"
   type                       = "NetworkWatcherAgentLinux"
@@ -407,7 +428,7 @@ func testAccAzureRMNetworkConnectionMonitor_baseWithDestConfig(data acceptance.T
 %s
 
 resource "azurerm_network_interface" "dest" {
-  name                = "acctni-dest%d"
+  name                = "acctest-DestNic-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -419,7 +440,7 @@ resource "azurerm_network_interface" "dest" {
 }
 
 resource "azurerm_virtual_machine" "dest" {
-  name                  = "acctvm-dest%d"
+  name                  = "acctest-DestVM-%d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.dest.id]
@@ -458,18 +479,34 @@ func testAccAzureRMNetworkConnectionMonitor_basicAddressConfig(data acceptance.T
 %s
 
 resource "azurerm_network_connection_monitor" "test" {
-  name                 = "acctestcm-%d"
-  network_watcher_name = azurerm_network_watcher.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_network_watcher.test.location
+  name               = "acctest-CM-%d"
+  network_watcher_id = azurerm_network_watcher.test.id
+  location           = azurerm_network_watcher.test.location
 
-  source {
+  endpoint {
+    name               = "source"
     virtual_machine_id = azurerm_virtual_machine.src.id
   }
 
-  destination {
+  endpoint {
+    name    = "destination"
     address = "terraform.io"
-    port    = 80
+  }
+
+  test_configuration {
+    name     = "tcp"
+    protocol = "Tcp"
+
+    tcp_configuration {
+      port = 80
+    }
+  }
+
+  test_group {
+    name                     = "testtg"
+    destination_endpoints    = ["destination"]
+    source_endpoints         = ["source"]
+    test_configuration_names = ["tcp"]
   }
 
   depends_on = [azurerm_virtual_machine_extension.src]
@@ -477,37 +514,77 @@ resource "azurerm_network_connection_monitor" "test" {
 `, config, data.RandomInteger)
 }
 
-func testAccAzureRMNetworkConnectionMonitor_completeAddressConfig(data acceptance.TestData, autoStart string) string {
+func testAccAzureRMNetworkConnectionMonitor_completeAddressConfig(data acceptance.TestData) string {
 	config := testAccAzureRMNetworkConnectionMonitor_baseConfig(data)
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-LAW-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "pergb2018"
+}
+
 resource "azurerm_network_connection_monitor" "test" {
-  name                 = "acctestcm-%d"
-  network_watcher_name = azurerm_network_watcher.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_network_watcher.test.location
+  name               = "acctest-CM-%d"
+  network_watcher_id = azurerm_network_watcher.test.id
+  location           = azurerm_network_watcher.test.location
 
-  auto_start          = %s
-  interval_in_seconds = 30
-
-  source {
+  endpoint {
+    name               = "source"
     virtual_machine_id = azurerm_virtual_machine.src.id
-    port               = 20020
+
+    filter {
+      item {
+        address = azurerm_virtual_machine.src.id
+        type    = "AgentAddress"
+      }
+
+      type = "Include"
+    }
   }
 
-  destination {
+  endpoint {
+    name    = "destination"
     address = "terraform.io"
-    port    = 443
   }
+
+  test_configuration {
+    name                      = "tcp"
+    protocol                  = "Tcp"
+    test_frequency_in_seconds = 40
+    preferred_ip_version      = "IPv4"
+
+    tcp_configuration {
+      port = 80
+    }
+
+    success_threshold {
+      checks_failed_percent = 50
+      round_trip_time_ms    = 40
+    }
+  }
+
+  test_group {
+    name                     = "testtg"
+    destination_endpoints    = ["destination"]
+    source_endpoints         = ["source"]
+    test_configuration_names = ["tcp"]
+    enabled                  = true
+  }
+
+  notes = "testNote"
+
+  output_workspace_resource_ids = [azurerm_log_analytics_workspace.test.id]
 
   tags = {
-    env = "test"
+    ENv = "Test"
   }
 
   depends_on = [azurerm_virtual_machine_extension.src]
 }
-`, config, data.RandomInteger, autoStart)
+`, config, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMNetworkConnectionMonitor_basicVmConfig(data acceptance.TestData) string {
@@ -516,18 +593,34 @@ func testAccAzureRMNetworkConnectionMonitor_basicVmConfig(data acceptance.TestDa
 %s
 
 resource "azurerm_network_connection_monitor" "test" {
-  name                 = "acctestcm-%d"
-  network_watcher_name = azurerm_network_watcher.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_network_watcher.test.location
+  name               = "acctest-CM-%d"
+  network_watcher_id = azurerm_network_watcher.test.id
+  location           = azurerm_network_watcher.test.location
 
-  source {
+  endpoint {
+    name               = "source"
     virtual_machine_id = azurerm_virtual_machine.src.id
   }
 
-  destination {
+  endpoint {
+    name               = "destination"
     virtual_machine_id = azurerm_virtual_machine.dest.id
-    port               = 80
+  }
+
+  test_configuration {
+    name     = "tcp"
+    protocol = "Tcp"
+
+    tcp_configuration {
+      port = 80
+    }
+  }
+
+  test_group {
+    name                     = "testtg"
+    destination_endpoints    = ["destination"]
+    source_endpoints         = ["source"]
+    test_configuration_names = ["tcp"]
   }
 
   depends_on = [azurerm_virtual_machine_extension.src]
@@ -535,37 +628,102 @@ resource "azurerm_network_connection_monitor" "test" {
 `, config, data.RandomInteger)
 }
 
-func testAccAzureRMNetworkConnectionMonitor_completeVmConfig(data acceptance.TestData, autoStart string) string {
+func testAccAzureRMNetworkConnectionMonitor_withAddressAndVirtualMachineIdConfig(data acceptance.TestData) string {
 	config := testAccAzureRMNetworkConnectionMonitor_baseWithDestConfig(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_network_connection_monitor" "test" {
-  name                 = "acctestcm-%d"
-  network_watcher_name = azurerm_network_watcher.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_network_watcher.test.location
+  name               = "acctest-CM-%d"
+  network_watcher_id = azurerm_network_watcher.test.id
+  location           = azurerm_network_watcher.test.location
 
-  auto_start          = %s
-  interval_in_seconds = 30
-
-  source {
+  endpoint {
+    name               = "source"
     virtual_machine_id = azurerm_virtual_machine.src.id
-    port               = 20020
   }
 
-  destination {
+  endpoint {
+    name               = "destination"
     virtual_machine_id = azurerm_virtual_machine.dest.id
-    port               = 443
+    address            = azurerm_network_interface.dest.private_ip_address
   }
 
-  tags = {
-    env = "test"
+  test_configuration {
+    name     = "tcp"
+    protocol = "Tcp"
+
+    tcp_configuration {
+      port = 80
+    }
+  }
+
+  test_group {
+    name                     = "testtg"
+    destination_endpoints    = ["destination"]
+    source_endpoints         = ["source"]
+    test_configuration_names = ["tcp"]
   }
 
   depends_on = [azurerm_virtual_machine_extension.src]
 }
-`, config, data.RandomInteger, autoStart)
+`, config, data.RandomInteger)
+}
+
+func testAccAzureRMNetworkConnectionMonitor_completeVmConfig(data acceptance.TestData) string {
+	config := testAccAzureRMNetworkConnectionMonitor_baseWithDestConfig(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_connection_monitor" "test" {
+  name               = "acctest-CM-%d"
+  network_watcher_id = azurerm_network_watcher.test.id
+  location           = azurerm_network_watcher.test.location
+
+  endpoint {
+    name               = "source"
+    virtual_machine_id = azurerm_virtual_machine.src.id
+
+    filter {
+      item {
+        address = azurerm_virtual_machine.src.id
+        type    = "AgentAddress"
+      }
+
+      type = "Include"
+    }
+  }
+
+  endpoint {
+    name               = "destination"
+    virtual_machine_id = azurerm_virtual_machine.dest.id
+  }
+
+  test_configuration {
+    name                      = "tcp"
+    protocol                  = "Tcp"
+    test_frequency_in_seconds = 40
+
+    tcp_configuration {
+      port = 80
+    }
+  }
+
+  test_group {
+    name                     = "testtg"
+    destination_endpoints    = ["destination"]
+    source_endpoints         = ["source"]
+    test_configuration_names = ["tcp"]
+    enabled                  = true
+  }
+
+  tags = {
+    ENv = "Test"
+  }
+
+  depends_on = [azurerm_virtual_machine_extension.src]
+}
+`, config, data.RandomInteger)
 }
 
 func testAccAzureRMNetworkConnectionMonitor_missingDestinationConfig(data acceptance.TestData) string {
@@ -574,17 +732,29 @@ func testAccAzureRMNetworkConnectionMonitor_missingDestinationConfig(data accept
 %s
 
 resource "azurerm_network_connection_monitor" "test" {
-  name                 = "acctestcm-%d"
-  network_watcher_name = azurerm_network_watcher.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_network_watcher.test.location
+  name               = "acctest-CM-%d"
+  network_watcher_id = azurerm_network_watcher.test.id
+  location           = azurerm_network_watcher.test.location
 
-  source {
+  endpoint {
+    name               = "source"
     virtual_machine_id = azurerm_virtual_machine.src.id
   }
 
-  destination {
-    port = 80
+  test_configuration {
+    name     = "tcp"
+    protocol = "Tcp"
+
+    tcp_configuration {
+      port = 80
+    }
+  }
+
+  test_group {
+    name                     = "testtg"
+    destination_endpoints    = []
+    source_endpoints         = ["source"]
+    test_configuration_names = ["tcp"]
   }
 
   depends_on = [azurerm_virtual_machine_extension.src]
@@ -598,19 +768,34 @@ func testAccAzureRMNetworkConnectionMonitor_conflictingDestinationsConfig(data a
 %s
 
 resource "azurerm_network_connection_monitor" "test" {
-  name                 = "acctestcm-%d"
-  network_watcher_name = azurerm_network_watcher.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_network_watcher.test.location
+  name               = "acctest-CM-%d"
+  network_watcher_id = azurerm_network_watcher.test.id
+  location           = azurerm_network_watcher.test.location
 
-  source {
+  endpoint {
+    name               = "source"
     virtual_machine_id = azurerm_virtual_machine.src.id
   }
 
-  destination {
-    address            = "terraform.io"
+  endpoint {
+    name               = "destination"
     virtual_machine_id = azurerm_virtual_machine.src.id
-    port               = 80
+  }
+
+  test_configuration {
+    name     = "tcp"
+    protocol = "Tcp"
+
+    tcp_configuration {
+      port = 80
+    }
+  }
+
+  test_group {
+    name                     = "testtg"
+    destination_endpoints    = ["destination"]
+    source_endpoints         = ["source"]
+    test_configuration_names = ["tcp"]
   }
 
   depends_on = [azurerm_virtual_machine_extension.src]
@@ -624,21 +809,128 @@ func testAccAzureRMNetworkConnectionMonitor_requiresImportConfig(data acceptance
 %s
 
 resource "azurerm_network_connection_monitor" "import" {
-  name                 = azurerm_network_connection_monitor.test.name
-  network_watcher_name = azurerm_network_connection_monitor.test.network_watcher_name
-  resource_group_name  = azurerm_network_connection_monitor.test.resource_group_name
-  location             = azurerm_network_connection_monitor.test.location
+  name               = azurerm_network_connection_monitor.test.name
+  network_watcher_id = azurerm_network_connection_monitor.test.network_watcher_id
+  location           = azurerm_network_connection_monitor.test.location
 
-  source {
+  endpoint {
+    name               = "source"
     virtual_machine_id = azurerm_virtual_machine.src.id
   }
 
-  destination {
+  endpoint {
+    name    = "destination"
     address = "terraform.io"
-    port    = 80
+  }
+
+  test_configuration {
+    name     = "tcp"
+    protocol = "Tcp"
+
+    tcp_configuration {
+      port = 80
+    }
+  }
+
+  test_group {
+    name                     = "testtg"
+    destination_endpoints    = ["destination"]
+    source_endpoints         = ["source"]
+    test_configuration_names = ["tcp"]
   }
 
   depends_on = [azurerm_virtual_machine_extension.src]
 }
 `, config)
+}
+
+func testAccAzureRMNetworkConnectionMonitor_httpConfigurationConfig(data acceptance.TestData) string {
+	config := testAccAzureRMNetworkConnectionMonitor_baseConfig(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_connection_monitor" "test" {
+  name               = "acctest-CM-%d"
+  network_watcher_id = azurerm_network_watcher.test.id
+  location           = azurerm_network_watcher.test.location
+
+  endpoint {
+    name               = "source"
+    virtual_machine_id = azurerm_virtual_machine.src.id
+  }
+
+  endpoint {
+    name    = "destination"
+    address = "terraform.io"
+  }
+
+  test_configuration {
+    name     = "tcp"
+    protocol = "Http"
+
+    http_configuration {
+      method                   = "Get"
+      port                     = 80
+      path                     = "/a/b"
+      prefer_https             = false
+      valid_status_code_ranges = ["200"]
+
+      request_header {
+        name  = "testHeader"
+        value = "testVal"
+      }
+    }
+  }
+
+  test_group {
+    name                     = "testtg"
+    destination_endpoints    = ["destination"]
+    source_endpoints         = ["source"]
+    test_configuration_names = ["tcp"]
+  }
+
+  depends_on = [azurerm_virtual_machine_extension.src]
+}
+`, config, data.RandomInteger)
+}
+
+func testAccAzureRMNetworkConnectionMonitor_icmpConfigurationConfig(data acceptance.TestData) string {
+	config := testAccAzureRMNetworkConnectionMonitor_baseConfig(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_connection_monitor" "test" {
+  name               = "acctest-CM-%d"
+  network_watcher_id = azurerm_network_watcher.test.id
+  location           = azurerm_network_watcher.test.location
+
+  endpoint {
+    name               = "source"
+    virtual_machine_id = azurerm_virtual_machine.src.id
+  }
+
+  endpoint {
+    name    = "destination"
+    address = "terraform.io"
+  }
+
+  test_configuration {
+    name     = "tcp"
+    protocol = "Icmp"
+
+    icmp_configuration {
+      trace_route_enabled = true
+    }
+  }
+
+  test_group {
+    name                     = "testtg"
+    destination_endpoints    = ["destination"]
+    source_endpoints         = ["source"]
+    test_configuration_names = ["tcp"]
+  }
+
+  depends_on = [azurerm_virtual_machine_extension.src]
+}
+`, config, data.RandomInteger)
 }
