@@ -11,8 +11,8 @@ type Client struct {
 	BackupLongTermRetentionPoliciesClient              *sql.BackupLongTermRetentionPoliciesClient
 	BackupShortTermRetentionPoliciesClient             *sql.BackupShortTermRetentionPoliciesClient
 	DatabaseExtendedBlobAuditingPoliciesClient         *sql.ExtendedDatabaseBlobAuditingPoliciesClient
-	DatabaseThreatDetectionPoliciesClient              *sql.DatabaseThreatDetectionPoliciesClient
 	DatabaseVulnerabilityAssessmentRuleBaselinesClient *sql.DatabaseVulnerabilityAssessmentRuleBaselinesClient
+	DatabaseThreatDetectionPoliciesClient              *sql.DatabaseThreatDetectionPoliciesClient
 	DatabasesClient                                    *sql.DatabasesClient
 	ElasticPoolsClient                                 *sql.ElasticPoolsClient
 	FirewallRulesClient                                *sql.FirewallRulesClient
