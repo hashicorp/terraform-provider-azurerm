@@ -243,6 +243,7 @@ func (client VirtualNetworkRulesClient) Get(ctx context.Context, resourceGroupNa
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.VirtualNetworkRulesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -321,6 +322,7 @@ func (client VirtualNetworkRulesClient) ListByServer(ctx context.Context, resour
 	result.vnrlr, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.VirtualNetworkRulesClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 	if result.vnrlr.hasNextLink() && result.vnrlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -385,6 +387,7 @@ func (client VirtualNetworkRulesClient) listByServerNextResults(ctx context.Cont
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.VirtualNetworkRulesClient", "listByServerNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -262,6 +262,7 @@ func (client StreamingEndpointsClient) Get(ctx context.Context, resourceGroupNam
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.StreamingEndpointsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -339,6 +340,7 @@ func (client StreamingEndpointsClient) List(ctx context.Context, resourceGroupNa
 	result.selr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.StreamingEndpointsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.selr.hasNextLink() && result.selr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -403,6 +405,7 @@ func (client StreamingEndpointsClient) listNextResults(ctx context.Context, last
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.StreamingEndpointsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -74,6 +74,7 @@ func (client WorkflowVersionsClient) Get(ctx context.Context, resourceGroupName 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowVersionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -152,6 +153,7 @@ func (client WorkflowVersionsClient) List(ctx context.Context, resourceGroupName
 	result.wvlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowVersionsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.wvlr.hasNextLink() && result.wvlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -219,6 +221,7 @@ func (client WorkflowVersionsClient) listNextResults(ctx context.Context, lastRe
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowVersionsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -200,8 +200,11 @@ func (page APIKeyListResultPage) Values() []APIKey {
 }
 
 // Creates a new instance of the APIKeyListResultPage type.
-func NewAPIKeyListResultPage(getNextPage func(context.Context, APIKeyListResult) (APIKeyListResult, error)) APIKeyListResultPage {
-	return APIKeyListResultPage{fn: getNextPage}
+func NewAPIKeyListResultPage(cur APIKeyListResult, getNextPage func(context.Context, APIKeyListResult) (APIKeyListResult, error)) APIKeyListResultPage {
+	return APIKeyListResultPage{
+		fn:   getNextPage,
+		aklr: cur,
+	}
 }
 
 // CheckNameAvailabilityParameters parameters used for checking whether a resource name is available.
@@ -212,8 +215,8 @@ type CheckNameAvailabilityParameters struct {
 	Type *string `json:"type,omitempty"`
 }
 
-// ConfigurationStore the configuration store along with all resource properties. The Configuration Store will
-// have all information to begin utilizing it.
+// ConfigurationStore the configuration store along with all resource properties. The Configuration Store
+// will have all information to begin utilizing it.
 type ConfigurationStore struct {
 	autorest.Response `json:"-"`
 	// Identity - The managed identity information, if configured.
@@ -494,8 +497,11 @@ func (page ConfigurationStoreListResultPage) Values() []ConfigurationStore {
 }
 
 // Creates a new instance of the ConfigurationStoreListResultPage type.
-func NewConfigurationStoreListResultPage(getNextPage func(context.Context, ConfigurationStoreListResult) (ConfigurationStoreListResult, error)) ConfigurationStoreListResultPage {
-	return ConfigurationStoreListResultPage{fn: getNextPage}
+func NewConfigurationStoreListResultPage(cur ConfigurationStoreListResult, getNextPage func(context.Context, ConfigurationStoreListResult) (ConfigurationStoreListResult, error)) ConfigurationStoreListResultPage {
+	return ConfigurationStoreListResultPage{
+		fn:   getNextPage,
+		cslr: cur,
+	}
 }
 
 // ConfigurationStoreProperties the properties of a configuration store.
@@ -508,8 +514,8 @@ type ConfigurationStoreProperties struct {
 	Endpoint *string `json:"endpoint,omitempty"`
 }
 
-// ConfigurationStoresCreateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ConfigurationStoresCreateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type ConfigurationStoresCreateFuture struct {
 	azure.Future
 }
@@ -537,8 +543,8 @@ func (future *ConfigurationStoresCreateFuture) Result(client ConfigurationStores
 	return
 }
 
-// ConfigurationStoresDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ConfigurationStoresDeleteFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type ConfigurationStoresDeleteFuture struct {
 	azure.Future
 }
@@ -560,8 +566,8 @@ func (future *ConfigurationStoresDeleteFuture) Result(client ConfigurationStores
 	return
 }
 
-// ConfigurationStoresUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ConfigurationStoresUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type ConfigurationStoresUpdateFuture struct {
 	azure.Future
 }
@@ -721,7 +727,8 @@ type OperationDefinitionListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// OperationDefinitionListResultIterator provides access to a complete listing of OperationDefinition values.
+// OperationDefinitionListResultIterator provides access to a complete listing of OperationDefinition
+// values.
 type OperationDefinitionListResultIterator struct {
 	i    int
 	page OperationDefinitionListResultPage
@@ -864,8 +871,11 @@ func (page OperationDefinitionListResultPage) Values() []OperationDefinition {
 }
 
 // Creates a new instance of the OperationDefinitionListResultPage type.
-func NewOperationDefinitionListResultPage(getNextPage func(context.Context, OperationDefinitionListResult) (OperationDefinitionListResult, error)) OperationDefinitionListResultPage {
-	return OperationDefinitionListResultPage{fn: getNextPage}
+func NewOperationDefinitionListResultPage(cur OperationDefinitionListResult, getNextPage func(context.Context, OperationDefinitionListResult) (OperationDefinitionListResult, error)) OperationDefinitionListResultPage {
+	return OperationDefinitionListResultPage{
+		fn:   getNextPage,
+		odlr: cur,
+	}
 }
 
 // RegenerateKeyParameters the parameters used to regenerate an API key.

@@ -160,7 +160,7 @@ func isPricingStandard(ctx context.Context, priceClient *security.PricingsClient
 				return false, fmt.Errorf("%v Security Center Subscription pricing properties is nil", *resourcePrice.Type)
 			}
 
-			if resourcePrice.PricingProperties.PricingTier == security.Standard {
+			if resourcePrice.PricingProperties.PricingTier == security.PricingTierStandard {
 				return true, nil
 			}
 		}

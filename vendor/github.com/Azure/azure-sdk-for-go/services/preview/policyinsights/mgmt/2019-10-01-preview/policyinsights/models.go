@@ -317,6 +317,8 @@ type ExpressionEvaluationDetails struct {
 	Result *string `json:"result,omitempty"`
 	// Expression - Expression evaluated.
 	Expression *string `json:"expression,omitempty"`
+	// ExpressionKind - READ-ONLY; The kind of expression that was evaluated.
+	ExpressionKind *string `json:"expressionKind,omitempty"`
 	// Path - Property path if the expression is a field or an alias.
 	Path *string `json:"path,omitempty"`
 	// ExpressionValue - Value of the expression.
@@ -325,6 +327,30 @@ type ExpressionEvaluationDetails struct {
 	TargetValue interface{} `json:"targetValue,omitempty"`
 	// Operator - Operator to compare the expression value and the target value.
 	Operator *string `json:"operator,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ExpressionEvaluationDetails.
+func (eed ExpressionEvaluationDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if eed.Result != nil {
+		objectMap["result"] = eed.Result
+	}
+	if eed.Expression != nil {
+		objectMap["expression"] = eed.Expression
+	}
+	if eed.Path != nil {
+		objectMap["path"] = eed.Path
+	}
+	if eed.ExpressionValue != nil {
+		objectMap["expressionValue"] = eed.ExpressionValue
+	}
+	if eed.TargetValue != nil {
+		objectMap["targetValue"] = eed.TargetValue
+	}
+	if eed.Operator != nil {
+		objectMap["operator"] = eed.Operator
+	}
+	return json.Marshal(objectMap)
 }
 
 // IfNotExistsEvaluationDetails evaluation details of IfNotExists effect.
@@ -1048,8 +1074,11 @@ func (page PolicyEventsQueryResultsPage) Values() []PolicyEvent {
 }
 
 // Creates a new instance of the PolicyEventsQueryResultsPage type.
-func NewPolicyEventsQueryResultsPage(getNextPage func(context.Context, PolicyEventsQueryResults) (PolicyEventsQueryResults, error)) PolicyEventsQueryResultsPage {
-	return PolicyEventsQueryResultsPage{fn: getNextPage}
+func NewPolicyEventsQueryResultsPage(cur PolicyEventsQueryResults, getNextPage func(context.Context, PolicyEventsQueryResults) (PolicyEventsQueryResults, error)) PolicyEventsQueryResultsPage {
+	return PolicyEventsQueryResultsPage{
+		fn:   getNextPage,
+		peqr: cur,
+	}
 }
 
 // PolicyGroupSummary policy definition group summary.
@@ -1285,8 +1314,11 @@ func (page PolicyMetadataCollectionPage) Values() []SlimPolicyMetadata {
 }
 
 // Creates a new instance of the PolicyMetadataCollectionPage type.
-func NewPolicyMetadataCollectionPage(getNextPage func(context.Context, PolicyMetadataCollection) (PolicyMetadataCollection, error)) PolicyMetadataCollectionPage {
-	return PolicyMetadataCollectionPage{fn: getNextPage}
+func NewPolicyMetadataCollectionPage(cur PolicyMetadataCollection, getNextPage func(context.Context, PolicyMetadataCollection) (PolicyMetadataCollection, error)) PolicyMetadataCollectionPage {
+	return PolicyMetadataCollectionPage{
+		fn:  getNextPage,
+		pmc: cur,
+	}
 }
 
 // PolicyMetadataProperties the properties of the policy metadata.
@@ -1309,8 +1341,8 @@ type PolicyMetadataProperties struct {
 	Metadata interface{} `json:"metadata,omitempty"`
 }
 
-// PolicyMetadataSlimProperties the properties of the policy metadata, excluding properties containing large
-// strings
+// PolicyMetadataSlimProperties the properties of the policy metadata, excluding properties containing
+// large strings
 type PolicyMetadataSlimProperties struct {
 	// MetadataID - READ-ONLY; The policy metadata identifier.
 	MetadataID *string `json:"metadataId,omitempty"`
@@ -1991,12 +2023,15 @@ func (page PolicyStatesQueryResultsPage) Values() []PolicyState {
 }
 
 // Creates a new instance of the PolicyStatesQueryResultsPage type.
-func NewPolicyStatesQueryResultsPage(getNextPage func(context.Context, PolicyStatesQueryResults) (PolicyStatesQueryResults, error)) PolicyStatesQueryResultsPage {
-	return PolicyStatesQueryResultsPage{fn: getNextPage}
+func NewPolicyStatesQueryResultsPage(cur PolicyStatesQueryResults, getNextPage func(context.Context, PolicyStatesQueryResults) (PolicyStatesQueryResults, error)) PolicyStatesQueryResultsPage {
+	return PolicyStatesQueryResultsPage{
+		fn:   getNextPage,
+		psqr: cur,
+	}
 }
 
-// PolicyStatesTriggerResourceGroupEvaluationFuture an abstraction for monitoring and retrieving the results of
-// a long-running operation.
+// PolicyStatesTriggerResourceGroupEvaluationFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
 type PolicyStatesTriggerResourceGroupEvaluationFuture struct {
 	azure.Future
 }
@@ -2018,8 +2053,8 @@ func (future *PolicyStatesTriggerResourceGroupEvaluationFuture) Result(client Po
 	return
 }
 
-// PolicyStatesTriggerSubscriptionEvaluationFuture an abstraction for monitoring and retrieving the results of
-// a long-running operation.
+// PolicyStatesTriggerSubscriptionEvaluationFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
 type PolicyStatesTriggerSubscriptionEvaluationFuture struct {
 	azure.Future
 }
@@ -2064,8 +2099,8 @@ type PolicyTrackedResourcesQueryResults struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// PolicyTrackedResourcesQueryResultsIterator provides access to a complete listing of PolicyTrackedResource
-// values.
+// PolicyTrackedResourcesQueryResultsIterator provides access to a complete listing of
+// PolicyTrackedResource values.
 type PolicyTrackedResourcesQueryResultsIterator struct {
 	i    int
 	page PolicyTrackedResourcesQueryResultsPage
@@ -2208,8 +2243,11 @@ func (page PolicyTrackedResourcesQueryResultsPage) Values() []PolicyTrackedResou
 }
 
 // Creates a new instance of the PolicyTrackedResourcesQueryResultsPage type.
-func NewPolicyTrackedResourcesQueryResultsPage(getNextPage func(context.Context, PolicyTrackedResourcesQueryResults) (PolicyTrackedResourcesQueryResults, error)) PolicyTrackedResourcesQueryResultsPage {
-	return PolicyTrackedResourcesQueryResultsPage{fn: getNextPage}
+func NewPolicyTrackedResourcesQueryResultsPage(cur PolicyTrackedResourcesQueryResults, getNextPage func(context.Context, PolicyTrackedResourcesQueryResults) (PolicyTrackedResourcesQueryResults, error)) PolicyTrackedResourcesQueryResultsPage {
+	return PolicyTrackedResourcesQueryResultsPage{
+		fn:    getNextPage,
+		ptrqr: cur,
+	}
 }
 
 // QueryFailure error response.
@@ -2470,11 +2508,15 @@ func (page RemediationDeploymentsListResultPage) Values() []RemediationDeploymen
 }
 
 // Creates a new instance of the RemediationDeploymentsListResultPage type.
-func NewRemediationDeploymentsListResultPage(getNextPage func(context.Context, RemediationDeploymentsListResult) (RemediationDeploymentsListResult, error)) RemediationDeploymentsListResultPage {
-	return RemediationDeploymentsListResultPage{fn: getNextPage}
+func NewRemediationDeploymentsListResultPage(cur RemediationDeploymentsListResult, getNextPage func(context.Context, RemediationDeploymentsListResult) (RemediationDeploymentsListResult, error)) RemediationDeploymentsListResultPage {
+	return RemediationDeploymentsListResultPage{
+		fn:   getNextPage,
+		rdlr: cur,
+	}
 }
 
-// RemediationDeploymentSummary the deployment status summary for all deployments created by the remediation.
+// RemediationDeploymentSummary the deployment status summary for all deployments created by the
+// remediation.
 type RemediationDeploymentSummary struct {
 	// TotalDeployments - READ-ONLY; The number of deployments required by the remediation.
 	TotalDeployments *int32 `json:"totalDeployments,omitempty"`
@@ -2642,8 +2684,11 @@ func (page RemediationListResultPage) Values() []Remediation {
 }
 
 // Creates a new instance of the RemediationListResultPage type.
-func NewRemediationListResultPage(getNextPage func(context.Context, RemediationListResult) (RemediationListResult, error)) RemediationListResultPage {
-	return RemediationListResultPage{fn: getNextPage}
+func NewRemediationListResultPage(cur RemediationListResult, getNextPage func(context.Context, RemediationListResult) (RemediationListResult, error)) RemediationListResultPage {
+	return RemediationListResultPage{
+		fn:  getNextPage,
+		rlr: cur,
+	}
 }
 
 // RemediationProperties the remediation properties.
@@ -2796,8 +2841,8 @@ type SummaryResults struct {
 	PolicyGroupDetails *[]ComplianceDetail `json:"policyGroupDetails,omitempty"`
 }
 
-// TrackedResourceModificationDetails the details of the policy triggered deployment that created or modified
-// the tracked resource.
+// TrackedResourceModificationDetails the details of the policy triggered deployment that created or
+// modified the tracked resource.
 type TrackedResourceModificationDetails struct {
 	// PolicyDetails - READ-ONLY; The details of the policy that created or modified the tracked resource.
 	PolicyDetails *PolicyDetails `json:"policyDetails,omitempty"`

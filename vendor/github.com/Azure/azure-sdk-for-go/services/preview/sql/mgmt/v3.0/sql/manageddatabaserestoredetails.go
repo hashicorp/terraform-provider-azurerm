@@ -85,6 +85,7 @@ func (client ManagedDatabaseRestoreDetailsClient) Get(ctx context.Context, resou
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabaseRestoreDetailsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

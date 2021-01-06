@@ -89,6 +89,7 @@ func (client IntelligencePacksClient) Disable(ctx context.Context, resourceGroup
 	result, err = client.DisableResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationalinsights.IntelligencePacksClient", "Disable", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -179,6 +180,7 @@ func (client IntelligencePacksClient) Enable(ctx context.Context, resourceGroupN
 	result, err = client.EnableResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationalinsights.IntelligencePacksClient", "Enable", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -268,6 +270,7 @@ func (client IntelligencePacksClient) List(ctx context.Context, resourceGroupNam
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationalinsights.IntelligencePacksClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

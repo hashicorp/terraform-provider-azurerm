@@ -88,6 +88,7 @@ func (client GatewaysClient) Delete(ctx context.Context, resourceGroupName strin
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationalinsights.GatewaysClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return

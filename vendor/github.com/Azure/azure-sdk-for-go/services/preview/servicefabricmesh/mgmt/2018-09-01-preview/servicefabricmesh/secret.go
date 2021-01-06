@@ -81,6 +81,7 @@ func (client SecretClient) Create(ctx context.Context, resourceGroupName string,
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.SecretClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -158,6 +159,7 @@ func (client SecretClient) Delete(ctx context.Context, resourceGroupName string,
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.SecretClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -233,6 +235,7 @@ func (client SecretClient) Get(ctx context.Context, resourceGroupName string, se
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.SecretClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -309,6 +312,7 @@ func (client SecretClient) ListByResourceGroup(ctx context.Context, resourceGrou
 	result.srdl, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.SecretClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.srdl.hasNextLink() && result.srdl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -372,6 +376,7 @@ func (client SecretClient) listByResourceGroupNextResults(ctx context.Context, l
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.SecretClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -422,6 +427,7 @@ func (client SecretClient) ListBySubscription(ctx context.Context) (result Secre
 	result.srdl, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.SecretClient", "ListBySubscription", resp, "Failure responding to request")
+		return
 	}
 	if result.srdl.hasNextLink() && result.srdl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -484,6 +490,7 @@ func (client SecretClient) listBySubscriptionNextResults(ctx context.Context, la
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.SecretClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

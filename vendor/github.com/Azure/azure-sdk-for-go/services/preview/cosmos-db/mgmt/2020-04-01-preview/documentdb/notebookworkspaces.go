@@ -270,6 +270,7 @@ func (client NotebookWorkspacesClient) Get(ctx context.Context, resourceGroupNam
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.NotebookWorkspacesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -360,6 +361,7 @@ func (client NotebookWorkspacesClient) ListByDatabaseAccount(ctx context.Context
 	result, err = client.ListByDatabaseAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.NotebookWorkspacesClient", "ListByDatabaseAccount", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -449,6 +451,7 @@ func (client NotebookWorkspacesClient) ListConnectionInfo(ctx context.Context, r
 	result, err = client.ListConnectionInfoResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.NotebookWorkspacesClient", "ListConnectionInfo", resp, "Failure responding to request")
+		return
 	}
 
 	return

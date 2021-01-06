@@ -77,6 +77,7 @@ func (client ElasticPoolActivitiesClient) ListByElasticPool(ctx context.Context,
 	result, err = client.ListByElasticPoolResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ElasticPoolActivitiesClient", "ListByElasticPool", resp, "Failure responding to request")
+		return
 	}
 
 	return

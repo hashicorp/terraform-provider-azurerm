@@ -82,6 +82,7 @@ func (client Client) CheckNameAvailability(ctx context.Context, location string,
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "signalr.Client", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -326,6 +327,7 @@ func (client Client) Get(ctx context.Context, resourceGroupName string, resource
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "signalr.Client", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -402,6 +404,7 @@ func (client Client) ListByResourceGroup(ctx context.Context, resourceGroupName 
 	result.rl, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "signalr.Client", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.rl.hasNextLink() && result.rl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -465,6 +468,7 @@ func (client Client) listByResourceGroupNextResults(ctx context.Context, lastRes
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "signalr.Client", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -514,6 +518,7 @@ func (client Client) ListBySubscription(ctx context.Context) (result ResourceLis
 	result.rl, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "signalr.Client", "ListBySubscription", resp, "Failure responding to request")
+		return
 	}
 	if result.rl.hasNextLink() && result.rl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -576,6 +581,7 @@ func (client Client) listBySubscriptionNextResults(ctx context.Context, lastResu
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "signalr.Client", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -628,6 +634,7 @@ func (client Client) ListKeys(ctx context.Context, resourceGroupName string, res
 	result, err = client.ListKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "signalr.Client", "ListKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -226,6 +226,7 @@ func (client LoadBalancersClient) Get(ctx context.Context, resourceGroupName str
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.LoadBalancersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -304,6 +305,7 @@ func (client LoadBalancersClient) List(ctx context.Context, resourceGroupName st
 	result.lblr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.LoadBalancersClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.lblr.hasNextLink() && result.lblr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -367,6 +369,7 @@ func (client LoadBalancersClient) listNextResults(ctx context.Context, lastResul
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.LoadBalancersClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -416,6 +419,7 @@ func (client LoadBalancersClient) ListAll(ctx context.Context) (result LoadBalan
 	result.lblr, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.LoadBalancersClient", "ListAll", resp, "Failure responding to request")
+		return
 	}
 	if result.lblr.hasNextLink() && result.lblr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -478,6 +482,7 @@ func (client LoadBalancersClient) listAllNextResults(ctx context.Context, lastRe
 	result, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.LoadBalancersClient", "listAllNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -530,6 +535,7 @@ func (client LoadBalancersClient) UpdateTags(ctx context.Context, resourceGroupN
 	result, err = client.UpdateTagsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.LoadBalancersClient", "UpdateTags", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -84,6 +84,7 @@ func (client BaseClient) ListSkus(ctx context.Context) (result SkuListResultPage
 	result.slr, err = client.ListSkusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "machinelearningservices.BaseClient", "ListSkus", resp, "Failure responding to request")
+		return
 	}
 	if result.slr.hasNextLink() && result.slr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -146,6 +147,7 @@ func (client BaseClient) listSkusNextResults(ctx context.Context, lastResults Sk
 	result, err = client.ListSkusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "machinelearningservices.BaseClient", "listSkusNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
