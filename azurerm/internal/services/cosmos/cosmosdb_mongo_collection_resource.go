@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmCosmosDbMongoCollection() *schema.Resource {
+func resourceCosmosDbMongoCollection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCosmosDbMongoCollectionCreate,
-		Read:   resourceArmCosmosDbMongoCollectionRead,
-		Update: resourceArmCosmosDbMongoCollectionUpdate,
-		Delete: resourceArmCosmosDbMongoCollectionDelete,
+		Create: resourceCosmosDbMongoCollectionCreate,
+		Read:   resourceCosmosDbMongoCollectionRead,
+		Update: resourceCosmosDbMongoCollectionUpdate,
+		Delete: resourceCosmosDbMongoCollectionDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -137,7 +137,7 @@ func resourceArmCosmosDbMongoCollection() *schema.Resource {
 	}
 }
 
-func resourceArmCosmosDbMongoCollectionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbMongoCollectionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.MongoDbClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -211,10 +211,10 @@ func resourceArmCosmosDbMongoCollectionCreate(d *schema.ResourceData, meta inter
 
 	d.SetId(*resp.ID)
 
-	return resourceArmCosmosDbMongoCollectionRead(d, meta)
+	return resourceCosmosDbMongoCollectionRead(d, meta)
 }
 
-func resourceArmCosmosDbMongoCollectionUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbMongoCollectionUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.MongoDbClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -274,10 +274,10 @@ func resourceArmCosmosDbMongoCollectionUpdate(d *schema.ResourceData, meta inter
 		}
 	}
 
-	return resourceArmCosmosDbMongoCollectionRead(d, meta)
+	return resourceCosmosDbMongoCollectionRead(d, meta)
 }
 
-func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.MongoDbClient
 	accClient := meta.(*clients.Client).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -358,7 +358,7 @@ func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceArmCosmosDbMongoCollectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbMongoCollectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.MongoDbClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

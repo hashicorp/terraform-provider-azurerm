@@ -27,7 +27,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-06-01/subscriptions"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-11-01/subscriptions"
 
 // CheckResourceNameResult resource Name valid if not a reserved word, does not contain a reserved word and
 // does not start with a reserved word
@@ -221,10 +221,19 @@ type Location struct {
 	Name *string `json:"name,omitempty"`
 	// DisplayName - READ-ONLY; The display name of the location.
 	DisplayName *string `json:"displayName,omitempty"`
-	// Latitude - READ-ONLY; The latitude of the location.
-	Latitude *string `json:"latitude,omitempty"`
-	// Longitude - READ-ONLY; The longitude of the location.
-	Longitude *string `json:"longitude,omitempty"`
+	// RegionalDisplayName - READ-ONLY; The display name of the location and its region.
+	RegionalDisplayName *string `json:"regionalDisplayName,omitempty"`
+	// Metadata - Metadata of the location, such as lat/long, paired region, and others.
+	Metadata *LocationMetadata `json:"metadata,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Location.
+func (l Location) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if l.Metadata != nil {
+		objectMap["metadata"] = l.Metadata
+	}
+	return json.Marshal(objectMap)
 }
 
 // LocationListResult location list operation response.
@@ -232,6 +241,39 @@ type LocationListResult struct {
 	autorest.Response `json:"-"`
 	// Value - An array of locations.
 	Value *[]Location `json:"value,omitempty"`
+}
+
+// LocationMetadata location metadata information
+type LocationMetadata struct {
+	// RegionType - READ-ONLY; The type of the region. Possible values include: 'Physical', 'Logical'
+	RegionType RegionType `json:"regionType,omitempty"`
+	// RegionCategory - READ-ONLY; The category of the region. Possible values include: 'Recommended', 'Other'
+	RegionCategory RegionCategory `json:"regionCategory,omitempty"`
+	// GeographyGroup - READ-ONLY; The geography group of the location.
+	GeographyGroup *string `json:"geographyGroup,omitempty"`
+	// Longitude - READ-ONLY; The longitude of the location.
+	Longitude *string `json:"longitude,omitempty"`
+	// Latitude - READ-ONLY; The latitude of the location.
+	Latitude *string `json:"latitude,omitempty"`
+	// PhysicalLocation - READ-ONLY; The physical location of the Azure location.
+	PhysicalLocation *string `json:"physicalLocation,omitempty"`
+	// PairedRegion - The regions paired to this region.
+	PairedRegion *[]PairedRegion `json:"pairedRegion,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for LocationMetadata.
+func (lm LocationMetadata) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if lm.PairedRegion != nil {
+		objectMap["pairedRegion"] = lm.PairedRegion
+	}
+	return json.Marshal(objectMap)
+}
+
+// ManagedByTenant information about a tenant managing the subscription.
+type ManagedByTenant struct {
+	// TenantID - READ-ONLY; The tenant ID of the managing tenant. This is a GUID.
+	TenantID *string `json:"tenantId,omitempty"`
 }
 
 // Operation microsoft.Resources operation
@@ -411,6 +453,16 @@ func NewOperationListResultPage(getNextPage func(context.Context, OperationListR
 	return OperationListResultPage{fn: getNextPage}
 }
 
+// PairedRegion information regarding paired region.
+type PairedRegion struct {
+	// Name - READ-ONLY; The name of the paired region.
+	Name *string `json:"name,omitempty"`
+	// ID - READ-ONLY; The fully qualified ID of the location. For example, /subscriptions/00000000-0000-0000-0000-000000000000/locations/westus.
+	ID *string `json:"id,omitempty"`
+	// SubscriptionID - READ-ONLY; The subscription ID.
+	SubscriptionID *string `json:"subscriptionId,omitempty"`
+}
+
 // Policies subscription policies.
 type Policies struct {
 	// LocationPlacementID - READ-ONLY; The subscription location placement ID. The ID indicates which regions are visible for a subscription. For example, a subscription with a location placement Id of Public_2014-09-01 has access to Azure public regions.
@@ -446,6 +498,10 @@ type Subscription struct {
 	SubscriptionPolicies *Policies `json:"subscriptionPolicies,omitempty"`
 	// AuthorizationSource - The authorization source of the request. Valid values are one or more combinations of Legacy, RoleBased, Bypassed, Direct and Management. For example, 'Legacy, RoleBased'.
 	AuthorizationSource *string `json:"authorizationSource,omitempty"`
+	// ManagedByTenants - An array containing the tenants managing the subscription.
+	ManagedByTenants *[]ManagedByTenant `json:"managedByTenants,omitempty"`
+	// Tags - The tags attached to the subscription.
+	Tags map[string]*string `json:"tags"`
 }
 
 // MarshalJSON is the custom marshaler for Subscription.
@@ -457,6 +513,12 @@ func (s Subscription) MarshalJSON() ([]byte, error) {
 	if s.AuthorizationSource != nil {
 		objectMap["authorizationSource"] = s.AuthorizationSource
 	}
+	if s.ManagedByTenants != nil {
+		objectMap["managedByTenants"] = s.ManagedByTenants
+	}
+	if s.Tags != nil {
+		objectMap["tags"] = s.Tags
+	}
 	return json.Marshal(objectMap)
 }
 
@@ -466,6 +528,8 @@ type TenantIDDescription struct {
 	ID *string `json:"id,omitempty"`
 	// TenantID - READ-ONLY; The tenant ID. For example, 00000000-0000-0000-0000-000000000000.
 	TenantID *string `json:"tenantId,omitempty"`
+	// TenantCategory - READ-ONLY; Category of the tenant. Possible values include: 'Home', 'ProjectedBy', 'ManagedBy'
+	TenantCategory TenantCategory `json:"tenantCategory,omitempty"`
 	// Country - READ-ONLY; Country/region name of the address for the tenant.
 	Country *string `json:"country,omitempty"`
 	// CountryCode - READ-ONLY; Country/region abbreviation for the tenant.

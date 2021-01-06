@@ -25,6 +25,7 @@ var ValidateWebApplicationFirewallPolicyRuleGroupName = validation.StringInSlice
 	"REQUEST-941-APPLICATION-ATTACK-XSS",
 	"REQUEST-942-APPLICATION-ATTACK-SQLI",
 	"REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION",
+	"REQUEST-944-APPLICATION-ATTACK-JAVA",
 }, false)
 
 var ValidateWebApplicationFirewallPolicyRuleSetVersion = validation.StringInSlice([]string{

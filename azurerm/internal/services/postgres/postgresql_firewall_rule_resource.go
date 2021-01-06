@@ -3,6 +3,7 @@ package postgres
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql"
@@ -41,6 +42,10 @@ func resourcePostgreSQLFirewallRule() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile("^[-a-zA-Z0-9(_)]{1,128}$"),
+					"Rule name must be 1 - 128 characters long, can contain letters, numbers, underscores, and hyphens (but the first and last character must be a letter or number).",
+				),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),

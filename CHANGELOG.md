@@ -2,14 +2,18 @@
 
 FEATURES:
 
+* **New data source:** `azurerm_eventgrid_domain_topic` [GH-10050]
 * **New Resource:** `azurerm_data_factory_linked_service_synapse` [GH-9928]
+* **New Resource:** `azurerm_disk_access` [GH-9889]
 * **New Resource:** `azurerm_media_streaming_locator` [GH-9992]
 * **New Resource:** `azurerm_sentinel_alert_rule_fusion` [GH-9829]
 
 IMPROVEMENTS:
 
 * dependencies: upgrading to `v0.15.1` of `github.com/tombuildsstuff/giovanni` [GH-10035]
+* Data Source: `azurerm_hdinsight_cluster` - support for the `kafka_rest_proxy_endpoint` property [GH-8064]
 * Data Source: `azurerm_databricks_workspace` - support for the `tags` property [GH-9933]
+* Data Source: `azurerm_subscription` - support for the `tags` property [GH-8064]
 * `azurerm_batch_pool` support for the `public_address_provisioning_type` property [GH-10036]
 * `azurerm_api_management` - support `Consumption_0` for the `sku_name` property [GH-6868]
 * `azurerm_cdn_endpoint` - only send `content_types_to_compress` and `geo_filter` to the API when actually set [GH-9902]
@@ -17,8 +21,10 @@ IMPROVEMENTS:
 * `azurerm_container_group` - support for the `volume.empty_dir` property [GH-9836]
 * `azurerm_data_factory_linked_service_azure_file_storage` - support for the `file_share` property [GH-9934]
 * `azurerm_dedicated_host` - support for addtional `sku_name` values [GH-9951]
+* `azurerm_devspace_controller` - deprecating since new DevSpace Controllers can no longer be provisioned, this will be removed in version 3.0 of the Azure Provider [GH-10049]
 * `azurerm_function_app` - make `pre_warmed_instance_count` computed to use azure's default [GH-9069]
 * `azurerm_hdinsight_hadoop_cluster` - allow the value `Standard_D4a_V4` for the `vm_type` property [GH-10000]
+* `azurerm_hdinsight_kafka_cluster` - support for the `rest_proxy` and `kafka_management_node` blocks [GH-8064]
 * `azurerm_log_analytics_linked_service` - add validation for resource ID type [GH-9932]
 * `azurerm_log_analytics_linked_service` - update validation to use generated validate functions [GH-9950]
 * `azurerm_monitor_diagnostic_setting` - validation that `eventhub_authorization_rule_id` is a EventHub Namespace Authorization Rule ID [GH-9914]
@@ -38,6 +44,8 @@ BUG FIXES:
 * `azurerm_cdn_endpoint` - changing many `delivery_rule` condition `match_values` to optional [GH-8850]
 * `azurerm_cosmosdb_account` - always include `key_vault_id` in update requests for azure policy enginer compatibility [GH-9966]
 * `azurerm_cosmosdb_table` - do not call the throughput api when serverless [GH-9749]
+* `azurerm_kubernetes_cluster` - parse oms `log_analytics_workspace_id` to ensure correct casing [GH-9976]
+* `azurerm_role_assignment` fix crash in retry logic [GH-10051]
 * `azurerm_storage_account` - allow hns when `account_tier` is `Premium` [GH-9548]
 * `azurerm_storage_share_file` - allowing files smaller than 4KB to be uploaded [GH-10035]
 

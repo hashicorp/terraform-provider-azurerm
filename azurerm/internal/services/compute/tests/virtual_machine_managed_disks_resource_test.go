@@ -863,6 +863,7 @@ resource "azurerm_key_vault" "test" {
       "listissuers",
       "managecontacts",
       "manageissuers",
+      "purge",
       "setissuers",
       "update",
     ]
