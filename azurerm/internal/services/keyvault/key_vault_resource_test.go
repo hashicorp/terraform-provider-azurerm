@@ -29,7 +29,7 @@ func TestAccKeyVault_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku_name").HasValue("premium"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("standard"),
 			),
 		},
 		data.ImportStep(),
@@ -182,6 +182,29 @@ func TestAccKeyVault_update(t *testing.T) {
 				check.That(data.ResourceName).Key("access_policy.#").HasValue("0"),
 			),
 		},
+	})
+}
+
+func TestAccKeyVault_upgradeSKU(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
+	r := KeyVaultResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("standard"),
+			),
+		},
+		data.ImportStep(), {
+			Config: r.basicPremiumSKU(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("premium"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -739,7 +762,7 @@ resource "azurerm_key_vault" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "premium"
+  sku_name                   = "standard"
   soft_delete_enabled        = true
   soft_delete_retention_days = 7
 
@@ -1199,6 +1222,49 @@ resource "azurerm_key_vault" "test" {
     email = "example@example.com"
     name  = "example"
     phone = "01234567890"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (KeyVaultResource) basicPremiumSKU(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "vault%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
+  soft_delete_enabled        = true
+  soft_delete_retention_days = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    certificate_permissions = [
+      "managecontacts",
+    ]
+
+    key_permissions = [
+      "create",
+    ]
+
+    secret_permissions = [
+      "set",
+    ]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
