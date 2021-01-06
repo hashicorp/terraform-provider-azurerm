@@ -18,7 +18,8 @@ tools:
 	GO111MODULE=off go get -u github.com/bflad/tfproviderdocs
 	GO111MODULE=off go get -u github.com/katbyte/terrafmt
 	GO111MODULE=off go get -u golang.org/x/tools/cmd/goimports
-	GO111MODULE=off go get -u mvdan.cc/gofumpt
+	# @tombuildsstuff: re-enable once https://github.com/mvdan/gofumpt/issues/107 is fixed
+	#GO111MODULE=off go get -u mvdan.cc/gofumpt
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v1.32.0
 
 build: fmtcheck generate
@@ -34,9 +35,10 @@ fmt:
 	find . -name '*.go' | grep -v vendor | xargs gofmt -s -w
 
 fumpt:
-	@echo "==> Fixing source code with gofmt..."
+	@echo "==> Gofumpt is temporarily disabled due to https://github.com/mvdan/gofumpt/issues/107."
+	# @echo "==> Fixing source code with Gofumpt..."
 	# This logic should match the search logic in scripts/gofmtcheck.sh
-	find . -name '*.go' | grep -v vendor | xargs gofumpt -s -w
+	#find . -name '*.go' | grep -v vendor | xargs gofumpt -s -w
 
 # Currently required by tf-deploy compile, duplicated by linters
 fmtcheck:
