@@ -19,7 +19,6 @@ resource "azurerm_security_center_assessment_metadata" "example" {
   assessment_type = "CustomerManaged"
   severity        = "Medium"
   description     = "Test Description"
-  categories      = ["Compute"]
 }
 ```
 
@@ -29,11 +28,11 @@ The following arguments are supported:
 
 * `name` - (Required) The GUID as name which should be used for this Security Center Assessment Metadata. Changing this forces a new Security Center Assessment Metadata to be created.
 
-* `assessment_type` - (Required) The type of the Security Center Assessment. Possible values are `BuiltIn`, `CustomPolicy`, `CustomerManaged` and `VerifiedPartner`.
+* `assessment_type` - (Required) The type of the Security Center Assessment. Possible values are `CustomerManaged` and `VerifiedPartner`.
 
 * `description` - (Required) The description of the Security Center Assessment.
 
-* `display_name` - (Required) The user friendly display name of the Security Center Assessment.
+* `display_name` - (Required) The user-friendly display name of the Security Center Assessment.
 
 * `severity` - (Required) The severity level of the Security Center Assessment. Possible values are `Low`, `Medium` and `High`.
 
@@ -41,11 +40,11 @@ The following arguments are supported:
 
 * `categories` - (Optional) A list of the categories which are at risk when the Security Center Assessment is unhealthy. Possible values are `Compute`, `Data`, `IdentityAndAccess`, `IoT` and `Networking`.
 
-* `implementation_effort` - (Optional) The implementation effort which is used to remediate this assessment. Possible values are `Low`, `Moderate` and `High`.
+* `implementation_effort` - (Optional) The implementation effort which is used to remediate the Security Center Assessment. Possible values are `Low`, `Moderate` and `High`.
 
-* `preview` - (Optional) Is this assessment in preview release status?
+* `is_preview` - (Optional) Is the Security Center Assessment in preview release status?
 
-* `remediation_description` - (Optional) The description which is used to mitigate this security issue.
+* `remediation_description` - (Optional) The description which is used to mitigate the security issue.
 
 * `threats` - (Optional) A list of the threat impacts for the Security Center Assessment. Possible values are `AccountBreach`, `DataExfiltration`, `DataSpillage`, `DenialOfService`, `ElevationOfPrivilege`, `MaliciousInsider`, `MissingCoverage` and `ThreatResistance`.
 

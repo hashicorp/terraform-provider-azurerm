@@ -3,9 +3,9 @@ package securitycenter_test
 import (
 	"context"
 	"fmt"
-	"github.com/google/uuid"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -32,6 +32,24 @@ func TestAccSecurityCenterAssessmentMetadata_basic(t *testing.T) {
 	})
 }
 
+func TestAccSecurityCenterAssessmentMetadata_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment_metadata", "test")
+	r := SecurityCenterAssessmentMetadataResource{}
+	uuid := uuid.New().String()
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(uuid),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(func(data acceptance.TestData) string {
+			return r.requiresImport(uuid)
+		}),
+	})
+}
+
 func TestAccSecurityCenterAssessmentMetadata_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_assessment_metadata", "test")
 	r := SecurityCenterAssessmentMetadataResource{}
@@ -43,7 +61,7 @@ func TestAccSecurityCenterAssessmentMetadata_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("categories"),
 	})
 }
 
@@ -59,14 +77,14 @@ func TestAccSecurityCenterAssessmentMetadata_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("categories"),
 		{
 			Config: r.update(uuid),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("categories"),
 	})
 }
 
@@ -129,7 +147,7 @@ resource "azurerm_security_center_assessment_metadata" "test" {
   name                    = "%s"
   display_name            = "Test Display Name"
   assessment_type         = "CustomerManaged"
-  severity                = "Medium"
+  severity                = "Low"
   description             = "Test Description"
   categories              = ["Compute"]
   implementation_effort   = "Low"
@@ -149,16 +167,16 @@ provider "azurerm" {
 
 resource "azurerm_security_center_assessment_metadata" "test" {
   name                    = "%s"
-  display_name            = "Test Display Name"
-  assessment_type         = "CustomerManaged"
+  display_name            = "Updated Test Display Name"
+  assessment_type         = "VerifiedPartner"
   severity                = "Medium"
-  description             = "Test Description"
-  categories              = ["Compute"]
-  implementation_effort   = "Low"
-  is_preview              = false
-  remediation_description = "Test Remediation Description"
-  threats                 = ["DataExfiltration", "DataSpillage", "MaliciousInsider"]
-  user_impact             = "Low"
+  description             = "Updated Test Description"
+  categories              = ["Data"]
+  implementation_effort   = "Moderate"
+  is_preview              = true
+  remediation_description = "Updated Test Remediation Description"
+  threats                 = ["DataExfiltration", "DataSpillage"]
+  user_impact             = "Moderate"
 }
 `, uuid)
 }

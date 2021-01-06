@@ -60,8 +60,6 @@ func resourceArmSecurityCenterAssessmentMetadata() *schema.Resource {
 				Optional: true,
 				Default:  string(security.CustomerManaged),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(security.BuiltIn),
-					string(security.CustomPolicy),
 					string(security.CustomerManaged),
 					string(security.VerifiedPartner),
 				}, false),
@@ -78,6 +76,8 @@ func resourceArmSecurityCenterAssessmentMetadata() *schema.Resource {
 				}, false),
 			},
 
+			// The Azure API always returns `nil` for this property after set it.
+			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/12297
 			"categories": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -249,14 +249,6 @@ func resourceArmSecurityCenterAssessmentMetadataRead(d *schema.ResourceData, met
 		d.Set("is_preview", props.Preview)
 		d.Set("remediation_description", props.RemediationDescription)
 		d.Set("user_impact", props.UserImpact)
-
-		category := make([]string, 0)
-		if props.Category != nil {
-			for _, item := range *props.Category {
-				category = append(category, (string)(item))
-			}
-		}
-		d.Set("categories", utils.FlattenStringSlice(&category))
 
 		threats := make([]string, 0)
 		if props.Threats != nil {
