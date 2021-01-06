@@ -223,8 +223,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -235,20 +235,20 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_queue" "test" {
   name                 = "mysamplequeue-%d"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  storage_account_name = azurerm_storage_account.test.name
 }
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_storage_blob" "test" {
   name = "herpderp1.vhd"
 
-  storage_account_name   = "${azurerm_storage_account.test.name}"
-  storage_container_name = "${azurerm_storage_container.test.name}"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
 
   type = "Page"
   size = 5120
@@ -256,16 +256,16 @@ resource "azurerm_storage_blob" "test" {
 
 resource "azurerm_eventgrid_event_subscription" "test" {
   name  = "acctesteg-%d"
-  scope = "${azurerm_resource_group.test.id}"
+  scope = azurerm_resource_group.test.id
 
   storage_queue_endpoint {
-    storage_account_id = "${azurerm_storage_account.test.id}"
-    queue_name         = "${azurerm_storage_queue.test.name}"
+    storage_account_id = azurerm_storage_account.test.id
+    queue_name         = azurerm_storage_queue.test.name
   }
 
   storage_blob_dead_letter_destination {
-    storage_account_id          = "${azurerm_storage_account.test.id}"
-    storage_blob_container_name = "${azurerm_storage_container.test.name}"
+    storage_account_id          = azurerm_storage_account.test.id
+    storage_blob_container_name = azurerm_storage_container.test.name
   }
 
   retry_policy {
@@ -474,8 +474,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -486,16 +486,16 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_queue" "test" {
   name                 = "mysamplequeue-%d"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  storage_account_name = azurerm_storage_account.test.name
 }
 
 resource "azurerm_eventgrid_event_subscription" "test" {
   name  = "acctest-eg-%d"
-  scope = "${azurerm_resource_group.test.id}"
+  scope = azurerm_resource_group.test.id
 
   storage_queue_endpoint {
-    storage_account_id = "${azurerm_storage_account.test.id}"
-    queue_name         = "${azurerm_storage_queue.test.name}"
+    storage_account_id = azurerm_storage_account.test.id
+    queue_name         = azurerm_storage_queue.test.name
   }
 
   included_event_types = ["Microsoft.Storage.BlobCreated", "Microsoft.Storage.BlobDeleted"]
@@ -521,8 +521,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -533,16 +533,16 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_queue" "test" {
   name                 = "mysamplequeue-%d"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  storage_account_name = azurerm_storage_account.test.name
 }
 
 resource "azurerm_eventgrid_event_subscription" "test" {
   name  = "acctesteg-%d"
-  scope = "${azurerm_storage_account.test.id}"
+  scope = azurerm_storage_account.test.id
 
   storage_queue_endpoint {
-    storage_account_id = "${azurerm_storage_account.test.id}"
-    queue_name         = "${azurerm_storage_queue.test.name}"
+    storage_account_id = azurerm_storage_account.test.id
+    queue_name         = azurerm_storage_queue.test.name
   }
 
   advanced_filter {

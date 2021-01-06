@@ -11,7 +11,7 @@ import (
 
 type AppServiceDataSource struct{}
 
-func TestAccDataSourceAzureRMAppService_basic(t *testing.T) {
+func TestAccDataSourceAppService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{
@@ -20,7 +20,9 @@ func TestAccDataSourceAzureRMAppService_basic(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("app_service_plan_id").Exists(),
 				check.That(data.ResourceName).Key("outbound_ip_addresses").Exists(),
+				check.That(data.ResourceName).Key("outbound_ip_address_list.#").Exists(),
 				check.That(data.ResourceName).Key("possible_outbound_ip_addresses").Exists(),
+				check.That(data.ResourceName).Key("possible_outbound_ip_address_list.#").Exists(),
 				check.That(data.ResourceName).Key("custom_domain_verification_id").Exists(),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),
@@ -28,7 +30,7 @@ func TestAccDataSourceAzureRMAppService_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMAppService_tags(t *testing.T) {
+func TestAccDataSourceAppService_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{
@@ -42,7 +44,7 @@ func TestAccDataSourceAzureRMAppService_tags(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMAppService_clientAppAffinityDisabled(t *testing.T) {
+func TestAccDataSourceAppService_clientAppAffinityDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{
@@ -55,7 +57,7 @@ func TestAccDataSourceAzureRMAppService_clientAppAffinityDisabled(t *testing.T) 
 	})
 }
 
-func TestAccDataSourceAzureRMAppService_32Bit(t *testing.T) {
+func TestAccDataSourceAppService_32Bit(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{
@@ -68,7 +70,7 @@ func TestAccDataSourceAzureRMAppService_32Bit(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMAppService_appSettings(t *testing.T) {
+func TestAccDataSourceAppService_appSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{
@@ -81,7 +83,7 @@ func TestAccDataSourceAzureRMAppService_appSettings(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMAppService_connectionString(t *testing.T) {
+func TestAccDataSourceAppService_connectionString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{
@@ -99,7 +101,7 @@ func TestAccDataSourceAzureRMAppService_connectionString(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMAppService_ipRestriction(t *testing.T) {
+func TestAccDataSourceAppService_ipRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{
@@ -115,7 +117,7 @@ func TestAccDataSourceAzureRMAppService_ipRestriction(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMAppService_oneVNetSubnetIpRestriction(t *testing.T) {
+func TestAccDataSourceAppService_oneVNetSubnetIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{
@@ -128,7 +130,7 @@ func TestAccDataSourceAzureRMAppService_oneVNetSubnetIpRestriction(t *testing.T)
 	})
 }
 
-func TestAccDataSourceAzureRMAppService_scmUseMainIPRestriction(t *testing.T) {
+func TestAccDataSourceAppService_scmUseMainIPRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{
@@ -141,7 +143,7 @@ func TestAccDataSourceAzureRMAppService_scmUseMainIPRestriction(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMAppService_scmIPRestriction(t *testing.T) {
+func TestAccDataSourceAppService_scmIPRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{
@@ -157,7 +159,7 @@ func TestAccDataSourceAzureRMAppService_scmIPRestriction(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMAppService_withSourceControl(t *testing.T) {
+func TestAccDataSourceAppService_withSourceControl(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{
@@ -170,7 +172,7 @@ func TestAccDataSourceAzureRMAppService_withSourceControl(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMAppService_http2Enabled(t *testing.T) {
+func TestAccDataSourceAppService_http2Enabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{
@@ -183,7 +185,7 @@ func TestAccDataSourceAzureRMAppService_http2Enabled(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMAppService_minTls(t *testing.T) {
+func TestAccDataSourceAppService_minTls(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{
@@ -196,7 +198,7 @@ func TestAccDataSourceAzureRMAppService_minTls(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMAppService_basicWindowsContainer(t *testing.T) {
+func TestAccDataSourceAppService_basicWindowsContainer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{

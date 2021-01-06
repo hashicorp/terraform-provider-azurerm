@@ -1122,6 +1122,8 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
+  allow_blob_public_access = true
+
   tags = {
     environment = "Dev"
   }
@@ -1276,8 +1278,9 @@ resource "azurerm_batch_pool" "test" {
   }
 
   network_configuration {
-    subnet_id  = azurerm_subnet.test.id
-    public_ips = [azurerm_public_ip.test.id]
+    public_address_provisioning_type = "UserManaged"
+    public_ips                       = [azurerm_public_ip.test.id]
+    subnet_id                        = azurerm_subnet.test.id
 
     endpoint_configuration {
       name                = "SSH"

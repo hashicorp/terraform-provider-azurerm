@@ -1,117 +1,77 @@
 package apimanagement_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMApiManagementNamedValue_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_named_value", "test")
+type ApiManagementNamedValueResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAPIManagementNamedValueDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementNamedValue_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementNamedValueExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccApiManagementNamedValue_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_named_value", "test")
+	r := ApiManagementNamedValueResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMApiManagementNamedValue_update(t *testing.T) {
+func TestAccApiManagementNamedValue_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_named_value", "test")
+	r := ApiManagementNamedValueResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAPIManagementNamedValueDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementNamedValue_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementNamedValueExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMApiManagementNamedValue_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementNamedValueExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("value"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("value"),
 	})
 }
 
-func testCheckAzureRMAPIManagementNamedValueDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.NamedValueClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_api_management_named_value" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return err
-			}
-		}
-
-		return nil
+func (t ApiManagementNamedValueResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-	return nil
+	resourceGroup := id.ResourceGroup
+	serviceName := id.Path["service"]
+	name := id.Path["namedValues"]
+
+	resp, err := clients.ApiManagement.NamedValueClient.Get(ctx, resourceGroup, serviceName, name)
+	if err != nil {
+		return nil, fmt.Errorf("reading ApiManagement Named Value (%s): %+v", id, err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckAzureRMAPIManagementNamedValueExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.NamedValueClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: API Management Property %q (Resource Group %q / API Management Service %q) does not exist", name, resourceGroup, serviceName)
-			}
-			return fmt.Errorf("Bad: Get on apiManagement.NamedValueClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-/*
-
- */
-
-func testAccAzureRMApiManagementNamedValue_basic(data acceptance.TestData) string {
+func (ApiManagementNamedValueResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -143,7 +103,7 @@ resource "azurerm_api_management_named_value" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementNamedValue_update(data acceptance.TestData) string {
+func (ApiManagementNamedValueResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

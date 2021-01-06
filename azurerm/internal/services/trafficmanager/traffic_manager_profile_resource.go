@@ -175,6 +175,17 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 				Computed: true,
 			},
 
+			"max_return": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(1, 8),
+			},
+
+			"traffic_view_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -212,8 +223,21 @@ func resourceArmTrafficManagerProfileCreate(d *schema.ResourceData, meta interfa
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	if maxReturn, ok := d.GetOk("max_return"); ok {
+		profile.MaxReturn = utils.Int64(int64(maxReturn.(int)))
+	}
+
 	if status, ok := d.GetOk("profile_status"); ok {
 		profile.ProfileStatus = trafficmanager.ProfileStatus(status.(string))
+	}
+
+	if trafficViewStatus, ok := d.GetOk("traffic_view_enabled"); ok {
+		profile.TrafficViewEnrollmentStatus = expandArmTrafficManagerTrafficView(trafficViewStatus.(bool))
+	}
+
+	if profile.ProfileProperties.TrafficRoutingMethod == trafficmanager.MultiValue &&
+		profile.ProfileProperties.MaxReturn == nil {
+		return fmt.Errorf("`max_return` must be specified when `traffic_routing_method` is set to `MultiValue`")
 	}
 
 	if *profile.ProfileProperties.MonitorConfig.IntervalInSeconds == int64(10) &&
@@ -254,9 +278,11 @@ func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface
 	if profile := resp.ProfileProperties; profile != nil {
 		d.Set("profile_status", profile.ProfileStatus)
 		d.Set("traffic_routing_method", profile.TrafficRoutingMethod)
+		d.Set("max_return", profile.MaxReturn)
 
 		d.Set("dns_config", flattenAzureRMTrafficManagerProfileDNSConfig(profile.DNSConfig))
 		d.Set("monitor_config", flattenAzureRMTrafficManagerProfileMonitorConfig(profile.MonitorConfig))
+		d.Set("traffic_view_enabled", profile.TrafficViewEnrollmentStatus == trafficmanager.TrafficViewEnrollmentStatusEnabled)
 
 		// fqdn is actually inside DNSConfig, inlined for simpler reference
 		if dns := profile.DNSConfig; dns != nil {
@@ -291,12 +317,24 @@ func resourceArmTrafficManagerProfileUpdate(d *schema.ResourceData, meta interfa
 		update.ProfileProperties.TrafficRoutingMethod = trafficmanager.TrafficRoutingMethod(d.Get("traffic_routing_method").(string))
 	}
 
+	if d.HasChange("max_return") {
+		if maxReturn, ok := d.GetOk("max_return"); ok {
+			update.MaxReturn = utils.Int64(int64(maxReturn.(int)))
+		}
+	}
+
 	if d.HasChange("dns_config") {
 		update.ProfileProperties.DNSConfig = expandArmTrafficManagerDNSConfig(d)
 	}
 
 	if d.HasChange("monitor_config") {
 		update.ProfileProperties.MonitorConfig = expandArmTrafficManagerMonitorConfig(d)
+	}
+
+	if d.HasChange("traffic_view_enabled") {
+		if trafficViewStatus, ok := d.GetOk("traffic_view_enabled"); ok {
+			update.ProfileProperties.TrafficViewEnrollmentStatus = expandArmTrafficManagerTrafficView(trafficViewStatus.(bool))
+		}
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, update); err != nil {
@@ -409,6 +447,13 @@ func expandArmTrafficManagerDNSConfig(d *schema.ResourceData) *trafficmanager.DN
 		RelativeName: &name,
 		TTL:          &ttl,
 	}
+}
+
+func expandArmTrafficManagerTrafficView(s bool) trafficmanager.TrafficViewEnrollmentStatus {
+	if s {
+		return trafficmanager.TrafficViewEnrollmentStatusEnabled
+	}
+	return trafficmanager.TrafficViewEnrollmentStatusDisabled
 }
 
 func flattenAzureRMTrafficManagerProfileDNSConfig(dns *trafficmanager.DNSConfig) []interface{} {

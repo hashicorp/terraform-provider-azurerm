@@ -1,81 +1,75 @@
 package monitor_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMMonitorScheduledQueryRules_LogToMetricActionBasic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_log", "test")
+type MonitorScheduledQueryRulesLogResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorScheduledQueryRules_LogDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorScheduledQueryRules_LogToMetricActionConfigBasic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorScheduledQueryRules_LogExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccMonitorScheduledQueryRules_LogToMetricActionBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_log", "test")
+	r := MonitorScheduledQueryRulesLogResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.LogToMetricActionConfigBasic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMMonitorScheduledQueryRules_LogToMetricActionUpdate(t *testing.T) {
+func TestAccMonitorScheduledQueryRules_LogToMetricActionUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_log", "test")
+	r := MonitorScheduledQueryRulesLogResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorScheduledQueryRules_LogDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorScheduledQueryRules_LogToMetricActionConfigBasic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorScheduledQueryRules_LogExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMMonitorScheduledQueryRules_LogToMetricActionConfigUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorScheduledQueryRules_LogExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.LogToMetricActionConfigBasic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.LogToMetricActionConfigUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMMonitorScheduledQueryRules_LogToMetricActionComplete(t *testing.T) {
+func TestAccMonitorScheduledQueryRules_LogToMetricActionComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_log", "test")
+	r := MonitorScheduledQueryRulesLogResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorScheduledQueryRules_LogDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorScheduledQueryRules_LogToMetricActionConfigComplete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorScheduledQueryRules_LogExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.LogToMetricActionConfigComplete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testAccAzureRMMonitorScheduledQueryRules_LogToMetricActionConfigBasic(data acceptance.TestData) string {
+func (MonitorScheduledQueryRulesLogResource) LogToMetricActionConfigBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-monitor-%d"
@@ -109,7 +103,7 @@ resource "azurerm_monitor_scheduled_query_rules_log" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMMonitorScheduledQueryRules_LogToMetricActionConfigUpdate(data acceptance.TestData) string {
+func (MonitorScheduledQueryRulesLogResource) LogToMetricActionConfigUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-monitor-%d"
@@ -145,7 +139,7 @@ resource "azurerm_monitor_scheduled_query_rules_log" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMMonitorScheduledQueryRules_LogToMetricActionConfigComplete(data acceptance.TestData) string {
+func (MonitorScheduledQueryRulesLogResource) LogToMetricActionConfigComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-monitor-%d"
@@ -206,57 +200,18 @@ resource "azurerm_monitor_metric_alert" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testCheckAzureRMMonitorScheduledQueryRules_LogDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.ScheduledQueryRulesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (t MonitorScheduledQueryRulesLogResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+	resourceGroup := id.ResourceGroup
+	name := id.Path["scheduledqueryrules"]
 
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_monitor_scheduled_query_rules_log" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Scheduled Query Rule still exists:\n%#v", resp)
-		}
+	resp, err := clients.Monitor.ScheduledQueryRulesClient.Get(ctx, resourceGroup, name)
+	if err != nil {
+		return nil, fmt.Errorf("reading scheduled query rules log (%s): %+v", id, err)
 	}
 
-	return nil
-}
-
-func testCheckAzureRMMonitorScheduledQueryRules_LogExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Scheduled Query Rule Instance: %s", name)
-		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.ScheduledQueryRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on monitorScheduledQueryRulesClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Scheduled Query Rule Instance %q (resource group: %q) does not exist", name, resourceGroup)
-		}
-
-		return nil
-	}
+	return utils.Bool(resp.ID != nil), nil
 }

@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmFirewallApplicationRuleCollection() *schema.Resource {
+func resourceFirewallApplicationRuleCollection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmFirewallApplicationRuleCollectionCreateUpdate,
-		Read:   resourceArmFirewallApplicationRuleCollectionRead,
-		Update: resourceArmFirewallApplicationRuleCollectionCreateUpdate,
-		Delete: resourceArmFirewallApplicationRuleCollectionDelete,
+		Create: resourceFirewallApplicationRuleCollectionCreateUpdate,
+		Read:   resourceFirewallApplicationRuleCollectionRead,
+		Update: resourceFirewallApplicationRuleCollectionCreateUpdate,
+		Delete: resourceFirewallApplicationRuleCollectionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -137,7 +137,7 @@ func resourceArmFirewallApplicationRuleCollection() *schema.Resource {
 	}
 }
 
-func resourceArmFirewallApplicationRuleCollectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceFirewallApplicationRuleCollectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.AzureFirewallsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -145,7 +145,7 @@ func resourceArmFirewallApplicationRuleCollectionCreateUpdate(d *schema.Resource
 	name := d.Get("name").(string)
 	firewallName := d.Get("azure_firewall_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	applicationRules, err := expandArmFirewallApplicationRules(d.Get("rule").([]interface{}))
+	applicationRules, err := expandFirewallApplicationRules(d.Get("rule").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding Firewall Application Rules: %+v", err)
 	}
@@ -245,10 +245,10 @@ func resourceArmFirewallApplicationRuleCollectionCreateUpdate(d *schema.Resource
 	}
 	d.SetId(collectionID)
 
-	return resourceArmFirewallApplicationRuleCollectionRead(d, meta)
+	return resourceFirewallApplicationRuleCollectionRead(d, meta)
 }
 
-func resourceArmFirewallApplicationRuleCollectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceFirewallApplicationRuleCollectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.AzureFirewallsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -321,7 +321,7 @@ func resourceArmFirewallApplicationRuleCollectionRead(d *schema.ResourceData, me
 	return nil
 }
 
-func resourceArmFirewallApplicationRuleCollectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceFirewallApplicationRuleCollectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.AzureFirewallsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -380,7 +380,7 @@ func resourceArmFirewallApplicationRuleCollectionDelete(d *schema.ResourceData, 
 	return nil
 }
 
-func expandArmFirewallApplicationRules(inputs []interface{}) (*[]network.AzureFirewallApplicationRule, error) {
+func expandFirewallApplicationRules(inputs []interface{}) (*[]network.AzureFirewallApplicationRule, error) {
 	outputs := make([]network.AzureFirewallApplicationRule, 0)
 
 	for _, input := range inputs {

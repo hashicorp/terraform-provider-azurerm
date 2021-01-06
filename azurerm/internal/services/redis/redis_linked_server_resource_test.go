@@ -88,7 +88,7 @@ resource "azurerm_redis_cache" "pri" {
 }
 
 resource "azurerm_resource_group" "sec" {
-  name     = "accsecRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

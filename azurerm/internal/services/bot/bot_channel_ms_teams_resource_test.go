@@ -70,7 +70,7 @@ func (t BotChannelMsTeamsResource) Exists(ctx context.Context, clients *clients.
 
 	resp, err := clients.Bot.ChannelClient.Get(ctx, id.ResourceGroup, id.BotServiceName, string(botservice.ChannelNameMsTeamsChannel))
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Bot Channel MS Teams (%s): %v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
 	return utils.Bool(resp.Properties != nil), nil
