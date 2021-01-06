@@ -84,6 +84,7 @@ func (client ConfigurationClient) Get(ctx context.Context, resourceGroupName str
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.ConfigurationClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -171,6 +172,7 @@ func (client ConfigurationClient) Patch(ctx context.Context, resourceGroupName s
 	result, err = client.PatchResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.ConfigurationClient", "Patch", resp, "Failure responding to request")
+		return
 	}
 
 	return

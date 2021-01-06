@@ -88,6 +88,7 @@ func (client QuotaByPeriodKeysClient) Get(ctx context.Context, resourceGroupName
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.QuotaByPeriodKeysClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -179,6 +180,7 @@ func (client QuotaByPeriodKeysClient) Update(ctx context.Context, resourceGroupN
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.QuotaByPeriodKeysClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

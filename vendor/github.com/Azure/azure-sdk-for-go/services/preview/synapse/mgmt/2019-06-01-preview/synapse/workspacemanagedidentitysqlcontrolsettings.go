@@ -49,13 +49,13 @@ func NewWorkspaceManagedIdentitySQLControlSettingsClientWithBaseURI(baseURI stri
 // resourceGroupName - the name of the resource group. The name is case insensitive.
 // workspaceName - the name of the workspace
 // managedIdentitySQLControlSettings - managed Identity Sql Control Settings
-func (client WorkspaceManagedIdentitySQLControlSettingsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, workspaceName string, managedIdentitySQLControlSettings ManagedIdentitySQLControlSettingsModel) (result ManagedIdentitySQLControlSettingsModel, err error) {
+func (client WorkspaceManagedIdentitySQLControlSettingsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, workspaceName string, managedIdentitySQLControlSettings ManagedIdentitySQLControlSettingsModel) (result WorkspaceManagedIdentitySQLControlSettingsCreateOrUpdateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/WorkspaceManagedIdentitySQLControlSettingsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -76,16 +76,10 @@ func (client WorkspaceManagedIdentitySQLControlSettingsClient) CreateOrUpdate(ct
 		return
 	}
 
-	resp, err := client.CreateOrUpdateSender(req)
+	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "synapse.WorkspaceManagedIdentitySQLControlSettingsClient", "CreateOrUpdate", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.WorkspaceManagedIdentitySQLControlSettingsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
-	}
-
-	result, err = client.CreateOrUpdateResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.WorkspaceManagedIdentitySQLControlSettingsClient", "CreateOrUpdate", resp, "Failure responding to request")
 	}
 
 	return
@@ -116,8 +110,14 @@ func (client WorkspaceManagedIdentitySQLControlSettingsClient) CreateOrUpdatePre
 
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
-func (client WorkspaceManagedIdentitySQLControlSettingsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client WorkspaceManagedIdentitySQLControlSettingsClient) CreateOrUpdateSender(req *http.Request) (future WorkspaceManagedIdentitySQLControlSettingsCreateOrUpdateFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -125,7 +125,7 @@ func (client WorkspaceManagedIdentitySQLControlSettingsClient) CreateOrUpdateSen
 func (client WorkspaceManagedIdentitySQLControlSettingsClient) CreateOrUpdateResponder(resp *http.Response) (result ManagedIdentitySQLControlSettingsModel, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -173,6 +173,7 @@ func (client WorkspaceManagedIdentitySQLControlSettingsClient) Get(ctx context.C
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.WorkspaceManagedIdentitySQLControlSettingsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -1472,11 +1472,13 @@ const (
 	TumblingWindowFrequencyHour TumblingWindowFrequency = "Hour"
 	// TumblingWindowFrequencyMinute ...
 	TumblingWindowFrequencyMinute TumblingWindowFrequency = "Minute"
+	// TumblingWindowFrequencyMonth ...
+	TumblingWindowFrequencyMonth TumblingWindowFrequency = "Month"
 )
 
 // PossibleTumblingWindowFrequencyValues returns an array of possible values for the TumblingWindowFrequency const type.
 func PossibleTumblingWindowFrequencyValues() []TumblingWindowFrequency {
-	return []TumblingWindowFrequency{TumblingWindowFrequencyHour, TumblingWindowFrequencyMinute}
+	return []TumblingWindowFrequency{TumblingWindowFrequencyHour, TumblingWindowFrequencyMinute, TumblingWindowFrequencyMonth}
 }
 
 // Type enumerates the values for type.

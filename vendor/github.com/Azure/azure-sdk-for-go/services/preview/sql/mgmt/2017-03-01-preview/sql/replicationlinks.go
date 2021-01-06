@@ -78,6 +78,7 @@ func (client ReplicationLinksClient) Delete(ctx context.Context, resourceGroupNa
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ReplicationLinksClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -316,6 +317,7 @@ func (client ReplicationLinksClient) Get(ctx context.Context, resourceGroupName 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ReplicationLinksClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -395,6 +397,7 @@ func (client ReplicationLinksClient) ListByDatabase(ctx context.Context, resourc
 	result, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ReplicationLinksClient", "ListByDatabase", resp, "Failure responding to request")
+		return
 	}
 
 	return

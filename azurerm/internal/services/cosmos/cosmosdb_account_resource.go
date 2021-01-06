@@ -40,12 +40,12 @@ func suppressConsistencyPolicyStalenessConfiguration(_, _, _ string, d *schema.R
 	return consistencyPolicy["consistency_level"].(string) != string(documentdb.BoundedStaleness)
 }
 
-func resourceArmCosmosDbAccount() *schema.Resource {
+func resourceCosmosDbAccount() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCosmosDbAccountCreate,
-		Read:   resourceArmCosmosDbAccountRead,
-		Update: resourceArmCosmosDbAccountUpdate,
-		Delete: resourceArmCosmosDbAccountDelete,
+		Create: resourceCosmosDbAccountCreate,
+		Read:   resourceCosmosDbAccountRead,
+		Update: resourceCosmosDbAccountUpdate,
+		Delete: resourceCosmosDbAccountDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -355,7 +355,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 	}
 }
 
-func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -447,7 +447,7 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	resp, err := resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d)
+	resp, err := resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d)
 	if err != nil {
 		return fmt.Errorf("Error creating CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -459,10 +459,10 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 
 	d.SetId(*id)
 
-	return resourceArmCosmosDbAccountRead(d, meta)
+	return resourceCosmosDbAccountRead(d, meta)
 }
 
-func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -543,14 +543,14 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		account.DatabaseAccountCreateUpdateProperties.KeyVaultKeyURI = utils.String(keyVaultKeyURI)
 	}
 
-	if _, err = resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
+	if _, err = resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
 		return fmt.Errorf("Error updating CosmosDB Account %q properties (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	// Update the property independently after the initial upsert as no other properties may change at the same time.
 	account.DatabaseAccountCreateUpdateProperties.EnableMultipleWriteLocations = utils.Bool(enableMultipleWriteLocations)
 	if *resp.EnableMultipleWriteLocations != enableMultipleWriteLocations {
-		if _, err = resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
+		if _, err = resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
 			return fmt.Errorf("Error updating CosmosDB Account %q EnableMultipleWriteLocations (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
@@ -577,14 +577,14 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 
 		account.DatabaseAccountCreateUpdateProperties.Locations = &locationsUnchanged
-		if _, err = resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
+		if _, err = resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
 			return fmt.Errorf("Error removing CosmosDB Account %q renamed locations (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
 	// add any new/renamed locations
 	account.DatabaseAccountCreateUpdateProperties.Locations = &newLocations
-	upsertResponse, err := resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d)
+	upsertResponse, err := resourceCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d)
 	if err != nil {
 		return fmt.Errorf("Error updating CosmosDB Account %q locations (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -595,10 +595,10 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 
 	d.SetId(*upsertResponse.ID)
 
-	return resourceArmCosmosDbAccountRead(d, meta)
+	return resourceCosmosDbAccountRead(d, meta)
 }
 
-func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -746,7 +746,7 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmCosmosDbAccountDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -790,7 +790,7 @@ func resourceArmCosmosDbAccountDelete(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceArmCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient, ctx context.Context, resourceGroup string, name string, account documentdb.DatabaseAccountCreateUpdateParameters, d *schema.ResourceData) (*documentdb.DatabaseAccountGetResults, error) {
+func resourceCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient, ctx context.Context, resourceGroup string, name string, account documentdb.DatabaseAccountCreateUpdateParameters, d *schema.ResourceData) (*documentdb.DatabaseAccountGetResults, error) {
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, account)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating/updating CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)

@@ -74,6 +74,7 @@ func (client AlertRuleIncidentsClient) Get(ctx context.Context, resourceGroupNam
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AlertRuleIncidentsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -150,6 +151,7 @@ func (client AlertRuleIncidentsClient) ListByAlertRule(ctx context.Context, reso
 	result, err = client.ListByAlertRuleResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AlertRuleIncidentsClient", "ListByAlertRule", resp, "Failure responding to request")
+		return
 	}
 
 	return

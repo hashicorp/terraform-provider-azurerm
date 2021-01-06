@@ -252,6 +252,7 @@ func (client InboundNatRulesClient) Get(ctx context.Context, resourceGroupName s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.InboundNatRulesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -332,6 +333,7 @@ func (client InboundNatRulesClient) List(ctx context.Context, resourceGroupName 
 	result.inrlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.InboundNatRulesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.inrlr.hasNextLink() && result.inrlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -396,6 +398,7 @@ func (client InboundNatRulesClient) listNextResults(ctx context.Context, lastRes
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.InboundNatRulesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

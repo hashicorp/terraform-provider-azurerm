@@ -358,8 +358,11 @@ func (page ControllerListPage) Values() []Controller {
 }
 
 // Creates a new instance of the ControllerListPage type.
-func NewControllerListPage(getNextPage func(context.Context, ControllerList) (ControllerList, error)) ControllerListPage {
-	return ControllerListPage{fn: getNextPage}
+func NewControllerListPage(cur ControllerList, getNextPage func(context.Context, ControllerList) (ControllerList, error)) ControllerListPage {
+	return ControllerListPage{
+		fn: getNextPage,
+		cl: cur,
+	}
 }
 
 // ControllerProperties ...
@@ -553,7 +556,8 @@ func (kcd KubernetesConnectionDetails) AsBasicOrchestratorSpecificConnectionDeta
 	return &kcd, true
 }
 
-// ListConnectionDetailsParameters parameters for listing connection details of an Azure Dev Spaces Controller.
+// ListConnectionDetailsParameters parameters for listing connection details of an Azure Dev Spaces
+// Controller.
 type ListConnectionDetailsParameters struct {
 	// TargetContainerHostResourceID - Resource ID of the target container host mapped to the Azure Dev Spaces Controller.
 	TargetContainerHostResourceID *string `json:"targetContainerHostResourceId,omitempty"`
@@ -826,8 +830,11 @@ func (page ResourceProviderOperationListPage) Values() []ResourceProviderOperati
 }
 
 // Creates a new instance of the ResourceProviderOperationListPage type.
-func NewResourceProviderOperationListPage(getNextPage func(context.Context, ResourceProviderOperationList) (ResourceProviderOperationList, error)) ResourceProviderOperationListPage {
-	return ResourceProviderOperationListPage{fn: getNextPage}
+func NewResourceProviderOperationListPage(cur ResourceProviderOperationList, getNextPage func(context.Context, ResourceProviderOperationList) (ResourceProviderOperationList, error)) ResourceProviderOperationListPage {
+	return ResourceProviderOperationListPage{
+		fn:   getNextPage,
+		rpol: cur,
+	}
 }
 
 // Sku model representing SKU for Azure Dev Spaces Controller.

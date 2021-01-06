@@ -235,6 +235,7 @@ func (client GalleryApplicationsClient) Get(ctx context.Context, resourceGroupNa
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.GalleryApplicationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -313,6 +314,7 @@ func (client GalleryApplicationsClient) ListByGallery(ctx context.Context, resou
 	result.gal, err = client.ListByGalleryResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.GalleryApplicationsClient", "ListByGallery", resp, "Failure responding to request")
+		return
 	}
 	if result.gal.hasNextLink() && result.gal.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -377,6 +379,7 @@ func (client GalleryApplicationsClient) listByGalleryNextResults(ctx context.Con
 	result, err = client.ListByGalleryResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.GalleryApplicationsClient", "listByGalleryNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -86,6 +86,7 @@ func (client BaselinesClient) List(ctx context.Context, resourceURI string, metr
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.BaselinesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

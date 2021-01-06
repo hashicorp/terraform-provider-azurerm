@@ -359,8 +359,11 @@ func (page AgentPoolListResultPage) Values() []AgentPool {
 }
 
 // Creates a new instance of the AgentPoolListResultPage type.
-func NewAgentPoolListResultPage(getNextPage func(context.Context, AgentPoolListResult) (AgentPoolListResult, error)) AgentPoolListResultPage {
-	return AgentPoolListResultPage{fn: getNextPage}
+func NewAgentPoolListResultPage(cur AgentPoolListResult, getNextPage func(context.Context, AgentPoolListResult) (AgentPoolListResult, error)) AgentPoolListResultPage {
+	return AgentPoolListResultPage{
+		fn:   getNextPage,
+		aplr: cur,
+	}
 }
 
 // AgentPoolProfile profile for the container service agent pool.
@@ -420,8 +423,8 @@ func (app AgentPoolProfile) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// AgentPoolsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// AgentPoolsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type AgentPoolsCreateOrUpdateFuture struct {
 	azure.Future
 }
@@ -449,7 +452,8 @@ func (future *AgentPoolsCreateOrUpdateFuture) Result(client AgentPoolsClient) (a
 	return
 }
 
-// AgentPoolsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// AgentPoolsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type AgentPoolsDeleteFuture struct {
 	azure.Future
 }
@@ -747,8 +751,8 @@ func (future *ContainerServicesCreateOrUpdateFutureType) Result(client Container
 	return
 }
 
-// ContainerServicesDeleteFutureType an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ContainerServicesDeleteFutureType an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type ContainerServicesDeleteFutureType struct {
 	azure.Future
 }
@@ -976,8 +980,11 @@ func (page ListResultPage) Values() []ContainerService {
 }
 
 // Creates a new instance of the ListResultPage type.
-func NewListResultPage(getNextPage func(context.Context, ListResult) (ListResult, error)) ListResultPage {
-	return ListResultPage{fn: getNextPage}
+func NewListResultPage(cur ListResult, getNextPage func(context.Context, ListResult) (ListResult, error)) ListResultPage {
+	return ListResultPage{
+		fn: getNextPage,
+		lr: cur,
+	}
 }
 
 // ManagedCluster managed cluster.
@@ -1728,8 +1735,11 @@ func (page ManagedClusterListResultPage) Values() []ManagedCluster {
 }
 
 // Creates a new instance of the ManagedClusterListResultPage type.
-func NewManagedClusterListResultPage(getNextPage func(context.Context, ManagedClusterListResult) (ManagedClusterListResult, error)) ManagedClusterListResultPage {
-	return ManagedClusterListResultPage{fn: getNextPage}
+func NewManagedClusterListResultPage(cur ManagedClusterListResult, getNextPage func(context.Context, ManagedClusterListResult) (ManagedClusterListResult, error)) ManagedClusterListResultPage {
+	return ManagedClusterListResultPage{
+		fn:   getNextPage,
+		mclr: cur,
+	}
 }
 
 // ManagedClusterLoadBalancerProfile profile of the managed cluster load balancer.
@@ -1762,7 +1772,8 @@ type ManagedClusterLoadBalancerProfileOutboundIPPrefixes struct {
 	PublicIPPrefixes *[]ResourceReference `json:"publicIPPrefixes,omitempty"`
 }
 
-// ManagedClusterLoadBalancerProfileOutboundIPs desired outbound IP resources for the cluster load balancer.
+// ManagedClusterLoadBalancerProfileOutboundIPs desired outbound IP resources for the cluster load
+// balancer.
 type ManagedClusterLoadBalancerProfileOutboundIPs struct {
 	// PublicIPs - A list of public IP resources.
 	PublicIPs *[]ResourceReference `json:"publicIPs,omitempty"`
@@ -1888,7 +1899,8 @@ func (mcp ManagedClusterProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// ManagedClusterPropertiesAutoScalerProfile parameters to be applied to the cluster-autoscaler when enabled
+// ManagedClusterPropertiesAutoScalerProfile parameters to be applied to the cluster-autoscaler when
+// enabled
 type ManagedClusterPropertiesAutoScalerProfile struct {
 	BalanceSimilarNodeGroups *string `json:"balance-similar-node-groups,omitempty"`
 	// Expander - Possible values include: 'LeastWaste', 'MostPods', 'Random'
@@ -1971,8 +1983,8 @@ func (future *ManagedClustersDeleteFuture) Result(client ManagedClustersClient) 
 	return
 }
 
-// ManagedClusterServicePrincipalProfile information about a service principal identity for the cluster to use
-// for manipulating Azure APIs.
+// ManagedClusterServicePrincipalProfile information about a service principal identity for the cluster to
+// use for manipulating Azure APIs.
 type ManagedClusterServicePrincipalProfile struct {
 	// ClientID - The ID for the service principal.
 	ClientID *string `json:"clientId,omitempty"`
@@ -2011,8 +2023,8 @@ func (future *ManagedClustersResetAADProfileFuture) Result(client ManagedCluster
 	return
 }
 
-// ManagedClustersResetServicePrincipalProfileFuture an abstraction for monitoring and retrieving the results
-// of a long-running operation.
+// ManagedClustersResetServicePrincipalProfileFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
 type ManagedClustersResetServicePrincipalProfileFuture struct {
 	azure.Future
 }
@@ -2034,8 +2046,8 @@ func (future *ManagedClustersResetServicePrincipalProfileFuture) Result(client M
 	return
 }
 
-// ManagedClustersRotateClusterCertificatesFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// ManagedClustersRotateClusterCertificatesFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
 type ManagedClustersRotateClusterCertificatesFuture struct {
 	azure.Future
 }
@@ -2103,8 +2115,8 @@ func (future *ManagedClustersStopFuture) Result(client ManagedClustersClient) (a
 	return
 }
 
-// ManagedClustersUpdateTagsFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ManagedClustersUpdateTagsFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type ManagedClustersUpdateTagsFuture struct {
 	azure.Future
 }
@@ -2486,7 +2498,8 @@ type OpenShiftManagedClusterAgentPoolProfile struct {
 	Role OpenShiftAgentPoolProfileRole `json:"role,omitempty"`
 }
 
-// OpenShiftManagedClusterAuthProfile defines all possible authentication profiles for the OpenShift cluster.
+// OpenShiftManagedClusterAuthProfile defines all possible authentication profiles for the OpenShift
+// cluster.
 type OpenShiftManagedClusterAuthProfile struct {
 	// IdentityProviders - Type of authentication profile to use.
 	IdentityProviders *[]OpenShiftManagedClusterIdentityProvider `json:"identityProviders,omitempty"`
@@ -2566,8 +2579,8 @@ func (osmcbip OpenShiftManagedClusterBaseIdentityProvider) AsBasicOpenShiftManag
 	return &osmcbip, true
 }
 
-// OpenShiftManagedClusterIdentityProvider defines the configuration of the identity providers to be used in
-// the OpenShift cluster.
+// OpenShiftManagedClusterIdentityProvider defines the configuration of the identity providers to be used
+// in the OpenShift cluster.
 type OpenShiftManagedClusterIdentityProvider struct {
 	// Name - Name of the provider.
 	Name *string `json:"name,omitempty"`
@@ -2625,8 +2638,8 @@ func (osmclr OpenShiftManagedClusterListResult) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// OpenShiftManagedClusterListResultIterator provides access to a complete listing of OpenShiftManagedCluster
-// values.
+// OpenShiftManagedClusterListResultIterator provides access to a complete listing of
+// OpenShiftManagedCluster values.
 type OpenShiftManagedClusterListResultIterator struct {
 	i    int
 	page OpenShiftManagedClusterListResultPage
@@ -2769,12 +2782,15 @@ func (page OpenShiftManagedClusterListResultPage) Values() []OpenShiftManagedClu
 }
 
 // Creates a new instance of the OpenShiftManagedClusterListResultPage type.
-func NewOpenShiftManagedClusterListResultPage(getNextPage func(context.Context, OpenShiftManagedClusterListResult) (OpenShiftManagedClusterListResult, error)) OpenShiftManagedClusterListResultPage {
-	return OpenShiftManagedClusterListResultPage{fn: getNextPage}
+func NewOpenShiftManagedClusterListResultPage(cur OpenShiftManagedClusterListResult, getNextPage func(context.Context, OpenShiftManagedClusterListResult) (OpenShiftManagedClusterListResult, error)) OpenShiftManagedClusterListResultPage {
+	return OpenShiftManagedClusterListResultPage{
+		fn:     getNextPage,
+		osmclr: cur,
+	}
 }
 
-// OpenShiftManagedClusterMasterPoolProfile openShiftManagedClusterMaterPoolProfile contains configuration for
-// OpenShift master VMs.
+// OpenShiftManagedClusterMasterPoolProfile openShiftManagedClusterMaterPoolProfile contains configuration
+// for OpenShift master VMs.
 type OpenShiftManagedClusterMasterPoolProfile struct {
 	// Name - Unique name of the master pool profile in the context of the subscription and resource group.
 	Name *string `json:"name,omitempty"`
@@ -2836,8 +2852,8 @@ func (osmcp OpenShiftManagedClusterProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// OpenShiftManagedClustersCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// OpenShiftManagedClustersCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of
+// a long-running operation.
 type OpenShiftManagedClustersCreateOrUpdateFuture struct {
 	azure.Future
 }

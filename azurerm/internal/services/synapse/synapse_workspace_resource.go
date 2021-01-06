@@ -439,7 +439,7 @@ func flattenArmWorkspaceManagedIdentity(input *synapse.ManagedIdentity) []interf
 	}
 	var tenantId string
 	if input.TenantID != nil {
-		tenantId = *input.TenantID
+		tenantId = input.TenantID.String()
 	}
 	return []interface{}{
 		map[string]interface{}{

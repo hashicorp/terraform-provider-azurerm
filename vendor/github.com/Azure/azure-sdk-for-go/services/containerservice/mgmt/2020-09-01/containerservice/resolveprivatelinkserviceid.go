@@ -85,6 +85,7 @@ func (client ResolvePrivateLinkServiceIDClient) POST(ctx context.Context, resour
 	result, err = client.POSTResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerservice.ResolvePrivateLinkServiceIDClient", "POST", resp, "Failure responding to request")
+		return
 	}
 
 	return

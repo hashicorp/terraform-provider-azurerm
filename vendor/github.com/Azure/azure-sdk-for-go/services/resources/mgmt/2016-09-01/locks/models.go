@@ -181,8 +181,11 @@ func (page ManagementLockListResultPage) Values() []ManagementLockObject {
 }
 
 // Creates a new instance of the ManagementLockListResultPage type.
-func NewManagementLockListResultPage(getNextPage func(context.Context, ManagementLockListResult) (ManagementLockListResult, error)) ManagementLockListResultPage {
-	return ManagementLockListResultPage{fn: getNextPage}
+func NewManagementLockListResultPage(cur ManagementLockListResult, getNextPage func(context.Context, ManagementLockListResult) (ManagementLockListResult, error)) ManagementLockListResultPage {
+	return ManagementLockListResultPage{
+		fn:   getNextPage,
+		mllr: cur,
+	}
 }
 
 // ManagementLockObject the lock information.
@@ -292,8 +295,8 @@ type OperationDisplay struct {
 	Operation *string `json:"operation,omitempty"`
 }
 
-// OperationListResult result of the request to list Microsoft.Authorization operations. It contains a list of
-// operations and a URL link to get the next set of results.
+// OperationListResult result of the request to list Microsoft.Authorization operations. It contains a list
+// of operations and a URL link to get the next set of results.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
 	// Value - List of Microsoft.Authorization operations.
@@ -445,6 +448,9 @@ func (page OperationListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }

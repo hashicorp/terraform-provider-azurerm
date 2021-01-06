@@ -251,6 +251,7 @@ func (client VirtualNetworkLinksClient) Get(ctx context.Context, resourceGroupNa
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "privatedns.VirtualNetworkLinksClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -330,6 +331,7 @@ func (client VirtualNetworkLinksClient) List(ctx context.Context, resourceGroupN
 	result.vnllr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "privatedns.VirtualNetworkLinksClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.vnllr.hasNextLink() && result.vnllr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -397,6 +399,7 @@ func (client VirtualNetworkLinksClient) listNextResults(ctx context.Context, las
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "privatedns.VirtualNetworkLinksClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

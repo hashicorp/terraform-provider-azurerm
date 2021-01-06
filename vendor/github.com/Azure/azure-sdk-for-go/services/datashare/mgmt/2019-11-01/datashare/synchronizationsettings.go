@@ -76,6 +76,7 @@ func (client SynchronizationSettingsClient) Create(ctx context.Context, resource
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.SynchronizationSettingsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -236,6 +237,7 @@ func (client SynchronizationSettingsClient) Get(ctx context.Context, resourceGro
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.SynchronizationSettingsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -316,6 +318,7 @@ func (client SynchronizationSettingsClient) ListByShare(ctx context.Context, res
 	result.ssl, err = client.ListByShareResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.SynchronizationSettingsClient", "ListByShare", resp, "Failure responding to request")
+		return
 	}
 	if result.ssl.hasNextLink() && result.ssl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -384,6 +387,7 @@ func (client SynchronizationSettingsClient) listByShareNextResults(ctx context.C
 	result, err = client.ListByShareResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.SynchronizationSettingsClient", "listByShareNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

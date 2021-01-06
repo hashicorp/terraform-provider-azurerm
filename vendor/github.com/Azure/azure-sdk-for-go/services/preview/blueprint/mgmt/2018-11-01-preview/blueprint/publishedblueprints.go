@@ -90,6 +90,7 @@ func (client PublishedBlueprintsClient) Create(ctx context.Context, resourceScop
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blueprint.PublishedBlueprintsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -173,6 +174,7 @@ func (client PublishedBlueprintsClient) Delete(ctx context.Context, resourceScop
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blueprint.PublishedBlueprintsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -251,6 +253,7 @@ func (client PublishedBlueprintsClient) Get(ctx context.Context, resourceScope s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blueprint.PublishedBlueprintsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -329,6 +332,7 @@ func (client PublishedBlueprintsClient) List(ctx context.Context, resourceScope 
 	result.pbl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blueprint.PublishedBlueprintsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.pbl.hasNextLink() && result.pbl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -392,6 +396,7 @@ func (client PublishedBlueprintsClient) listNextResults(ctx context.Context, las
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blueprint.PublishedBlueprintsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -79,6 +79,7 @@ func (client AppsClient) CheckNameAvailability(ctx context.Context, operationInp
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iotcentral.AppsClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -160,6 +161,7 @@ func (client AppsClient) CheckSubdomainAvailability(ctx context.Context, operati
 	result, err = client.CheckSubdomainAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iotcentral.AppsClient", "CheckSubdomainAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -395,6 +397,7 @@ func (client AppsClient) Get(ctx context.Context, resourceGroupName string, reso
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iotcentral.AppsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -470,6 +473,7 @@ func (client AppsClient) ListByResourceGroup(ctx context.Context, resourceGroupN
 	result.alr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iotcentral.AppsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.alr.hasNextLink() && result.alr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -533,6 +537,7 @@ func (client AppsClient) listByResourceGroupNextResults(ctx context.Context, las
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iotcentral.AppsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -582,6 +587,7 @@ func (client AppsClient) ListBySubscription(ctx context.Context) (result AppList
 	result.alr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iotcentral.AppsClient", "ListBySubscription", resp, "Failure responding to request")
+		return
 	}
 	if result.alr.hasNextLink() && result.alr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -644,6 +650,7 @@ func (client AppsClient) listBySubscriptionNextResults(ctx context.Context, last
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iotcentral.AppsClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -693,6 +700,7 @@ func (client AppsClient) ListTemplates(ctx context.Context) (result AppTemplates
 	result.atr, err = client.ListTemplatesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iotcentral.AppsClient", "ListTemplates", resp, "Failure responding to request")
+		return
 	}
 	if result.atr.hasNextLink() && result.atr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -755,6 +763,7 @@ func (client AppsClient) listTemplatesNextResults(ctx context.Context, lastResul
 	result, err = client.ListTemplatesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iotcentral.AppsClient", "listTemplatesNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -80,6 +80,7 @@ func (client ServicesClient) CheckNameAvailability(ctx context.Context, checkNam
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "healthcareapis.ServicesClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -355,6 +356,7 @@ func (client ServicesClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "healthcareapis.ServicesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -428,6 +430,7 @@ func (client ServicesClient) List(ctx context.Context) (result ServicesDescripti
 	result.sdlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "healthcareapis.ServicesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.sdlr.hasNextLink() && result.sdlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -490,6 +493,7 @@ func (client ServicesClient) listNextResults(ctx context.Context, lastResults Se
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "healthcareapis.ServicesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -549,6 +553,7 @@ func (client ServicesClient) ListByResourceGroup(ctx context.Context, resourceGr
 	result.sdlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "healthcareapis.ServicesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.sdlr.hasNextLink() && result.sdlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -612,6 +617,7 @@ func (client ServicesClient) listByResourceGroupNextResults(ctx context.Context,
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "healthcareapis.ServicesClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
