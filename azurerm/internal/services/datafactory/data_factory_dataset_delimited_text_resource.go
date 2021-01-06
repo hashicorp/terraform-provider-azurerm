@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -358,15 +359,12 @@ func resourceArmDataFactoryDatasetDelimitedTextRead(d *schema.ResourceData, meta
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DataSetID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	dataFactoryName := id.Path["factories"]
-	name := id.Path["datasets"]
 
-	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -492,15 +490,12 @@ func resourceArmDataFactoryDatasetDelimitedTextDelete(d *schema.ResourceData, me
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DataSetID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	dataFactoryName := id.Path["factories"]
-	name := id.Path["datasets"]
 
-	response, err := client.Delete(ctx, resourceGroup, dataFactoryName, name)
+	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
 			return fmt.Errorf("Error deleting Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
