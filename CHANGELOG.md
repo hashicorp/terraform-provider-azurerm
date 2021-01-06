@@ -10,6 +10,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* dependencies: upgrading to `v49.2.0` of `github.com/Azure/azure-sdk-for-go` [GH-10042]
 * dependencies: upgrading to `v0.15.1` of `github.com/tombuildsstuff/giovanni` [GH-10035]
 * Data Source: `azurerm_hdinsight_cluster` - support for the `kafka_rest_proxy_endpoint` property [GH-8064]
 * Data Source: `azurerm_databricks_workspace` - support for the `tags` property [GH-9933]
