@@ -224,8 +224,8 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
 
   folder = "testFolder"
 
-  compression_level   = "Optimal"
-  
+  compression_level = "Optimal"
+
   parameters = {
     foo = "test1"
     bar = "test2"
