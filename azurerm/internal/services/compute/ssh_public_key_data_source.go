@@ -25,6 +25,10 @@ func dataSourceArmSshPublicKey() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile("^[-a-zA-Z0-9(_)]{1,128}$"),
+					"Public SSH Key name must be 1 - 128 characters long, can contain letters, numbers, underscores, and hyphens (but the first and last character must be a letter or number).",
+				),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
