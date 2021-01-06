@@ -1464,6 +1464,9 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservi
 
 	networkPlugin := config["network_plugin"].(string)
 	networkMode := config["network_mode"].(string)
+	if networkPlugin != "azure" && networkMode != "" {
+		return nil, fmt.Errorf("`network_mode` cannot be set if `network_plugin` is not `azure`")
+	}
 	networkPolicy := config["network_policy"].(string)
 	loadBalancerProfileRaw := config["load_balancer_profile"].([]interface{})
 	loadBalancerSku := config["load_balancer_sku"].(string)

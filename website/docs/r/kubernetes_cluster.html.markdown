@@ -299,7 +299,9 @@ A `network_profile` block supports the following:
 
 -> **NOTE:** When `network_plugin` is set to `azure` - the `vnet_subnet_id` field in the `default_node_pool` block must be set and `pod_cidr` must not be set.
 
-* `network_mode` - Network mode to be used with Azure CNI. Eg: `bridge` or `transparent`
+* `network_mode` - (Optional) Network mode to be used with Azure CNI. Possible values are `bridge` or `transparent`. Changing this forces a new resource to be created.
+
+~> **NOTE:** This property can only be set when `network_plugin` is set to `azure`.
 
 -> **NOTE:** `network_mode` Is currently in Preview on an opt-in basis. To use it, enable feature `AKSNetworkModePreview` for `namespace Microsoft.ContainerService`.
 
