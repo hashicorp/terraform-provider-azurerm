@@ -791,10 +791,8 @@ func resourceBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("start_task", flattenBatchPoolStartTask(props.StartTask))
 		d.Set("metadata", FlattenBatchMetaData(props.Metadata))
 
-		if props.NetworkConfiguration != nil {
-			if err := d.Set("network_configuration", FlattenBatchPoolNetworkConfiguration(props.NetworkConfiguration)); err != nil {
-				return fmt.Errorf("error setting `network_configuration`: %v", err)
-			}
+		if err := d.Set("network_configuration", flattenBatchPoolNetworkConfiguration(props.NetworkConfiguration)); err != nil {
+			return fmt.Errorf("error setting `network_configuration`: %v", err)
 		}
 	}
 
