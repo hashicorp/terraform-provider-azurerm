@@ -2,7 +2,7 @@
 
 FEATURES:
 
-* **New data source:** `azurerm_eventgrid_domain_topic` [GH-10050]
+* **New Data Source:** `azurerm_eventgrid_domain_topic` [GH-10050]
 * **New Resource:** `azurerm_data_factory_linked_service_synapse` [GH-9928]
 * **New Resource:** `azurerm_disk_access` [GH-9889]
 * **New Resource:** `azurerm_media_streaming_locator` [GH-9992]
