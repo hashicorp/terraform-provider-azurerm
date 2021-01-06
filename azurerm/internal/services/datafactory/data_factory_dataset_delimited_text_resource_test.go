@@ -117,6 +117,7 @@ func TestAccAzureRMDataFactoryDatasetDelimitedText_http_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "schema_column.#", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description 2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "compression_level", "Optimal"),
 				),
 			},
 			data.ImportStep(),
@@ -223,6 +224,8 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
 
   folder = "testFolder"
 
+  compression_level   = "Optimal"
+  
   parameters = {
     foo = "test1"
     bar = "test2"
