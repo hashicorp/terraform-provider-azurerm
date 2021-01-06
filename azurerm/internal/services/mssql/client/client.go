@@ -11,9 +11,10 @@ type Client struct {
 	BackupShortTermRetentionPoliciesClient             *sql.BackupShortTermRetentionPoliciesClient
 	DatabasesClient                                    *sql.DatabasesClient
 	DatabaseExtendedBlobAuditingPoliciesClient         *sql.ExtendedDatabaseBlobAuditingPoliciesClient
+	DatabaseVulnerabilityAssessmentRuleBaselinesClient *sql.DatabaseVulnerabilityAssessmentRuleBaselinesClient
 	DatabaseThreatDetectionPoliciesClient              *sql.DatabaseThreatDetectionPoliciesClient
 	ElasticPoolsClient                                 *sql.ElasticPoolsClient
-	DatabaseVulnerabilityAssessmentRuleBaselinesClient *sql.DatabaseVulnerabilityAssessmentRuleBaselinesClient
+	JobAgentsClient                                    *sql.JobAgentsClient
 	RestorableDroppedDatabasesClient                   *sql.RestorableDroppedDatabasesClient
 	ServerAzureADAdministratorsClient                  *sql.ServerAzureADAdministratorsClient
 	ServersClient                                      *sql.ServersClient
@@ -45,6 +46,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	elasticPoolsClient := sql.NewElasticPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&elasticPoolsClient.Client, o.ResourceManagerAuthorizer)
+
+	jobAgentsClient := sql.NewJobAgentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&jobAgentsClient.Client, o.ResourceManagerAuthorizer)
 
 	restorableDroppedDatabasesClient := sql.NewRestorableDroppedDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&restorableDroppedDatabasesClient.Client, o.ResourceManagerAuthorizer)
@@ -78,6 +82,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		DatabaseThreatDetectionPoliciesClient:              &databaseThreatDetectionPoliciesClient,
 		DatabaseVulnerabilityAssessmentRuleBaselinesClient: &databaseVulnerabilityAssessmentRuleBaselinesClient,
 		ElasticPoolsClient:                                 &elasticPoolsClient,
+		JobAgentsClient:                                    &jobAgentsClient,
 		RestorableDroppedDatabasesClient:                   &restorableDroppedDatabasesClient,
 		ServerAzureADAdministratorsClient:                  &serverAzureADAdministratorsClient,
 		ServersClient:                                      &serversClient,
