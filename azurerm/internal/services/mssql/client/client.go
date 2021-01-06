@@ -11,8 +11,8 @@ type Client struct {
 	BackupLongTermRetentionPoliciesClient              *sql.BackupLongTermRetentionPoliciesClient
 	BackupShortTermRetentionPoliciesClient             *sql.BackupShortTermRetentionPoliciesClient
 	DatabaseExtendedBlobAuditingPoliciesClient         *sql.ExtendedDatabaseBlobAuditingPoliciesClient
-	DatabaseThreatDetectionPoliciesClient              *sql.DatabaseThreatDetectionPoliciesClient
 	DatabaseVulnerabilityAssessmentRuleBaselinesClient *sql.DatabaseVulnerabilityAssessmentRuleBaselinesClient
+	DatabaseThreatDetectionPoliciesClient              *sql.DatabaseThreatDetectionPoliciesClient
 	DatabasesClient                                    *sql.DatabasesClient
 	ElasticPoolsClient                                 *sql.ElasticPoolsClient
 	FirewallRulesClient                                *sql.FirewallRulesClient
@@ -91,8 +91,8 @@ func NewClient(o *common.ClientOptions) *Client {
 		DatabaseThreatDetectionPoliciesClient:              &databaseThreatDetectionPoliciesClient,
 		DatabaseVulnerabilityAssessmentRuleBaselinesClient: &databaseVulnerabilityAssessmentRuleBaselinesClient,
 		ElasticPoolsClient:                                 &elasticPoolsClient,
-		FirewallRulesClient:                                &firewallRulesClient,
 		JobAgentsClient:                                    &jobAgentsClient,
+		FirewallRulesClient:                                &firewallRulesClient,
 		RestorableDroppedDatabasesClient:                   &restorableDroppedDatabasesClient,
 		ServerAzureADAdministratorsClient:                  &serverAzureADAdministratorsClient,
 		ServersClient:                                      &serversClient,
