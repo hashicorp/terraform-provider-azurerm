@@ -85,6 +85,7 @@ func (client IotDefenderSettingsClient) CreateOrUpdate(ctx context.Context, iotD
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotDefenderSettingsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -163,6 +164,7 @@ func (client IotDefenderSettingsClient) Delete(ctx context.Context) (result auto
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotDefenderSettingsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -204,6 +206,82 @@ func (client IotDefenderSettingsClient) DeleteResponder(resp *http.Response) (re
 	return
 }
 
+// DownloadManagerActivation download manager activation data defined for this subscription
+func (client IotDefenderSettingsClient) DownloadManagerActivation(ctx context.Context) (result ReadCloser, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/IotDefenderSettingsClient.DownloadManagerActivation")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("security.IotDefenderSettingsClient", "DownloadManagerActivation", err.Error())
+	}
+
+	req, err := client.DownloadManagerActivationPreparer(ctx)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.IotDefenderSettingsClient", "DownloadManagerActivation", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.DownloadManagerActivationSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "security.IotDefenderSettingsClient", "DownloadManagerActivation", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.DownloadManagerActivationResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.IotDefenderSettingsClient", "DownloadManagerActivation", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// DownloadManagerActivationPreparer prepares the DownloadManagerActivation request.
+func (client IotDefenderSettingsClient) DownloadManagerActivationPreparer(ctx context.Context) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-08-06-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Security/iotDefenderSettings/default/downloadManagerActivation", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// DownloadManagerActivationSender sends the DownloadManagerActivation request. The method will close the
+// http.Response Body if it receives an error.
+func (client IotDefenderSettingsClient) DownloadManagerActivationSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// DownloadManagerActivationResponder handles the response to the DownloadManagerActivation request. The method always
+// closes the http.Response Body.
+func (client IotDefenderSettingsClient) DownloadManagerActivationResponder(resp *http.Response) (result ReadCloser, err error) {
+	result.Value = &resp.Body
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK))
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // Get get IoT Defender Settings
 func (client IotDefenderSettingsClient) Get(ctx context.Context) (result IotDefenderSettingsModel, err error) {
 	if tracing.IsEnabled() {
@@ -238,6 +316,7 @@ func (client IotDefenderSettingsClient) Get(ctx context.Context) (result IotDefe
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotDefenderSettingsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -314,6 +393,7 @@ func (client IotDefenderSettingsClient) List(ctx context.Context) (result IotDef
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotDefenderSettingsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -390,6 +470,7 @@ func (client IotDefenderSettingsClient) PackageDownloadsMethod(ctx context.Conte
 	result, err = client.PackageDownloadsMethodResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotDefenderSettingsClient", "PackageDownloadsMethod", resp, "Failure responding to request")
+		return
 	}
 
 	return

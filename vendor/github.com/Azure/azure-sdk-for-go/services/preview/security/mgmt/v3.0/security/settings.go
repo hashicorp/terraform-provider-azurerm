@@ -45,7 +45,7 @@ func NewSettingsClientWithBaseURI(baseURI string, subscriptionID string, ascLoca
 // Get settings of different configurations in security center
 // Parameters:
 // settingName - name of setting: (MCAS/WDATP)
-func (client SettingsClient) Get(ctx context.Context, settingName string) (result Setting, err error) {
+func (client SettingsClient) Get(ctx context.Context, settingName string) (result SettingModel, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SettingsClient.Get")
 		defer func() {
@@ -78,6 +78,7 @@ func (client SettingsClient) Get(ctx context.Context, settingName string) (resul
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.SettingsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -111,7 +112,7 @@ func (client SettingsClient) GetSender(req *http.Request) (*http.Response, error
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client SettingsClient) GetResponder(resp *http.Response) (result Setting, err error) {
+func (client SettingsClient) GetResponder(resp *http.Response) (result SettingModel, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -156,9 +157,11 @@ func (client SettingsClient) List(ctx context.Context) (result SettingsListPage,
 	result.sl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.SettingsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.sl.hasNextLink() && result.sl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -242,7 +245,7 @@ func (client SettingsClient) ListComplete(ctx context.Context) (result SettingsL
 // Parameters:
 // settingName - name of setting: (MCAS/WDATP)
 // setting - setting object
-func (client SettingsClient) Update(ctx context.Context, settingName string, setting BasicSetting) (result Setting, err error) {
+func (client SettingsClient) Update(ctx context.Context, settingName string, setting BasicSetting) (result SettingModel, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SettingsClient.Update")
 		defer func() {
@@ -275,6 +278,7 @@ func (client SettingsClient) Update(ctx context.Context, settingName string, set
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.SettingsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -310,7 +314,7 @@ func (client SettingsClient) UpdateSender(req *http.Request) (*http.Response, er
 
 // UpdateResponder handles the response to the Update request. The method always
 // closes the http.Response Body.
-func (client SettingsClient) UpdateResponder(resp *http.Response) (result Setting, err error) {
+func (client SettingsClient) UpdateResponder(resp *http.Response) (result SettingModel, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

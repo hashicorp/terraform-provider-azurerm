@@ -90,6 +90,7 @@ func (client SmartDetectorAlertRulesClient) CreateOrUpdate(ctx context.Context, 
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "alertsmanagement.SmartDetectorAlertRulesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -173,6 +174,7 @@ func (client SmartDetectorAlertRulesClient) Delete(ctx context.Context, resource
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "alertsmanagement.SmartDetectorAlertRulesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -254,6 +256,7 @@ func (client SmartDetectorAlertRulesClient) Get(ctx context.Context, resourceGro
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "alertsmanagement.SmartDetectorAlertRulesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -338,6 +341,7 @@ func (client SmartDetectorAlertRulesClient) List(ctx context.Context, expandDete
 	result.arl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "alertsmanagement.SmartDetectorAlertRulesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.arl.hasNextLink() && result.arl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -403,6 +407,7 @@ func (client SmartDetectorAlertRulesClient) listNextResults(ctx context.Context,
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "alertsmanagement.SmartDetectorAlertRulesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -461,6 +466,7 @@ func (client SmartDetectorAlertRulesClient) ListByResourceGroup(ctx context.Cont
 	result.arl, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "alertsmanagement.SmartDetectorAlertRulesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.arl.hasNextLink() && result.arl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -527,6 +533,7 @@ func (client SmartDetectorAlertRulesClient) listByResourceGroupNextResults(ctx c
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "alertsmanagement.SmartDetectorAlertRulesClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -585,6 +592,7 @@ func (client SmartDetectorAlertRulesClient) Patch(ctx context.Context, resourceG
 	result, err = client.PatchResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "alertsmanagement.SmartDetectorAlertRulesClient", "Patch", resp, "Failure responding to request")
+		return
 	}
 
 	return

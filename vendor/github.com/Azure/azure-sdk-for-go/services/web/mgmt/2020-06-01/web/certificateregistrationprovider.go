@@ -72,6 +72,7 @@ func (client CertificateRegistrationProviderClient) ListOperations(ctx context.C
 	result.coc, err = client.ListOperationsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.CertificateRegistrationProviderClient", "ListOperations", resp, "Failure responding to request")
+		return
 	}
 	if result.coc.hasNextLink() && result.coc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -130,6 +131,7 @@ func (client CertificateRegistrationProviderClient) listOperationsNextResults(ct
 	result, err = client.ListOperationsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.CertificateRegistrationProviderClient", "listOperationsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

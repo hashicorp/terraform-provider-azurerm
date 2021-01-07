@@ -269,6 +269,7 @@ func (client VNetPeeringClient) Get(ctx context.Context, resourceGroupName strin
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databricks.VNetPeeringClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -357,6 +358,7 @@ func (client VNetPeeringClient) ListByWorkspace(ctx context.Context, resourceGro
 	result.vnpl, err = client.ListByWorkspaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databricks.VNetPeeringClient", "ListByWorkspace", resp, "Failure responding to request")
+		return
 	}
 	if result.vnpl.hasNextLink() && result.vnpl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -421,6 +423,7 @@ func (client VNetPeeringClient) listByWorkspaceNextResults(ctx context.Context, 
 	result, err = client.ListByWorkspaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databricks.VNetPeeringClient", "listByWorkspaceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

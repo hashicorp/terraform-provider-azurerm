@@ -76,6 +76,7 @@ func (client ProtectionContainerRefreshOperationResultsClient) Get(ctx context.C
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionContainerRefreshOperationResultsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

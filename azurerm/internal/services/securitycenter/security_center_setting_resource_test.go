@@ -73,7 +73,7 @@ func (SecurityCenterSettingResource) Exists(ctx context.Context, clients *client
 		return nil, fmt.Errorf("reading Security Center Setting (%s): %+v", id.SettingName, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Value != nil), nil
 }
 
 func (SecurityCenterSettingResource) cfg(settingName string, enabled bool) string {

@@ -91,6 +91,7 @@ func (client SourceControlSyncJobClient) Create(ctx context.Context, resourceGro
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.SourceControlSyncJobClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -180,6 +181,7 @@ func (client SourceControlSyncJobClient) Get(ctx context.Context, resourceGroupN
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.SourceControlSyncJobClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -268,6 +270,7 @@ func (client SourceControlSyncJobClient) ListByAutomationAccount(ctx context.Con
 	result.scsjlr, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.SourceControlSyncJobClient", "ListByAutomationAccount", resp, "Failure responding to request")
+		return
 	}
 	if result.scsjlr.hasNextLink() && result.scsjlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -336,6 +339,7 @@ func (client SourceControlSyncJobClient) listByAutomationAccountNextResults(ctx 
 	result, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.SourceControlSyncJobClient", "listByAutomationAccountNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -402,6 +402,7 @@ func (client FailoverGroupsClient) Get(ctx context.Context, resourceGroupName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.FailoverGroupsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -480,6 +481,7 @@ func (client FailoverGroupsClient) ListByServer(ctx context.Context, resourceGro
 	result.fglr, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.FailoverGroupsClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 	if result.fglr.hasNextLink() && result.fglr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -544,6 +546,7 @@ func (client FailoverGroupsClient) listByServerNextResults(ctx context.Context, 
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.FailoverGroupsClient", "listByServerNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -87,6 +87,7 @@ func (client SharedKeysClient) GetSharedKeys(ctx context.Context, resourceGroupN
 	result, err = client.GetSharedKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationalinsights.SharedKeysClient", "GetSharedKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -177,6 +178,7 @@ func (client SharedKeysClient) Regenerate(ctx context.Context, resourceGroupName
 	result, err = client.RegenerateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationalinsights.SharedKeysClient", "Regenerate", resp, "Failure responding to request")
+		return
 	}
 
 	return

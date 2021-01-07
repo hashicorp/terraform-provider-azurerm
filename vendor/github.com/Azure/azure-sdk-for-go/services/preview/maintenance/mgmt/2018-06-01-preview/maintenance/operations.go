@@ -25,7 +25,7 @@ import (
 	"net/http"
 )
 
-// OperationsClient is the azure Maintenance Management Client
+// OperationsClient is the maintenance Client
 type OperationsClient struct {
 	BaseClient
 }
@@ -69,6 +69,7 @@ func (client OperationsClient) List(ctx context.Context) (result OperationsListR
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "maintenance.OperationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

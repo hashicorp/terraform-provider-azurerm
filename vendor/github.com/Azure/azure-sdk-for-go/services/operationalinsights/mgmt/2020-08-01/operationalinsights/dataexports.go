@@ -98,6 +98,7 @@ func (client DataExportsClient) CreateOrUpdate(ctx context.Context, resourceGrou
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationalinsights.DataExportsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -191,6 +192,7 @@ func (client DataExportsClient) Delete(ctx context.Context, resourceGroupName st
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationalinsights.DataExportsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -281,6 +283,7 @@ func (client DataExportsClient) Get(ctx context.Context, resourceGroupName strin
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationalinsights.DataExportsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -371,6 +374,7 @@ func (client DataExportsClient) ListByWorkspace(ctx context.Context, resourceGro
 	result, err = client.ListByWorkspaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationalinsights.DataExportsClient", "ListByWorkspace", resp, "Failure responding to request")
+		return
 	}
 
 	return

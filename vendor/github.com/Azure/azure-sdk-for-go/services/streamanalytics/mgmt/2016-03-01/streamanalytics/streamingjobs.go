@@ -244,6 +244,7 @@ func (client StreamingJobsClient) Get(ctx context.Context, resourceGroupName str
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -325,6 +326,7 @@ func (client StreamingJobsClient) List(ctx context.Context, expand string) (resu
 	result.sjlr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.sjlr.hasNextLink() && result.sjlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -390,6 +392,7 @@ func (client StreamingJobsClient) listNextResults(ctx context.Context, lastResul
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -446,6 +449,7 @@ func (client StreamingJobsClient) ListByResourceGroup(ctx context.Context, resou
 	result.sjlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.sjlr.hasNextLink() && result.sjlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -512,6 +516,7 @@ func (client StreamingJobsClient) listByResourceGroupNextResults(ctx context.Con
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -728,6 +733,7 @@ func (client StreamingJobsClient) Update(ctx context.Context, streamingJob Strea
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

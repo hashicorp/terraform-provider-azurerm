@@ -282,6 +282,7 @@ func (client RulesEnginesClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.RulesEnginesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -371,6 +372,7 @@ func (client RulesEnginesClient) ListByFrontDoor(ctx context.Context, resourceGr
 	result.relr, err = client.ListByFrontDoorResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.RulesEnginesClient", "ListByFrontDoor", resp, "Failure responding to request")
+		return
 	}
 	if result.relr.hasNextLink() && result.relr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -435,6 +437,7 @@ func (client RulesEnginesClient) listByFrontDoorNextResults(ctx context.Context,
 	result, err = client.ListByFrontDoorResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.RulesEnginesClient", "listByFrontDoorNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
