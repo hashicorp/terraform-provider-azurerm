@@ -323,7 +323,7 @@ func resourceKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 		parameters.Properties.EnablePurgeProtection = utils.Bool(purgeProtectionEnabled)
 	}
 
-	if v := d.Get("soft_delete_retention_days"); v != 0 {
+	if v := d.Get("soft_delete_retention_days"); v != 90 {
 		parameters.Properties.SoftDeleteRetentionInDays = utils.Int32(int32(v.(int)))
 	}
 
@@ -548,7 +548,7 @@ func resourceKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 		// hence the double-checking here
 		if oldValue != 0 {
 			// Code="BadRequest" Message="The property \"softDeleteRetentionInDays\" has been set already and it can't be modified."
-			return fmt.Errorf("updating Key Vault %q (Resource Group %q): once Soft Delete has been Enabled it's not possible to change `soft_delete_retention_days`", name, resourceGroup)
+			return fmt.Errorf("updating Key Vault %q (Resource Group %q): once `soft_delete_retention_days` has been configured it cannot be modified", name, resourceGroup)
 		}
 
 		update.Properties.SoftDeleteRetentionInDays = utils.Int32(int32(d.Get("soft_delete_retention_days").(int)))
