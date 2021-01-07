@@ -41,6 +41,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+provider: will not correctly register the `Microsoft.Blueprint` and `Microsoft.HealthcareApis` RPs [GH-10062]
 * `azurerm_application_gateway` - allow `750` for `file_upload_limit_mb` when the sku is `WAF_v2` [GH-8753]
 * `azurerm_firewall_policy_rule_collection_group` - correctly validate the `network_rule_collection.destination_ports` property [GH-9490]
 * `azurerm_cdn_endpoint` - changing many `delivery_rule` condition `match_values` to optional [GH-8850]
