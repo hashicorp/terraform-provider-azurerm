@@ -18,6 +18,8 @@ IMPROVEMENTS:
 * Data Source: `azurerm_hdinsight_cluster` - support for the `kafka_rest_proxy_endpoint` property [GH-8064]
 * Data Source: `azurerm_databricks_workspace` - support for the `tags` property [GH-9933]
 * Data Source: `azurerm_subscription` - support for the `tags` property [GH-8064]
+* `azurerm_app_service` - now supports  `detailed_error_mesage_enabled` and `failed_request_tracing_enabled ` logs settings [GH-9162]
+* `azurerm_app_service_slot` - now supports  `detailed_error_mesage_enabled` and `failed_request_tracing_enabled ` logs settings [GH-9162]
 * `azurerm_batch_pool` support for the `public_address_provisioning_type` property [GH-10036]
 * `azurerm_api_management` - support `Consumption_0` for the `sku_name` property [GH-6868]
 * `azurerm_cdn_endpoint` - only send `content_types_to_compress` and `geo_filter` to the API when actually set [GH-9902]
