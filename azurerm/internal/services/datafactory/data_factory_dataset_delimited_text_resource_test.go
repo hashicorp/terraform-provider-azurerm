@@ -105,6 +105,7 @@ func TestAccAzureRMDataFactoryDatasetDelimitedText_http_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "schema_column.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description"),
+					resource.TestCheckResourceAttr(data.ResourceName, "compression_level", "Optimal"),
 				),
 			},
 			data.ImportStep(),
@@ -117,7 +118,7 @@ func TestAccAzureRMDataFactoryDatasetDelimitedText_http_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "schema_column.#", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description 2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "compression_level", "Optimal"),
+					resource.TestCheckResourceAttr(data.ResourceName, "compression_level", "Fastest"),
 				),
 			},
 			data.ImportStep(),
@@ -294,6 +295,8 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
   annotations = ["test1", "test2"]
 
   folder = "testFolder"
+
+  compression_level = "Fastest"
 
   parameters = {
     foo  = "test1"
