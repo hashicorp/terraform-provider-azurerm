@@ -38,6 +38,7 @@ IMPROVEMENTS:
 * `azurerm_sentinel_alert_rule_ms_security_incident` - support the `alert_rule_template_guid` and `display_name_exclude_filter` properties [GH-9797]
 * `azurerm_sentinel_alert_rule_scheduled` - support for the `alert_rule_template_guid` property [GH-9712]
 * `azurerm_sentinel_alert_rule_scheduled` - support for creating incidents [GH-8564]
+* `azurerm_subscription` - support for the `tags` property [GH-9047]
 * `azurerm_synapse_workspace` - support for the `managed_resource_group_name` property [GH-10017]
 * `azurerm_traffic_manager_profile` - support for the `traffic_view_enabled` property [GH-10005]
 
