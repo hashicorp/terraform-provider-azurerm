@@ -80,6 +80,7 @@ func (client RecordSetsClient) CreateOrUpdate(ctx context.Context, resourceGroup
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "privatedns.RecordSetsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -172,6 +173,7 @@ func (client RecordSetsClient) Delete(ctx context.Context, resourceGroupName str
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "privatedns.RecordSetsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -254,6 +256,7 @@ func (client RecordSetsClient) Get(ctx context.Context, resourceGroupName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "privatedns.RecordSetsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -336,6 +339,7 @@ func (client RecordSetsClient) List(ctx context.Context, resourceGroupName strin
 	result.rslr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "privatedns.RecordSetsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.rslr.hasNextLink() && result.rslr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -406,6 +410,7 @@ func (client RecordSetsClient) listNextResults(ctx context.Context, lastResults 
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "privatedns.RecordSetsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -463,6 +468,7 @@ func (client RecordSetsClient) ListByType(ctx context.Context, resourceGroupName
 	result.rslr, err = client.ListByTypeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "privatedns.RecordSetsClient", "ListByType", resp, "Failure responding to request")
+		return
 	}
 	if result.rslr.hasNextLink() && result.rslr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -534,6 +540,7 @@ func (client RecordSetsClient) listByTypeNextResults(ctx context.Context, lastRe
 	result, err = client.ListByTypeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "privatedns.RecordSetsClient", "listByTypeNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -590,6 +597,7 @@ func (client RecordSetsClient) Update(ctx context.Context, resourceGroupName str
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "privatedns.RecordSetsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

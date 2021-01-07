@@ -84,6 +84,7 @@ func (client BaseClient) CheckNameAvailability(ctx context.Context, checkNameAva
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managementgroups.BaseClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -152,6 +153,7 @@ func (client BaseClient) StartTenantBackfill(ctx context.Context) (result Tenant
 	result, err = client.StartTenantBackfillResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managementgroups.BaseClient", "StartTenantBackfill", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -218,6 +220,7 @@ func (client BaseClient) TenantBackfillStatus(ctx context.Context) (result Tenan
 	result, err = client.TenantBackfillStatusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managementgroups.BaseClient", "TenantBackfillStatus", resp, "Failure responding to request")
+		return
 	}
 
 	return

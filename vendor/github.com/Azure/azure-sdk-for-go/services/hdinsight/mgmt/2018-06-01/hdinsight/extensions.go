@@ -379,6 +379,7 @@ func (client ExtensionsClient) Get(ctx context.Context, resourceGroupName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -455,6 +456,7 @@ func (client ExtensionsClient) GetMonitoringStatus(ctx context.Context, resource
 	result, err = client.GetMonitoringStatusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsClient", "GetMonitoringStatus", resp, "Failure responding to request")
+		return
 	}
 
 	return

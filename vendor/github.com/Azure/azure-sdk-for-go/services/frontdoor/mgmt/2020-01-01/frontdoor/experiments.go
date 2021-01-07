@@ -266,6 +266,7 @@ func (client ExperimentsClient) Get(ctx context.Context, resourceGroupName strin
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.ExperimentsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -353,6 +354,7 @@ func (client ExperimentsClient) ListByProfile(ctx context.Context, resourceGroup
 	result.el, err = client.ListByProfileResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.ExperimentsClient", "ListByProfile", resp, "Failure responding to request")
+		return
 	}
 	if result.el.hasNextLink() && result.el.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -417,6 +419,7 @@ func (client ExperimentsClient) listByProfileNextResults(ctx context.Context, la
 	result, err = client.ListByProfileResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.ExperimentsClient", "listByProfileNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

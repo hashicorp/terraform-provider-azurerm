@@ -256,6 +256,7 @@ func (client NetworkExperimentProfilesClient) Get(ctx context.Context, resourceG
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -329,6 +330,7 @@ func (client NetworkExperimentProfilesClient) List(ctx context.Context) (result 
 	result.pl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.pl.hasNextLink() && result.pl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -391,6 +393,7 @@ func (client NetworkExperimentProfilesClient) listNextResults(ctx context.Contex
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -450,6 +453,7 @@ func (client NetworkExperimentProfilesClient) ListByResourceGroup(ctx context.Co
 	result.pl, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.pl.hasNextLink() && result.pl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -513,6 +517,7 @@ func (client NetworkExperimentProfilesClient) listByResourceGroupNextResults(ctx
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -147,6 +147,7 @@ resource "azurerm_firewall_policy" "test" {
   location            = azurerm_resource_group.test.location
   dns {
     network_rule_fqdn_enabled = false
+    proxy_enabled             = true
   }
 }
 
@@ -183,7 +184,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
         port = 443
       }
       source_addresses  = ["10.0.0.1"]
-      destination_fqdns = [".microsoft.com"]
+      destination_fqdns = ["terraform.io"]
     }
     rule {
       name = "app_rule_collection1_rule2"
@@ -196,7 +197,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
         port = 443
       }
       source_ip_groups  = [azurerm_ip_group.test_source.id]
-      destination_fqdns = [".microsoft.com"]
+      destination_fqdns = ["terraform.io"]
     }
     rule {
       name = "app_rule_collection1_rule3"
@@ -284,6 +285,7 @@ resource "azurerm_firewall_policy" "test" {
   location            = azurerm_resource_group.test.location
   dns {
     network_rule_fqdn_enabled = false
+    proxy_enabled             = true
   }
 }
 
@@ -320,7 +322,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
         port = 443
       }
       source_addresses  = ["10.0.0.1", "10.0.0.2"]
-      destination_fqdns = [".microsoft.com"]
+      destination_fqdns = ["terraform.io"]
     }
     rule {
       name = "app_rule_collection1_rule2"
@@ -329,7 +331,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
         port = 80
       }
       source_ip_groups  = [azurerm_ip_group.test_source.id]
-      destination_fqdns = [".microsoft.com"]
+      destination_fqdns = ["terraform.io"]
     }
     rule {
       name = "app_rule_collection1_rule3"
@@ -355,21 +357,21 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
       protocols             = ["TCP", "UDP"]
       source_addresses      = ["10.0.0.1"]
       destination_addresses = ["192.168.1.2", "ApiManagement"]
-      destination_ports     = ["80", "1000-2000"]
+      destination_ports     = ["80", "1-65535"]
     }
     rule {
       name              = "network_rule_collection1_rule2"
       protocols         = ["TCP", "UDP"]
       source_addresses  = ["10.0.0.1", "10.0.0.2"]
       destination_fqdns = ["time.windows.com"]
-      destination_ports = ["80", "1000-2000"]
+      destination_ports = ["80", "1-65535"]
     }
     rule {
       name                  = "network_rule_collection1_rule3"
       protocols             = ["TCP"]
       source_ip_groups      = [azurerm_ip_group.test_source.id]
       destination_ip_groups = [azurerm_ip_group.test_destination.id]
-      destination_ports     = ["80", "1000-2000"]
+      destination_ports     = ["80", "1-65535"]
     }
   }
 

@@ -310,6 +310,7 @@ func (client ReplicationRecoveryPlansClient) Get(ctx context.Context, recoveryPl
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -384,6 +385,7 @@ func (client ReplicationRecoveryPlansClient) List(ctx context.Context) (result R
 	result.RPCVar, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.RPCVar.hasNextLink() && result.RPCVar.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -448,6 +450,7 @@ func (client ReplicationRecoveryPlansClient) listNextResults(ctx context.Context
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

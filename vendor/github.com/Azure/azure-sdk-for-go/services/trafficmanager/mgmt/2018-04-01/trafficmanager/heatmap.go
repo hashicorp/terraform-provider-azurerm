@@ -89,6 +89,7 @@ func (client HeatMapClient) Get(ctx context.Context, resourceGroupName string, p
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "trafficmanager.HeatMapClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

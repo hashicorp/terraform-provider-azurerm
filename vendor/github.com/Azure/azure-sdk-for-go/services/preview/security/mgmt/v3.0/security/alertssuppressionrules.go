@@ -79,6 +79,7 @@ func (client AlertsSuppressionRulesClient) Delete(ctx context.Context, alertsSup
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AlertsSuppressionRulesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -157,6 +158,7 @@ func (client AlertsSuppressionRulesClient) Get(ctx context.Context, alertsSuppre
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AlertsSuppressionRulesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -237,9 +239,11 @@ func (client AlertsSuppressionRulesClient) List(ctx context.Context, alertType s
 	result.asrl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AlertsSuppressionRulesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.asrl.hasNextLink() && result.asrl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -366,6 +370,7 @@ func (client AlertsSuppressionRulesClient) Update(ctx context.Context, alertsSup
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AlertsSuppressionRulesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

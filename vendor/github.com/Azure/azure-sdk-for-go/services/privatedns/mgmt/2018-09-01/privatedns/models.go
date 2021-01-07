@@ -42,21 +42,21 @@ type ARecord struct {
 	Ipv4Address *string `json:"ipv4Address,omitempty"`
 }
 
-// CloudError an error message
+// CloudError an error response from the service.
 type CloudError struct {
-	// Error - The error message body
+	// Error - Cloud error body.
 	Error *CloudErrorBody `json:"error,omitempty"`
 }
 
-// CloudErrorBody the body of an error message
+// CloudErrorBody an error response from the service.
 type CloudErrorBody struct {
-	// Code - The error code
+	// Code - An identifier for the error. Codes are invariant and are intended to be consumed programmatically.
 	Code *string `json:"code,omitempty"`
-	// Message - A description of what caused the error
+	// Message - A message describing the error, intended to be suitable for display in a user interface.
 	Message *string `json:"message,omitempty"`
-	// Target - The target resource of the error message
+	// Target - The target of the particular error. For example, the name of the property in error.
 	Target *string `json:"target,omitempty"`
-	// Details - Extra error information
+	// Details - A list of additional details about the error.
 	Details *[]CloudErrorBody `json:"details,omitempty"`
 }
 
@@ -350,8 +350,11 @@ func (page PrivateZoneListResultPage) Values() []PrivateZone {
 }
 
 // Creates a new instance of the PrivateZoneListResultPage type.
-func NewPrivateZoneListResultPage(getNextPage func(context.Context, PrivateZoneListResult) (PrivateZoneListResult, error)) PrivateZoneListResultPage {
-	return PrivateZoneListResultPage{fn: getNextPage}
+func NewPrivateZoneListResultPage(cur PrivateZoneListResult, getNextPage func(context.Context, PrivateZoneListResult) (PrivateZoneListResult, error)) PrivateZoneListResultPage {
+	return PrivateZoneListResultPage{
+		fn:   getNextPage,
+		pzlr: cur,
+	}
 }
 
 // PrivateZoneProperties represents the properties of the Private DNS zone.
@@ -372,8 +375,8 @@ type PrivateZoneProperties struct {
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 }
 
-// PrivateZonesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// PrivateZonesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type PrivateZonesCreateOrUpdateFuture struct {
 	azure.Future
 }
@@ -469,8 +472,8 @@ type PtrRecord struct {
 	Ptrdname *string `json:"ptrdname,omitempty"`
 }
 
-// RecordSet describes a DNS record set (a collection of DNS records with the same name and type) in a Private
-// DNS zone.
+// RecordSet describes a DNS record set (a collection of DNS records with the same name and type) in a
+// Private DNS zone.
 type RecordSet struct {
 	autorest.Response `json:"-"`
 	// Etag - The ETag of the record set.
@@ -718,8 +721,11 @@ func (page RecordSetListResultPage) Values() []RecordSet {
 }
 
 // Creates a new instance of the RecordSetListResultPage type.
-func NewRecordSetListResultPage(getNextPage func(context.Context, RecordSetListResult) (RecordSetListResult, error)) RecordSetListResultPage {
-	return RecordSetListResultPage{fn: getNextPage}
+func NewRecordSetListResultPage(cur RecordSetListResult, getNextPage func(context.Context, RecordSetListResult) (RecordSetListResult, error)) RecordSetListResultPage {
+	return RecordSetListResultPage{
+		fn:   getNextPage,
+		rslr: cur,
+	}
 }
 
 // RecordSetProperties represents the properties of the records in the record set.
@@ -1140,8 +1146,11 @@ func (page VirtualNetworkLinkListResultPage) Values() []VirtualNetworkLink {
 }
 
 // Creates a new instance of the VirtualNetworkLinkListResultPage type.
-func NewVirtualNetworkLinkListResultPage(getNextPage func(context.Context, VirtualNetworkLinkListResult) (VirtualNetworkLinkListResult, error)) VirtualNetworkLinkListResultPage {
-	return VirtualNetworkLinkListResultPage{fn: getNextPage}
+func NewVirtualNetworkLinkListResultPage(cur VirtualNetworkLinkListResult, getNextPage func(context.Context, VirtualNetworkLinkListResult) (VirtualNetworkLinkListResult, error)) VirtualNetworkLinkListResultPage {
+	return VirtualNetworkLinkListResultPage{
+		fn:    getNextPage,
+		vnllr: cur,
+	}
 }
 
 // VirtualNetworkLinkProperties represents the properties of the Private DNS zone.
@@ -1197,8 +1206,8 @@ func (future *VirtualNetworkLinksCreateOrUpdateFuture) Result(client VirtualNetw
 	return
 }
 
-// VirtualNetworkLinksDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// VirtualNetworkLinksDeleteFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type VirtualNetworkLinksDeleteFuture struct {
 	azure.Future
 }
@@ -1220,8 +1229,8 @@ func (future *VirtualNetworkLinksDeleteFuture) Result(client VirtualNetworkLinks
 	return
 }
 
-// VirtualNetworkLinksUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// VirtualNetworkLinksUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type VirtualNetworkLinksUpdateFuture struct {
 	azure.Future
 }

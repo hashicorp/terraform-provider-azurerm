@@ -704,8 +704,8 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 		}
 
 		parameters.AccountPropertiesCreateParameters.AccessTier = storage.AccessTier(accessTier.(string))
-	} else if isHnsEnabled {
-		return fmt.Errorf("`is_hns_enabled` can only be used with account kinds `StorageV2` and `BlobStorage`")
+	} else if isHnsEnabled && accountKind != string(storage.BlockBlobStorage) {
+		return fmt.Errorf("`is_hns_enabled` can only be used with account kinds `StorageV2`, `BlobStorage` and `BlockBlobStorage`")
 	}
 
 	// AccountTier must be Premium for FileStorage

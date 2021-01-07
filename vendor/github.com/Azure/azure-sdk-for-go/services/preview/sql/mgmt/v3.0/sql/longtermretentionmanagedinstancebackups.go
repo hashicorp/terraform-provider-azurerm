@@ -237,6 +237,7 @@ func (client LongTermRetentionManagedInstanceBackupsClient) Get(ctx context.Cont
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionManagedInstanceBackupsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -318,6 +319,7 @@ func (client LongTermRetentionManagedInstanceBackupsClient) GetByResourceGroup(c
 	result, err = client.GetByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionManagedInstanceBackupsClient", "GetByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -400,6 +402,7 @@ func (client LongTermRetentionManagedInstanceBackupsClient) ListByDatabase(ctx c
 	result.miltrblr, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionManagedInstanceBackupsClient", "ListByDatabase", resp, "Failure responding to request")
+		return
 	}
 	if result.miltrblr.hasNextLink() && result.miltrblr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -471,6 +474,7 @@ func (client LongTermRetentionManagedInstanceBackupsClient) listByDatabaseNextRe
 	result, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionManagedInstanceBackupsClient", "listByDatabaseNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -525,6 +529,7 @@ func (client LongTermRetentionManagedInstanceBackupsClient) ListByInstance(ctx c
 	result.miltrblr, err = client.ListByInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionManagedInstanceBackupsClient", "ListByInstance", resp, "Failure responding to request")
+		return
 	}
 	if result.miltrblr.hasNextLink() && result.miltrblr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -595,6 +600,7 @@ func (client LongTermRetentionManagedInstanceBackupsClient) listByInstanceNextRe
 	result, err = client.ListByInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionManagedInstanceBackupsClient", "listByInstanceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -648,6 +654,7 @@ func (client LongTermRetentionManagedInstanceBackupsClient) ListByLocation(ctx c
 	result.miltrblr, err = client.ListByLocationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionManagedInstanceBackupsClient", "ListByLocation", resp, "Failure responding to request")
+		return
 	}
 	if result.miltrblr.hasNextLink() && result.miltrblr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -717,6 +724,7 @@ func (client LongTermRetentionManagedInstanceBackupsClient) listByLocationNextRe
 	result, err = client.ListByLocationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionManagedInstanceBackupsClient", "listByLocationNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -774,6 +782,7 @@ func (client LongTermRetentionManagedInstanceBackupsClient) ListByResourceGroupD
 	result.miltrblr, err = client.ListByResourceGroupDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionManagedInstanceBackupsClient", "ListByResourceGroupDatabase", resp, "Failure responding to request")
+		return
 	}
 	if result.miltrblr.hasNextLink() && result.miltrblr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -846,6 +855,7 @@ func (client LongTermRetentionManagedInstanceBackupsClient) listByResourceGroupD
 	result, err = client.ListByResourceGroupDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionManagedInstanceBackupsClient", "listByResourceGroupDatabaseNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -902,6 +912,7 @@ func (client LongTermRetentionManagedInstanceBackupsClient) ListByResourceGroupI
 	result.miltrblr, err = client.ListByResourceGroupInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionManagedInstanceBackupsClient", "ListByResourceGroupInstance", resp, "Failure responding to request")
+		return
 	}
 	if result.miltrblr.hasNextLink() && result.miltrblr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -973,6 +984,7 @@ func (client LongTermRetentionManagedInstanceBackupsClient) listByResourceGroupI
 	result, err = client.ListByResourceGroupInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionManagedInstanceBackupsClient", "listByResourceGroupInstanceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -1028,6 +1040,7 @@ func (client LongTermRetentionManagedInstanceBackupsClient) ListByResourceGroupL
 	result.miltrblr, err = client.ListByResourceGroupLocationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionManagedInstanceBackupsClient", "ListByResourceGroupLocation", resp, "Failure responding to request")
+		return
 	}
 	if result.miltrblr.hasNextLink() && result.miltrblr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -1098,6 +1111,7 @@ func (client LongTermRetentionManagedInstanceBackupsClient) listByResourceGroupL
 	result, err = client.ListByResourceGroupLocationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionManagedInstanceBackupsClient", "listByResourceGroupLocationNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

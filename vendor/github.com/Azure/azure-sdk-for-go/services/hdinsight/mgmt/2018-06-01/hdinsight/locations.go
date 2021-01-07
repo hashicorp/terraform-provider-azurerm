@@ -71,6 +71,7 @@ func (client LocationsClient) GetCapabilities(ctx context.Context, location stri
 	result, err = client.GetCapabilitiesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.LocationsClient", "GetCapabilities", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -144,6 +145,7 @@ func (client LocationsClient) ListBillingSpecs(ctx context.Context, location str
 	result, err = client.ListBillingSpecsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.LocationsClient", "ListBillingSpecs", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -217,6 +219,7 @@ func (client LocationsClient) ListUsages(ctx context.Context, location string) (
 	result, err = client.ListUsagesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.LocationsClient", "ListUsages", resp, "Failure responding to request")
+		return
 	}
 
 	return

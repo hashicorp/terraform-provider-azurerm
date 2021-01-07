@@ -256,6 +256,7 @@ func (client GalleryApplicationVersionsClient) Get(ctx context.Context, resource
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.GalleryApplicationVersionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -339,6 +340,7 @@ func (client GalleryApplicationVersionsClient) ListByGalleryApplication(ctx cont
 	result.gavl, err = client.ListByGalleryApplicationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.GalleryApplicationVersionsClient", "ListByGalleryApplication", resp, "Failure responding to request")
+		return
 	}
 	if result.gavl.hasNextLink() && result.gavl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -404,6 +406,7 @@ func (client GalleryApplicationVersionsClient) listByGalleryApplicationNextResul
 	result, err = client.ListByGalleryApplicationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.GalleryApplicationVersionsClient", "listByGalleryApplicationNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

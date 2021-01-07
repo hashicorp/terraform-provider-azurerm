@@ -158,6 +158,7 @@ func (client DeploymentsClient) Delete(ctx context.Context, resourceGroupName st
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -237,6 +238,7 @@ func (client DeploymentsClient) Get(ctx context.Context, resourceGroupName strin
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -317,6 +319,7 @@ func (client DeploymentsClient) GetLogFileURL(ctx context.Context, resourceGroup
 	result, err = client.GetLogFileURLResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsClient", "GetLogFileURL", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -398,6 +401,7 @@ func (client DeploymentsClient) List(ctx context.Context, resourceGroupName stri
 	result.drc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.drc.hasNextLink() && result.drc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -466,6 +470,7 @@ func (client DeploymentsClient) listNextResults(ctx context.Context, lastResults
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -520,6 +525,7 @@ func (client DeploymentsClient) ListClusterAllDeployments(ctx context.Context, r
 	result.drc, err = client.ListClusterAllDeploymentsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsClient", "ListClusterAllDeployments", resp, "Failure responding to request")
+		return
 	}
 	if result.drc.hasNextLink() && result.drc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -587,6 +593,7 @@ func (client DeploymentsClient) listClusterAllDeploymentsNextResults(ctx context
 	result, err = client.ListClusterAllDeploymentsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsClient", "listClusterAllDeploymentsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

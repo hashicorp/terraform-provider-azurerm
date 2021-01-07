@@ -71,6 +71,8 @@ The following arguments are supported:
 
 * `managed_virtual_network_enabled` - (Optional) Is Virtual Network enabled for all computes in this workspace. Changing this forces a new resource to be created.
 
+* `managed_resource_group_name` - Workspace managed resource group.
+
 * `aad_admin` - (Optional) An `aad_admin` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Synapse Workspace.
@@ -92,8 +94,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the synapse Workspace.
 
 * `connectivity_endpoints` - A list of Connectivity endpoints for this Synapse Workspace.
-
-* `managed_resource_group_name` - Workspace managed resource group.
 
 * `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this Synapse Workspace.
 
