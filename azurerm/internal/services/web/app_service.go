@@ -825,6 +825,12 @@ func schemaAppServiceIpRestriction() *schema.Schema {
 					ValidateFunc: validation.IsCIDR,
 				},
 
+				"service_tag": {
+					Type:         schema.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
 				"subnet_id": {
 					// TODO - Remove in 3.0
 					Type:         schema.TypeString,
@@ -876,6 +882,10 @@ func schemaAppServiceDataSourceIpRestriction() *schema.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"ip_address": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"service_tag": {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
@@ -1764,7 +1774,12 @@ func flattenAppServiceIpRestriction(input *[]web.IPSecurityRestriction) []interf
 			if *ip == "Any" {
 				continue
 			} else {
-				restriction["ip_address"] = *ip
+				switch v.Tag {
+				case web.ServiceTag:
+					restriction["service_tag"] = *ip
+				default:
+					restriction["ip_address"] = *ip
+				}
 			}
 		}
 
@@ -1862,16 +1877,18 @@ func expandAppServiceIpRestriction(input interface{}) ([]web.IPSecurityRestricti
 			vNetSubnetID = subnetID.(string)
 		}
 
+		serviceTag := restriction["service_tag"].(string)
+
 		name := restriction["name"].(string)
 		priority := restriction["priority"].(int)
 		action := restriction["action"].(string)
 
-		if vNetSubnetID != "" && ipAddress != "" {
-			return nil, fmt.Errorf("only one of `ip_address` or `virtual_network_subnet_id` can be set for an IP restriction")
+		if vNetSubnetID != "" && ipAddress != "" && serviceTag != "" {
+			return nil, fmt.Errorf("only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` can be set for an IP restriction")
 		}
 
-		if vNetSubnetID == "" && ipAddress == "" {
-			return nil, fmt.Errorf("one of `ip_address` or `virtual_network_subnet_id` must be set for an IP restriction")
+		if vNetSubnetID == "" && ipAddress == "" && serviceTag == "" {
+			return nil, fmt.Errorf("one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be set for an IP restriction")
 		}
 
 		ipSecurityRestriction := web.IPSecurityRestriction{}
@@ -1881,6 +1898,11 @@ func expandAppServiceIpRestriction(input interface{}) ([]web.IPSecurityRestricti
 
 		if ipAddress != "" {
 			ipSecurityRestriction.IPAddress = &ipAddress
+		}
+
+		if serviceTag != "" {
+			ipSecurityRestriction.IPAddress = &serviceTag
+			ipSecurityRestriction.Tag = web.ServiceTag
 		}
 
 		if vNetSubnetID != "" {
