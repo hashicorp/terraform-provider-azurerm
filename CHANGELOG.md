@@ -29,6 +29,7 @@ IMPROVEMENTS:
 * `azurerm_function_app` - make `pre_warmed_instance_count` computed to use azure's default [GH-9069]
 * `azurerm_hdinsight_hadoop_cluster` - allow the value `Standard_D4a_V4` for the `vm_type` property [GH-10000]
 * `azurerm_hdinsight_kafka_cluster` - support for the `rest_proxy` and `kafka_management_node` blocks [GH-8064]
+* `azurerm_kubernetes_cluster` - add support for network_mode [GH-8828]
 * `azurerm_log_analytics_linked_service` - add validation for resource ID type [GH-9932]
 * `azurerm_log_analytics_linked_service` - update validation to use generated validate functions [GH-9950]
 * `azurerm_monitor_diagnostic_setting` - validation that `eventhub_authorization_rule_id` is a EventHub Namespace Authorization Rule ID [GH-9914]
