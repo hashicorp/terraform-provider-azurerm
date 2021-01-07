@@ -140,7 +140,6 @@ func (client ScriptExecutionHistoryClient) listByClusterNextResults(ctx context.
 	result, err = client.ListByClusterResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ScriptExecutionHistoryClient", "listByClusterNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

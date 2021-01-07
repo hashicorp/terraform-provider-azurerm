@@ -294,7 +294,6 @@ func (client ScriptActionsClient) listByClusterNextResults(ctx context.Context, 
 	result, err = client.ListByClusterResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ScriptActionsClient", "listByClusterNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }

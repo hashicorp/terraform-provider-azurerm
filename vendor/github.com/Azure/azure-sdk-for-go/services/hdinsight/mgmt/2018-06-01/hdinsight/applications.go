@@ -373,7 +373,6 @@ func (client ApplicationsClient) listByClusterNextResults(ctx context.Context, l
 	result, err = client.ListByClusterResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ApplicationsClient", "listByClusterNextResults", resp, "Failure responding to next results request")
-		return
 	}
 	return
 }
