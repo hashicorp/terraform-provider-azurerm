@@ -1114,51 +1114,44 @@ func TestAccAppServiceSlot_httpBlobStorageLogs(t *testing.T) {
 
 func TestAccAzureRMAppServiceSlot_detailedErrorMessagesLogs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppServiceSlot_detailedErrorMessages(data, true),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMAppServiceSlot_detailedErrorMessages(data, false),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceSlotResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.detailedErrorMessages(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.detailedErrorMessages(data, false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppServiceSlot_failedRequestTracingLogs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppServiceSlot_failedRequestTracing(data, true),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMAppServiceSlot_failedRequestTracing(data, false),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceSlotResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.failedRequestTracing(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.failedRequestTracing(data, false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -3546,7 +3539,7 @@ resource "azurerm_app_service_slot" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_detailedErrorMessages(data acceptance.TestData, detailedErrorEnabled bool) string {
+func (r AppServiceSlotResource) detailedErrorMessages(data acceptance.TestData, detailedErrorEnabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3589,7 +3582,7 @@ resource "azurerm_app_service_slot" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, detailedErrorEnabled)
 }
 
-func testAccAzureRMAppServiceSlot_failedRequestTracing(data acceptance.TestData, failedRequestEnabled bool) string {
+func (r AppServiceSlotResource) failedRequestTracing(data acceptance.TestData, failedRequestEnabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

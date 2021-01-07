@@ -866,55 +866,49 @@ func TestAccAppService_managedPipelineMode(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_detailedErrorMessagesLogs(t *testing.T) {
+func TestAccAppService_detailedErrorMessagesLogs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_detailedErrorMessagesEnabled(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.detailed_error_messages_enabled", "true"),
-				),
-			},
-			{
-				Config: testAccAzureRMAppService_detailedErrorMessagesDisabled(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.detailed_error_messages_enabled", "false"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.detailedErrorMessages(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("logs.0.detailed_error_messages_enabled").HasValue("true"),
+			),
 		},
+		{
+			Config: r.detailedErrorMessages(data, false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				resource.TestCheckResourceAttr(data.ResourceName, "logs.0.detailed_error_messages_enabled", "false"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAppService_failedRequestTracingLogs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppService_failedRequestTracingEnabled(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.failed_request_tracing_enabled", "true"),
-				),
-			},
-			{
-				Config: testAccAzureRMAppService_failedRequestTracingDisabled(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.failed_request_tracing_enabled", "false"),
-				),
-			},
-			data.ImportStep(),
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.failedRequestTracing(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("logs.0.failed_request_tracing_enabled").HasValue("true"),
+			),
 		},
+		{
+			Config: r.failedRequestTracing(data, false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("logs.0.failed_request_tracing_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -3534,7 +3528,7 @@ resource "azurerm_app_service" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_detailedErrorMessages(data acceptance.TestData, detailedErrorEnabled bool) string {
+func (r AppServiceResource) detailedErrorMessages(data acceptance.TestData, detailedErrorEnabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3569,7 +3563,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, detailedErrorEnabled)
 }
 
-func testAccAzureRMAppService_failedRequestTracing(data acceptance.TestData, failedRequestEnabled bool) string {
+func (r AppServiceResource) failedRequestTracing(data acceptance.TestData, failedRequestEnabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
