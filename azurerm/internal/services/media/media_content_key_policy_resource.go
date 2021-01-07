@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"time"
 
+	b64 "encoding/base64"
+
 	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2020-05-01/media"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -755,7 +757,7 @@ func expandVerificationKey(input map[string]interface{}) (media.BasicContentKeyP
 		}
 
 		if input["primary_symmetric_token_key"] != nil && input["primary_symmetric_token_key"].(string) != "" {
-			keyValue := []byte(input["primary_symmetric_token_key"].(string))
+			keyValue, _ := b64.StdEncoding.DecodeString(input["primary_symmetric_token_key"].(string))
 			symmetricTokenKey.KeyValue = &keyValue
 		}
 		return symmetricTokenKey, nil
@@ -798,7 +800,7 @@ func flattenVerificationKey(input media.BasicContentKeyPolicyRestrictionTokenKey
 
 		keyValue := ""
 		if symmetricTokenKey.KeyValue != nil {
-			keyValue = string(*symmetricTokenKey.KeyValue)
+			keyValue = b64.StdEncoding.EncodeToString(*symmetricTokenKey.KeyValue)
 		}
 		key["primary_symmetric_token_key"] = keyValue
 	case media.ContentKeyPolicyRsaTokenKey:
