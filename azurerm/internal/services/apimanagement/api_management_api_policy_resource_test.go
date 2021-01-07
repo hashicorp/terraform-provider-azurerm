@@ -1,171 +1,122 @@
 package apimanagement_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMApiManagementAPIPolicy_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_api_policy", "test")
+type ApiManagementApiPolicyResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementAPIPolicyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementAPIPolicy_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementAPIPolicyExists(data.ResourceName),
-				),
-			},
-			{
-				ResourceName:            data.ResourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"xml_link"},
-			},
+func TestAccApiManagementAPIPolicy_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_policy", "test")
+	r := ApiManagementApiPolicyResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			ResourceName:            data.ResourceName,
+			ImportState:             true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: []string{"xml_link"},
 		},
 	})
 }
 
-func TestAccAzureRMApiManagementAPIPolicy_requiresImport(t *testing.T) {
+func TestAccApiManagementAPIPolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_policy", "test")
+	r := ApiManagementApiPolicyResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementAPIPolicyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementAPIPolicy_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementAPIPolicyExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMApiManagementAPIPolicy_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccApiManagementAPIPolicy_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_policy", "test")
+	r := ApiManagementApiPolicyResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.customPolicy(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			ResourceName:            data.ResourceName,
+			ImportState:             true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: []string{"xml_link"},
 		},
 	})
 }
 
-func TestAccAzureRMApiManagementAPIPolicy_update(t *testing.T) {
+func TestAccApiManagementAPIPolicy_customPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_policy", "test")
+	r := ApiManagementApiPolicyResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementAPIPolicyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementAPIPolicy_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementAPIPolicyExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMApiManagementAPIPolicy_customPolicy(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementAPIPolicyExists(data.ResourceName),
-				),
-			},
-			{
-				ResourceName:            data.ResourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"xml_link"},
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.customPolicy(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			ResourceName:            data.ResourceName,
+			ImportState:             true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: []string{"xml_link"},
 		},
 	})
 }
 
-func TestAccAzureRMApiManagementAPIPolicy_customPolicy(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_api_policy", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementAPIPolicyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementAPIPolicy_customPolicy(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementAPIPolicyExists(data.ResourceName),
-				),
-			},
-			{
-				ResourceName:            data.ResourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"xml_link"},
-			},
-		},
-	})
-}
-
-func testCheckAzureRMApiManagementAPIPolicyExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiPoliciesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		apiName := rs.Primary.Attributes["api_name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiName, apimanagement.PolicyExportFormatXML)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: API Policy (API Management Service %q / API %q/  Resource Group %q) does not exist", serviceName, apiName, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on apiManagement.ApiPoliciesClient: %+v", err)
-		}
-
-		return nil
+func (t ApiManagementApiPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-}
+	resourceGroup := id.ResourceGroup
+	serviceName := id.Path["service"]
+	apiName := id.Path["apis"]
 
-func testCheckAzureRMApiManagementAPIPolicyDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiPoliciesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_api_management_api_policy" {
-			continue
-		}
-
-		apiName := rs.Primary.Attributes["api_name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiName, apimanagement.PolicyExportFormatXML)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
-
-		return nil
+	resp, err := clients.ApiManagement.ApiPoliciesClient.Get(ctx, resourceGroup, serviceName, apiName, apimanagement.PolicyExportFormatXML)
+	if err != nil {
+		return nil, fmt.Errorf("reading ApiManagementApi Policy (%s): %+v", id, err)
 	}
 
-	return nil
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMApiManagementAPIPolicy_basic(data acceptance.TestData) string {
+func (ApiManagementApiPolicyResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -204,8 +155,7 @@ resource "azurerm_api_management_api_policy" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementAPIPolicy_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementAPIPolicy_basic(data)
+func (r ApiManagementApiPolicyResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -215,10 +165,10 @@ resource "azurerm_api_management_api_policy" "import" {
   resource_group_name = azurerm_api_management_api_policy.test.resource_group_name
   xml_link            = azurerm_api_management_api_policy.test.xml_link
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMApiManagementAPIPolicy_customPolicy(data acceptance.TestData) string {
+func (ApiManagementApiPolicyResource) customPolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

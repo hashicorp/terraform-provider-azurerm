@@ -16,12 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmBackupProtectionContainerStorageAccount() *schema.Resource {
+func resourceBackupProtectionContainerStorageAccount() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmBackupProtectionContainerStorageAccountCreate,
-		Read:   resourceArmBackupProtectionContainerStorageAccountRead,
+		Create: resourceBackupProtectionContainerStorageAccountCreate,
+		Read:   resourceBackupProtectionContainerStorageAccountRead,
 		Update: nil,
-		Delete: resourceArmBackupProtectionContainerStorageAccountDelete,
+		Delete: resourceBackupProtectionContainerStorageAccountDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -52,7 +52,7 @@ func resourceArmBackupProtectionContainerStorageAccount() *schema.Resource {
 	}
 }
 
-func resourceArmBackupProtectionContainerStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBackupProtectionContainerStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.BackupProtectionContainersClient
 	opStatusClient := meta.(*clients.Client).RecoveryServices.BackupOperationStatusesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -113,7 +113,7 @@ func resourceArmBackupProtectionContainerStorageAccountCreate(d *schema.Resource
 	}
 
 	operationID := parsedLocation.Path["operationResults"]
-	if _, err = resourceArmBackupProtectionContainerStorageAccountWaitForOperation(ctx, opStatusClient, vaultName, resGroup, operationID, d); err != nil {
+	if _, err = resourceBackupProtectionContainerStorageAccountWaitForOperation(ctx, opStatusClient, vaultName, resGroup, operationID, d); err != nil {
 		return err
 	}
 
@@ -124,10 +124,10 @@ func resourceArmBackupProtectionContainerStorageAccountCreate(d *schema.Resource
 
 	d.SetId(azure.HandleAzureSdkForGoBug2824(*resp.ID))
 
-	return resourceArmBackupProtectionContainerStorageAccountRead(d, meta)
+	return resourceBackupProtectionContainerStorageAccountRead(d, meta)
 }
 
-func resourceArmBackupProtectionContainerStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBackupProtectionContainerStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -161,7 +161,7 @@ func resourceArmBackupProtectionContainerStorageAccountRead(d *schema.ResourceDa
 	return nil
 }
 
-func resourceArmBackupProtectionContainerStorageAccountDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBackupProtectionContainerStorageAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -195,7 +195,7 @@ func resourceArmBackupProtectionContainerStorageAccountDelete(d *schema.Resource
 	}
 	operationID := parsedLocation.Path["backupOperationResults"]
 
-	if _, err = resourceArmBackupProtectionContainerStorageAccountWaitForOperation(ctx, opClient, vaultName, resGroup, operationID, d); err != nil {
+	if _, err = resourceBackupProtectionContainerStorageAccountWaitForOperation(ctx, opClient, vaultName, resGroup, operationID, d); err != nil {
 		return err
 	}
 
@@ -203,13 +203,13 @@ func resourceArmBackupProtectionContainerStorageAccountDelete(d *schema.Resource
 }
 
 // nolint unused - linter mistakenly things this function isn't used?
-func resourceArmBackupProtectionContainerStorageAccountWaitForOperation(ctx context.Context, client *backup.OperationStatusesClient, vaultName, resourceGroup, operationID string, d *schema.ResourceData) (backup.OperationStatus, error) {
+func resourceBackupProtectionContainerStorageAccountWaitForOperation(ctx context.Context, client *backup.OperationStatusesClient, vaultName, resourceGroup, operationID string, d *schema.ResourceData) (backup.OperationStatus, error) {
 	state := &resource.StateChangeConf{
 		MinTimeout:                10 * time.Second,
 		Delay:                     10 * time.Second,
 		Pending:                   []string{"InProgress"},
 		Target:                    []string{"Succeeded"},
-		Refresh:                   resourceArmBackupProtectionContainerStorageAccountCheckOperation(ctx, client, vaultName, resourceGroup, operationID),
+		Refresh:                   resourceBackupProtectionContainerStorageAccountCheckOperation(ctx, client, vaultName, resourceGroup, operationID),
 		ContinuousTargetOccurence: 5, // Without this buffer, file share backups and storage account deletions may fail if performed immediately after creating/destroying the container
 	}
 
@@ -227,7 +227,7 @@ func resourceArmBackupProtectionContainerStorageAccountWaitForOperation(ctx cont
 	return resp.(backup.OperationStatus), nil
 }
 
-func resourceArmBackupProtectionContainerStorageAccountCheckOperation(ctx context.Context, client *backup.OperationStatusesClient, vaultName, resourceGroup, operationID string) resource.StateRefreshFunc {
+func resourceBackupProtectionContainerStorageAccountCheckOperation(ctx context.Context, client *backup.OperationStatusesClient, vaultName, resourceGroup, operationID string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := client.Get(ctx, vaultName, resourceGroup, operationID)
 		if err != nil {

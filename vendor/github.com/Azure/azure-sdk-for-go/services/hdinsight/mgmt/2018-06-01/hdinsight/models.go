@@ -606,6 +606,8 @@ type ClusterCreateProperties struct {
 	MinSupportedTLSVersion *string `json:"minSupportedTlsVersion,omitempty"`
 	// NetworkProperties - The network properties.
 	NetworkProperties *NetworkProperties `json:"networkProperties,omitempty"`
+	// ComputeIsolationProperties - The compute isolation properties.
+	ComputeIsolationProperties *ComputeIsolationProperties `json:"computeIsolationProperties,omitempty"`
 }
 
 // ClusterDefinition the cluster definition.
@@ -686,6 +688,8 @@ type ClusterGetProperties struct {
 	MinSupportedTLSVersion *string `json:"minSupportedTlsVersion,omitempty"`
 	// NetworkProperties - The network properties.
 	NetworkProperties *NetworkProperties `json:"networkProperties,omitempty"`
+	// ComputeIsolationProperties - The compute isolation properties.
+	ComputeIsolationProperties *ComputeIsolationProperties `json:"computeIsolationProperties,omitempty"`
 }
 
 // ClusterIdentity identity for the cluster.
@@ -1118,6 +1122,14 @@ func (future *ClustersUpdateGatewaySettingsFuture) Result(client ClustersClient)
 	return
 }
 
+// ComputeIsolationProperties the compute isolation properties.
+type ComputeIsolationProperties struct {
+	// EnableComputeIsolation - The flag indicates whether enable compute isolation or not.
+	EnableComputeIsolation *bool `json:"enableComputeIsolation,omitempty"`
+	// HostSku - The host sku.
+	HostSku *string `json:"hostSku,omitempty"`
+}
+
 // ComputeProfile describes the compute profile.
 type ComputeProfile struct {
 	// Roles - The list of roles in the cluster.
@@ -1356,6 +1368,10 @@ type HardwareProfile struct {
 type HostInfo struct {
 	// Name - The host name
 	Name *string `json:"name,omitempty"`
+	// Fqdn - The Fully Qualified Domain Name of host
+	Fqdn *string `json:"fqdn,omitempty"`
+	// EffectiveDiskEncryptionKeyURL - The effective disk encryption key URL used by the host
+	EffectiveDiskEncryptionKeyURL *string `json:"effectiveDiskEncryptionKeyUrl,omitempty"`
 }
 
 // KafkaRestProperties the kafka rest proxy configuration which contains AAD security group information.

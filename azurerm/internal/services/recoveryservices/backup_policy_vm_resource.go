@@ -23,12 +23,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmBackupProtectionPolicyVM() *schema.Resource {
+func resourceBackupProtectionPolicyVM() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmBackupProtectionPolicyVMCreateUpdate,
-		Read:   resourceArmBackupProtectionPolicyVMRead,
-		Update: resourceArmBackupProtectionPolicyVMCreateUpdate,
-		Delete: resourceArmBackupProtectionPolicyVMDelete,
+		Create: resourceBackupProtectionPolicyVMCreateUpdate,
+		Read:   resourceBackupProtectionPolicyVMRead,
+		Update: resourceBackupProtectionPolicyVMCreateUpdate,
+		Delete: resourceBackupProtectionPolicyVMDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -288,7 +288,7 @@ func resourceArmBackupProtectionPolicyVM() *schema.Resource {
 	}
 }
 
-func resourceArmBackupProtectionPolicyVMCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBackupProtectionPolicyVMCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectionPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -329,13 +329,13 @@ func resourceArmBackupProtectionPolicyVMCreateUpdate(d *schema.ResourceData, met
 	vmProtectionPolicyProperties := &backup.AzureIaaSVMProtectionPolicy{
 		TimeZone:             utils.String(d.Get("timezone").(string)),
 		BackupManagementType: backup.BackupManagementTypeAzureIaasVM,
-		SchedulePolicy:       expandArmBackupProtectionPolicyVMSchedule(d, times),
+		SchedulePolicy:       expandBackupProtectionPolicyVMSchedule(d, times),
 		RetentionPolicy: &backup.LongTermRetentionPolicy{ // SimpleRetentionPolicy only has duration property ¯\_(ツ)_/¯
 			RetentionPolicyType: backup.RetentionPolicyTypeLongTermRetentionPolicy,
-			DailySchedule:       expandArmBackupProtectionPolicyVMRetentionDaily(d, times),
-			WeeklySchedule:      expandArmBackupProtectionPolicyVMRetentionWeekly(d, times),
-			MonthlySchedule:     expandArmBackupProtectionPolicyVMRetentionMonthly(d, times),
-			YearlySchedule:      expandArmBackupProtectionPolicyVMRetentionYearly(d, times),
+			DailySchedule:       expandBackupProtectionPolicyVMRetentionDaily(d, times),
+			WeeklySchedule:      expandBackupProtectionPolicyVMRetentionWeekly(d, times),
+			MonthlySchedule:     expandBackupProtectionPolicyVMRetentionMonthly(d, times),
+			YearlySchedule:      expandBackupProtectionPolicyVMRetentionYearly(d, times),
 		},
 	}
 
@@ -352,7 +352,7 @@ func resourceArmBackupProtectionPolicyVMCreateUpdate(d *schema.ResourceData, met
 		return fmt.Errorf("Error creating/updating Azure Backup Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
 	}
 
-	resp, err := resourceArmBackupProtectionPolicyVMWaitForUpdate(ctx, client, vaultName, resourceGroup, policyName, d)
+	resp, err := resourceBackupProtectionPolicyVMWaitForUpdate(ctx, client, vaultName, resourceGroup, policyName, d)
 	if err != nil {
 		return err
 	}
@@ -360,10 +360,10 @@ func resourceArmBackupProtectionPolicyVMCreateUpdate(d *schema.ResourceData, met
 	id := strings.Replace(*resp.ID, "Subscriptions", "subscriptions", 1)
 	d.SetId(id)
 
-	return resourceArmBackupProtectionPolicyVMRead(d, meta)
+	return resourceBackupProtectionPolicyVMRead(d, meta)
 }
 
-func resourceArmBackupProtectionPolicyVMRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBackupProtectionPolicyVMRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectionPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -398,14 +398,14 @@ func resourceArmBackupProtectionPolicyVMRead(d *schema.ResourceData, meta interf
 		d.Set("instant_restore_retention_days", properties.InstantRpRetentionRangeInDays)
 
 		if schedule, ok := properties.SchedulePolicy.AsSimpleSchedulePolicy(); ok && schedule != nil {
-			if err := d.Set("backup", flattenArmBackupProtectionPolicyVMSchedule(schedule)); err != nil {
+			if err := d.Set("backup", flattenBackupProtectionPolicyVMSchedule(schedule)); err != nil {
 				return fmt.Errorf("Error setting `backup`: %+v", err)
 			}
 		}
 
 		if retention, ok := properties.RetentionPolicy.AsLongTermRetentionPolicy(); ok && retention != nil {
 			if s := retention.DailySchedule; s != nil {
-				if err := d.Set("retention_daily", flattenArmBackupProtectionPolicyVMRetentionDaily(s)); err != nil {
+				if err := d.Set("retention_daily", flattenBackupProtectionPolicyVMRetentionDaily(s)); err != nil {
 					return fmt.Errorf("Error setting `retention_daily`: %+v", err)
 				}
 			} else {
@@ -413,7 +413,7 @@ func resourceArmBackupProtectionPolicyVMRead(d *schema.ResourceData, meta interf
 			}
 
 			if s := retention.WeeklySchedule; s != nil {
-				if err := d.Set("retention_weekly", flattenArmBackupProtectionPolicyVMRetentionWeekly(s)); err != nil {
+				if err := d.Set("retention_weekly", flattenBackupProtectionPolicyVMRetentionWeekly(s)); err != nil {
 					return fmt.Errorf("Error setting `retention_weekly`: %+v", err)
 				}
 			} else {
@@ -421,7 +421,7 @@ func resourceArmBackupProtectionPolicyVMRead(d *schema.ResourceData, meta interf
 			}
 
 			if s := retention.MonthlySchedule; s != nil {
-				if err := d.Set("retention_monthly", flattenArmBackupProtectionPolicyVMRetentionMonthly(s)); err != nil {
+				if err := d.Set("retention_monthly", flattenBackupProtectionPolicyVMRetentionMonthly(s)); err != nil {
 					return fmt.Errorf("Error setting `retention_monthly`: %+v", err)
 				}
 			} else {
@@ -429,7 +429,7 @@ func resourceArmBackupProtectionPolicyVMRead(d *schema.ResourceData, meta interf
 			}
 
 			if s := retention.YearlySchedule; s != nil {
-				if err := d.Set("retention_yearly", flattenArmBackupProtectionPolicyVMRetentionYearly(s)); err != nil {
+				if err := d.Set("retention_yearly", flattenBackupProtectionPolicyVMRetentionYearly(s)); err != nil {
 					return fmt.Errorf("Error setting `retention_yearly`: %+v", err)
 				}
 			} else {
@@ -441,7 +441,7 @@ func resourceArmBackupProtectionPolicyVMRead(d *schema.ResourceData, meta interf
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmBackupProtectionPolicyVMDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBackupProtectionPolicyVMDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectionPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -464,14 +464,14 @@ func resourceArmBackupProtectionPolicyVMDelete(d *schema.ResourceData, meta inte
 		}
 	}
 
-	if _, err := resourceArmBackupProtectionPolicyVMWaitForDeletion(ctx, client, vaultName, resourceGroup, policyName, d); err != nil {
+	if _, err := resourceBackupProtectionPolicyVMWaitForDeletion(ctx, client, vaultName, resourceGroup, policyName, d); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func expandArmBackupProtectionPolicyVMSchedule(d *schema.ResourceData, times []date.Time) *backup.SimpleSchedulePolicy {
+func expandBackupProtectionPolicyVMSchedule(d *schema.ResourceData, times []date.Time) *backup.SimpleSchedulePolicy {
 	if bb, ok := d.Get("backup").([]interface{}); ok && len(bb) > 0 {
 		block := bb[0].(map[string]interface{})
 
@@ -498,7 +498,7 @@ func expandArmBackupProtectionPolicyVMSchedule(d *schema.ResourceData, times []d
 	return nil
 }
 
-func expandArmBackupProtectionPolicyVMRetentionDaily(d *schema.ResourceData, times []date.Time) *backup.DailyRetentionSchedule {
+func expandBackupProtectionPolicyVMRetentionDaily(d *schema.ResourceData, times []date.Time) *backup.DailyRetentionSchedule {
 	if rb, ok := d.Get("retention_daily").([]interface{}); ok && len(rb) > 0 {
 		block := rb[0].(map[string]interface{})
 
@@ -514,7 +514,7 @@ func expandArmBackupProtectionPolicyVMRetentionDaily(d *schema.ResourceData, tim
 	return nil
 }
 
-func expandArmBackupProtectionPolicyVMRetentionWeekly(d *schema.ResourceData, times []date.Time) *backup.WeeklyRetentionSchedule {
+func expandBackupProtectionPolicyVMRetentionWeekly(d *schema.ResourceData, times []date.Time) *backup.WeeklyRetentionSchedule {
 	if rb, ok := d.Get("retention_weekly").([]interface{}); ok && len(rb) > 0 {
 		block := rb[0].(map[string]interface{})
 
@@ -540,14 +540,14 @@ func expandArmBackupProtectionPolicyVMRetentionWeekly(d *schema.ResourceData, ti
 	return nil
 }
 
-func expandArmBackupProtectionPolicyVMRetentionMonthly(d *schema.ResourceData, times []date.Time) *backup.MonthlyRetentionSchedule {
+func expandBackupProtectionPolicyVMRetentionMonthly(d *schema.ResourceData, times []date.Time) *backup.MonthlyRetentionSchedule {
 	if rb, ok := d.Get("retention_monthly").([]interface{}); ok && len(rb) > 0 {
 		block := rb[0].(map[string]interface{})
 
 		retention := backup.MonthlyRetentionSchedule{
 			RetentionScheduleFormatType: backup.RetentionScheduleFormatWeekly, // this is always weekly ¯\_(ツ)_/¯
 			RetentionScheduleDaily:      nil,                                  // and this is always nil..
-			RetentionScheduleWeekly:     expandArmBackupProtectionPolicyVMRetentionWeeklyFormat(block),
+			RetentionScheduleWeekly:     expandBackupProtectionPolicyVMRetentionWeeklyFormat(block),
 			RetentionTimes:              &times,
 			RetentionDuration: &backup.RetentionDuration{
 				Count:        utils.Int32(int32(block["count"].(int))),
@@ -561,14 +561,14 @@ func expandArmBackupProtectionPolicyVMRetentionMonthly(d *schema.ResourceData, t
 	return nil
 }
 
-func expandArmBackupProtectionPolicyVMRetentionYearly(d *schema.ResourceData, times []date.Time) *backup.YearlyRetentionSchedule {
+func expandBackupProtectionPolicyVMRetentionYearly(d *schema.ResourceData, times []date.Time) *backup.YearlyRetentionSchedule {
 	if rb, ok := d.Get("retention_yearly").([]interface{}); ok && len(rb) > 0 {
 		block := rb[0].(map[string]interface{})
 
 		retention := backup.YearlyRetentionSchedule{
 			RetentionScheduleFormatType: backup.RetentionScheduleFormatWeekly, // this is always weekly ¯\_(ツ)_/¯
 			RetentionScheduleDaily:      nil,                                  // and this is always nil..
-			RetentionScheduleWeekly:     expandArmBackupProtectionPolicyVMRetentionWeeklyFormat(block),
+			RetentionScheduleWeekly:     expandBackupProtectionPolicyVMRetentionWeeklyFormat(block),
 			RetentionTimes:              &times,
 			RetentionDuration: &backup.RetentionDuration{
 				Count:        utils.Int32(int32(block["count"].(int))),
@@ -590,7 +590,7 @@ func expandArmBackupProtectionPolicyVMRetentionYearly(d *schema.ResourceData, ti
 	return nil
 }
 
-func expandArmBackupProtectionPolicyVMRetentionWeeklyFormat(block map[string]interface{}) *backup.WeeklyRetentionFormat {
+func expandBackupProtectionPolicyVMRetentionWeeklyFormat(block map[string]interface{}) *backup.WeeklyRetentionFormat {
 	weekly := backup.WeeklyRetentionFormat{}
 
 	if v, ok := block["weekdays"].(*schema.Set); ok {
@@ -612,7 +612,7 @@ func expandArmBackupProtectionPolicyVMRetentionWeeklyFormat(block map[string]int
 	return &weekly
 }
 
-func flattenArmBackupProtectionPolicyVMSchedule(schedule *backup.SimpleSchedulePolicy) []interface{} {
+func flattenBackupProtectionPolicyVMSchedule(schedule *backup.SimpleSchedulePolicy) []interface{} {
 	block := map[string]interface{}{}
 
 	block["frequency"] = string(schedule.ScheduleRunFrequency)
@@ -632,7 +632,7 @@ func flattenArmBackupProtectionPolicyVMSchedule(schedule *backup.SimpleScheduleP
 	return []interface{}{block}
 }
 
-func flattenArmBackupProtectionPolicyVMRetentionDaily(daily *backup.DailyRetentionSchedule) []interface{} {
+func flattenBackupProtectionPolicyVMRetentionDaily(daily *backup.DailyRetentionSchedule) []interface{} {
 	block := map[string]interface{}{}
 
 	if duration := daily.RetentionDuration; duration != nil {
@@ -644,7 +644,7 @@ func flattenArmBackupProtectionPolicyVMRetentionDaily(daily *backup.DailyRetenti
 	return []interface{}{block}
 }
 
-func flattenArmBackupProtectionPolicyVMRetentionWeekly(weekly *backup.WeeklyRetentionSchedule) []interface{} {
+func flattenBackupProtectionPolicyVMRetentionWeekly(weekly *backup.WeeklyRetentionSchedule) []interface{} {
 	block := map[string]interface{}{}
 
 	if duration := weekly.RetentionDuration; duration != nil {
@@ -664,7 +664,7 @@ func flattenArmBackupProtectionPolicyVMRetentionWeekly(weekly *backup.WeeklyRete
 	return []interface{}{block}
 }
 
-func flattenArmBackupProtectionPolicyVMRetentionMonthly(monthly *backup.MonthlyRetentionSchedule) []interface{} {
+func flattenBackupProtectionPolicyVMRetentionMonthly(monthly *backup.MonthlyRetentionSchedule) []interface{} {
 	block := map[string]interface{}{}
 
 	if duration := monthly.RetentionDuration; duration != nil {
@@ -674,13 +674,13 @@ func flattenArmBackupProtectionPolicyVMRetentionMonthly(monthly *backup.MonthlyR
 	}
 
 	if weekly := monthly.RetentionScheduleWeekly; weekly != nil {
-		block["weekdays"], block["weeks"] = flattenArmBackupProtectionPolicyVMRetentionWeeklyFormat(weekly)
+		block["weekdays"], block["weeks"] = flattenBackupProtectionPolicyVMRetentionWeeklyFormat(weekly)
 	}
 
 	return []interface{}{block}
 }
 
-func flattenArmBackupProtectionPolicyVMRetentionYearly(yearly *backup.YearlyRetentionSchedule) []interface{} {
+func flattenBackupProtectionPolicyVMRetentionYearly(yearly *backup.YearlyRetentionSchedule) []interface{} {
 	block := map[string]interface{}{}
 
 	if duration := yearly.RetentionDuration; duration != nil {
@@ -690,7 +690,7 @@ func flattenArmBackupProtectionPolicyVMRetentionYearly(yearly *backup.YearlyRete
 	}
 
 	if weekly := yearly.RetentionScheduleWeekly; weekly != nil {
-		block["weekdays"], block["weeks"] = flattenArmBackupProtectionPolicyVMRetentionWeeklyFormat(weekly)
+		block["weekdays"], block["weeks"] = flattenBackupProtectionPolicyVMRetentionWeeklyFormat(weekly)
 	}
 
 	if months := yearly.MonthsOfYear; months != nil {
@@ -704,7 +704,7 @@ func flattenArmBackupProtectionPolicyVMRetentionYearly(yearly *backup.YearlyRete
 	return []interface{}{block}
 }
 
-func flattenArmBackupProtectionPolicyVMRetentionWeeklyFormat(retention *backup.WeeklyRetentionFormat) (weekdays, weeks *schema.Set) {
+func flattenBackupProtectionPolicyVMRetentionWeeklyFormat(retention *backup.WeeklyRetentionFormat) (weekdays, weeks *schema.Set) {
 	if days := retention.DaysOfTheWeek; days != nil {
 		slice := make([]interface{}, 0)
 		for _, d := range *days {
@@ -724,13 +724,13 @@ func flattenArmBackupProtectionPolicyVMRetentionWeeklyFormat(retention *backup.W
 	return weekdays, weeks
 }
 
-func resourceArmBackupProtectionPolicyVMWaitForUpdate(ctx context.Context, client *backup.ProtectionPoliciesClient, vaultName, resourceGroup, policyName string, d *schema.ResourceData) (backup.ProtectionPolicyResource, error) {
+func resourceBackupProtectionPolicyVMWaitForUpdate(ctx context.Context, client *backup.ProtectionPoliciesClient, vaultName, resourceGroup, policyName string, d *schema.ResourceData) (backup.ProtectionPolicyResource, error) {
 	state := &resource.StateChangeConf{
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
 		Pending:    []string{"NotFound"},
 		Target:     []string{"Found"},
-		Refresh:    resourceArmBackupProtectionPolicyVMRefreshFunc(ctx, client, vaultName, resourceGroup, policyName),
+		Refresh:    resourceBackupProtectionPolicyVMRefreshFunc(ctx, client, vaultName, resourceGroup, policyName),
 	}
 
 	if d.IsNewResource() {
@@ -747,13 +747,13 @@ func resourceArmBackupProtectionPolicyVMWaitForUpdate(ctx context.Context, clien
 	return resp.(backup.ProtectionPolicyResource), nil
 }
 
-func resourceArmBackupProtectionPolicyVMWaitForDeletion(ctx context.Context, client *backup.ProtectionPoliciesClient, vaultName, resourceGroup, policyName string, d *schema.ResourceData) (backup.ProtectionPolicyResource, error) {
+func resourceBackupProtectionPolicyVMWaitForDeletion(ctx context.Context, client *backup.ProtectionPoliciesClient, vaultName, resourceGroup, policyName string, d *schema.ResourceData) (backup.ProtectionPolicyResource, error) {
 	state := &resource.StateChangeConf{
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
 		Pending:    []string{"Found"},
 		Target:     []string{"NotFound"},
-		Refresh:    resourceArmBackupProtectionPolicyVMRefreshFunc(ctx, client, vaultName, resourceGroup, policyName),
+		Refresh:    resourceBackupProtectionPolicyVMRefreshFunc(ctx, client, vaultName, resourceGroup, policyName),
 		Timeout:    d.Timeout(schema.TimeoutDelete),
 	}
 
@@ -765,7 +765,7 @@ func resourceArmBackupProtectionPolicyVMWaitForDeletion(ctx context.Context, cli
 	return resp.(backup.ProtectionPolicyResource), nil
 }
 
-func resourceArmBackupProtectionPolicyVMRefreshFunc(ctx context.Context, client *backup.ProtectionPoliciesClient, vaultName, resourceGroup, policyName string) resource.StateRefreshFunc {
+func resourceBackupProtectionPolicyVMRefreshFunc(ctx context.Context, client *backup.ProtectionPoliciesClient, vaultName, resourceGroup, policyName string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := client.Get(ctx, vaultName, resourceGroup, policyName)
 		if err != nil {

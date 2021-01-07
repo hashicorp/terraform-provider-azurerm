@@ -22,12 +22,12 @@ import (
 
 var azureFirewallResourceName = "azurerm_firewall"
 
-func resourceArmFirewall() *schema.Resource {
+func resourceFirewall() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmFirewallCreateUpdate,
-		Read:   resourceArmFirewallRead,
-		Update: resourceArmFirewallCreateUpdate,
-		Delete: resourceArmFirewallDelete,
+		Create: resourceFirewallCreateUpdate,
+		Read:   resourceFirewallRead,
+		Update: resourceFirewallCreateUpdate,
+		Delete: resourceFirewallDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -202,7 +202,7 @@ func resourceArmFirewall() *schema.Resource {
 	}
 }
 
-func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.AzureFirewallsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -232,7 +232,7 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 	i := d.Get("ip_configuration").([]interface{})
-	ipConfigs, subnetToLock, vnetToLock, err := expandArmFirewallIPConfigurations(i)
+	ipConfigs, subnetToLock, vnetToLock, err := expandFirewallIPConfigurations(i)
 	if err != nil {
 		return fmt.Errorf("Error building list of Azure Firewall IP Configurations: %+v", err)
 	}
@@ -244,14 +244,14 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		AzureFirewallPropertiesFormat: &network.AzureFirewallPropertiesFormat{
 			IPConfigurations:     ipConfigs,
 			ThreatIntelMode:      network.AzureFirewallThreatIntelMode(d.Get("threat_intel_mode").(string)),
-			AdditionalProperties: expandArmFirewallDNSServers(d.Get("dns_servers").([]interface{})),
+			AdditionalProperties: expandFirewallDNSServers(d.Get("dns_servers").([]interface{})),
 		},
 		Zones: zones,
 	}
 
 	m := d.Get("management_ip_configuration").([]interface{})
 	if len(m) == 1 {
-		mgmtIPConfig, mgmtSubnetName, mgmtVirtualNetworkName, err := expandArmFirewallIPConfigurations(m)
+		mgmtIPConfig, mgmtSubnetName, mgmtVirtualNetworkName, err := expandFirewallIPConfigurations(m)
 		if err != nil {
 			return fmt.Errorf("Error parsing Azure Firewall Management IP Configurations: %+v", err)
 		}
@@ -276,7 +276,7 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		parameters.AzureFirewallPropertiesFormat.FirewallPolicy = &network.SubResource{ID: &policyId}
 	}
 
-	vhub, hubIpAddresses, ok := expandArmFirewallVirtualHubSetting(existing, d.Get("virtual_hub").([]interface{}))
+	vhub, hubIpAddresses, ok := expandFirewallVirtualHubSetting(existing, d.Get("virtual_hub").([]interface{}))
 	if ok {
 		parameters.AzureFirewallPropertiesFormat.VirtualHub = vhub
 		parameters.AzureFirewallPropertiesFormat.HubIPAddresses = hubIpAddresses
@@ -344,10 +344,10 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 
 	d.SetId(*read.ID)
 
-	return resourceArmFirewallRead(d, meta)
+	return resourceFirewallRead(d, meta)
 }
 
-func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
+func resourceFirewallRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.AzureFirewallsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -377,12 +377,12 @@ func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if props := read.AzureFirewallPropertiesFormat; props != nil {
-		if err := d.Set("ip_configuration", flattenArmFirewallIPConfigurations(props.IPConfigurations)); err != nil {
+		if err := d.Set("ip_configuration", flattenFirewallIPConfigurations(props.IPConfigurations)); err != nil {
 			return fmt.Errorf("Error setting `ip_configuration`: %+v", err)
 		}
 		managementIPConfigs := make([]interface{}, 0)
 		if props.ManagementIPConfiguration != nil {
-			managementIPConfigs = flattenArmFirewallIPConfigurations(&[]network.AzureFirewallIPConfiguration{
+			managementIPConfigs = flattenFirewallIPConfigurations(&[]network.AzureFirewallIPConfiguration{
 				*props.ManagementIPConfiguration,
 			})
 		}
@@ -392,7 +392,7 @@ func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 
 		d.Set("threat_intel_mode", string(props.ThreatIntelMode))
 
-		if err := d.Set("dns_servers", flattenArmFirewallDNSServers(props.AdditionalProperties)); err != nil {
+		if err := d.Set("dns_servers", flattenFirewallDNSServers(props.AdditionalProperties)); err != nil {
 			return fmt.Errorf("Error setting `dns_servers`: %+v", err)
 		}
 
@@ -405,7 +405,7 @@ func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("sku_tier", string(sku.Tier))
 		}
 
-		if err := d.Set("virtual_hub", flattenArmFirewallVirtualHubSetting(props)); err != nil {
+		if err := d.Set("virtual_hub", flattenFirewallVirtualHubSetting(props)); err != nil {
 			return fmt.Errorf("Error setting `virtual_hub`: %+v", err)
 		}
 	}
@@ -417,7 +417,7 @@ func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, read.Tags)
 }
 
-func resourceArmFirewallDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceFirewallDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.AzureFirewallsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -507,7 +507,7 @@ func resourceArmFirewallDelete(d *schema.ResourceData, meta interface{}) error {
 	return err
 }
 
-func expandArmFirewallIPConfigurations(configs []interface{}) (*[]network.AzureFirewallIPConfiguration, *[]string, *[]string, error) {
+func expandFirewallIPConfigurations(configs []interface{}) (*[]network.AzureFirewallIPConfiguration, *[]string, *[]string, error) {
 	ipConfigs := make([]network.AzureFirewallIPConfiguration, 0)
 	subnetNamesToLock := make([]string, 0)
 	virtualNetworkNamesToLock := make([]string, 0)
@@ -553,7 +553,7 @@ func expandArmFirewallIPConfigurations(configs []interface{}) (*[]network.AzureF
 	return &ipConfigs, &subnetNamesToLock, &virtualNetworkNamesToLock, nil
 }
 
-func flattenArmFirewallIPConfigurations(input *[]network.AzureFirewallIPConfiguration) []interface{} {
+func flattenFirewallIPConfigurations(input *[]network.AzureFirewallIPConfiguration) []interface{} {
 	result := make([]interface{}, 0)
 	if input == nil {
 		return result
@@ -591,7 +591,7 @@ func flattenArmFirewallIPConfigurations(input *[]network.AzureFirewallIPConfigur
 	return result
 }
 
-func expandArmFirewallDNSServers(input []interface{}) map[string]*string {
+func expandFirewallDNSServers(input []interface{}) map[string]*string {
 	if len(input) == 0 {
 		return nil
 	}
@@ -608,7 +608,7 @@ func expandArmFirewallDNSServers(input []interface{}) map[string]*string {
 	}
 }
 
-func flattenArmFirewallDNSServers(input map[string]*string) []interface{} {
+func flattenFirewallDNSServers(input map[string]*string) []interface{} {
 	if len(input) == 0 {
 		return nil
 	}
@@ -629,7 +629,7 @@ func flattenArmFirewallDNSServers(input map[string]*string) []interface{} {
 	return utils.FlattenStringSlice(&servers)
 }
 
-func expandArmFirewallVirtualHubSetting(existing network.AzureFirewall, input []interface{}) (vhub *network.SubResource, ipAddresses *network.HubIPAddresses, ok bool) {
+func expandFirewallVirtualHubSetting(existing network.AzureFirewall, input []interface{}) (vhub *network.SubResource, ipAddresses *network.HubIPAddresses, ok bool) {
 	if len(input) == 0 {
 		return nil, nil, false
 	}
@@ -676,7 +676,7 @@ func expandArmFirewallVirtualHubSetting(existing network.AzureFirewall, input []
 	return vhub, ipAddresses, true
 }
 
-func flattenArmFirewallVirtualHubSetting(props *network.AzureFirewallPropertiesFormat) []interface{} {
+func flattenFirewallVirtualHubSetting(props *network.AzureFirewallPropertiesFormat) []interface{} {
 	if props.VirtualHub == nil {
 		return nil
 	}

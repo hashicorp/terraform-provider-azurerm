@@ -6,32 +6,30 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMIotHubSharedAccessPolicy_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_iothub_shared_access_policy", "test")
+type IoTHubSharedAccessPolicyDataSource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubSharedAccessPolicyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMIotHubSharedAccessPolicy_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
-				),
-			},
+func TestAccDataSourceIotHubSharedAccessPolicy_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_iothub_shared_access_policy", "test")
+	r := IoTHubSharedAccessPolicyDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("primary_key").Exists(),
+				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
+				check.That(data.ResourceName).Key("secondary_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMIotHubSharedAccessPolicy_basic(data acceptance.TestData) string {
-	template := testAccAzureRMIotHubSharedAccessPolicy_basic(data)
-
+func (IoTHubSharedAccessPolicyDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -40,5 +38,5 @@ data "azurerm_iothub_shared_access_policy" "test" {
   resource_group_name = azurerm_resource_group.test.name
   iothub_name         = azurerm_iothub.test.name
 }
-`, template)
+`, IoTHubSharedAccessPolicyResource{}.basic(data))
 }

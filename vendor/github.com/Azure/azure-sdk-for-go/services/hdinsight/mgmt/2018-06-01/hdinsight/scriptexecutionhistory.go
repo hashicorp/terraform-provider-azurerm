@@ -78,6 +78,7 @@ func (client ScriptExecutionHistoryClient) ListByCluster(ctx context.Context, re
 	}
 	if result.saehl.hasNextLink() && result.saehl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

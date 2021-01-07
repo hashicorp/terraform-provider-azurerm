@@ -462,6 +462,7 @@ func (client ClustersClient) List(ctx context.Context) (result ClusterListResult
 	}
 	if result.clr.hasNextLink() && result.clr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -577,6 +578,7 @@ func (client ClustersClient) ListByResourceGroup(ctx context.Context, resourceGr
 	}
 	if result.clr.hasNextLink() && result.clr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

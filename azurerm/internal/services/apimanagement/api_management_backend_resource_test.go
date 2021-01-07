@@ -1,260 +1,199 @@
 package apimanagement_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMApiManagementBackend_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
+type ApiManagementAuthorizationBackendResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementBackendDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementBackend_basic(data, "basic"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementBackendExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "protocol", "http"),
-					resource.TestCheckResourceAttr(data.ResourceName, "url", "https://acctest"),
-				),
-			},
-			data.ImportStep(),
+func TestAccApiManagementBackend_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
+	r := ApiManagementAuthorizationBackendResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "basic"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("protocol").HasValue("http"),
+				check.That(data.ResourceName).Key("url").HasValue("https://acctest"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagementBackend_allProperties(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
+	r := ApiManagementAuthorizationBackendResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.allProperties(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("protocol").HasValue("http"),
+				check.That(data.ResourceName).Key("url").HasValue("https://acctest"),
+				check.That(data.ResourceName).Key("description").HasValue("description"),
+				check.That(data.ResourceName).Key("resource_id").HasValue("https://resourceid"),
+				check.That(data.ResourceName).Key("title").HasValue("title"),
+				check.That(data.ResourceName).Key("credentials.#").HasValue("1"),
+				check.That(data.ResourceName).Key("credentials.0.authorization.0.parameter").HasValue("parameter"),
+				check.That(data.ResourceName).Key("credentials.0.authorization.0.scheme").HasValue("scheme"),
+				check.That(data.ResourceName).Key("credentials.0.certificate.0").Exists(),
+				check.That(data.ResourceName).Key("credentials.0.header.header1").HasValue("header1value1"),
+				check.That(data.ResourceName).Key("credentials.0.header.header2").HasValue("header2value1"),
+				check.That(data.ResourceName).Key("credentials.0.query.query1").HasValue("query1value1"),
+				check.That(data.ResourceName).Key("credentials.0.query.query2").HasValue("query2value1"),
+				check.That(data.ResourceName).Key("proxy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("proxy.0.url").HasValue("http://192.168.1.1:8080"),
+				check.That(data.ResourceName).Key("proxy.0.username").HasValue("username"),
+				check.That(data.ResourceName).Key("proxy.0.password").HasValue("password"),
+				check.That(data.ResourceName).Key("tls.#").HasValue("1"),
+				check.That(data.ResourceName).Key("tls.0.validate_certificate_chain").HasValue("false"),
+				check.That(data.ResourceName).Key("tls.0.validate_certificate_name").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagementBackend_credentialsNoCertificate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
+	r := ApiManagementAuthorizationBackendResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.credentialsNoCertificate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagementBackend_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
+	r := ApiManagementAuthorizationBackendResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "update"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("protocol").HasValue("http"),
+				check.That(data.ResourceName).Key("url").HasValue("https://acctest"),
+			),
+		},
+		{
+			Config: r.update(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("protocol").HasValue("soap"),
+				check.That(data.ResourceName).Key("url").HasValue("https://updatedacctest"),
+				check.That(data.ResourceName).Key("description").HasValue("description"),
+				check.That(data.ResourceName).Key("resource_id").HasValue("https://resourceid"),
+				check.That(data.ResourceName).Key("proxy.#").HasValue("1"),
+				check.That(data.ResourceName).Key("proxy.0.url").HasValue("http://192.168.1.1:8080"),
+				check.That(data.ResourceName).Key("proxy.0.username").HasValue("username"),
+				check.That(data.ResourceName).Key("proxy.0.password").HasValue("password"),
+				check.That(data.ResourceName).Key("tls.#").HasValue("1"),
+				check.That(data.ResourceName).Key("tls.0.validate_certificate_chain").HasValue("false"),
+				check.That(data.ResourceName).Key("tls.0.validate_certificate_name").HasValue("true"),
+			),
+		},
+		{
+			Config: r.basic(data, "update"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("protocol").HasValue("http"),
+				check.That(data.ResourceName).Key("url").HasValue("https://acctest"),
+				check.That(data.ResourceName).Key("description").HasValue(""),
+				check.That(data.ResourceName).Key("resource_id").HasValue(""),
+				check.That(data.ResourceName).Key("proxy.#").HasValue("0"),
+				check.That(data.ResourceName).Key("tls.#").HasValue("0"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMApiManagementBackend_allProperties(t *testing.T) {
+func TestAccApiManagementBackend_serviceFabric(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
+	r := ApiManagementAuthorizationBackendResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementBackendDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementBackend_allProperties(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementBackendExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "protocol", "http"),
-					resource.TestCheckResourceAttr(data.ResourceName, "url", "https://acctest"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "description"),
-					resource.TestCheckResourceAttr(data.ResourceName, "resource_id", "https://resourceid"),
-					resource.TestCheckResourceAttr(data.ResourceName, "title", "title"),
-					resource.TestCheckResourceAttr(data.ResourceName, "credentials.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "credentials.0.authorization.0.parameter", "parameter"),
-					resource.TestCheckResourceAttr(data.ResourceName, "credentials.0.authorization.0.scheme", "scheme"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "credentials.0.certificate.0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "credentials.0.header.header1", "header1value1,header1value2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "credentials.0.header.header2", "header2value1,header2value2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "credentials.0.query.query1", "query1value1,query1value2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "credentials.0.query.query2", "query2value1,query2value2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "proxy.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "proxy.0.url", "http://192.168.1.1:8080"),
-					resource.TestCheckResourceAttr(data.ResourceName, "proxy.0.username", "username"),
-					resource.TestCheckResourceAttr(data.ResourceName, "proxy.0.password", "password"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tls.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tls.0.validate_certificate_chain", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tls.0.validate_certificate_name", "true"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.serviceFabric(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("service_fabric_cluster.0.client_certificate_thumbprint").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagementBackend_disappears(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
+	r := ApiManagementAuthorizationBackendResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "disappears"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				testCheckApiManagementBackendDisappears(data.ResourceName),
+			),
+			ExpectNonEmptyPlan: true,
 		},
 	})
 }
 
-func TestAccAzureRMApiManagementBackend_credentialsNoCertificate(t *testing.T) {
+func TestAccApiManagementBackend_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
+	r := ApiManagementAuthorizationBackendResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementBackendDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementBackend_credentialsNoCertificate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementBackendExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data, "import"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMApiManagementBackend_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
+func (t ApiManagementAuthorizationBackendResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+	resourceGroup := id.ResourceGroup
+	serviceName := id.Path["service"]
+	name := id.Path["backends"]
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementBackendDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementBackend_basic(data, "update"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementBackendExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "protocol", "http"),
-					resource.TestCheckResourceAttr(data.ResourceName, "url", "https://acctest"),
-				),
-			},
-			{
-				Config: testAccAzureRMApiManagementBackend_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementBackendExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "protocol", "soap"),
-					resource.TestCheckResourceAttr(data.ResourceName, "url", "https://updatedacctest"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "description"),
-					resource.TestCheckResourceAttr(data.ResourceName, "resource_id", "https://resourceid"),
-					resource.TestCheckResourceAttr(data.ResourceName, "proxy.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "proxy.0.url", "http://192.168.1.1:8080"),
-					resource.TestCheckResourceAttr(data.ResourceName, "proxy.0.username", "username"),
-					resource.TestCheckResourceAttr(data.ResourceName, "proxy.0.password", "password"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tls.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tls.0.validate_certificate_chain", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tls.0.validate_certificate_name", "true"),
-				),
-			},
-			{
-				Config: testAccAzureRMApiManagementBackend_basic(data, "update"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementBackendExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "protocol", "http"),
-					resource.TestCheckResourceAttr(data.ResourceName, "url", "https://acctest"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "resource_id", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "proxy.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tls.#", "0"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMApiManagementBackend_serviceFabric(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementBackendDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementBackend_serviceFabric(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementBackendExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "service_fabric_cluster.0.client_certificate_thumbprint"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMApiManagementBackend_disappears(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementBackendDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementBackend_basic(data, "disappears"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementBackendExists(data.ResourceName),
-					testCheckAzureRMApiManagementBackendDisappears(data.ResourceName),
-				),
-				ExpectNonEmptyPlan: true,
-			},
-		},
-	})
-}
-
-func TestAccAzureRMApiManagementBackend_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementBackendDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementBackend_basic(data, "import"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementBackendExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMApiManagementBackend_requiresImport),
-		},
-	})
-}
-
-func testCheckAzureRMApiManagementBackendDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.BackendClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_api_management_backend" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, serviceName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
-
-		return nil
+	resp, err := clients.ApiManagement.BackendClient.Get(ctx, resourceGroup, serviceName, name)
+	if err != nil {
+		return nil, fmt.Errorf("reading ApiManagement Authorization Backend (%s): %+v", id, err)
 	}
 
-	return nil
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckAzureRMApiManagementBackendExists(name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.BackendClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
-		if !ok {
-			return fmt.Errorf("Not found: %s", name)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, serviceName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Backend %q (API Management Service %q / Resource Group: %q) does not exist", name, serviceName, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on BackendClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMApiManagementBackendDisappears(resourceName string) resource.TestCheckFunc {
+func testCheckApiManagementBackendDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.BackendClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -284,8 +223,7 @@ func testCheckAzureRMApiManagementBackendDisappears(resourceName string) resourc
 	}
 }
 
-func testAccAzureRMApiManagementBackend_basic(data acceptance.TestData, testName string) string {
-	template := testAccAzureRMApiManagementBackend_template(data, testName)
+func (r ApiManagementAuthorizationBackendResource) basic(data acceptance.TestData, testName string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -296,11 +234,10 @@ resource "azurerm_api_management_backend" "test" {
   protocol            = "http"
   url                 = "https://acctest"
 }
-`, template, data.RandomInteger)
+`, r.template(data, testName), data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementBackend_update(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementBackend_template(data, "update")
+func (r ApiManagementAuthorizationBackendResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -322,11 +259,10 @@ resource "azurerm_api_management_backend" "test" {
     validate_certificate_name  = true
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data, "update"), data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementBackend_allProperties(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementBackend_template(data, "all")
+func (r ApiManagementAuthorizationBackendResource) allProperties(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -374,11 +310,10 @@ resource "azurerm_api_management_backend" "test" {
     validate_certificate_name  = true
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data, "all"), data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementBackend_serviceFabric(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementBackend_template(data, "sf")
+func (r ApiManagementAuthorizationBackendResource) serviceFabric(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -408,11 +343,10 @@ resource "azurerm_api_management_backend" "test" {
     ]
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data, "sf"), data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementBackend_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementBackend_basic(data, "requiresimport")
+func (r ApiManagementAuthorizationBackendResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -423,10 +357,10 @@ resource "azurerm_api_management_backend" "import" {
   protocol            = azurerm_api_management_backend.test.protocol
   url                 = azurerm_api_management_backend.test.url
 }
-`, template)
+`, r.basic(data, "requiresimport"))
 }
 
-func testAccAzureRMApiManagementBackend_template(data acceptance.TestData, testName string) string {
+func (ApiManagementAuthorizationBackendResource) template(data acceptance.TestData, testName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -448,8 +382,7 @@ resource "azurerm_api_management" "test" {
 `, data.RandomInteger, testName, data.Locations.Primary, data.RandomInteger, testName)
 }
 
-func testAccAzureRMApiManagementBackend_credentialsNoCertificate(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementBackend_template(data, "all")
+func (r ApiManagementAuthorizationBackendResource) credentialsNoCertificate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -486,5 +419,5 @@ resource "azurerm_api_management_backend" "test" {
     validate_certificate_name  = true
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data, "all"), data.RandomInteger)
 }

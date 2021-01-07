@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMManagedDisk_empty(t *testing.T) {
@@ -475,7 +474,9 @@ func testDeleteAzureRMVirtualMachine(resourceName string) resource.TestCheckFunc
 			return fmt.Errorf("Bad: no resource group found in state for virtual machine: %s", vmName)
 		}
 
-		future, err := client.Delete(ctx, resourceGroup, vmName, utils.Bool(false))
+		// this is a preview feature we don't want to use right now
+		var forceDelete *bool = nil
+		future, err := client.Delete(ctx, resourceGroup, vmName, forceDelete)
 		if err != nil {
 			return fmt.Errorf("Bad: Delete on vmClient: %+v", err)
 		}
@@ -757,7 +758,7 @@ resource "azurerm_key_vault" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
-  sku_name            = "premium"
+  sku_name            = "standard"
 
   access_policy {
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
@@ -767,6 +768,7 @@ resource "azurerm_key_vault" "test" {
       "create",
       "delete",
       "get",
+      "purge",
     ]
 
     secret_permissions = [
@@ -936,7 +938,7 @@ resource "azurerm_key_vault" "test" {
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
   tenant_id                   = data.azurerm_client_config.current.tenant_id
-  sku_name                    = "premium"
+  sku_name                    = "standard"
   enabled_for_disk_encryption = true
   soft_delete_enabled         = true
   purge_protection_enabled    = true
@@ -951,6 +953,7 @@ resource "azurerm_key_vault_access_policy" "service-principal" {
     "create",
     "delete",
     "get",
+    "purge",
     "update",
   ]
 

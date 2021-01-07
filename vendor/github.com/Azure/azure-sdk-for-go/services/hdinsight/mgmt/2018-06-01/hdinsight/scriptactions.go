@@ -232,6 +232,7 @@ func (client ScriptActionsClient) ListByCluster(ctx context.Context, resourceGro
 	}
 	if result.sal.hasNextLink() && result.sal.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

@@ -1,375 +1,286 @@
 package apimanagement_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMApiManagementApi_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+type ApiManagementApiResource struct {
+}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementApiDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementApi_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementApiExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "soap_pass_through", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "is_current", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "is_online", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "subscription_required", "false"),
-				),
-			},
-			data.ImportStep(),
+func TestAccApiManagementApi_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+	r := ApiManagementApiResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("soap_pass_through").HasValue("false"),
+				check.That(data.ResourceName).Key("is_current").HasValue("true"),
+				check.That(data.ResourceName).Key("is_online").HasValue("false"),
+				check.That(data.ResourceName).Key("subscription_required").HasValue("false"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMApiManagementApi_wordRevision(t *testing.T) {
+func TestAccApiManagementApi_wordRevision(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+	r := ApiManagementApiResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementApiDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementApi_wordRevision(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementApiExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "revision", "one-point-oh"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.wordRevision(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("revision").HasValue("one-point-oh"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMApiManagementApi_blankPath(t *testing.T) {
+func TestAccApiManagementApi_blankPath(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+	r := ApiManagementApiResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementApiDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementApi_blankPath(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementApiExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "soap_pass_through", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "is_current", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "is_online", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "path", ""),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.blankPath(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("soap_pass_through").HasValue("false"),
+				check.That(data.ResourceName).Key("is_current").HasValue("true"),
+				check.That(data.ResourceName).Key("is_online").HasValue("false"),
+				check.That(data.ResourceName).Key("path").HasValue(""),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMApiManagementApi_version(t *testing.T) {
+func TestAccApiManagementApi_version(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+	r := ApiManagementApiResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementApiDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementApi_versionSet(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementApiExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "version", "v1"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.versionSet(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("version").HasValue("v1"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMApiManagementApi_oauth2Authorization(t *testing.T) {
+func TestAccApiManagementApi_oauth2Authorization(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+	r := ApiManagementApiResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementApiDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementApi_oauth2Authorization(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementApiExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.oauth2Authorization(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMApiManagementApi_openidAuthentication(t *testing.T) {
+func TestAccApiManagementApi_openidAuthentication(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+	r := ApiManagementApiResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementApiDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementApi_openidAuthentication(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementApiExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.openidAuthentication(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMApiManagementApi_requiresImport(t *testing.T) {
+func TestAccApiManagementApi_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+	r := ApiManagementApiResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementApiDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementApi_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementApiExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMApiManagementApi_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMApiManagementApi_soapPassthrough(t *testing.T) {
+func TestAccApiManagementApi_soapPassthrough(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+	r := ApiManagementApiResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementApiDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementApi_soapPassthrough(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementApiExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.soapPassthrough(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMApiManagementApi_subscriptionRequired(t *testing.T) {
+func TestAccApiManagementApi_subscriptionRequired(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+	r := ApiManagementApiResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementApiDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementApi_subscriptionRequired(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementApiExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "subscription_required", "false"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.subscriptionRequired(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subscription_required").HasValue("false"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMApiManagementApi_importSwagger(t *testing.T) {
+func TestAccApiManagementApi_importSwagger(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+	r := ApiManagementApiResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementApiDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementApi_importSwagger(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementApiExists(data.ResourceName),
-				),
-			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					// not returned from the API
-					"import",
-				},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.importSwagger(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			ResourceName:      data.ResourceName,
+			ImportState:       true,
+			ImportStateVerify: true,
+			ImportStateVerifyIgnore: []string{
+				// not returned from the API
+				"import",
 			},
 		},
 	})
 }
 
-func TestAccAzureRMApiManagementApi_importWsdl(t *testing.T) {
+func TestAccApiManagementApi_importWsdl(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+	r := ApiManagementApiResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementApiDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementApi_importWsdl(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementApiExists(data.ResourceName),
-				),
-			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					// not returned from the API
-					"import",
-				},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.importWsdl(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			ResourceName:      data.ResourceName,
+			ImportState:       true,
+			ImportStateVerify: true,
+			ImportStateVerifyIgnore: []string{
+				// not returned from the API
+				"import",
 			},
 		},
 	})
 }
 
-func TestAccAzureRMApiManagementApi_importUpdate(t *testing.T) {
+func TestAccApiManagementApi_importUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+	r := ApiManagementApiResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementApiDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementApi_importWsdl(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementApiExists(data.ResourceName),
-				),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.importWsdl(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			ResourceName:      data.ResourceName,
+			ImportState:       true,
+			ImportStateVerify: true,
+			ImportStateVerifyIgnore: []string{
+				// not returned from the API
+				"import",
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					// not returned from the API
-					"import",
-				},
-			},
-			{
-				Config: testAccAzureRMApiManagementApi_importSwagger(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementApiExists(data.ResourceName),
-				),
-			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					// not returned from the API
-					"import",
-				},
+		},
+		{
+			Config: r.importSwagger(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			ResourceName:      data.ResourceName,
+			ImportState:       true,
+			ImportStateVerify: true,
+			ImportStateVerifyIgnore: []string{
+				// not returned from the API
+				"import",
 			},
 		},
 	})
 }
 
-func TestAccAzureRMApiManagementApi_complete(t *testing.T) {
+func TestAccApiManagementApi_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+	r := ApiManagementApiResource{}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementApiDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementApi_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementApiExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMApiManagementApiDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_api_management_api" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		revision := rs.Primary.Attributes["revision"]
-		apiId := fmt.Sprintf("%s;rev=%s", name, revision)
-
-		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiId)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
-
-		return nil
+func (t ApiManagementApiResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
+	resourceGroup := id.ResourceGroup
+	serviceName := id.Path["service"]
+	apiid := id.Path["apis"]
 
-func testCheckAzureRMApiManagementApiExists(name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
-		if !ok {
-			return fmt.Errorf("Not found: %s", name)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		revision := rs.Primary.Attributes["revision"]
-
-		apiId := fmt.Sprintf("%s;rev=%s", name, revision)
-		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiId)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: API %q Revision %q (API Management Service %q / Resource Group: %q) does not exist", name, revision, serviceName, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on apiManagementClient: %+v", err)
-		}
-
-		return nil
+	resp, err := clients.ApiManagement.ApiClient.Get(ctx, resourceGroup, serviceName, apiid)
+	if err != nil {
+		return nil, fmt.Errorf("reading ApiManagementApi (%s): %+v", id, err)
 	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMApiManagementApi_basic(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementApi_template(data)
+func (r ApiManagementApiResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -382,11 +293,10 @@ resource "azurerm_api_management_api" "test" {
   protocols           = ["https"]
   revision            = "1"
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementApi_blankPath(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementApi_template(data)
+func (r ApiManagementApiResource) blankPath(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -399,11 +309,10 @@ resource "azurerm_api_management_api" "test" {
   protocols           = ["https"]
   revision            = "1"
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementApi_wordRevision(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementApi_template(data)
+func (r ApiManagementApiResource) wordRevision(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -416,11 +325,10 @@ resource "azurerm_api_management_api" "test" {
   protocols           = ["https"]
   revision            = "one-point-oh"
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementApi_soapPassthrough(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementApi_template(data)
+func (r ApiManagementApiResource) soapPassthrough(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -434,11 +342,10 @@ resource "azurerm_api_management_api" "test" {
   revision            = "1"
   soap_pass_through   = true
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementApi_subscriptionRequired(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementApi_template(data)
+func (r ApiManagementApiResource) subscriptionRequired(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -452,11 +359,10 @@ resource "azurerm_api_management_api" "test" {
   revision              = "1"
   subscription_required = false
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementApi_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementApi_basic(data)
+func (r ApiManagementApiResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -469,11 +375,10 @@ resource "azurerm_api_management_api" "import" {
   protocols           = azurerm_api_management_api.test.protocols
   revision            = azurerm_api_management_api.test.revision
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMApiManagementApi_importSwagger(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementApi_template(data)
+func (r ApiManagementApiResource) importSwagger(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -491,11 +396,10 @@ resource "azurerm_api_management_api" "test" {
     content_format = "swagger-json"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementApi_importWsdl(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementApi_template(data)
+func (r ApiManagementApiResource) importWsdl(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -518,11 +422,10 @@ resource "azurerm_api_management_api" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementApi_complete(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementApi_template(data)
+func (r ApiManagementApiResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -542,11 +445,10 @@ resource "azurerm_api_management_api" "test" {
     query  = "location"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementApi_versionSet(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementApi_template(data)
+func (r ApiManagementApiResource) versionSet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -569,11 +471,10 @@ resource "azurerm_api_management_api" "test" {
   version             = "v1"
   version_set_id      = azurerm_api_management_api_version_set.test.id
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementApi_oauth2Authorization(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementApi_template(data)
+func (r ApiManagementApiResource) oauth2Authorization(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -608,11 +509,10 @@ resource "azurerm_api_management_api" "test" {
     scope                     = "acctest"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementApi_openidAuthentication(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementApi_template(data)
+func (r ApiManagementApiResource) openidAuthentication(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -642,10 +542,10 @@ resource "azurerm_api_management_api" "test" {
     ]
   }
 }
-`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementApi_template(data acceptance.TestData) string {
+func (ApiManagementApiResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

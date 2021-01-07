@@ -11,9 +11,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceEventHubNamespaceAuthorizationRule() *schema.Resource {
+func EventHubNamespaceDataSourceAuthorizationRule() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceEventHubNamespaceAuthorizationRuleRead,
+		Read: EventHubNamespaceDataSourceAuthorizationRuleRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -88,7 +88,7 @@ func dataSourceEventHubNamespaceAuthorizationRule() *schema.Resource {
 	}
 }
 
-func dataSourceEventHubNamespaceAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
+func EventHubNamespaceDataSourceAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.NamespacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

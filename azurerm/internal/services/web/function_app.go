@@ -69,6 +69,7 @@ func schemaAppServiceFunctionAppSiteConfig() *schema.Schema {
 				"pre_warmed_instance_count": {
 					Type:         schema.TypeInt,
 					Optional:     true,
+					Computed:     true,
 					ValidateFunc: validation.IntBetween(0, 10),
 				},
 

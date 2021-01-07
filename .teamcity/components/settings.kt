@@ -14,7 +14,7 @@ var locations = mapOf(
 
 // specifies the list of Azure Environments where tests should be run nightly
 var runNightly = mapOf(
-        "public" to false
+        "public" to true
 )
 
 // specifies a list of services which should be run with a custom test configuration
