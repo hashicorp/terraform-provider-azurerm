@@ -116,7 +116,7 @@ data "azurerm_management_group" "root" {
 
 data "azurerm_blueprint_definition" "test" {
   name     = "testAcc_basicRootManagementGroup"
-  scope_id = data.azurerm_management_group.root.id 
+  scope_id = data.azurerm_management_group.root.id
 }
 `
 }

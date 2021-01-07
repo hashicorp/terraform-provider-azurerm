@@ -105,5 +105,6 @@ provider "azurerm" {
 
 data "azurerm_advisor_recommendations" "test" {
   filter_by_category = ["cost"]
-}`
+}
+`
 }
