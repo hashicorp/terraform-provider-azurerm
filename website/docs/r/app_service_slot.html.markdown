@@ -168,6 +168,8 @@ The following arguments are supported:
 
 * `site_config` - (Optional) A `site_config` object as defined below.
 
+* `logs` - (Optional) A `logs` block as defined below.
+
 * `identity` - (Optional) A Managed Service Identity block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -349,6 +351,10 @@ A `logs` block supports the following:
 * `application_logs` - (Optional) An `application_logs` block as defined below.
 
 * `http_logs` - (Optional) An `http_logs` block as defined below.
+
+* `detailed_error_messages_enabled` - (Optional) Should `Detailed error messages` be enabled on this App Service slot? Defaults to `false`.
+
+* `failed_request_tracing_enabled` - (Optional) Should `Failed request tracing` be enabled on this App Service slot? Defaults to `false`.
 
 ---
 

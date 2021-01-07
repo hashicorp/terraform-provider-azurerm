@@ -598,6 +598,16 @@ func schemaAppServiceLogsConfig() *schema.Schema {
 						},
 					},
 				},
+				"detailed_error_messages_enabled": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+				"failed_request_tracing_enabled": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
 			},
 		},
 	}
@@ -1336,6 +1346,13 @@ func flattenAppServiceLogs(input *web.SiteLogsConfigProperties) []interface{} {
 	}
 	result["http_logs"] = httpLogs
 
+	if input.DetailedErrorMessages != nil && input.DetailedErrorMessages.Enabled != nil {
+		result["detailed_error_messages_enabled"] = *input.DetailedErrorMessages.Enabled
+	}
+	if input.FailedRequestsTracing != nil && input.FailedRequestsTracing.Enabled != nil {
+		result["failed_request_tracing_enabled"] = *input.FailedRequestsTracing.Enabled
+	}
+
 	return append(results, result)
 }
 
@@ -1414,6 +1431,18 @@ func expandAppServiceLogs(input interface{}) web.SiteLogsConfigProperties {
 					}
 				}
 			}
+		}
+	}
+
+	if v, ok := config["detailed_error_messages_enabled"]; ok {
+		logs.DetailedErrorMessages = &web.EnabledConfig{
+			Enabled: utils.Bool(v.(bool)),
+		}
+	}
+
+	if v, ok := config["failed_request_tracing_enabled"]; ok {
+		logs.FailedRequestsTracing = &web.EnabledConfig{
+			Enabled: utils.Bool(v.(bool)),
 		}
 	}
 
