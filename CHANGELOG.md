@@ -3,10 +3,12 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_eventgrid_domain_topic` [GH-10050]
+* **New Data Source:** `azurerm_ssh_public_key` [GH-9842]
 * **New Resource:** `azurerm_data_factory_linked_service_synapse` [GH-9928]
 * **New Resource:** `azurerm_disk_access` [GH-9889]
 * **New Resource:** `azurerm_media_streaming_locator` [GH-9992]
 * **New Resource:** `azurerm_sentinel_alert_rule_fusion` [GH-9829]
+* **New Resource:** `azurerm_ssh_public_key` [GH-9842]
 
 IMPROVEMENTS:
 
