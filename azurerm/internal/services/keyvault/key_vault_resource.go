@@ -20,6 +20,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -46,8 +47,11 @@ func resourceKeyVault() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
-		MigrateState:  resourceKeyVaultMigrateState,
-		SchemaVersion: 1,
+		MigrateState: resourceKeyVaultMigrateState,
+		StateUpgraders: []schema.StateUpgrader{
+			migration.KeyVaultV1ToV2Upgrader(),
+		},
+		SchemaVersion: 2,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
