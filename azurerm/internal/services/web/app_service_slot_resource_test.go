@@ -1112,7 +1112,7 @@ func TestAccAppServiceSlot_httpBlobStorageLogs(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_detailedErrorMessagesLogs(t *testing.T) {
+func TestAccAppServiceSlot_detailedErrorMessagesLogs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 	data.ResourceTest(t, r, []resource.TestStep{
@@ -1133,7 +1133,7 @@ func TestAccAzureRMAppServiceSlot_detailedErrorMessagesLogs(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_failedRequestTracingLogs(t *testing.T) {
+func TestAccAppServiceSlot_failedRequestTracingLogs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	r := AppServiceSlotResource{}
 
