@@ -73,10 +73,10 @@ func dataSourceSubscriptionRead(d *schema.ResourceData, meta interface{}) error 
 	resp, err := groupClient.Get(ctx, subscriptionId)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Subscription %q was not found", subscriptionId)
+			return fmt.Errorf("Error: default tags for Subscription %q was not found", subscriptionId)
 		}
 
-		return fmt.Errorf("Error reading Subscription: %+v", err)
+		return fmt.Errorf("Error reading default tags for Subscription: %+v", err)
 	}
 
 	d.SetId(*resp.ID)
