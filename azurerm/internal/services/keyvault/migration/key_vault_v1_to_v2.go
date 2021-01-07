@@ -27,7 +27,7 @@ func keyVaultV1ToV2Upgrade(rawState map[string]interface{}, _ interface{}) (map[
 			oldVal = int(val)
 		}
 		if val, ok := v.(int); ok {
-			oldVal = int(val)
+			oldVal = val
 		}
 	}
 
