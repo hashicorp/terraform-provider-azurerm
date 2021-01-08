@@ -493,7 +493,7 @@ func TestAccAppService_completeIpRestriction(t *testing.T) {
 			Config: r.manyCompleteIpRestrictions(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("3"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("4"),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.ip_address").HasValue("10.10.10.10/32"),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.name").HasValue("test-restriction"),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.priority").HasValue("123"),
@@ -506,6 +506,10 @@ func TestAccAppService_completeIpRestriction(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.2.name").HasValue("test-restriction-3"),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.2.priority").HasValue("65000"),
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.2.action").HasValue("Deny"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.3.service_tag").HasValue("AzureEventGrid"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.3.name").HasValue("test-restriction-4"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.3.priority").HasValue("65000"),
+				check.That(data.ResourceName).Key("site_config.0.ip_restriction.3.action").HasValue("Allow"),
 			),
 		},
 		data.ImportStep(),
@@ -860,6 +864,52 @@ func TestAccAppService_managedPipelineMode(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.managed_pipeline_mode").HasValue("Classic"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAppService_detailedErrorMessagesLogs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.detailedErrorMessages(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("logs.0.detailed_error_messages_enabled").HasValue("true"),
+			),
+		},
+		{
+			Config: r.detailedErrorMessages(data, false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				resource.TestCheckResourceAttr(data.ResourceName, "logs.0.detailed_error_messages_enabled", "false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMAppService_failedRequestTracingLogs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	r := AppServiceResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.failedRequestTracing(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("logs.0.failed_request_tracing_enabled").HasValue("true"),
+			),
+		},
+		{
+			Config: r.failedRequestTracing(data, false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("logs.0.failed_request_tracing_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -2762,6 +2812,12 @@ resource "azurerm_app_service" "test" {
       name       = "test-restriction-3"
       action     = "Deny"
     }
+
+    ip_restriction {
+      service_tag = "AzureEventGrid"
+      name        = "test-restriction-4"
+      action      = "Allow"
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -3480,6 +3536,76 @@ resource "azurerm_app_service" "test" {
   }
 }
 `, template, data.RandomInteger)
+}
+
+func (r AppServiceResource) detailedErrorMessages(data acceptance.TestData, detailedErrorEnabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+
+  logs {
+    detailed_error_messages_enabled = %t
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, detailedErrorEnabled)
+}
+
+func (r AppServiceResource) failedRequestTracing(data acceptance.TestData, failedRequestEnabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+
+  logs {
+    failed_request_tracing_enabled = %t
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, failedRequestEnabled)
 }
 
 func (r AppServiceResource) managedPipelineMode(data acceptance.TestData) string {

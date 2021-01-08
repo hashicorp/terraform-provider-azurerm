@@ -38,6 +38,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_snapshot":                  dataSourceArmSnapshot(),
 		"azurerm_virtual_machine":           dataSourceArmVirtualMachine(),
 		"azurerm_virtual_machine_scale_set": dataSourceArmVirtualMachineScaleSet(),
+		"azurerm_ssh_public_key":            dataSourceArmSshPublicKey(),
 	}
 }
 
@@ -67,6 +68,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_virtual_machine_scale_set_extension":    resourceArmVirtualMachineScaleSetExtension(),
 		"azurerm_windows_virtual_machine":                resourceWindowsVirtualMachine(),
 		"azurerm_windows_virtual_machine_scale_set":      resourceArmWindowsVirtualMachineScaleSet(),
+		"azurerm_ssh_public_key":                         resourceSshPublicKey(),
 	}
 
 	return resources

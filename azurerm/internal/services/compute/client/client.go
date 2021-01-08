@@ -29,6 +29,7 @@ type Client struct {
 	VMScaleSetVMsClient             *compute.VirtualMachineScaleSetVMsClient
 	VMClient                        *compute.VirtualMachinesClient
 	VMImageClient                   *compute.VirtualMachineImagesClient
+	SSHPublicKeysClient             *compute.SSHPublicKeysClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -98,6 +99,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	vmClient := compute.NewVirtualMachinesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&vmClient.Client, o.ResourceManagerAuthorizer)
 
+	sshPublicKeysClient := compute.NewSSHPublicKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&sshPublicKeysClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		AvailabilitySetsClient:          &availabilitySetsClient,
 		DedicatedHostsClient:            &dedicatedHostsClient,
@@ -121,5 +125,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		VMScaleSetVMsClient:             &vmScaleSetVMsClient,
 		VMClient:                        &vmClient,
 		VMImageClient:                   &vmImageClient,
+		SSHPublicKeysClient:             &sshPublicKeysClient,
 	}
 }
