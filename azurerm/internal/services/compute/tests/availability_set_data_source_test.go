@@ -4,32 +4,32 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
+
+type AvailabilitySetDataSource struct {
+}
 
 func TestAccDataSourceAvailabilitySet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_availability_set", "test")
+	r := AvailabilitySetDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAvailabilitySet_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("location").Exists(),
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAvailabilitySet_basic(data acceptance.TestData) string {
+func (AvailabilitySetDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
