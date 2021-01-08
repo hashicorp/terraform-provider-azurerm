@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"log"
 	"regexp"
 	"strings"
@@ -240,7 +241,7 @@ func schemaAppServiceIdentity() *schema.Schema {
 					MinItems: 1,
 					Elem: &schema.Schema{
 						Type:         schema.TypeString,
-						ValidateFunc: validation.NoZeroValues,
+						ValidateFunc: validate.UserAssignedIdentityID,
 					},
 				},
 
