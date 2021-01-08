@@ -4,7 +4,7 @@ package validate
 
 import "testing"
 
-func TestFirewallNatRuleCollectionID(t *testing.T) {
+func TestFirewallNetworkRuleCollectionID(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -53,32 +53,32 @@ func TestFirewallNatRuleCollectionID(t *testing.T) {
 		},
 
 		{
-			// missing NatRuleCollectionName
+			// missing NetworkRuleCollectionName
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/azureFirewalls/myfirewall/",
 			Valid: false,
 		},
 
 		{
-			// missing value for NatRuleCollectionName
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/azureFirewalls/myfirewall/natRuleCollections/",
+			// missing value for NetworkRuleCollectionName
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/azureFirewalls/myfirewall/networkRuleCollections/",
 			Valid: false,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/azureFirewalls/myfirewall/natRuleCollections/natRuleCollection1",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/azureFirewalls/myfirewall/networkRuleCollections/networkRuleCollection1",
 			Valid: true,
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/00000000-0000-0000-0000-000000000000/RESOURCEGROUPS/MYGROUP1/PROVIDERS/MICROSOFT.NETWORK/AZUREFIREWALLS/MYFIREWALL/NATRULECOLLECTIONS/NATRULECOLLECTION1",
+			Input: "/SUBSCRIPTIONS/00000000-0000-0000-0000-000000000000/RESOURCEGROUPS/MYGROUP1/PROVIDERS/MICROSOFT.NETWORK/AZUREFIREWALLS/MYFIREWALL/NETWORKRULECOLLECTIONS/NETWORKRULECOLLECTION1",
 			Valid: false,
 		},
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := FirewallNatRuleCollectionID(tc.Input, "test")
+		_, errors := FirewallNetworkRuleCollectionID(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {

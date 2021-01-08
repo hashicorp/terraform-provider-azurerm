@@ -10,24 +10,24 @@ import (
 )
 
 type FirewallNatRuleCollectionId struct {
-	SubscriptionId            string
-	ResourceGroup             string
-	AzureFirewallName         string
-	NetworkRuleCollectionName string
+	SubscriptionId        string
+	ResourceGroup         string
+	AzureFirewallName     string
+	NatRuleCollectionName string
 }
 
-func NewFirewallNatRuleCollectionID(subscriptionId, resourceGroup, azureFirewallName, networkRuleCollectionName string) FirewallNatRuleCollectionId {
+func NewFirewallNatRuleCollectionID(subscriptionId, resourceGroup, azureFirewallName, natRuleCollectionName string) FirewallNatRuleCollectionId {
 	return FirewallNatRuleCollectionId{
-		SubscriptionId:            subscriptionId,
-		ResourceGroup:             resourceGroup,
-		AzureFirewallName:         azureFirewallName,
-		NetworkRuleCollectionName: networkRuleCollectionName,
+		SubscriptionId:        subscriptionId,
+		ResourceGroup:         resourceGroup,
+		AzureFirewallName:     azureFirewallName,
+		NatRuleCollectionName: natRuleCollectionName,
 	}
 }
 
 func (id FirewallNatRuleCollectionId) String() string {
 	segments := []string{
-		fmt.Sprintf("Network Rule Collection Name %q", id.NetworkRuleCollectionName),
+		fmt.Sprintf("Nat Rule Collection Name %q", id.NatRuleCollectionName),
 		fmt.Sprintf("Azure Firewall Name %q", id.AzureFirewallName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
@@ -36,8 +36,8 @@ func (id FirewallNatRuleCollectionId) String() string {
 }
 
 func (id FirewallNatRuleCollectionId) ID() string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/azureFirewalls/%s/networkRuleCollections/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.AzureFirewallName, id.NetworkRuleCollectionName)
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/azureFirewalls/%s/natRuleCollections/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.AzureFirewallName, id.NatRuleCollectionName)
 }
 
 // FirewallNatRuleCollectionID parses a FirewallNatRuleCollection ID into an FirewallNatRuleCollectionId struct
@@ -63,7 +63,7 @@ func FirewallNatRuleCollectionID(input string) (*FirewallNatRuleCollectionId, er
 	if resourceId.AzureFirewallName, err = id.PopSegment("azureFirewalls"); err != nil {
 		return nil, err
 	}
-	if resourceId.NetworkRuleCollectionName, err = id.PopSegment("networkRuleCollections"); err != nil {
+	if resourceId.NatRuleCollectionName, err = id.PopSegment("natRuleCollections"); err != nil {
 		return nil, err
 	}
 

@@ -8,21 +8,21 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = FirewallNatRuleCollectionId{}
+var _ resourceid.Formatter = FirewallNetworkRuleCollectionId{}
 
-func TestFirewallNatRuleCollectionIDFormatter(t *testing.T) {
-	actual := NewFirewallNatRuleCollectionID("00000000-0000-0000-0000-000000000000", "mygroup1", "myfirewall", "natRuleCollection1").ID()
-	expected := "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/azureFirewalls/myfirewall/natRuleCollections/natRuleCollection1"
+func TestFirewallNetworkRuleCollectionIDFormatter(t *testing.T) {
+	actual := NewFirewallNetworkRuleCollectionID("00000000-0000-0000-0000-000000000000", "mygroup1", "myfirewall", "networkRuleCollection1").ID()
+	expected := "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/azureFirewalls/myfirewall/networkRuleCollections/networkRuleCollection1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestFirewallNatRuleCollectionID(t *testing.T) {
+func TestFirewallNetworkRuleCollectionID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *FirewallNatRuleCollectionId
+		Expected *FirewallNetworkRuleCollectionId
 	}{
 
 		{
@@ -68,31 +68,31 @@ func TestFirewallNatRuleCollectionID(t *testing.T) {
 		},
 
 		{
-			// missing NatRuleCollectionName
+			// missing NetworkRuleCollectionName
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/azureFirewalls/myfirewall/",
 			Error: true,
 		},
 
 		{
-			// missing value for NatRuleCollectionName
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/azureFirewalls/myfirewall/natRuleCollections/",
+			// missing value for NetworkRuleCollectionName
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/azureFirewalls/myfirewall/networkRuleCollections/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/azureFirewalls/myfirewall/natRuleCollections/natRuleCollection1",
-			Expected: &FirewallNatRuleCollectionId{
-				SubscriptionId:        "00000000-0000-0000-0000-000000000000",
-				ResourceGroup:         "mygroup1",
-				AzureFirewallName:     "myfirewall",
-				NatRuleCollectionName: "natRuleCollection1",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/azureFirewalls/myfirewall/networkRuleCollections/networkRuleCollection1",
+			Expected: &FirewallNetworkRuleCollectionId{
+				SubscriptionId:            "00000000-0000-0000-0000-000000000000",
+				ResourceGroup:             "mygroup1",
+				AzureFirewallName:         "myfirewall",
+				NetworkRuleCollectionName: "networkRuleCollection1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/00000000-0000-0000-0000-000000000000/RESOURCEGROUPS/MYGROUP1/PROVIDERS/MICROSOFT.NETWORK/AZUREFIREWALLS/MYFIREWALL/NATRULECOLLECTIONS/NATRULECOLLECTION1",
+			Input: "/SUBSCRIPTIONS/00000000-0000-0000-0000-000000000000/RESOURCEGROUPS/MYGROUP1/PROVIDERS/MICROSOFT.NETWORK/AZUREFIREWALLS/MYFIREWALL/NETWORKRULECOLLECTIONS/NETWORKRULECOLLECTION1",
 			Error: true,
 		},
 	}
@@ -100,7 +100,7 @@ func TestFirewallNatRuleCollectionID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := FirewallNatRuleCollectionID(v.Input)
+		actual, err := FirewallNetworkRuleCollectionID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -121,8 +121,8 @@ func TestFirewallNatRuleCollectionID(t *testing.T) {
 		if actual.AzureFirewallName != v.Expected.AzureFirewallName {
 			t.Fatalf("Expected %q but got %q for AzureFirewallName", v.Expected.AzureFirewallName, actual.AzureFirewallName)
 		}
-		if actual.NatRuleCollectionName != v.Expected.NatRuleCollectionName {
-			t.Fatalf("Expected %q but got %q for NatRuleCollectionName", v.Expected.NatRuleCollectionName, actual.NatRuleCollectionName)
+		if actual.NetworkRuleCollectionName != v.Expected.NetworkRuleCollectionName {
+			t.Fatalf("Expected %q but got %q for NetworkRuleCollectionName", v.Expected.NetworkRuleCollectionName, actual.NetworkRuleCollectionName)
 		}
 	}
 }

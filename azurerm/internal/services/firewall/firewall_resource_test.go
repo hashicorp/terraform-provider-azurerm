@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/parse"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -844,6 +846,12 @@ resource "azurerm_firewall" "test" {
 }
 
 func (FirewallResource) Destroy(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id := state.ID
-	if _, err := clients.Firewall.AzureFirewallsClient.Delete(ctx, )
+	id, err := parse.FirewallID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := clients.Firewall.AzureFirewallsClient.Delete(ctx, id.ResourceGroup, id.AzureFirewallName); err != nil {
+		return nil, fmt.Errorf("deleting Azure Firewall %q: %+v", id.AzureFirewallName, err)
+	}
+	return utils.Bool(true), nil
 }
