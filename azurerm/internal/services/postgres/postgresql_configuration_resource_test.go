@@ -31,7 +31,7 @@ func TestAccPostgreSQLConfiguration_backslashQuote(t *testing.T) {
 			Config: r.empty(data),
 			Check: resource.ComposeTestCheckFunc(
 				// "delete" resets back to the default value
-				testCheckPostgreSQLConfigurationValueReset(data.RandomInteger, "backslash_quote"),
+				data.CheckWithClientForResource(r.checkReset("backslash_quote"), "azurerm_postgresql_server.test"),
 			),
 		},
 	})
@@ -52,7 +52,7 @@ func TestAccPostgreSQLConfiguration_clientMinMessages(t *testing.T) {
 			Config: r.empty(data),
 			Check: resource.ComposeTestCheckFunc(
 				// "delete" resets back to the default value
-				testCheckPostgreSQLConfigurationValueReset(data.RandomInteger, "client_min_messages"),
+				data.CheckWithClientForResource(r.checkReset("client_min_messages"), "azurerm_postgresql_server.test"),
 			),
 		},
 	})
@@ -73,7 +73,7 @@ func TestAccPostgreSQLConfiguration_deadlockTimeout(t *testing.T) {
 			Config: r.empty(data),
 			Check: resource.ComposeTestCheckFunc(
 				// "delete" resets back to the default value
-				testCheckPostgreSQLConfigurationValueReset(data.RandomInteger, "deadlock_timeout"),
+				data.CheckWithClientForResource(r.checkReset("deadlock_timeout"), "azurerm_postgresql_server.test"),
 			),
 		},
 	})
@@ -114,18 +114,17 @@ func testCheckPostgreSQLConfigurationValue(resourceName string, value string) re
 	}
 }
 
-func testCheckPostgreSQLConfigurationValueReset(rInt int, configurationName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.ConfigurationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (r PostgreSQLConfigurationResource) checkReset(configurationName string) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+		id, err := parse.ServerID(state.Attributes["id"])
+		if err != nil {
+			return err
+		}
 
-		resourceGroup := fmt.Sprintf("acctestRG-psql-%d", rInt)
-		serverName := fmt.Sprintf("acctest-psql-server-%d", rInt)
-
-		resp, err := client.Get(ctx, resourceGroup, serverName, configurationName)
+		resp, err := clients.Postgres.ConfigurationsClient.Get(ctx, id.ResourceGroup, id.Name, configurationName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: PostgreSQL Configuration %q (server %q resource group: %q) does not exist", configurationName, serverName, resourceGroup)
+				return fmt.Errorf("Bad: PostgreSQL Configuration %q (server %q resource group: %q) does not exist", configurationName, id.Name, id.ResourceGroup)
 			}
 			return fmt.Errorf("Bad: Get on postgresqlConfigurationsClient: %+v", err)
 		}
