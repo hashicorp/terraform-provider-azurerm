@@ -23,7 +23,7 @@ func TestAccPostgreSQLConfiguration_backslashQuote(t *testing.T) {
 		{
 			Config: r.backslashQuote(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckPostgreSQLConfigurationValue(data.ResourceName, "on"),
+				data.CheckWithClient(r.checkValue("on")),
 			),
 		},
 		data.ImportStep(),
@@ -44,7 +44,7 @@ func TestAccPostgreSQLConfiguration_clientMinMessages(t *testing.T) {
 		{
 			Config: r.clientMinMessages(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckPostgreSQLConfigurationValue(data.ResourceName, "DEBUG5"),
+				data.CheckWithClient(r.checkValue("DEBUG5")),
 			),
 		},
 		data.ImportStep(),
@@ -65,7 +65,7 @@ func TestAccPostgreSQLConfiguration_deadlockTimeout(t *testing.T) {
 		{
 			Config: r.deadlockTimeout(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckPostgreSQLConfigurationValue(data.ResourceName, "5000"),
+				data.CheckWithClient(r.checkValue("5000")),
 			),
 		},
 		data.ImportStep(),
@@ -77,41 +77,6 @@ func TestAccPostgreSQLConfiguration_deadlockTimeout(t *testing.T) {
 			),
 		},
 	})
-}
-
-func testCheckPostgreSQLConfigurationValue(resourceName string, value string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.ConfigurationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		serverName := rs.Primary.Attributes["server_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for PostgreSQL Configuration: %s", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, serverName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: PostgreSQL Configuration %q (server %q resource group: %q) does not exist", name, serverName, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on postgresqlConfigurationsClient: %+v", err)
-		}
-
-		if *resp.Value != value {
-			return fmt.Errorf("PostgreSQL Configuration wasn't set. Expected '%s' - got '%s': \n%+v", value, *resp.Value, resp)
-		}
-
-		return nil
-	}
 }
 
 func (r PostgreSQLConfigurationResource) checkReset(configurationName string) acceptance.ClientCheckFunc {
@@ -134,6 +99,30 @@ func (r PostgreSQLConfigurationResource) checkReset(configurationName string) ac
 
 		if defaultValue != actualValue {
 			return fmt.Errorf("PostgreSQL Configuration wasn't set to the default value. Expected '%s' - got '%s': \n%+v", defaultValue, actualValue, resp)
+		}
+
+		return nil
+	}
+}
+
+func (r PostgreSQLConfigurationResource) checkValue(value string) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+		id, err := parse.ConfigurationID(state.Attributes["id"])
+		if err != nil {
+			return err
+		}
+
+		resp, err := clients.Postgres.ConfigurationsClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: PostgreSQL Configuration %q (server %q resource group: %q) does not exist", id.Name, id.ServerName, id.ResourceGroup)
+			}
+
+			return fmt.Errorf("Bad: Get on postgresqlConfigurationsClient: %+v", err)
+		}
+
+		if *resp.Value != value {
+			return fmt.Errorf("PostgreSQL Configuration wasn't set. Expected '%s' - got '%s': \n%+v", value, *resp.Value, resp)
 		}
 
 		return nil
