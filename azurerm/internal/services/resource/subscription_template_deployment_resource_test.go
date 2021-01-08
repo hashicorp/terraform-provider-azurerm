@@ -169,6 +169,34 @@ func TestAccSubscriptionTemplateDeployment_updateTemplateLinkAndParametersLink(t
 	})
 }
 
+func TestAccSubscriptionTemplateDeployment_updateExpressionEvaluationOption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subscription_template_deployment", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckSubscriptionTemplateDeploymentDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: subscriptionTemplateDeployment_withExpressionEvaluationOptionConfig(data, "Inner"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckSubscriptionTemplateDeploymentExists(data.ResourceName),
+				),
+			},
+			// The Azure API doesn't return the `expression_evaluation_option` property in the response.
+			// Bug: https://github.com/Azure/azure-rest-api-specs/issues/12326
+			data.ImportStep("expression_evaluation_option"),
+			{
+				Config: subscriptionTemplateDeployment_withExpressionEvaluationOptionConfig(data, "Outer"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckSubscriptionTemplateDeploymentExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("expression_evaluation_option"),
+		},
+	})
+}
+
 func testCheckSubscriptionTemplateDeploymentExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.DeploymentsClient
@@ -412,6 +440,33 @@ resource "azurerm_subscription_template_deployment" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func subscriptionTemplateDeployment_withExpressionEvaluationOptionConfig(data acceptance.TestData, scope string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_subscription_template_deployment" "test" {
+  name     = "acctest-SubDeploy-%d"
+  location = "%s"
+
+  template_link {
+    uri             = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/100-blank-template/azuredeploy.json"
+    content_version = "1.0.0.0"
+  }
+
+  parameters_link {
+    uri             = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/100-blank-template/azuredeploy.parameters.json"
+    content_version = "1.0.0.0"
+  }
+
+  expression_evaluation_option {
+    scope = "%s"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, scope)
 }
 
 func subscriptionTemplateDeployment_withDeploymentContents(data acceptance.TestData) string {

@@ -51,6 +51,8 @@ The following arguments are supported:
 
 * `debug_level` - (Optional) The Debug Level which should be used for this Subscription Template Deployment. Possible values are `none`, `requestContent`, `responseContent` and `requestContent, responseContent`.
 
+* `expression_evaluation_option` - (Optional) An `expression_evaluation_option` block as defined below.
+
 * `parameters_content` - (Optional) The contents of the ARM Template parameters file - containing a JSON list of parameters.
 
 * `parameters_link` - (Optional)  A `parameters_link` block as defined below.
@@ -60,6 +62,12 @@ The following arguments are supported:
 * `template_link` - (Optional)  A `template_link` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Subscription Template Deployment.
+
+---
+
+An `expression_evaluation_option` block exports the following:
+
+* `scope` - (Optional) The scope to be used for evaluation of parameters, variables and functions in the nested ARM Template. Possible values are `Inner`, `Outer` and `NotSpecified`. Defaults to `Outer`.
 
 ---
 

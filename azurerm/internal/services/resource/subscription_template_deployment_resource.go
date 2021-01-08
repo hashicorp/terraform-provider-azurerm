@@ -58,6 +58,26 @@ func subscriptionTemplateDeploymentResource() *schema.Resource {
 				ValidateFunc: validation.StringInSlice(templateDeploymentDebugLevels, false),
 			},
 
+			"expression_evaluation_option": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"scope": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  resources.ExpressionEvaluationOptionsScopeTypeOuter,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(resources.ExpressionEvaluationOptionsScopeTypeNotSpecified),
+								string(resources.ExpressionEvaluationOptionsScopeTypeOuter),
+								string(resources.ExpressionEvaluationOptionsScopeTypeInner),
+							}, false),
+						},
+					},
+				},
+			},
+
 			"parameters_content": {
 				Type:          schema.TypeString,
 				Optional:      true,
@@ -160,6 +180,10 @@ func subscriptionTemplateDeploymentResourceCreate(d *schema.ResourceData, meta i
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	if v, ok := d.GetOk("expression_evaluation_option"); ok {
+		deployment.Properties.ExpressionEvaluationOptions = expandArmTemplateDeploymentSubscriptionExpressionEvaluationOption(v.([]interface{}))
+	}
+
 	if v, ok := d.GetOk("template_content"); ok {
 		template, err := expandTemplateDeploymentBody(v.(string))
 		if err != nil {
@@ -233,6 +257,10 @@ func subscriptionTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta i
 			Mode:         resources.Incremental,
 		},
 		Tags: template.Tags,
+	}
+
+	if v, ok := d.GetOk("expression_evaluation_option"); ok {
+		deployment.Properties.ExpressionEvaluationOptions = expandArmTemplateDeploymentSubscriptionExpressionEvaluationOption(v.([]interface{}))
 	}
 
 	if d.HasChange("debug_level") {
@@ -453,6 +481,18 @@ func expandArmTemplateDeploymentSubscriptionParametersLink(input []interface{}) 
 	}
 
 	return &result
+}
+
+func expandArmTemplateDeploymentSubscriptionExpressionEvaluationOption(input []interface{}) *resources.ExpressionEvaluationOptions {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	return &resources.ExpressionEvaluationOptions{
+		Scope: resources.ExpressionEvaluationOptionsScopeType(v["scope"].(string)),
+	}
 }
 
 func flattenArmTemplateDeploymentSubscriptionTemplateLink(input *resources.TemplateLink) []interface{} {
