@@ -6,45 +6,43 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceArmMonitorDiagnosticCategories_appService(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_monitor_diagnostic_categories", "test")
+type MonitorDiagnosticCategoriesDataSource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceArmMonitorDiagnosticCategories_appService(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "metrics.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "logs.#"),
-				),
-			},
+func TestAccDataSourceMonitorDiagnosticCategories_appService(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_monitor_diagnostic_categories", "test")
+	r := MonitorDiagnosticCategoriesDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.appService(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("metrics.#").Exists(),
+				check.That(data.ResourceName).Key("logs.#").Exists(),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceArmMonitorDiagnosticCategories_storageAccount(t *testing.T) {
+func TestAccDataSourceMonitorDiagnosticCategories_storageAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_monitor_diagnostic_categories", "test")
+	r := MonitorDiagnosticCategoriesDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceArmMonitorDiagnosticCategories_storageAccount(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "metrics.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "logs.#"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.storageAccount(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("metrics.#").Exists(),
+				check.That(data.ResourceName).Key("logs.#").Exists(),
+			),
 		},
 	})
 }
 
-func testAccDataSourceArmMonitorDiagnosticCategories_appService(data acceptance.TestData) string {
+func (MonitorDiagnosticCategoriesDataSource) appService(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -79,7 +77,7 @@ data "azurerm_monitor_diagnostic_categories" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccDataSourceArmMonitorDiagnosticCategories_storageAccount(data acceptance.TestData) string {
+func (MonitorDiagnosticCategoriesDataSource) storageAccount(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

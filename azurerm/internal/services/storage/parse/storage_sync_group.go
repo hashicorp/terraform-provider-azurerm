@@ -35,7 +35,7 @@ func (id StorageSyncGroupId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Storage Sync Group", segmentsStr)
 }
 
-func (id StorageSyncGroupId) ID(_ string) string {
+func (id StorageSyncGroupId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.StorageSync/storageSyncServices/%s/syncGroups/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.StorageSyncServiceName, id.SyncGroupName)
 }

@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementCertificate() *schema.Resource {
+func resourceApiManagementCertificate() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementCertificateCreateUpdate,
-		Read:   resourceArmApiManagementCertificateRead,
-		Update: resourceArmApiManagementCertificateCreateUpdate,
-		Delete: resourceArmApiManagementCertificateDelete,
+		Create: resourceApiManagementCertificateCreateUpdate,
+		Read:   resourceApiManagementCertificateRead,
+		Update: resourceApiManagementCertificateCreateUpdate,
+		Delete: resourceApiManagementCertificateDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -70,7 +70,7 @@ func resourceArmApiManagementCertificate() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.CertificatesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -114,10 +114,10 @@ func resourceArmApiManagementCertificateCreateUpdate(d *schema.ResourceData, met
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementCertificateRead(d, meta)
+	return resourceApiManagementCertificateRead(d, meta)
 }
 
-func resourceArmApiManagementCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.CertificatesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -158,7 +158,7 @@ func resourceArmApiManagementCertificateRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceArmApiManagementCertificateDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementCertificateDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.CertificatesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

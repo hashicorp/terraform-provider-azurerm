@@ -168,7 +168,7 @@ func resourceApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, met
 	testConf := d.Get("configuration").(string)
 
 	t := d.Get("tags").(map[string]interface{})
-	tagKey := fmt.Sprintf("hidden-link:%s", appInsightsId.ID(""))
+	tagKey := fmt.Sprintf("hidden-link:%s", appInsightsId.ID())
 	t[tagKey] = "Resource"
 
 	webTest := insights.WebTest{

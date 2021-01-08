@@ -32,7 +32,7 @@ func (id CertificateId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Certificate", segmentsStr)
 }
 
-func (id CertificateId) ID(_ string) string {
+func (id CertificateId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/certificates/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

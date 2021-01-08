@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementOpenIDConnectProvider() *schema.Resource {
+func resourceApiManagementOpenIDConnectProvider() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementOpenIDConnectProviderCreateUpdate,
-		Read:   resourceArmApiManagementOpenIDConnectProviderRead,
-		Update: resourceArmApiManagementOpenIDConnectProviderCreateUpdate,
-		Delete: resourceArmApiManagementOpenIDConnectProviderDelete,
+		Create: resourceApiManagementOpenIDConnectProviderCreateUpdate,
+		Read:   resourceApiManagementOpenIDConnectProviderRead,
+		Update: resourceApiManagementOpenIDConnectProviderCreateUpdate,
+		Delete: resourceApiManagementOpenIDConnectProviderDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -74,7 +74,7 @@ func resourceArmApiManagementOpenIDConnectProvider() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementOpenIDConnectProviderCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementOpenIDConnectProviderCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.OpenIdConnectClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -119,10 +119,10 @@ func resourceArmApiManagementOpenIDConnectProviderCreateUpdate(d *schema.Resourc
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementOpenIDConnectProviderRead(d, meta)
+	return resourceApiManagementOpenIDConnectProviderRead(d, meta)
 }
 
-func resourceArmApiManagementOpenIDConnectProviderRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementOpenIDConnectProviderRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.OpenIdConnectClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -159,7 +159,7 @@ func resourceArmApiManagementOpenIDConnectProviderRead(d *schema.ResourceData, m
 	return nil
 }
 
-func resourceArmApiManagementOpenIDConnectProviderDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementOpenIDConnectProviderDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.OpenIdConnectClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

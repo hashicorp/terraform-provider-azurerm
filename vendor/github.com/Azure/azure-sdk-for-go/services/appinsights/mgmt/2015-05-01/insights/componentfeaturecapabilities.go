@@ -84,6 +84,7 @@ func (client ComponentFeatureCapabilitiesClient) Get(ctx context.Context, resour
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ComponentFeatureCapabilitiesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

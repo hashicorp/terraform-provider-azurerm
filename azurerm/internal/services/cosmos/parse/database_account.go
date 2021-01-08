@@ -32,7 +32,7 @@ func (id DatabaseAccountId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Database Account", segmentsStr)
 }
 
-func (id DatabaseAccountId) ID(_ string) string {
+func (id DatabaseAccountId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/databaseAccounts/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPostgreSQLAdministrator() *schema.Resource {
+func resourcePostgreSQLAdministrator() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPostgreSQLAdministratorCreateUpdate,
-		Read:   resourceArmPostgreSQLAdministratorRead,
-		Update: resourceArmPostgreSQLAdministratorCreateUpdate,
-		Delete: resourceArmPostgreSQLAdministratorDelete,
+		Create: resourcePostgreSQLAdministratorCreateUpdate,
+		Read:   resourcePostgreSQLAdministratorRead,
+		Update: resourcePostgreSQLAdministratorCreateUpdate,
+		Delete: resourcePostgreSQLAdministratorDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.AzureActiveDirectoryAdministratorID(id)
 			return err
@@ -65,7 +65,7 @@ func resourceArmPostgreSQLAdministrator() *schema.Resource {
 	}
 }
 
-func resourceArmPostgreSQLAdministratorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLAdministratorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.ServerAdministratorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -117,7 +117,7 @@ func resourceArmPostgreSQLAdministratorCreateUpdate(d *schema.ResourceData, meta
 	return nil
 }
 
-func resourceArmPostgreSQLAdministratorRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLAdministratorRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.ServerAdministratorsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -150,7 +150,7 @@ func resourceArmPostgreSQLAdministratorRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceArmPostgreSQLAdministratorDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLAdministratorDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.ServerAdministratorsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

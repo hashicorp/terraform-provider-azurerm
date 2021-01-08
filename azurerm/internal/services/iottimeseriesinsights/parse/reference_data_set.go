@@ -35,7 +35,7 @@ func (id ReferenceDataSetId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Reference Data Set", segmentsStr)
 }
 
-func (id ReferenceDataSetId) ID(_ string) string {
+func (id ReferenceDataSetId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.TimeSeriesInsights/environments/%s/referenceDataSets/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.EnvironmentName, id.Name)
 }

@@ -80,6 +80,7 @@ func (client FunctionsClient) CreateOrReplace(ctx context.Context, function Func
 	result, err = client.CreateOrReplaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.FunctionsClient", "CreateOrReplace", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -168,6 +169,7 @@ func (client FunctionsClient) Delete(ctx context.Context, resourceGroupName stri
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.FunctionsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -245,6 +247,7 @@ func (client FunctionsClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.FunctionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -326,6 +329,7 @@ func (client FunctionsClient) ListByStreamingJob(ctx context.Context, resourceGr
 	result.flr, err = client.ListByStreamingJobResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.FunctionsClient", "ListByStreamingJob", resp, "Failure responding to request")
+		return
 	}
 	if result.flr.hasNextLink() && result.flr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -393,6 +397,7 @@ func (client FunctionsClient) listByStreamingJobNextResults(ctx context.Context,
 	result, err = client.ListByStreamingJobResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.FunctionsClient", "listByStreamingJobNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -448,6 +453,7 @@ func (client FunctionsClient) RetrieveDefaultDefinition(ctx context.Context, res
 	result, err = client.RetrieveDefaultDefinitionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.FunctionsClient", "RetrieveDefaultDefinition", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -627,6 +633,7 @@ func (client FunctionsClient) Update(ctx context.Context, function Function, res
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.FunctionsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

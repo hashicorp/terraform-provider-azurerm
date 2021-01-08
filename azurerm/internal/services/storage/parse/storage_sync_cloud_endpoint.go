@@ -38,7 +38,7 @@ func (id StorageSyncCloudEndpointId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Storage Sync Cloud Endpoint", segmentsStr)
 }
 
-func (id StorageSyncCloudEndpointId) ID(_ string) string {
+func (id StorageSyncCloudEndpointId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.StorageSync/storageSyncServices/%s/syncGroups/%s/cloudEndpoints/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.StorageSyncServiceName, id.SyncGroupName, id.CloudEndpointName)
 }

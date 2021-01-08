@@ -91,6 +91,7 @@ func (client EntitiesClient) Expand(ctx context.Context, resourceGroupName strin
 	result, err = client.ExpandResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.EntitiesClient", "Expand", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -187,6 +188,7 @@ func (client EntitiesClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.EntitiesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -281,6 +283,7 @@ func (client EntitiesClient) List(ctx context.Context, resourceGroupName string,
 	result.el, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.EntitiesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.el.hasNextLink() && result.el.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -346,6 +349,7 @@ func (client EntitiesClient) listNextResults(ctx context.Context, lastResults En
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.EntitiesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

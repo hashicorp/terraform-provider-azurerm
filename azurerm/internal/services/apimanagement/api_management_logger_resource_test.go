@@ -1,253 +1,206 @@
 package apimanagement_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMApiManagementLogger_basicEventHub(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
+type ApiManagementLoggerResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementLoggerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementLogger_basicEventHub(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementLoggerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "buffered", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "eventhub.#", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "eventhub.0.name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "eventhub.0.connection_string"),
-				),
-			},
-			{
-				ResourceName:            data.ResourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"eventhub.0.connection_string"},
-			},
+func TestAccApiManagementLogger_basicEventHub(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
+	r := ApiManagementLoggerResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicEventHub(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("buffered").HasValue("true"),
+				check.That(data.ResourceName).Key("eventhub.#").HasValue("1"),
+				check.That(data.ResourceName).Key("eventhub.0.name").Exists(),
+				check.That(data.ResourceName).Key("eventhub.0.connection_string").Exists(),
+			),
+		},
+		{
+			ResourceName:            data.ResourceName,
+			ImportState:             true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: []string{"eventhub.0.connection_string"},
 		},
 	})
 }
 
-func TestAccAzureRMApiManagementLogger_requiresImport(t *testing.T) {
+func TestAccApiManagementLogger_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
+	r := ApiManagementLoggerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementLoggerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementLogger_basicEventHub(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementLoggerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "buffered", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "eventhub.#", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "eventhub.0.name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "eventhub.0.connection_string"),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMApiManagementLogger_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicEventHub(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("buffered").HasValue("true"),
+				check.That(data.ResourceName).Key("eventhub.#").HasValue("1"),
+				check.That(data.ResourceName).Key("eventhub.0.name").Exists(),
+				check.That(data.ResourceName).Key("eventhub.0.connection_string").Exists(),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func TestAccApiManagementLogger_basicApplicationInsights(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
+	r := ApiManagementLoggerResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicApplicationInsights(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("buffered").HasValue("true"),
+				check.That(data.ResourceName).Key("eventhub.#").HasValue("0"),
+				check.That(data.ResourceName).Key("application_insights.#").HasValue("1"),
+				check.That(data.ResourceName).Key("application_insights.0.instrumentation_key").Exists(),
+			),
+		},
+		{
+			ResourceName:            data.ResourceName,
+			ImportState:             true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: []string{"application_insights.#", "application_insights.0.instrumentation_key"},
 		},
 	})
 }
 
-func TestAccAzureRMApiManagementLogger_basicApplicationInsights(t *testing.T) {
+func TestAccApiManagementLogger_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
+	r := ApiManagementLoggerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementLoggerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementLogger_basicApplicationInsights(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementLoggerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "buffered", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "eventhub.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "application_insights.#", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "application_insights.0.instrumentation_key"),
-				),
-			},
-			{
-				ResourceName:            data.ResourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"application_insights.#", "application_insights.0.instrumentation_key"},
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data, "Logger from Terraform test", "false"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("description").HasValue("Logger from Terraform test"),
+				check.That(data.ResourceName).Key("buffered").HasValue("false"),
+				check.That(data.ResourceName).Key("eventhub.#").HasValue("0"),
+				check.That(data.ResourceName).Key("application_insights.#").HasValue("1"),
+				check.That(data.ResourceName).Key("application_insights.0.instrumentation_key").Exists(),
+			),
+		},
+		{
+			ResourceName:            data.ResourceName,
+			ImportState:             true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: []string{"application_insights.#", "application_insights.0.instrumentation_key"},
 		},
 	})
 }
 
-func TestAccAzureRMApiManagementLogger_complete(t *testing.T) {
+func TestAccApiManagementLogger_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
+	r := ApiManagementLoggerResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementLoggerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementLogger_complete(data, "Logger from Terraform test", "false"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementLoggerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "Logger from Terraform test"),
-					resource.TestCheckResourceAttr(data.ResourceName, "buffered", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "eventhub.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "application_insights.#", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "application_insights.0.instrumentation_key"),
-				),
-			},
-			{
-				ResourceName:            data.ResourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"application_insights.#", "application_insights.0.instrumentation_key"},
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basicApplicationInsights(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("buffered").HasValue("true"),
+				check.That(data.ResourceName).Key("description").HasValue(""),
+				check.That(data.ResourceName).Key("eventhub.#").HasValue("0"),
+				check.That(data.ResourceName).Key("application_insights.#").HasValue("1"),
+				check.That(data.ResourceName).Key("application_insights.0.instrumentation_key").Exists(),
+			),
+		},
+		{
+			Config: r.basicEventHub(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("buffered").HasValue("true"),
+				check.That(data.ResourceName).Key("description").HasValue(""),
+				check.That(data.ResourceName).Key("eventhub.#").HasValue("1"),
+				check.That(data.ResourceName).Key("eventhub.0.name").Exists(),
+				check.That(data.ResourceName).Key("eventhub.0.connection_string").Exists(),
+			),
+		},
+		{
+			Config: r.complete(data, "Logger from Terraform test", "false"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("buffered").HasValue("false"),
+				check.That(data.ResourceName).Key("description").HasValue("Logger from Terraform test"),
+				check.That(data.ResourceName).Key("eventhub.#").HasValue("0"),
+				check.That(data.ResourceName).Key("application_insights.#").HasValue("1"),
+				check.That(data.ResourceName).Key("application_insights.0.instrumentation_key").Exists(),
+			),
+		},
+		{
+			Config: r.complete(data, "Logger from Terraform update test", "true"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("buffered").HasValue("true"),
+				check.That(data.ResourceName).Key("description").HasValue("Logger from Terraform update test"),
+				check.That(data.ResourceName).Key("eventhub.#").HasValue("0"),
+				check.That(data.ResourceName).Key("application_insights.#").HasValue("1"),
+				check.That(data.ResourceName).Key("application_insights.0.instrumentation_key").Exists(),
+			),
+		},
+		{
+			Config: r.complete(data, "Logger from Terraform test", "false"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("buffered").HasValue("false"),
+				check.That(data.ResourceName).Key("description").HasValue("Logger from Terraform test"),
+				check.That(data.ResourceName).Key("eventhub.#").HasValue("0"),
+				check.That(data.ResourceName).Key("application_insights.#").HasValue("1"),
+				check.That(data.ResourceName).Key("application_insights.0.instrumentation_key").Exists(),
+			),
+		},
+		{
+			Config: r.basicEventHub(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("buffered").HasValue("true"),
+				check.That(data.ResourceName).Key("description").HasValue(""),
+				check.That(data.ResourceName).Key("eventhub.#").HasValue("1"),
+				check.That(data.ResourceName).Key("eventhub.0.name").Exists(),
+				check.That(data.ResourceName).Key("eventhub.0.connection_string").Exists(),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMApiManagementLogger_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementLoggerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementLogger_basicApplicationInsights(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementLoggerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "buffered", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "eventhub.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "application_insights.#", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "application_insights.0.instrumentation_key"),
-				),
-			},
-			{
-				Config: testAccAzureRMApiManagementLogger_basicEventHub(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementLoggerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "buffered", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "eventhub.#", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "eventhub.0.name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "eventhub.0.connection_string"),
-				),
-			},
-			{
-				Config: testAccAzureRMApiManagementLogger_complete(data, "Logger from Terraform test", "false"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementLoggerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "buffered", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "Logger from Terraform test"),
-					resource.TestCheckResourceAttr(data.ResourceName, "eventhub.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "application_insights.#", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "application_insights.0.instrumentation_key"),
-				),
-			},
-			{
-				Config: testAccAzureRMApiManagementLogger_complete(data, "Logger from Terraform update test", "true"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementLoggerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "buffered", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "Logger from Terraform update test"),
-					resource.TestCheckResourceAttr(data.ResourceName, "eventhub.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "application_insights.#", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "application_insights.0.instrumentation_key"),
-				),
-			},
-			{
-				Config: testAccAzureRMApiManagementLogger_complete(data, "Logger from Terraform test", "false"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementLoggerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "buffered", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "Logger from Terraform test"),
-					resource.TestCheckResourceAttr(data.ResourceName, "eventhub.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "application_insights.#", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "application_insights.0.instrumentation_key"),
-				),
-			},
-			{
-				Config: testAccAzureRMApiManagementLogger_basicEventHub(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementLoggerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "buffered", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "eventhub.#", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "eventhub.0.name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "eventhub.0.connection_string"),
-				),
-			},
-		},
-	})
-}
-
-func testCheckAzureRMApiManagementLoggerExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.LoggerClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("API Management Logger not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-
-		if resp, err := client.Get(ctx, resourceGroup, serviceName, name); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Logger %q (Resource Group %q / API Management Service %q) does not exist", name, resourceGroup, serviceName)
-			}
-			return fmt.Errorf("Bad: Get on apiManagement.LoggerClient: %+v", err)
-		}
-
-		return nil
+func (t ApiManagementLoggerResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-}
+	resourceGroup := id.ResourceGroup
+	serviceName := id.Path["service"]
+	name := id.Path["loggers"]
 
-func testCheckAzureRMApiManagementLoggerDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.LoggerClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_api_management_logger" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
-
-		if resp, err := client.Get(ctx, resourceGroup, serviceName, name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on apiManagement.LoggerClient: %+v", err)
-			}
-		}
-
-		return nil
+	resp, err := clients.ApiManagement.LoggerClient.Get(ctx, resourceGroup, serviceName, name)
+	if err != nil {
+		return nil, fmt.Errorf("reading ApiManagement Logger (%s): %+v", id, err)
 	}
 
-	return nil
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMApiManagementLogger_basicEventHub(data acceptance.TestData) string {
+func (ApiManagementLoggerResource) basicEventHub(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -296,8 +249,7 @@ resource "azurerm_api_management_logger" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementLogger_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementLogger_basicEventHub(data)
+func (r ApiManagementLoggerResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -311,10 +263,10 @@ resource "azurerm_api_management_logger" "import" {
     connection_string = azurerm_eventhub_namespace.test.default_primary_connection_string
   }
 }
-`, template)
+`, r.basicEventHub(data))
 }
 
-func testAccAzureRMApiManagementLogger_basicApplicationInsights(data acceptance.TestData) string {
+func (ApiManagementLoggerResource) basicApplicationInsights(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -354,7 +306,7 @@ resource "azurerm_api_management_logger" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementLogger_complete(data acceptance.TestData, description, buffered string) string {
+func (ApiManagementLoggerResource) complete(data acceptance.TestData, description, buffered string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

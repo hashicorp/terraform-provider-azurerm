@@ -35,7 +35,7 @@ func (id SpringCloudAppId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Spring Cloud App", segmentsStr)
 }
 
-func (id SpringCloudAppId) ID(_ string) string {
+func (id SpringCloudAppId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.AppPlatform/Spring/%s/apps/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SpringName, id.AppName)
 }

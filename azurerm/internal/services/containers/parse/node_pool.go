@@ -35,7 +35,7 @@ func (id NodePoolId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Node Pool", segmentsStr)
 }
 
-func (id NodePoolId) ID(_ string) string {
+func (id NodePoolId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ContainerService/managedClusters/%s/agentPools/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ManagedClusterName, id.AgentPoolName)
 }

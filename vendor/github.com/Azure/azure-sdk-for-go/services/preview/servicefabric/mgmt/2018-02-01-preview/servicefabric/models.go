@@ -29,10 +29,10 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2018-02-01/servicefabric"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/servicefabric/mgmt/2018-02-01-preview/servicefabric"
 
-// ApplicationDeltaHealthPolicy defines a delta health policy used to evaluate the health of an application or
-// one of its child entities when upgrading the cluster.
+// ApplicationDeltaHealthPolicy defines a delta health policy used to evaluate the health of an application
+// or one of its child entities when upgrading the cluster.
 type ApplicationDeltaHealthPolicy struct {
 	// DefaultServiceTypeDeltaHealthPolicy - The delta health policy used by default to evaluate the health of a service type when upgrading the cluster.
 	DefaultServiceTypeDeltaHealthPolicy *ServiceTypeDeltaHealthPolicy `json:"defaultServiceTypeDeltaHealthPolicy,omitempty"`
@@ -52,8 +52,8 @@ func (adhp ApplicationDeltaHealthPolicy) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// ApplicationHealthPolicy defines a health policy used to evaluate the health of an application or one of its
-// children entities.
+// ApplicationHealthPolicy defines a health policy used to evaluate the health of an application or one of
+// its children entities.
 type ApplicationHealthPolicy struct {
 	// DefaultServiceTypeHealthPolicy - The health policy used by default to evaluate the health of a service type.
 	DefaultServiceTypeHealthPolicy *ServiceTypeHealthPolicy `json:"defaultServiceTypeHealthPolicy,omitempty"`
@@ -73,8 +73,8 @@ func (ahp ApplicationHealthPolicy) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// ApplicationMetricDescription describes capacity information for a custom resource balancing metric. This can
-// be used to limit the total consumption of this metric by the services of this application.
+// ApplicationMetricDescription describes capacity information for a custom resource balancing metric. This
+// can be used to limit the total consumption of this metric by the services of this application.
 type ApplicationMetricDescription struct {
 	// Name - The name of the metric.
 	Name *string `json:"Name,omitempty"`
@@ -575,8 +575,8 @@ func (future *ApplicationTypesDeleteFuture) Result(client ApplicationTypesClient
 	return
 }
 
-// ApplicationTypeVersionResource an application type version resource for the specified application type name
-// resource.
+// ApplicationTypeVersionResource an application type version resource for the specified application type
+// name resource.
 type ApplicationTypeVersionResource struct {
 	autorest.Response `json:"-"`
 	// ApplicationTypeVersionResourceProperties - The properties of the application type version resource.
@@ -753,8 +753,8 @@ type ApplicationUpgradePolicy struct {
 	ApplicationHealthPolicy *ArmApplicationHealthPolicy `json:"applicationHealthPolicy,omitempty"`
 }
 
-// ArmApplicationHealthPolicy defines a health policy used to evaluate the health of an application or one of
-// its children entities.
+// ArmApplicationHealthPolicy defines a health policy used to evaluate the health of an application or one
+// of its children entities.
 type ArmApplicationHealthPolicy struct {
 	// ConsiderWarningAsError - Indicates whether warnings are treated with the same severity as errors.
 	ConsiderWarningAsError *bool `json:"ConsiderWarningAsError,omitempty"`
@@ -803,8 +803,8 @@ type ArmRollingUpgradeMonitoringPolicy struct {
 	UpgradeDomainTimeout *string `json:"upgradeDomainTimeout,omitempty"`
 }
 
-// ArmServiceTypeHealthPolicy represents the health policy used to evaluate the health of services belonging to
-// a service type.
+// ArmServiceTypeHealthPolicy represents the health policy used to evaluate the health of services
+// belonging to a service type.
 type ArmServiceTypeHealthPolicy struct {
 	// MaxPercentUnhealthyServices - The maximum percentage of services allowed to be unhealthy before your application is considered in error.
 	MaxPercentUnhealthyServices *int32 `json:"maxPercentUnhealthyServices,omitempty"`
@@ -1054,7 +1054,8 @@ func (ccvr *ClusterCodeVersionsResult) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// ClusterHealthPolicy defines a health policy used to evaluate the health of the cluster or of a cluster node.
+// ClusterHealthPolicy defines a health policy used to evaluate the health of the cluster or of a cluster
+// node.
 type ClusterHealthPolicy struct {
 	// MaxPercentUnhealthyNodes - The maximum allowed percentage of unhealthy nodes before reporting an error. For example, to allow 10% of nodes to be unhealthy, this value would be 10.
 	// The percentage represents the maximum tolerated percentage of nodes that can be unhealthy before the cluster is considered in error.
@@ -1221,8 +1222,8 @@ func (cp ClusterProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// ClusterPropertiesUpdateParameters describes the cluster resource properties that can be updated during PATCH
-// operation.
+// ClusterPropertiesUpdateParameters describes the cluster resource properties that can be updated during
+// PATCH operation.
 type ClusterPropertiesUpdateParameters struct {
 	// AddOnFeatures - The list of add-on features to enable in the cluster.
 	AddOnFeatures *[]string `json:"addOnFeatures,omitempty"`
@@ -1259,7 +1260,8 @@ type ClusterPropertiesUpdateParameters struct {
 	UpgradeMode UpgradeMode1 `json:"upgradeMode,omitempty"`
 }
 
-// ClustersCreateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// ClustersCreateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ClustersCreateFuture struct {
 	azure.Future
 }
@@ -1287,7 +1289,8 @@ func (future *ClustersCreateFuture) Result(client ClustersClient) (c Cluster, er
 	return
 }
 
-// ClustersUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// ClustersUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ClustersUpdateFuture struct {
 	azure.Future
 }
@@ -1436,7 +1439,8 @@ type ClusterVersionDetails struct {
 	Environment Environment `json:"environment,omitempty"`
 }
 
-// DiagnosticsStorageAccountConfig the storage account information for storing Service Fabric diagnostic logs.
+// DiagnosticsStorageAccountConfig the storage account information for storing Service Fabric diagnostic
+// logs.
 type DiagnosticsStorageAccountConfig struct {
 	// StorageAccountName - The Azure storage account name.
 	StorageAccountName *string `json:"storageAccountName,omitempty"`
@@ -1523,8 +1527,8 @@ func (npsd NamedPartitionSchemeDescription) AsBasicPartitionSchemeDescription() 
 	return &npsd, true
 }
 
-// NodeTypeDescription describes a node type in the cluster, each node type represents sub set of nodes in the
-// cluster.
+// NodeTypeDescription describes a node type in the cluster, each node type represents sub set of nodes in
+// the cluster.
 type NodeTypeDescription struct {
 	// Name - The name of the node type.
 	Name *string `json:"name,omitempty"`
@@ -1754,8 +1758,11 @@ func (page OperationListResultPage) Values() []OperationResult {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
 // OperationResult available operation list result
@@ -1919,8 +1926,8 @@ type ServerCertificateCommonName struct {
 	CertificateIssuerThumbprint *string `json:"certificateIssuerThumbprint,omitempty"`
 }
 
-// ServerCertificateCommonNames describes a list of server certificates referenced by common name that are used
-// to secure the cluster.
+// ServerCertificateCommonNames describes a list of server certificates referenced by common name that are
+// used to secure the cluster.
 type ServerCertificateCommonNames struct {
 	// CommonNames - The list of server certificates referenced by common name that are used to secure the cluster.
 	CommonNames *[]ServerCertificateCommonName `json:"commonNames,omitempty"`
@@ -2650,7 +2657,8 @@ func (srup *ServiceResourceUpdateProperties) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// ServicesCreateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// ServicesCreateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ServicesCreateFuture struct {
 	azure.Future
 }
@@ -2678,7 +2686,8 @@ func (future *ServicesCreateFuture) Result(client ServicesClient) (sr ServiceRes
 	return
 }
 
-// ServicesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// ServicesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ServicesDeleteFuture struct {
 	azure.Future
 }
@@ -2700,7 +2709,8 @@ func (future *ServicesDeleteFuture) Result(client ServicesClient) (ar autorest.R
 	return
 }
 
-// ServicesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// ServicesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ServicesUpdateFuture struct {
 	azure.Future
 }
@@ -2737,8 +2747,8 @@ type ServiceTypeDeltaHealthPolicy struct {
 	MaxPercentDeltaUnhealthyServices *int32 `json:"maxPercentDeltaUnhealthyServices,omitempty"`
 }
 
-// ServiceTypeHealthPolicy represents the health policy used to evaluate the health of services belonging to a
-// service type.
+// ServiceTypeHealthPolicy represents the health policy used to evaluate the health of services belonging
+// to a service type.
 type ServiceTypeHealthPolicy struct {
 	// MaxPercentUnhealthyServices - The maximum percentage of services allowed to be unhealthy before your application is considered in error.
 	MaxPercentUnhealthyServices *int32 `json:"maxPercentUnhealthyServices,omitempty"`

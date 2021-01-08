@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLogAnalyticsStorageInsights() *schema.Resource {
+func resourceLogAnalyticsStorageInsights() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogAnalyticsStorageInsightsCreateUpdate,
-		Read:   resourceArmLogAnalyticsStorageInsightsRead,
-		Update: resourceArmLogAnalyticsStorageInsightsCreateUpdate,
-		Delete: resourceArmLogAnalyticsStorageInsightsDelete,
+		Create: resourceLogAnalyticsStorageInsightsCreateUpdate,
+		Read:   resourceLogAnalyticsStorageInsightsRead,
+		Update: resourceLogAnalyticsStorageInsightsCreateUpdate,
+		Delete: resourceLogAnalyticsStorageInsightsDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -94,7 +94,7 @@ func resourceArmLogAnalyticsStorageInsights() *schema.Resource {
 	}
 }
 
-func resourceArmLogAnalyticsStorageInsightsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsStorageInsightsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.StorageInsightsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -119,13 +119,13 @@ func resourceArmLogAnalyticsStorageInsightsCreateUpdate(d *schema.ResourceData, 
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_log_analytics_storage_insights", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_log_analytics_storage_insights", id.ID())
 		}
 	}
 
 	parameters := operationalinsights.StorageInsight{
 		StorageInsightProperties: &operationalinsights.StorageInsightProperties{
-			StorageAccount: expandArmStorageInsightConfigStorageAccount(storageAccountId, storageAccountKey),
+			StorageAccount: expandStorageInsightConfigStorageAccount(storageAccountId, storageAccountKey),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -142,11 +142,11 @@ func resourceArmLogAnalyticsStorageInsightsCreateUpdate(d *schema.ResourceData, 
 		return fmt.Errorf("creating/updating Log Analytics Storage Insights %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, id.WorkspaceName, err)
 	}
 
-	d.SetId(id.ID(subscriptionId))
-	return resourceArmLogAnalyticsStorageInsightsRead(d, meta)
+	d.SetId(id.ID())
+	return resourceLogAnalyticsStorageInsightsRead(d, meta)
 }
 
-func resourceArmLogAnalyticsStorageInsightsRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsStorageInsightsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.StorageInsightsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -168,7 +168,7 @@ func resourceArmLogAnalyticsStorageInsightsRead(d *schema.ResourceData, meta int
 
 	d.Set("name", id.StorageInsightConfigName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("workspace_id", parse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID(""))
+	d.Set("workspace_id", parse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID())
 
 	if props := resp.StorageInsightProperties; props != nil {
 		d.Set("blob_container_names", utils.FlattenStringSlice(props.Containers))
@@ -183,7 +183,7 @@ func resourceArmLogAnalyticsStorageInsightsRead(d *schema.ResourceData, meta int
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmLogAnalyticsStorageInsightsDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsStorageInsightsDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.StorageInsightsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -199,7 +199,7 @@ func resourceArmLogAnalyticsStorageInsightsDelete(d *schema.ResourceData, meta i
 	return nil
 }
 
-func expandArmStorageInsightConfigStorageAccount(id string, key string) *operationalinsights.StorageAccount {
+func expandStorageInsightConfigStorageAccount(id string, key string) *operationalinsights.StorageAccount {
 	return &operationalinsights.StorageAccount{
 		ID:  utils.String(id),
 		Key: utils.String(key),

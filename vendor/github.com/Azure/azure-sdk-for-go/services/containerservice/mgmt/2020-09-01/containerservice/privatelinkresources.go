@@ -85,6 +85,7 @@ func (client PrivateLinkResourcesClient) List(ctx context.Context, resourceGroup
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerservice.PrivateLinkResourcesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

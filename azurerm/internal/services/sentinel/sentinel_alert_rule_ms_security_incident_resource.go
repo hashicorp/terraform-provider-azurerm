@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSentinelAlertRuleMsSecurityIncident() *schema.Resource {
+func resourceSentinelAlertRuleMsSecurityIncident() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSentinelAlertRuleMsSecurityIncidentCreateUpdate,
-		Read:   resourceArmSentinelAlertRuleMsSecurityIncidentRead,
-		Update: resourceArmSentinelAlertRuleMsSecurityIncidentCreateUpdate,
-		Delete: resourceArmSentinelAlertRuleMsSecurityIncidentDelete,
+		Create: resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate,
+		Read:   resourceSentinelAlertRuleMsSecurityIncidentRead,
+		Update: resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate,
+		Delete: resourceSentinelAlertRuleMsSecurityIncidentDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			_, err := parse.SentinelAlertRuleID(id)
@@ -85,6 +85,13 @@ func resourceArmSentinelAlertRuleMsSecurityIncident() *schema.Resource {
 				},
 			},
 
+			"alert_rule_template_guid": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsUUID,
+			},
+
 			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -109,6 +116,16 @@ func resourceArmSentinelAlertRuleMsSecurityIncident() *schema.Resource {
 				},
 			},
 
+			"display_name_exclude_filter": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				MinItems: 1,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
 			"text_whitelist": {
 				Type:          schema.TypeSet,
 				Optional:      true,
@@ -125,7 +142,7 @@ func resourceArmSentinelAlertRuleMsSecurityIncident() *schema.Resource {
 	}
 }
 
-func resourceArmSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -161,10 +178,18 @@ func resourceArmSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *schema.Resour
 		},
 	}
 
+	if v, ok := d.GetOk("alert_rule_template_guid"); ok {
+		param.MicrosoftSecurityIncidentCreationAlertRuleProperties.AlertRuleTemplateName = utils.String(v.(string))
+	}
+
 	if dnf, ok := d.GetOk("display_name_filter"); ok {
 		param.DisplayNamesFilter = utils.ExpandStringSlice(dnf.(*schema.Set).List())
 	} else if dnf, ok := d.GetOk("text_whitelist"); ok {
 		param.DisplayNamesFilter = utils.ExpandStringSlice(dnf.(*schema.Set).List())
+	}
+
+	if v, ok := d.GetOk("display_name_exclude_filter"); ok {
+		param.DisplayNamesExcludeFilter = utils.ExpandStringSlice(v.(*schema.Set).List())
 	}
 
 	// Service avoid concurrent update of this resource via checking the "etag" to guarantee it is the same value as last Read.
@@ -194,12 +219,11 @@ func resourceArmSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *schema.Resour
 	}
 	d.SetId(*id)
 
-	return resourceArmSentinelAlertRuleMsSecurityIncidentRead(d, meta)
+	return resourceSentinelAlertRuleMsSecurityIncidentRead(d, meta)
 }
 
-func resourceArmSentinelAlertRuleMsSecurityIncidentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleMsSecurityIncidentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
-	workspaceClient := meta.(*clients.Client).LogAnalytics.WorkspacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -226,22 +250,23 @@ func resourceArmSentinelAlertRuleMsSecurityIncidentRead(d *schema.ResourceData, 
 
 	d.Set("name", id.Name)
 
-	workspaceResp, err := workspaceClient.Get(ctx, id.ResourceGroup, id.Workspace)
-	if err != nil {
-		return fmt.Errorf("retrieving Log Analytics Workspace %q (Resource Group: %q) where this Alert Rule belongs to: %+v", id.Workspace, id.ResourceGroup, err)
-	}
-	d.Set("log_analytics_workspace_id", workspaceResp.ID)
+	workspaceId := loganalyticsParse.NewLogAnalyticsWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.Workspace)
+	d.Set("log_analytics_workspace_id", workspaceId.ID())
 	if prop := rule.MicrosoftSecurityIncidentCreationAlertRuleProperties; prop != nil {
 		d.Set("product_filter", string(prop.ProductFilter))
 		d.Set("display_name", prop.DisplayName)
 		d.Set("description", prop.Description)
 		d.Set("enabled", prop.Enabled)
+		d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
 
 		if err := d.Set("text_whitelist", utils.FlattenStringSlice(prop.DisplayNamesFilter)); err != nil {
 			return fmt.Errorf(`setting "text_whitelist": %+v`, err)
 		}
 		if err := d.Set("display_name_filter", utils.FlattenStringSlice(prop.DisplayNamesFilter)); err != nil {
 			return fmt.Errorf(`setting "display_name_filter": %+v`, err)
+		}
+		if err := d.Set("display_name_exclude_filter", utils.FlattenStringSlice(prop.DisplayNamesExcludeFilter)); err != nil {
+			return fmt.Errorf(`setting "display_name_exclude_filter": %+v`, err)
 		}
 		if err := d.Set("severity_filter", flattenAlertRuleMsSecurityIncidentSeverityFilter(prop.SeveritiesFilter)); err != nil {
 			return fmt.Errorf(`setting "severity_filter": %+v`, err)
@@ -251,7 +276,7 @@ func resourceArmSentinelAlertRuleMsSecurityIncidentRead(d *schema.ResourceData, 
 	return nil
 }
 
-func resourceArmSentinelAlertRuleMsSecurityIncidentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleMsSecurityIncidentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

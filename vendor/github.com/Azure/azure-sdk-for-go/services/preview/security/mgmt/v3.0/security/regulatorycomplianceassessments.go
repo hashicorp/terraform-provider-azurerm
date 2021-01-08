@@ -82,6 +82,7 @@ func (client RegulatoryComplianceAssessmentsClient) Get(ctx context.Context, reg
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.RegulatoryComplianceAssessmentsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -166,9 +167,11 @@ func (client RegulatoryComplianceAssessmentsClient) List(ctx context.Context, re
 	result.rcal, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.RegulatoryComplianceAssessmentsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.rcal.hasNextLink() && result.rcal.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

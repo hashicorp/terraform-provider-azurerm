@@ -476,6 +476,7 @@ func (client VirtualNetworkGatewaysClient) Get(ctx context.Context, resourceGrou
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualNetworkGatewaysClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1013,6 +1014,7 @@ func (client VirtualNetworkGatewaysClient) List(ctx context.Context, resourceGro
 	result.vnglr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualNetworkGatewaysClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.vnglr.hasNextLink() && result.vnglr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -1076,6 +1078,7 @@ func (client VirtualNetworkGatewaysClient) listNextResults(ctx context.Context, 
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualNetworkGatewaysClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -1128,6 +1131,7 @@ func (client VirtualNetworkGatewaysClient) ListConnections(ctx context.Context, 
 	result.vnglcr, err = client.ListConnectionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualNetworkGatewaysClient", "ListConnections", resp, "Failure responding to request")
+		return
 	}
 	if result.vnglcr.hasNextLink() && result.vnglcr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -1192,6 +1196,7 @@ func (client VirtualNetworkGatewaysClient) listConnectionsNextResults(ctx contex
 	result, err = client.ListConnectionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualNetworkGatewaysClient", "listConnectionsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -1644,6 +1649,7 @@ func (client VirtualNetworkGatewaysClient) SupportedVpnDevices(ctx context.Conte
 	result, err = client.SupportedVpnDevicesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualNetworkGatewaysClient", "SupportedVpnDevices", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1799,6 +1805,7 @@ func (client VirtualNetworkGatewaysClient) VpnDeviceConfigurationScript(ctx cont
 	result, err = client.VpnDeviceConfigurationScriptResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualNetworkGatewaysClient", "VpnDeviceConfigurationScript", resp, "Failure responding to request")
+		return
 	}
 
 	return

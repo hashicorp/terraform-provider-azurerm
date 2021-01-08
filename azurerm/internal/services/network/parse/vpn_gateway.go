@@ -32,7 +32,7 @@ func (id VpnGatewayId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Vpn Gateway", segmentsStr)
 }
 
-func (id VpnGatewayId) ID(_ string) string {
+func (id VpnGatewayId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/vpnGateways/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

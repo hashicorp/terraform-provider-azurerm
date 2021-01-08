@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmIotHubEndpointStorageContainer() *schema.Resource {
+func resourceIotHubEndpointStorageContainer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIotHubEndpointStorageContainerCreateUpdate,
-		Read:   resourceArmIotHubEndpointStorageContainerRead,
-		Update: resourceArmIotHubEndpointStorageContainerCreateUpdate,
-		Delete: resourceArmIotHubEndpointStorageContainerDelete,
+		Create: resourceIotHubEndpointStorageContainerCreateUpdate,
+		Read:   resourceIotHubEndpointStorageContainerRead,
+		Update: resourceIotHubEndpointStorageContainerCreateUpdate,
+		Delete: resourceIotHubEndpointStorageContainerDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -104,7 +104,7 @@ func resourceArmIotHubEndpointStorageContainer() *schema.Resource {
 	}
 }
 
-func resourceArmIotHubEndpointStorageContainerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointStorageContainerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -197,10 +197,10 @@ func resourceArmIotHubEndpointStorageContainerCreateUpdate(d *schema.ResourceDat
 
 	d.SetId(resourceId)
 
-	return resourceArmIotHubEndpointStorageContainerRead(d, meta)
+	return resourceIotHubEndpointStorageContainerRead(d, meta)
 }
 
-func resourceArmIotHubEndpointStorageContainerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointStorageContainerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -245,7 +245,7 @@ func resourceArmIotHubEndpointStorageContainerRead(d *schema.ResourceData, meta 
 	return nil
 }
 
-func resourceArmIotHubEndpointStorageContainerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubEndpointStorageContainerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

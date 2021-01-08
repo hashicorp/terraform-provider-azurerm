@@ -85,6 +85,7 @@ func (client PreconfiguredEndpointsClient) List(ctx context.Context, resourceGro
 	result.pel, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.PreconfiguredEndpointsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.pel.hasNextLink() && result.pel.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -149,6 +150,7 @@ func (client PreconfiguredEndpointsClient) listNextResults(ctx context.Context, 
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.PreconfiguredEndpointsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

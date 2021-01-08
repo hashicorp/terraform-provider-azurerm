@@ -14,9 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmFirewall() *schema.Resource {
+func FirewallDataSource() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmFirewallRead,
+		Read: FirewallDataSourceRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -142,7 +142,7 @@ func dataSourceArmFirewall() *schema.Resource {
 	}
 }
 
-func dataSourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
+func FirewallDataSourceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.AzureFirewallsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -168,12 +168,12 @@ func dataSourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if props := read.AzureFirewallPropertiesFormat; props != nil {
-		if err := d.Set("ip_configuration", flattenArmFirewallIPConfigurations(props.IPConfigurations)); err != nil {
+		if err := d.Set("ip_configuration", flattenFirewallIPConfigurations(props.IPConfigurations)); err != nil {
 			return fmt.Errorf("Error setting `ip_configuration`: %+v", err)
 		}
 		managementIPConfigs := make([]interface{}, 0)
 		if props.ManagementIPConfiguration != nil {
-			managementIPConfigs = flattenArmFirewallIPConfigurations(&[]network.AzureFirewallIPConfiguration{
+			managementIPConfigs = flattenFirewallIPConfigurations(&[]network.AzureFirewallIPConfiguration{
 				*props.ManagementIPConfiguration,
 			})
 		}
@@ -183,7 +183,7 @@ func dataSourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 
 		d.Set("threat_intel_mode", string(props.ThreatIntelMode))
 
-		if err := d.Set("dns_servers", flattenArmFirewallDNSServers(props.AdditionalProperties)); err != nil {
+		if err := d.Set("dns_servers", flattenFirewallDNSServers(props.AdditionalProperties)); err != nil {
 			return fmt.Errorf("Error setting `dns_servers`: %+v", err)
 		}
 
@@ -196,7 +196,7 @@ func dataSourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("sku_tier", string(sku.Tier))
 		}
 
-		if err := d.Set("virtual_hub", flattenArmFirewallVirtualHubSetting(props)); err != nil {
+		if err := d.Set("virtual_hub", flattenFirewallVirtualHubSetting(props)); err != nil {
 			return fmt.Errorf("Error setting `virtual_hub`: %+v", err)
 		}
 	}

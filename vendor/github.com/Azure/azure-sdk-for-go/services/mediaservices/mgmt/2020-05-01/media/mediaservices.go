@@ -73,6 +73,7 @@ func (client MediaservicesClient) CreateOrUpdate(ctx context.Context, resourceGr
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.MediaservicesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -150,6 +151,7 @@ func (client MediaservicesClient) Delete(ctx context.Context, resourceGroupName 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.MediaservicesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -224,6 +226,7 @@ func (client MediaservicesClient) Get(ctx context.Context, resourceGroupName str
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.MediaservicesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -298,6 +301,7 @@ func (client MediaservicesClient) GetBySubscription(ctx context.Context, account
 	result, err = client.GetBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.MediaservicesClient", "GetBySubscription", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -372,6 +376,7 @@ func (client MediaservicesClient) List(ctx context.Context, resourceGroupName st
 	result.sc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.MediaservicesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.sc.hasNextLink() && result.sc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -435,6 +440,7 @@ func (client MediaservicesClient) listNextResults(ctx context.Context, lastResul
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.MediaservicesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -484,6 +490,7 @@ func (client MediaservicesClient) ListBySubscription(ctx context.Context) (resul
 	result.sc, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.MediaservicesClient", "ListBySubscription", resp, "Failure responding to request")
+		return
 	}
 	if result.sc.hasNextLink() && result.sc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -546,6 +553,7 @@ func (client MediaservicesClient) listBySubscriptionNextResults(ctx context.Cont
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.MediaservicesClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -598,6 +606,7 @@ func (client MediaservicesClient) ListEdgePolicies(ctx context.Context, resource
 	result, err = client.ListEdgePoliciesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.MediaservicesClient", "ListEdgePolicies", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -676,6 +685,7 @@ func (client MediaservicesClient) SyncStorageKeys(ctx context.Context, resourceG
 	result, err = client.SyncStorageKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.MediaservicesClient", "SyncStorageKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -753,6 +763,7 @@ func (client MediaservicesClient) Update(ctx context.Context, resourceGroupName 
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.MediaservicesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

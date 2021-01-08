@@ -1,108 +1,66 @@
 package redis_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMRedisLinkedServer_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_redis_linked_server", "test")
+type RedisLinkedServerResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRedisLinkedServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMRedisLinkedServer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRedisLinkedServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccRedisLinkedServer_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_redis_linked_server", "test")
+	r := RedisLinkedServerResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMRedisLinkedServer_requiresImport(t *testing.T) {
+func TestAccRedisLinkedServer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_linked_server", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRedisLinkedServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMRedisLinkedServer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRedisLinkedServerExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMRedisLinkedServer_requiresImport),
+	r := RedisLinkedServerResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckAzureRMRedisLinkedServerExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Redis.LinkedServerClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %q", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		cacheName := rs.Primary.Attributes["target_redis_cache_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, cacheName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Linked Server %q (cache %q resource group: %q) does not exist", name, cacheName, resourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on redis.LinkedServersClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMRedisLinkedServerDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Redis.LinkedServerClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_redis_linked_server" {
-			continue
-		}
-
-		redisCacheName := rs.Primary.Attributes["target_redis_cache_name"]
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, redisCacheName, name)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Linked Server still exists:\n%#v", resp)
-		}
+func (t RedisLinkedServerResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.LinkedServerID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Redis.LinkedServerClient.Get(ctx, id.ResourceGroup, id.RediName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Redis Linked Server (%s): %+v", id.String(), err)
+	}
+
+	return utils.Bool(resp.LinkedServerProperties != nil), nil
 }
 
-func testAccAzureRMRedisLinkedServer_basic(data acceptance.TestData) string {
+func (RedisLinkedServerResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -130,7 +88,7 @@ resource "azurerm_redis_cache" "pri" {
 }
 
 resource "azurerm_resource_group" "sec" {
-  name     = "accsecRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -161,8 +119,7 @@ resource "azurerm_redis_linked_server" "test" {
 		data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
 }
 
-func testAccAzureRMRedisLinkedServer_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMRedisLinkedServer_basic(data)
+func (r RedisLinkedServerResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -173,5 +130,5 @@ resource "azurerm_redis_linked_server" "import" {
   linked_redis_cache_location = azurerm_redis_linked_server.test.linked_redis_cache_location
   server_role                 = azurerm_redis_linked_server.test.server_role
 }
-`, template)
+`, r.basic(data))
 }

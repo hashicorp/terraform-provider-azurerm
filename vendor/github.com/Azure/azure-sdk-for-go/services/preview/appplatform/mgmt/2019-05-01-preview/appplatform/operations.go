@@ -70,6 +70,7 @@ func (client OperationsClient) List(ctx context.Context) (result AvailableOperat
 	result.ao, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.OperationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.ao.hasNextLink() && result.ao.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -128,6 +129,7 @@ func (client OperationsClient) listNextResults(ctx context.Context, lastResults 
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.OperationsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

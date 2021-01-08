@@ -72,6 +72,7 @@ func (client StatusClient) Get(ctx context.Context, azureRegion string, paramete
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.StatusClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKustoEventHubDataConnection() *schema.Resource {
+func resourceKustoEventHubDataConnection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKustoEventHubDataConnectionCreateUpdate,
-		Read:   resourceArmKustoEventHubDataConnectionRead,
-		Update: resourceArmKustoEventHubDataConnectionCreateUpdate,
-		Delete: resourceArmKustoEventHubDataConnectionDelete,
+		Create: resourceKustoEventHubDataConnectionCreateUpdate,
+		Read:   resourceKustoEventHubDataConnectionRead,
+		Update: resourceKustoEventHubDataConnectionCreateUpdate,
+		Delete: resourceKustoEventHubDataConnectionDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -131,7 +131,7 @@ func resourceArmKustoEventHubDataConnection() *schema.Resource {
 	}
 }
 
-func resourceArmKustoEventHubDataConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoEventHubDataConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -191,10 +191,10 @@ func resourceArmKustoEventHubDataConnectionCreateUpdate(d *schema.ResourceData, 
 		d.SetId(*dataConnection.ID)
 	}
 
-	return resourceArmKustoEventHubDataConnectionRead(d, meta)
+	return resourceKustoEventHubDataConnectionRead(d, meta)
 }
 
-func resourceArmKustoEventHubDataConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoEventHubDataConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -236,7 +236,7 @@ func resourceArmKustoEventHubDataConnectionRead(d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceArmKustoEventHubDataConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoEventHubDataConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DataConnectionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

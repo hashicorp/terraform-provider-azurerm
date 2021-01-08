@@ -254,11 +254,15 @@ func (page ListQueryKeysResultPage) Values() []QueryKey {
 }
 
 // Creates a new instance of the ListQueryKeysResultPage type.
-func NewListQueryKeysResultPage(getNextPage func(context.Context, ListQueryKeysResult) (ListQueryKeysResult, error)) ListQueryKeysResultPage {
-	return ListQueryKeysResultPage{fn: getNextPage}
+func NewListQueryKeysResultPage(cur ListQueryKeysResult, getNextPage func(context.Context, ListQueryKeysResult) (ListQueryKeysResult, error)) ListQueryKeysResultPage {
+	return ListQueryKeysResultPage{
+		fn:   getNextPage,
+		lqkr: cur,
+	}
 }
 
-// NetworkRuleSet network specific rules that determine how the Azure Cognitive Search service may be reached.
+// NetworkRuleSet network specific rules that determine how the Azure Cognitive Search service may be
+// reached.
 type NetworkRuleSet struct {
 	// IPRules - A list of IP restriction rules that defines the inbound network(s) with allowing access to the search service endpoint. At the meantime, all other public IP networks are blocked by the firewall. These restriction rules are applied only when the 'publicNetworkAccess' of the search service is 'enabled'; otherwise, traffic over public interface is not allowed even with any public IP rules, and private endpoint connections would be the exclusive access method.
 	IPRules *[]IPRule `json:"ipRules,omitempty"`
@@ -284,8 +288,8 @@ type OperationDisplay struct {
 	Description *string `json:"description,omitempty"`
 }
 
-// OperationListResult the result of the request to list REST API operations. It contains a list of operations
-// and a URL  to get the next set of results.
+// OperationListResult the result of the request to list REST API operations. It contains a list of
+// operations and a URL  to get the next set of results.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; The list of operations supported by the resource provider.
@@ -294,8 +298,8 @@ type OperationListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// PrivateEndpointConnection describes an existing Private Endpoint connection to the Azure Cognitive Search
-// service.
+// PrivateEndpointConnection describes an existing Private Endpoint connection to the Azure Cognitive
+// Search service.
 type PrivateEndpointConnection struct {
 	autorest.Response `json:"-"`
 	// ID - READ-ONLY; The ID of the private endpoint connection. This can be used with the Azure Resource Manager to link resources together.
@@ -470,12 +474,15 @@ func (page PrivateEndpointConnectionListResultPage) Values() []PrivateEndpointCo
 }
 
 // Creates a new instance of the PrivateEndpointConnectionListResultPage type.
-func NewPrivateEndpointConnectionListResultPage(getNextPage func(context.Context, PrivateEndpointConnectionListResult) (PrivateEndpointConnectionListResult, error)) PrivateEndpointConnectionListResultPage {
-	return PrivateEndpointConnectionListResultPage{fn: getNextPage}
+func NewPrivateEndpointConnectionListResultPage(cur PrivateEndpointConnectionListResult, getNextPage func(context.Context, PrivateEndpointConnectionListResult) (PrivateEndpointConnectionListResult, error)) PrivateEndpointConnectionListResultPage {
+	return PrivateEndpointConnectionListResultPage{
+		fn:    getNextPage,
+		peclr: cur,
+	}
 }
 
-// PrivateEndpointConnectionProperties describes the properties of an existing Private Endpoint connection to
-// the Azure Cognitive Search service.
+// PrivateEndpointConnectionProperties describes the properties of an existing Private Endpoint connection
+// to the Azure Cognitive Search service.
 type PrivateEndpointConnectionProperties struct {
 	// PrivateEndpoint - The private endpoint resource from Microsoft.Network provider.
 	PrivateEndpoint *PrivateEndpointConnectionPropertiesPrivateEndpoint `json:"privateEndpoint,omitempty"`
@@ -513,9 +520,8 @@ type PrivateLinkResource struct {
 	Properties *PrivateLinkResourceProperties `json:"properties,omitempty"`
 }
 
-// PrivateLinkResourceProperties describes the properties of a supported private link resource for the Azure
-// Cognitive Search service. For a given API version, this represents the 'supported' groupIds when creating a
-// shared private link resource.
+// PrivateLinkResourceProperties describes the properties of a supported private link resource for the
+// Azure Cognitive Search service.
 type PrivateLinkResourceProperties struct {
 	// GroupID - READ-ONLY; The group ID of the private link resource.
 	GroupID *string `json:"groupId,omitempty"`
@@ -523,8 +529,6 @@ type PrivateLinkResourceProperties struct {
 	RequiredMembers *[]string `json:"requiredMembers,omitempty"`
 	// RequiredZoneNames - READ-ONLY; The list of required DNS zone names of the private link resource.
 	RequiredZoneNames *[]string `json:"requiredZoneNames,omitempty"`
-	// ShareablePrivateLinkResourceTypes - READ-ONLY; The list of resources that are onboarded to private link service, that are supported by Azure Cognitive Search.
-	ShareablePrivateLinkResourceTypes *[]ShareablePrivateLinkResourceType `json:"shareablePrivateLinkResourceTypes,omitempty"`
 }
 
 // PrivateLinkResourcesResult response containing a list of supported Private Link Resources.
@@ -856,8 +860,11 @@ func (page ServiceListResultPage) Values() []Service {
 }
 
 // Creates a new instance of the ServiceListResultPage type.
-func NewServiceListResultPage(getNextPage func(context.Context, ServiceListResult) (ServiceListResult, error)) ServiceListResultPage {
-	return ServiceListResultPage{fn: getNextPage}
+func NewServiceListResultPage(cur ServiceListResult, getNextPage func(context.Context, ServiceListResult) (ServiceListResult, error)) ServiceListResultPage {
+	return ServiceListResultPage{
+		fn:  getNextPage,
+		slr: cur,
+	}
 }
 
 // ServiceProperties properties of the Search service.
@@ -880,8 +887,6 @@ type ServiceProperties struct {
 	NetworkRuleSet *NetworkRuleSet `json:"networkRuleSet,omitempty"`
 	// PrivateEndpointConnections - READ-ONLY; The list of private endpoint connections to the Azure Cognitive Search service.
 	PrivateEndpointConnections *[]PrivateEndpointConnection `json:"privateEndpointConnections,omitempty"`
-	// SharedPrivateLinkResources - READ-ONLY; The list of shared private link resources managed by the Azure Cognitive Search service.
-	SharedPrivateLinkResources *[]SharedPrivateLinkResource `json:"sharedPrivateLinkResources,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ServiceProperties.
@@ -934,229 +939,8 @@ func (future *ServicesCreateOrUpdateFuture) Result(client ServicesClient) (s Ser
 	return
 }
 
-// ShareablePrivateLinkResourceProperties describes the properties of a resource type that has been onboarded
-// to private link service, supported by Azure Cognitive Search.
-type ShareablePrivateLinkResourceProperties struct {
-	// Type - READ-ONLY; The resource provider type for the resource that has been onboarded to private link service, supported by Azure Cognitive Search.
-	Type *string `json:"type,omitempty"`
-	// GroupID - READ-ONLY; The resource provider group id for the resource that has been onboarded to private link service, supported by Azure Cognitive Search.
-	GroupID *string `json:"groupId,omitempty"`
-	// Description - READ-ONLY; The description of the resource type that has been onboarded to private link service, supported by Azure Cognitive Search.
-	Description *string `json:"description,omitempty"`
-}
-
-// ShareablePrivateLinkResourceType describes an resource type that has been onboarded to private link service,
-// supported by Azure Cognitive Search.
-type ShareablePrivateLinkResourceType struct {
-	// Name - READ-ONLY; The name of the resource type that has been onboarded to private link service, supported by Azure Cognitive Search.
-	Name *string `json:"name,omitempty"`
-	// Properties - READ-ONLY; Describes the properties of a resource type that has been onboarded to private link service, supported by Azure Cognitive Search.
-	Properties *ShareablePrivateLinkResourceProperties `json:"properties,omitempty"`
-}
-
-// SharedPrivateLinkResource describes a Shared Private Link Resource managed by the Azure Cognitive Search
-// service.
-type SharedPrivateLinkResource struct {
-	autorest.Response `json:"-"`
-	// Name - READ-ONLY; The name of the shared private link resource.
-	Name *string `json:"name,omitempty"`
-	// ID - READ-ONLY; The ID of the shared private link resource.
-	ID *string `json:"id,omitempty"`
-	// Type - READ-ONLY; The resource type.
-	Type *string `json:"type,omitempty"`
-	// Properties - Describes the properties of a Shared Private Link Resource managed by the Azure Cognitive Search service.
-	Properties *SharedPrivateLinkResourceProperties `json:"properties,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for SharedPrivateLinkResource.
-func (splr SharedPrivateLinkResource) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if splr.Properties != nil {
-		objectMap["properties"] = splr.Properties
-	}
-	return json.Marshal(objectMap)
-}
-
-// SharedPrivateLinkResourceListResult response containing a list of Shared Private Link Resources.
-type SharedPrivateLinkResourceListResult struct {
-	autorest.Response `json:"-"`
-	// Value - READ-ONLY; The list of Shared Private Link Resources.
-	Value *[]SharedPrivateLinkResource `json:"value,omitempty"`
-	// NextLink - The URL to get the next set of shared private link resources, if there are any.
-	NextLink *string `json:"nextLink,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for SharedPrivateLinkResourceListResult.
-func (splrlr SharedPrivateLinkResourceListResult) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if splrlr.NextLink != nil {
-		objectMap["nextLink"] = splrlr.NextLink
-	}
-	return json.Marshal(objectMap)
-}
-
-// SharedPrivateLinkResourceListResultIterator provides access to a complete listing of
-// SharedPrivateLinkResource values.
-type SharedPrivateLinkResourceListResultIterator struct {
-	i    int
-	page SharedPrivateLinkResourceListResultPage
-}
-
-// NextWithContext advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-func (iter *SharedPrivateLinkResourceListResultIterator) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/SharedPrivateLinkResourceListResultIterator.NextWithContext")
-		defer func() {
-			sc := -1
-			if iter.Response().Response.Response != nil {
-				sc = iter.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	iter.i++
-	if iter.i < len(iter.page.Values()) {
-		return nil
-	}
-	err = iter.page.NextWithContext(ctx)
-	if err != nil {
-		iter.i--
-		return err
-	}
-	iter.i = 0
-	return nil
-}
-
-// Next advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (iter *SharedPrivateLinkResourceListResultIterator) Next() error {
-	return iter.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the enumeration should be started or is not yet complete.
-func (iter SharedPrivateLinkResourceListResultIterator) NotDone() bool {
-	return iter.page.NotDone() && iter.i < len(iter.page.Values())
-}
-
-// Response returns the raw server response from the last page request.
-func (iter SharedPrivateLinkResourceListResultIterator) Response() SharedPrivateLinkResourceListResult {
-	return iter.page.Response()
-}
-
-// Value returns the current value or a zero-initialized value if the
-// iterator has advanced beyond the end of the collection.
-func (iter SharedPrivateLinkResourceListResultIterator) Value() SharedPrivateLinkResource {
-	if !iter.page.NotDone() {
-		return SharedPrivateLinkResource{}
-	}
-	return iter.page.Values()[iter.i]
-}
-
-// Creates a new instance of the SharedPrivateLinkResourceListResultIterator type.
-func NewSharedPrivateLinkResourceListResultIterator(page SharedPrivateLinkResourceListResultPage) SharedPrivateLinkResourceListResultIterator {
-	return SharedPrivateLinkResourceListResultIterator{page: page}
-}
-
-// IsEmpty returns true if the ListResult contains no values.
-func (splrlr SharedPrivateLinkResourceListResult) IsEmpty() bool {
-	return splrlr.Value == nil || len(*splrlr.Value) == 0
-}
-
-// hasNextLink returns true if the NextLink is not empty.
-func (splrlr SharedPrivateLinkResourceListResult) hasNextLink() bool {
-	return splrlr.NextLink != nil && len(*splrlr.NextLink) != 0
-}
-
-// sharedPrivateLinkResourceListResultPreparer prepares a request to retrieve the next set of results.
-// It returns nil if no more results exist.
-func (splrlr SharedPrivateLinkResourceListResult) sharedPrivateLinkResourceListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if !splrlr.hasNextLink() {
-		return nil, nil
-	}
-	return autorest.Prepare((&http.Request{}).WithContext(ctx),
-		autorest.AsJSON(),
-		autorest.AsGet(),
-		autorest.WithBaseURL(to.String(splrlr.NextLink)))
-}
-
-// SharedPrivateLinkResourceListResultPage contains a page of SharedPrivateLinkResource values.
-type SharedPrivateLinkResourceListResultPage struct {
-	fn     func(context.Context, SharedPrivateLinkResourceListResult) (SharedPrivateLinkResourceListResult, error)
-	splrlr SharedPrivateLinkResourceListResult
-}
-
-// NextWithContext advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-func (page *SharedPrivateLinkResourceListResultPage) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/SharedPrivateLinkResourceListResultPage.NextWithContext")
-		defer func() {
-			sc := -1
-			if page.Response().Response.Response != nil {
-				sc = page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	for {
-		next, err := page.fn(ctx, page.splrlr)
-		if err != nil {
-			return err
-		}
-		page.splrlr = next
-		if !next.hasNextLink() || !next.IsEmpty() {
-			break
-		}
-	}
-	return nil
-}
-
-// Next advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (page *SharedPrivateLinkResourceListResultPage) Next() error {
-	return page.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the page enumeration should be started or is not yet complete.
-func (page SharedPrivateLinkResourceListResultPage) NotDone() bool {
-	return !page.splrlr.IsEmpty()
-}
-
-// Response returns the raw server response from the last page request.
-func (page SharedPrivateLinkResourceListResultPage) Response() SharedPrivateLinkResourceListResult {
-	return page.splrlr
-}
-
-// Values returns the slice of values for the current page or nil if there are no values.
-func (page SharedPrivateLinkResourceListResultPage) Values() []SharedPrivateLinkResource {
-	if page.splrlr.IsEmpty() {
-		return nil
-	}
-	return *page.splrlr.Value
-}
-
-// Creates a new instance of the SharedPrivateLinkResourceListResultPage type.
-func NewSharedPrivateLinkResourceListResultPage(getNextPage func(context.Context, SharedPrivateLinkResourceListResult) (SharedPrivateLinkResourceListResult, error)) SharedPrivateLinkResourceListResultPage {
-	return SharedPrivateLinkResourceListResultPage{fn: getNextPage}
-}
-
-// SharedPrivateLinkResourceProperties describes the properties of an existing Shared Private Link Resource
-// managed by the Azure Cognitive Search service.
-type SharedPrivateLinkResourceProperties struct {
-	// PrivateLinkResourceID - The resource id of the resource the shared private link resource is for.
-	PrivateLinkResourceID *string `json:"privateLinkResourceId,omitempty"`
-	// GroupID - The group id from the provider of resource the shared private link resource is for.
-	GroupID *string `json:"groupId,omitempty"`
-	// RequestMessage - The request message for requesting approval of the shared private link resource.
-	RequestMessage *string `json:"requestMessage,omitempty"`
-	// Status - Status of the shared private link resource. Can be Pending, Approved, Rejected, Disconnected, or Timeout. Possible values include: 'SharedPrivateLinkResourceStatusPending', 'SharedPrivateLinkResourceStatusApproved', 'SharedPrivateLinkResourceStatusRejected', 'SharedPrivateLinkResourceStatusDisconnected', 'SharedPrivateLinkResourceStatusTimeout'
-	Status SharedPrivateLinkResourceStatus `json:"status,omitempty"`
-}
-
-// Sku defines the SKU of an Azure Cognitive Search Service, which determines price tier and capacity limits.
+// Sku defines the SKU of an Azure Cognitive Search Service, which determines price tier and capacity
+// limits.
 type Sku struct {
 	// Name - The SKU of the Search service. Valid values include: 'free': Shared service. 'basic': Dedicated service with up to 3 replicas. 'standard': Dedicated service with up to 12 partitions and 12 replicas. 'standard2': Similar to standard, but with more capacity per search unit. 'standard3': The largest Standard offering with up to 12 partitions and 12 replicas (or up to 3 partitions with more indexes if you also set the hostingMode property to 'highDensity'). 'storage_optimized_l1': Supports 1TB per partition, up to 12 partitions. 'storage_optimized_l2': Supports 2TB per partition, up to 12 partitions.'. Possible values include: 'Free', 'Basic', 'Standard', 'Standard2', 'Standard3', 'StorageOptimizedL1', 'StorageOptimizedL2'
 	Name SkuName `json:"name,omitempty"`

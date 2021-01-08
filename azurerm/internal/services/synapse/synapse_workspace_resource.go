@@ -139,8 +139,11 @@ func resourceSynapseWorkspace() *schema.Resource {
 			},
 
 			"managed_resource_group_name": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.ManagedResourceGroupName(),
 			},
 
 			"tags": tags.Schema(),
@@ -179,6 +182,7 @@ func resourceSynapseWorkspaceCreate(d *schema.ResourceData, meta interface{}) er
 			ManagedVirtualNetwork:         utils.String(managedVirtualNetwork),
 			SQLAdministratorLogin:         utils.String(d.Get("sql_administrator_login").(string)),
 			SQLAdministratorLoginPassword: utils.String(d.Get("sql_administrator_login_password").(string)),
+			ManagedResourceGroupName:      utils.String(d.Get("managed_resource_group_name").(string)),
 		},
 		Identity: &synapse.ManagedIdentity{
 			Type: synapse.ResourceIdentityTypeSystemAssigned,
@@ -387,7 +391,7 @@ func flattenArmWorkspaceManagedIdentity(input *synapse.ManagedIdentity) []interf
 	}
 	var tenantId string
 	if input.TenantID != nil {
-		tenantId = *input.TenantID
+		tenantId = input.TenantID.String()
 	}
 	return []interface{}{
 		map[string]interface{}{

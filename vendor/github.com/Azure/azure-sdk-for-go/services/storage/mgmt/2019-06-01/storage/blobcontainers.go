@@ -98,6 +98,7 @@ func (client BlobContainersClient) ClearLegalHold(ctx context.Context, resourceG
 	result, err = client.ClearLegalHoldResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.BlobContainersClient", "ClearLegalHold", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -201,6 +202,7 @@ func (client BlobContainersClient) Create(ctx context.Context, resourceGroupName
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.BlobContainersClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -308,6 +310,7 @@ func (client BlobContainersClient) CreateOrUpdateImmutabilityPolicy(ctx context.
 	result, err = client.CreateOrUpdateImmutabilityPolicyResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.BlobContainersClient", "CreateOrUpdateImmutabilityPolicy", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -415,6 +418,7 @@ func (client BlobContainersClient) Delete(ctx context.Context, resourceGroupName
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.BlobContainersClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -517,6 +521,7 @@ func (client BlobContainersClient) DeleteImmutabilityPolicy(ctx context.Context,
 	result, err = client.DeleteImmutabilityPolicyResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.BlobContainersClient", "DeleteImmutabilityPolicy", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -624,6 +629,7 @@ func (client BlobContainersClient) ExtendImmutabilityPolicy(ctx context.Context,
 	result, err = client.ExtendImmutabilityPolicyResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.BlobContainersClient", "ExtendImmutabilityPolicy", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -727,6 +733,7 @@ func (client BlobContainersClient) Get(ctx context.Context, resourceGroupName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.BlobContainersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -828,6 +835,7 @@ func (client BlobContainersClient) GetImmutabilityPolicy(ctx context.Context, re
 	result, err = client.GetImmutabilityPolicyResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.BlobContainersClient", "GetImmutabilityPolicy", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -932,6 +940,7 @@ func (client BlobContainersClient) Lease(ctx context.Context, resourceGroupName 
 	result, err = client.LeaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.BlobContainersClient", "Lease", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1033,6 +1042,7 @@ func (client BlobContainersClient) List(ctx context.Context, resourceGroupName s
 	result.lci, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.BlobContainersClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.lci.hasNextLink() && result.lci.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -1106,6 +1116,7 @@ func (client BlobContainersClient) listNextResults(ctx context.Context, lastResu
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.BlobContainersClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -1182,6 +1193,7 @@ func (client BlobContainersClient) LockImmutabilityPolicy(ctx context.Context, r
 	result, err = client.LockImmutabilityPolicyResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.BlobContainersClient", "LockImmutabilityPolicy", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1284,6 +1296,7 @@ func (client BlobContainersClient) SetLegalHold(ctx context.Context, resourceGro
 	result, err = client.SetLegalHoldResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.BlobContainersClient", "SetLegalHold", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1386,6 +1399,7 @@ func (client BlobContainersClient) Update(ctx context.Context, resourceGroupName
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.BlobContainersClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

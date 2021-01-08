@@ -35,7 +35,7 @@ func (id BotChannelId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Bot Channel", segmentsStr)
 }
 
-func (id BotChannelId) ID(_ string) string {
+func (id BotChannelId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.BotService/botServices/%s/channels/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.BotServiceName, id.ChannelName)
 }

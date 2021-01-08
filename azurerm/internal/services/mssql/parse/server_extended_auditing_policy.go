@@ -35,7 +35,7 @@ func (id ServerExtendedAuditingPolicyId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Server Extended Auditing Policy", segmentsStr)
 }
 
-func (id ServerExtendedAuditingPolicyId) ID(_ string) string {
+func (id ServerExtendedAuditingPolicyId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Sql/servers/%s/extendedAuditingSettings/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServerName, id.ExtendedAuditingSettingName)
 }

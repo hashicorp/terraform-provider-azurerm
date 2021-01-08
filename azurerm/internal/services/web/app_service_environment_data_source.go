@@ -13,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmAppServiceEnvironment() *schema.Resource {
+func dataSourceAppServiceEnvironment() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmAppServiceEnvironmentRead,
+		Read: dataSourceAppServiceEnvironmentRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -64,7 +64,7 @@ func dataSourceArmAppServiceEnvironment() *schema.Resource {
 	}
 }
 
-func dataSourceArmAppServiceEnvironmentRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAppServiceEnvironmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServiceEnvironmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

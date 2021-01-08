@@ -32,7 +32,7 @@ func (id ManagedDiskId) String() string {
 	return fmt.Sprintf("%s: (%s)", "Managed Disk", segmentsStr)
 }
 
-func (id ManagedDiskId) ID(_ string) string {
+func (id ManagedDiskId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/disks/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DiskName)
 }

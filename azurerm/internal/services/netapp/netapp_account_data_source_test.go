@@ -6,28 +6,28 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func testAccDataSourceAzureRMNetAppAccount_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_netapp_account", "test")
+type NetAppAccountDataSource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceNetAppAccount_basicConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-				),
-			},
+func testAccDataSourceNetAppAccount_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_netapp_account", "test")
+	r := NetAppAccountDataSource{}
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basicConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("name").Exists(),
+			),
 		},
 	})
 }
 
-func testAccDataSourceNetAppAccount_basicConfig(data acceptance.TestData) string {
-	config := testAccAzureRMNetAppAccount_basicConfig(data)
+func (r NetAppAccountDataSource) basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -35,5 +35,5 @@ data "azurerm_netapp_account" "test" {
   resource_group_name = azurerm_netapp_account.test.resource_group_name
   name                = azurerm_netapp_account.test.name
 }
-`, config)
+`, NetAppAccountResource{}.basicConfig(data))
 }

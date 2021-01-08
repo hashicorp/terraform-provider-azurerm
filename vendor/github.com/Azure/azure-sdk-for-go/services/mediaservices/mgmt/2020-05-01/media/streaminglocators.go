@@ -85,6 +85,7 @@ func (client StreamingLocatorsClient) Create(ctx context.Context, resourceGroupN
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.StreamingLocatorsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -164,6 +165,7 @@ func (client StreamingLocatorsClient) Delete(ctx context.Context, resourceGroupN
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.StreamingLocatorsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -240,6 +242,7 @@ func (client StreamingLocatorsClient) Get(ctx context.Context, resourceGroupName
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.StreamingLocatorsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -321,6 +324,7 @@ func (client StreamingLocatorsClient) List(ctx context.Context, resourceGroupNam
 	result.slc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.StreamingLocatorsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.slc.hasNextLink() && result.slc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -394,6 +398,7 @@ func (client StreamingLocatorsClient) listNextResults(ctx context.Context, lastR
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.StreamingLocatorsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -446,6 +451,7 @@ func (client StreamingLocatorsClient) ListContentKeys(ctx context.Context, resou
 	result, err = client.ListContentKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.StreamingLocatorsClient", "ListContentKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -523,6 +529,7 @@ func (client StreamingLocatorsClient) ListPaths(ctx context.Context, resourceGro
 	result, err = client.ListPathsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.StreamingLocatorsClient", "ListPaths", resp, "Failure responding to request")
+		return
 	}
 
 	return
