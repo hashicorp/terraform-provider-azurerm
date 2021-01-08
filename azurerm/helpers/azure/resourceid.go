@@ -39,7 +39,7 @@ func ParseAzureResourceID(id string) (*ResourceID, error) {
 		return nil, fmt.Errorf("The number of path segments is not divisible by 2 in %q", path)
 	}
 
-	var subscriptionID string
+	var subscriptionID, provider string
 
 	// Put the constituent key-value pairs into a map
 	componentMap := make(map[string]string, len(components)/2)
@@ -54,9 +54,12 @@ func ParseAzureResourceID(id string) (*ResourceID, error) {
 
 		// Catch the subscriptionID before it can be overwritten by another "subscriptions"
 		// value in the ID which is the case for the Service Bus subscription resource
-		if key == "subscriptions" && subscriptionID == "" {
+		switch {
+		case key == "subscriptions" && subscriptionID == "":
 			subscriptionID = value
-		} else {
+		case key == "providers" && provider == "": // The same for provider for serverVulnerabilityAssessment resource
+			provider = value
+		default:
 			componentMap[key] = value
 		}
 	}
@@ -83,9 +86,8 @@ func ParseAzureResourceID(id string) (*ResourceID, error) {
 	}
 
 	// It is OK not to have a provider in the case of a resource group
-	if provider, ok := componentMap["providers"]; ok {
+	if provider != "" {
 		idObj.Provider = provider
-		delete(componentMap, "providers")
 	}
 
 	return idObj, nil
