@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -22,6 +23,15 @@ func resourceArmDataFactory() *schema.Resource {
 		Read:   resourceArmDataFactoryRead,
 		Update: resourceArmDataFactoryCreateUpdate,
 		Delete: resourceArmDataFactoryDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    migration.DataFactoryUpgradeV0Schema().CoreConfigSchema().ImpliedType(),
+				Upgrade: migration.DataFactoryUpgradeV0ToV1,
+				Version: 0,
+			},
+		},
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -151,6 +161,12 @@ func resourceArmDataFactory() *schema.Resource {
 				},
 			},
 
+			"public_network_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -180,8 +196,15 @@ func resourceArmDataFactoryCreateUpdate(d *schema.ResourceData, meta interface{}
 	}
 
 	dataFactory := datafactory.Factory{
-		Location: &location,
-		Tags:     tags.Expand(t),
+		Location:          &location,
+		FactoryProperties: &datafactory.FactoryProperties{},
+		Tags:              tags.Expand(t),
+	}
+
+	dataFactory.PublicNetworkAccess = datafactory.PublicNetworkAccessEnabled
+	enabled := d.Get("public_network_enabled").(bool)
+	if !enabled {
+		dataFactory.FactoryProperties.PublicNetworkAccess = datafactory.PublicNetworkAccessDisabled
 	}
 
 	if v, ok := d.GetOk("identity.0.type"); ok {
@@ -267,6 +290,11 @@ func resourceArmDataFactoryRead(d *schema.ResourceData, meta interface{}) error 
 
 	if err := d.Set("identity", flattenArmDataFactoryIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("Error flattening `identity`: %+v", err)
+	}
+
+	// This variable isn't returned from the API if it hasn't been passed in first but we know the default is `true`
+	if resp.PublicNetworkAccess != "" {
+		d.Set("public_network_enabled", resp.PublicNetworkAccess == datafactory.PublicNetworkAccessEnabled)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

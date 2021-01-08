@@ -160,6 +160,39 @@ func TestAccAzureRMDataFactory_github(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMDataFactory_publicNetworkDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMDataFactoryDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDataFactory_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataFactoryExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMDataFactory_publicNetworkDisabled(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataFactoryExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMDataFactory_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataFactoryExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMDataFactoryExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.FactoriesClient
@@ -384,4 +417,25 @@ resource "azurerm_data_factory" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMDataFactory_publicNetworkDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  public_network_enabled = false
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
