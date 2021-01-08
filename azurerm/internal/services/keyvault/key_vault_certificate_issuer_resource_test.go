@@ -112,7 +112,7 @@ func TestAccKeyVaultCertificateIssuer_disappearsWhenParentKeyVaultDeleted(t *tes
 		{
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
-				testCheckKeyVaultCertificateIssuerDisappears("azurerm_key_vault.test"),
+				testCheckKeyVaultCertificateIssuerDisappears(data.ResourceName),
 			),
 			ExpectNonEmptyPlan: true,
 		},
