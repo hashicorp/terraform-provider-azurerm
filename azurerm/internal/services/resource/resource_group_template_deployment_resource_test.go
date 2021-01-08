@@ -215,6 +215,32 @@ func TestAccResourceGroupTemplateDeployment_childItems(t *testing.T) {
 	})
 }
 
+func TestAccResourceGroupTemplateDeployment_updateExpressionEvaluationOption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckResourceGroupTemplateDeploymentDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: resourceGroupTemplateDeployment_updateExpressionEvaluationOptionConfig(data, "Inner"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("expression_evaluation_option"),
+			{
+				Config: resourceGroupTemplateDeployment_updateExpressionEvaluationOptionConfig(data, "Outer"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("expression_evaluation_option"),
+		},
+	})
+}
+
 func TestAccResourceGroupTemplateDeployment_updateOnErrorDeployment(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
 
@@ -879,6 +905,31 @@ resource "azurerm_resource_group_template_deployment" "test" {
 TEMPLATE
 }
 `, template, data.RandomInteger, data.RandomInteger)
+}
+
+func resourceGroupTemplateDeployment_updateExpressionEvaluationOptionConfig(data acceptance.TestData, scope string) string {
+	template := resourceGroupTemplateDeployment_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_resource_group_template_deployment" "test" {
+  name                = "acctest-UpdatedDeployment-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  deployment_mode     = "Complete"
+
+  template_link {
+    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-vnet-two-subnets/azuredeploy.json"
+  }
+
+  parameters_link {
+    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-vnet-two-subnets/azuredeploy.parameters.json"
+  }
+
+  expression_evaluation_option {
+    scope = "%s"
+  }
+}
+`, template, data.RandomInteger, scope)
 }
 
 func resourceGroupTemplateDeployment_template(data acceptance.TestData) string {

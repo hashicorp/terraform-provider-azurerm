@@ -62,6 +62,8 @@ The following arguments are supported:
 
 * `debug_level` - (Optional) The Debug Level which should be used for this Resource Group Template Deployment. Possible values are `none`, `requestContent`, `responseContent` and `requestContent, responseContent`.
 
+* `expression_evaluation_option` - (Optional) An `expression_evaluation_option` block as defined below.
+
 * `on_error_deployment` - (Optional) An `on_error_deployment` block as defined below.
 
 * `parameters_content` - (Optional) The contents of the ARM Template parameters file - containing a JSON list of parameters.
@@ -75,6 +77,12 @@ The following arguments are supported:
 * `template_link` - (Optional)  A `template_link` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Resource Group Template Deployment.
+
+---
+
+An `expression_evaluation_option` block exports the following:
+
+* `scope` - (Optional) The scope to be used for evaluation of parameters, variables and functions in the nested ARM Template. Possible values are `Inner`, `Outer` and `NotSpecified`. Defaults to `Outer`.
 
 ---
 

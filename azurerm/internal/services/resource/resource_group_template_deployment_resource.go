@@ -67,6 +67,26 @@ func resourceGroupTemplateDeploymentResource() *schema.Resource {
 				ValidateFunc: validation.StringInSlice(templateDeploymentDebugLevels, false),
 			},
 
+			"expression_evaluation_option": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"scope": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  resources.ExpressionEvaluationOptionsScopeTypeOuter,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(resources.ExpressionEvaluationOptionsScopeTypeNotSpecified),
+								string(resources.ExpressionEvaluationOptionsScopeTypeOuter),
+								string(resources.ExpressionEvaluationOptionsScopeTypeInner),
+							}, false),
+						},
+					},
+				},
+			},
+
 			"on_error_deployment": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -200,6 +220,10 @@ func resourceGroupTemplateDeploymentResourceCreate(d *schema.ResourceData, meta 
 		}
 
 		deployment.Properties.Template = template
+	}
+
+	if v, ok := d.GetOk("expression_evaluation_option"); ok {
+		deployment.Properties.ExpressionEvaluationOptions = expandArmTemplateDeploymentResourceGroupExpressionEvaluationOption(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("on_error_deployment"); ok {
@@ -497,6 +521,18 @@ func validateResourceGroupTemplateDeployment(ctx context.Context, id parse.Resou
 	}
 
 	return nil
+}
+
+func expandArmTemplateDeploymentResourceGroupExpressionEvaluationOption(input []interface{}) *resources.ExpressionEvaluationOptions {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	return &resources.ExpressionEvaluationOptions{
+		Scope: resources.ExpressionEvaluationOptionsScopeType(v["scope"].(string)),
+	}
 }
 
 func expandArmTemplateDeploymentResourceGroupOnErrorDeployment(input []interface{}) *resources.OnErrorDeployment {
