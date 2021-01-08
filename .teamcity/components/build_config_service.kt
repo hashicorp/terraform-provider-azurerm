@@ -5,7 +5,7 @@ class serviceDetails(name: String, displayName: String, environment: String) {
     val displayName = displayName
     val environment = environment
 
-    fun buildConfiguration(providerName : String, nightlyTestsEnabled: Boolean, startHour: Int, parallelism: Int) : BuildType {
+    fun buildConfiguration(providerName : String, nightlyTestsEnabled: Boolean, startHstartHourour: Int, parallelism: Int) : BuildType {
         return BuildType {
             // TC needs a consistent ID for dynamically generated packages
             id(uniqueID(providerName))
