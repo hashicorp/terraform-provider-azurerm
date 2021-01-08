@@ -1,5 +1,10 @@
 ## 2.42.0 (Unreleased)
 
+BREAKING CHANGES
+
+* `azurerm_key_vault` - the field `soft_delete_enabled` is now defaulted to `true` to match the breaking change in the Azure API where Key Vaults now have Soft Delete enabled by default, which cannot be disabled. This property is now non-functional, defaults to `true` and will be removed in version 3.0 of the Azure Provider. [GH-10088]
+* `azurerm_key_vault` - the field `soft_delete_retention_days` is now defaulted to `90` days to match the Azure API behaviour, as the Azure API does not return a value for this field when not explicitly configured, so defaulting this removes a diff with `0`. [GH-10088]
+
 FEATURES:
 
 * **New Data Source:** `azurerm_eventgrid_domain_topic` [GH-10050]
@@ -33,6 +38,7 @@ IMPROVEMENTS:
 * `azurerm_function_app` - now supports  `service_tag` in `ip_restriction` blocks [GH-9609]
 * `azurerm_hdinsight_hadoop_cluster` - allow the value `Standard_D4a_V4` for the `vm_type` property [GH-10000]
 * `azurerm_hdinsight_kafka_cluster` - support for the `rest_proxy` and `kafka_management_node` blocks [GH-8064]
+* `azurerm_key_vault` - the field `soft_delete_enabled` is now defaulted to `true` to match the Azure API behaviour where Soft Delete is force-enabled and can no longer be disabled. This field is deprecated, can be safely removed from your Terraform Configuration, and will be removed in version 3.0 of the Azure Provider. [GH-10088]
 * `azurerm_kubernetes_cluster` - add support for network_mode [GH-8828]
 * `azurerm_log_analytics_linked_service` - add validation for resource ID type [GH-9932]
 * `azurerm_log_analytics_linked_service` - update validation to use generated validate functions [GH-9950]
@@ -55,6 +61,7 @@ provider: will not correctly register the `Microsoft.Blueprint` and `Microsoft.H
 * `azurerm_cdn_endpoint` - changing many `delivery_rule` condition `match_values` to optional [GH-8850]
 * `azurerm_cosmosdb_account` - always include `key_vault_id` in update requests for azure policy enginer compatibility [GH-9966]
 * `azurerm_cosmosdb_table` - do not call the throughput api when serverless [GH-9749]
+* `azurerm_key_vault` - the field `soft_delete_retention_days` is now defaulted to `90` days to match the Azure API behaviour. [GH-10088]
 * `azurerm_kubernetes_cluster` - parse oms `log_analytics_workspace_id` to ensure correct casing [GH-9976]
 * `azurerm_role_assignment` fix crash in retry logic [GH-10051]
 * `azurerm_storage_account` - allow hns when `account_tier` is `Premium` [GH-9548]
