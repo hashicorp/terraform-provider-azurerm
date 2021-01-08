@@ -6,9 +6,8 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/parse"
 
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -98,14 +97,10 @@ func TestAccMySQLVirtualNetworkRule_disappears(t *testing.T) {
 	r := MySQLVirtualNetworkRuleResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckMySQLVirtualNetworkRuleDisappears(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
 	})
 }
 
@@ -123,16 +118,12 @@ func TestAccMySQLVirtualNetworkRule_multipleSubnets(t *testing.T) {
 	})
 }
 
-func (t MySQLVirtualNetworkRuleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := azure.ParseAzureResourceID(state.ID)
+func (r MySQLVirtualNetworkRuleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.VirtualNetworkRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resourceGroup := id.ResourceGroup
-	serverName := id.Path["servers"]
-	name := id.Path["virtualNetworkRules"]
-
-	resp, err := clients.MySQL.VirtualNetworkRulesClient.Get(ctx, resourceGroup, serverName, name)
+	resp, err := clients.MySQL.VirtualNetworkRulesClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("reading MySQL Virtual Network Rule (%s): %+v", id, err)
 	}
@@ -140,43 +131,22 @@ func (t MySQLVirtualNetworkRuleResource) Exists(ctx context.Context, clients *cl
 	return utils.Bool(resp.ID != nil), nil
 }
 
-func testCheckMySQLVirtualNetworkRuleDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.VirtualNetworkRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serverName := rs.Primary.Attributes["server_name"]
-		ruleName := rs.Primary.Attributes["name"]
-
-		future, err := client.Delete(ctx, resourceGroup, serverName, ruleName)
-		if err != nil {
-			// If the error is that the resource we want to delete does not exist in the first
-			// place (404), then just return with no error.
-			if response.WasNotFound(future.Response()) {
-				return nil
-			}
-
-			return fmt.Errorf("Error deleting MySql Virtual Network Rule: %+v", err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			// Same deal as before. Just in case.
-			if response.WasNotFound(future.Response()) {
-				return nil
-			}
-
-			return fmt.Errorf("Error deleting MySql Virtual Network Rule: %+v", err)
-		}
-
-		return nil
+func (r MySQLVirtualNetworkRuleResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.VirtualNetworkRuleID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	future, err := client.MySQL.VirtualNetworkRulesClient.Delete(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("deleting MySQL Virtual Network Rule (%s): %+v", id, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.MySQL.VirtualNetworkRulesClient.Client); err != nil {
+		return nil, fmt.Errorf("waiting for deletion of MySQL Virtual Network Rule (%s): %+v", id, err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func (MySQLVirtualNetworkRuleResource) basic(data acceptance.TestData) string {
