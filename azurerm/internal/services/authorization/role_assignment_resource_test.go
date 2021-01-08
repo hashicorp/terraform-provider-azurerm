@@ -22,7 +22,7 @@ func TestAccRoleAssignment(t *testing.T) {
 	// Azure only being happy about provisioning a couple at a time
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"basic": {
-			"emptyName":      testAccRoleAssignment_emptyName,
+			//"emptyName":      testAccRoleAssignment_emptyName,
 			"roleName":       testAccRoleAssignment_roleName,
 			"dataActions":    testAccRoleAssignment_dataActions,
 			"builtin":        testAccRoleAssignment_builtin,
@@ -40,7 +40,7 @@ func TestAccRoleAssignment(t *testing.T) {
 	})
 }
 
-func testAccRoleAssignment_emptyName(t *testing.T) {
+func TestAccRoleAssignment_emptyName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
 	r := RoleAssignmentResource{}
 
@@ -221,17 +221,17 @@ func testAccRoleAssignment_managementGroup(t *testing.T) {
 }
 
 func (r RoleAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.RoleDefinitionId(state.ID)
+	id, err := parse.RoleAssignmentId(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Authorization.RoleAssignmentsClient.Get(ctx, id.Scope, id.RoleID)
+	resp, err := client.Authorization.RoleAssignmentsClient.GetByID(ctx, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
-		return nil, fmt.Errorf("retrieving Role Assignment for role %q (Scope %q): %+v", id.RoleID, id.Scope, err)
+		return nil, fmt.Errorf("retrieving Role Assignment for role %q: %+v", id.Name, err)
 	}
 	return utils.Bool(true), nil
 }
