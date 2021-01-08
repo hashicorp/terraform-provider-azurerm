@@ -53,12 +53,12 @@ func supressWhenAll(fs ...schema.SchemaDiffSuppressFunc) schema.SchemaDiffSuppre
 	}
 }
 
-func resourceArmIotHub() *schema.Resource {
+func resourceIotHub() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIotHubCreateUpdate,
-		Read:   resourceArmIotHubRead,
-		Update: resourceArmIotHubCreateUpdate,
-		Delete: resourceArmIotHubDelete,
+		Create: resourceIotHubCreateUpdate,
+		Read:   resourceIotHubRead,
+		Update: resourceIotHubCreateUpdate,
+		Delete: resourceIotHubDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.IotHubID(id)
@@ -464,7 +464,7 @@ func resourceArmIotHub() *schema.Resource {
 	}
 }
 
-func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -581,10 +581,10 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 
 	d.SetId(*resp.ID)
 
-	return resourceArmIotHubRead(d, meta)
+	return resourceIotHubRead(d, meta)
 }
 
-func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -681,7 +681,7 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, hub.Tags)
 }
 
-func resourceArmIotHubDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceIotHubDelete(d *schema.ResourceData, meta interface{}) error {
 	id, err := parse.IotHubID(d.Id())
 	if err != nil {
 		return err

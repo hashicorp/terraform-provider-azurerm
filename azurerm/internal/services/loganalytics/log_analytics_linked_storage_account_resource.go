@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLogAnalyticsLinkedStorageAccount() *schema.Resource {
+func resourceLogAnalyticsLinkedStorageAccount() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogAnalyticsLinkedStorageAccountCreateUpdate,
-		Read:   resourceArmLogAnalyticsLinkedStorageAccountRead,
-		Update: resourceArmLogAnalyticsLinkedStorageAccountCreateUpdate,
-		Delete: resourceArmLogAnalyticsLinkedStorageAccountDelete,
+		Create: resourceLogAnalyticsLinkedStorageAccountCreateUpdate,
+		Read:   resourceLogAnalyticsLinkedStorageAccountRead,
+		Update: resourceLogAnalyticsLinkedStorageAccountCreateUpdate,
+		Delete: resourceLogAnalyticsLinkedStorageAccountDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -76,7 +76,7 @@ func resourceArmLogAnalyticsLinkedStorageAccount() *schema.Resource {
 	}
 }
 
-func resourceArmLogAnalyticsLinkedStorageAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsLinkedStorageAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.LinkedStorageAccountClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -119,10 +119,10 @@ func resourceArmLogAnalyticsLinkedStorageAccountCreateUpdate(d *schema.ResourceD
 	}
 
 	d.SetId(*resp.ID)
-	return resourceArmLogAnalyticsLinkedStorageAccountRead(d, meta)
+	return resourceLogAnalyticsLinkedStorageAccountRead(d, meta)
 }
 
-func resourceArmLogAnalyticsLinkedStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsLinkedStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.LinkedStorageAccountClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -153,7 +153,7 @@ func resourceArmLogAnalyticsLinkedStorageAccountRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceArmLogAnalyticsLinkedStorageAccountDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogAnalyticsLinkedStorageAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.LinkedStorageAccountClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

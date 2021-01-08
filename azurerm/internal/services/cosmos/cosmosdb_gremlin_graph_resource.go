@@ -21,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmCosmosDbGremlinGraph() *schema.Resource {
+func resourceCosmosDbGremlinGraph() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCosmosDbGremlinGraphCreate,
-		Read:   resourceArmCosmosDbGremlinGraphRead,
-		Update: resourceArmCosmosDbGremlinGraphUpdate,
-		Delete: resourceArmCosmosDbGremlinGraphDelete,
+		Create: resourceCosmosDbGremlinGraphCreate,
+		Read:   resourceCosmosDbGremlinGraphRead,
+		Update: resourceCosmosDbGremlinGraphUpdate,
+		Delete: resourceCosmosDbGremlinGraphDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -186,7 +186,7 @@ func resourceArmCosmosDbGremlinGraph() *schema.Resource {
 	}
 }
 
-func resourceArmCosmosDbGremlinGraphCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbGremlinGraphCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.GremlinClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -263,10 +263,10 @@ func resourceArmCosmosDbGremlinGraphCreate(d *schema.ResourceData, meta interfac
 
 	d.SetId(*resp.ID)
 
-	return resourceArmCosmosDbGremlinGraphRead(d, meta)
+	return resourceCosmosDbGremlinGraphRead(d, meta)
 }
 
-func resourceArmCosmosDbGremlinGraphUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbGremlinGraphUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.GremlinClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -330,10 +330,10 @@ func resourceArmCosmosDbGremlinGraphUpdate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	return resourceArmCosmosDbGremlinGraphRead(d, meta)
+	return resourceCosmosDbGremlinGraphRead(d, meta)
 }
 
-func resourceArmCosmosDbGremlinGraphRead(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbGremlinGraphRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.GremlinClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -406,7 +406,7 @@ func resourceArmCosmosDbGremlinGraphRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceArmCosmosDbGremlinGraphDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbGremlinGraphDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.GremlinClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

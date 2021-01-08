@@ -77,6 +77,7 @@ func (client SyncGroupsClient) CancelSync(ctx context.Context, resourceGroupName
 	result, err = client.CancelSyncResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "CancelSync", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -318,6 +319,7 @@ func (client SyncGroupsClient) Get(ctx context.Context, resourceGroupName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -398,6 +400,7 @@ func (client SyncGroupsClient) ListByDatabase(ctx context.Context, resourceGroup
 	result.sglr, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "ListByDatabase", resp, "Failure responding to request")
+		return
 	}
 	if result.sglr.hasNextLink() && result.sglr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -463,6 +466,7 @@ func (client SyncGroupsClient) listByDatabaseNextResults(ctx context.Context, la
 	result, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "listByDatabaseNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -518,6 +522,7 @@ func (client SyncGroupsClient) ListHubSchemas(ctx context.Context, resourceGroup
 	result.sfsplr, err = client.ListHubSchemasResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "ListHubSchemas", resp, "Failure responding to request")
+		return
 	}
 	if result.sfsplr.hasNextLink() && result.sfsplr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -584,6 +589,7 @@ func (client SyncGroupsClient) listHubSchemasNextResults(ctx context.Context, la
 	result, err = client.ListHubSchemasResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "listHubSchemasNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -643,6 +649,7 @@ func (client SyncGroupsClient) ListLogs(ctx context.Context, resourceGroupName s
 	result.sgllr, err = client.ListLogsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "ListLogs", resp, "Failure responding to request")
+		return
 	}
 	if result.sgllr.hasNextLink() && result.sgllr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -715,6 +722,7 @@ func (client SyncGroupsClient) listLogsNextResults(ctx context.Context, lastResu
 	result, err = client.ListLogsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "listLogsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -766,6 +774,7 @@ func (client SyncGroupsClient) ListSyncDatabaseIds(ctx context.Context, location
 	result.sdilr, err = client.ListSyncDatabaseIdsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "ListSyncDatabaseIds", resp, "Failure responding to request")
+		return
 	}
 	if result.sdilr.hasNextLink() && result.sdilr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -829,6 +838,7 @@ func (client SyncGroupsClient) listSyncDatabaseIdsNextResults(ctx context.Contex
 	result, err = client.ListSyncDatabaseIdsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "listSyncDatabaseIdsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -962,6 +972,7 @@ func (client SyncGroupsClient) TriggerSync(ctx context.Context, resourceGroupNam
 	result, err = client.TriggerSyncResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncGroupsClient", "TriggerSync", resp, "Failure responding to request")
+		return
 	}
 
 	return

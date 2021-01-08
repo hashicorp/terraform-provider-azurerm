@@ -16,12 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementProperty() *schema.Resource {
+func resourceApiManagementProperty() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementPropertyCreateUpdate,
-		Read:   resourceArmApiManagementPropertyRead,
-		Update: resourceArmApiManagementPropertyCreateUpdate,
-		Delete: resourceArmApiManagementPropertyDelete,
+		Create: resourceApiManagementPropertyCreateUpdate,
+		Read:   resourceApiManagementPropertyRead,
+		Update: resourceApiManagementPropertyCreateUpdate,
+		Delete: resourceApiManagementPropertyDelete,
 
 		DeprecationMessage: "This resource has been superseded by `azurerm_api_management_named_value` to reflects changes in the API/SDK and will be removed in version 3.0 of the provider.",
 
@@ -81,7 +81,7 @@ func resourceArmApiManagementProperty() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementPropertyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementPropertyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.NamedValueClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -133,10 +133,10 @@ func resourceArmApiManagementPropertyCreateUpdate(d *schema.ResourceData, meta i
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementPropertyRead(d, meta)
+	return resourceApiManagementPropertyRead(d, meta)
 }
 
-func resourceArmApiManagementPropertyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementPropertyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.NamedValueClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -176,7 +176,7 @@ func resourceArmApiManagementPropertyRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func resourceArmApiManagementPropertyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementPropertyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.NamedValueClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

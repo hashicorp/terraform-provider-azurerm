@@ -1,164 +1,118 @@
 package netapp_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMNetAppPool_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_netapp_pool", "test")
+type NetAppPoolResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppPoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetAppPool_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppPoolExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccNetAppPool_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_pool", "test")
+	r := NetAppPoolResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppPool_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_pool", "test")
+	r := NetAppPoolResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_netapp_pool"),
 		},
 	})
 }
 
-func TestAccAzureRMNetAppPool_requiresImport(t *testing.T) {
+func TestAccNetAppPool_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_pool", "test")
+	r := NetAppPoolResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppPoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetAppPool_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppPoolExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMNetAppPool_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_netapp_pool"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("service_level").HasValue("Standard"),
+				check.That(data.ResourceName).Key("size_in_tb").HasValue("15"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMNetAppPool_complete(t *testing.T) {
+func TestAccNetAppPool_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_pool", "test")
+	r := NetAppPoolResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppPoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetAppPool_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppPoolExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "service_level", "Standard"),
-					resource.TestCheckResourceAttr(data.ResourceName, "size_in_tb", "15"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.FoO", "BaR"),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("service_level").HasValue("Standard"),
+				check.That(data.ResourceName).Key("size_in_tb").HasValue("4"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("service_level").HasValue("Standard"),
+				check.That(data.ResourceName).Key("size_in_tb").HasValue("15"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMNetAppPool_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_netapp_pool", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppPoolDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetAppPool_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppPoolExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "service_level", "Standard"),
-					resource.TestCheckResourceAttr(data.ResourceName, "size_in_tb", "4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMNetAppPool_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppPoolExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "service_level", "Standard"),
-					resource.TestCheckResourceAttr(data.ResourceName, "size_in_tb", "15"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.FoO", "BaR"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testCheckAzureRMNetAppPoolExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).NetApp.PoolClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("NetApp Pool not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		accountName := rs.Primary.Attributes["account_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		if resp, err := client.Get(ctx, resourceGroup, accountName, name); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: NetApp Pool %q (Resource Group %q) does not exist", name, resourceGroup)
-			}
-			return fmt.Errorf("Bad: Get on netapp.PoolClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMNetAppPoolDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).NetApp.PoolClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_netapp_pool" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		accountName := rs.Primary.Attributes["account_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		if resp, err := client.Get(ctx, resourceGroup, accountName, name); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on netapp.PoolClient: %+v", err)
-			}
-		}
-
-		return nil
+func (t NetAppPoolResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.CapacityPoolID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.NetApp.PoolClient.Get(ctx, id.ResourceGroup, id.NetAppAccountName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Netapp Pool (%s): %+v", id.String(), err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMNetAppPool_basic(data acceptance.TestData) string {
+func (NetAppPoolResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -186,7 +140,7 @@ resource "azurerm_netapp_pool" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMNetAppPool_requiresImport(data acceptance.TestData) string {
+func (r NetAppPoolResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_netapp_pool" "import" {
@@ -197,10 +151,10 @@ resource "azurerm_netapp_pool" "import" {
   service_level       = azurerm_netapp_pool.test.service_level
   size_in_tb          = azurerm_netapp_pool.test.size_in_tb
 }
-`, testAccAzureRMNetAppPool_basic(data))
+`, r.basic(data))
 }
 
-func testAccAzureRMNetAppPool_complete(data acceptance.TestData) string {
+func (NetAppPoolResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -239,6 +239,7 @@ func (client VpnGatewaysClient) Get(ctx context.Context, resourceGroupName strin
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnGatewaysClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -312,6 +313,7 @@ func (client VpnGatewaysClient) List(ctx context.Context) (result ListVpnGateway
 	result.lvgr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnGatewaysClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.lvgr.hasNextLink() && result.lvgr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -374,6 +376,7 @@ func (client VpnGatewaysClient) listNextResults(ctx context.Context, lastResults
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnGatewaysClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -425,6 +428,7 @@ func (client VpnGatewaysClient) ListByResourceGroup(ctx context.Context, resourc
 	result.lvgr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnGatewaysClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.lvgr.hasNextLink() && result.lvgr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -488,6 +492,7 @@ func (client VpnGatewaysClient) listByResourceGroupNextResults(ctx context.Conte
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnGatewaysClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -615,6 +620,7 @@ func (client VpnGatewaysClient) UpdateTags(ctx context.Context, resourceGroupNam
 	result, err = client.UpdateTagsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnGatewaysClient", "UpdateTags", resp, "Failure responding to request")
+		return
 	}
 
 	return

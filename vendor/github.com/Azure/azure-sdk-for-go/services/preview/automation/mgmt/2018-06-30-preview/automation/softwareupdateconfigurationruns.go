@@ -85,6 +85,7 @@ func (client SoftwareUpdateConfigurationRunsClient) GetByID(ctx context.Context,
 	result, err = client.GetByIDResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.SoftwareUpdateConfigurationRunsClient", "GetByID", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -178,6 +179,7 @@ func (client SoftwareUpdateConfigurationRunsClient) List(ctx context.Context, re
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.SoftwareUpdateConfigurationRunsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

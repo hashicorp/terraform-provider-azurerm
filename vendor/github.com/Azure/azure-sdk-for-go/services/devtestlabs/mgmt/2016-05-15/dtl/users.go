@@ -74,6 +74,7 @@ func (client UsersClient) CreateOrUpdate(ctx context.Context, resourceGroupName 
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.UsersClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -230,6 +231,7 @@ func (client UsersClient) Get(ctx context.Context, resourceGroupName string, lab
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.UsersClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -314,6 +316,7 @@ func (client UsersClient) List(ctx context.Context, resourceGroupName string, la
 	result.rwcu, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.UsersClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.rwcu.hasNextLink() && result.rwcu.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -390,6 +393,7 @@ func (client UsersClient) listNextResults(ctx context.Context, lastResults Respo
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.UsersClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -443,6 +447,7 @@ func (client UsersClient) Update(ctx context.Context, resourceGroupName string, 
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.UsersClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

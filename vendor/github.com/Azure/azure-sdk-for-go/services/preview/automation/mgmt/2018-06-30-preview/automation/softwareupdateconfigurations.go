@@ -90,6 +90,7 @@ func (client SoftwareUpdateConfigurationsClient) Create(ctx context.Context, res
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.SoftwareUpdateConfigurationsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -185,6 +186,7 @@ func (client SoftwareUpdateConfigurationsClient) Delete(ctx context.Context, res
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.SoftwareUpdateConfigurationsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -274,6 +276,7 @@ func (client SoftwareUpdateConfigurationsClient) GetByName(ctx context.Context, 
 	result, err = client.GetByNameResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.SoftwareUpdateConfigurationsClient", "GetByName", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -364,6 +367,7 @@ func (client SoftwareUpdateConfigurationsClient) List(ctx context.Context, resou
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.SoftwareUpdateConfigurationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

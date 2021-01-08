@@ -175,6 +175,7 @@ func (client ServerSecurityAlertPoliciesClient) Get(ctx context.Context, resourc
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "postgresql.ServerSecurityAlertPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

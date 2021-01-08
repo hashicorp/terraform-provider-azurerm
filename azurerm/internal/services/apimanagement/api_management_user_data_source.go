@@ -11,9 +11,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmApiManagementUser() *schema.Resource {
+func dataSourceApiManagementUser() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmApiManagementUserRead,
+		Read: dataSourceApiManagementUserRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -54,7 +54,7 @@ func dataSourceArmApiManagementUser() *schema.Resource {
 	}
 }
 
-func dataSourceArmApiManagementUserRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceApiManagementUserRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.UsersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

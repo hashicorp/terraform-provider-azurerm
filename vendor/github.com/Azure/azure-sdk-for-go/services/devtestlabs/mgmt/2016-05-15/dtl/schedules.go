@@ -81,6 +81,7 @@ func (client SchedulesClient) CreateOrUpdate(ctx context.Context, resourceGroupN
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.SchedulesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -160,6 +161,7 @@ func (client SchedulesClient) Delete(ctx context.Context, resourceGroupName stri
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.SchedulesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -313,6 +315,7 @@ func (client SchedulesClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.SchedulesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -397,6 +400,7 @@ func (client SchedulesClient) List(ctx context.Context, resourceGroupName string
 	result.rwcs, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.SchedulesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.rwcs.hasNextLink() && result.rwcs.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -473,6 +477,7 @@ func (client SchedulesClient) listNextResults(ctx context.Context, lastResults R
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.SchedulesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -526,6 +531,7 @@ func (client SchedulesClient) ListApplicable(ctx context.Context, resourceGroupN
 	result.rwcs, err = client.ListApplicableResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.SchedulesClient", "ListApplicable", resp, "Failure responding to request")
+		return
 	}
 	if result.rwcs.hasNextLink() && result.rwcs.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -591,6 +597,7 @@ func (client SchedulesClient) listApplicableNextResults(ctx context.Context, las
 	result, err = client.ListApplicableResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.SchedulesClient", "listApplicableNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -644,6 +651,7 @@ func (client SchedulesClient) Update(ctx context.Context, resourceGroupName stri
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.SchedulesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

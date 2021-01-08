@@ -74,6 +74,7 @@ func (client AscOperationsClient) Get(ctx context.Context, location string, oper
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagecache.AscOperationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

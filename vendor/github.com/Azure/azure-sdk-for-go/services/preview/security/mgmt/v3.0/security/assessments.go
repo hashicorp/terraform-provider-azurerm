@@ -62,8 +62,7 @@ func (client AssessmentsClient) CreateOrUpdate(ctx context.Context, resourceID s
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: assessment,
 			Constraints: []validation.Constraint{{Target: "assessment.AssessmentProperties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "assessment.AssessmentProperties.ResourceDetails", Name: validation.Null, Rule: true, Chain: nil},
-					{Target: "assessment.AssessmentProperties.Status", Name: validation.Null, Rule: true, Chain: nil},
+				Chain: []validation.Constraint{{Target: "assessment.AssessmentProperties.Status", Name: validation.Null, Rule: true, Chain: nil},
 					{Target: "assessment.AssessmentProperties.Metadata", Name: validation.Null, Rule: false,
 						Chain: []validation.Constraint{{Target: "assessment.AssessmentProperties.Metadata.DisplayName", Name: validation.Null, Rule: true, Chain: nil},
 							{Target: "assessment.AssessmentProperties.Metadata.PartnerData", Name: validation.Null, Rule: false,
@@ -95,6 +94,7 @@ func (client AssessmentsClient) CreateOrUpdate(ctx context.Context, resourceID s
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AssessmentsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -172,6 +172,7 @@ func (client AssessmentsClient) Delete(ctx context.Context, resourceID string, a
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AssessmentsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -246,6 +247,7 @@ func (client AssessmentsClient) Get(ctx context.Context, resourceID string, asse
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AssessmentsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -324,9 +326,11 @@ func (client AssessmentsClient) List(ctx context.Context, scope string) (result 
 	result.al, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AssessmentsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.al.hasNextLink() && result.al.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

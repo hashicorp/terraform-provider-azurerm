@@ -91,8 +91,8 @@ func (mpelr ManagedPrivateEndpointListResponse) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// ManagedPrivateEndpointListResponseIterator provides access to a complete listing of ManagedPrivateEndpoint
-// values.
+// ManagedPrivateEndpointListResponseIterator provides access to a complete listing of
+// ManagedPrivateEndpoint values.
 type ManagedPrivateEndpointListResponseIterator struct {
 	i    int
 	page ManagedPrivateEndpointListResponsePage
@@ -235,8 +235,11 @@ func (page ManagedPrivateEndpointListResponsePage) Values() []ManagedPrivateEndp
 }
 
 // Creates a new instance of the ManagedPrivateEndpointListResponsePage type.
-func NewManagedPrivateEndpointListResponsePage(getNextPage func(context.Context, ManagedPrivateEndpointListResponse) (ManagedPrivateEndpointListResponse, error)) ManagedPrivateEndpointListResponsePage {
-	return ManagedPrivateEndpointListResponsePage{fn: getNextPage}
+func NewManagedPrivateEndpointListResponsePage(cur ManagedPrivateEndpointListResponse, getNextPage func(context.Context, ManagedPrivateEndpointListResponse) (ManagedPrivateEndpointListResponse, error)) ManagedPrivateEndpointListResponsePage {
+	return ManagedPrivateEndpointListResponsePage{
+		fn:    getNextPage,
+		mpelr: cur,
+	}
 }
 
 // ManagedPrivateEndpointProperties properties of a managed private endpoint

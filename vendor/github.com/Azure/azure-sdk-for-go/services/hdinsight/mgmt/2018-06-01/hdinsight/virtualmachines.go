@@ -73,6 +73,7 @@ func (client VirtualMachinesClient) ListHosts(ctx context.Context, resourceGroup
 	result, err = client.ListHostsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.VirtualMachinesClient", "ListHosts", resp, "Failure responding to request")
+		return
 	}
 
 	return

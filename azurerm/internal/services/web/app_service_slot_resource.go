@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAppServiceSlot() *schema.Resource {
+func resourceAppServiceSlot() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAppServiceSlotCreateUpdate,
-		Read:   resourceArmAppServiceSlotRead,
-		Update: resourceArmAppServiceSlotCreateUpdate,
-		Delete: resourceArmAppServiceSlotDelete,
+		Create: resourceAppServiceSlotCreateUpdate,
+		Read:   resourceAppServiceSlotRead,
+		Update: resourceAppServiceSlotCreateUpdate,
+		Delete: resourceAppServiceSlotDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.AppServiceSlotID(id)
@@ -164,7 +164,7 @@ func resourceArmAppServiceSlot() *schema.Resource {
 	}
 }
 
-func resourceArmAppServiceSlotCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceSlotCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -236,10 +236,10 @@ func resourceArmAppServiceSlotCreateUpdate(d *schema.ResourceData, meta interfac
 
 	d.SetId(*read.ID)
 
-	return resourceArmAppServiceSlotUpdate(d, meta)
+	return resourceAppServiceSlotUpdate(d, meta)
 }
 
-func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -365,10 +365,10 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	return resourceArmAppServiceSlotRead(d, meta)
+	return resourceAppServiceSlotRead(d, meta)
 }
 
-func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceSlotRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -498,7 +498,7 @@ func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmAppServiceSlotDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceSlotDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

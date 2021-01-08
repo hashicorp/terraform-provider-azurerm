@@ -85,6 +85,7 @@ func (client DiscoveredSecuritySolutionsClient) Get(ctx context.Context, resourc
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.DiscoveredSecuritySolutionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -165,9 +166,11 @@ func (client DiscoveredSecuritySolutionsClient) List(ctx context.Context) (resul
 	result.dssl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.DiscoveredSecuritySolutionsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.dssl.hasNextLink() && result.dssl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -282,9 +285,11 @@ func (client DiscoveredSecuritySolutionsClient) ListByHomeRegion(ctx context.Con
 	result.dssl, err = client.ListByHomeRegionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.DiscoveredSecuritySolutionsClient", "ListByHomeRegion", resp, "Failure responding to request")
+		return
 	}
 	if result.dssl.hasNextLink() && result.dssl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

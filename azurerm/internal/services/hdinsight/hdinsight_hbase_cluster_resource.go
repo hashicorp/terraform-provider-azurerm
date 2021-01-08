@@ -41,11 +41,11 @@ var hdInsightHBaseClusterZookeeperNodeDefinition = HDInsightNodeDefinition{
 	FixedTargetInstanceCount: utils.Int32(int32(3)),
 }
 
-func resourceArmHDInsightHBaseCluster() *schema.Resource {
+func resourceHDInsightHBaseCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmHDInsightHBaseClusterCreate,
-		Read:   resourceArmHDInsightHBaseClusterRead,
-		Update: hdinsightClusterUpdate("HBase", resourceArmHDInsightHBaseClusterRead),
+		Create: resourceHDInsightHBaseClusterCreate,
+		Read:   resourceHDInsightHBaseClusterRead,
+		Update: hdinsightClusterUpdate("HBase", resourceHDInsightHBaseClusterRead),
 		Delete: hdinsightClusterDelete("HBase"),
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -100,11 +100,11 @@ func resourceArmHDInsightHBaseCluster() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"head_node": SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightHBaseClusterHeadNodeDefinition),
+						"head_node": SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightHBaseClusterHeadNodeDefinition, true),
 
-						"worker_node": SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightHBaseClusterWorkerNodeDefinition),
+						"worker_node": SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightHBaseClusterWorkerNodeDefinition, true),
 
-						"zookeeper_node": SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightHBaseClusterZookeeperNodeDefinition),
+						"zookeeper_node": SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightHBaseClusterZookeeperNodeDefinition, true),
 					},
 				},
 			},
@@ -126,7 +126,7 @@ func resourceArmHDInsightHBaseCluster() *schema.Resource {
 	}
 }
 
-func resourceArmHDInsightHBaseClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceHDInsightHBaseClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HDInsight.ClustersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
@@ -233,10 +233,10 @@ func resourceArmHDInsightHBaseClusterCreate(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	return resourceArmHDInsightHBaseClusterRead(d, meta)
+	return resourceHDInsightHBaseClusterRead(d, meta)
 }
 
-func resourceArmHDInsightHBaseClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceHDInsightHBaseClusterRead(d *schema.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
 	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient

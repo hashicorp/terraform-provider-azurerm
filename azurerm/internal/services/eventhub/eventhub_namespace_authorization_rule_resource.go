@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmEventHubNamespaceAuthorizationRule() *schema.Resource {
+func resourceEventHubNamespaceAuthorizationRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmEventHubNamespaceAuthorizationRuleCreateUpdate,
-		Read:   resourceArmEventHubNamespaceAuthorizationRuleRead,
-		Update: resourceArmEventHubNamespaceAuthorizationRuleCreateUpdate,
-		Delete: resourceArmEventHubNamespaceAuthorizationRuleDelete,
+		Create: resourceEventHubNamespaceAuthorizationRuleCreateUpdate,
+		Read:   resourceEventHubNamespaceAuthorizationRuleRead,
+		Update: resourceEventHubNamespaceAuthorizationRuleCreateUpdate,
+		Delete: resourceEventHubNamespaceAuthorizationRuleDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -71,7 +71,7 @@ func resourceArmEventHubNamespaceAuthorizationRule() *schema.Resource {
 	}
 }
 
-func resourceArmEventHubNamespaceAuthorizationRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceAuthorizationRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.NamespacesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -120,10 +120,10 @@ func resourceArmEventHubNamespaceAuthorizationRuleCreateUpdate(d *schema.Resourc
 
 	d.SetId(*read.ID)
 
-	return resourceArmEventHubNamespaceAuthorizationRuleRead(d, meta)
+	return resourceEventHubNamespaceAuthorizationRuleRead(d, meta)
 }
 
-func resourceArmEventHubNamespaceAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.NamespacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -168,7 +168,7 @@ func resourceArmEventHubNamespaceAuthorizationRuleRead(d *schema.ResourceData, m
 	return nil
 }
 
-func resourceArmEventHubNamespaceAuthorizationRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceEventHubNamespaceAuthorizationRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	eventhubClient := meta.(*clients.Client).Eventhub.NamespacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

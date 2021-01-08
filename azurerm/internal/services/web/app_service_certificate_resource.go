@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAppServiceCertificate() *schema.Resource {
+func resourceAppServiceCertificate() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAppServiceCertificateCreateUpdate,
-		Read:   resourceArmAppServiceCertificateRead,
-		Update: resourceArmAppServiceCertificateCreateUpdate,
-		Delete: resourceArmAppServiceCertificateDelete,
+		Create: resourceAppServiceCertificateCreateUpdate,
+		Read:   resourceAppServiceCertificateRead,
+		Update: resourceAppServiceCertificateCreateUpdate,
+		Delete: resourceAppServiceCertificateDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.CertificateID(id)
 			return err
@@ -122,7 +122,7 @@ func resourceArmAppServiceCertificate() *schema.Resource {
 	}
 }
 
-func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	client := meta.(*clients.Client).Web.CertificatesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -212,10 +212,10 @@ func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta i
 
 	d.SetId(*read.ID)
 
-	return resourceArmAppServiceCertificateRead(d, meta)
+	return resourceAppServiceCertificateRead(d, meta)
 }
 
-func resourceArmAppServiceCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -259,7 +259,7 @@ func resourceArmAppServiceCertificateRead(d *schema.ResourceData, meta interface
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmAppServiceCertificateDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

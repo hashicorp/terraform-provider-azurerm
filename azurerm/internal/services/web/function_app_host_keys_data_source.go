@@ -11,9 +11,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmFunctionAppHostKeys() *schema.Resource {
+func dataSourceFunctionAppHostKeys() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmFunctionAppHostKeysRead,
+		Read: dataSourceFunctionAppHostKeysRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -49,7 +49,7 @@ func dataSourceArmFunctionAppHostKeys() *schema.Resource {
 	}
 }
 
-func dataSourceArmFunctionAppHostKeysRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceFunctionAppHostKeysRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

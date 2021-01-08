@@ -81,6 +81,7 @@ func (client PatchSchedulesClient) CreateOrUpdate(ctx context.Context, resourceG
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.PatchSchedulesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -159,6 +160,7 @@ func (client PatchSchedulesClient) Delete(ctx context.Context, resourceGroupName
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.PatchSchedulesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -234,6 +236,7 @@ func (client PatchSchedulesClient) Get(ctx context.Context, resourceGroupName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.PatchSchedulesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -311,6 +314,7 @@ func (client PatchSchedulesClient) ListByRedisResource(ctx context.Context, reso
 	result.pslr, err = client.ListByRedisResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.PatchSchedulesClient", "ListByRedisResource", resp, "Failure responding to request")
+		return
 	}
 	if result.pslr.hasNextLink() && result.pslr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -375,6 +379,7 @@ func (client PatchSchedulesClient) listByRedisResourceNextResults(ctx context.Co
 	result, err = client.ListByRedisResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.PatchSchedulesClient", "listByRedisResourceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
