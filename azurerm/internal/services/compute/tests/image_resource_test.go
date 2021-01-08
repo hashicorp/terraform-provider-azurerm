@@ -216,7 +216,7 @@ func TestAccImageVMSS_customImageVMSSFromVHD(t *testing.T) {
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
-			Config:  r.customImage_fromVHD_setup(data, userName, password, hostName),
+			Config:  r.vmss_customImage_fromVHD_setup(data, userName, password, hostName),
 			Destroy: false,
 			Check: resource.ComposeTestCheckFunc(
 				testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
@@ -224,7 +224,7 @@ func TestAccImageVMSS_customImageVMSSFromVHD(t *testing.T) {
 			),
 		},
 		{
-			Config: r.customImage_fromVHD_provision(data, userName, password, hostName),
+			Config: r.vmss_customImage_fromVHD_provision(data, userName, password, hostName),
 			Check: resource.ComposeTestCheckFunc(
 				testCheckAzureVMSSExists("azurerm_virtual_machine_scale_set.testdestination", true),
 			),
