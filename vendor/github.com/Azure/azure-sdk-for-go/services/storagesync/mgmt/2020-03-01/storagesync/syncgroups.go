@@ -85,6 +85,7 @@ func (client SyncGroupsClient) Create(ctx context.Context, resourceGroupName str
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagesync.SyncGroupsClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -174,6 +175,7 @@ func (client SyncGroupsClient) Delete(ctx context.Context, resourceGroupName str
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagesync.SyncGroupsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -260,6 +262,7 @@ func (client SyncGroupsClient) Get(ctx context.Context, resourceGroupName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagesync.SyncGroupsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -346,6 +349,7 @@ func (client SyncGroupsClient) ListByStorageSyncService(ctx context.Context, res
 	result, err = client.ListByStorageSyncServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagesync.SyncGroupsClient", "ListByStorageSyncService", resp, "Failure responding to request")
+		return
 	}
 
 	return

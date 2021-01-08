@@ -158,6 +158,7 @@ func (client EncryptionProtectorsClient) Get(ctx context.Context, resourceGroupN
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.EncryptionProtectorsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -236,6 +237,7 @@ func (client EncryptionProtectorsClient) ListByServer(ctx context.Context, resou
 	result.eplr, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.EncryptionProtectorsClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 	if result.eplr.hasNextLink() && result.eplr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -300,6 +302,7 @@ func (client EncryptionProtectorsClient) listByServerNextResults(ctx context.Con
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.EncryptionProtectorsClient", "listByServerNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

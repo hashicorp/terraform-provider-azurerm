@@ -88,6 +88,7 @@ func (client PrivateEndpointConnectionClient) Get(ctx context.Context, resourceG
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.PrivateEndpointConnectionClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -174,6 +175,7 @@ func (client PrivateEndpointConnectionClient) ListByBatchAccount(ctx context.Con
 	result.lpecr, err = client.ListByBatchAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.PrivateEndpointConnectionClient", "ListByBatchAccount", resp, "Failure responding to request")
+		return
 	}
 	if result.lpecr.hasNextLink() && result.lpecr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -241,6 +243,7 @@ func (client PrivateEndpointConnectionClient) listByBatchAccountNextResults(ctx 
 	result, err = client.ListByBatchAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.PrivateEndpointConnectionClient", "listByBatchAccountNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -310,6 +313,7 @@ func (client PrivateEndpointConnectionClient) Update(ctx context.Context, resour
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.PrivateEndpointConnectionClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -88,6 +88,7 @@ func (client ManagementGroupsClient) List(ctx context.Context, resourceGroupName
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationalinsights.ManagementGroupsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

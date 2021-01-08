@@ -24,6 +24,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/tracing"
+	"github.com/satori/go.uuid"
 	"net/http"
 )
 
@@ -35,23 +36,29 @@ const fqdn = "github.com/Azure/azure-sdk-for-go/services/managedservices/mgmt/20
 type Authorization struct {
 	// PrincipalID - Principal Id of the security group/service principal/user that would be assigned permissions to the projected subscription
 	PrincipalID *string `json:"principalId,omitempty"`
+	// PrincipalIDDisplayName - Display name of the principal Id.
+	PrincipalIDDisplayName *string `json:"principalIdDisplayName,omitempty"`
 	// RoleDefinitionID - The role definition identifier. This role will define all the permissions that the security group/service principal/user must have on the projected subscription. This role cannot be an owner role.
 	RoleDefinitionID *string `json:"roleDefinitionId,omitempty"`
+	// DelegatedRoleDefinitionIds - The delegatedRoleDefinitionIds field is required when the roleDefinitionId refers to the User Access Administrator Role. It is the list of role definition ids which define all the permissions that the user in the authorization can assign to other security groups/service principals/users.
+	DelegatedRoleDefinitionIds *[]uuid.UUID `json:"delegatedRoleDefinitionIds,omitempty"`
 }
 
-// ErrorResponse error response.
-type ErrorResponse struct {
-	// Error - READ-ONLY; Error response indicates Azure Resource Manager is not able to process the incoming request. The reason is provided in the error message.
-	Error *ErrorResponseError `json:"error,omitempty"`
-}
-
-// ErrorResponseError error response indicates Azure Resource Manager is not able to process the incoming
+// ErrorDefinition error response indicates Azure Resource Manager is not able to process the incoming
 // request. The reason is provided in the error message.
-type ErrorResponseError struct {
+type ErrorDefinition struct {
 	// Code - Error code.
 	Code *string `json:"code,omitempty"`
 	// Message - Error message indicating why the operation failed.
 	Message *string `json:"message,omitempty"`
+	// Details - Internal error details.
+	Details *[]ErrorDefinition `json:"details,omitempty"`
+}
+
+// ErrorResponse error response.
+type ErrorResponse struct {
+	// Error - The error details.
+	Error *ErrorDefinition `json:"error,omitempty"`
 }
 
 // Operation object that describes a single Microsoft.ManagedServices operation.
@@ -124,7 +131,8 @@ type RegistrationAssignmentList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// RegistrationAssignmentListIterator provides access to a complete listing of RegistrationAssignment values.
+// RegistrationAssignmentListIterator provides access to a complete listing of RegistrationAssignment
+// values.
 type RegistrationAssignmentListIterator struct {
 	i    int
 	page RegistrationAssignmentListPage
@@ -267,8 +275,11 @@ func (page RegistrationAssignmentListPage) Values() []RegistrationAssignment {
 }
 
 // Creates a new instance of the RegistrationAssignmentListPage type.
-func NewRegistrationAssignmentListPage(getNextPage func(context.Context, RegistrationAssignmentList) (RegistrationAssignmentList, error)) RegistrationAssignmentListPage {
-	return RegistrationAssignmentListPage{fn: getNextPage}
+func NewRegistrationAssignmentListPage(cur RegistrationAssignmentList, getNextPage func(context.Context, RegistrationAssignmentList) (RegistrationAssignmentList, error)) RegistrationAssignmentListPage {
+	return RegistrationAssignmentListPage{
+		fn:  getNextPage,
+		ral: cur,
+	}
 }
 
 // RegistrationAssignmentProperties properties of a registration assignment.
@@ -338,8 +349,8 @@ type RegistrationAssignmentPropertiesRegistrationDefinitionProperties struct {
 	ManagedByTenantName *string `json:"managedByTenantName,omitempty"`
 }
 
-// RegistrationAssignmentsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// RegistrationAssignmentsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of
+// a long-running operation.
 type RegistrationAssignmentsCreateOrUpdateFuture struct {
 	azure.Future
 }
@@ -426,7 +437,8 @@ type RegistrationDefinitionList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// RegistrationDefinitionListIterator provides access to a complete listing of RegistrationDefinition values.
+// RegistrationDefinitionListIterator provides access to a complete listing of RegistrationDefinition
+// values.
 type RegistrationDefinitionListIterator struct {
 	i    int
 	page RegistrationDefinitionListPage
@@ -569,8 +581,11 @@ func (page RegistrationDefinitionListPage) Values() []RegistrationDefinition {
 }
 
 // Creates a new instance of the RegistrationDefinitionListPage type.
-func NewRegistrationDefinitionListPage(getNextPage func(context.Context, RegistrationDefinitionList) (RegistrationDefinitionList, error)) RegistrationDefinitionListPage {
-	return RegistrationDefinitionListPage{fn: getNextPage}
+func NewRegistrationDefinitionListPage(cur RegistrationDefinitionList, getNextPage func(context.Context, RegistrationDefinitionList) (RegistrationDefinitionList, error)) RegistrationDefinitionListPage {
+	return RegistrationDefinitionListPage{
+		fn:  getNextPage,
+		rdl: cur,
+	}
 }
 
 // RegistrationDefinitionProperties properties of a registration definition.
@@ -607,8 +622,8 @@ func (rdp RegistrationDefinitionProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// RegistrationDefinitionsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// RegistrationDefinitionsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of
+// a long-running operation.
 type RegistrationDefinitionsCreateOrUpdateFuture struct {
 	azure.Future
 }

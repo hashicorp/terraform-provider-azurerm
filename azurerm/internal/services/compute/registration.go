@@ -28,6 +28,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_managed_disk":              dataSourceArmManagedDisk(),
 		"azurerm_image":                     dataSourceImage(),
 		"azurerm_images":                    dataSourceImages(),
+		"azurerm_disk_access":               dataSourceArmDiskAccess(),
 		"azurerm_platform_image":            dataSourceArmPlatformImage(),
 		"azurerm_proximity_placement_group": dataSourceArmProximityPlacementGroup(),
 		"azurerm_shared_image_gallery":      dataSourceArmSharedImageGallery(),
@@ -37,6 +38,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_snapshot":                  dataSourceArmSnapshot(),
 		"azurerm_virtual_machine":           dataSourceArmVirtualMachine(),
 		"azurerm_virtual_machine_scale_set": dataSourceArmVirtualMachineScaleSet(),
+		"azurerm_ssh_public_key":            dataSourceArmSshPublicKey(),
 	}
 }
 
@@ -49,6 +51,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_disk_encryption_set":                    resourceDiskEncryptionSet(),
 		"azurerm_image":                                  resourceImage(),
 		"azurerm_managed_disk":                           resourceArmManagedDisk(),
+		"azurerm_disk_access":                            resourceArmDiskAccess(),
 		"azurerm_marketplace_agreement":                  resourceArmMarketplaceAgreement(),
 		"azurerm_proximity_placement_group":              resourceArmProximityPlacementGroup(),
 		"azurerm_shared_image_gallery":                   resourceArmSharedImageGallery(),
@@ -65,6 +68,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_virtual_machine_scale_set_extension":    resourceArmVirtualMachineScaleSetExtension(),
 		"azurerm_windows_virtual_machine":                resourceWindowsVirtualMachine(),
 		"azurerm_windows_virtual_machine_scale_set":      resourceArmWindowsVirtualMachineScaleSet(),
+		"azurerm_ssh_public_key":                         resourceSshPublicKey(),
 	}
 
 	return resources

@@ -296,8 +296,8 @@ type ExportRDBParameters struct {
 	Container *string `json:"container,omitempty"`
 }
 
-// FirewallRule a firewall rule on a redis cache has a name, and describes a contiguous range of IP addresses
-// permitted to connect
+// FirewallRule a firewall rule on a redis cache has a name, and describes a contiguous range of IP
+// addresses permitted to connect
 type FirewallRule struct {
 	autorest.Response `json:"-"`
 	// FirewallRuleProperties - redis cache firewall rule properties
@@ -570,8 +570,11 @@ func (page FirewallRuleListResultPage) Values() []FirewallRule {
 }
 
 // Creates a new instance of the FirewallRuleListResultPage type.
-func NewFirewallRuleListResultPage(getNextPage func(context.Context, FirewallRuleListResult) (FirewallRuleListResult, error)) FirewallRuleListResultPage {
-	return FirewallRuleListResultPage{fn: getNextPage}
+func NewFirewallRuleListResultPage(cur FirewallRuleListResult, getNextPage func(context.Context, FirewallRuleListResult) (FirewallRuleListResult, error)) FirewallRuleListResultPage {
+	return FirewallRuleListResultPage{
+		fn:   getNextPage,
+		frlr: cur,
+	}
 }
 
 // FirewallRuleProperties specifies a range of IP addresses permitted to connect to the cache
@@ -821,8 +824,8 @@ func (lswpl LinkedServerWithPropertiesList) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// LinkedServerWithPropertiesListIterator provides access to a complete listing of LinkedServerWithProperties
-// values.
+// LinkedServerWithPropertiesListIterator provides access to a complete listing of
+// LinkedServerWithProperties values.
 type LinkedServerWithPropertiesListIterator struct {
 	i    int
 	page LinkedServerWithPropertiesListPage
@@ -965,8 +968,11 @@ func (page LinkedServerWithPropertiesListPage) Values() []LinkedServerWithProper
 }
 
 // Creates a new instance of the LinkedServerWithPropertiesListPage type.
-func NewLinkedServerWithPropertiesListPage(getNextPage func(context.Context, LinkedServerWithPropertiesList) (LinkedServerWithPropertiesList, error)) LinkedServerWithPropertiesListPage {
-	return LinkedServerWithPropertiesListPage{fn: getNextPage}
+func NewLinkedServerWithPropertiesListPage(cur LinkedServerWithPropertiesList, getNextPage func(context.Context, LinkedServerWithPropertiesList) (LinkedServerWithPropertiesList, error)) LinkedServerWithPropertiesListPage {
+	return LinkedServerWithPropertiesListPage{
+		fn:    getNextPage,
+		lswpl: cur,
+	}
 }
 
 // ListResult the response of list Redis operation.
@@ -1130,8 +1136,11 @@ func (page ListResultPage) Values() []ResourceType {
 }
 
 // Creates a new instance of the ListResultPage type.
-func NewListResultPage(getNextPage func(context.Context, ListResult) (ListResult, error)) ListResultPage {
-	return ListResultPage{fn: getNextPage}
+func NewListResultPage(cur ListResult, getNextPage func(context.Context, ListResult) (ListResult, error)) ListResultPage {
+	return ListResultPage{
+		fn: getNextPage,
+		lr: cur,
+	}
 }
 
 // NotificationListResponse the response of listUpgradeNotifications.
@@ -1172,8 +1181,8 @@ type OperationDisplay struct {
 	Description *string `json:"description,omitempty"`
 }
 
-// OperationListResult result of the request to list REST API operations. It contains a list of operations and
-// a URL nextLink to get the next set of results.
+// OperationListResult result of the request to list REST API operations. It contains a list of operations
+// and a URL nextLink to get the next set of results.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
 	// Value - List of operations supported by the resource provider.
@@ -1334,8 +1343,11 @@ func (page OperationListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
 // PatchSchedule response to put/get patch schedules for Redis cache.
@@ -1572,8 +1584,11 @@ func (page PatchScheduleListResultPage) Values() []PatchSchedule {
 }
 
 // Creates a new instance of the PatchScheduleListResultPage type.
-func NewPatchScheduleListResultPage(getNextPage func(context.Context, PatchScheduleListResult) (PatchScheduleListResult, error)) PatchScheduleListResultPage {
-	return PatchScheduleListResultPage{fn: getNextPage}
+func NewPatchScheduleListResultPage(cur PatchScheduleListResult, getNextPage func(context.Context, PatchScheduleListResult) (PatchScheduleListResult, error)) PatchScheduleListResultPage {
+	return PatchScheduleListResultPage{
+		fn:   getNextPage,
+		pslr: cur,
+	}
 }
 
 // Properties properties of the redis cache.
@@ -1812,7 +1827,7 @@ type Sku struct {
 	Name SkuName `json:"name,omitempty"`
 	// Family - The SKU family to use. Valid values: (C, P). (C = Basic/Standard, P = Premium). Possible values include: 'C', 'P'
 	Family SkuFamily `json:"family,omitempty"`
-	// Capacity - The size of the Redis cache to deploy. Valid values: for C (Basic/Standard) family (0, 1, 2, 3, 4, 5, 6), for P (Premium) family (1, 2, 3, 4).
+	// Capacity - The size of the Redis cache to deploy. Valid values: for C (Basic/Standard) family (0, 1, 2, 3, 4, 5, 6), for P (Premium) family (1, 2, 3, 4, 5).
 	Capacity *int32 `json:"capacity,omitempty"`
 }
 

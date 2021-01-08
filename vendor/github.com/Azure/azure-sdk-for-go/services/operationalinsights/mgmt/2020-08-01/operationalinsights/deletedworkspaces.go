@@ -77,6 +77,7 @@ func (client DeletedWorkspacesClient) List(ctx context.Context) (result Workspac
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationalinsights.DeletedWorkspacesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -159,6 +160,7 @@ func (client DeletedWorkspacesClient) ListByResourceGroup(ctx context.Context, r
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationalinsights.DeletedWorkspacesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return

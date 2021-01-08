@@ -118,8 +118,8 @@ func (mc ManagementConfiguration) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// ManagementConfigurationProperties managementConfiguration properties supported by the OperationsManagement
-// resource provider.
+// ManagementConfigurationProperties managementConfiguration properties supported by the
+// OperationsManagement resource provider.
 type ManagementConfigurationProperties struct {
 	// ApplicationID - The applicationId of the appliance for this Management.
 	ApplicationID *string `json:"applicationId,omitempty"`
@@ -310,7 +310,8 @@ func (future *SolutionsCreateOrUpdateFuture) Result(client SolutionsClient) (s S
 	return
 }
 
-// SolutionsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// SolutionsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type SolutionsDeleteFuture struct {
 	azure.Future
 }
@@ -332,7 +333,8 @@ func (future *SolutionsDeleteFuture) Result(client SolutionsClient) (ar autorest
 	return
 }
 
-// SolutionsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// SolutionsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type SolutionsUpdateFuture struct {
 	azure.Future
 }

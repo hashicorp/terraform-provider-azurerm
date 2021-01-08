@@ -80,6 +80,7 @@ func (client OutputsClient) CreateOrReplace(ctx context.Context, output Output, 
 	result, err = client.CreateOrReplaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.OutputsClient", "CreateOrReplace", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -168,6 +169,7 @@ func (client OutputsClient) Delete(ctx context.Context, resourceGroupName string
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.OutputsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -245,6 +247,7 @@ func (client OutputsClient) Get(ctx context.Context, resourceGroupName string, j
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.OutputsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -326,6 +329,7 @@ func (client OutputsClient) ListByStreamingJob(ctx context.Context, resourceGrou
 	result.olr, err = client.ListByStreamingJobResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.OutputsClient", "ListByStreamingJob", resp, "Failure responding to request")
+		return
 	}
 	if result.olr.hasNextLink() && result.olr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -393,6 +397,7 @@ func (client OutputsClient) listByStreamingJobNextResults(ctx context.Context, l
 	result, err = client.ListByStreamingJobResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.OutputsClient", "listByStreamingJobNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -540,6 +545,7 @@ func (client OutputsClient) Update(ctx context.Context, output Output, resourceG
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.OutputsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -83,6 +83,7 @@ func (client CheckNameAvailabilityClient) Execute(ctx context.Context, nameAvail
 	result, err = client.ExecuteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "postgresql.CheckNameAvailabilityClient", "Execute", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -103,7 +104,7 @@ func (client CheckNameAvailabilityClient) ExecutePreparer(ctx context.Context, n
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.DBforPostgreSQL/checkNameAvailability", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.DBForPostgreSQL/checkNameAvailability", pathParameters),
 		autorest.WithJSON(nameAvailabilityRequest),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
