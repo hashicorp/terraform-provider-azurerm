@@ -2,6 +2,7 @@
 
 IMPROVEMENTS:
 
+* `azurerm_data_factory` - Add support for `public_network_enabled` [GH-9605]
 * `azurerm_eventgrid_domain` - support for the `public_network_access_enabled` and `inbound_ip_rule` properties  [GH-9922]
 * `azurerm_eventgrid_topic` - support for the `public_network_access_enabled` and `inbound_ip_rule` properties  [GH-9922]
 
