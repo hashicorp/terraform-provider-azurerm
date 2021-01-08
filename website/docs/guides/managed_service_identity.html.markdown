@@ -71,12 +71,20 @@ Terraform can be configured to use managed identity for authentication in one of
 
 ### Configuring with environment variables
 
-Setting the `ARM_USE_MSI` environment variable to `true` tells Terraform to use a managed identity. In addition to a properly-configured management identity, Terraform needs to know the subscription ID and tenant ID to identify the full context for the Azure provider.
+Setting the `ARM_USE_MSI` environment variable to `true` tells Terraform to use a managed identity.
+
+By default, Terraform will use the system assigned identity for authentication. If users want to use user assigned identity instead, the `ARM_CLIENT_ID` have to be specified to the [client id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/user_assigned_identity#client_id) of the identity.
+
+By default, Terraform will use the MSI endpoint provided by MSI VM Extension to get the authentication token, which covers the most use cases. Whilst the endpoint might be different (e.g. Azure Function App) in other cases, where users need to explicitly specify the endpoint via `ARM_MSI_ENDPOINT`.
+
+In addition to a properly-configured management identity, Terraform needs to know the subscription ID and tenant ID to identify the full context for the Azure provider.
 
 ```shell
 $ export ARM_USE_MSI=true
 $ export ARM_SUBSCRIPTION_ID=159f2485-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 $ export ARM_TENANT_ID=72f988bf-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+$ # export ARM_CLIENT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx # only necessary for user assigned identity
+$ # export ARM_MSI_ENDPOINT=$MSI_ENDPOINT # only necessary when the msi endpoint is different than the well-known one
 ```
 
 A provider block is _technically_ optional when using environment variables. Even so, we recommend defining a provider block so that you can pin or constrain the version of the provider being used:
