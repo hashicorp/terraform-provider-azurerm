@@ -55,6 +55,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+~> **NOTE:** If a `azurerm_log_analytics_workspace` is connected to a `azurerm_log_analytics_cluster` via a `azurerm_log_analytics_linked_service` it will not be able to be modified until link between the workspace and the cluster has been broken by deleting the `azurerm_log_analytics_linked_service` resource.
+
 ## Attributes Reference
 
 The following attributes are exported:

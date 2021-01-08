@@ -104,6 +104,7 @@ func (client APIIssueAttachmentClient) CreateOrUpdate(ctx context.Context, resou
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIIssueAttachmentClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -212,6 +213,7 @@ func (client APIIssueAttachmentClient) Delete(ctx context.Context, resourceGroup
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIIssueAttachmentClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -312,6 +314,7 @@ func (client APIIssueAttachmentClient) Get(ctx context.Context, resourceGroupNam
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIIssueAttachmentClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -412,6 +415,7 @@ func (client APIIssueAttachmentClient) GetEntityTag(ctx context.Context, resourc
 	result, err = client.GetEntityTagResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIIssueAttachmentClient", "GetEntityTag", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -519,6 +523,7 @@ func (client APIIssueAttachmentClient) ListByService(ctx context.Context, resour
 	result.iac, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIIssueAttachmentClient", "ListByService", resp, "Failure responding to request")
+		return
 	}
 	if result.iac.hasNextLink() && result.iac.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -594,6 +599,7 @@ func (client APIIssueAttachmentClient) listByServiceNextResults(ctx context.Cont
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIIssueAttachmentClient", "listByServiceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

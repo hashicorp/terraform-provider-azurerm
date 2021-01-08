@@ -272,6 +272,7 @@ func (client PrivateEndpointConnectionsClient) Get(ctx context.Context, resource
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.PrivateEndpointConnectionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -362,6 +363,7 @@ func (client PrivateEndpointConnectionsClient) ListByDatabaseAccount(ctx context
 	result, err = client.ListByDatabaseAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.PrivateEndpointConnectionsClient", "ListByDatabaseAccount", resp, "Failure responding to request")
+		return
 	}
 
 	return

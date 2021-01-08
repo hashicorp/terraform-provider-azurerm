@@ -75,6 +75,7 @@ func (client EnginesClient) Get(ctx context.Context, vaultName string, resourceG
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.EnginesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -160,6 +161,7 @@ func (client EnginesClient) List(ctx context.Context, vaultName string, resource
 	result.ebrl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.EnginesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.ebrl.hasNextLink() && result.ebrl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -230,6 +232,7 @@ func (client EnginesClient) listNextResults(ctx context.Context, lastResults Eng
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.EnginesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

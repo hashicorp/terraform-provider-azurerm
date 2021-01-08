@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -26,7 +27,18 @@ func NewStorageContainerResourceManagerID(subscriptionId, resourceGroup, storage
 	}
 }
 
-func (id StorageContainerResourceManagerId) ID(_ string) string {
+func (id StorageContainerResourceManagerId) String() string {
+	segments := []string{
+		fmt.Sprintf("Container Name %q", id.ContainerName),
+		fmt.Sprintf("Blob Service Name %q", id.BlobServiceName),
+		fmt.Sprintf("Storage Account Name %q", id.StorageAccountName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Storage Container Resource Manager", segmentsStr)
+}
+
+func (id StorageContainerResourceManagerId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Storage/storageAccounts/%s/blobServices/%s/containers/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.StorageAccountName, id.BlobServiceName, id.ContainerName)
 }

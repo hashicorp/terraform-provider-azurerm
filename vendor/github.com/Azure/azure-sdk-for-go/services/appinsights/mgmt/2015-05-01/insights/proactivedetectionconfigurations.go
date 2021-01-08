@@ -86,6 +86,7 @@ func (client ProactiveDetectionConfigurationsClient) Get(ctx context.Context, re
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ProactiveDetectionConfigurationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -172,6 +173,7 @@ func (client ProactiveDetectionConfigurationsClient) List(ctx context.Context, r
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ProactiveDetectionConfigurationsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -261,6 +263,7 @@ func (client ProactiveDetectionConfigurationsClient) Update(ctx context.Context,
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ProactiveDetectionConfigurationsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

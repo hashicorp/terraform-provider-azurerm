@@ -227,6 +227,7 @@ func (client PublicIPPrefixesClient) Get(ctx context.Context, resourceGroupName 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.PublicIPPrefixesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -305,6 +306,7 @@ func (client PublicIPPrefixesClient) List(ctx context.Context, resourceGroupName
 	result.piplr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.PublicIPPrefixesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.piplr.hasNextLink() && result.piplr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -368,6 +370,7 @@ func (client PublicIPPrefixesClient) listNextResults(ctx context.Context, lastRe
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.PublicIPPrefixesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -417,6 +420,7 @@ func (client PublicIPPrefixesClient) ListAll(ctx context.Context) (result Public
 	result.piplr, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.PublicIPPrefixesClient", "ListAll", resp, "Failure responding to request")
+		return
 	}
 	if result.piplr.hasNextLink() && result.piplr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -479,6 +483,7 @@ func (client PublicIPPrefixesClient) listAllNextResults(ctx context.Context, las
 	result, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.PublicIPPrefixesClient", "listAllNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -531,6 +536,7 @@ func (client PublicIPPrefixesClient) UpdateTags(ctx context.Context, resourceGro
 	result, err = client.UpdateTagsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.PublicIPPrefixesClient", "UpdateTags", resp, "Failure responding to request")
+		return
 	}
 
 	return

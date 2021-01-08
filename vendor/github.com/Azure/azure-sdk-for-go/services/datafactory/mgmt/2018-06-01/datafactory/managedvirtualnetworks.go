@@ -97,6 +97,7 @@ func (client ManagedVirtualNetworksClient) CreateOrUpdate(ctx context.Context, r
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.ManagedVirtualNetworksClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -198,6 +199,7 @@ func (client ManagedVirtualNetworksClient) Get(ctx context.Context, resourceGrou
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.ManagedVirtualNetworksClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -291,9 +293,11 @@ func (client ManagedVirtualNetworksClient) ListByFactory(ctx context.Context, re
 	result.mvnlr, err = client.ListByFactoryResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.ManagedVirtualNetworksClient", "ListByFactory", resp, "Failure responding to request")
+		return
 	}
 	if result.mvnlr.hasNextLink() && result.mvnlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

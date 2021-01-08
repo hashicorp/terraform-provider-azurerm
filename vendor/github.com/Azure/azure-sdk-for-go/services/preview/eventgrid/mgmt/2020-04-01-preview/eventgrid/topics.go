@@ -225,6 +225,7 @@ func (client TopicsClient) Get(ctx context.Context, resourceGroupName string, to
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -308,6 +309,7 @@ func (client TopicsClient) ListByResourceGroup(ctx context.Context, resourceGrou
 	result.tlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.tlr.hasNextLink() && result.tlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -377,6 +379,7 @@ func (client TopicsClient) listByResourceGroupNextResults(ctx context.Context, l
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -435,6 +438,7 @@ func (client TopicsClient) ListBySubscription(ctx context.Context, filter string
 	result.tlr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "ListBySubscription", resp, "Failure responding to request")
+		return
 	}
 	if result.tlr.hasNextLink() && result.tlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -503,6 +507,7 @@ func (client TopicsClient) listBySubscriptionNextResults(ctx context.Context, la
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -556,6 +561,7 @@ func (client TopicsClient) ListEventTypes(ctx context.Context, resourceGroupName
 	result, err = client.ListEventTypesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "ListEventTypes", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -633,6 +639,7 @@ func (client TopicsClient) ListSharedAccessKeys(ctx context.Context, resourceGro
 	result, err = client.ListSharedAccessKeysResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "ListSharedAccessKeys", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -715,6 +722,7 @@ func (client TopicsClient) RegenerateKey(ctx context.Context, resourceGroupName 
 	result, err = client.RegenerateKeyResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "RegenerateKey", resp, "Failure responding to request")
+		return
 	}
 
 	return

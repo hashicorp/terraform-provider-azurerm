@@ -3,7 +3,6 @@ package trafficmanager
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
@@ -15,9 +14,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+// TODO: split and deprecate this resource prior to 3.0
 
 func resourceArmTrafficManagerEndpoint() *schema.Resource {
 	return &schema.Resource{
@@ -176,6 +178,7 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 
 func resourceArmTrafficManagerEndpointCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).TrafficManager.EndpointsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -187,6 +190,11 @@ func resourceArmTrafficManagerEndpointCreateUpdate(d *schema.ResourceData, meta 
 	profileName := d.Get("profile_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	resourceId, err := parse.NewEndpointId(subscriptionId, resourceGroup, profileName, endpointType, name)
+	if err != nil {
+		return err
+	}
+
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, profileName, endpointType, name)
 		if err != nil {
@@ -196,7 +204,7 @@ func resourceArmTrafficManagerEndpointCreateUpdate(d *schema.ResourceData, meta 
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_traffic_manager_endpoint", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_traffic_manager_endpoint", resourceId.ID())
 		}
 	}
 
@@ -207,19 +215,10 @@ func resourceArmTrafficManagerEndpointCreateUpdate(d *schema.ResourceData, meta 
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, profileName, endpointType, name, params); err != nil {
-		return err
+		return fmt.Errorf("creating/updating %s Endpoint %q (Traffic Manager Profile %q / Resource Group %q): %+v", resourceId.EndpointType(), resourceId.Name, resourceId.TrafficManagerProfileName, resourceId.ResourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, profileName, endpointType, name)
-	if err != nil {
-		return err
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Traffic Manager Endpoint %q (Resource Group %q) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
-
+	d.SetId(resourceId.ID())
 	return resourceArmTrafficManagerEndpointRead(d, meta)
 }
 
@@ -228,36 +227,24 @@ func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.EndpointID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
 
-	// lookup endpointType in Azure ID path
-	var endpointType string
-	typeRegex := regexp.MustCompile("azureEndpoints|externalEndpoints|nestedEndpoints")
-	for k := range id.Path {
-		if typeRegex.MatchString(k) {
-			endpointType = k
-		}
-	}
-	profileName := id.Path["trafficManagerProfiles"]
-	name := id.Path[endpointType]
-
-	resp, err := client.Get(ctx, resGroup, profileName, endpointType, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.TrafficManagerProfileName, id.EndpointType(), id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on TrafficManager Endpoint %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("retrieving Endpoint %q (Traffic Manager Profile %q / Resource Group %q): %+v", id.Name, id.TrafficManagerProfileName, id.ResourceGroup, err)
 	}
 
-	d.Set("resource_group_name", resGroup)
-	d.Set("name", resp.Name)
-	d.Set("type", endpointType)
-	d.Set("profile_name", profileName)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("type", id.EndpointType())
+	d.Set("profile_name", id.TrafficManagerProfileName)
 
 	if props := resp.EndpointProperties; props != nil {
 		d.Set("endpoint_status", string(props.EndpointStatus))
@@ -270,52 +257,13 @@ func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interfac
 		d.Set("min_child_endpoints", props.MinChildEndpoints)
 		d.Set("geo_mappings", props.GeoMapping)
 		if err := d.Set("subnet", flattenAzureRMTrafficManagerEndpointSubnetConfig(props.Subnets)); err != nil {
-			return fmt.Errorf("Error setting `subnet`: %s", err)
+			return fmt.Errorf("setting `subnet`: %s", err)
 		}
 		if err := d.Set("custom_header", flattenAzureRMTrafficManagerEndpointCustomHeaderConfig(props.CustomHeaders)); err != nil {
-			return fmt.Errorf("Error setting `custom_header`: %s", err)
+			return fmt.Errorf("setting `custom_header`: %s", err)
 		}
 	}
 	return nil
-}
-
-func flattenAzureRMTrafficManagerEndpointSubnetConfig(input *[]trafficmanager.EndpointPropertiesSubnetsItem) []interface{} {
-	result := make([]interface{}, 0)
-	if input == nil {
-		return result
-	}
-	for _, subnet := range *input {
-		flatSubnet := make(map[string]interface{}, 3)
-		if subnet.First != nil {
-			flatSubnet["first"] = *subnet.First
-		}
-		if subnet.Last != nil {
-			flatSubnet["last"] = *subnet.Last
-		}
-		if subnet.Scope != nil {
-			flatSubnet["scope"] = int(*subnet.Scope)
-		}
-		result = append(result, flatSubnet)
-	}
-	return result
-}
-
-func flattenAzureRMTrafficManagerEndpointCustomHeaderConfig(input *[]trafficmanager.EndpointPropertiesCustomHeadersItem) []interface{} {
-	result := make([]interface{}, 0)
-	if input == nil {
-		return result
-	}
-	for _, header := range *input {
-		flatHeader := make(map[string]interface{}, 2)
-		if header.Name != nil {
-			flatHeader["name"] = *header.Name
-		}
-		if header.Value != nil {
-			flatHeader["value"] = *header.Value
-		}
-		result = append(result, flatHeader)
-	}
-	return result
 }
 
 func resourceArmTrafficManagerEndpointDelete(d *schema.ResourceData, meta interface{}) error {
@@ -323,23 +271,16 @@ func resourceArmTrafficManagerEndpointDelete(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.EndpointID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	endpointType := d.Get("type").(string)
-	profileName := id.Path["trafficManagerProfiles"]
 
-	// endpoint name is keyed by endpoint type in ARM ID
-	name := id.Path[endpointType]
-	resp, err := client.Delete(ctx, resGroup, profileName, endpointType, name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.TrafficManagerProfileName, id.EndpointType(), id.Name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return nil
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("deleting Endpoint %q (Traffic Manager Profile %q / Resource Group %q): %+v", id.Name, id.TrafficManagerProfileName, id.ResourceGroup, err)
 		}
-
-		return err
 	}
 
 	return nil
@@ -420,4 +361,43 @@ func getArmTrafficManagerEndpointProperties(d *schema.ResourceData) *trafficmana
 	}
 
 	return &endpointProps
+}
+
+func flattenAzureRMTrafficManagerEndpointSubnetConfig(input *[]trafficmanager.EndpointPropertiesSubnetsItem) []interface{} {
+	result := make([]interface{}, 0)
+	if input == nil {
+		return result
+	}
+	for _, subnet := range *input {
+		flatSubnet := make(map[string]interface{}, 3)
+		if subnet.First != nil {
+			flatSubnet["first"] = *subnet.First
+		}
+		if subnet.Last != nil {
+			flatSubnet["last"] = *subnet.Last
+		}
+		if subnet.Scope != nil {
+			flatSubnet["scope"] = int(*subnet.Scope)
+		}
+		result = append(result, flatSubnet)
+	}
+	return result
+}
+
+func flattenAzureRMTrafficManagerEndpointCustomHeaderConfig(input *[]trafficmanager.EndpointPropertiesCustomHeadersItem) []interface{} {
+	result := make([]interface{}, 0)
+	if input == nil {
+		return result
+	}
+	for _, header := range *input {
+		flatHeader := make(map[string]interface{}, 2)
+		if header.Name != nil {
+			flatHeader["name"] = *header.Name
+		}
+		if header.Value != nil {
+			flatHeader["value"] = *header.Value
+		}
+		result = append(result, flatHeader)
+	}
+	return result
 }

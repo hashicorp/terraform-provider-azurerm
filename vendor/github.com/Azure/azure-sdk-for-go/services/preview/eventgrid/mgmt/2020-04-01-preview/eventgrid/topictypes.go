@@ -71,6 +71,7 @@ func (client TopicTypesClient) Get(ctx context.Context, topicTypeName string) (r
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.TopicTypesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -141,6 +142,7 @@ func (client TopicTypesClient) List(ctx context.Context) (result TopicTypesListR
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.TopicTypesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -209,6 +211,7 @@ func (client TopicTypesClient) ListEventTypes(ctx context.Context, topicTypeName
 	result, err = client.ListEventTypesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.TopicTypesClient", "ListEventTypes", resp, "Failure responding to request")
+		return
 	}
 
 	return

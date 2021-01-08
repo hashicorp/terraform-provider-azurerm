@@ -83,6 +83,7 @@ func (client MetricBaselineClient) CalculateBaseline(ctx context.Context, resour
 	result, err = client.CalculateBaselineResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MetricBaselineClient", "CalculateBaseline", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -167,6 +168,7 @@ func (client MetricBaselineClient) Get(ctx context.Context, resourceURI string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.MetricBaselineClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -373,6 +373,7 @@ func schemaAppServiceSiteConfig() *schema.Schema {
 						"7.1",
 						"7.2",
 						"7.3",
+						"7.4",
 					}, false),
 				},
 
@@ -597,6 +598,16 @@ func schemaAppServiceLogsConfig() *schema.Schema {
 						},
 					},
 				},
+				"detailed_error_messages_enabled": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+				"failed_request_tracing_enabled": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
 			},
 		},
 	}
@@ -814,6 +825,12 @@ func schemaAppServiceIpRestriction() *schema.Schema {
 					ValidateFunc: validation.IsCIDR,
 				},
 
+				"service_tag": {
+					Type:         schema.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
 				"subnet_id": {
 					// TODO - Remove in 3.0
 					Type:         schema.TypeString,
@@ -865,6 +882,10 @@ func schemaAppServiceDataSourceIpRestriction() *schema.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"ip_address": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"service_tag": {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
@@ -1335,6 +1356,13 @@ func flattenAppServiceLogs(input *web.SiteLogsConfigProperties) []interface{} {
 	}
 	result["http_logs"] = httpLogs
 
+	if input.DetailedErrorMessages != nil && input.DetailedErrorMessages.Enabled != nil {
+		result["detailed_error_messages_enabled"] = *input.DetailedErrorMessages.Enabled
+	}
+	if input.FailedRequestsTracing != nil && input.FailedRequestsTracing.Enabled != nil {
+		result["failed_request_tracing_enabled"] = *input.FailedRequestsTracing.Enabled
+	}
+
 	return append(results, result)
 }
 
@@ -1413,6 +1441,18 @@ func expandAppServiceLogs(input interface{}) web.SiteLogsConfigProperties {
 					}
 				}
 			}
+		}
+	}
+
+	if v, ok := config["detailed_error_messages_enabled"]; ok {
+		logs.DetailedErrorMessages = &web.EnabledConfig{
+			Enabled: utils.Bool(v.(bool)),
+		}
+	}
+
+	if v, ok := config["failed_request_tracing_enabled"]; ok {
+		logs.FailedRequestsTracing = &web.EnabledConfig{
+			Enabled: utils.Bool(v.(bool)),
 		}
 	}
 
@@ -1734,7 +1774,12 @@ func flattenAppServiceIpRestriction(input *[]web.IPSecurityRestriction) []interf
 			if *ip == "Any" {
 				continue
 			} else {
-				restriction["ip_address"] = *ip
+				switch v.Tag {
+				case web.ServiceTag:
+					restriction["service_tag"] = *ip
+				default:
+					restriction["ip_address"] = *ip
+				}
 			}
 		}
 
@@ -1832,16 +1877,18 @@ func expandAppServiceIpRestriction(input interface{}) ([]web.IPSecurityRestricti
 			vNetSubnetID = subnetID.(string)
 		}
 
+		serviceTag := restriction["service_tag"].(string)
+
 		name := restriction["name"].(string)
 		priority := restriction["priority"].(int)
 		action := restriction["action"].(string)
 
-		if vNetSubnetID != "" && ipAddress != "" {
-			return nil, fmt.Errorf("only one of `ip_address` or `virtual_network_subnet_id` can be set for an IP restriction")
+		if vNetSubnetID != "" && ipAddress != "" && serviceTag != "" {
+			return nil, fmt.Errorf("only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` can be set for an IP restriction")
 		}
 
-		if vNetSubnetID == "" && ipAddress == "" {
-			return nil, fmt.Errorf("one of `ip_address` or `virtual_network_subnet_id` must be set for an IP restriction")
+		if vNetSubnetID == "" && ipAddress == "" && serviceTag == "" {
+			return nil, fmt.Errorf("one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be set for an IP restriction")
 		}
 
 		ipSecurityRestriction := web.IPSecurityRestriction{}
@@ -1851,6 +1898,11 @@ func expandAppServiceIpRestriction(input interface{}) ([]web.IPSecurityRestricti
 
 		if ipAddress != "" {
 			ipSecurityRestriction.IPAddress = &ipAddress
+		}
+
+		if serviceTag != "" {
+			ipSecurityRestriction.IPAddress = &serviceTag
+			ipSecurityRestriction.Tag = web.ServiceTag
 		}
 
 		if vNetSubnetID != "" {

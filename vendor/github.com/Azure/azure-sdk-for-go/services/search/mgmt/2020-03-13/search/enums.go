@@ -136,27 +136,6 @@ func PossibleServiceStatusValues() []ServiceStatus {
 	return []ServiceStatus{ServiceStatusDegraded, ServiceStatusDeleting, ServiceStatusDisabled, ServiceStatusError, ServiceStatusProvisioning, ServiceStatusRunning}
 }
 
-// SharedPrivateLinkResourceStatus enumerates the values for shared private link resource status.
-type SharedPrivateLinkResourceStatus string
-
-const (
-	// SharedPrivateLinkResourceStatusApproved ...
-	SharedPrivateLinkResourceStatusApproved SharedPrivateLinkResourceStatus = "Approved"
-	// SharedPrivateLinkResourceStatusDisconnected ...
-	SharedPrivateLinkResourceStatusDisconnected SharedPrivateLinkResourceStatus = "Disconnected"
-	// SharedPrivateLinkResourceStatusPending ...
-	SharedPrivateLinkResourceStatusPending SharedPrivateLinkResourceStatus = "Pending"
-	// SharedPrivateLinkResourceStatusRejected ...
-	SharedPrivateLinkResourceStatusRejected SharedPrivateLinkResourceStatus = "Rejected"
-	// SharedPrivateLinkResourceStatusTimeout ...
-	SharedPrivateLinkResourceStatusTimeout SharedPrivateLinkResourceStatus = "Timeout"
-)
-
-// PossibleSharedPrivateLinkResourceStatusValues returns an array of possible values for the SharedPrivateLinkResourceStatus const type.
-func PossibleSharedPrivateLinkResourceStatusValues() []SharedPrivateLinkResourceStatus {
-	return []SharedPrivateLinkResourceStatus{SharedPrivateLinkResourceStatusApproved, SharedPrivateLinkResourceStatusDisconnected, SharedPrivateLinkResourceStatusPending, SharedPrivateLinkResourceStatusRejected, SharedPrivateLinkResourceStatusTimeout}
-}
-
 // SkuName enumerates the values for sku name.
 type SkuName string
 

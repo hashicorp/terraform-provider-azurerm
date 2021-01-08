@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -24,7 +25,17 @@ func NewDomainTopicID(subscriptionId, resourceGroup, domainName, topicName strin
 	}
 }
 
-func (id DomainTopicId) ID(_ string) string {
+func (id DomainTopicId) String() string {
+	segments := []string{
+		fmt.Sprintf("Topic Name %q", id.TopicName),
+		fmt.Sprintf("Domain Name %q", id.DomainName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Domain Topic", segmentsStr)
+}
+
+func (id DomainTopicId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.EventGrid/domains/%s/topics/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DomainName, id.TopicName)
 }

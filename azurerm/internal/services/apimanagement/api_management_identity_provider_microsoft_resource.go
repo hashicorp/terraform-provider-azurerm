@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementIdentityProviderMicrosoft() *schema.Resource {
+func resourceApiManagementIdentityProviderMicrosoft() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementIdentityProviderMicrosoftCreateUpdate,
-		Read:   resourceArmApiManagementIdentityProviderMicrosoftRead,
-		Update: resourceArmApiManagementIdentityProviderMicrosoftCreateUpdate,
-		Delete: resourceArmApiManagementIdentityProviderMicrosoftDelete,
+		Create: resourceApiManagementIdentityProviderMicrosoftCreateUpdate,
+		Read:   resourceApiManagementIdentityProviderMicrosoftRead,
+		Update: resourceApiManagementIdentityProviderMicrosoftCreateUpdate,
+		Delete: resourceApiManagementIdentityProviderMicrosoftDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -53,7 +53,7 @@ func resourceArmApiManagementIdentityProviderMicrosoft() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementIdentityProviderMicrosoftCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderMicrosoftCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -97,10 +97,10 @@ func resourceArmApiManagementIdentityProviderMicrosoftCreateUpdate(d *schema.Res
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementIdentityProviderMicrosoftRead(d, meta)
+	return resourceApiManagementIdentityProviderMicrosoftRead(d, meta)
 }
 
-func resourceArmApiManagementIdentityProviderMicrosoftRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderMicrosoftRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -134,7 +134,7 @@ func resourceArmApiManagementIdentityProviderMicrosoftRead(d *schema.ResourceDat
 	return nil
 }
 
-func resourceArmApiManagementIdentityProviderMicrosoftDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderMicrosoftDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

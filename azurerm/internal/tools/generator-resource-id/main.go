@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"sort"
 	"strings"
 	"unicode"
 )
@@ -121,18 +122,36 @@ func parseServicePackageName(relativePath string) (*string, error) {
 }
 
 func convertToSnakeCase(input string) string {
-	out := make([]rune, 0)
-	for _, char := range input {
-		if unicode.IsUpper(char) {
-			out = append(out, '_')
-			out = append(out, unicode.ToLower(char))
+	splitIdxMap := map[int]struct{}{}
+	var lastChar rune
+	for idx, char := range input {
+		switch {
+		case idx == 0:
+			splitIdxMap[idx] = struct{}{}
+		case unicode.IsUpper(lastChar) == unicode.IsUpper(char):
+		case unicode.IsUpper(lastChar):
+			splitIdxMap[idx-1] = struct{}{}
+		case unicode.IsUpper(char):
+			splitIdxMap[idx] = struct{}{}
+		}
+		lastChar = char
+	}
+	splitIdx := make([]int, 0, len(splitIdxMap))
+	for idx := range splitIdxMap {
+		splitIdx = append(splitIdx, idx)
+	}
+	sort.Ints(splitIdx)
+
+	inputRunes := []rune(input)
+	out := make([]string, len(splitIdx))
+	for i := range splitIdx {
+		if i == len(splitIdx)-1 {
+			out[i] = strings.ToLower(string(inputRunes[splitIdx[i]:]))
 			continue
 		}
-
-		out = append(out, char)
+		out[i] = strings.ToLower(string(inputRunes[splitIdx[i]:splitIdx[i+1]]))
 	}
-	val := string(out)
-	return strings.TrimPrefix(val, "_")
+	return strings.Join(out, "_")
 }
 
 type ResourceIdSegment struct {
@@ -178,7 +197,7 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 			continue
 		}
 
-		var segmentBuilder = func(key, value string) ResourceIdSegment {
+		var segmentBuilder = func(key, value string, hasSubscriptionId bool) ResourceIdSegment {
 			var toCamelCase = func(input string) string {
 				// lazy but it works
 				out := make([]rune, 0)
@@ -207,7 +226,7 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 				return segment
 			}
 
-			if key == "subscriptions" {
+			if key == "subscriptions" && !hasSubscriptionId {
 				segment.FieldName = "SubscriptionId"
 				segment.ArgumentName = "subscriptionId"
 				return segment
@@ -244,7 +263,17 @@ func NewResourceID(typeName, servicePackageName, resourceId string) (*ResourceId
 			return segment
 		}
 
-		segments = append(segments, segmentBuilder(key, value))
+		// handle multiple 'subscriptions' segments, ala ServiceBus Subscription
+		hasSubscriptionId := false
+		for _, v := range segments {
+			if v.FieldName == "SubscriptionId" {
+				hasSubscriptionId = true
+				break
+			}
+		}
+
+		segment := segmentBuilder(key, value, hasSubscriptionId)
+		segments = append(segments, segment)
 	}
 
 	// finally build up the format string based on this information
@@ -288,6 +317,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -297,7 +327,8 @@ import (
 %s
 %s
 %s
-`, id.codeForType(), id.codeForConstructor(), id.codeForFormatter(), id.codeForParser(), id.codeForParserInsensitive())
+%s
+`, id.codeForType(), id.codeForConstructor(), id.codeForDescription(), id.codeForFormatter(), id.codeForParser(), id.codeForParserInsensitive())
 }
 
 func (id ResourceIdGenerator) codeForType() string {
@@ -333,6 +364,47 @@ func New%[1]sID(%[2]s string) %[1]sId {
 `, id.TypeName, argumentsStr, assignmentsStr)
 }
 
+func (id ResourceIdGenerator) codeForDescription() string {
+	var makeHumanReadable = func(input string) string {
+		chars := make([]rune, 0)
+		for _, c := range input {
+			if unicode.IsUpper(c) {
+				chars = append(chars, ' ')
+			}
+
+			chars = append(chars, c)
+		}
+		out := string(chars)
+		return strings.TrimSpace(out)
+	}
+
+	formatKeys := make([]string, 0)
+	for _, segment := range id.Segments {
+		if segment.FieldName == "SubscriptionId" {
+			continue
+		}
+
+		humanReadableKey := makeHumanReadable(segment.FieldName)
+		formatKeys = append(formatKeys, fmt.Sprintf("\t\tfmt.Sprintf(\"%[1]s %%q\", id.%[2]s),", humanReadableKey, segment.FieldName))
+	}
+
+	reversedKeys := make([]string, 0)
+	for i := len(formatKeys); i != 0; i-- {
+		reversedKeys = append(reversedKeys, formatKeys[i-1])
+	}
+
+	formatKeysString := strings.Join(reversedKeys, "\n")
+	return fmt.Sprintf(`
+func (id %[1]sId) String() string {
+	segments := []string{
+%s
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%%s: (%%s)", %[3]q, segmentsStr)
+}
+`, id.TypeName, formatKeysString, makeHumanReadable(id.TypeName))
+}
+
 func (id ResourceIdGenerator) codeForFormatter() string {
 	formatKeys := make([]string, 0)
 	for _, segment := range id.Segments {
@@ -340,7 +412,7 @@ func (id ResourceIdGenerator) codeForFormatter() string {
 	}
 	formatKeysString := strings.Join(formatKeys, ", ")
 	return fmt.Sprintf(`
-func (id %[1]sId) ID(_ string) string {
+func (id %[1]sId) ID() string {
 	fmtString := %[2]q
 	return fmt.Sprintf(fmtString, %[3]s)
 }
@@ -359,8 +431,8 @@ func (id ResourceIdGenerator) codeForParser() string {
 
 	parserStatements := make([]string, 0)
 	for _, segment := range id.Segments {
-		isSubscription := strings.EqualFold(segment.SegmentKey, "subscriptions") && id.HasSubscriptionId
-		isResourceGroup := strings.EqualFold(segment.SegmentKey, "resourceGroups") && id.HasResourceGroup
+		isSubscription := strings.EqualFold(segment.FieldName, "SubscriptionId") && id.HasSubscriptionId
+		isResourceGroup := strings.EqualFold(segment.FieldName, "ResourceGroup") && id.HasResourceGroup
 		if isSubscription || isResourceGroup {
 			parserStatements = append(parserStatements, fmt.Sprintf(`
 	if resourceId.%[1]s == "" {
@@ -414,8 +486,8 @@ func (id ResourceIdGenerator) codeForParserInsensitive() string {
 
 	parserStatements := make([]string, 0)
 	for _, segment := range id.Segments {
-		isSubscription := strings.EqualFold(segment.SegmentKey, "subscriptions") && id.HasSubscriptionId
-		isResourceGroup := strings.EqualFold(segment.SegmentKey, "resourceGroups") && id.HasResourceGroup
+		isSubscription := strings.EqualFold(segment.FieldName, "SubscriptionId") && id.HasSubscriptionId
+		isResourceGroup := strings.EqualFold(segment.FieldName, "ResourceGroup") && id.HasResourceGroup
 		if isSubscription || isResourceGroup {
 			parserStatements = append(parserStatements, fmt.Sprintf(`
 	if resourceId.%[1]s == "" {
@@ -499,7 +571,7 @@ func (id ResourceIdGenerator) testCodeForFormatter() string {
 var _ resourceid.Formatter = %[1]sId{}
 
 func Test%[1]sIDFormatter(t *testing.T) {
-	actual := New%[1]sID(%[2]s).ID("")
+	actual := New%[1]sID(%[2]s).ID()
 	expected := %[3]q
 	if actual != expected {
 		t.Fatalf("Expected %%q but got %%q", expected, actual)

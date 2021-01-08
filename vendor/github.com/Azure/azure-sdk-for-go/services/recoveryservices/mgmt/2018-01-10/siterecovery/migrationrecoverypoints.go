@@ -75,6 +75,7 @@ func (client MigrationRecoveryPointsClient) Get(ctx context.Context, fabricName 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.MigrationRecoveryPointsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -156,6 +157,7 @@ func (client MigrationRecoveryPointsClient) ListByReplicationMigrationItems(ctx 
 	result.mrpc, err = client.ListByReplicationMigrationItemsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.MigrationRecoveryPointsClient", "ListByReplicationMigrationItems", resp, "Failure responding to request")
+		return
 	}
 	if result.mrpc.hasNextLink() && result.mrpc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -223,6 +225,7 @@ func (client MigrationRecoveryPointsClient) listByReplicationMigrationItemsNextR
 	result, err = client.ListByReplicationMigrationItemsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.MigrationRecoveryPointsClient", "listByReplicationMigrationItemsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -24,12 +24,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAppServiceHybridConnection() *schema.Resource {
+func resourceAppServiceHybridConnection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAppServiceHybridConnectionCreateUpdate,
-		Read:   resourceArmAppServiceHybridConnectionRead,
-		Update: resourceArmAppServiceHybridConnectionCreateUpdate,
-		Delete: resourceArmAppServiceHybridConnectionDelete,
+		Create: resourceAppServiceHybridConnectionCreateUpdate,
+		Read:   resourceAppServiceHybridConnectionRead,
+		Update: resourceAppServiceHybridConnectionCreateUpdate,
+		Delete: resourceAppServiceHybridConnectionDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.HybridConnectionID(id)
@@ -108,7 +108,7 @@ func resourceArmAppServiceHybridConnection() *schema.Resource {
 	}
 }
 
-func resourceArmAppServiceHybridConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceHybridConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -158,36 +158,32 @@ func resourceArmAppServiceHybridConnectionCreateUpdate(d *schema.ResourceData, m
 	}
 	d.SetId(*hybridConnection.ID)
 
-	return resourceArmAppServiceHybridConnectionRead(d, meta)
+	return resourceAppServiceHybridConnectionRead(d, meta)
 }
 
-func resourceArmAppServiceHybridConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceHybridConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.HybridConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["sites"]
-	namespaceName := id.Path["hybridConnectionNamespaces"]
-	relayName := id.Path["relays"]
 
-	resp, err := client.GetHybridConnection(ctx, resourceGroup, name, namespaceName, relayName)
+	resp, err := client.GetHybridConnection(ctx, id.ResourceGroup, id.SiteName, id.HybridConnectionNamespaceName, id.RelayName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Hybrid Connection for App Service %q (resource group %q) was not found - removing from state", name, resourceGroup)
+			log.Printf("[DEBUG] Hybrid Connection %q for App Service %q (Resource Group %q) was not found - removing from state", id.HybridConnectionNamespaceName, id.SiteName, id.RelayName)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on App Service Hybrid Connection %q in Namespace %q, Resource Group %q: %s", name, namespaceName, resourceGroup, err)
+		return fmt.Errorf("retrieving App Service Hybrid Connection %q in Namespace %q, Resource Group %q: %s", id.SiteName, id.HybridConnectionNamespaceName, id.ResourceGroup, err)
 	}
-	d.Set("app_service_name", name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("namespace_name", namespaceName)
-	d.Set("relay_name", relayName)
+	d.Set("app_service_name", id.SiteName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("namespace_name", id.HybridConnectionNamespaceName)
+	d.Set("relay_name", id.RelayName)
 
 	if props := resp.HybridConnectionProperties; props != nil {
 		d.Set("port", resp.Port)
@@ -207,7 +203,7 @@ func resourceArmAppServiceHybridConnectionRead(d *schema.ResourceData, meta inte
 		}
 		accessKeys, err := relayNSClient.ListKeys(ctx, relayNamespaceRG, *resp.ServiceBusNamespace, *resp.SendKeyName)
 		if err != nil {
-			return fmt.Errorf("unable to List Access Keys for Namespace %q (Resource Group %q): %+v", *resp.ServiceBusNamespace, resourceGroup, err)
+			return fmt.Errorf("unable to List Access Keys for Namespace %q (Resource Group %q): %+v", *resp.ServiceBusNamespace, id.ResourceGroup, err)
 		} else {
 			d.Set("send_key_value", accessKeys.PrimaryKey)
 		}
@@ -216,26 +212,21 @@ func resourceArmAppServiceHybridConnectionRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceArmAppServiceHybridConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceHybridConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.HybridConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["sites"]
-	namespaceName := id.Path["hybridConnectionNamespaces"]
-	relayName := id.Path["relays"]
 
-	resp, err := client.DeleteHybridConnection(ctx, resourceGroup, name, namespaceName, relayName)
+	resp, err := client.DeleteHybridConnection(ctx, id.ResourceGroup, id.SiteName, id.HybridConnectionNamespaceName, id.RelayName)
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return nil
+			return fmt.Errorf("deleting App Service Hybrid Connection %q (Resource Group %q, Relay %q): %+v", id.SiteName, id.ResourceGroup, id.RelayName, err)
 		}
-		return fmt.Errorf("Error deleting App Service Hybrid Connection %q (Resource Group %q, Relay %q): %+v", name, resourceGroup, relayName, err)
 	}
 
 	return nil

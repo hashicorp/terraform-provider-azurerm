@@ -95,6 +95,7 @@ func (client CollectionPartitionRegionClient) ListMetrics(ctx context.Context, r
 	result, err = client.ListMetricsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.CollectionPartitionRegionClient", "ListMetrics", resp, "Failure responding to request")
+		return
 	}
 
 	return

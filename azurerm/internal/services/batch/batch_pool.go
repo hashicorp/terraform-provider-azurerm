@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2019-08-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2020-03-01/batch"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -582,23 +582,36 @@ func ExpandBatchPoolNetworkConfiguration(list []interface{}) (*batch.NetworkConf
 	}
 
 	if v, ok := networkConfigValue["public_ips"]; ok {
+		if networkConfiguration.PublicIPAddressConfiguration == nil {
+			networkConfiguration.PublicIPAddressConfiguration = &batch.PublicIPAddressConfiguration{}
+		}
+
 		publicIPsRaw := v.(*schema.Set).List()
-		networkConfiguration.PublicIPs = utils.ExpandStringSlice(publicIPsRaw)
+		networkConfiguration.PublicIPAddressConfiguration.IPAddressIds = utils.ExpandStringSlice(publicIPsRaw)
 	}
 
 	if v, ok := networkConfigValue["endpoint_configuration"]; ok {
-		endpoint, err := ExpandBatchPoolEndpointConfiguration(v.([]interface{}))
+		endpoint, err := expandPoolEndpointConfiguration(v.([]interface{}))
 		if err != nil {
 			return nil, err
 		}
 		networkConfiguration.EndpointConfiguration = endpoint
 	}
 
+	if v, ok := networkConfigValue["public_address_provisioning_type"]; ok {
+		if networkConfiguration.PublicIPAddressConfiguration == nil {
+			networkConfiguration.PublicIPAddressConfiguration = &batch.PublicIPAddressConfiguration{}
+		}
+
+		if value := v.(string); value != "" {
+			networkConfiguration.PublicIPAddressConfiguration.Provision = batch.IPAddressProvisioningType(value)
+		}
+	}
+
 	return networkConfiguration, nil
 }
 
-// ExpandBatchPoolEndpointConfiguration expands Batch pool endpoint configuration
-func ExpandBatchPoolEndpointConfiguration(list []interface{}) (*batch.PoolEndpointConfiguration, error) {
+func expandPoolEndpointConfiguration(list []interface{}) (*batch.PoolEndpointConfiguration, error) {
 	if len(list) == 0 {
 		return nil, nil
 	}
@@ -613,13 +626,16 @@ func ExpandBatchPoolEndpointConfiguration(list []interface{}) (*batch.PoolEndpoi
 		backendPort := int32(inboundNatPool["backend_port"].(int))
 		frontendPortRange := inboundNatPool["frontend_port_range"].(string)
 		parts := strings.Split(frontendPortRange, "-")
-		frontendPortRangeStart, _ := strconv.Atoi(parts[0])
-		frontendPortRangeEnd, _ := strconv.Atoi(parts[1])
-
-		networkSecurityGroupRules, err := ExpandBatchPoolNetworkSecurityGroupRule(inboundNatPool["network_security_group_rules"].([]interface{}))
+		frontendPortRangeStart, err := strconv.Atoi(parts[0])
 		if err != nil {
 			return nil, err
 		}
+		frontendPortRangeEnd, err := strconv.Atoi(parts[1])
+		if err != nil {
+			return nil, err
+		}
+
+		networkSecurityGroupRules := expandPoolNetworkSecurityGroupRule(inboundNatPool["network_security_group_rules"].([]interface{}))
 
 		inboundNatPools[i] = batch.InboundNatPool{
 			Name:                      &name,
@@ -636,87 +652,99 @@ func ExpandBatchPoolEndpointConfiguration(list []interface{}) (*batch.PoolEndpoi
 	}, nil
 }
 
-// ExpandBatchPoolNetworkSecurityGroupRule expands Batch pool network security group rule
-func ExpandBatchPoolNetworkSecurityGroupRule(list []interface{}) ([]batch.NetworkSecurityGroupRule, error) {
+func expandPoolNetworkSecurityGroupRule(list []interface{}) []batch.NetworkSecurityGroupRule {
 	if len(list) == 0 {
-		return nil, nil
+		return []batch.NetworkSecurityGroupRule{}
 	}
 
-	networkSecurityGroupRule := make([]batch.NetworkSecurityGroupRule, len(list))
-
-	for i, groupRule := range list {
+	networkSecurityGroupRule := make([]batch.NetworkSecurityGroupRule, 0)
+	for _, groupRule := range list {
 		groupRuleMap := groupRule.(map[string]interface{})
 
 		priority := int32(groupRuleMap["priority"].(int))
 		sourceAddressPrefix := groupRuleMap["source_address_prefix"].(string)
 		access := batch.NetworkSecurityGroupRuleAccess(groupRuleMap["access"].(string))
 
-		networkSecurityGroupRule[i] = batch.NetworkSecurityGroupRule{
+		networkSecurityGroupRule = append(networkSecurityGroupRule, batch.NetworkSecurityGroupRule{
 			Priority:            &priority,
 			SourceAddressPrefix: &sourceAddressPrefix,
 			Access:              access,
-		}
+		})
 	}
 
-	return networkSecurityGroupRule, nil
+	return networkSecurityGroupRule
 }
 
-// FlattenBatchPoolNetworkConfiguration flattens the network configuration for a Batch pool
-func FlattenBatchPoolNetworkConfiguration(networkConfig *batch.NetworkConfiguration) []interface{} {
-	results := make([]interface{}, 0)
-
-	if networkConfig == nil {
-		log.Printf("[DEBUG] networkConfgiuration is nil")
-		return nil
+func flattenBatchPoolNetworkConfiguration(input *batch.NetworkConfiguration) []interface{} {
+	if input == nil {
+		return []interface{}{}
 	}
 
-	result := make(map[string]interface{})
-
-	if networkConfig.SubnetID != nil {
-		result["subnet_id"] = *networkConfig.SubnetID
+	subnetId := ""
+	if input.SubnetID != nil {
+		subnetId = *input.SubnetID
 	}
 
-	if networkConfig.PublicIPs != nil {
-		result["public_ips"] = schema.NewSet(schema.HashString, utils.FlattenStringSlice(networkConfig.PublicIPs))
+	publicIPAddressIds := make([]interface{}, 0)
+	publicAddressProvisioningType := ""
+	if config := input.PublicIPAddressConfiguration; config != nil {
+		publicIPAddressIds = utils.FlattenStringSlice(config.IPAddressIds)
+		publicAddressProvisioningType = string(config.Provision)
 	}
 
-	if cfg := networkConfig.EndpointConfiguration; cfg != nil && cfg.InboundNatPools != nil && len(*cfg.InboundNatPools) != 0 {
-		endpointConfigs := make([]interface{}, len(*cfg.InboundNatPools))
-
-		for i, inboundNatPool := range *cfg.InboundNatPools {
-			inboundNatPoolMap := make(map[string]interface{})
+	endpointConfigs := make([]interface{}, 0)
+	if config := input.EndpointConfiguration; config != nil && config.InboundNatPools != nil {
+		for _, inboundNatPool := range *config.InboundNatPools {
+			name := ""
 			if inboundNatPool.Name != nil {
-				inboundNatPoolMap["name"] = *inboundNatPool.Name
+				name = *inboundNatPool.Name
 			}
+
+			backendPort := 0
 			if inboundNatPool.BackendPort != nil {
-				inboundNatPoolMap["backend_port"] = *inboundNatPool.BackendPort
+				backendPort = int(*inboundNatPool.BackendPort)
 			}
+
+			frontendPortRange := ""
 			if inboundNatPool.FrontendPortRangeStart != nil && inboundNatPool.FrontendPortRangeEnd != nil {
-				inboundNatPoolMap["frontend_port_range"] = fmt.Sprintf("%d-%d", *inboundNatPool.FrontendPortRangeStart, *inboundNatPool.FrontendPortRangeEnd)
+				frontendPortRange = fmt.Sprintf("%d-%d", *inboundNatPool.FrontendPortRangeStart, *inboundNatPool.FrontendPortRangeEnd)
 			}
-			inboundNatPoolMap["protocol"] = inboundNatPool.Protocol
 
-			if sgRules := inboundNatPool.NetworkSecurityGroupRules; sgRules != nil && len(*sgRules) != 0 {
-				networkSecurities := make([]interface{}, len(*sgRules))
-				for j, networkSecurity := range *sgRules {
-					networkSecurityMap := make(map[string]interface{})
-
+			networkSecurities := make([]interface{}, 0)
+			if sgRules := inboundNatPool.NetworkSecurityGroupRules; sgRules != nil {
+				for _, networkSecurity := range *sgRules {
+					priority := 0
 					if networkSecurity.Priority != nil {
-						networkSecurityMap["priority"] = *networkSecurity.Priority
+						priority = int(*networkSecurity.Priority)
 					}
+					sourceAddressPrefix := ""
 					if networkSecurity.SourceAddressPrefix != nil {
-						networkSecurityMap["source_address_prefix"] = *networkSecurity.SourceAddressPrefix
+						sourceAddressPrefix = *networkSecurity.SourceAddressPrefix
 					}
-					networkSecurityMap["access"] = networkSecurity.Access
-					networkSecurities[j] = networkSecurityMap
+					networkSecurities = append(networkSecurities, map[string]interface{}{
+						"access":                string(networkSecurity.Access),
+						"priority":              priority,
+						"source_address_prefix": sourceAddressPrefix,
+					})
 				}
-				inboundNatPoolMap["network_security_group_rules"] = networkSecurities
 			}
-			endpointConfigs[i] = inboundNatPoolMap
-		}
 
-		result["endpoint_configuration"] = endpointConfigs
+			endpointConfigs = append(endpointConfigs, map[string]interface{}{
+				"backend_port":                 backendPort,
+				"frontend_port_range":          frontendPortRange,
+				"name":                         name,
+				"network_security_group_rules": networkSecurities,
+				"protocol":                     string(inboundNatPool.Protocol),
+			})
+		}
 	}
 
-	return append(results, result)
+	return []interface{}{
+		map[string]interface{}{
+			"endpoint_configuration":           endpointConfigs,
+			"public_address_provisioning_type": publicAddressProvisioningType,
+			"public_ips":                       schema.NewSet(schema.HashString, publicIPAddressIds),
+			"subnet_id":                        subnetId,
+		},
+	}
 }

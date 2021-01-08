@@ -1,22 +1,23 @@
 package validate
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 )
 
-func LogAnalyticsClusterId(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
+func LogAnalyticsClusterID(input interface{}, key string) (warnings []string, errors []error) {
+	v, ok := input.(string)
 	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
+		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
 		return
 	}
 
-	_, err := parse.LogAnalyticsClusterID(v)
-	if err != nil {
-		errors = append(errors, fmt.Errorf("expected %s to be a Log Analytics Cluster ID:, %+v", k, err))
+	if _, err := parse.LogAnalyticsClusterID(v); err != nil {
+		errors = append(errors, err)
 	}
 
-	return warnings, errors
+	return
 }

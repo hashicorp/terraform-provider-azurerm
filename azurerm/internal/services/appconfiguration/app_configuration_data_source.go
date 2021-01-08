@@ -167,7 +167,7 @@ func dataSourceAppConfigurationRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Failed to receive access keys for App Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	d.SetId(parse.NewConfigurationStoreID(subscriptionId, resourceGroup, name).ID(""))
+	d.SetId(parse.NewConfigurationStoreID(subscriptionId, resourceGroup, name).ID())
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))

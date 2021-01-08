@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementIdentityProviderAAD() *schema.Resource {
+func resourceApiManagementIdentityProviderAAD() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementIdentityProviderAADCreateUpdate,
-		Read:   resourceArmApiManagementIdentityProviderAADRead,
-		Update: resourceArmApiManagementIdentityProviderAADCreateUpdate,
-		Delete: resourceArmApiManagementIdentityProviderAADDelete,
+		Create: resourceApiManagementIdentityProviderAADCreateUpdate,
+		Read:   resourceApiManagementIdentityProviderAADRead,
+		Update: resourceApiManagementIdentityProviderAADCreateUpdate,
+		Delete: resourceApiManagementIdentityProviderAADDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -67,7 +67,7 @@ func resourceArmApiManagementIdentityProviderAAD() *schema.Resource {
 	}
 }
 
-func resourceArmApiManagementIdentityProviderAADCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderAADCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -115,10 +115,10 @@ func resourceArmApiManagementIdentityProviderAADCreateUpdate(d *schema.ResourceD
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementIdentityProviderAADRead(d, meta)
+	return resourceApiManagementIdentityProviderAADRead(d, meta)
 }
 
-func resourceArmApiManagementIdentityProviderAADRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderAADRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -154,7 +154,7 @@ func resourceArmApiManagementIdentityProviderAADRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceArmApiManagementIdentityProviderAADDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderAADDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

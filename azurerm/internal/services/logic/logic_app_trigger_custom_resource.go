@@ -12,12 +12,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-func resourceArmLogicAppTriggerCustom() *schema.Resource {
+func resourceLogicAppTriggerCustom() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogicAppTriggerCustomCreateUpdate,
-		Read:   resourceArmLogicAppTriggerCustomRead,
-		Update: resourceArmLogicAppTriggerCustomCreateUpdate,
-		Delete: resourceArmLogicAppTriggerCustomDelete,
+		Create: resourceLogicAppTriggerCustomCreateUpdate,
+		Read:   resourceLogicAppTriggerCustomRead,
+		Update: resourceLogicAppTriggerCustomCreateUpdate,
+		Delete: resourceLogicAppTriggerCustomDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -53,7 +53,7 @@ func resourceArmLogicAppTriggerCustom() *schema.Resource {
 	}
 }
 
-func resourceArmLogicAppTriggerCustomCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerCustomCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	logicAppId := d.Get("logic_app_id").(string)
 	name := d.Get("name").(string)
 	bodyRaw := d.Get("body").(string)
@@ -67,10 +67,10 @@ func resourceArmLogicAppTriggerCustomCreateUpdate(d *schema.ResourceData, meta i
 		return err
 	}
 
-	return resourceArmLogicAppTriggerCustomRead(d, meta)
+	return resourceLogicAppTriggerCustomRead(d, meta)
 }
 
-func resourceArmLogicAppTriggerCustomRead(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerCustomRead(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -108,7 +108,7 @@ func resourceArmLogicAppTriggerCustomRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func resourceArmLogicAppTriggerCustomDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceLogicAppTriggerCustomDelete(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err

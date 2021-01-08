@@ -12,9 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmKustoCluster() *schema.Resource {
+func dataSourceKustoCluster() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmKustoClusterRead,
+		Read: dataSourceKustoClusterRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -46,7 +46,7 @@ func dataSourceArmKustoCluster() *schema.Resource {
 	}
 }
 
-func dataSourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceKustoClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClustersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

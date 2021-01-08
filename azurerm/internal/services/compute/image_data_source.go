@@ -17,9 +17,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmImage() *schema.Resource {
+func dataSourceImage() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmImageRead,
+		Read: dataSourceImageRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -121,7 +121,7 @@ func dataSourceArmImage() *schema.Resource {
 	}
 }
 
-func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceImageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.ImagesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

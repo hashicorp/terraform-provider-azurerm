@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-02-15/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKustoClusterCustomerManagedKey() *schema.Resource {
+func resourceKustoClusterCustomerManagedKey() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKustoClusterCustomerManagedKeyCreateUpdate,
-		Read:   resourceArmKustoClusterCustomerManagedKeyRead,
-		Update: resourceArmKustoClusterCustomerManagedKeyCreateUpdate,
-		Delete: resourceArmKustoClusterCustomerManagedKeyDelete,
+		Create: resourceKustoClusterCustomerManagedKeyCreateUpdate,
+		Read:   resourceKustoClusterCustomerManagedKeyRead,
+		Update: resourceKustoClusterCustomerManagedKeyCreateUpdate,
+		Delete: resourceKustoClusterCustomerManagedKeyDelete,
 
 		// TODO: this needs a custom ID validating importer
 		Importer: &schema.ResourceImporter{
@@ -67,7 +67,7 @@ func resourceArmKustoClusterCustomerManagedKey() *schema.Resource {
 	}
 }
 
-func resourceArmKustoClusterCustomerManagedKeyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	clusterClient := meta.(*clients.Client).Kusto.ClustersClient
 	vaultsClient := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -153,10 +153,10 @@ func resourceArmKustoClusterCustomerManagedKeyCreateUpdate(d *schema.ResourceDat
 
 	d.SetId(resourceID)
 
-	return resourceArmKustoClusterCustomerManagedKeyRead(d, meta)
+	return resourceKustoClusterCustomerManagedKeyRead(d, meta)
 }
 
-func resourceArmKustoClusterCustomerManagedKeyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterCustomerManagedKeyRead(d *schema.ResourceData, meta interface{}) error {
 	clusterClient := meta.(*clients.Client).Kusto.ClustersClient
 	vaultsClient := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -221,7 +221,7 @@ func resourceArmKustoClusterCustomerManagedKeyRead(d *schema.ResourceData, meta 
 	return nil
 }
 
-func resourceArmKustoClusterCustomerManagedKeyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoClusterCustomerManagedKeyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClustersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
