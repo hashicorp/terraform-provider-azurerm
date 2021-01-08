@@ -59,6 +59,12 @@ func resourceArmDataFactoryLinkedServiceAzureFileStorage() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"file_share": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"host": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -144,8 +150,9 @@ func resourceArmDataFactoryLinkedServiceAzureFileStorageCreateUpdate(d *schema.R
 			Value: utils.String(d.Get("connection_string").(string)),
 			Type:  datafactory.TypeSecureString,
 		},
-		Host:   d.Get("host").(string),
-		UserID: d.Get("connection_string").(string),
+		FileShare: d.Get("file_share").(string),
+		Host:      d.Get("host").(string),
+		UserID:    d.Get("connection_string").(string),
 	}
 
 	password := d.Get("password").(string)
@@ -249,6 +256,12 @@ func resourceArmDataFactoryLinkedServiceAzureFileStorageRead(d *schema.ResourceD
 	if connectVia := fileStorage.ConnectVia; connectVia != nil {
 		if connectVia.ReferenceName != nil {
 			d.Set("integration_runtime_name", connectVia.ReferenceName)
+		}
+	}
+
+	if props := fileStorage.AzureFileStorageLinkedServiceTypeProperties; props != nil {
+		if props.FileShare != nil {
+			d.Set("file_share", props.FileShare)
 		}
 	}
 

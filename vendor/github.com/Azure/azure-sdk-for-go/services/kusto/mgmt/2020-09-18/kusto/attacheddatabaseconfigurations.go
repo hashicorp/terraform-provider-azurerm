@@ -242,6 +242,7 @@ func (client AttachedDatabaseConfigurationsClient) Get(ctx context.Context, reso
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "kusto.AttachedDatabaseConfigurationsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -318,6 +319,7 @@ func (client AttachedDatabaseConfigurationsClient) ListByCluster(ctx context.Con
 	result, err = client.ListByClusterResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "kusto.AttachedDatabaseConfigurationsClient", "ListByCluster", resp, "Failure responding to request")
+		return
 	}
 
 	return

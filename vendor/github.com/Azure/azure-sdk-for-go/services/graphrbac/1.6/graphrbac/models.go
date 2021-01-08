@@ -1089,8 +1089,11 @@ func (page ApplicationListResultPage) Values() []Application {
 }
 
 // Creates a new instance of the ApplicationListResultPage type.
-func NewApplicationListResultPage(getNextPage func(context.Context, ApplicationListResult) (ApplicationListResult, error)) ApplicationListResultPage {
-	return ApplicationListResultPage{fn: getNextPage}
+func NewApplicationListResultPage(cur ApplicationListResult, getNextPage func(context.Context, ApplicationListResult) (ApplicationListResult, error)) ApplicationListResultPage {
+	return ApplicationListResultPage{
+		fn:  getNextPage,
+		alr: cur,
+	}
 }
 
 // ApplicationUpdateParameters request parameters for updating a new application.
@@ -1652,8 +1655,11 @@ func (page DirectoryObjectListResultPage) Values() []BasicDirectoryObject {
 }
 
 // Creates a new instance of the DirectoryObjectListResultPage type.
-func NewDirectoryObjectListResultPage(getNextPage func(context.Context, DirectoryObjectListResult) (DirectoryObjectListResult, error)) DirectoryObjectListResultPage {
-	return DirectoryObjectListResultPage{fn: getNextPage}
+func NewDirectoryObjectListResultPage(cur DirectoryObjectListResult, getNextPage func(context.Context, DirectoryObjectListResult) (DirectoryObjectListResult, error)) DirectoryObjectListResultPage {
+	return DirectoryObjectListResultPage{
+		fn:   getNextPage,
+		dolr: cur,
+	}
 }
 
 // Domain active Directory Domain information.
@@ -2239,12 +2245,15 @@ func (page GroupListResultPage) Values() []ADGroup {
 }
 
 // Creates a new instance of the GroupListResultPage type.
-func NewGroupListResultPage(getNextPage func(context.Context, GroupListResult) (GroupListResult, error)) GroupListResultPage {
-	return GroupListResultPage{fn: getNextPage}
+func NewGroupListResultPage(cur GroupListResult, getNextPage func(context.Context, GroupListResult) (GroupListResult, error)) GroupListResultPage {
+	return GroupListResultPage{
+		fn:  getNextPage,
+		glr: cur,
+	}
 }
 
-// InformationalURL represents a group of URIs that provide terms of service, marketing, support and privacy
-// policy information about an application. The default value for each string is null.
+// InformationalURL represents a group of URIs that provide terms of service, marketing, support and
+// privacy policy information about an application. The default value for each string is null.
 type InformationalURL struct {
 	// TermsOfService - The terms of service URI
 	TermsOfService *string `json:"termsOfService,omitempty"`
@@ -2410,8 +2419,8 @@ type KeyCredentialsUpdateParameters struct {
 }
 
 // OAuth2Permission represents an OAuth 2.0 delegated permission scope. The specified OAuth 2.0 delegated
-// permission scopes may be requested by client applications (through the requiredResourceAccess collection on
-// the Application object) when calling a resource application. The oauth2Permissions property of the
+// permission scopes may be requested by client applications (through the requiredResourceAccess collection
+// on the Application object) when calling a resource application. The oauth2Permissions property of the
 // ServicePrincipal entity and of the Application entity is a collection of OAuth2Permission.
 type OAuth2Permission struct {
 	// AdminConsentDescription - Permission help text that appears in the admin consent and app assignment experiences.
@@ -2596,8 +2605,11 @@ func (page OAuth2PermissionGrantListResultPage) Values() []OAuth2PermissionGrant
 }
 
 // Creates a new instance of the OAuth2PermissionGrantListResultPage type.
-func NewOAuth2PermissionGrantListResultPage(getNextPage func(context.Context, OAuth2PermissionGrantListResult) (OAuth2PermissionGrantListResult, error)) OAuth2PermissionGrantListResultPage {
-	return OAuth2PermissionGrantListResultPage{fn: getNextPage}
+func NewOAuth2PermissionGrantListResultPage(cur OAuth2PermissionGrantListResult, getNextPage func(context.Context, OAuth2PermissionGrantListResult) (OAuth2PermissionGrantListResult, error)) OAuth2PermissionGrantListResultPage {
+	return OAuth2PermissionGrantListResultPage{
+		fn:      getNextPage,
+		oa2pglr: cur,
+	}
 }
 
 // OdataError active Directory OData error information.
@@ -2879,8 +2891,8 @@ type PreAuthorizedApplication struct {
 	Extensions *[]PreAuthorizedApplicationExtension `json:"extensions,omitempty"`
 }
 
-// PreAuthorizedApplicationExtension representation of an app PreAuthorizedApplicationExtension required by a
-// pre authorized client app.
+// PreAuthorizedApplicationExtension representation of an app PreAuthorizedApplicationExtension required by
+// a pre authorized client app.
 type PreAuthorizedApplicationExtension struct {
 	// Conditions - The extension's conditions.
 	Conditions *[]string `json:"conditions,omitempty"`
@@ -2894,10 +2906,11 @@ type PreAuthorizedApplicationPermission struct {
 	AccessGrants *[]string `json:"accessGrants,omitempty"`
 }
 
-// RequiredResourceAccess specifies the set of OAuth 2.0 permission scopes and app roles under the specified
-// resource that an application requires access to. The specified OAuth 2.0 permission scopes may be requested
-// by client applications (through the requiredResourceAccess collection) when calling a resource application.
-// The requiredResourceAccess property of the Application entity is a collection of RequiredResourceAccess.
+// RequiredResourceAccess specifies the set of OAuth 2.0 permission scopes and app roles under the
+// specified resource that an application requires access to. The specified OAuth 2.0 permission scopes may
+// be requested by client applications (through the requiredResourceAccess collection) when calling a
+// resource application. The requiredResourceAccess property of the Application entity is a collection of
+// RequiredResourceAccess.
 type RequiredResourceAccess struct {
 	// AdditionalProperties - Unmatched properties from the message are deserialized this collection
 	AdditionalProperties map[string]interface{} `json:""`
@@ -3433,7 +3446,8 @@ func (sp *ServicePrincipal) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// ServicePrincipalBase active Directory service principal common properties shared among GET, POST and PATCH
+// ServicePrincipalBase active Directory service principal common properties shared among GET, POST and
+// PATCH
 type ServicePrincipalBase struct {
 	// AccountEnabled - whether or not the service principal account is enabled
 	AccountEnabled *bool `json:"accountEnabled,omitempty"`
@@ -3607,8 +3621,11 @@ func (page ServicePrincipalListResultPage) Values() []ServicePrincipal {
 }
 
 // Creates a new instance of the ServicePrincipalListResultPage type.
-func NewServicePrincipalListResultPage(getNextPage func(context.Context, ServicePrincipalListResult) (ServicePrincipalListResult, error)) ServicePrincipalListResultPage {
-	return ServicePrincipalListResultPage{fn: getNextPage}
+func NewServicePrincipalListResultPage(cur ServicePrincipalListResult, getNextPage func(context.Context, ServicePrincipalListResult) (ServicePrincipalListResult, error)) ServicePrincipalListResultPage {
+	return ServicePrincipalListResultPage{
+		fn:   getNextPage,
+		splr: cur,
+	}
 }
 
 // ServicePrincipalObjectResult service Principal Object Result.
@@ -3636,8 +3653,8 @@ type ServicePrincipalUpdateParameters struct {
 	Tags *[]string `json:"tags,omitempty"`
 }
 
-// SignInName contains information about a sign-in name of a local account user in an Azure Active Directory
-// B2C tenant.
+// SignInName contains information about a sign-in name of a local account user in an Azure Active
+// Directory B2C tenant.
 type SignInName struct {
 	// AdditionalProperties - Unmatched properties from the message are deserialized this collection
 	AdditionalProperties map[string]interface{} `json:""`
@@ -4482,8 +4499,11 @@ func (page UserListResultPage) Values() []User {
 }
 
 // Creates a new instance of the UserListResultPage type.
-func NewUserListResultPage(getNextPage func(context.Context, UserListResult) (UserListResult, error)) UserListResultPage {
-	return UserListResultPage{fn: getNextPage}
+func NewUserListResultPage(cur UserListResult, getNextPage func(context.Context, UserListResult) (UserListResult, error)) UserListResultPage {
+	return UserListResultPage{
+		fn:  getNextPage,
+		ulr: cur,
+	}
 }
 
 // UserUpdateParameters request parameters for updating an existing work or school account user.

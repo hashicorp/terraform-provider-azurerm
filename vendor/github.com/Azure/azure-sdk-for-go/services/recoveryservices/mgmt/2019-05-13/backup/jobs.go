@@ -75,6 +75,7 @@ func (client JobsClient) List(ctx context.Context, vaultName string, resourceGro
 	result.jrl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.JobsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.jrl.hasNextLink() && result.jrl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -145,6 +146,7 @@ func (client JobsClient) listNextResults(ctx context.Context, lastResults JobRes
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.JobsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

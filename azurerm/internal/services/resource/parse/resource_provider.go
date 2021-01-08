@@ -18,7 +18,7 @@ func NewResourceProviderID(subscriptionId, resourceProvider string) ResourceProv
 	}
 }
 
-func (id ResourceProviderId) ID(_ string) string {
+func (id ResourceProviderId) ID() string {
 	fmtString := "/subscriptions/%s/providers/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceProvider)
 }

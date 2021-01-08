@@ -320,6 +320,7 @@ func (client ManagedDatabasesClient) Get(ctx context.Context, resourceGroupName 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -398,6 +399,7 @@ func (client ManagedDatabasesClient) ListByInstance(ctx context.Context, resourc
 	result.mdlr, err = client.ListByInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesClient", "ListByInstance", resp, "Failure responding to request")
+		return
 	}
 	if result.mdlr.hasNextLink() && result.mdlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -462,6 +464,7 @@ func (client ManagedDatabasesClient) listByInstanceNextResults(ctx context.Conte
 	result, err = client.ListByInstanceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesClient", "listByInstanceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

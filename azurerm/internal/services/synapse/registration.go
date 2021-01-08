@@ -26,10 +26,11 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_synapse_firewall_rule":   resourceSynapseFirewallRule(),
-		"azurerm_synapse_role_assignment": resourceSynapseRoleAssignment(),
-		"azurerm_synapse_spark_pool":      resourceSynapseSparkPool(),
-		"azurerm_synapse_sql_pool":        resourceSynapseSqlPool(),
-		"azurerm_synapse_workspace":       resourceSynapseWorkspace(),
+		"azurerm_synapse_firewall_rule":            resourceSynapseFirewallRule(),
+		"azurerm_synapse_managed_private_endpoint": resourceSynapseManagedPrivateEndpoint(),
+		"azurerm_synapse_role_assignment":          resourceSynapseRoleAssignment(),
+		"azurerm_synapse_spark_pool":               resourceSynapseSparkPool(),
+		"azurerm_synapse_sql_pool":                 resourceSynapseSqlPool(),
+		"azurerm_synapse_workspace":                resourceSynapseWorkspace(),
 	}
 }

@@ -27,14 +27,15 @@ func NewSecretValueID(subscriptionId, resourceGroup, secretName, valueName strin
 
 func (id SecretValueId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Secret Name %q", id.SecretName),
 		fmt.Sprintf("Value Name %q", id.ValueName),
+		fmt.Sprintf("Secret Name %q", id.SecretName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Secret Value", segmentsStr)
 }
 
-func (id SecretValueId) ID(_ string) string {
+func (id SecretValueId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ServiceFabricMesh/secrets/%s/values/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SecretName, id.ValueName)
 }

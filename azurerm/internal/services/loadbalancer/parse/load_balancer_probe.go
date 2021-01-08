@@ -27,14 +27,15 @@ func NewLoadBalancerProbeID(subscriptionId, resourceGroup, loadBalancerName, pro
 
 func (id LoadBalancerProbeId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Load Balancer Name %q", id.LoadBalancerName),
 		fmt.Sprintf("Probe Name %q", id.ProbeName),
+		fmt.Sprintf("Load Balancer Name %q", id.LoadBalancerName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Load Balancer Probe", segmentsStr)
 }
 
-func (id LoadBalancerProbeId) ID(_ string) string {
+func (id LoadBalancerProbeId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/loadBalancers/%s/probes/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName, id.ProbeName)
 }

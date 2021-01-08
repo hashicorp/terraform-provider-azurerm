@@ -32,8 +32,8 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks"
 
-// AddressSpace addressSpace contains an array of IP address ranges that can be used by subnets of the virtual
-// network.
+// AddressSpace addressSpace contains an array of IP address ranges that can be used by subnets of the
+// virtual network.
 type AddressSpace struct {
 	// AddressPrefixes - A list of address blocks reserved for this virtual network in CIDR notation.
 	AddressPrefixes *[]string `json:"addressPrefixes,omitempty"`
@@ -270,8 +270,11 @@ func (page OperationListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
 // Resource the core properties of ARM resources
@@ -543,8 +546,11 @@ func (page VirtualNetworkPeeringListPage) Values() []VirtualNetworkPeering {
 }
 
 // Creates a new instance of the VirtualNetworkPeeringListPage type.
-func NewVirtualNetworkPeeringListPage(getNextPage func(context.Context, VirtualNetworkPeeringList) (VirtualNetworkPeeringList, error)) VirtualNetworkPeeringListPage {
-	return VirtualNetworkPeeringListPage{fn: getNextPage}
+func NewVirtualNetworkPeeringListPage(cur VirtualNetworkPeeringList, getNextPage func(context.Context, VirtualNetworkPeeringList) (VirtualNetworkPeeringList, error)) VirtualNetworkPeeringListPage {
+	return VirtualNetworkPeeringListPage{
+		fn:   getNextPage,
+		vnpl: cur,
+	}
 }
 
 // VirtualNetworkPeeringPropertiesFormat properties of the virtual network peering.
@@ -601,24 +607,24 @@ func (vnppf VirtualNetworkPeeringPropertiesFormat) MarshalJSON() ([]byte, error)
 	return json.Marshal(objectMap)
 }
 
-// VirtualNetworkPeeringPropertiesFormatDatabricksVirtualNetwork the remote virtual network should be in the
-// same region. See here to learn more
+// VirtualNetworkPeeringPropertiesFormatDatabricksVirtualNetwork the remote virtual network should be in
+// the same region. See here to learn more
 // (https://docs.microsoft.com/en-us/azure/databricks/administration-guide/cloud-configurations/azure/vnet-peering).
 type VirtualNetworkPeeringPropertiesFormatDatabricksVirtualNetwork struct {
 	// ID - The Id of the databricks virtual network.
 	ID *string `json:"id,omitempty"`
 }
 
-// VirtualNetworkPeeringPropertiesFormatRemoteVirtualNetwork the remote virtual network should be in the same
-// region. See here to learn more
+// VirtualNetworkPeeringPropertiesFormatRemoteVirtualNetwork the remote virtual network should be in the
+// same region. See here to learn more
 // (https://docs.microsoft.com/en-us/azure/databricks/administration-guide/cloud-configurations/azure/vnet-peering).
 type VirtualNetworkPeeringPropertiesFormatRemoteVirtualNetwork struct {
 	// ID - The Id of the remote virtual network.
 	ID *string `json:"id,omitempty"`
 }
 
-// VNetPeeringCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// VNetPeeringCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type VNetPeeringCreateOrUpdateFuture struct {
 	azure.Future
 }
@@ -988,8 +994,11 @@ func (page WorkspaceListResultPage) Values() []Workspace {
 }
 
 // Creates a new instance of the WorkspaceListResultPage type.
-func NewWorkspaceListResultPage(getNextPage func(context.Context, WorkspaceListResult) (WorkspaceListResult, error)) WorkspaceListResultPage {
-	return WorkspaceListResultPage{fn: getNextPage}
+func NewWorkspaceListResultPage(cur WorkspaceListResult, getNextPage func(context.Context, WorkspaceListResult) (WorkspaceListResult, error)) WorkspaceListResultPage {
+	return WorkspaceListResultPage{
+		fn:  getNextPage,
+		wlr: cur,
+	}
 }
 
 // WorkspaceProperties the workspace properties.
@@ -1056,8 +1065,8 @@ type WorkspaceProviderAuthorization struct {
 	RoleDefinitionID *uuid.UUID `json:"roleDefinitionId,omitempty"`
 }
 
-// WorkspacesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// WorkspacesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type WorkspacesCreateOrUpdateFuture struct {
 	azure.Future
 }
@@ -1085,7 +1094,8 @@ func (future *WorkspacesCreateOrUpdateFuture) Result(client WorkspacesClient) (w
 	return
 }
 
-// WorkspacesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// WorkspacesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type WorkspacesDeleteFuture struct {
 	azure.Future
 }
@@ -1107,7 +1117,8 @@ func (future *WorkspacesDeleteFuture) Result(client WorkspacesClient) (ar autore
 	return
 }
 
-// WorkspacesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// WorkspacesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type WorkspacesUpdateFuture struct {
 	azure.Future
 }

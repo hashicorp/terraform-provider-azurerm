@@ -1,6 +1,7 @@
 package recoveryservices_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -8,180 +9,105 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type BackupProtectedFileShareResource struct {
+}
+
 // TODO: These tests fail because enabling backup on file shares with no content
-func TestAccAzureRMBackupProtectedFileShare_basic(t *testing.T) {
+func TestAccBackupProtectedFileShare_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_protected_file_share", "test")
+	r := BackupProtectedFileShareResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBackupProtectedFileShareDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMBackupProtectedFileShare_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBackupProtectedFileShareExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-				),
-			},
-			data.ImportStep(),
-			{
-				// vault cannot be deleted unless we unregister all backups
-				Config: testAccAzureRMBackupProtectedFileShare_base(data),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			// vault cannot be deleted unless we unregister all backups
+			Config: r.base(data),
 		},
 	})
 }
 
-func TestAccAzureRMBackupProtectedFileShare_requiresImport(t *testing.T) {
+func TestAccBackupProtectedFileShare_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_protected_file_share", "test")
+	r := BackupProtectedFileShareResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBackupProtectedFileShareDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMBackupProtectedFileShare_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBackupProtectedFileShareExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMBackupProtectedFileShare_requiresImport),
-			{
-				// vault cannot be deleted unless we unregister all backups
-				Config: testAccAzureRMBackupProtectedFileShare_base(data),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+		{
+			// vault cannot be deleted unless we unregister all backups
+			Config: r.base(data),
 		},
 	})
 }
 
-func TestAccAzureRMBackupProtectedFileShare_updateBackupPolicyId(t *testing.T) {
+func TestAccBackupProtectedFileShare_updateBackupPolicyId(t *testing.T) {
 	fBackupPolicyResourceName := "azurerm_backup_policy_file_share.test1"
 	sBackupPolicyResourceName := "azurerm_backup_policy_file_share.test2"
 
 	data := acceptance.BuildTestData(t, "azurerm_backup_protected_file_share", "test")
+	r := BackupProtectedFileShareResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBackupProtectedFileShareDestroy,
-		Steps: []resource.TestStep{
-			{
-				// Create resources and link first backup policy id
-				Config: testAccAzureRMBackupProtectedFileShare_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrPair(data.ResourceName, "backup_policy_id", fBackupPolicyResourceName, "id"),
-				),
-			},
-			{
-				// Modify backup policy id to the second one
-				// Set Destroy false to prevent error from cleaning up dangling resource
-				Config: testAccAzureRMBackupProtectedFileShare_updatePolicy(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrPair(data.ResourceName, "backup_policy_id", sBackupPolicyResourceName, "id"),
-				),
-			},
-			{
-				// Remove protected items first before the associated policies are deleted
-				Config: testAccAzureRMBackupProtectedFileShare_base(data),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			// Create resources and link first backup policy id
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				resource.TestCheckResourceAttrPair(data.ResourceName, "backup_policy_id", fBackupPolicyResourceName, "id"),
+			),
+		},
+		{
+			// Modify backup policy id to the second one
+			// Set Destroy false to prevent error from cleaning up dangling resource
+			Config: r.updatePolicy(data),
+			Check: resource.ComposeTestCheckFunc(
+				resource.TestCheckResourceAttrPair(data.ResourceName, "backup_policy_id", sBackupPolicyResourceName, "id"),
+			),
+		},
+		{
+			// Remove protected items first before the associated policies are deleted
+			Config: r.base(data),
 		},
 	})
 }
 
-func testCheckAzureRMBackupProtectedFileShareDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ProtectedItemsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_backup_protected_file_share" {
-			continue
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		vaultName := rs.Primary.Attributes["recovery_vault_name"]
-		storageID := rs.Primary.Attributes["source_storage_account_id"]
-		fileShareName := rs.Primary.Attributes["source_file_share_name"]
-
-		parsedStorageID, err := azure.ParseAzureResourceID(storageID)
-		if err != nil {
-			return fmt.Errorf("[ERROR] Unable to parse source_storage_account_id '%s': %+v", storageID, err)
-		}
-		accountName, hasName := parsedStorageID.Path["storageAccounts"]
-		if !hasName {
-			return fmt.Errorf("[ERROR] parsed source_storage_account_id '%s' doesn't contain 'storageAccounts'", storageID)
-		}
-
-		protectedItemName := fmt.Sprintf("AzureFileShare;%s", fileShareName)
-		containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageID.ResourceGroup, accountName)
-
-		resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("Azure Backup Protected File Share still exists:\n%#v", resp)
+func (t BackupProtectedFileShareResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
+	protectedItemName := id.Path["protectedItems"]
+	vaultName := id.Path["vaults"]
+	resourceGroup := id.ResourceGroup
+	containerName := id.Path["protectionContainers"]
 
-func testCheckAzureRMBackupProtectedFileShareExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ProtectedItemsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %q", resourceName)
-		}
-
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Azure Backup Protected File Share: %q", resourceName)
-		}
-
-		vaultName := rs.Primary.Attributes["recovery_vault_name"]
-		storageID := rs.Primary.Attributes["source_storage_account_id"]
-		fileShareName := rs.Primary.Attributes["source_file_share_name"]
-
-		parsedStorageID, err := azure.ParseAzureResourceID(storageID)
-		if err != nil {
-			return fmt.Errorf("[ERROR] Unable to parse source_storage_account_id '%s': %+v", storageID, err)
-		}
-		accountName, hasName := parsedStorageID.Path["storageAccounts"]
-		if !hasName {
-			return fmt.Errorf("[ERROR] parsed source_storage_account_id '%s' doesn't contain 'storageAccounts'", storageID)
-		}
-
-		protectedItemName := fmt.Sprintf("AzureFileShare;%s", fileShareName)
-		containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageID.ResourceGroup, accountName)
-
-		resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Azure Backup Protected File Share %q (resource group: %q) was not found: %+v", protectedItemName, resourceGroup, err)
-			}
-
-			return fmt.Errorf("Bad: Get on recoveryServicesVaultsClient: %+v", err)
-		}
-
-		return nil
+	resp, err := clients.RecoveryServices.ProtectedItemsClient.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
+	if err != nil {
+		return nil, fmt.Errorf("reading Recovery Service Protected File Share (%s): %+v", id, err)
 	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMBackupProtectedFileShare_base(data acceptance.TestData) string {
+func (BackupProtectedFileShareResource) base(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -236,8 +162,7 @@ resource "azurerm_backup_policy_file_share" "test1" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMBackupProtectedFileShare_basic(data acceptance.TestData) string {
-	template := testAccAzureRMBackupProtectedFileShare_base(data)
+func (r BackupProtectedFileShareResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -254,11 +179,10 @@ resource "azurerm_backup_protected_file_share" "test" {
   source_file_share_name    = azurerm_storage_share.test.name
   backup_policy_id          = azurerm_backup_policy_file_share.test1.id
 }
-`, template)
+`, r.base(data))
 }
 
-func testAccAzureRMBackupProtectedFileShare_updatePolicy(data acceptance.TestData) string {
-	template := testAccAzureRMBackupProtectedFileShare_base(data)
+func (r BackupProtectedFileShareResource) updatePolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -290,11 +214,10 @@ resource "azurerm_backup_protected_file_share" "test" {
   source_file_share_name    = azurerm_storage_share.test.name
   backup_policy_id          = azurerm_backup_policy_file_share.test2.id
 }
-`, template, data.RandomInteger)
+`, r.base(data), data.RandomInteger)
 }
 
-func testAccAzureRMBackupProtectedFileShare_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMBackupProtectedFileShare_basic(data)
+func (r BackupProtectedFileShareResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -305,5 +228,5 @@ resource "azurerm_backup_protected_file_share" "test_import" {
   source_file_share_name    = azurerm_storage_share.test.name
   backup_policy_id          = azurerm_backup_policy_file_share.test1.id
 }
-`, template)
+`, r.base(data))
 }

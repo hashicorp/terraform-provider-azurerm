@@ -224,6 +224,7 @@ func (client ReplicationPoliciesClient) Get(ctx context.Context, policyName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -298,6 +299,7 @@ func (client ReplicationPoliciesClient) List(ctx context.Context) (result Policy
 	result.pc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationPoliciesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.pc.hasNextLink() && result.pc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -362,6 +364,7 @@ func (client ReplicationPoliciesClient) listNextResults(ctx context.Context, las
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationPoliciesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

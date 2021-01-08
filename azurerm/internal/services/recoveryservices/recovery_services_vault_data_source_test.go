@@ -6,32 +6,31 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
+
+type RecoveryServicesVaultDataSource struct {
+}
 
 func TestAccDataSourceAzureRMRecoveryServicesVault_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_recovery_services_vault", "test")
+	r := RecoveryServicesVaultDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceRecoveryServicesVault_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRecoveryServicesVaultExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Standard"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("location").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+				check.That(data.ResourceName).Key("sku").HasValue("Standard"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceRecoveryServicesVault_basic(data acceptance.TestData) string {
-	template := testAccAzureRMRecoveryServicesVault_basic(data)
+func (RecoveryServicesVaultDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -39,5 +38,5 @@ data "azurerm_recovery_services_vault" "test" {
   name                = azurerm_recovery_services_vault.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, template)
+`, RecoveryServicesVaultResource{}.basic(data))
 }

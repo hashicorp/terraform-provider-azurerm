@@ -254,7 +254,7 @@ func retryRoleAssignmentsClient(d *schema.ResourceData, scope string, name strin
 		if err != nil {
 			if utils.ResponseErrorIsRetryable(err) {
 				return resource.RetryableError(err)
-			} else if resp.Response.StatusCode == 400 && strings.Contains(err.Error(), "PrincipalNotFound") {
+			} else if utils.ResponseWasStatusCode(resp.Response, 400) && strings.Contains(err.Error(), "PrincipalNotFound") {
 				// When waiting for service principal to become available
 				return resource.RetryableError(err)
 			}

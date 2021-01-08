@@ -85,7 +85,7 @@ resource "azurerm_spring_cloud_certificate" "import" {
   service_name             = azurerm_spring_cloud_certificate.test.service_name
   key_vault_certificate_id = azurerm_spring_cloud_certificate.test.key_vault_certificate_id
 }
-`, r.template(data))
+`, r.basic(data))
 }
 
 func (r SpringCloudCertificateResource) template(data acceptance.TestData) string {
@@ -112,19 +112,38 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "standard"
+  soft_delete_enabled = true
 
   access_policy {
-    tenant_id               = data.azurerm_client_config.current.tenant_id
-    object_id               = data.azurerm_client_config.current.object_id
-    secret_permissions      = ["set"]
-    certificate_permissions = ["create", "delete", "get", "update"]
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    secret_permissions = [
+      "set",
+    ]
+
+    certificate_permissions = [
+      "create",
+      "delete",
+      "get",
+      "purge",
+      "update",
+    ]
   }
 
   access_policy {
-    tenant_id               = data.azurerm_client_config.current.tenant_id
-    object_id               = data.azuread_service_principal.test.object_id
-    secret_permissions      = ["get", "list"]
-    certificate_permissions = ["get", "list"]
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azuread_service_principal.test.object_id
+
+    secret_permissions = [
+      "get",
+      "list",
+    ]
+
+    certificate_permissions = [
+      "get",
+      "list",
+    ]
   }
 }
 

@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/parse"
@@ -20,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
+func resourceFirewallPolicyRuleCollectionGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmFirewallPolicyRuleCollectionGroupCreateUpdate,
-		Read:   resourceArmFirewallPolicyRuleCollectionGroupRead,
-		Update: resourceArmFirewallPolicyRuleCollectionGroupCreateUpdate,
-		Delete: resourceArmFirewallPolicyRuleCollectionGroupDelete,
+		Create: resourceFirewallPolicyRuleCollectionGroupCreateUpdate,
+		Read:   resourceFirewallPolicyRuleCollectionGroupRead,
+		Update: resourceFirewallPolicyRuleCollectionGroupCreateUpdate,
+		Delete: resourceFirewallPolicyRuleCollectionGroupDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.FirewallPolicyRuleCollectionGroupID(id)
@@ -257,7 +258,7 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 										Required: true,
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
-											ValidateFunc: validate.FirewallPolicyRulePort,
+											ValidateFunc: azValidate.PortOrPortRangeWithin(1, 65535),
 										},
 									},
 								},
@@ -349,7 +350,7 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 										Optional: true,
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
-											ValidateFunc: validate.FirewallPolicyRulePort,
+											ValidateFunc: azValidate.PortOrPortRangeWithin(1, 64000),
 										},
 									},
 									"translated_address": {
@@ -372,7 +373,7 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 	}
 }
 
-func resourceArmFirewallPolicyRuleCollectionGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceFirewallPolicyRuleCollectionGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.FirewallPolicyRuleGroupClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -405,9 +406,9 @@ func resourceArmFirewallPolicyRuleCollectionGroupCreateUpdate(d *schema.Resource
 		},
 	}
 	var rulesCollections []network.BasicFirewallPolicyRuleCollection
-	rulesCollections = append(rulesCollections, expandAzureRmFirewallPolicyRuleCollectionApplication(d.Get("application_rule_collection").(*schema.Set).List())...)
-	rulesCollections = append(rulesCollections, expandAzureRmFirewallPolicyRuleCollectionNetwork(d.Get("network_rule_collection").(*schema.Set).List())...)
-	rulesCollections = append(rulesCollections, expandAzureRmFirewallPolicyRuleCollectionNat(d.Get("nat_rule_collection").(*schema.Set).List())...)
+	rulesCollections = append(rulesCollections, expandFirewallPolicyRuleCollectionApplication(d.Get("application_rule_collection").(*schema.Set).List())...)
+	rulesCollections = append(rulesCollections, expandFirewallPolicyRuleCollectionNetwork(d.Get("network_rule_collection").(*schema.Set).List())...)
+	rulesCollections = append(rulesCollections, expandFirewallPolicyRuleCollectionNat(d.Get("nat_rule_collection").(*schema.Set).List())...)
 	param.FirewallPolicyRuleCollectionGroupProperties.RuleCollections = &rulesCollections
 
 	future, err := client.CreateOrUpdate(ctx, policyId.ResourceGroup, policyId.Name, name, param)
@@ -429,12 +430,12 @@ func resourceArmFirewallPolicyRuleCollectionGroupCreateUpdate(d *schema.Resource
 	if err != nil {
 		return err
 	}
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 
-	return resourceArmFirewallPolicyRuleCollectionGroupRead(d, meta)
+	return resourceFirewallPolicyRuleCollectionGroupRead(d, meta)
 }
 
-func resourceArmFirewallPolicyRuleCollectionGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceFirewallPolicyRuleCollectionGroupRead(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Firewall.FirewallPolicyRuleGroupClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -458,9 +459,9 @@ func resourceArmFirewallPolicyRuleCollectionGroupRead(d *schema.ResourceData, me
 
 	d.Set("name", resp.Name)
 	d.Set("priority", resp.Priority)
-	d.Set("firewall_policy_id", parse.NewFirewallPolicyID(subscriptionId, id.ResourceGroup, id.FirewallPolicyName).ID(""))
+	d.Set("firewall_policy_id", parse.NewFirewallPolicyID(subscriptionId, id.ResourceGroup, id.FirewallPolicyName).ID())
 
-	applicationRuleCollections, networkRuleCollections, natRuleCollections, err := flattenAzureRmFirewallPolicyRuleCollection(resp.RuleCollections)
+	applicationRuleCollections, networkRuleCollections, natRuleCollections, err := flattenFirewallPolicyRuleCollection(resp.RuleCollections)
 	if err != nil {
 		return fmt.Errorf("flattening Firewall Policy Rule Collections: %+v", err)
 	}
@@ -478,7 +479,7 @@ func resourceArmFirewallPolicyRuleCollectionGroupRead(d *schema.ResourceData, me
 	return nil
 }
 
-func resourceArmFirewallPolicyRuleCollectionGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceFirewallPolicyRuleCollectionGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.FirewallPolicyRuleGroupClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -504,15 +505,15 @@ func resourceArmFirewallPolicyRuleCollectionGroupDelete(d *schema.ResourceData, 
 	return nil
 }
 
-func expandAzureRmFirewallPolicyRuleCollectionApplication(input []interface{}) []network.BasicFirewallPolicyRuleCollection {
-	return expandAzureRmFirewallPolicyFilterRuleCollection(input, expandAzureRmFirewallPolicyRuleApplication)
+func expandFirewallPolicyRuleCollectionApplication(input []interface{}) []network.BasicFirewallPolicyRuleCollection {
+	return expandFirewallPolicyFilterRuleCollection(input, expandFirewallPolicyRuleApplication)
 }
 
-func expandAzureRmFirewallPolicyRuleCollectionNetwork(input []interface{}) []network.BasicFirewallPolicyRuleCollection {
-	return expandAzureRmFirewallPolicyFilterRuleCollection(input, expandAzureRmFirewallPolicyRuleNetwork)
+func expandFirewallPolicyRuleCollectionNetwork(input []interface{}) []network.BasicFirewallPolicyRuleCollection {
+	return expandFirewallPolicyFilterRuleCollection(input, expandFirewallPolicyRuleNetwork)
 }
 
-func expandAzureRmFirewallPolicyRuleCollectionNat(input []interface{}) []network.BasicFirewallPolicyRuleCollection {
+func expandFirewallPolicyRuleCollectionNat(input []interface{}) []network.BasicFirewallPolicyRuleCollection {
 	result := make([]network.BasicFirewallPolicyRuleCollection, 0)
 	for _, e := range input {
 		rule := e.(map[string]interface{})
@@ -523,14 +524,14 @@ func expandAzureRmFirewallPolicyRuleCollectionNat(input []interface{}) []network
 			Action: &network.FirewallPolicyNatRuleCollectionAction{
 				Type: network.FirewallPolicyNatRuleCollectionActionType(rule["action"].(string)),
 			},
-			Rules: expandAzureRmFirewallPolicyRuleNat(rule["rule"].(*schema.Set).List()),
+			Rules: expandFirewallPolicyRuleNat(rule["rule"].(*schema.Set).List()),
 		}
 		result = append(result, output)
 	}
 	return result
 }
 
-func expandAzureRmFirewallPolicyFilterRuleCollection(input []interface{}, f func(input []interface{}) *[]network.BasicFirewallPolicyRule) []network.BasicFirewallPolicyRuleCollection {
+func expandFirewallPolicyFilterRuleCollection(input []interface{}, f func(input []interface{}) *[]network.BasicFirewallPolicyRule) []network.BasicFirewallPolicyRuleCollection {
 	result := make([]network.BasicFirewallPolicyRuleCollection, 0)
 	for _, e := range input {
 		rule := e.(map[string]interface{})
@@ -548,7 +549,7 @@ func expandAzureRmFirewallPolicyFilterRuleCollection(input []interface{}, f func
 	return result
 }
 
-func expandAzureRmFirewallPolicyRuleApplication(input []interface{}) *[]network.BasicFirewallPolicyRule {
+func expandFirewallPolicyRuleApplication(input []interface{}) *[]network.BasicFirewallPolicyRule {
 	result := make([]network.BasicFirewallPolicyRule, 0)
 	for _, e := range input {
 		condition := e.(map[string]interface{})
@@ -574,7 +575,7 @@ func expandAzureRmFirewallPolicyRuleApplication(input []interface{}) *[]network.
 	return &result
 }
 
-func expandAzureRmFirewallPolicyRuleNetwork(input []interface{}) *[]network.BasicFirewallPolicyRule {
+func expandFirewallPolicyRuleNetwork(input []interface{}) *[]network.BasicFirewallPolicyRule {
 	result := make([]network.BasicFirewallPolicyRule, 0)
 	for _, e := range input {
 		condition := e.(map[string]interface{})
@@ -598,7 +599,7 @@ func expandAzureRmFirewallPolicyRuleNetwork(input []interface{}) *[]network.Basi
 	return &result
 }
 
-func expandAzureRmFirewallPolicyRuleNat(input []interface{}) *[]network.BasicFirewallPolicyRule {
+func expandFirewallPolicyRuleNat(input []interface{}) *[]network.BasicFirewallPolicyRule {
 	result := make([]network.BasicFirewallPolicyRule, 0)
 	for _, e := range input {
 		condition := e.(map[string]interface{})
@@ -623,7 +624,7 @@ func expandAzureRmFirewallPolicyRuleNat(input []interface{}) *[]network.BasicFir
 	return &result
 }
 
-func flattenAzureRmFirewallPolicyRuleCollection(input *[]network.BasicFirewallPolicyRuleCollection) ([]interface{}, []interface{}, []interface{}, error) {
+func flattenFirewallPolicyRuleCollection(input *[]network.BasicFirewallPolicyRuleCollection) ([]interface{}, []interface{}, []interface{}, error) {
 	var (
 		applicationRuleCollection = []interface{}{}
 		networkRuleCollection     = []interface{}{}
@@ -665,7 +666,7 @@ func flattenAzureRmFirewallPolicyRuleCollection(input *[]network.BasicFirewallPo
 			// Determine the rule type based on the first rule's type
 			switch (*rule.Rules)[0].(type) {
 			case network.ApplicationRule:
-				appRules, err := flattenAzureRmFirewallPolicyRuleApplication(rule.Rules)
+				appRules, err := flattenFirewallPolicyRuleApplication(rule.Rules)
 				if err != nil {
 					return nil, nil, nil, err
 				}
@@ -674,7 +675,7 @@ func flattenAzureRmFirewallPolicyRuleCollection(input *[]network.BasicFirewallPo
 				applicationRuleCollection = append(applicationRuleCollection, result)
 
 			case network.Rule:
-				networkRules, err := flattenAzureRmFirewallPolicyRuleNetwork(rule.Rules)
+				networkRules, err := flattenFirewallPolicyRuleNetwork(rule.Rules)
 				if err != nil {
 					return nil, nil, nil, err
 				}
@@ -700,7 +701,7 @@ func flattenAzureRmFirewallPolicyRuleCollection(input *[]network.BasicFirewallPo
 				action = string(rule.Action.Type)
 			}
 
-			rules, err := flattenAzureRmFirewallPolicyRuleNat(rule.Rules)
+			rules, err := flattenFirewallPolicyRuleNat(rule.Rules)
 			if err != nil {
 				return nil, nil, nil, err
 			}
@@ -720,7 +721,7 @@ func flattenAzureRmFirewallPolicyRuleCollection(input *[]network.BasicFirewallPo
 	return applicationRuleCollection, networkRuleCollection, natRuleCollection, nil
 }
 
-func flattenAzureRmFirewallPolicyRuleApplication(input *[]network.BasicFirewallPolicyRule) ([]interface{}, error) {
+func flattenFirewallPolicyRuleApplication(input *[]network.BasicFirewallPolicyRule) ([]interface{}, error) {
 	if input == nil {
 		return []interface{}{}, nil
 	}
@@ -763,7 +764,7 @@ func flattenAzureRmFirewallPolicyRuleApplication(input *[]network.BasicFirewallP
 	return output, nil
 }
 
-func flattenAzureRmFirewallPolicyRuleNetwork(input *[]network.BasicFirewallPolicyRule) ([]interface{}, error) {
+func flattenFirewallPolicyRuleNetwork(input *[]network.BasicFirewallPolicyRule) ([]interface{}, error) {
 	if input == nil {
 		return []interface{}{}, nil
 	}
@@ -800,7 +801,7 @@ func flattenAzureRmFirewallPolicyRuleNetwork(input *[]network.BasicFirewallPolic
 	return output, nil
 }
 
-func flattenAzureRmFirewallPolicyRuleNat(input *[]network.BasicFirewallPolicyRule) ([]interface{}, error) {
+func flattenFirewallPolicyRuleNat(input *[]network.BasicFirewallPolicyRule) ([]interface{}, error) {
 	if input == nil {
 		return []interface{}{}, nil
 	}

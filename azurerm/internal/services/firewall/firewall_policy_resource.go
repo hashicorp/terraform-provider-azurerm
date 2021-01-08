@@ -24,12 +24,12 @@ import (
 
 const azureFirewallPolicyResourceName = "azurerm_firewall_policy"
 
-func resourceArmFirewallPolicy() *schema.Resource {
+func resourceFirewallPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmFirewallPolicyCreateUpdate,
-		Read:   resourceArmFirewallPolicyRead,
-		Update: resourceArmFirewallPolicyCreateUpdate,
-		Delete: resourceArmFirewallPolicyDelete,
+		Create: resourceFirewallPolicyCreateUpdate,
+		Read:   resourceFirewallPolicyRead,
+		Update: resourceFirewallPolicyCreateUpdate,
+		Delete: resourceFirewallPolicyDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.FirewallPolicyID(id)
@@ -161,7 +161,7 @@ func resourceArmFirewallPolicy() *schema.Resource {
 	}
 }
 
-func resourceArmFirewallPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceFirewallPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.FirewallPolicyClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -211,10 +211,10 @@ func resourceArmFirewallPolicyCreateUpdate(d *schema.ResourceData, meta interfac
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmFirewallPolicyRead(d, meta)
+	return resourceFirewallPolicyRead(d, meta)
 }
 
-func resourceArmFirewallPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceFirewallPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.FirewallPolicyClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -272,7 +272,7 @@ func resourceArmFirewallPolicyRead(d *schema.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmFirewallPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceFirewallPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.FirewallPolicyClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

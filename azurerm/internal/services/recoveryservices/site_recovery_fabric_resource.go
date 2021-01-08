@@ -14,12 +14,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSiteRecoveryFabric() *schema.Resource {
+func resourceSiteRecoveryFabric() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSiteRecoveryFabricCreate,
-		Read:   resourceArmSiteRecoveryFabricRead,
+		Create: resourceSiteRecoveryFabricCreate,
+		Read:   resourceSiteRecoveryFabricRead,
 		Update: nil,
-		Delete: resourceArmSiteRecoveryFabricDelete,
+		Delete: resourceSiteRecoveryFabricDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -51,7 +51,7 @@ func resourceArmSiteRecoveryFabric() *schema.Resource {
 	}
 }
 
-func resourceArmSiteRecoveryFabricCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryFabricCreate(d *schema.ResourceData, meta interface{}) error {
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -98,10 +98,10 @@ func resourceArmSiteRecoveryFabricCreate(d *schema.ResourceData, meta interface{
 
 	d.SetId(azure.HandleAzureSdkForGoBug2824(*resp.ID))
 
-	return resourceArmSiteRecoveryFabricRead(d, meta)
+	return resourceSiteRecoveryFabricRead(d, meta)
 }
 
-func resourceArmSiteRecoveryFabricRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryFabricRead(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -135,7 +135,7 @@ func resourceArmSiteRecoveryFabricRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceArmSiteRecoveryFabricDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSiteRecoveryFabricDelete(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err

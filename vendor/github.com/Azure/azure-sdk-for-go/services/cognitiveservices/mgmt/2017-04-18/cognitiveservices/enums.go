@@ -189,6 +189,8 @@ func PossibleResourceSkuRestrictionsTypeValues() []ResourceSkuRestrictionsType {
 type SkuTier string
 
 const (
+	// Enterprise ...
+	Enterprise SkuTier = "Enterprise"
 	// Free ...
 	Free SkuTier = "Free"
 	// Premium ...
@@ -199,7 +201,7 @@ const (
 
 // PossibleSkuTierValues returns an array of possible values for the SkuTier const type.
 func PossibleSkuTierValues() []SkuTier {
-	return []SkuTier{Free, Premium, Standard}
+	return []SkuTier{Enterprise, Free, Premium, Standard}
 }
 
 // UnitType enumerates the values for unit type.

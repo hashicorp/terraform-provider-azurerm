@@ -27,14 +27,15 @@ func NewLoadBalancingID(subscriptionId, resourceGroup, frontDoorName, loadBalanc
 
 func (id LoadBalancingId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Front Door Name %q", id.FrontDoorName),
 		fmt.Sprintf("Load Balancing Setting Name %q", id.LoadBalancingSettingName),
+		fmt.Sprintf("Front Door Name %q", id.FrontDoorName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Load Balancing", segmentsStr)
 }
 
-func (id LoadBalancingId) ID(_ string) string {
+func (id LoadBalancingId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/frontDoors/%s/loadBalancingSettings/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.FrontDoorName, id.LoadBalancingSettingName)
 }

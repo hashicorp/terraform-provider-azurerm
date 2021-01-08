@@ -46,7 +46,7 @@ func NewIntegrationRuntimeAuthKeysClientWithBaseURI(baseURI string, subscription
 // List list authentication keys in an integration runtime
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
-// workspaceName - the name of the workspace
+// workspaceName - the name of the workspace.
 // integrationRuntimeName - integration runtime name
 func (client IntegrationRuntimeAuthKeysClient) List(ctx context.Context, resourceGroupName string, workspaceName string, integrationRuntimeName string) (result IntegrationRuntimeAuthKeys, err error) {
 	if tracing.IsEnabled() {
@@ -85,6 +85,7 @@ func (client IntegrationRuntimeAuthKeysClient) List(ctx context.Context, resourc
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimeAuthKeysClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -133,7 +134,7 @@ func (client IntegrationRuntimeAuthKeysClient) ListResponder(resp *http.Response
 // Regenerate regenerate the authentication key for an integration runtime
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
-// workspaceName - the name of the workspace
+// workspaceName - the name of the workspace.
 // integrationRuntimeName - integration runtime name
 // regenerateKeyParameters - the parameters for regenerating integration runtime authentication key.
 func (client IntegrationRuntimeAuthKeysClient) Regenerate(ctx context.Context, resourceGroupName string, workspaceName string, integrationRuntimeName string, regenerateKeyParameters IntegrationRuntimeRegenerateKeyParameters) (result IntegrationRuntimeAuthKeys, err error) {
@@ -173,6 +174,7 @@ func (client IntegrationRuntimeAuthKeysClient) Regenerate(ctx context.Context, r
 	result, err = client.RegenerateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimeAuthKeysClient", "Regenerate", resp, "Failure responding to request")
+		return
 	}
 
 	return

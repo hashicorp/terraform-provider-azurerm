@@ -102,7 +102,7 @@ func CustomHttpsConfigurationV0ToV1(rawState map[string]interface{}, _ interface
 	}
 
 	newId := parse.NewFrontendEndpointID(oldParsedId.SubscriptionID, resourceGroup, frontdoorName, frontendEndpointName)
-	newIdStr := newId.ID("")
+	newIdStr := newId.ID()
 
 	log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newIdStr)
 

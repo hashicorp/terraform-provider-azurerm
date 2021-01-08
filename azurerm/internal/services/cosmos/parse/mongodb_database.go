@@ -27,14 +27,15 @@ func NewMongodbDatabaseID(subscriptionId, resourceGroup, databaseAccountName, na
 
 func (id MongodbDatabaseId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Database Account Name %q", id.DatabaseAccountName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Database Account Name %q", id.DatabaseAccountName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Mongodb Database", segmentsStr)
 }
 
-func (id MongodbDatabaseId) ID(_ string) string {
+func (id MongodbDatabaseId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/databaseAccounts/%s/mongodbDatabases/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DatabaseAccountName, id.Name)
 }

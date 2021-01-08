@@ -84,7 +84,7 @@ func resourceBotChannelMsTeamsCreate(d *schema.ResourceData, meta interface{}) e
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_bot_channel_ms_teams", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_bot_channel_ms_teams", resourceId.ID())
 		}
 	}
 
@@ -109,7 +109,7 @@ func resourceBotChannelMsTeamsCreate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("creating MS Teams Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroup, err)
 	}
 
-	d.SetId(resourceId.ID(""))
+	d.SetId(resourceId.ID())
 	return resourceBotChannelMsTeamsRead(d, meta)
 }
 

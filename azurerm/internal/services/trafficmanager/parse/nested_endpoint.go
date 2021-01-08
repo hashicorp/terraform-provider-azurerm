@@ -27,14 +27,15 @@ func NewNestedEndpointID(subscriptionId, resourceGroup, trafficManagerProfileNam
 
 func (id NestedEndpointId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Traffic Manager Profile Name %q", id.TrafficManagerProfileName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Traffic Manager Profile Name %q", id.TrafficManagerProfileName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Nested Endpoint", segmentsStr)
 }
 
-func (id NestedEndpointId) ID(_ string) string {
+func (id NestedEndpointId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/trafficManagerProfiles/%s/nestedEndpoints/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.TrafficManagerProfileName, id.Name)
 }

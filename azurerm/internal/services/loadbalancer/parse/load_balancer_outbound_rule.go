@@ -27,14 +27,15 @@ func NewLoadBalancerOutboundRuleID(subscriptionId, resourceGroup, loadBalancerNa
 
 func (id LoadBalancerOutboundRuleId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Load Balancer Name %q", id.LoadBalancerName),
 		fmt.Sprintf("Outbound Rule Name %q", id.OutboundRuleName),
+		fmt.Sprintf("Load Balancer Name %q", id.LoadBalancerName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Load Balancer Outbound Rule", segmentsStr)
 }
 
-func (id LoadBalancerOutboundRuleId) ID(_ string) string {
+func (id LoadBalancerOutboundRuleId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/loadBalancers/%s/outboundRules/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.LoadBalancerName, id.OutboundRuleName)
 }

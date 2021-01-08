@@ -25,13 +25,14 @@ func NewWebTestID(subscriptionId, resourceGroup, name string) WebTestId {
 
 func (id WebTestId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Web Test", segmentsStr)
 }
 
-func (id WebTestId) ID(_ string) string {
+func (id WebTestId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/webtests/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }

@@ -1,36 +1,52 @@
 package kusto_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMKustoAttachedDatabaseConfiguration_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kusto_attached_database_configuration", "test")
+type KustoAttachedDatabaseConfigurationResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoAttachedDatabaseConfigurationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKustoAttachedDatabaseConfiguration_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoAttachedDatabaseConfigurationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccKustoAttachedDatabaseConfiguration_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_attached_database_configuration", "test")
+	r := KustoAttachedDatabaseConfigurationResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testAccAzureRMKustoAttachedDatabaseConfiguration_basic(data acceptance.TestData) string {
+func (KustoAttachedDatabaseConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.AttachedDatabaseConfigurationID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := clients.Kusto.AttachedDatabaseConfigurationsClient.Get(ctx, id.ResourceGroup, id.ClusterName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
+	}
+
+	return utils.Bool(resp.AttachedDatabaseConfigurationProperties != nil), nil
+}
+
+func (KustoAttachedDatabaseConfigurationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -79,66 +95,4 @@ resource "azurerm_kusto_attached_database_configuration" "configuration1" {
   database_name       = "*"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
-}
-
-func testCheckAzureRMKustoAttachedDatabaseConfigurationDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.AttachedDatabaseConfigurationsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_kusto_attached_database_configuration" {
-			continue
-		}
-
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		clusterName := rs.Primary.Attributes["cluster_name"]
-		name := rs.Primary.Attributes["name"]
-
-		resp, err := client.Get(ctx, resourceGroup, clusterName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-			return err
-		}
-
-		return nil
-	}
-
-	return nil
-}
-
-func testCheckAzureRMKustoAttachedDatabaseConfigurationExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.AttachedDatabaseConfigurationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		configurationName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Kusto Attached Database Configuration: %s", configurationName)
-		}
-
-		clusterName, hasClusterName := rs.Primary.Attributes["cluster_name"]
-		if !hasClusterName {
-			return fmt.Errorf("Bad: no resource group found in state for Kusto Attached Database Configuration: %s", configurationName)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, clusterName, configurationName)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Kusto Attached Database Configuration %q (resource group: %q, cluster: %q) does not exist", configurationName, resourceGroup, clusterName)
-			}
-
-			return fmt.Errorf("Bad: Get on AttachedDatabaseConfigurationsClient: %+v", err)
-		}
-
-		return nil
-	}
 }

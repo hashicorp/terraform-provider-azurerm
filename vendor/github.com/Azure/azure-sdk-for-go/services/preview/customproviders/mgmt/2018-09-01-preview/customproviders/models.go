@@ -120,8 +120,8 @@ func (a AssociationProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// AssociationsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// AssociationsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type AssociationsCreateOrUpdateFuture struct {
 	azure.Future
 }
@@ -324,8 +324,11 @@ func (page AssociationsListPage) Values() []Association {
 }
 
 // Creates a new instance of the AssociationsListPage type.
-func NewAssociationsListPage(getNextPage func(context.Context, AssociationsList) (AssociationsList, error)) AssociationsListPage {
-	return AssociationsListPage{fn: getNextPage}
+func NewAssociationsListPage(cur AssociationsList, getNextPage func(context.Context, AssociationsList) (AssociationsList, error)) AssociationsListPage {
+	return AssociationsListPage{
+		fn: getNextPage,
+		al: cur,
+	}
 }
 
 // CustomResourceProviderCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
@@ -519,8 +522,8 @@ func (crm CustomRPManifestProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// CustomRPResourceTypeRouteDefinition the route definition for a resource implemented by the custom resource
-// provider.
+// CustomRPResourceTypeRouteDefinition the route definition for a resource implemented by the custom
+// resource provider.
 type CustomRPResourceTypeRouteDefinition struct {
 	// RoutingType - The routing types that are supported for resource requests. Possible values include: 'ResourceTypeRoutingProxy', 'ResourceTypeRoutingProxyCache'
 	RoutingType ResourceTypeRouting `json:"routingType,omitempty"`
@@ -530,8 +533,8 @@ type CustomRPResourceTypeRouteDefinition struct {
 	Endpoint *string `json:"endpoint,omitempty"`
 }
 
-// CustomRPRouteDefinition a route definition that defines an action or resource that can be interacted with
-// through the custom resource provider.
+// CustomRPRouteDefinition a route definition that defines an action or resource that can be interacted
+// with through the custom resource provider.
 type CustomRPRouteDefinition struct {
 	// Name - The name of the route definition. This becomes the name for the ARM extension (e.g. '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.CustomProviders/resourceProviders/{resourceProviderName}/{name}')
 	Name *string `json:"name,omitempty"`
@@ -715,8 +718,11 @@ func (page ListByCustomRPManifestPage) Values() []CustomRPManifest {
 }
 
 // Creates a new instance of the ListByCustomRPManifestPage type.
-func NewListByCustomRPManifestPage(getNextPage func(context.Context, ListByCustomRPManifest) (ListByCustomRPManifest, error)) ListByCustomRPManifestPage {
-	return ListByCustomRPManifestPage{fn: getNextPage}
+func NewListByCustomRPManifestPage(cur ListByCustomRPManifest, getNextPage func(context.Context, ListByCustomRPManifest) (ListByCustomRPManifest, error)) ListByCustomRPManifestPage {
+	return ListByCustomRPManifestPage{
+		fn:    getNextPage,
+		lbcrm: cur,
+	}
 }
 
 // Resource the resource definition.
@@ -918,8 +924,11 @@ func (page ResourceProviderOperationListPage) Values() []ResourceProviderOperati
 }
 
 // Creates a new instance of the ResourceProviderOperationListPage type.
-func NewResourceProviderOperationListPage(getNextPage func(context.Context, ResourceProviderOperationList) (ResourceProviderOperationList, error)) ResourceProviderOperationListPage {
-	return ResourceProviderOperationListPage{fn: getNextPage}
+func NewResourceProviderOperationListPage(cur ResourceProviderOperationList, getNextPage func(context.Context, ResourceProviderOperationList) (ResourceProviderOperationList, error)) ResourceProviderOperationListPage {
+	return ResourceProviderOperationListPage{
+		fn:   getNextPage,
+		rpol: cur,
+	}
 }
 
 // ResourceProvidersUpdate custom resource provider update information.

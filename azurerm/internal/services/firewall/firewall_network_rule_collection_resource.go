@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmFirewallNetworkRuleCollection() *schema.Resource {
+func resourceFirewallNetworkRuleCollection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmFirewallNetworkRuleCollectionCreateUpdate,
-		Read:   resourceArmFirewallNetworkRuleCollectionRead,
-		Update: resourceArmFirewallNetworkRuleCollectionCreateUpdate,
-		Delete: resourceArmFirewallNetworkRuleCollectionDelete,
+		Create: resourceFirewallNetworkRuleCollectionCreateUpdate,
+		Read:   resourceFirewallNetworkRuleCollectionRead,
+		Update: resourceFirewallNetworkRuleCollectionCreateUpdate,
+		Delete: resourceFirewallNetworkRuleCollectionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -139,7 +139,7 @@ func resourceArmFirewallNetworkRuleCollection() *schema.Resource {
 	}
 }
 
-func resourceArmFirewallNetworkRuleCollectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceFirewallNetworkRuleCollectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.AzureFirewallsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -166,7 +166,7 @@ func resourceArmFirewallNetworkRuleCollectionCreateUpdate(d *schema.ResourceData
 	}
 	ruleCollections := *props.NetworkRuleCollections
 
-	networkRules, err := expandArmFirewallNetworkRules(d.Get("rule").(*schema.Set))
+	networkRules, err := expandFirewallNetworkRules(d.Get("rule").(*schema.Set))
 	if err != nil {
 		return fmt.Errorf("expanding Firewall Network Rules: %+v", err)
 	}
@@ -249,10 +249,10 @@ func resourceArmFirewallNetworkRuleCollectionCreateUpdate(d *schema.ResourceData
 	}
 	d.SetId(collectionID)
 
-	return resourceArmFirewallNetworkRuleCollectionRead(d, meta)
+	return resourceFirewallNetworkRuleCollectionRead(d, meta)
 }
 
-func resourceArmFirewallNetworkRuleCollectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceFirewallNetworkRuleCollectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.AzureFirewallsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -325,7 +325,7 @@ func resourceArmFirewallNetworkRuleCollectionRead(d *schema.ResourceData, meta i
 	return nil
 }
 
-func resourceArmFirewallNetworkRuleCollectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceFirewallNetworkRuleCollectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Firewall.AzureFirewallsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -384,7 +384,7 @@ func resourceArmFirewallNetworkRuleCollectionDelete(d *schema.ResourceData, meta
 	return nil
 }
 
-func expandArmFirewallNetworkRules(input *schema.Set) (*[]network.AzureFirewallNetworkRule, error) {
+func expandFirewallNetworkRules(input *schema.Set) (*[]network.AzureFirewallNetworkRule, error) {
 	nwRules := input.List()
 	rules := make([]network.AzureFirewallNetworkRule, 0)
 

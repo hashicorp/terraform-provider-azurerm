@@ -75,6 +75,7 @@ func (client ServerUsagesClient) ListByServer(ctx context.Context, resourceGroup
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerUsagesClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 
 	return

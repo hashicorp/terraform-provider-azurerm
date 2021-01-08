@@ -311,6 +311,7 @@ func (client ServerDNSAliasesClient) Get(ctx context.Context, resourceGroupName 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerDNSAliasesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -389,6 +390,7 @@ func (client ServerDNSAliasesClient) ListByServer(ctx context.Context, resourceG
 	result.sdalr, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerDNSAliasesClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 	if result.sdalr.hasNextLink() && result.sdalr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -453,6 +455,7 @@ func (client ServerDNSAliasesClient) listByServerNextResults(ctx context.Context
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerDNSAliasesClient", "listByServerNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

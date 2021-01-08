@@ -66,7 +66,7 @@ func dataSourceArmUserAssignedIdentityRead(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("retrieving User Assigned Identity %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 
 	d.Set("location", location.NormalizeNilable(resp.Location))
 

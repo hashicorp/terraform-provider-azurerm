@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/attestation/mgmt/2018-09-01-preview/attestation"
+	"github.com/Azure/azure-sdk-for-go/services/attestation/mgmt/2018-09-01/attestation"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -83,7 +83,7 @@ func resourceAttestationProviderCreate(d *schema.ResourceData, meta interface{})
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	resourceId := parse.NewProviderID(subscriptionId, resourceGroup, name).ID("")
+	resourceId := parse.NewProviderID(subscriptionId, resourceGroup, name).ID()
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {

@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSecurityCenterSubscriptionPricing() *schema.Resource {
+func resourceSecurityCenterSubscriptionPricing() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSecurityCenterSubscriptionPricingUpdate,
-		Read:   resourceArmSecurityCenterSubscriptionPricingRead,
-		Update: resourceArmSecurityCenterSubscriptionPricingUpdate,
-		Delete: resourceArmSecurityCenterSubscriptionPricingDelete,
+		Create: resourceSecurityCenterSubscriptionPricingUpdate,
+		Read:   resourceSecurityCenterSubscriptionPricingRead,
+		Update: resourceSecurityCenterSubscriptionPricingUpdate,
+		Delete: resourceSecurityCenterSubscriptionPricingDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.SecurityCenterSubscriptionPricingID(id)
@@ -37,8 +37,8 @@ func resourceArmSecurityCenterSubscriptionPricing() *schema.Resource {
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
 			{
-				Type:    ResourceArmSecurityCenterSubscriptionPricingV0().CoreConfigSchema().ImpliedType(),
-				Upgrade: ResourceArmSecurityCenterSubscriptionPricingUpgradeV0ToV1,
+				Type:    ResourceSecurityCenterSubscriptionPricingV0().CoreConfigSchema().ImpliedType(),
+				Upgrade: ResourceSecurityCenterSubscriptionPricingUpgradeV0ToV1,
 				Version: 0,
 			},
 		},
@@ -48,8 +48,8 @@ func resourceArmSecurityCenterSubscriptionPricing() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(security.Free),
-					string(security.Standard),
+					string(security.PricingTierFree),
+					string(security.PricingTierStandard),
 				}, false),
 			},
 			"resource_type": {
@@ -71,7 +71,7 @@ func resourceArmSecurityCenterSubscriptionPricing() *schema.Resource {
 	}
 }
 
-func resourceArmSecurityCenterSubscriptionPricingUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterSubscriptionPricingUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.PricingClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -101,10 +101,10 @@ func resourceArmSecurityCenterSubscriptionPricingUpdate(d *schema.ResourceData, 
 
 	d.SetId(*resp.ID)
 
-	return resourceArmSecurityCenterSubscriptionPricingRead(d, meta)
+	return resourceSecurityCenterSubscriptionPricingRead(d, meta)
 }
 
-func resourceArmSecurityCenterSubscriptionPricingRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterSubscriptionPricingRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.PricingClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -133,7 +133,7 @@ func resourceArmSecurityCenterSubscriptionPricingRead(d *schema.ResourceData, me
 	return nil
 }
 
-func resourceArmSecurityCenterSubscriptionPricingDelete(_ *schema.ResourceData, _ interface{}) error {
+func resourceSecurityCenterSubscriptionPricingDelete(_ *schema.ResourceData, _ interface{}) error {
 	log.Printf("[DEBUG] Security Center Subscription deletion invocation")
 	return nil // cannot be deleted.
 }

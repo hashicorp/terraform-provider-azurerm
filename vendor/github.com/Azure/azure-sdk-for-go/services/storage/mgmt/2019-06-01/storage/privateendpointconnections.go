@@ -91,6 +91,7 @@ func (client PrivateEndpointConnectionsClient) Delete(ctx context.Context, resou
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.PrivateEndpointConnectionsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -183,6 +184,7 @@ func (client PrivateEndpointConnectionsClient) Get(ctx context.Context, resource
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.PrivateEndpointConnectionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -274,6 +276,7 @@ func (client PrivateEndpointConnectionsClient) List(ctx context.Context, resourc
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.PrivateEndpointConnectionsClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -370,6 +373,7 @@ func (client PrivateEndpointConnectionsClient) Put(ctx context.Context, resource
 	result, err = client.PutResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.PrivateEndpointConnectionsClient", "Put", resp, "Failure responding to request")
+		return
 	}
 
 	return

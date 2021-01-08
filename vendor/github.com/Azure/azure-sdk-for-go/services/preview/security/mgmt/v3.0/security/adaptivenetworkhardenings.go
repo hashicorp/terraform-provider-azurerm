@@ -185,6 +185,7 @@ func (client AdaptiveNetworkHardeningsClient) Get(ctx context.Context, resourceG
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AdaptiveNetworkHardeningsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -277,9 +278,11 @@ func (client AdaptiveNetworkHardeningsClient) ListByExtendedResource(ctx context
 	result.anhl, err = client.ListByExtendedResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AdaptiveNetworkHardeningsClient", "ListByExtendedResource", resp, "Failure responding to request")
+		return
 	}
 	if result.anhl.hasNextLink() && result.anhl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

@@ -62,6 +62,8 @@ The following arguments are supported:
 
 * `vnet_integration` - (Optional) A `vnet_integration` block as defined below.
 
+* `description` - (Optional) Integration runtime description.
+
 ---
 
 A `catalog_info` block supports the following:

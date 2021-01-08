@@ -158,6 +158,7 @@ func (client ElasticPoolsClient) Delete(ctx context.Context, resourceGroupName s
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ElasticPoolsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -235,6 +236,7 @@ func (client ElasticPoolsClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ElasticPoolsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -312,6 +314,7 @@ func (client ElasticPoolsClient) ListByServer(ctx context.Context, resourceGroup
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ElasticPoolsClient", "ListByServer", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -389,6 +392,7 @@ func (client ElasticPoolsClient) ListMetricDefinitions(ctx context.Context, reso
 	result, err = client.ListMetricDefinitionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ElasticPoolsClient", "ListMetricDefinitions", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -468,6 +472,7 @@ func (client ElasticPoolsClient) ListMetrics(ctx context.Context, resourceGroupN
 	result, err = client.ListMetricsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ElasticPoolsClient", "ListMetrics", resp, "Failure responding to request")
+		return
 	}
 
 	return
