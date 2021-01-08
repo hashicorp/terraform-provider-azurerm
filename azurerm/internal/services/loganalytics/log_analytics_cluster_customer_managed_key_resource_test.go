@@ -18,6 +18,10 @@ type LogAnalyticsClusterCustomerManagedKeyResource struct {
 }
 
 func TestAccLogAnalyticsClusterCustomerManagedKey_basic(t *testing.T) {
+	if true {
+		t.Skip("Skipping due to crash in go-autorest https://github.com/Azure/go-autorest/pull/605")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_cluster_customer_managed_key", "test")
 	r := LogAnalyticsClusterCustomerManagedKeyResource{}
 
