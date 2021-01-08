@@ -1,12 +1,19 @@
 ## 2.42.0 (Unreleased)
 
+BREAKING CHANGES
+
+* `azurerm_key_vault` - the field `soft_delete_enabled` is now defaulted to `true` to match the breaking change in the Azure API where Key Vaults now have Soft Delete enabled by default, which cannot be disabled. This property is now non-functional, defaults to `true` and will be removed in version 3.0 of the Azure Provider. [GH-10088]
+* `azurerm_key_vault` - the field `soft_delete_retention_days` is now defaulted to `90` days to match the Azure API behaviour, as the Azure API does not return a value for this field when not explicitly configured, so defaulting this removes a diff with `0`. [GH-10088]
+
 FEATURES:
 
 * **New Data Source:** `azurerm_eventgrid_domain_topic` [GH-10050]
+* **New Data Source:** `azurerm_ssh_public_key` [GH-9842]
 * **New Resource:** `azurerm_data_factory_linked_service_synapse` [GH-9928]
 * **New Resource:** `azurerm_disk_access` [GH-9889]
 * **New Resource:** `azurerm_media_streaming_locator` [GH-9992]
 * **New Resource:** `azurerm_sentinel_alert_rule_fusion` [GH-9829]
+* **New Resource:** `azurerm_ssh_public_key` [GH-9842]
 
 IMPROVEMENTS:
 
@@ -16,6 +23,9 @@ IMPROVEMENTS:
 * Data Source: `azurerm_hdinsight_cluster` - support for the `kafka_rest_proxy_endpoint` property [GH-8064]
 * Data Source: `azurerm_databricks_workspace` - support for the `tags` property [GH-9933]
 * Data Source: `azurerm_subscription` - support for the `tags` property [GH-8064]
+* `azurerm_app_service` - now supports  `detailed_error_mesage_enabled` and `failed_request_tracing_enabled ` logs settings [GH-9162]
+* `azurerm_app_service` - now supports  `service_tag` in `ip_restriction` blocks [GH-9609]
+* `azurerm_app_service_slot` - now supports  `detailed_error_mesage_enabled` and `failed_request_tracing_enabled ` logs settings [GH-9162]
 * `azurerm_batch_pool` support for the `public_address_provisioning_type` property [GH-10036]
 * `azurerm_api_management` - support `Consumption_0` for the `sku_name` property [GH-6868]
 * `azurerm_cdn_endpoint` - only send `content_types_to_compress` and `geo_filter` to the API when actually set [GH-9902]
@@ -25,8 +35,11 @@ IMPROVEMENTS:
 * `azurerm_dedicated_host` - support for addtional `sku_name` values [GH-9951]
 * `azurerm_devspace_controller` - deprecating since new DevSpace Controllers can no longer be provisioned, this will be removed in version 3.0 of the Azure Provider [GH-10049]
 * `azurerm_function_app` - make `pre_warmed_instance_count` computed to use azure's default [GH-9069]
+* `azurerm_function_app` - now supports  `service_tag` in `ip_restriction` blocks [GH-9609]
 * `azurerm_hdinsight_hadoop_cluster` - allow the value `Standard_D4a_V4` for the `vm_type` property [GH-10000]
 * `azurerm_hdinsight_kafka_cluster` - support for the `rest_proxy` and `kafka_management_node` blocks [GH-8064]
+* `azurerm_key_vault` - the field `soft_delete_enabled` is now defaulted to `true` to match the Azure API behaviour where Soft Delete is force-enabled and can no longer be disabled. This field is deprecated, can be safely removed from your Terraform Configuration, and will be removed in version 3.0 of the Azure Provider. [GH-10088]
+* `azurerm_kubernetes_cluster` - add support for network_mode [GH-8828]
 * `azurerm_log_analytics_linked_service` - add validation for resource ID type [GH-9932]
 * `azurerm_log_analytics_linked_service` - update validation to use generated validate functions [GH-9950]
 * `azurerm_monitor_diagnostic_setting` - validation that `eventhub_authorization_rule_id` is a EventHub Namespace Authorization Rule ID [GH-9914]
@@ -36,16 +49,19 @@ IMPROVEMENTS:
 * `azurerm_sentinel_alert_rule_ms_security_incident` - support the `alert_rule_template_guid` and `display_name_exclude_filter` properties [GH-9797]
 * `azurerm_sentinel_alert_rule_scheduled` - support for the `alert_rule_template_guid` property [GH-9712]
 * `azurerm_sentinel_alert_rule_scheduled` - support for creating incidents [GH-8564]
+* `azurerm_subscription` - support for the `tags` property [GH-9047]
 * `azurerm_synapse_workspace` - support for the `managed_resource_group_name` property [GH-10017]
 * `azurerm_traffic_manager_profile` - support for the `traffic_view_enabled` property [GH-10005]
 
 BUG FIXES:
 
+provider: will not correctly register the `Microsoft.Blueprint` and `Microsoft.HealthcareApis` RPs [GH-10062]
 * `azurerm_application_gateway` - allow `750` for `file_upload_limit_mb` when the sku is `WAF_v2` [GH-8753]
 * `azurerm_firewall_policy_rule_collection_group` - correctly validate the `network_rule_collection.destination_ports` property [GH-9490]
 * `azurerm_cdn_endpoint` - changing many `delivery_rule` condition `match_values` to optional [GH-8850]
 * `azurerm_cosmosdb_account` - always include `key_vault_id` in update requests for azure policy enginer compatibility [GH-9966]
 * `azurerm_cosmosdb_table` - do not call the throughput api when serverless [GH-9749]
+* `azurerm_key_vault` - the field `soft_delete_retention_days` is now defaulted to `90` days to match the Azure API behaviour. [GH-10088]
 * `azurerm_kubernetes_cluster` - parse oms `log_analytics_workspace_id` to ensure correct casing [GH-9976]
 * `azurerm_role_assignment` fix crash in retry logic [GH-10051]
 * `azurerm_storage_account` - allow hns when `account_tier` is `Premium` [GH-9548]
