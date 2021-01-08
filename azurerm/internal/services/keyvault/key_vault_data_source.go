@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
@@ -23,137 +24,142 @@ func dataSourceKeyVault() *schema.Resource {
 			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validate.KeyVaultName,
-			},
+		Schema: func() map[string]*schema.Schema {
+			dsSchema := map[string]*schema.Schema{
+				"name": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validate.KeyVaultName,
+				},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+				"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
+				"location": azure.SchemaLocationForDataSource(),
 
-			"sku_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
+				"sku_name": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
 
-			"vault_uri": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
+				"vault_uri": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
 
-			"tenant_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
+				"tenant_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
 
-			"access_policy": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"tenant_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"object_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"application_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"certificate_permissions": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+				"access_policy": {
+					Type:     schema.TypeList,
+					Computed: true,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"tenant_id": {
+								Type:     schema.TypeString,
+								Computed: true,
 							},
-						},
-						"key_permissions": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							"object_id": {
+								Type:     schema.TypeString,
+								Computed: true,
 							},
-						},
-						"secret_permissions": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							"application_id": {
+								Type:     schema.TypeString,
+								Computed: true,
 							},
-						},
-						"storage_permissions": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							"certificate_permissions": {
+								Type:     schema.TypeList,
+								Computed: true,
+								Elem: &schema.Schema{
+									Type: schema.TypeString,
+								},
+							},
+							"key_permissions": {
+								Type:     schema.TypeList,
+								Computed: true,
+								Elem: &schema.Schema{
+									Type: schema.TypeString,
+								},
+							},
+							"secret_permissions": {
+								Type:     schema.TypeList,
+								Computed: true,
+								Elem: &schema.Schema{
+									Type: schema.TypeString,
+								},
+							},
+							"storage_permissions": {
+								Type:     schema.TypeList,
+								Computed: true,
+								Elem: &schema.Schema{
+									Type: schema.TypeString,
+								},
 							},
 						},
 					},
 				},
-			},
 
-			"enabled_for_deployment": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
+				"enabled_for_deployment": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
 
-			"enabled_for_disk_encryption": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
+				"enabled_for_disk_encryption": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
 
-			"enabled_for_template_deployment": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
+				"enabled_for_template_deployment": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
 
-			"network_acls": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"default_action": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"bypass": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"ip_rules": {
-							Type:     schema.TypeSet,
-							Computed: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
-						},
-						"virtual_network_subnet_ids": {
-							Type:     schema.TypeSet,
-							Computed: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      set.HashStringIgnoreCase,
+				"network_acls": {
+					Type:     schema.TypeList,
+					Computed: true,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"default_action": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"bypass": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"ip_rules": {
+								Type:     schema.TypeSet,
+								Computed: true,
+								Elem:     &schema.Schema{Type: schema.TypeString},
+								Set:      schema.HashString,
+							},
+							"virtual_network_subnet_ids": {
+								Type:     schema.TypeSet,
+								Computed: true,
+								Elem:     &schema.Schema{Type: schema.TypeString},
+								Set:      set.HashStringIgnoreCase,
+							},
 						},
 					},
 				},
-			},
 
-			"purge_protection_enabled": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
+				"purge_protection_enabled": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
 
-			"soft_delete_enabled": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
-
-			"tags": tags.SchemaDataSource(),
-		},
+				"tags": tags.SchemaDataSource(),
+			}
+			if !features.ThreePointOh() {
+				dsSchema["soft_delete_enabled"] = &schema.Schema{
+					Type:       schema.TypeBool,
+					Computed:   true,
+					Deprecated: `Azure has removed support for disabling Soft Delete as of 2020-12-15, as such this field will always return 'true' and will be removed in version 3.0 of the Azure Provider.`,
+				}
+			}
+			return dsSchema
+		}(),
 	}
 }
 
@@ -186,9 +192,13 @@ func dataSourceKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("enabled_for_deployment", props.EnabledForDeployment)
 		d.Set("enabled_for_disk_encryption", props.EnabledForDiskEncryption)
 		d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
-		d.Set("soft_delete_enabled", props.EnableSoftDelete)
 		d.Set("purge_protection_enabled", props.EnablePurgeProtection)
 		d.Set("vault_uri", props.VaultURI)
+
+		// TODO: remove in 3.0
+		if !features.ThreePointOh() {
+			d.Set("soft_delete_enabled", true)
+		}
 
 		if sku := props.Sku; sku != nil {
 			if err := d.Set("sku_name", string(sku.Name)); err != nil {
