@@ -201,14 +201,10 @@ func TestAccFirewall_disappears(t *testing.T) {
 	r := FirewallResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
-		{
-			Config: r.basic(data),
-			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				testCheckFirewallDisappears(data.ResourceName),
-			),
-			ExpectNonEmptyPlan: true,
-		},
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
 	})
 }
 
@@ -283,35 +279,6 @@ func (FirewallResource) Exists(ctx context.Context, clients *clients.Client, sta
 	}
 
 	return utils.Bool(resp.AzureFirewallPropertiesFormat != nil), nil
-}
-
-func testCheckFirewallDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Firewall.AzureFirewallsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Azure Firewall: %q", name)
-		}
-
-		future, err := client.Delete(ctx, resourceGroup, name)
-		if err != nil {
-			return fmt.Errorf("Bad: Delete on azureFirewallsClient: %+v", err)
-		}
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Bad: waiting for Deletion on azureFirewallsClient: %+v", err)
-		}
-
-		return nil
-	}
 }
 
 func (FirewallResource) basic(data acceptance.TestData) string {
@@ -874,4 +841,9 @@ resource "azurerm_firewall" "test" {
   threat_intel_mode  = ""
 }
 `, data.RandomInteger, data.Locations.Primary, pipCount)
+}
+
+func (FirewallResource) Destroy(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id := state.ID
+	if _, err := clients.Firewall.AzureFirewallsClient.Delete(ctx, )
 }
