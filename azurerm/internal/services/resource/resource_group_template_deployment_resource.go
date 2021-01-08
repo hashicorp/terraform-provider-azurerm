@@ -295,6 +295,10 @@ func resourceGroupTemplateDeploymentResourceUpdate(d *schema.ResourceData, meta 
 		Tags: template.Tags,
 	}
 
+	if v, ok := d.GetOk("expression_evaluation_option"); ok {
+		deployment.Properties.ExpressionEvaluationOptions = expandArmTemplateDeploymentResourceGroupExpressionEvaluationOption(v.([]interface{}))
+	}
+
 	if d.HasChange("on_error_deployment") {
 		deployment.Properties.OnErrorDeployment = expandArmTemplateDeploymentResourceGroupOnErrorDeployment(d.Get("on_error_deployment").([]interface{}))
 	} else if v := template.Properties.OnErrorDeployment; v != nil {

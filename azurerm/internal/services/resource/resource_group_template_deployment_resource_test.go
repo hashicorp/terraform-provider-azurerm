@@ -229,6 +229,8 @@ func TestAccResourceGroupTemplateDeployment_updateExpressionEvaluationOption(t *
 					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
 				),
 			},
+			// The Azure API doesn't return the `expression_evaluation_option` property in the response.
+			// Bug: https://github.com/Azure/azure-rest-api-specs/issues/12326
 			data.ImportStep("expression_evaluation_option"),
 			{
 				Config: resourceGroupTemplateDeployment_updateExpressionEvaluationOptionConfig(data, "Outer"),
