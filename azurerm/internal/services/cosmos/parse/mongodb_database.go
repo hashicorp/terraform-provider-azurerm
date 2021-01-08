@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -24,7 +25,17 @@ func NewMongodbDatabaseID(subscriptionId, resourceGroup, databaseAccountName, na
 	}
 }
 
-func (id MongodbDatabaseId) ID(_ string) string {
+func (id MongodbDatabaseId) String() string {
+	segments := []string{
+		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Database Account Name %q", id.DatabaseAccountName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Mongodb Database", segmentsStr)
+}
+
+func (id MongodbDatabaseId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/databaseAccounts/%s/mongodbDatabases/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DatabaseAccountName, id.Name)
 }

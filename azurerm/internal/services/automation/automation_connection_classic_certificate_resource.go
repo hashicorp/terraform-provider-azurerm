@@ -42,7 +42,7 @@ func resourceAutomationConnectionClassicCertificate() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.AutomationConnectionName,
+				ValidateFunc: validate.ConnectionName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -51,7 +51,7 @@ func resourceAutomationConnectionClassicCertificate() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.AutomationAccountName(),
+				ValidateFunc: validate.AutomationAccount(),
 			},
 
 			"subscription_id": {

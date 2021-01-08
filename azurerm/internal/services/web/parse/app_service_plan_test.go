@@ -11,7 +11,7 @@ import (
 var _ resourceid.Formatter = AppServicePlanId{}
 
 func TestAppServicePlanIDFormatter(t *testing.T) {
-	actual := NewAppServicePlanID("12345678-1234-9876-4563-123456789012", "resGroup1", "farm1").ID("")
+	actual := NewAppServicePlanID("12345678-1234-9876-4563-123456789012", "resGroup1", "farm1").ID()
 	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/serverfarms/farm1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)

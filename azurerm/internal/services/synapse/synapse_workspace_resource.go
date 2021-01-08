@@ -23,12 +23,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSynapseWorkspace() *schema.Resource {
+func resourceSynapseWorkspace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSynapseWorkspaceCreate,
-		Read:   resourceArmSynapseWorkspaceRead,
-		Update: resourceArmSynapseWorkspaceUpdate,
-		Delete: resourceArmSynapseWorkspaceDelete,
+		Create: resourceSynapseWorkspaceCreate,
+		Read:   resourceSynapseWorkspaceRead,
+		Update: resourceSynapseWorkspaceUpdate,
+		Delete: resourceSynapseWorkspaceDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -47,7 +47,7 @@ func resourceArmSynapseWorkspace() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.SynapseWorkspaceName,
+				ValidateFunc: validate.WorkspaceName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -139,8 +139,11 @@ func resourceArmSynapseWorkspace() *schema.Resource {
 			},
 
 			"managed_resource_group_name": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.ManagedResourceGroupName(),
 			},
 
 			"tags": tags.Schema(),
@@ -148,7 +151,7 @@ func resourceArmSynapseWorkspace() *schema.Resource {
 	}
 }
 
-func resourceArmSynapseWorkspaceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseWorkspaceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceClient
 	aadAdminClient := meta.(*clients.Client).Synapse.WorkspaceAadAdminsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -179,6 +182,7 @@ func resourceArmSynapseWorkspaceCreate(d *schema.ResourceData, meta interface{})
 			ManagedVirtualNetwork:         utils.String(managedVirtualNetwork),
 			SQLAdministratorLogin:         utils.String(d.Get("sql_administrator_login").(string)),
 			SQLAdministratorLoginPassword: utils.String(d.Get("sql_administrator_login_password").(string)),
+			ManagedResourceGroupName:      utils.String(d.Get("managed_resource_group_name").(string)),
 		},
 		Identity: &synapse.ManagedIdentity{
 			Type: synapse.ResourceIdentityTypeSystemAssigned,
@@ -217,10 +221,10 @@ func resourceArmSynapseWorkspaceCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	d.SetId(*resp.ID)
-	return resourceArmSynapseWorkspaceRead(d, meta)
+	return resourceSynapseWorkspaceRead(d, meta)
 }
 
-func resourceArmSynapseWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceClient
 	aadAdminClient := meta.(*clients.Client).Synapse.WorkspaceAadAdminsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -272,7 +276,7 @@ func resourceArmSynapseWorkspaceRead(d *schema.ResourceData, meta interface{}) e
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmSynapseWorkspaceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseWorkspaceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceClient
 	aadAdminClient := meta.(*clients.Client).Synapse.WorkspaceAadAdminsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -325,10 +329,10 @@ func resourceArmSynapseWorkspaceUpdate(d *schema.ResourceData, meta interface{})
 			}
 		}
 	}
-	return resourceArmSynapseWorkspaceRead(d, meta)
+	return resourceSynapseWorkspaceRead(d, meta)
 }
 
-func resourceArmSynapseWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.WorkspaceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -387,7 +391,7 @@ func flattenArmWorkspaceManagedIdentity(input *synapse.ManagedIdentity) []interf
 	}
 	var tenantId string
 	if input.TenantID != nil {
-		tenantId = *input.TenantID
+		tenantId = input.TenantID.String()
 	}
 	return []interface{}{
 		map[string]interface{}{

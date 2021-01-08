@@ -91,6 +91,7 @@ func (client SessionHostsClient) Delete(ctx context.Context, resourceGroupName s
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.SessionHostsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -186,6 +187,7 @@ func (client SessionHostsClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.SessionHostsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -276,6 +278,7 @@ func (client SessionHostsClient) List(ctx context.Context, resourceGroupName str
 	result.shl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.SessionHostsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.shl.hasNextLink() && result.shl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -340,6 +343,7 @@ func (client SessionHostsClient) listNextResults(ctx context.Context, lastResult
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.SessionHostsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -409,6 +413,7 @@ func (client SessionHostsClient) Update(ctx context.Context, resourceGroupName s
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.SessionHostsClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

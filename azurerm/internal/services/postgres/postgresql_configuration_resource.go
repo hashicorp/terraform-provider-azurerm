@@ -17,11 +17,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPostgreSQLConfiguration() *schema.Resource {
+func resourcePostgreSQLConfiguration() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPostgreSQLConfigurationCreateUpdate,
-		Read:   resourceArmPostgreSQLConfigurationRead,
-		Delete: resourceArmPostgreSQLConfigurationDelete,
+		Create: resourcePostgreSQLConfigurationCreateUpdate,
+		Read:   resourcePostgreSQLConfigurationRead,
+		Delete: resourcePostgreSQLConfigurationDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.ConfigurationID(id)
 			return err
@@ -47,7 +47,7 @@ func resourceArmPostgreSQLConfiguration() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.PostgreSQLServerName,
+				ValidateFunc: validate.ServerName,
 			},
 
 			"value": {
@@ -59,7 +59,7 @@ func resourceArmPostgreSQLConfiguration() *schema.Resource {
 	}
 }
 
-func resourceArmPostgreSQLConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.ConfigurationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -99,10 +99,10 @@ func resourceArmPostgreSQLConfigurationCreateUpdate(d *schema.ResourceData, meta
 
 	d.SetId(*read.ID)
 
-	return resourceArmPostgreSQLConfigurationRead(d, meta)
+	return resourcePostgreSQLConfigurationRead(d, meta)
 }
 
-func resourceArmPostgreSQLConfigurationRead(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLConfigurationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.ConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -134,7 +134,7 @@ func resourceArmPostgreSQLConfigurationRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceArmPostgreSQLConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcePostgreSQLConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.ConfigurationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

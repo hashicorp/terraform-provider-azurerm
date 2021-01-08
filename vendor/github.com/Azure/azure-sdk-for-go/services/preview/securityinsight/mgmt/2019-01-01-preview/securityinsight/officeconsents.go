@@ -90,6 +90,7 @@ func (client OfficeConsentsClient) Delete(ctx context.Context, resourceGroupName
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.OfficeConsentsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -183,6 +184,7 @@ func (client OfficeConsentsClient) Get(ctx context.Context, resourceGroupName st
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.OfficeConsentsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -277,6 +279,7 @@ func (client OfficeConsentsClient) List(ctx context.Context, resourceGroupName s
 	result.ocl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.OfficeConsentsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.ocl.hasNextLink() && result.ocl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -342,6 +345,7 @@ func (client OfficeConsentsClient) listNextResults(ctx context.Context, lastResu
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.OfficeConsentsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

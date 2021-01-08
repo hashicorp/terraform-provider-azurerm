@@ -49,7 +49,7 @@ func resourceArmVirtualHubIP() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.ValidateVirtualHubID,
+				ValidateFunc: networkValidate.VirtualHubID,
 			},
 
 			"subnet_id": {
@@ -78,7 +78,7 @@ func resourceArmVirtualHubIP() *schema.Resource {
 			"public_ip_address_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: networkValidate.PublicIPAddressID,
+				ValidateFunc: networkValidate.PublicIpAddressID,
 			},
 		},
 	}
@@ -180,7 +180,7 @@ func resourceArmVirtualHubIPRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	d.Set("name", id.IpConfigurationName)
-	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName).ID(""))
+	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName).ID())
 
 	if props := resp.HubIPConfigurationPropertiesFormat; props != nil {
 		d.Set("private_ip_address", props.PrivateIPAddress)

@@ -3,7 +3,10 @@ package clients
 import (
 	"context"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients/azuread"
+
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	advisor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/advisor/client"
@@ -11,10 +14,10 @@ import (
 	apiManagement "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/client"
 	appConfiguration "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration/client"
 	applicationInsights "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights/client"
-	appPlatform "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appplatform/client"
 	attestation "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/attestation/client"
 	authorization "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization/client"
 	automation "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation/client"
+	azureStackHCI "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/azurestackhci/client"
 	batch "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/client"
 	blueprints "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/blueprints/client"
 	bot "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/client"
@@ -37,6 +40,7 @@ import (
 	dns "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/client"
 	eventgrid "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/client"
 	eventhub "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/client"
+	firewall "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/firewall/client"
 	frontdoor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/client"
 	hdinsight "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/client"
 	healthcare "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare/client"
@@ -48,6 +52,7 @@ import (
 	keyvault "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/client"
 	kusto "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/client"
 	lighthouse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/lighthouse/client"
+	loadbalancers "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loadbalancer/client"
 	loganalytics "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/client"
 	logic "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/client"
 	machinelearning "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/machinelearning/client"
@@ -81,6 +86,7 @@ import (
 	serviceFabric "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric/client"
 	serviceFabricMesh "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabricmesh/client"
 	signalr "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr/client"
+	appPlatform "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/springcloud/client"
 	sql "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/client"
 	storage "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/client"
 	streamAnalytics "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics/client"
@@ -106,6 +112,8 @@ type Client struct {
 	Attestation           *attestation.Client
 	Authorization         *authorization.Client
 	Automation            *automation.Client
+	AzureAD               *azuread.Client
+	AzureStackHCI         *azureStackHCI.Client
 	Batch                 *batch.Client
 	Blueprints            *blueprints.Client
 	Bot                   *bot.Client
@@ -128,6 +136,7 @@ type Client struct {
 	Dns                   *dns.Client
 	EventGrid             *eventgrid.Client
 	Eventhub              *eventhub.Client
+	Firewall              *firewall.Client
 	Frontdoor             *frontdoor.Client
 	HPCCache              *hpccache.Client
 	HSM                   *hsm.Client
@@ -139,6 +148,7 @@ type Client struct {
 	KeyVault              *keyvault.Client
 	Kusto                 *kusto.Client
 	Lighthouse            *lighthouse.Client
+	LoadBalancers         *loadbalancers.Client
 	LogAnalytics          *loganalytics.Client
 	Logic                 *logic.Client
 	MachineLearning       *machinelearning.Client
@@ -185,6 +195,8 @@ type Client struct {
 
 func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error {
 	autorest.Count429AsRetry = false
+	// Disable the Azure SDK for Go's validation since it's unhelpful for our use-case
+	validation.Disabled = true
 
 	client.Features = o.Features
 	client.StopContext = ctx
@@ -198,6 +210,8 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Attestation = attestation.NewClient(o)
 	client.Authorization = authorization.NewClient(o)
 	client.Automation = automation.NewClient(o)
+	client.AzureAD = azuread.NewClient(o)
+	client.AzureStackHCI = azureStackHCI.NewClient(o)
 	client.Batch = batch.NewClient(o)
 	client.Blueprints = blueprints.NewClient(o)
 	client.Bot = bot.NewClient(o)
@@ -220,6 +234,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Dns = dns.NewClient(o)
 	client.EventGrid = eventgrid.NewClient(o)
 	client.Eventhub = eventhub.NewClient(o)
+	client.Firewall = firewall.NewClient(o)
 	client.Frontdoor = frontdoor.NewClient(o)
 	client.HPCCache = hpccache.NewClient(o)
 	client.HSM = hsm.NewClient(o)
@@ -232,6 +247,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Kusto = kusto.NewClient(o)
 	client.Lighthouse = lighthouse.NewClient(o)
 	client.LogAnalytics = loganalytics.NewClient(o)
+	client.LoadBalancers = loadbalancers.NewClient(o)
 	client.Logic = logic.NewClient(o)
 	client.MachineLearning = machinelearning.NewClient(o)
 	client.Maintenance = maintenance.NewClient(o)

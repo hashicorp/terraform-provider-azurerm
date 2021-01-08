@@ -229,6 +229,7 @@ func (client GroupsClient) Get(ctx context.Context, resourceGroupName string, SQ
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -302,6 +303,7 @@ func (client GroupsClient) List(ctx context.Context) (result GroupListResultPage
 	result.glr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.glr.hasNextLink() && result.glr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -364,6 +366,7 @@ func (client GroupsClient) listNextResults(ctx context.Context, lastResults Grou
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -416,6 +419,7 @@ func (client GroupsClient) ListByResourceGroup(ctx context.Context, resourceGrou
 	result.glr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.glr.hasNextLink() && result.glr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -479,6 +483,7 @@ func (client GroupsClient) listByResourceGroupNextResults(ctx context.Context, l
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

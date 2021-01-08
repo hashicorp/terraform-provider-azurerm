@@ -403,6 +403,7 @@ func (client InstanceFailoverGroupsClient) Get(ctx context.Context, resourceGrou
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.InstanceFailoverGroupsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -481,6 +482,7 @@ func (client InstanceFailoverGroupsClient) ListByLocation(ctx context.Context, r
 	result.ifglr, err = client.ListByLocationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.InstanceFailoverGroupsClient", "ListByLocation", resp, "Failure responding to request")
+		return
 	}
 	if result.ifglr.hasNextLink() && result.ifglr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -545,6 +547,7 @@ func (client InstanceFailoverGroupsClient) listByLocationNextResults(ctx context
 	result, err = client.ListByLocationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.InstanceFailoverGroupsClient", "listByLocationNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

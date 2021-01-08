@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-02-15/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-09-18/kusto"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKustoDatabase() *schema.Resource {
+func resourceKustoDatabase() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKustoDatabaseCreateUpdate,
-		Read:   resourceArmKustoDatabaseRead,
-		Update: resourceArmKustoDatabaseCreateUpdate,
-		Delete: resourceArmKustoDatabaseDelete,
+		Create: resourceKustoDatabaseCreateUpdate,
+		Read:   resourceKustoDatabaseRead,
+		Update: resourceKustoDatabaseCreateUpdate,
+		Delete: resourceKustoDatabaseDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -74,7 +74,7 @@ func resourceArmKustoDatabase() *schema.Resource {
 	}
 }
 
-func resourceArmKustoDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -142,10 +142,10 @@ func resourceArmKustoDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 
 	d.SetId(*database.ID)
 
-	return resourceArmKustoDatabaseRead(d, meta)
+	return resourceKustoDatabaseRead(d, meta)
 }
 
-func resourceArmKustoDatabaseRead(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -193,27 +193,23 @@ func resourceArmKustoDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceArmKustoDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceKustoDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	clusterName := id.Path["Clusters"]
-	name := id.Path["Databases"]
-
-	future, err := client.Delete(ctx, resGroup, clusterName, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ClusterName, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Kusto Database %q (Resource Group %q, Cluster %q): %+v", name, resGroup, clusterName, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Kusto Database %q (Resource Group %q, Cluster %q): %+v", name, resGroup, clusterName, err)
+		return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
 	}
 
 	return nil

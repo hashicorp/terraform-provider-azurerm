@@ -19,11 +19,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSynapseRoleAssignment() *schema.Resource {
+func resourceSynapseRoleAssignment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSynapseRoleAssignmentCreate,
-		Read:   resourceArmSynapseRoleAssignmentRead,
-		Delete: resourceArmSynapseRoleAssignmentDelete,
+		Create: resourceSynapseRoleAssignmentCreate,
+		Read:   resourceSynapseRoleAssignmentRead,
+		Delete: resourceSynapseRoleAssignmentDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -41,7 +41,7 @@ func resourceArmSynapseRoleAssignment() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.SynapseWorkspaceID,
+				ValidateFunc: validate.WorkspaceID,
 			},
 
 			"principal_id": {
@@ -65,7 +65,7 @@ func resourceArmSynapseRoleAssignment() *schema.Resource {
 	}
 }
 
-func resourceArmSynapseRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) error {
 	synapseClient := meta.(*clients.Client).Synapse
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -97,7 +97,7 @@ func resourceArmSynapseRoleAssignmentCreate(d *schema.ResourceData, meta interfa
 	if listResp.Value != nil && len(*listResp.Value) != 0 {
 		existing := (*listResp.Value)[0]
 		if existing.ID != nil && *existing.ID != "" {
-			resourceId := parse.NewRoleAssignmentId(*workspaceId, *existing.ID).ID("")
+			resourceId := parse.NewRoleAssignmentId(*workspaceId, *existing.ID).ID()
 			return tf.ImportAsExistsError("azurerm_synapse_role_assignment", resourceId)
 		}
 	}
@@ -116,12 +116,12 @@ func resourceArmSynapseRoleAssignmentCreate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("empty or nil ID returned for Synapse RoleAssignment %q", roleName)
 	}
 
-	resourceId := parse.NewRoleAssignmentId(*workspaceId, *resp.ID).ID("")
+	resourceId := parse.NewRoleAssignmentId(*workspaceId, *resp.ID).ID()
 	d.SetId(resourceId)
-	return resourceArmSynapseRoleAssignmentRead(d, meta)
+	return resourceSynapseRoleAssignmentRead(d, meta)
 }
 
-func resourceArmSynapseRoleAssignmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseRoleAssignmentRead(d *schema.ResourceData, meta interface{}) error {
 	synapseClient := meta.(*clients.Client).Synapse
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -154,12 +154,12 @@ func resourceArmSynapseRoleAssignmentRead(d *schema.ResourceData, meta interface
 		d.Set("role_name", role.Name)
 	}
 
-	d.Set("synapse_workspace_id", id.Workspace.ID(""))
+	d.Set("synapse_workspace_id", id.Workspace.ID())
 	d.Set("principal_id", resp.PrincipalID)
 	return nil
 }
 
-func resourceArmSynapseRoleAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseRoleAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
 	synapseClient := meta.(*clients.Client).Synapse
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

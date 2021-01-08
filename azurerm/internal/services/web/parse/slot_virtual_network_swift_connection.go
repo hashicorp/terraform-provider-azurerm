@@ -4,31 +4,43 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 type SlotVirtualNetworkSwiftConnectionId struct {
-	SubscriptionId    string
-	ResourceGroup     string
-	SiteName          string
-	SlotName          string
-	NetworkconfigName string
+	SubscriptionId string
+	ResourceGroup  string
+	SiteName       string
+	SlotName       string
+	ConfigName     string
 }
 
-func NewSlotVirtualNetworkSwiftConnectionID(subscriptionId, resourceGroup, siteName, slotName, networkconfigName string) SlotVirtualNetworkSwiftConnectionId {
+func NewSlotVirtualNetworkSwiftConnectionID(subscriptionId, resourceGroup, siteName, slotName, configName string) SlotVirtualNetworkSwiftConnectionId {
 	return SlotVirtualNetworkSwiftConnectionId{
-		SubscriptionId:    subscriptionId,
-		ResourceGroup:     resourceGroup,
-		SiteName:          siteName,
-		SlotName:          slotName,
-		NetworkconfigName: networkconfigName,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		SiteName:       siteName,
+		SlotName:       slotName,
+		ConfigName:     configName,
 	}
 }
 
-func (id SlotVirtualNetworkSwiftConnectionId) ID(_ string) string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s/slots/%s/networkconfig/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SiteName, id.SlotName, id.NetworkconfigName)
+func (id SlotVirtualNetworkSwiftConnectionId) String() string {
+	segments := []string{
+		fmt.Sprintf("Config Name %q", id.ConfigName),
+		fmt.Sprintf("Slot Name %q", id.SlotName),
+		fmt.Sprintf("Site Name %q", id.SiteName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Slot Virtual Network Swift Connection", segmentsStr)
+}
+
+func (id SlotVirtualNetworkSwiftConnectionId) ID() string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s/slots/%s/config/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SiteName, id.SlotName, id.ConfigName)
 }
 
 // SlotVirtualNetworkSwiftConnectionID parses a SlotVirtualNetworkSwiftConnection ID into an SlotVirtualNetworkSwiftConnectionId struct
@@ -57,7 +69,7 @@ func SlotVirtualNetworkSwiftConnectionID(input string) (*SlotVirtualNetworkSwift
 	if resourceId.SlotName, err = id.PopSegment("slots"); err != nil {
 		return nil, err
 	}
-	if resourceId.NetworkconfigName, err = id.PopSegment("networkconfig"); err != nil {
+	if resourceId.ConfigName, err = id.PopSegment("config"); err != nil {
 		return nil, err
 	}
 

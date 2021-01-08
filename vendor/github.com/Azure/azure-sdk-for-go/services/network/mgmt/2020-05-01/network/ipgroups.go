@@ -227,6 +227,7 @@ func (client IPGroupsClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.IPGroupsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -303,6 +304,7 @@ func (client IPGroupsClient) List(ctx context.Context) (result IPGroupListResult
 	result.iglr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.IPGroupsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.iglr.hasNextLink() && result.iglr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -365,6 +367,7 @@ func (client IPGroupsClient) listNextResults(ctx context.Context, lastResults IP
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.IPGroupsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -416,6 +419,7 @@ func (client IPGroupsClient) ListByResourceGroup(ctx context.Context, resourceGr
 	result.iglr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.IPGroupsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.iglr.hasNextLink() && result.iglr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -479,6 +483,7 @@ func (client IPGroupsClient) listByResourceGroupNextResults(ctx context.Context,
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.IPGroupsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -531,6 +536,7 @@ func (client IPGroupsClient) UpdateGroups(ctx context.Context, resourceGroupName
 	result, err = client.UpdateGroupsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.IPGroupsClient", "UpdateGroups", resp, "Failure responding to request")
+		return
 	}
 
 	return

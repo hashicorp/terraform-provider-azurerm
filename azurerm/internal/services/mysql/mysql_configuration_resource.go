@@ -14,11 +14,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMySQLConfiguration() *schema.Resource {
+func resourceMySQLConfiguration() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMySQLConfigurationCreate,
-		Read:   resourceArmMySQLConfigurationRead,
-		Delete: resourceArmMySQLConfigurationDelete,
+		Create: resourceMySQLConfigurationCreate,
+		Read:   resourceMySQLConfigurationRead,
+		Delete: resourceMySQLConfigurationDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -44,7 +44,7 @@ func resourceArmMySQLConfiguration() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.MySQLServerName,
+				ValidateFunc: validate.ServerName,
 			},
 
 			"value": {
@@ -56,7 +56,7 @@ func resourceArmMySQLConfiguration() *schema.Resource {
 	}
 }
 
-func resourceArmMySQLConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMySQLConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.ConfigurationsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -96,10 +96,10 @@ func resourceArmMySQLConfigurationCreate(d *schema.ResourceData, meta interface{
 
 	d.SetId(*read.ID)
 
-	return resourceArmMySQLConfigurationRead(d, meta)
+	return resourceMySQLConfigurationRead(d, meta)
 }
 
-func resourceArmMySQLConfigurationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMySQLConfigurationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.ConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -131,7 +131,7 @@ func resourceArmMySQLConfigurationRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceArmMySQLConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMySQLConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.ConfigurationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -73,6 +73,7 @@ func (client RemediationsClient) CancelAtManagementGroup(ctx context.Context, ma
 	result, err = client.CancelAtManagementGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.RemediationsClient", "CancelAtManagementGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -148,6 +149,7 @@ func (client RemediationsClient) CancelAtResource(ctx context.Context, resourceI
 	result, err = client.CancelAtResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.RemediationsClient", "CancelAtResource", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -223,6 +225,7 @@ func (client RemediationsClient) CancelAtResourceGroup(ctx context.Context, subs
 	result, err = client.CancelAtResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.RemediationsClient", "CancelAtResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -298,6 +301,7 @@ func (client RemediationsClient) CancelAtSubscription(ctx context.Context, subsc
 	result, err = client.CancelAtSubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.RemediationsClient", "CancelAtSubscription", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -373,6 +377,7 @@ func (client RemediationsClient) CreateOrUpdateAtManagementGroup(ctx context.Con
 	result, err = client.CreateOrUpdateAtManagementGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.RemediationsClient", "CreateOrUpdateAtManagementGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -454,6 +459,7 @@ func (client RemediationsClient) CreateOrUpdateAtResource(ctx context.Context, r
 	result, err = client.CreateOrUpdateAtResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.RemediationsClient", "CreateOrUpdateAtResource", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -535,6 +541,7 @@ func (client RemediationsClient) CreateOrUpdateAtResourceGroup(ctx context.Conte
 	result, err = client.CreateOrUpdateAtResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.RemediationsClient", "CreateOrUpdateAtResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -616,6 +623,7 @@ func (client RemediationsClient) CreateOrUpdateAtSubscription(ctx context.Contex
 	result, err = client.CreateOrUpdateAtSubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.RemediationsClient", "CreateOrUpdateAtSubscription", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -695,6 +703,7 @@ func (client RemediationsClient) DeleteAtManagementGroup(ctx context.Context, ma
 	result, err = client.DeleteAtManagementGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.RemediationsClient", "DeleteAtManagementGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -770,6 +779,7 @@ func (client RemediationsClient) DeleteAtResource(ctx context.Context, resourceI
 	result, err = client.DeleteAtResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.RemediationsClient", "DeleteAtResource", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -845,6 +855,7 @@ func (client RemediationsClient) DeleteAtResourceGroup(ctx context.Context, subs
 	result, err = client.DeleteAtResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.RemediationsClient", "DeleteAtResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -920,6 +931,7 @@ func (client RemediationsClient) DeleteAtSubscription(ctx context.Context, subsc
 	result, err = client.DeleteAtSubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.RemediationsClient", "DeleteAtSubscription", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -994,6 +1006,7 @@ func (client RemediationsClient) GetAtManagementGroup(ctx context.Context, manag
 	result, err = client.GetAtManagementGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.RemediationsClient", "GetAtManagementGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1069,6 +1082,7 @@ func (client RemediationsClient) GetAtResource(ctx context.Context, resourceID s
 	result, err = client.GetAtResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.RemediationsClient", "GetAtResource", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1144,6 +1158,7 @@ func (client RemediationsClient) GetAtResourceGroup(ctx context.Context, subscri
 	result, err = client.GetAtResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.RemediationsClient", "GetAtResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1219,6 +1234,7 @@ func (client RemediationsClient) GetAtSubscription(ctx context.Context, subscrip
 	result, err = client.GetAtSubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.RemediationsClient", "GetAtSubscription", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -1302,6 +1318,7 @@ func (client RemediationsClient) ListDeploymentsAtManagementGroup(ctx context.Co
 	result.rdlr, err = client.ListDeploymentsAtManagementGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.RemediationsClient", "ListDeploymentsAtManagementGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.rdlr.hasNextLink() && result.rdlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -1369,6 +1386,7 @@ func (client RemediationsClient) listDeploymentsAtManagementGroupNextResults(ctx
 	result, err = client.ListDeploymentsAtManagementGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.RemediationsClient", "listDeploymentsAtManagementGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -1429,6 +1447,7 @@ func (client RemediationsClient) ListDeploymentsAtResource(ctx context.Context, 
 	result.rdlr, err = client.ListDeploymentsAtResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.RemediationsClient", "ListDeploymentsAtResource", resp, "Failure responding to request")
+		return
 	}
 	if result.rdlr.hasNextLink() && result.rdlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -1495,6 +1514,7 @@ func (client RemediationsClient) listDeploymentsAtResourceNextResults(ctx contex
 	result, err = client.ListDeploymentsAtResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.RemediationsClient", "listDeploymentsAtResourceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -1556,6 +1576,7 @@ func (client RemediationsClient) ListDeploymentsAtResourceGroup(ctx context.Cont
 	result.rdlr, err = client.ListDeploymentsAtResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.RemediationsClient", "ListDeploymentsAtResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.rdlr.hasNextLink() && result.rdlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -1623,6 +1644,7 @@ func (client RemediationsClient) listDeploymentsAtResourceGroupNextResults(ctx c
 	result, err = client.ListDeploymentsAtResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.RemediationsClient", "listDeploymentsAtResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -1683,6 +1705,7 @@ func (client RemediationsClient) ListDeploymentsAtSubscription(ctx context.Conte
 	result.rdlr, err = client.ListDeploymentsAtSubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.RemediationsClient", "ListDeploymentsAtSubscription", resp, "Failure responding to request")
+		return
 	}
 	if result.rdlr.hasNextLink() && result.rdlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -1749,6 +1772,7 @@ func (client RemediationsClient) listDeploymentsAtSubscriptionNextResults(ctx co
 	result, err = client.ListDeploymentsAtSubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.RemediationsClient", "listDeploymentsAtSubscriptionNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -1809,6 +1833,7 @@ func (client RemediationsClient) ListForManagementGroup(ctx context.Context, man
 	result.rlr, err = client.ListForManagementGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.RemediationsClient", "ListForManagementGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.rlr.hasNextLink() && result.rlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -1878,6 +1903,7 @@ func (client RemediationsClient) listForManagementGroupNextResults(ctx context.C
 	result, err = client.ListForManagementGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.RemediationsClient", "listForManagementGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -1938,6 +1964,7 @@ func (client RemediationsClient) ListForResource(ctx context.Context, resourceID
 	result.rlr, err = client.ListForResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.RemediationsClient", "ListForResource", resp, "Failure responding to request")
+		return
 	}
 	if result.rlr.hasNextLink() && result.rlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -2006,6 +2033,7 @@ func (client RemediationsClient) listForResourceNextResults(ctx context.Context,
 	result, err = client.ListForResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.RemediationsClient", "listForResourceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -2067,6 +2095,7 @@ func (client RemediationsClient) ListForResourceGroup(ctx context.Context, subsc
 	result.rlr, err = client.ListForResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.RemediationsClient", "ListForResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.rlr.hasNextLink() && result.rlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -2136,6 +2165,7 @@ func (client RemediationsClient) listForResourceGroupNextResults(ctx context.Con
 	result, err = client.ListForResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.RemediationsClient", "listForResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -2196,6 +2226,7 @@ func (client RemediationsClient) ListForSubscription(ctx context.Context, subscr
 	result.rlr, err = client.ListForSubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.RemediationsClient", "ListForSubscription", resp, "Failure responding to request")
+		return
 	}
 	if result.rlr.hasNextLink() && result.rlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -2264,6 +2295,7 @@ func (client RemediationsClient) listForSubscriptionNextResults(ctx context.Cont
 	result, err = client.ListForSubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.RemediationsClient", "listForSubscriptionNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

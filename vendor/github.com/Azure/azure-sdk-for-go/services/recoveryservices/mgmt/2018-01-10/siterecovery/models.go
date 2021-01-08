@@ -1498,8 +1498,11 @@ func (page AlertCollectionPage) Values() []Alert {
 }
 
 // Creates a new instance of the AlertCollectionPage type.
-func NewAlertCollectionPage(getNextPage func(context.Context, AlertCollection) (AlertCollection, error)) AlertCollectionPage {
-	return AlertCollectionPage{fn: getNextPage}
+func NewAlertCollectionPage(cur AlertCollection, getNextPage func(context.Context, AlertCollection) (AlertCollection, error)) AlertCollectionPage {
+	return AlertCollectionPage{
+		fn: getNextPage,
+		ac: cur,
+	}
 }
 
 // AlertProperties the properties of an alert.
@@ -2070,8 +2073,8 @@ func (afsd AzureFabricSpecificDetails) AsBasicFabricSpecificDetails() (BasicFabr
 	return &afsd, true
 }
 
-// AzureToAzureCreateNetworkMappingInput create network mappings input properties/behavior specific to Azure to
-// Azure Network mapping.
+// AzureToAzureCreateNetworkMappingInput create network mappings input properties/behavior specific to
+// Azure to Azure Network mapping.
 type AzureToAzureCreateNetworkMappingInput struct {
 	// PrimaryNetworkID - The primary azure vnet Id.
 	PrimaryNetworkID *string `json:"primaryNetworkId,omitempty"`
@@ -2257,7 +2260,8 @@ type AzureVMDiskDetails struct {
 	LunID *string `json:"lunId,omitempty"`
 }
 
-// ComputeSizeErrorDetails represents the error used to indicate why the target compute size is not applicable.
+// ComputeSizeErrorDetails represents the error used to indicate why the target compute size is not
+// applicable.
 type ComputeSizeErrorDetails struct {
 	// Message - The error message.
 	Message *string `json:"message,omitempty"`
@@ -2865,9 +2869,9 @@ type DiskVolumeDetails struct {
 	Name *string `json:"name,omitempty"`
 }
 
-// Display contains the localized display information for this particular operation / action. These value will
-// be used by several clients for (1) custom role definitions for RBAC; (2) complex query filters for the event
-// service; and (3) audit history / records for management operations.
+// Display contains the localized display information for this particular operation / action. These value
+// will be used by several clients for (1) custom role definitions for RBAC; (2) complex query filters for
+// the event service; and (3) audit history / records for management operations.
 type Display struct {
 	// Provider - The provider. The localized friendly form of the resource provider name – it is expected to also include the publisher/company responsible. It should use Title Casing and begin with "Microsoft" for 1st party services. e.g. "Microsoft Monitoring Insights" or "Microsoft Compute."
 	Provider *string `json:"provider,omitempty"`
@@ -3359,8 +3363,11 @@ func (page EventCollectionPage) Values() []Event {
 }
 
 // Creates a new instance of the EventCollectionPage type.
-func NewEventCollectionPage(getNextPage func(context.Context, EventCollection) (EventCollection, error)) EventCollectionPage {
-	return EventCollectionPage{fn: getNextPage}
+func NewEventCollectionPage(cur EventCollection, getNextPage func(context.Context, EventCollection) (EventCollection, error)) EventCollectionPage {
+	return EventCollectionPage{
+		fn: getNextPage,
+		ec: cur,
+	}
 }
 
 // EventProperties the properties of a monitoring event.
@@ -4033,8 +4040,11 @@ func (page FabricCollectionPage) Values() []Fabric {
 }
 
 // Creates a new instance of the FabricCollectionPage type.
-func NewFabricCollectionPage(getNextPage func(context.Context, FabricCollection) (FabricCollection, error)) FabricCollectionPage {
-	return FabricCollectionPage{fn: getNextPage}
+func NewFabricCollectionPage(cur FabricCollection, getNextPage func(context.Context, FabricCollection) (FabricCollection, error)) FabricCollectionPage {
+	return FabricCollectionPage{
+		fn: getNextPage,
+		fc: cur,
+	}
 }
 
 // FabricCreationInput site details provided during the time of site creation
@@ -5059,7 +5069,8 @@ func (hvr2ed HyperVReplica2012R2EventDetails) AsBasicEventProviderSpecificDetail
 	return &hvr2ed, true
 }
 
-// HyperVReplicaAzureApplyRecoveryPointInput applyRecoveryPoint input specific to HyperVReplicaAzure provider.
+// HyperVReplicaAzureApplyRecoveryPointInput applyRecoveryPoint input specific to HyperVReplicaAzure
+// provider.
 type HyperVReplicaAzureApplyRecoveryPointInput struct {
 	// VaultLocation - The vault location where the recovery Vm resides.
 	VaultLocation *string `json:"vaultLocation,omitempty"`
@@ -8168,7 +8179,8 @@ func (imavri InMageAzureV2ReprotectInput) AsBasicReverseReplicationProviderSpeci
 	return &imavri, true
 }
 
-// InMageAzureV2UpdateReplicationProtectedItemInput inMage Azure V2 input to update replication protected item.
+// InMageAzureV2UpdateReplicationProtectedItemInput inMage Azure V2 input to update replication protected
+// item.
 type InMageAzureV2UpdateReplicationProtectedItemInput struct {
 	// RecoveryAzureV1ResourceGroupID - The recovery Azure resource group Id for classic deployment.
 	RecoveryAzureV1ResourceGroupID *string `json:"recoveryAzureV1ResourceGroupId,omitempty"`
@@ -9093,8 +9105,8 @@ func (imri InMageReprotectInput) AsBasicReverseReplicationProviderSpecificInput(
 	return &imri, true
 }
 
-// InMageVolumeExclusionOptions guest disk signature based disk exclusion option when doing enable protection
-// of virtual machine in InMage provider.
+// InMageVolumeExclusionOptions guest disk signature based disk exclusion option when doing enable
+// protection of virtual machine in InMage provider.
 type InMageVolumeExclusionOptions struct {
 	// VolumeLabel - The volume label. The disk having any volume with this label will be excluded from replication.
 	VolumeLabel *string `json:"volumeLabel,omitempty"`
@@ -9102,10 +9114,10 @@ type InMageVolumeExclusionOptions struct {
 	OnlyExcludeIfSingleVolume *string `json:"onlyExcludeIfSingleVolume,omitempty"`
 }
 
-// InnerHealthError implements InnerHealthError class. HealthError object has a list of InnerHealthErrors as
-// child errors. InnerHealthError is used because this will prevent an infinite loop of structures when Hydra
-// tries to auto-generate the contract. We are exposing the related health errors as inner health errors and
-// all API consumers can utilize this in the same fashion as Exception -&gt; InnerException.
+// InnerHealthError implements InnerHealthError class. HealthError object has a list of InnerHealthErrors
+// as child errors. InnerHealthError is used because this will prevent an infinite loop of structures when
+// Hydra tries to auto-generate the contract. We are exposing the related health errors as inner health
+// errors and all API consumers can utilize this in the same fashion as Exception -&gt; InnerException.
 type InnerHealthError struct {
 	// ErrorSource - Source of error.
 	ErrorSource *string `json:"errorSource,omitempty"`
@@ -9324,8 +9336,11 @@ func (page JobCollectionPage) Values() []Job {
 }
 
 // Creates a new instance of the JobCollectionPage type.
-func NewJobCollectionPage(getNextPage func(context.Context, JobCollection) (JobCollection, error)) JobCollectionPage {
-	return JobCollectionPage{fn: getNextPage}
+func NewJobCollectionPage(cur JobCollection, getNextPage func(context.Context, JobCollection) (JobCollection, error)) JobCollectionPage {
+	return JobCollectionPage{
+		fn: getNextPage,
+		jc: cur,
+	}
 }
 
 // BasicJobDetails job details based on specific job type.
@@ -9973,8 +9988,11 @@ func (page LogicalNetworkCollectionPage) Values() []LogicalNetwork {
 }
 
 // Creates a new instance of the LogicalNetworkCollectionPage type.
-func NewLogicalNetworkCollectionPage(getNextPage func(context.Context, LogicalNetworkCollection) (LogicalNetworkCollection, error)) LogicalNetworkCollectionPage {
-	return LogicalNetworkCollectionPage{fn: getNextPage}
+func NewLogicalNetworkCollectionPage(cur LogicalNetworkCollection, getNextPage func(context.Context, LogicalNetworkCollection) (LogicalNetworkCollection, error)) LogicalNetworkCollectionPage {
+	return LogicalNetworkCollectionPage{
+		fn:  getNextPage,
+		lnc: cur,
+	}
 }
 
 // LogicalNetworkProperties logical Network Properties.
@@ -10398,8 +10416,11 @@ func (page MigrationItemCollectionPage) Values() []MigrationItem {
 }
 
 // Creates a new instance of the MigrationItemCollectionPage type.
-func NewMigrationItemCollectionPage(getNextPage func(context.Context, MigrationItemCollection) (MigrationItemCollection, error)) MigrationItemCollectionPage {
-	return MigrationItemCollectionPage{fn: getNextPage}
+func NewMigrationItemCollectionPage(cur MigrationItemCollection, getNextPage func(context.Context, MigrationItemCollection) (MigrationItemCollection, error)) MigrationItemCollectionPage {
+	return MigrationItemCollectionPage{
+		fn:  getNextPage,
+		mic: cur,
+	}
 }
 
 // MigrationItemProperties migration item properties.
@@ -10854,8 +10875,11 @@ func (page MigrationRecoveryPointCollectionPage) Values() []MigrationRecoveryPoi
 }
 
 // Creates a new instance of the MigrationRecoveryPointCollectionPage type.
-func NewMigrationRecoveryPointCollectionPage(getNextPage func(context.Context, MigrationRecoveryPointCollection) (MigrationRecoveryPointCollection, error)) MigrationRecoveryPointCollectionPage {
-	return MigrationRecoveryPointCollectionPage{fn: getNextPage}
+func NewMigrationRecoveryPointCollectionPage(cur MigrationRecoveryPointCollection, getNextPage func(context.Context, MigrationRecoveryPointCollection) (MigrationRecoveryPointCollection, error)) MigrationRecoveryPointCollectionPage {
+	return MigrationRecoveryPointCollectionPage{
+		fn:   getNextPage,
+		mrpc: cur,
+	}
 }
 
 // MigrationRecoveryPointProperties migration item recovery point properties.
@@ -11055,15 +11079,18 @@ func (page NetworkCollectionPage) Values() []Network {
 }
 
 // Creates a new instance of the NetworkCollectionPage type.
-func NewNetworkCollectionPage(getNextPage func(context.Context, NetworkCollection) (NetworkCollection, error)) NetworkCollectionPage {
-	return NetworkCollectionPage{fn: getNextPage}
+func NewNetworkCollectionPage(cur NetworkCollection, getNextPage func(context.Context, NetworkCollection) (NetworkCollection, error)) NetworkCollectionPage {
+	return NetworkCollectionPage{
+		fn: getNextPage,
+		nc: cur,
+	}
 }
 
-// NetworkMapping network Mapping model. Ideally it should have been possible to inherit this class from prev
-// version in InheritedModels as long as there is no difference in structure or method signature. Since there
-// were no base Models for certain fields and methods viz NetworkMappingProperties and Load with required
-// return type, the class has been introduced in its entirety with references to base models to facilitate
-// extensions in subsequent versions.
+// NetworkMapping network Mapping model. Ideally it should have been possible to inherit this class from
+// prev version in InheritedModels as long as there is no difference in structure or method signature.
+// Since there were no base Models for certain fields and methods viz NetworkMappingProperties and Load
+// with required return type, the class has been introduced in its entirety with references to base models
+// to facilitate extensions in subsequent versions.
 type NetworkMapping struct {
 	autorest.Response `json:"-"`
 	// Properties - The Network Mapping Properties.
@@ -11090,10 +11117,10 @@ func (nm NetworkMapping) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// NetworkMappingCollection list of network mappings. As with NetworkMapping, it should be possible to reuse a
-// prev version of this class. It doesn't seem likely this class could be anything more than a slightly bespoke
-// collection of NetworkMapping. Hence it makes sense to override Load with Base.NetworkMapping instead of
-// existing CurrentVersion.NetworkMapping.
+// NetworkMappingCollection list of network mappings. As with NetworkMapping, it should be possible to
+// reuse a prev version of this class. It doesn't seem likely this class could be anything more than a
+// slightly bespoke collection of NetworkMapping. Hence it makes sense to override Load with
+// Base.NetworkMapping instead of existing CurrentVersion.NetworkMapping.
 type NetworkMappingCollection struct {
 	autorest.Response `json:"-"`
 	// Value - The Network Mappings list.
@@ -11245,8 +11272,11 @@ func (page NetworkMappingCollectionPage) Values() []NetworkMapping {
 }
 
 // Creates a new instance of the NetworkMappingCollectionPage type.
-func NewNetworkMappingCollectionPage(getNextPage func(context.Context, NetworkMappingCollection) (NetworkMappingCollection, error)) NetworkMappingCollectionPage {
-	return NetworkMappingCollectionPage{fn: getNextPage}
+func NewNetworkMappingCollectionPage(cur NetworkMappingCollection, getNextPage func(context.Context, NetworkMappingCollection) (NetworkMappingCollection, error)) NetworkMappingCollectionPage {
+	return NetworkMappingCollectionPage{
+		fn:  getNextPage,
+		nmc: cur,
+	}
 }
 
 // BasicNetworkMappingFabricSpecificSettings network Mapping fabric specific settings.
@@ -11493,7 +11523,8 @@ type OperationsDiscoveryCollection struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// OperationsDiscoveryCollectionIterator provides access to a complete listing of OperationsDiscovery values.
+// OperationsDiscoveryCollectionIterator provides access to a complete listing of OperationsDiscovery
+// values.
 type OperationsDiscoveryCollectionIterator struct {
 	i    int
 	page OperationsDiscoveryCollectionPage
@@ -11636,8 +11667,11 @@ func (page OperationsDiscoveryCollectionPage) Values() []OperationsDiscovery {
 }
 
 // Creates a new instance of the OperationsDiscoveryCollectionPage type.
-func NewOperationsDiscoveryCollectionPage(getNextPage func(context.Context, OperationsDiscoveryCollection) (OperationsDiscoveryCollection, error)) OperationsDiscoveryCollectionPage {
-	return OperationsDiscoveryCollectionPage{fn: getNextPage}
+func NewOperationsDiscoveryCollectionPage(cur OperationsDiscoveryCollection, getNextPage func(context.Context, OperationsDiscoveryCollection) (OperationsDiscoveryCollection, error)) OperationsDiscoveryCollectionPage {
+	return OperationsDiscoveryCollectionPage{
+		fn:  getNextPage,
+		odc: cur,
+	}
 }
 
 // OSDetails disk Details.
@@ -11891,8 +11925,11 @@ func (page PolicyCollectionPage) Values() []Policy {
 }
 
 // Creates a new instance of the PolicyCollectionPage type.
-func NewPolicyCollectionPage(getNextPage func(context.Context, PolicyCollection) (PolicyCollection, error)) PolicyCollectionPage {
-	return PolicyCollectionPage{fn: getNextPage}
+func NewPolicyCollectionPage(cur PolicyCollection, getNextPage func(context.Context, PolicyCollection) (PolicyCollection, error)) PolicyCollectionPage {
+	return PolicyCollectionPage{
+		fn: getNextPage,
+		pc: cur,
+	}
 }
 
 // PolicyProperties protection profile custom data details.
@@ -12472,8 +12509,11 @@ func (page ProtectableItemCollectionPage) Values() []ProtectableItem {
 }
 
 // Creates a new instance of the ProtectableItemCollectionPage type.
-func NewProtectableItemCollectionPage(getNextPage func(context.Context, ProtectableItemCollection) (ProtectableItemCollection, error)) ProtectableItemCollectionPage {
-	return ProtectableItemCollectionPage{fn: getNextPage}
+func NewProtectableItemCollectionPage(cur ProtectableItemCollection, getNextPage func(context.Context, ProtectableItemCollection) (ProtectableItemCollection, error)) ProtectableItemCollectionPage {
+	return ProtectableItemCollectionPage{
+		fn:  getNextPage,
+		pic: cur,
+	}
 }
 
 // ProtectableItemProperties replication protected item custom data details.
@@ -12627,7 +12667,8 @@ type ProtectionContainerCollection struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// ProtectionContainerCollectionIterator provides access to a complete listing of ProtectionContainer values.
+// ProtectionContainerCollectionIterator provides access to a complete listing of ProtectionContainer
+// values.
 type ProtectionContainerCollectionIterator struct {
 	i    int
 	page ProtectionContainerCollectionPage
@@ -12770,8 +12811,11 @@ func (page ProtectionContainerCollectionPage) Values() []ProtectionContainer {
 }
 
 // Creates a new instance of the ProtectionContainerCollectionPage type.
-func NewProtectionContainerCollectionPage(getNextPage func(context.Context, ProtectionContainerCollection) (ProtectionContainerCollection, error)) ProtectionContainerCollectionPage {
-	return ProtectionContainerCollectionPage{fn: getNextPage}
+func NewProtectionContainerCollectionPage(cur ProtectionContainerCollection, getNextPage func(context.Context, ProtectionContainerCollection) (ProtectionContainerCollection, error)) ProtectionContainerCollectionPage {
+	return ProtectionContainerCollectionPage{
+		fn:  getNextPage,
+		pcc: cur,
+	}
 }
 
 // ProtectionContainerFabricSpecificDetails base class for fabric specific details of container.
@@ -12960,8 +13004,11 @@ func (page ProtectionContainerMappingCollectionPage) Values() []ProtectionContai
 }
 
 // Creates a new instance of the ProtectionContainerMappingCollectionPage type.
-func NewProtectionContainerMappingCollectionPage(getNextPage func(context.Context, ProtectionContainerMappingCollection) (ProtectionContainerMappingCollection, error)) ProtectionContainerMappingCollectionPage {
-	return ProtectionContainerMappingCollectionPage{fn: getNextPage}
+func NewProtectionContainerMappingCollectionPage(cur ProtectionContainerMappingCollection, getNextPage func(context.Context, ProtectionContainerMappingCollection) (ProtectionContainerMappingCollection, error)) ProtectionContainerMappingCollectionPage {
+	return ProtectionContainerMappingCollectionPage{
+		fn:   getNextPage,
+		pcmc: cur,
+	}
 }
 
 // ProtectionContainerMappingProperties protection container mapping properties.
@@ -13975,8 +14022,11 @@ func (page RecoveryPlanCollectionPage) Values() []RecoveryPlan {
 }
 
 // Creates a new instance of the RecoveryPlanCollectionPage type.
-func NewRecoveryPlanCollectionPage(getNextPage func(context.Context, RecoveryPlanCollection) (RecoveryPlanCollection, error)) RecoveryPlanCollectionPage {
-	return RecoveryPlanCollectionPage{fn: getNextPage}
+func NewRecoveryPlanCollectionPage(cur RecoveryPlanCollection, getNextPage func(context.Context, RecoveryPlanCollection) (RecoveryPlanCollection, error)) RecoveryPlanCollectionPage {
+	return RecoveryPlanCollectionPage{
+		fn:     getNextPage,
+		RPCVar: cur,
+	}
 }
 
 // RecoveryPlanGroup recovery plan group details.
@@ -14610,7 +14660,8 @@ func (rpsad RecoveryPlanScriptActionDetails) AsBasicRecoveryPlanActionDetails() 
 	return &rpsad, true
 }
 
-// RecoveryPlanShutdownGroupTaskDetails this class represents the recovery plan shutdown group task details.
+// RecoveryPlanShutdownGroupTaskDetails this class represents the recovery plan shutdown group task
+// details.
 type RecoveryPlanShutdownGroupTaskDetails struct {
 	// Name - The name.
 	Name *string `json:"name,omitempty"`
@@ -14998,8 +15049,11 @@ func (page RecoveryPointCollectionPage) Values() []RecoveryPoint {
 }
 
 // Creates a new instance of the RecoveryPointCollectionPage type.
-func NewRecoveryPointCollectionPage(getNextPage func(context.Context, RecoveryPointCollection) (RecoveryPointCollection, error)) RecoveryPointCollectionPage {
-	return RecoveryPointCollectionPage{fn: getNextPage}
+func NewRecoveryPointCollectionPage(cur RecoveryPointCollection, getNextPage func(context.Context, RecoveryPointCollection) (RecoveryPointCollection, error)) RecoveryPointCollectionPage {
+	return RecoveryPointCollectionPage{
+		fn:     getNextPage,
+		RPCVar: cur,
+	}
 }
 
 // RecoveryPointProperties recovery point properties.
@@ -15089,8 +15143,8 @@ type RecoveryServicesProviderCollection struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// RecoveryServicesProviderCollectionIterator provides access to a complete listing of RecoveryServicesProvider
-// values.
+// RecoveryServicesProviderCollectionIterator provides access to a complete listing of
+// RecoveryServicesProvider values.
 type RecoveryServicesProviderCollectionIterator struct {
 	i    int
 	page RecoveryServicesProviderCollectionPage
@@ -15233,8 +15287,11 @@ func (page RecoveryServicesProviderCollectionPage) Values() []RecoveryServicesPr
 }
 
 // Creates a new instance of the RecoveryServicesProviderCollectionPage type.
-func NewRecoveryServicesProviderCollectionPage(getNextPage func(context.Context, RecoveryServicesProviderCollection) (RecoveryServicesProviderCollection, error)) RecoveryServicesProviderCollectionPage {
-	return RecoveryServicesProviderCollectionPage{fn: getNextPage}
+func NewRecoveryServicesProviderCollectionPage(cur RecoveryServicesProviderCollection, getNextPage func(context.Context, RecoveryServicesProviderCollection) (RecoveryServicesProviderCollection, error)) RecoveryServicesProviderCollectionPage {
+	return RecoveryServicesProviderCollectionPage{
+		fn:   getNextPage,
+		rspc: cur,
+	}
 }
 
 // RecoveryServicesProviderProperties recovery services provider properties.
@@ -15326,8 +15383,8 @@ func (future *ReplicationFabricsCheckConsistencyFuture) Result(client Replicatio
 	return
 }
 
-// ReplicationFabricsCreateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ReplicationFabricsCreateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type ReplicationFabricsCreateFuture struct {
 	azure.Future
 }
@@ -15355,8 +15412,8 @@ func (future *ReplicationFabricsCreateFuture) Result(client ReplicationFabricsCl
 	return
 }
 
-// ReplicationFabricsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ReplicationFabricsDeleteFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type ReplicationFabricsDeleteFuture struct {
 	azure.Future
 }
@@ -15754,8 +15811,8 @@ func (future *ReplicationMigrationItemsResyncFuture) Result(client ReplicationMi
 	return
 }
 
-// ReplicationMigrationItemsTestMigrateCleanupFuture an abstraction for monitoring and retrieving the results
-// of a long-running operation.
+// ReplicationMigrationItemsTestMigrateCleanupFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
 type ReplicationMigrationItemsTestMigrateCleanupFuture struct {
 	azure.Future
 }
@@ -15922,8 +15979,8 @@ func (future *ReplicationNetworkMappingsUpdateFuture) Result(client ReplicationN
 	return
 }
 
-// ReplicationPoliciesCreateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ReplicationPoliciesCreateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type ReplicationPoliciesCreateFuture struct {
 	azure.Future
 }
@@ -15951,8 +16008,8 @@ func (future *ReplicationPoliciesCreateFuture) Result(client ReplicationPolicies
 	return
 }
 
-// ReplicationPoliciesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ReplicationPoliciesDeleteFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type ReplicationPoliciesDeleteFuture struct {
 	azure.Future
 }
@@ -15974,8 +16031,8 @@ func (future *ReplicationPoliciesDeleteFuture) Result(client ReplicationPolicies
 	return
 }
 
-// ReplicationPoliciesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ReplicationPoliciesUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type ReplicationPoliciesUpdateFuture struct {
 	azure.Future
 }
@@ -16039,8 +16096,8 @@ type ReplicationProtectedItemCollection struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// ReplicationProtectedItemCollectionIterator provides access to a complete listing of ReplicationProtectedItem
-// values.
+// ReplicationProtectedItemCollectionIterator provides access to a complete listing of
+// ReplicationProtectedItem values.
 type ReplicationProtectedItemCollectionIterator struct {
 	i    int
 	page ReplicationProtectedItemCollectionPage
@@ -16183,8 +16240,11 @@ func (page ReplicationProtectedItemCollectionPage) Values() []ReplicationProtect
 }
 
 // Creates a new instance of the ReplicationProtectedItemCollectionPage type.
-func NewReplicationProtectedItemCollectionPage(getNextPage func(context.Context, ReplicationProtectedItemCollection) (ReplicationProtectedItemCollection, error)) ReplicationProtectedItemCollectionPage {
-	return ReplicationProtectedItemCollectionPage{fn: getNextPage}
+func NewReplicationProtectedItemCollectionPage(cur ReplicationProtectedItemCollection, getNextPage func(context.Context, ReplicationProtectedItemCollection) (ReplicationProtectedItemCollection, error)) ReplicationProtectedItemCollectionPage {
+	return ReplicationProtectedItemCollectionPage{
+		fn:   getNextPage,
+		rpic: cur,
+	}
 }
 
 // ReplicationProtectedItemProperties replication protected item custom data details.
@@ -16502,8 +16562,8 @@ func (rpip *ReplicationProtectedItemProperties) UnmarshalJSON(body []byte) error
 	return nil
 }
 
-// ReplicationProtectedItemsApplyRecoveryPointFuture an abstraction for monitoring and retrieving the results
-// of a long-running operation.
+// ReplicationProtectedItemsApplyRecoveryPointFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
 type ReplicationProtectedItemsApplyRecoveryPointFuture struct {
 	azure.Future
 }
@@ -16583,8 +16643,8 @@ func (future *ReplicationProtectedItemsDeleteFuture) Result(client ReplicationPr
 	return
 }
 
-// ReplicationProtectedItemsFailoverCommitFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// ReplicationProtectedItemsFailoverCommitFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
 type ReplicationProtectedItemsFailoverCommitFuture struct {
 	azure.Future
 }
@@ -16612,8 +16672,8 @@ func (future *ReplicationProtectedItemsFailoverCommitFuture) Result(client Repli
 	return
 }
 
-// ReplicationProtectedItemsPlannedFailoverFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// ReplicationProtectedItemsPlannedFailoverFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
 type ReplicationProtectedItemsPlannedFailoverFuture struct {
 	azure.Future
 }
@@ -16664,8 +16724,8 @@ func (future *ReplicationProtectedItemsPurgeFuture) Result(client ReplicationPro
 	return
 }
 
-// ReplicationProtectedItemsRepairReplicationFuture an abstraction for monitoring and retrieving the results of
-// a long-running operation.
+// ReplicationProtectedItemsRepairReplicationFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
 type ReplicationProtectedItemsRepairReplicationFuture struct {
 	azure.Future
 }
@@ -16722,8 +16782,8 @@ func (future *ReplicationProtectedItemsReprotectFuture) Result(client Replicatio
 	return
 }
 
-// ReplicationProtectedItemsTestFailoverCleanupFuture an abstraction for monitoring and retrieving the results
-// of a long-running operation.
+// ReplicationProtectedItemsTestFailoverCleanupFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
 type ReplicationProtectedItemsTestFailoverCleanupFuture struct {
 	azure.Future
 }
@@ -16751,8 +16811,8 @@ func (future *ReplicationProtectedItemsTestFailoverCleanupFuture) Result(client 
 	return
 }
 
-// ReplicationProtectedItemsTestFailoverFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// ReplicationProtectedItemsTestFailoverFuture an abstraction for monitoring and retrieving the results of
+// a long-running operation.
 type ReplicationProtectedItemsTestFailoverFuture struct {
 	azure.Future
 }
@@ -16780,8 +16840,8 @@ func (future *ReplicationProtectedItemsTestFailoverFuture) Result(client Replica
 	return
 }
 
-// ReplicationProtectedItemsUnplannedFailoverFuture an abstraction for monitoring and retrieving the results of
-// a long-running operation.
+// ReplicationProtectedItemsUnplannedFailoverFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
 type ReplicationProtectedItemsUnplannedFailoverFuture struct {
 	azure.Future
 }
@@ -16867,8 +16927,8 @@ func (future *ReplicationProtectedItemsUpdateMobilityServiceFuture) Result(clien
 	return
 }
 
-// ReplicationProtectionContainerMappingsCreateFuture an abstraction for monitoring and retrieving the results
-// of a long-running operation.
+// ReplicationProtectionContainerMappingsCreateFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
 type ReplicationProtectionContainerMappingsCreateFuture struct {
 	azure.Future
 }
@@ -16896,8 +16956,8 @@ func (future *ReplicationProtectionContainerMappingsCreateFuture) Result(client 
 	return
 }
 
-// ReplicationProtectionContainerMappingsDeleteFuture an abstraction for monitoring and retrieving the results
-// of a long-running operation.
+// ReplicationProtectionContainerMappingsDeleteFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
 type ReplicationProtectionContainerMappingsDeleteFuture struct {
 	azure.Future
 }
@@ -16919,8 +16979,8 @@ func (future *ReplicationProtectionContainerMappingsDeleteFuture) Result(client 
 	return
 }
 
-// ReplicationProtectionContainerMappingsPurgeFuture an abstraction for monitoring and retrieving the results
-// of a long-running operation.
+// ReplicationProtectionContainerMappingsPurgeFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
 type ReplicationProtectionContainerMappingsPurgeFuture struct {
 	azure.Future
 }
@@ -16942,8 +17002,8 @@ func (future *ReplicationProtectionContainerMappingsPurgeFuture) Result(client R
 	return
 }
 
-// ReplicationProtectionContainerMappingsUpdateFuture an abstraction for monitoring and retrieving the results
-// of a long-running operation.
+// ReplicationProtectionContainerMappingsUpdateFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
 type ReplicationProtectionContainerMappingsUpdateFuture struct {
 	azure.Future
 }
@@ -16971,8 +17031,8 @@ func (future *ReplicationProtectionContainerMappingsUpdateFuture) Result(client 
 	return
 }
 
-// ReplicationProtectionContainersCreateFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// ReplicationProtectionContainersCreateFuture an abstraction for monitoring and retrieving the results of
+// a long-running operation.
 type ReplicationProtectionContainersCreateFuture struct {
 	azure.Future
 }
@@ -17000,8 +17060,8 @@ func (future *ReplicationProtectionContainersCreateFuture) Result(client Replica
 	return
 }
 
-// ReplicationProtectionContainersDeleteFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// ReplicationProtectionContainersDeleteFuture an abstraction for monitoring and retrieving the results of
+// a long-running operation.
 type ReplicationProtectionContainersDeleteFuture struct {
 	azure.Future
 }
@@ -17023,8 +17083,8 @@ func (future *ReplicationProtectionContainersDeleteFuture) Result(client Replica
 	return
 }
 
-// ReplicationProtectionContainersDiscoverProtectableItemFuture an abstraction for monitoring and retrieving
-// the results of a long-running operation.
+// ReplicationProtectionContainersDiscoverProtectableItemFuture an abstraction for monitoring and
+// retrieving the results of a long-running operation.
 type ReplicationProtectionContainersDiscoverProtectableItemFuture struct {
 	azure.Future
 }
@@ -17516,8 +17576,8 @@ func (future *ReplicationRecoveryPlansDeleteFuture) Result(client ReplicationRec
 	return
 }
 
-// ReplicationRecoveryPlansFailoverCommitFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// ReplicationRecoveryPlansFailoverCommitFuture an abstraction for monitoring and retrieving the results of
+// a long-running operation.
 type ReplicationRecoveryPlansFailoverCommitFuture struct {
 	azure.Future
 }
@@ -17545,8 +17605,8 @@ func (future *ReplicationRecoveryPlansFailoverCommitFuture) Result(client Replic
 	return
 }
 
-// ReplicationRecoveryPlansPlannedFailoverFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// ReplicationRecoveryPlansPlannedFailoverFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
 type ReplicationRecoveryPlansPlannedFailoverFuture struct {
 	azure.Future
 }
@@ -17603,8 +17663,8 @@ func (future *ReplicationRecoveryPlansReprotectFuture) Result(client Replication
 	return
 }
 
-// ReplicationRecoveryPlansTestFailoverCleanupFuture an abstraction for monitoring and retrieving the results
-// of a long-running operation.
+// ReplicationRecoveryPlansTestFailoverCleanupFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
 type ReplicationRecoveryPlansTestFailoverCleanupFuture struct {
 	azure.Future
 }
@@ -17661,8 +17721,8 @@ func (future *ReplicationRecoveryPlansTestFailoverFuture) Result(client Replicat
 	return
 }
 
-// ReplicationRecoveryPlansUnplannedFailoverFuture an abstraction for monitoring and retrieving the results of
-// a long-running operation.
+// ReplicationRecoveryPlansUnplannedFailoverFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
 type ReplicationRecoveryPlansUnplannedFailoverFuture struct {
 	azure.Future
 }
@@ -17719,8 +17779,8 @@ func (future *ReplicationRecoveryPlansUpdateFuture) Result(client ReplicationRec
 	return
 }
 
-// ReplicationRecoveryServicesProvidersCreateFuture an abstraction for monitoring and retrieving the results of
-// a long-running operation.
+// ReplicationRecoveryServicesProvidersCreateFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
 type ReplicationRecoveryServicesProvidersCreateFuture struct {
 	azure.Future
 }
@@ -17748,8 +17808,8 @@ func (future *ReplicationRecoveryServicesProvidersCreateFuture) Result(client Re
 	return
 }
 
-// ReplicationRecoveryServicesProvidersDeleteFuture an abstraction for monitoring and retrieving the results of
-// a long-running operation.
+// ReplicationRecoveryServicesProvidersDeleteFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
 type ReplicationRecoveryServicesProvidersDeleteFuture struct {
 	azure.Future
 }
@@ -17771,8 +17831,8 @@ func (future *ReplicationRecoveryServicesProvidersDeleteFuture) Result(client Re
 	return
 }
 
-// ReplicationRecoveryServicesProvidersPurgeFuture an abstraction for monitoring and retrieving the results of
-// a long-running operation.
+// ReplicationRecoveryServicesProvidersPurgeFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
 type ReplicationRecoveryServicesProvidersPurgeFuture struct {
 	azure.Future
 }
@@ -17794,8 +17854,8 @@ func (future *ReplicationRecoveryServicesProvidersPurgeFuture) Result(client Rep
 	return
 }
 
-// ReplicationRecoveryServicesProvidersRefreshProviderFuture an abstraction for monitoring and retrieving the
-// results of a long-running operation.
+// ReplicationRecoveryServicesProvidersRefreshProviderFuture an abstraction for monitoring and retrieving
+// the results of a long-running operation.
 type ReplicationRecoveryServicesProvidersRefreshProviderFuture struct {
 	azure.Future
 }
@@ -17904,8 +17964,8 @@ func (future *ReplicationVaultHealthRefreshFuture) Result(client ReplicationVaul
 	return
 }
 
-// ReplicationvCentersCreateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ReplicationvCentersCreateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type ReplicationvCentersCreateFuture struct {
 	azure.Future
 }
@@ -17933,8 +17993,8 @@ func (future *ReplicationvCentersCreateFuture) Result(client ReplicationvCenters
 	return
 }
 
-// ReplicationvCentersDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ReplicationvCentersDeleteFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type ReplicationvCentersDeleteFuture struct {
 	azure.Future
 }
@@ -17956,8 +18016,8 @@ func (future *ReplicationvCentersDeleteFuture) Result(client ReplicationvCenters
 	return
 }
 
-// ReplicationvCentersUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ReplicationvCentersUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type ReplicationvCentersUpdateFuture struct {
 	azure.Future
 }
@@ -18668,8 +18728,11 @@ func (page StorageClassificationCollectionPage) Values() []StorageClassification
 }
 
 // Creates a new instance of the StorageClassificationCollectionPage type.
-func NewStorageClassificationCollectionPage(getNextPage func(context.Context, StorageClassificationCollection) (StorageClassificationCollection, error)) StorageClassificationCollectionPage {
-	return StorageClassificationCollectionPage{fn: getNextPage}
+func NewStorageClassificationCollectionPage(cur StorageClassificationCollection, getNextPage func(context.Context, StorageClassificationCollection) (StorageClassificationCollection, error)) StorageClassificationCollectionPage {
+	return StorageClassificationCollectionPage{
+		fn:  getNextPage,
+		scc: cur,
+	}
 }
 
 // StorageClassificationMapping storage mapping object.
@@ -18852,8 +18915,11 @@ func (page StorageClassificationMappingCollectionPage) Values() []StorageClassif
 }
 
 // Creates a new instance of the StorageClassificationMappingCollectionPage type.
-func NewStorageClassificationMappingCollectionPage(getNextPage func(context.Context, StorageClassificationMappingCollection) (StorageClassificationMappingCollection, error)) StorageClassificationMappingCollectionPage {
-	return StorageClassificationMappingCollectionPage{fn: getNextPage}
+func NewStorageClassificationMappingCollectionPage(cur StorageClassificationMappingCollection, getNextPage func(context.Context, StorageClassificationMappingCollection) (StorageClassificationMappingCollection, error)) StorageClassificationMappingCollectionPage {
+	return StorageClassificationMappingCollectionPage{
+		fn:   getNextPage,
+		scmc: cur,
+	}
 }
 
 // StorageClassificationMappingInput storage mapping input.
@@ -19235,8 +19301,11 @@ func (page TargetComputeSizeCollectionPage) Values() []TargetComputeSize {
 }
 
 // Creates a new instance of the TargetComputeSizeCollectionPage type.
-func NewTargetComputeSizeCollectionPage(getNextPage func(context.Context, TargetComputeSizeCollection) (TargetComputeSizeCollection, error)) TargetComputeSizeCollectionPage {
-	return TargetComputeSizeCollectionPage{fn: getNextPage}
+func NewTargetComputeSizeCollectionPage(cur TargetComputeSizeCollection, getNextPage func(context.Context, TargetComputeSizeCollection) (TargetComputeSizeCollection, error)) TargetComputeSizeCollectionPage {
+	return TargetComputeSizeCollectionPage{
+		fn:   getNextPage,
+		tcsc: cur,
+	}
 }
 
 // TargetComputeSizeProperties represents applicable recovery vm sizes properties.
@@ -20473,8 +20542,11 @@ func (page VCenterCollectionPage) Values() []VCenter {
 }
 
 // Creates a new instance of the VCenterCollectionPage type.
-func NewVCenterCollectionPage(getNextPage func(context.Context, VCenterCollection) (VCenterCollection, error)) VCenterCollectionPage {
-	return VCenterCollectionPage{fn: getNextPage}
+func NewVCenterCollectionPage(cur VCenterCollection, getNextPage func(context.Context, VCenterCollection) (VCenterCollection, error)) VCenterCollectionPage {
+	return VCenterCollectionPage{
+		fn:  getNextPage,
+		vcc: cur,
+	}
 }
 
 // VCenterProperties vCenter properties.
@@ -20770,8 +20842,8 @@ func (vtaunmi VmmToAzureUpdateNetworkMappingInput) AsBasicFabricSpecificUpdateNe
 	return &vtaunmi, true
 }
 
-// VmmToVmmCreateNetworkMappingInput create network mappings input properties/behavior specific to vmm to vmm
-// Network mapping.
+// VmmToVmmCreateNetworkMappingInput create network mappings input properties/behavior specific to vmm to
+// vmm Network mapping.
 type VmmToVmmCreateNetworkMappingInput struct {
 	// InstanceType - Possible values include: 'InstanceTypeFabricSpecificCreateNetworkMappingInput', 'InstanceTypeAzureToAzure', 'InstanceTypeVmmToAzure', 'InstanceTypeVmmToVmm'
 	InstanceType InstanceTypeBasicFabricSpecificCreateNetworkMappingInput `json:"instanceType,omitempty"`
@@ -20853,7 +20925,8 @@ func (vtvnms VmmToVmmNetworkMappingSettings) AsBasicNetworkMappingFabricSpecific
 	return &vtvnms, true
 }
 
-// VmmToVmmUpdateNetworkMappingInput update network mappings input properties/behavior specific to vmm to vmm.
+// VmmToVmmUpdateNetworkMappingInput update network mappings input properties/behavior specific to vmm to
+// vmm.
 type VmmToVmmUpdateNetworkMappingInput struct {
 	// InstanceType - Possible values include: 'InstanceTypeBasicFabricSpecificUpdateNetworkMappingInputInstanceTypeFabricSpecificUpdateNetworkMappingInput', 'InstanceTypeBasicFabricSpecificUpdateNetworkMappingInputInstanceTypeAzureToAzure', 'InstanceTypeBasicFabricSpecificUpdateNetworkMappingInputInstanceTypeVmmToAzure', 'InstanceTypeBasicFabricSpecificUpdateNetworkMappingInputInstanceTypeVmmToVmm'
 	InstanceType InstanceTypeBasicFabricSpecificUpdateNetworkMappingInput `json:"instanceType,omitempty"`
@@ -21242,6 +21315,8 @@ type VMwareCbtEnableMigrationInput struct {
 	TargetSubnetName *string `json:"targetSubnetName,omitempty"`
 	// TargetAvailabilitySetID - The target availability set ARM Id.
 	TargetAvailabilitySetID *string `json:"targetAvailabilitySetId,omitempty"`
+	// TargetAvailabilityZone - The target availability zone.
+	TargetAvailabilityZone *string `json:"targetAvailabilityZone,omitempty"`
 	// TargetBootDiagnosticsStorageAccountID - The target boot diagnostics storage account ARM Id.
 	TargetBootDiagnosticsStorageAccountID *string `json:"targetBootDiagnosticsStorageAccountId,omitempty"`
 	// PerformAutoResync - A value indicating whether auto resync is to be done.
@@ -21286,6 +21361,9 @@ func (vmcemi VMwareCbtEnableMigrationInput) MarshalJSON() ([]byte, error) {
 	}
 	if vmcemi.TargetAvailabilitySetID != nil {
 		objectMap["targetAvailabilitySetId"] = vmcemi.TargetAvailabilitySetID
+	}
+	if vmcemi.TargetAvailabilityZone != nil {
+		objectMap["targetAvailabilityZone"] = vmcemi.TargetAvailabilityZone
 	}
 	if vmcemi.TargetBootDiagnosticsStorageAccountID != nil {
 		objectMap["targetBootDiagnosticsStorageAccountId"] = vmcemi.TargetBootDiagnosticsStorageAccountID
@@ -21419,6 +21497,10 @@ type VMwareCbtMigrationDetails struct {
 	VmwareMachineID *string `json:"vmwareMachineId,omitempty"`
 	// OsType - READ-ONLY; The type of the OS on the VM.
 	OsType *string `json:"osType,omitempty"`
+	// FirmwareType - READ-ONLY; The firmware type.
+	FirmwareType *string `json:"firmwareType,omitempty"`
+	// TargetGeneration - READ-ONLY; The target generation.
+	TargetGeneration *string `json:"targetGeneration,omitempty"`
 	// LicenseType - License Type of the VM to be used.
 	LicenseType *string `json:"licenseType,omitempty"`
 	// DataMoverRunAsAccountID - READ-ONLY; The data mover RunAs account Id.
@@ -21435,6 +21517,8 @@ type VMwareCbtMigrationDetails struct {
 	TargetResourceGroupID *string `json:"targetResourceGroupId,omitempty"`
 	// TargetAvailabilitySetID - The target availability set Id.
 	TargetAvailabilitySetID *string `json:"targetAvailabilitySetId,omitempty"`
+	// TargetAvailabilityZone - The target availability zone.
+	TargetAvailabilityZone *string `json:"targetAvailabilityZone,omitempty"`
 	// TargetBootDiagnosticsStorageAccountID - The target boot diagnostics storage account ARM Id.
 	TargetBootDiagnosticsStorageAccountID *string `json:"targetBootDiagnosticsStorageAccountId,omitempty"`
 	// ProtectedDisks - The list of protected disks.
@@ -21483,6 +21567,9 @@ func (vmcmd VMwareCbtMigrationDetails) MarshalJSON() ([]byte, error) {
 	}
 	if vmcmd.TargetAvailabilitySetID != nil {
 		objectMap["targetAvailabilitySetId"] = vmcmd.TargetAvailabilitySetID
+	}
+	if vmcmd.TargetAvailabilityZone != nil {
+		objectMap["targetAvailabilityZone"] = vmcmd.TargetAvailabilityZone
 	}
 	if vmcmd.TargetBootDiagnosticsStorageAccountID != nil {
 		objectMap["targetBootDiagnosticsStorageAccountId"] = vmcmd.TargetBootDiagnosticsStorageAccountID
@@ -21914,6 +22001,8 @@ type VMwareCbtUpdateMigrationItemInput struct {
 	TargetResourceGroupID *string `json:"targetResourceGroupId,omitempty"`
 	// TargetAvailabilitySetID - The target availability set ARM Id.
 	TargetAvailabilitySetID *string `json:"targetAvailabilitySetId,omitempty"`
+	// TargetAvailabilityZone - The target availability zone.
+	TargetAvailabilityZone *string `json:"targetAvailabilityZone,omitempty"`
 	// TargetBootDiagnosticsStorageAccountID - The target boot diagnostics storage account ARM Id.
 	TargetBootDiagnosticsStorageAccountID *string `json:"targetBootDiagnosticsStorageAccountId,omitempty"`
 	// TargetNetworkID - The target network ARM Id.
@@ -21943,6 +22032,9 @@ func (vmcumii VMwareCbtUpdateMigrationItemInput) MarshalJSON() ([]byte, error) {
 	}
 	if vmcumii.TargetAvailabilitySetID != nil {
 		objectMap["targetAvailabilitySetId"] = vmcumii.TargetAvailabilitySetID
+	}
+	if vmcumii.TargetAvailabilityZone != nil {
+		objectMap["targetAvailabilityZone"] = vmcumii.TargetAvailabilityZone
 	}
 	if vmcumii.TargetBootDiagnosticsStorageAccountID != nil {
 		objectMap["targetBootDiagnosticsStorageAccountId"] = vmcumii.TargetBootDiagnosticsStorageAccountID

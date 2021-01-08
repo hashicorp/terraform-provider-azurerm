@@ -47,7 +47,7 @@ func resourceArmVirtualHubBgpConnection() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ValidateVirtualHubID,
+				ValidateFunc: validate.VirtualHubID,
 			},
 
 			"peer_asn": {
@@ -148,7 +148,7 @@ func resourceArmVirtualHubBgpConnectionRead(d *schema.ResourceData, meta interfa
 	}
 
 	d.Set("name", id.Name)
-	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName).ID(""))
+	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName).ID())
 
 	if props := resp.BgpConnectionProperties; props != nil {
 		d.Set("peer_asn", props.PeerAsn)

@@ -27,12 +27,12 @@ const (
 	mySQLServerResourceName = "azurerm_mysql_server"
 )
 
-func resourceArmMySqlServer() *schema.Resource {
+func resourceMySqlServer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMySqlServerCreate,
-		Read:   resourceArmMySqlServerRead,
-		Update: resourceArmMySqlServerUpdate,
-		Delete: resourceArmMySqlServerDelete,
+		Create: resourceMySqlServerCreate,
+		Read:   resourceMySqlServerRead,
+		Update: resourceMySqlServerUpdate,
+		Delete: resourceMySqlServerDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
@@ -61,7 +61,7 @@ func resourceArmMySqlServer() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.MySQLServerName,
+				ValidateFunc: validate.ServerName,
 			},
 
 			"administrator_login": {
@@ -107,7 +107,7 @@ func resourceArmMySqlServer() *schema.Resource {
 			"creation_source_server_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.MySQLServerID,
+				ValidateFunc: validate.ServerID,
 			},
 
 			"fqdn": {
@@ -392,7 +392,7 @@ func resourceArmMySqlServer() *schema.Resource {
 	}
 }
 
-func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceMySqlServerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.ServersClient
 	securityClient := meta.(*clients.Client).MySQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -562,10 +562,10 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	return resourceArmMySqlServerRead(d, meta)
+	return resourceMySqlServerRead(d, meta)
 }
 
-func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMySqlServerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.ServersClient
 	securityClient := meta.(*clients.Client).MySQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -645,10 +645,10 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	return resourceArmMySqlServerRead(d, meta)
+	return resourceMySqlServerRead(d, meta)
 }
 
-func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMySqlServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.ServersClient
 	securityClient := meta.(*clients.Client).MySQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -729,7 +729,7 @@ func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmMySqlServerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMySqlServerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.ServersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -245,6 +245,7 @@ func (client VirtualHubBgpConnectionClient) Get(ctx context.Context, resourceGro
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualHubBgpConnectionClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -24,7 +25,17 @@ func NewSparkPoolID(subscriptionId, resourceGroup, workspaceName, bigDataPoolNam
 	}
 }
 
-func (id SparkPoolId) ID(_ string) string {
+func (id SparkPoolId) String() string {
+	segments := []string{
+		fmt.Sprintf("Big Data Pool Name %q", id.BigDataPoolName),
+		fmt.Sprintf("Workspace Name %q", id.WorkspaceName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Spark Pool", segmentsStr)
+}
+
+func (id SparkPoolId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Synapse/workspaces/%s/bigDataPools/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WorkspaceName, id.BigDataPoolName)
 }

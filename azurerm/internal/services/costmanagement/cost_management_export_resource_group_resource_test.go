@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -76,6 +77,9 @@ func (t CostManagementExportResourceGroupResource) Exists(ctx context.Context, c
 }
 
 func (CostManagementExportResourceGroupResource) basic(data acceptance.TestData) string {
+	start := time.Now().AddDate(0, 1, 0).Format("2006-02")
+	end := time.Now().AddDate(0, 2, 0).Format("2006-02")
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -99,8 +103,8 @@ resource "azurerm_cost_management_export_resource_group" "test" {
   name                    = "accrg%d"
   resource_group_id       = azurerm_resource_group.test.id
   recurrence_type         = "Monthly"
-  recurrence_period_start = "2020-06-18T00:00:00Z"
-  recurrence_period_end   = "2020-07-18T00:00:00Z"
+  recurrence_period_start = "%s-18T00:00:00Z"
+  recurrence_period_end   = "%s-18T00:00:00Z"
 
   delivery_info {
     storage_account_id = azurerm_storage_account.test.id
@@ -113,10 +117,13 @@ resource "azurerm_cost_management_export_resource_group" "test" {
     time_frame = "TheLastMonth"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, start, end)
 }
 
 func (CostManagementExportResourceGroupResource) update(data acceptance.TestData) string {
+	start := time.Now().AddDate(0, 3, 0).Format("2006-02")
+	end := time.Now().AddDate(0, 4, 0).Format("2006-02")
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -140,8 +147,8 @@ resource "azurerm_cost_management_export_resource_group" "test" {
   name                    = "accrg%d"
   resource_group_id       = azurerm_resource_group.test.id
   recurrence_type         = "Monthly"
-  recurrence_period_start = "2020-08-18T00:00:00Z"
-  recurrence_period_end   = "2020-09-18T00:00:00Z"
+  recurrence_period_start = "%s-18T00:00:00Z"
+  recurrence_period_end   = "%s-18T00:00:00Z"
 
   delivery_info {
     storage_account_id = azurerm_storage_account.test.id
@@ -154,5 +161,5 @@ resource "azurerm_cost_management_export_resource_group" "test" {
     time_frame = "WeekToDate"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, start, end)
 }

@@ -481,6 +481,7 @@ func (client GremlinResourcesClient) GetGremlinDatabase(ctx context.Context, res
 	result, err = client.GetGremlinDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "GetGremlinDatabase", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -573,6 +574,7 @@ func (client GremlinResourcesClient) GetGremlinDatabaseThroughput(ctx context.Co
 	result, err = client.GetGremlinDatabaseThroughputResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "GetGremlinDatabaseThroughput", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -665,6 +667,7 @@ func (client GremlinResourcesClient) GetGremlinGraph(ctx context.Context, resour
 	result, err = client.GetGremlinGraphResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "GetGremlinGraph", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -759,6 +762,7 @@ func (client GremlinResourcesClient) GetGremlinGraphThroughput(ctx context.Conte
 	result, err = client.GetGremlinGraphThroughputResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "GetGremlinGraphThroughput", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -850,6 +854,7 @@ func (client GremlinResourcesClient) ListGremlinDatabases(ctx context.Context, r
 	result, err = client.ListGremlinDatabasesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "ListGremlinDatabases", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -940,6 +945,7 @@ func (client GremlinResourcesClient) ListGremlinGraphs(ctx context.Context, reso
 	result, err = client.ListGremlinGraphsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesClient", "ListGremlinGraphs", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -72,6 +72,7 @@ func (client SystemAssignedIdentitiesClient) GetByScope(ctx context.Context, sco
 	result, err = client.GetByScopeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "msi.SystemAssignedIdentitiesClient", "GetByScope", resp, "Failure responding to request")
+		return
 	}
 
 	return

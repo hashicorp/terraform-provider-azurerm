@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -22,7 +23,16 @@ func NewDedicatedHardwareSecurityModuleID(subscriptionId, resourceGroup, dedicat
 	}
 }
 
-func (id DedicatedHardwareSecurityModuleId) ID(_ string) string {
+func (id DedicatedHardwareSecurityModuleId) String() string {
+	segments := []string{
+		fmt.Sprintf("Dedicated H S M Name %q", id.DedicatedHSMName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
+	}
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Dedicated Hardware Security Module", segmentsStr)
+}
+
+func (id DedicatedHardwareSecurityModuleId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.HardwareSecurityModules/dedicatedHSMs/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DedicatedHSMName)
 }

@@ -84,6 +84,7 @@ func (client FirewallRulesClient) CreateOrUpdate(ctx context.Context, resourceGr
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.FirewallRulesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -163,6 +164,7 @@ func (client FirewallRulesClient) Delete(ctx context.Context, resourceGroupName 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.FirewallRulesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -239,6 +241,7 @@ func (client FirewallRulesClient) Get(ctx context.Context, resourceGroupName str
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.FirewallRulesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -316,6 +319,7 @@ func (client FirewallRulesClient) ListByRedisResource(ctx context.Context, resou
 	result.frlr, err = client.ListByRedisResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.FirewallRulesClient", "ListByRedisResource", resp, "Failure responding to request")
+		return
 	}
 	if result.frlr.hasNextLink() && result.frlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -380,6 +384,7 @@ func (client FirewallRulesClient) listByRedisResourceNextResults(ctx context.Con
 	result, err = client.ListByRedisResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.FirewallRulesClient", "listByRedisResourceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

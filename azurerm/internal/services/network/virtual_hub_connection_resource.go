@@ -47,7 +47,7 @@ func resourceArmVirtualHubConnection() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ValidateVirtualHubID,
+				ValidateFunc: validate.VirtualHubID,
 			},
 
 			"remote_virtual_network_id": {
@@ -89,7 +89,7 @@ func resourceArmVirtualHubConnection() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validate.VirtualHubRouteTableID,
+							ValidateFunc: validate.HubRouteTableID,
 						},
 
 						"propagated_route_table": {
@@ -115,7 +115,7 @@ func resourceArmVirtualHubConnection() *schema.Resource {
 										Computed: true,
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
-											ValidateFunc: validate.VirtualHubRouteTableID,
+											ValidateFunc: validate.HubRouteTableID,
 										},
 									},
 								},
@@ -240,7 +240,7 @@ func resourceArmVirtualHubConnectionRead(d *schema.ResourceData, meta interface{
 	}
 
 	d.Set("name", id.Name)
-	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName).ID(""))
+	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName).ID())
 
 	if props := resp.HubVirtualNetworkConnectionProperties; props != nil {
 		// The following two attributes are deprecated by API (which will always return `true`).

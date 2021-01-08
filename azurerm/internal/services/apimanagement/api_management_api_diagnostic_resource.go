@@ -19,15 +19,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmApiManagementApiDiagnostic() *schema.Resource {
+func resourceApiManagementApiDiagnostic() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApiManagementApiDiagnosticCreateUpdate,
-		Read:   resourceArmApiManagementApiDiagnosticRead,
-		Update: resourceArmApiManagementApiDiagnosticCreateUpdate,
-		Delete: resourceArmApiManagementApiDiagnosticDelete,
+		Create: resourceApiManagementApiDiagnosticCreateUpdate,
+		Read:   resourceApiManagementApiDiagnosticRead,
+		Update: resourceApiManagementApiDiagnosticCreateUpdate,
+		Delete: resourceApiManagementApiDiagnosticDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.ApiManagementApiDiagnosticID(id)
+			_, err := parse.ApiDiagnosticID(id)
 			return err
 		}),
 
@@ -58,7 +58,7 @@ func resourceArmApiManagementApiDiagnostic() *schema.Resource {
 			"api_management_logger_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.ApiManagementLoggerID,
+				ValidateFunc: validate.LoggerID,
 			},
 
 			"always_log_errors": {
@@ -95,18 +95,18 @@ func resourceArmApiManagementApiDiagnostic() *schema.Resource {
 				}, false),
 			},
 
-			"frontend_request": resourceArmApiManagementApiDiagnosticAdditionalContentSchema(),
+			"frontend_request": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
 
-			"frontend_response": resourceArmApiManagementApiDiagnosticAdditionalContentSchema(),
+			"frontend_response": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
 
-			"backend_request": resourceArmApiManagementApiDiagnosticAdditionalContentSchema(),
+			"backend_request": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
 
-			"backend_response": resourceArmApiManagementApiDiagnosticAdditionalContentSchema(),
+			"backend_response": resourceApiManagementApiDiagnosticAdditionalContentSchema(),
 		},
 	}
 }
 
-func resourceArmApiManagementApiDiagnosticAdditionalContentSchema() *schema.Schema {
+func resourceApiManagementApiDiagnosticAdditionalContentSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		MaxItems: 1,
@@ -132,7 +132,7 @@ func resourceArmApiManagementApiDiagnosticAdditionalContentSchema() *schema.Sche
 	}
 }
 
-func resourceArmApiManagementApiDiagnosticCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiDiagnosticCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiDiagnosticClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -228,28 +228,28 @@ func resourceArmApiManagementApiDiagnosticCreateUpdate(d *schema.ResourceData, m
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementApiDiagnosticRead(d, meta)
+	return resourceApiManagementApiDiagnosticRead(d, meta)
 }
 
-func resourceArmApiManagementApiDiagnosticRead(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiDiagnosticRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiDiagnosticClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	diagnosticId, err := parse.ApiManagementApiDiagnosticID(d.Id())
+	diagnosticId, err := parse.ApiDiagnosticID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, diagnosticId.ResourceGroup, diagnosticId.ServiceName, diagnosticId.ApiName, diagnosticId.Name)
+	resp, err := client.Get(ctx, diagnosticId.ResourceGroup, diagnosticId.ServiceName, diagnosticId.ApiName, diagnosticId.DiagnosticName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Diagnostic %q (Resource Group %q / API Management Service %q / API %q) was not found - removing from state!", diagnosticId.Name, diagnosticId.ResourceGroup, diagnosticId.ServiceName, diagnosticId.ApiName)
+			log.Printf("[DEBUG] Diagnostic %q (Resource Group %q / API Management Service %q / API %q) was not found - removing from state!", diagnosticId.DiagnosticName, diagnosticId.ResourceGroup, diagnosticId.ServiceName, diagnosticId.ApiName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request for Diagnostic %q (Resource Group %q / API Management Service %q / API %q): %+v", diagnosticId.Name, diagnosticId.ResourceGroup, diagnosticId.ServiceName, diagnosticId.ApiName, err)
+		return fmt.Errorf("making Read request for Diagnostic %q (Resource Group %q / API Management Service %q / API %q): %+v", diagnosticId.DiagnosticName, diagnosticId.ResourceGroup, diagnosticId.ServiceName, diagnosticId.ApiName, err)
 	}
 
 	d.Set("api_name", diagnosticId.ApiName)
@@ -281,19 +281,19 @@ func resourceArmApiManagementApiDiagnosticRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceArmApiManagementApiDiagnosticDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceApiManagementApiDiagnosticDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiDiagnosticClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	diagnosticId, err := parse.ApiManagementApiDiagnosticID(d.Id())
+	diagnosticId, err := parse.ApiDiagnosticID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, diagnosticId.ResourceGroup, diagnosticId.ServiceName, diagnosticId.ApiName, diagnosticId.Name, ""); err != nil {
+	if resp, err := client.Delete(ctx, diagnosticId.ResourceGroup, diagnosticId.ServiceName, diagnosticId.ApiName, diagnosticId.DiagnosticName, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting Diagnostic %q (Resource Group %q / API Management Service %q / API %q): %+v", diagnosticId.Name, diagnosticId.ResourceGroup, diagnosticId.ServiceName, diagnosticId.ApiName, err)
+			return fmt.Errorf("deleting Diagnostic %q (Resource Group %q / API Management Service %q / API %q): %+v", diagnosticId.DiagnosticName, diagnosticId.ResourceGroup, diagnosticId.ServiceName, diagnosticId.ApiName, err)
 		}
 	}
 

@@ -58,7 +58,7 @@ func resourceArmVPNGateway() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ValidateVirtualHubID,
+				ValidateFunc: validate.VirtualHubID,
 			},
 
 			"bgp_settings": {

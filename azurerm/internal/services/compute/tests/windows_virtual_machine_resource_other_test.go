@@ -1947,6 +1947,7 @@ resource "azurerm_key_vault" "test" {
       "create",
       "delete",
       "get",
+      "purge",
       "update",
     ]
 
@@ -2439,6 +2440,7 @@ resource "azurerm_key_vault" "test" {
       "listissuers",
       "managecontacts",
       "manageissuers",
+      "purge",
       "setissuers",
       "update",
     ]

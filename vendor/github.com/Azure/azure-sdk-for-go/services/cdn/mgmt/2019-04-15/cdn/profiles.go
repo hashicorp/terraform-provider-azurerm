@@ -255,6 +255,7 @@ func (client ProfilesClient) GenerateSsoURI(ctx context.Context, resourceGroupNa
 	result, err = client.GenerateSsoURIResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.ProfilesClient", "GenerateSsoURI", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -338,6 +339,7 @@ func (client ProfilesClient) Get(ctx context.Context, resourceGroupName string, 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.ProfilesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -411,6 +413,7 @@ func (client ProfilesClient) List(ctx context.Context) (result ProfileListResult
 	result.plr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.ProfilesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.plr.hasNextLink() && result.plr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -473,6 +476,7 @@ func (client ProfilesClient) listNextResults(ctx context.Context, lastResults Pr
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.ProfilesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -532,6 +536,7 @@ func (client ProfilesClient) ListByResourceGroup(ctx context.Context, resourceGr
 	result.plr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.ProfilesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.plr.hasNextLink() && result.plr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -595,6 +600,7 @@ func (client ProfilesClient) listByResourceGroupNextResults(ctx context.Context,
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.ProfilesClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -655,6 +661,7 @@ func (client ProfilesClient) ListResourceUsage(ctx context.Context, resourceGrou
 	result.rulr, err = client.ListResourceUsageResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.ProfilesClient", "ListResourceUsage", resp, "Failure responding to request")
+		return
 	}
 	if result.rulr.hasNextLink() && result.rulr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -719,6 +726,7 @@ func (client ProfilesClient) listResourceUsageNextResults(ctx context.Context, l
 	result, err = client.ListResourceUsageResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.ProfilesClient", "listResourceUsageNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -779,6 +787,7 @@ func (client ProfilesClient) ListSupportedOptimizationTypes(ctx context.Context,
 	result, err = client.ListSupportedOptimizationTypesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.ProfilesClient", "ListSupportedOptimizationTypes", resp, "Failure responding to request")
+		return
 	}
 
 	return

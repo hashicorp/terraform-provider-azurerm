@@ -74,6 +74,7 @@ func (client ReplicationLogicalNetworksClient) Get(ctx context.Context, fabricNa
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationLogicalNetworksClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -151,6 +152,7 @@ func (client ReplicationLogicalNetworksClient) ListByReplicationFabrics(ctx cont
 	result.lnc, err = client.ListByReplicationFabricsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationLogicalNetworksClient", "ListByReplicationFabrics", resp, "Failure responding to request")
+		return
 	}
 	if result.lnc.hasNextLink() && result.lnc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -216,6 +218,7 @@ func (client ReplicationLogicalNetworksClient) listByReplicationFabricsNextResul
 	result, err = client.ListByReplicationFabricsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationLogicalNetworksClient", "listByReplicationFabricsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -3,7 +3,6 @@ package batch_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"regexp"
 	"testing"
 
@@ -22,15 +21,12 @@ type BatchCertificateResource struct {
 func TestAccBatchCertificate_Pfx(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_certificate", "test")
 	r := BatchCertificateResource{}
-	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	certificateID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/sha1-42c107874fd0e4a9583292a2f1098e8fe4b2edda", subscriptionID, data.RandomInteger, data.RandomString)
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.pfx(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("id").HasValue(certificateID),
 				check.That(data.ResourceName).Key("format").HasValue("Pfx"),
 				check.That(data.ResourceName).Key("thumbprint").HasValue("42c107874fd0e4a9583292a2f1098e8fe4b2edda"),
 				check.That(data.ResourceName).Key("thumbprint_algorithm").HasValue("sha1"),
@@ -55,15 +51,12 @@ func TestAccBatchCertificate_PfxWithoutPassword(t *testing.T) {
 func TestAccBatchCertificate_Cer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_certificate", "test")
 	r := BatchCertificateResource{}
-	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	certificateID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/sha1-312d31a79fa0cef49c00f769afc2b73e9f4edf34", subscriptionID, data.RandomInteger, data.RandomString)
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.cer(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("id").HasValue(certificateID),
 				check.That(data.ResourceName).Key("format").HasValue("Cer"),
 				check.That(data.ResourceName).Key("thumbprint").HasValue("312d31a79fa0cef49c00f769afc2b73e9f4edf34"),
 				check.That(data.ResourceName).Key("thumbprint_algorithm").HasValue("sha1"),
@@ -91,7 +84,7 @@ func (t BatchCertificateResource) Exists(ctx context.Context, clients *clients.C
 		return nil, err
 	}
 
-	resp, err := clients.Batch.CertificateClient.Get(ctx, id.Name, id.BatchAccountName, id.ResourceGroup)
+	resp, err := clients.Batch.CertificateClient.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Batch Certificate %q (Account Name %q / Resource Group %q) does not exist", id.Name, id.BatchAccountName, id.ResourceGroup)
 	}

@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAppServiceManagedCertificate() *schema.Resource {
+func resourceAppServiceManagedCertificate() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAppServiceManagedCertificateCreateUpdate,
-		Read:   resourceArmAppServiceManagedCertificateRead,
-		Update: resourceArmAppServiceManagedCertificateCreateUpdate,
-		Delete: resourceArmAppServiceManagedCertificateDelete,
+		Create: resourceAppServiceManagedCertificateCreateUpdate,
+		Read:   resourceAppServiceManagedCertificateRead,
+		Update: resourceAppServiceManagedCertificateCreateUpdate,
+		Delete: resourceAppServiceManagedCertificateDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.ManagedCertificateID(id)
 			return err
@@ -42,7 +42,7 @@ func resourceArmAppServiceManagedCertificate() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.CustomHostnameBindingID,
+				ValidateFunc: validate.AppServiceCustomHostnameBindingID,
 			},
 
 			"canonical_name": {
@@ -93,7 +93,7 @@ func resourceArmAppServiceManagedCertificate() *schema.Resource {
 	}
 }
 
-func resourceArmAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
 	appServiceClient := meta.(*clients.Client).Web.AppServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -111,11 +111,16 @@ func resourceArmAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData,
 	}
 
 	name := customHostnameBindingId.Name
-	appServicePlanID := ""
+	appServicePlanIDRaw := ""
 	if appService.SiteProperties == nil || appService.SiteProperties.ServerFarmID == nil {
 		return fmt.Errorf("could not get App Service Plan ID for Custom Hostname Binding %q (resource group %q)", customHostnameBindingId.Name, customHostnameBindingId.ResourceGroup)
 	}
-	appServicePlanID = *appService.SiteProperties.ServerFarmID
+	appServicePlanIDRaw = *appService.SiteProperties.ServerFarmID
+
+	appServicePlanID, err := parse.AppServicePlanID(appServicePlanIDRaw)
+	if err != nil {
+		return err
+	}
 
 	appServiceLocation := ""
 	if appService.Location != nil {
@@ -124,7 +129,7 @@ func resourceArmAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData,
 
 	t := d.Get("tags").(map[string]interface{})
 
-	id := parse.NewManagedCertificateID(subscriptionId, customHostnameBindingId.ResourceGroup, name)
+	id := parse.NewManagedCertificateID(subscriptionId, appServicePlanID.ResourceGroup, name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.CertificateName)
@@ -142,7 +147,7 @@ func resourceArmAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData,
 	certificate := web.Certificate{
 		CertificateProperties: &web.CertificateProperties{
 			CanonicalName: utils.String(customHostnameBindingId.Name),
-			ServerFarmID:  utils.String(appServicePlanID),
+			ServerFarmID:  utils.String(appServicePlanIDRaw),
 			Password:      new(string),
 		},
 		Location: utils.String(appServiceLocation),
@@ -184,12 +189,12 @@ func resourceArmAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData,
 		return fmt.Errorf("waiting for App Service Managed Certificate %q: %+v", id.CertificateName, err)
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 
-	return resourceArmAppServiceManagedCertificateRead(d, meta)
+	return resourceAppServiceManagedCertificateRead(d, meta)
 }
 
-func resourceArmAppServiceManagedCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceManagedCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -227,7 +232,7 @@ func resourceArmAppServiceManagedCertificateRead(d *schema.ResourceData, meta in
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmAppServiceManagedCertificateDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceManagedCertificateDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

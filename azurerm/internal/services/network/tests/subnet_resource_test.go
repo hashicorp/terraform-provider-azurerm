@@ -240,6 +240,38 @@ func TestAccAzureRMSubnet_serviceEndpoints(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSubnet_serviceEndpointPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMSubnetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSubnet_serviceEndpointPolicyBasic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSubnetExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMSubnet_serviceEndpointPolicyUpdate(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSubnetExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMSubnet_serviceEndpointPolicyBasic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSubnetExists(data.ResourceName),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMSubnet_updateAddressPrefix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 
@@ -518,6 +550,48 @@ resource "azurerm_subnet" "test" {
   service_endpoints    = ["Microsoft.Sql", "Microsoft.Storage"]
 }
 `, template)
+}
+
+func testAccAzureRMSubnet_serviceEndpointPolicyBasic(data acceptance.TestData) string {
+	template := testAccAzureRMSubnet_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet_service_endpoint_storage_policy" "test" {
+  name                = "acctestSEP-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.2.0/24"
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMSubnet_serviceEndpointPolicyUpdate(data acceptance.TestData) string {
+	template := testAccAzureRMSubnet_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet_service_endpoint_storage_policy" "test" {
+  name                = "acctestSEP-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_subnet" "test" {
+  name                        = "internal"
+  resource_group_name         = azurerm_resource_group.test.name
+  virtual_network_name        = azurerm_virtual_network.test.name
+  address_prefix              = "10.0.2.0/24"
+  service_endpoints           = ["Microsoft.Sql"]
+  service_endpoint_policy_ids = [azurerm_subnet_service_endpoint_storage_policy.test.id]
+}
+`, template, data.RandomInteger)
 }
 
 func testAccAzureRMSubnet_updatedAddressPrefix(data acceptance.TestData) string {

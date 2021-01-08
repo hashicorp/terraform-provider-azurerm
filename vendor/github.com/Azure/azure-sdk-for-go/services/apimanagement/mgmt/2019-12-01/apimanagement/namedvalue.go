@@ -195,6 +195,7 @@ func (client NamedValueClient) Delete(ctx context.Context, resourceGroupName str
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.NamedValueClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -283,6 +284,7 @@ func (client NamedValueClient) Get(ctx context.Context, resourceGroupName string
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.NamedValueClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -371,6 +373,7 @@ func (client NamedValueClient) GetEntityTag(ctx context.Context, resourceGroupNa
 	result, err = client.GetEntityTagResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.NamedValueClient", "GetEntityTag", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -467,6 +470,7 @@ func (client NamedValueClient) ListByService(ctx context.Context, resourceGroupN
 	result.nvc, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.NamedValueClient", "ListByService", resp, "Failure responding to request")
+		return
 	}
 	if result.nvc.hasNextLink() && result.nvc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -540,6 +544,7 @@ func (client NamedValueClient) listByServiceNextResults(ctx context.Context, las
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.NamedValueClient", "listByServiceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -603,6 +608,7 @@ func (client NamedValueClient) ListValue(ctx context.Context, resourceGroupName 
 	result, err = client.ListValueResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.NamedValueClient", "ListValue", resp, "Failure responding to request")
+		return
 	}
 
 	return

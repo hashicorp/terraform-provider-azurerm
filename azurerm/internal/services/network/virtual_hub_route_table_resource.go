@@ -43,14 +43,14 @@ func resourceArmVirtualHubRouteTable() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.VirtualHubRouteTableName,
+				ValidateFunc: networkValidate.HubRouteTableName,
 			},
 
 			"virtual_hub_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.ValidateVirtualHubID,
+				ValidateFunc: networkValidate.VirtualHubID,
 			},
 
 			"labels": {
@@ -193,7 +193,7 @@ func resourceArmVirtualHubRouteTableRead(d *schema.ResourceData, meta interface{
 	}
 
 	d.Set("name", id.Name)
-	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName).ID(""))
+	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName).ID())
 
 	if props := resp.HubRouteTableProperties; props != nil {
 		d.Set("labels", utils.FlattenStringSlice(props.Labels))

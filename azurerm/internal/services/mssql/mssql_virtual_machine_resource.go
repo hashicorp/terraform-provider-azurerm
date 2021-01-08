@@ -10,9 +10,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	parseCompute "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/helper"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
@@ -22,12 +24,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMsSqlVirtualMachine() *schema.Resource {
+func resourceMsSqlVirtualMachine() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMsSqlVirtualMachineCreateUpdate,
-		Read:   resourceArmMsSqlVirtualMachineRead,
-		Update: resourceArmMsSqlVirtualMachineCreateUpdate,
-		Delete: resourceArmMsSqlVirtualMachineDelete,
+		Create: resourceMsSqlVirtualMachineCreateUpdate,
+		Read:   resourceMsSqlVirtualMachineRead,
+		Update: resourceMsSqlVirtualMachineCreateUpdate,
+		Delete: resourceMsSqlVirtualMachineDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.SqlVirtualMachineID(id)
@@ -46,7 +48,7 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.VMID,
+				ValidateFunc: computeValidate.VirtualMachineID,
 			},
 
 			"sql_license_type": {
@@ -169,7 +171,7 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Sensitive:    true,
-				ValidateFunc: validate.MsSqlVMLoginUserName,
+				ValidateFunc: validate.SqlVirtualMachineLoginUserName,
 			},
 
 			"storage_configuration": {
@@ -208,7 +210,7 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 	}
 }
 
-func resourceArmMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.VirtualMachinesClient
 	vmclient := meta.(*clients.Client).Compute.VMClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -248,8 +250,8 @@ func resourceArmMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta int
 			VirtualMachineResourceID:   utils.String(d.Get("virtual_machine_id").(string)),
 			SQLServerLicenseType:       sqlvirtualmachine.SQLServerLicenseType(d.Get("sql_license_type").(string)),
 			SQLManagement:              sqlvirtualmachine.Full,
-			AutoPatchingSettings:       expandArmSqlVirtualMachineAutoPatchingSettings(d.Get("auto_patching").([]interface{})),
-			KeyVaultCredentialSettings: expandArmSqlVirtualMachineKeyVaultCredential(d.Get("key_vault_credential").([]interface{})),
+			AutoPatchingSettings:       expandSqlVirtualMachineAutoPatchingSettings(d.Get("auto_patching").([]interface{})),
+			KeyVaultCredentialSettings: expandSqlVirtualMachineKeyVaultCredential(d.Get("key_vault_credential").([]interface{})),
 			ServerConfigurationsManagementSettings: &sqlvirtualmachine.ServerConfigurationsManagementSettings{
 				AdditionalFeaturesServerConfigurations: &sqlvirtualmachine.AdditionalFeaturesServerConfigurations{
 					IsRServicesEnabled: utils.Bool(d.Get("r_services_enabled").(bool)),
@@ -261,7 +263,7 @@ func resourceArmMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta int
 					SQLAuthUpdateUserName: utils.String(d.Get("sql_connectivity_update_username").(string)),
 				},
 			},
-			StorageConfigurationSettings: expandArmSqlVirtualMachineStorageConfigurationSettings(d.Get("storage_configuration").([]interface{})),
+			StorageConfigurationSettings: expandSqlVirtualMachineStorageConfigurationSettings(d.Get("storage_configuration").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -283,10 +285,10 @@ func resourceArmMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta int
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmMsSqlVirtualMachineRead(d, meta)
+	return resourceMsSqlVirtualMachineRead(d, meta)
 }
 
-func resourceArmMsSqlVirtualMachineRead(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlVirtualMachineRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.VirtualMachinesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -309,11 +311,11 @@ func resourceArmMsSqlVirtualMachineRead(d *schema.ResourceData, meta interface{}
 	if props := resp.Properties; props != nil {
 		d.Set("virtual_machine_id", props.VirtualMachineResourceID)
 		d.Set("sql_license_type", string(props.SQLServerLicenseType))
-		if err := d.Set("auto_patching", flattenArmSqlVirtualMachineAutoPatching(props.AutoPatchingSettings)); err != nil {
+		if err := d.Set("auto_patching", flattenSqlVirtualMachineAutoPatching(props.AutoPatchingSettings)); err != nil {
 			return fmt.Errorf("setting `auto_patching`: %+v", err)
 		}
 
-		if err := d.Set("key_vault_credential", flattenArmSqlVirtualMachineKeyVaultCredential(props.KeyVaultCredentialSettings, d)); err != nil {
+		if err := d.Set("key_vault_credential", flattenSqlVirtualMachineKeyVaultCredential(props.KeyVaultCredentialSettings, d)); err != nil {
 			return fmt.Errorf("setting `key_vault_credential`: %+v", err)
 		}
 
@@ -334,14 +336,14 @@ func resourceArmMsSqlVirtualMachineRead(d *schema.ResourceData, meta interface{}
 			storageWorkloadType = string(props.ServerConfigurationsManagementSettings.SQLWorkloadTypeUpdateSettings.SQLWorkloadType)
 		}
 
-		if err := d.Set("storage_configuration", flattenArmSqlVirtualMachineStorageConfigurationSettings(props.StorageConfigurationSettings, storageWorkloadType)); err != nil {
+		if err := d.Set("storage_configuration", flattenSqlVirtualMachineStorageConfigurationSettings(props.StorageConfigurationSettings, storageWorkloadType)); err != nil {
 			return fmt.Errorf("error setting `storage_configuration`: %+v", err)
 		}
 	}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmMsSqlVirtualMachineDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceMsSqlVirtualMachineDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.VirtualMachinesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -365,7 +367,7 @@ func resourceArmMsSqlVirtualMachineDelete(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func expandArmSqlVirtualMachineAutoPatchingSettings(input []interface{}) *sqlvirtualmachine.AutoPatchingSettings {
+func expandSqlVirtualMachineAutoPatchingSettings(input []interface{}) *sqlvirtualmachine.AutoPatchingSettings {
 	if len(input) == 0 {
 		return nil
 	}
@@ -379,7 +381,7 @@ func expandArmSqlVirtualMachineAutoPatchingSettings(input []interface{}) *sqlvir
 	}
 }
 
-func flattenArmSqlVirtualMachineAutoPatching(autoPatching *sqlvirtualmachine.AutoPatchingSettings) []interface{} {
+func flattenSqlVirtualMachineAutoPatching(autoPatching *sqlvirtualmachine.AutoPatchingSettings) []interface{} {
 	if autoPatching == nil || autoPatching.Enable == nil || !*autoPatching.Enable {
 		return []interface{}{}
 	}
@@ -403,7 +405,7 @@ func flattenArmSqlVirtualMachineAutoPatching(autoPatching *sqlvirtualmachine.Aut
 	}
 }
 
-func expandArmSqlVirtualMachineKeyVaultCredential(input []interface{}) *sqlvirtualmachine.KeyVaultCredentialSettings {
+func expandSqlVirtualMachineKeyVaultCredential(input []interface{}) *sqlvirtualmachine.KeyVaultCredentialSettings {
 	if len(input) == 0 {
 		return nil
 	}
@@ -418,7 +420,7 @@ func expandArmSqlVirtualMachineKeyVaultCredential(input []interface{}) *sqlvirtu
 	}
 }
 
-func flattenArmSqlVirtualMachineKeyVaultCredential(keyVault *sqlvirtualmachine.KeyVaultCredentialSettings, d *schema.ResourceData) []interface{} {
+func flattenSqlVirtualMachineKeyVaultCredential(keyVault *sqlvirtualmachine.KeyVaultCredentialSettings, d *schema.ResourceData) []interface{} {
 	if keyVault == nil || !*keyVault.Enable {
 		return []interface{}{}
 	}
@@ -464,7 +466,7 @@ func mssqlVMCredentialNameDiffSuppressFunc(_, old, new string, _ *schema.Resourc
 	return false
 }
 
-func expandArmSqlVirtualMachineStorageConfigurationSettings(input []interface{}) *sqlvirtualmachine.StorageConfigurationSettings {
+func expandSqlVirtualMachineStorageConfigurationSettings(input []interface{}) *sqlvirtualmachine.StorageConfigurationSettings {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -473,13 +475,13 @@ func expandArmSqlVirtualMachineStorageConfigurationSettings(input []interface{})
 	return &sqlvirtualmachine.StorageConfigurationSettings{
 		DiskConfigurationType: sqlvirtualmachine.DiskConfigurationType(storageSettings["disk_type"].(string)),
 		StorageWorkloadType:   sqlvirtualmachine.StorageWorkloadType(storageSettings["storage_workload_type"].(string)),
-		SQLDataSettings:       expandArmSqlVirtualMachineDataStorageSettings(storageSettings["data_settings"].([]interface{})),
-		SQLLogSettings:        expandArmSqlVirtualMachineDataStorageSettings(storageSettings["log_settings"].([]interface{})),
-		SQLTempDbSettings:     expandArmSqlVirtualMachineDataStorageSettings(storageSettings["temp_db_settings"].([]interface{})),
+		SQLDataSettings:       expandSqlVirtualMachineDataStorageSettings(storageSettings["data_settings"].([]interface{})),
+		SQLLogSettings:        expandSqlVirtualMachineDataStorageSettings(storageSettings["log_settings"].([]interface{})),
+		SQLTempDbSettings:     expandSqlVirtualMachineDataStorageSettings(storageSettings["temp_db_settings"].([]interface{})),
 	}
 }
 
-func flattenArmSqlVirtualMachineStorageConfigurationSettings(input *sqlvirtualmachine.StorageConfigurationSettings, storageWorkloadType string) []interface{} {
+func flattenSqlVirtualMachineStorageConfigurationSettings(input *sqlvirtualmachine.StorageConfigurationSettings, storageWorkloadType string) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -488,26 +490,26 @@ func flattenArmSqlVirtualMachineStorageConfigurationSettings(input *sqlvirtualma
 		map[string]interface{}{
 			"disk_type":             string(input.DiskConfigurationType),
 			"storage_workload_type": storageWorkloadType,
-			"data_settings":         flattenArmSqlVirtualMachineStorageSettings(input.SQLDataSettings),
-			"log_settings":          flattenArmSqlVirtualMachineStorageSettings(input.SQLLogSettings),
-			"temp_db_settings":      flattenArmSqlVirtualMachineStorageSettings(input.SQLTempDbSettings),
+			"data_settings":         flattenSqlVirtualMachineStorageSettings(input.SQLDataSettings),
+			"log_settings":          flattenSqlVirtualMachineStorageSettings(input.SQLLogSettings),
+			"temp_db_settings":      flattenSqlVirtualMachineStorageSettings(input.SQLTempDbSettings),
 		},
 	}
 }
 
-func expandArmSqlVirtualMachineDataStorageSettings(input []interface{}) *sqlvirtualmachine.SQLStorageSettings {
+func expandSqlVirtualMachineDataStorageSettings(input []interface{}) *sqlvirtualmachine.SQLStorageSettings {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	dataStorageSettings := input[0].(map[string]interface{})
 
 	return &sqlvirtualmachine.SQLStorageSettings{
-		Luns:            expandArmSqlVirtualMachineStorageSettingsLuns(dataStorageSettings["luns"].([]interface{})),
+		Luns:            expandSqlVirtualMachineStorageSettingsLuns(dataStorageSettings["luns"].([]interface{})),
 		DefaultFilePath: utils.String(dataStorageSettings["default_file_path"].(string)),
 	}
 }
 
-func expandArmSqlVirtualMachineStorageSettingsLuns(input []interface{}) *[]int32 {
+func expandSqlVirtualMachineStorageSettingsLuns(input []interface{}) *[]int32 {
 	expandedLuns := make([]int32, len(input))
 	for i := range input {
 		if input[i] != nil {
@@ -518,7 +520,7 @@ func expandArmSqlVirtualMachineStorageSettingsLuns(input []interface{}) *[]int32
 	return &expandedLuns
 }
 
-func flattenArmSqlVirtualMachineStorageSettings(input *sqlvirtualmachine.SQLStorageSettings) []interface{} {
+func flattenSqlVirtualMachineStorageSettings(input *sqlvirtualmachine.SQLStorageSettings) []interface{} {
 	if input == nil || input.Luns == nil {
 		return []interface{}{}
 	}

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/2019-06-01-preview/synapse"
-	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -28,12 +27,12 @@ const (
 	PointInTimeRestoreCreateMode = "PointInTimeRestore"
 )
 
-func resourceArmSynapseSqlPool() *schema.Resource {
+func resourceSynapseSqlPool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSynapseSqlPoolCreate,
-		Read:   resourceArmSynapseSqlPoolRead,
-		Update: resourceArmSynapseSqlPoolUpdate,
-		Delete: resourceArmSynapseSqlPoolDelete,
+		Create: resourceSynapseSqlPoolCreate,
+		Read:   resourceSynapseSqlPoolRead,
+		Update: resourceSynapseSqlPoolUpdate,
+		Delete: resourceSynapseSqlPoolDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -69,7 +68,7 @@ func resourceArmSynapseSqlPool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.SynapseWorkspaceID,
+				ValidateFunc: validate.WorkspaceID,
 			},
 
 			"sku_name": {
@@ -112,7 +111,7 @@ func resourceArmSynapseSqlPool() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
-				ValidateFunc: mssqlValidate.MsSqlDBCollation(),
+				ValidateFunc: mssqlValidate.DatabaseCollation(),
 			},
 
 			"recovery_database_id": {
@@ -122,7 +121,7 @@ func resourceArmSynapseSqlPool() *schema.Resource {
 				ConflictsWith: []string{"restore"},
 				ValidateFunc: validation.Any(
 					validate.SqlPoolID,
-					mssqlValidate.MsSqlDatabaseID,
+					mssqlValidate.DatabaseID,
 				),
 			},
 
@@ -147,7 +146,7 @@ func resourceArmSynapseSqlPool() *schema.Resource {
 							ForceNew: true,
 							ValidateFunc: validation.Any(
 								validate.SqlPoolID,
-								mssqlValidate.MsSqlDatabaseID,
+								mssqlValidate.DatabaseID,
 							),
 						},
 					},
@@ -164,7 +163,7 @@ func resourceArmSynapseSqlPool() *schema.Resource {
 	}
 }
 
-func resourceArmSynapseSqlPoolCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseSqlPoolCreate(d *schema.ResourceData, meta interface{}) error {
 	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
 	sqlPTDEClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
 	workspaceClient := meta.(*clients.Client).Synapse.WorkspaceClient
@@ -220,11 +219,7 @@ func resourceArmSynapseSqlPoolCreate(d *schema.ResourceData, meta interface{}) e
 		}
 		v := restore[0].(map[string]interface{})
 		sourceDatabaseId := constructSourceDatabaseId(v["source_database_id"].(string))
-		restorePointInTime, err := time.Parse(time.RFC3339, v["point_in_time"].(string))
-		if err != nil {
-			return err
-		}
-		sqlPoolInfo.SQLPoolResourceProperties.RestorePointInTime = &date.Time{Time: restorePointInTime}
+		sqlPoolInfo.SQLPoolResourceProperties.RestorePointInTime = utils.String(v["point_in_time"].(string))
 		sqlPoolInfo.SQLPoolResourceProperties.SourceDatabaseID = utils.String(sourceDatabaseId)
 	}
 
@@ -257,10 +252,10 @@ func resourceArmSynapseSqlPoolCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	d.SetId(*resp.ID)
-	return resourceArmSynapseSqlPoolRead(d, meta)
+	return resourceSynapseSqlPoolRead(d, meta)
 }
 
-func resourceArmSynapseSqlPoolUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseSqlPoolUpdate(d *schema.ResourceData, meta interface{}) error {
 	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
 	sqlPTDEClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
@@ -320,10 +315,10 @@ func resourceArmSynapseSqlPoolUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	return resourceArmSynapseSqlPoolRead(d, meta)
+	return resourceSynapseSqlPoolRead(d, meta)
 }
 
-func resourceArmSynapseSqlPoolRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseSqlPoolRead(d *schema.ResourceData, meta interface{}) error {
 	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
 	sqlPTDEClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -349,7 +344,7 @@ func resourceArmSynapseSqlPoolRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("retrieving Transparent Data Encryption settings of Synapse SqlPool %q (Workspace %q / Resource Group %q): %+v", id.Name, id.WorkspaceName, id.ResourceGroup, err)
 	}
 
-	workspaceId := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID("")
+	workspaceId := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID()
 
 	d.Set("name", id.Name)
 	d.Set("synapse_workspace_id", workspaceId)
@@ -369,7 +364,7 @@ func resourceArmSynapseSqlPoolRead(d *schema.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmSynapseSqlPoolDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSynapseSqlPoolDelete(d *schema.ResourceData, meta interface{}) error {
 	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -411,5 +406,5 @@ func constructSourceDatabaseId(id string) string {
 	if err != nil {
 		return id
 	}
-	return mssqlParse.NewDatabaseID(sqlPoolId.SubscriptionId, sqlPoolId.ResourceGroup, sqlPoolId.WorkspaceName, sqlPoolId.Name).ID("")
+	return mssqlParse.NewDatabaseID(sqlPoolId.SubscriptionId, sqlPoolId.ResourceGroup, sqlPoolId.WorkspaceName, sqlPoolId.Name).ID()
 }
