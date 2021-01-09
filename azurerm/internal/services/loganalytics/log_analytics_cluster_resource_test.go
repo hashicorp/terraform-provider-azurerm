@@ -3,7 +3,7 @@ package loganalytics_test
 import (
 	"context"
 	"fmt"
-	`os`
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
