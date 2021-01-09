@@ -114,7 +114,8 @@ func TestAccSecurityCenterAutomation_ruleSingle(t *testing.T) {
 		{
 			Config: r.ruleSingle(data),
 			Check: resource.ComposeTestCheckFunc(
-				testAccSecurityCenterAutomationCountRules(data.ResourceName, 1, 1),
+				check.That(data.ResourceName).Key("source.#").HasValue("1"),
+				check.That(data.ResourceName).Key("source.0.rule_set.#").HasValue("1"),
 			),
 		},
 		data.ImportStep("action.0.trigger_url"), // trigger_url needs to be ignored
@@ -129,7 +130,9 @@ func TestAccSecurityCenterAutomation_ruleMulti(t *testing.T) {
 		{
 			Config: r.ruleMulti(data),
 			Check: resource.ComposeTestCheckFunc(
-				testAccSecurityCenterAutomationCountRules(data.ResourceName, 1, 3),
+				check.That(data.ResourceName).Key("source.#").HasValue("1"),
+				check.That(data.ResourceName).Key("source.0.rule_set.#").HasValue("1"),
+				check.That(data.ResourceName).Key("source.0.rule_set.0.rule.#").HasValue("3"),
 			),
 		},
 		data.ImportStep("action.0.trigger_url"), // trigger_url needs to be ignored
@@ -144,7 +147,10 @@ func TestAccSecurityCenterAutomation_ruleSetMulti(t *testing.T) {
 		{
 			Config: r.ruleSetMulti(data),
 			Check: resource.ComposeTestCheckFunc(
-				testAccSecurityCenterAutomationCountRules(data.ResourceName, 2, 4),
+				check.That(data.ResourceName).Key("source.#").HasValue("1"),
+				check.That(data.ResourceName).Key("source.0.rule_set.#").HasValue("2"),
+				check.That(data.ResourceName).Key("source.0.rule_set.0.rule.#").HasValue("2"),
+				check.That(data.ResourceName).Key("source.0.rule_set.1.rule.#").HasValue("2"),
 			),
 		},
 		data.ImportStep("action.0.trigger_url"), // trigger_url needs to be ignored
@@ -159,7 +165,7 @@ func TestAccSecurityCenterAutomation_scopeMulti(t *testing.T) {
 		{
 			Config: r.scopeMulti(data),
 			Check: resource.ComposeTestCheckFunc(
-				testAccSecurityCenterAutomationCountScopes(data.ResourceName, 3),
+				check.That(data.ResourceName).Key("scopes.#").HasValue("3"),
 			),
 		},
 		data.ImportStep("action.0.trigger_url"), // trigger_url needs to be ignored
@@ -174,7 +180,7 @@ func TestAccSecurityCenterAutomation_actionMulti(t *testing.T) {
 		{
 			Config: r.actionMulti(data),
 			Check: resource.ComposeTestCheckFunc(
-				testAccSecurityCenterAutomationCountActions(data.ResourceName, 2),
+				check.That(data.ResourceName).Key("action.#").HasValue("2"),
 			),
 		},
 		data.ImportStep("action.0.trigger_url", "action.1.trigger_url"), // trigger_url needs to be ignored
@@ -189,8 +195,10 @@ func TestAccSecurityCenterAutomation_sourceMulti(t *testing.T) {
 		{
 			Config: r.sourceMulti(data),
 			Check: resource.ComposeTestCheckFunc(
-				testAccSecurityCenterAutomationCountSources(data.ResourceName, 3),
-				testAccSecurityCenterAutomationCountRules(data.ResourceName, 3, 3),
+				check.That(data.ResourceName).Key("source.#").HasValue("3"),
+				check.That(data.ResourceName).Key("source.0.rule_set.#").HasValue("1"),
+				check.That(data.ResourceName).Key("source.1.rule_set.#").HasValue("1"),
+				check.That(data.ResourceName).Key("source.2.rule_set.#").HasValue("1"),
 			),
 		},
 		data.ImportStep("action.0.trigger_url", "action.1.trigger_url"), // trigger_url needs to be ignored
@@ -209,154 +217,6 @@ func (t SecurityCenterAutomationResource) Exists(ctx context.Context, clients *c
 	}
 
 	return utils.Bool(resp.AutomationProperties != nil), nil
-}
-
-func testAccSecurityCenterAutomationCountScopes(resourceName string, scopeCount int) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).SecurityCenter.AutomationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Security Center automation: %s", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Security Center automation %q (resource group: %q) does not exist", name, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on Security Center automation: %+v", err)
-		}
-
-		if len(*resp.AutomationProperties.Scopes) != scopeCount {
-			return fmt.Errorf("Security Center automation doesn't have required number of scopes: got %d, wanted %d", len(*resp.AutomationProperties.Scopes), scopeCount)
-		}
-
-		return nil
-	}
-}
-
-func testAccSecurityCenterAutomationCountRules(resourceName string, ruleSetCount int, ruleCount int) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).SecurityCenter.AutomationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Security Center automation: %s", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Security Center automation %q (resource group: %q) does not exist", name, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on Security Center automation: %+v", err)
-		}
-
-		actualRuleSetCount := 0
-		actualRuleCount := 0
-		for _, source := range *resp.AutomationProperties.Sources {
-			actualRuleSetCount += len(*source.RuleSets)
-			for _, ruleSet := range *source.RuleSets {
-				actualRuleCount += len(*ruleSet.Rules)
-			}
-		}
-
-		if actualRuleSetCount != ruleSetCount {
-			return fmt.Errorf("Security Center automation doesn't have required number of rule sets: got %d, wanted %d", actualRuleSetCount, ruleSetCount)
-		}
-		if actualRuleCount != ruleCount {
-			return fmt.Errorf("Security Center automation doesn't have required number of rules: got %d, wanted %d", actualRuleCount, ruleCount)
-		}
-
-		return nil
-	}
-}
-
-func testAccSecurityCenterAutomationCountActions(resourceName string, actionCount int) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).SecurityCenter.AutomationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Security Center automation: %s", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Security Center automation %q (resource group: %q) does not exist", name, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on Security Center automation: %+v", err)
-		}
-
-		if len(*resp.AutomationProperties.Actions) != actionCount {
-			return fmt.Errorf("Security Center automation doesn't have required number of actions: got %d, wanted %d", len(*resp.AutomationProperties.Actions), actionCount)
-		}
-
-		return nil
-	}
-}
-
-func testAccSecurityCenterAutomationCountSources(resourceName string, sourceCount int) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).SecurityCenter.AutomationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Security Center automation: %s", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Security Center automation %q (resource group: %q) does not exist", name, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on Security Center automation: %+v", err)
-		}
-
-		if len(*resp.AutomationProperties.Sources) != sourceCount {
-			return fmt.Errorf("Security Center automation doesn't have required number of sources: got %d, wanted %d", len(*resp.AutomationProperties.Sources), sourceCount)
-		}
-
-		return nil
-	}
 }
 
 func (SecurityCenterAutomationResource) logicApp(data acceptance.TestData) string {
