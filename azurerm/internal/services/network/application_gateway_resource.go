@@ -1707,8 +1707,6 @@ func flattenRmApplicationGatewayIdentity(identity *network.ManagedServiceIdentit
 	identityIds := make([]string, 0)
 	if identity.UserAssignedIdentities != nil {
 		for key := range identity.UserAssignedIdentities {
-			//identityIds = append(identityIds, key)
-			//identityIds = append(identityIds, key)
 			parsedId, err := parse.UserAssignedIdentityID(key)
 			if err != nil {
 				return nil, err
