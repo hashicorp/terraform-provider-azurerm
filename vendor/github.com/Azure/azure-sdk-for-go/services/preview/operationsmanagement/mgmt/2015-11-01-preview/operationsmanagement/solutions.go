@@ -255,6 +255,7 @@ func (client SolutionsClient) Get(ctx context.Context, resourceGroupName string,
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationsmanagement.SolutionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -337,6 +338,7 @@ func (client SolutionsClient) ListByResourceGroup(ctx context.Context, resourceG
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationsmanagement.SolutionsClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -408,6 +410,7 @@ func (client SolutionsClient) ListBySubscription(ctx context.Context) (result So
 	result, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationsmanagement.SolutionsClient", "ListBySubscription", resp, "Failure responding to request")
+		return
 	}
 
 	return

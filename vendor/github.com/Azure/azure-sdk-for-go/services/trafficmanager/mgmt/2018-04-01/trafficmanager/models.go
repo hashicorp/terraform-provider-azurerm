@@ -26,8 +26,8 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
 
-// CheckTrafficManagerRelativeDNSNameAvailabilityParameters parameters supplied to check Traffic Manager name
-// operation.
+// CheckTrafficManagerRelativeDNSNameAvailabilityParameters parameters supplied to check Traffic Manager
+// name operation.
 type CheckTrafficManagerRelativeDNSNameAvailabilityParameters struct {
 	// Name - The name of the resource.
 	Name *string `json:"name,omitempty"`
@@ -291,8 +291,8 @@ func (gh *GeographicHierarchy) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// GeographicHierarchyProperties class representing the properties of the Geographic hierarchy used with the
-// Geographic traffic routing method.
+// GeographicHierarchyProperties class representing the properties of the Geographic hierarchy used with
+// the Geographic traffic routing method.
 type GeographicHierarchyProperties struct {
 	// GeographicHierarchy - The region at the root of the hierarchy from all the regions in the hierarchy can be retrieved.
 	GeographicHierarchy *Region `json:"geographicHierarchy,omitempty"`

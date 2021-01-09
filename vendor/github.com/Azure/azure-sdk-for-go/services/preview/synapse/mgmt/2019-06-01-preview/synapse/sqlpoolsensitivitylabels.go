@@ -89,6 +89,7 @@ func (client SQLPoolSensitivityLabelsClient) CreateOrUpdate(ctx context.Context,
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolSensitivityLabelsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -185,6 +186,7 @@ func (client SQLPoolSensitivityLabelsClient) Delete(ctx context.Context, resourc
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolSensitivityLabelsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -227,7 +229,7 @@ func (client SQLPoolSensitivityLabelsClient) DeleteSender(req *http.Request) (*h
 func (client SQLPoolSensitivityLabelsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
 	return
@@ -278,6 +280,7 @@ func (client SQLPoolSensitivityLabelsClient) DisableRecommendation(ctx context.C
 	result, err = client.DisableRecommendationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolSensitivityLabelsClient", "DisableRecommendation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -372,6 +375,7 @@ func (client SQLPoolSensitivityLabelsClient) EnableRecommendation(ctx context.Co
 	result, err = client.EnableRecommendationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolSensitivityLabelsClient", "EnableRecommendation", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -420,6 +424,102 @@ func (client SQLPoolSensitivityLabelsClient) EnableRecommendationResponder(resp 
 	return
 }
 
+// Get gets the sensitivity label of a given column
+// Parameters:
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// workspaceName - the name of the workspace
+// SQLPoolName - SQL pool name
+// schemaName - the name of the schema.
+// tableName - the name of the table.
+// columnName - the name of the column.
+// sensitivityLabelSource - the source of the sensitivity label.
+func (client SQLPoolSensitivityLabelsClient) Get(ctx context.Context, resourceGroupName string, workspaceName string, SQLPoolName string, schemaName string, tableName string, columnName string, sensitivityLabelSource SensitivityLabelSource) (result SensitivityLabel, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SQLPoolSensitivityLabelsClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("synapse.SQLPoolSensitivityLabelsClient", "Get", err.Error())
+	}
+
+	req, err := client.GetPreparer(ctx, resourceGroupName, workspaceName, SQLPoolName, schemaName, tableName, columnName, sensitivityLabelSource)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "synapse.SQLPoolSensitivityLabelsClient", "Get", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "synapse.SQLPoolSensitivityLabelsClient", "Get", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "synapse.SQLPoolSensitivityLabelsClient", "Get", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// GetPreparer prepares the Get request.
+func (client SQLPoolSensitivityLabelsClient) GetPreparer(ctx context.Context, resourceGroupName string, workspaceName string, SQLPoolName string, schemaName string, tableName string, columnName string, sensitivityLabelSource SensitivityLabelSource) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"columnName":             autorest.Encode("path", columnName),
+		"resourceGroupName":      autorest.Encode("path", resourceGroupName),
+		"schemaName":             autorest.Encode("path", schemaName),
+		"sensitivityLabelSource": autorest.Encode("path", sensitivityLabelSource),
+		"sqlPoolName":            autorest.Encode("path", SQLPoolName),
+		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
+		"tableName":              autorest.Encode("path", tableName),
+		"workspaceName":          autorest.Encode("path", workspaceName),
+	}
+
+	const APIVersion = "2019-06-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Synapse/workspaces/{workspaceName}/sqlPools/{sqlPoolName}/schemas/{schemaName}/tables/{tableName}/columns/{columnName}/sensitivityLabels/{sensitivityLabelSource}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetSender sends the Get request. The method will close the
+// http.Response Body if it receives an error.
+func (client SQLPoolSensitivityLabelsClient) GetSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetResponder handles the response to the Get request. The method always
+// closes the http.Response Body.
+func (client SQLPoolSensitivityLabelsClient) GetResponder(resp *http.Response) (result SensitivityLabel, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // ListCurrent gets SQL pool sensitivity labels.
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.
@@ -464,9 +564,11 @@ func (client SQLPoolSensitivityLabelsClient) ListCurrent(ctx context.Context, re
 	result.sllr, err = client.ListCurrentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolSensitivityLabelsClient", "ListCurrent", resp, "Failure responding to request")
+		return
 	}
 	if result.sllr.hasNextLink() && result.sllr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -598,9 +700,11 @@ func (client SQLPoolSensitivityLabelsClient) ListRecommended(ctx context.Context
 	result.sllr, err = client.ListRecommendedResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolSensitivityLabelsClient", "ListRecommended", resp, "Failure responding to request")
+		return
 	}
 	if result.sllr.hasNextLink() && result.sllr.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return

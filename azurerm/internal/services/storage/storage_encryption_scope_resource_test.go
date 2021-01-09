@@ -158,7 +158,11 @@ func (t StorageEncryptionScopeResource) keyVaultKey(data acceptance.TestData) st
 	template := t.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy = false
+    }
+  }
 }
 
 %s
@@ -176,7 +180,11 @@ func (t StorageEncryptionScopeResource) keyVaultKeyUpdated(data acceptance.TestD
 	template := t.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy = false
+    }
+  }
 }
 
 %s
@@ -207,7 +215,11 @@ func (t StorageEncryptionScopeResource) microsoftManagedKey(data acceptance.Test
 	template := t.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy = false
+    }
+  }
 }
 
 %s

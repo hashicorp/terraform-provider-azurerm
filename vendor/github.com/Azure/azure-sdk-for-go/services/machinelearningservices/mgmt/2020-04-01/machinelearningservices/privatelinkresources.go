@@ -74,6 +74,7 @@ func (client PrivateLinkResourcesClient) ListByWorkspace(ctx context.Context, re
 	result, err = client.ListByWorkspaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "machinelearningservices.PrivateLinkResourcesClient", "ListByWorkspace", resp, "Failure responding to request")
+		return
 	}
 
 	return

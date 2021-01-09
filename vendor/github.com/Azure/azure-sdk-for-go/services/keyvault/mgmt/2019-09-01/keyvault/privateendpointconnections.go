@@ -165,6 +165,7 @@ func (client PrivateEndpointConnectionsClient) Get(ctx context.Context, resource
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "keyvault.PrivateEndpointConnectionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -249,6 +250,7 @@ func (client PrivateEndpointConnectionsClient) Put(ctx context.Context, resource
 	result, err = client.PutResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "keyvault.PrivateEndpointConnectionsClient", "Put", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -87,6 +87,7 @@ func (client QuotaByCounterKeysClient) ListByService(ctx context.Context, resour
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.QuotaByCounterKeysClient", "ListByService", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -177,6 +178,7 @@ func (client QuotaByCounterKeysClient) Update(ctx context.Context, resourceGroup
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.QuotaByCounterKeysClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

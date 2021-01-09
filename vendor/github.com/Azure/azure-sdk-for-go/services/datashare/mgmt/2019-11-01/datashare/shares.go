@@ -74,6 +74,7 @@ func (client SharesClient) Create(ctx context.Context, resourceGroupName string,
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.SharesClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -230,6 +231,7 @@ func (client SharesClient) Get(ctx context.Context, resourceGroupName string, ac
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.SharesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -310,6 +312,7 @@ func (client SharesClient) ListByAccount(ctx context.Context, resourceGroupName 
 	result.sl, err = client.ListByAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.SharesClient", "ListByAccount", resp, "Failure responding to request")
+		return
 	}
 	if result.sl.hasNextLink() && result.sl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -383,6 +386,7 @@ func (client SharesClient) listByAccountNextResults(ctx context.Context, lastRes
 	result, err = client.ListByAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.SharesClient", "listByAccountNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -440,6 +444,7 @@ func (client SharesClient) ListSynchronizationDetails(ctx context.Context, resou
 	result.sdl, err = client.ListSynchronizationDetailsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.SharesClient", "ListSynchronizationDetails", resp, "Failure responding to request")
+		return
 	}
 	if result.sdl.hasNextLink() && result.sdl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -517,6 +522,7 @@ func (client SharesClient) listSynchronizationDetailsNextResults(ctx context.Con
 	result, err = client.ListSynchronizationDetailsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.SharesClient", "listSynchronizationDetailsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -573,6 +579,7 @@ func (client SharesClient) ListSynchronizations(ctx context.Context, resourceGro
 	result.ssl, err = client.ListSynchronizationsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.SharesClient", "ListSynchronizations", resp, "Failure responding to request")
+		return
 	}
 	if result.ssl.hasNextLink() && result.ssl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -647,6 +654,7 @@ func (client SharesClient) listSynchronizationsNextResults(ctx context.Context, 
 	result, err = client.ListSynchronizationsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.SharesClient", "listSynchronizationsNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

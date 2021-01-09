@@ -85,8 +85,8 @@ type OperationDisplay struct {
 	Description *string `json:"description,omitempty"`
 }
 
-// OperationListResult a list of service operations. It contains a list of operations and a URL link to get the
-// next set of results.
+// OperationListResult a list of service operations. It contains a list of operations and a URL link to get
+// the next set of results.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
 	// NextLink - The link used to get the next page of service description objects.
@@ -247,8 +247,11 @@ func (page OperationListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
 // OperationResultsDescription the properties indicating the operation result of an operation on a service.
@@ -405,7 +408,8 @@ func (future *ServicesCreateOrUpdateFuture) Result(client ServicesClient) (sd Se
 	return
 }
 
-// ServicesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// ServicesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ServicesDeleteFuture struct {
 	azure.Future
 }
@@ -483,7 +487,8 @@ type ServicesDescriptionListResult struct {
 	Value *[]ServicesDescription `json:"value,omitempty"`
 }
 
-// ServicesDescriptionListResultIterator provides access to a complete listing of ServicesDescription values.
+// ServicesDescriptionListResultIterator provides access to a complete listing of ServicesDescription
+// values.
 type ServicesDescriptionListResultIterator struct {
 	i    int
 	page ServicesDescriptionListResultPage
@@ -626,8 +631,11 @@ func (page ServicesDescriptionListResultPage) Values() []ServicesDescription {
 }
 
 // Creates a new instance of the ServicesDescriptionListResultPage type.
-func NewServicesDescriptionListResultPage(getNextPage func(context.Context, ServicesDescriptionListResult) (ServicesDescriptionListResult, error)) ServicesDescriptionListResultPage {
-	return ServicesDescriptionListResultPage{fn: getNextPage}
+func NewServicesDescriptionListResultPage(cur ServicesDescriptionListResult, getNextPage func(context.Context, ServicesDescriptionListResult) (ServicesDescriptionListResult, error)) ServicesDescriptionListResultPage {
+	return ServicesDescriptionListResultPage{
+		fn:   getNextPage,
+		sdlr: cur,
+	}
 }
 
 // ServicesNameAvailabilityInfo the properties indicating whether a given service name is available.
@@ -702,7 +710,8 @@ func (sp ServicesProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// ServicesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// ServicesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ServicesUpdateFuture struct {
 	azure.Future
 }

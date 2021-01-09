@@ -70,6 +70,7 @@ func (client SkuClient) List(ctx context.Context) (result ResourceSkuCollectionP
 	result.rsc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.SkuClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.rsc.hasNextLink() && result.rsc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -132,6 +133,7 @@ func (client SkuClient) listNextResults(ctx context.Context, lastResults Resourc
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.SkuClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

@@ -89,6 +89,7 @@ func (client JobScheduleClient) Create(ctx context.Context, resourceGroupName st
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.JobScheduleClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -176,6 +177,7 @@ func (client JobScheduleClient) Delete(ctx context.Context, resourceGroupName st
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.JobScheduleClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -260,6 +262,7 @@ func (client JobScheduleClient) Get(ctx context.Context, resourceGroupName strin
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.JobScheduleClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -346,6 +349,7 @@ func (client JobScheduleClient) ListByAutomationAccount(ctx context.Context, res
 	result.jslr, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.JobScheduleClient", "ListByAutomationAccount", resp, "Failure responding to request")
+		return
 	}
 	if result.jslr.hasNextLink() && result.jslr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -413,6 +417,7 @@ func (client JobScheduleClient) listByAutomationAccountNextResults(ctx context.C
 	result, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.JobScheduleClient", "listByAutomationAccountNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

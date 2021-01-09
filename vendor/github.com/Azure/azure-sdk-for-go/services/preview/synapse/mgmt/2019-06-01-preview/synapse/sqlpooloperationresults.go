@@ -86,6 +86,7 @@ func (client SQLPoolOperationResultsClient) GetLocationHeaderResult(ctx context.
 	result, err = client.GetLocationHeaderResultResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolOperationResultsClient", "GetLocationHeaderResult", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -125,7 +126,7 @@ func (client SQLPoolOperationResultsClient) GetLocationHeaderResultSender(req *h
 func (client SQLPoolOperationResultsClient) GetLocationHeaderResultResponder(resp *http.Response) (result SetObject, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}

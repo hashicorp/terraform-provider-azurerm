@@ -84,6 +84,7 @@ func (client CapacitiesClient) CheckNameAvailability(ctx context.Context, locati
 	result, err = client.CheckNameAvailabilityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesClient", "CheckNameAvailability", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -354,6 +355,7 @@ func (client CapacitiesClient) GetDetails(ctx context.Context, resourceGroupName
 	result, err = client.GetDetailsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesClient", "GetDetails", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -426,6 +428,7 @@ func (client CapacitiesClient) List(ctx context.Context) (result DedicatedCapaci
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -507,6 +510,7 @@ func (client CapacitiesClient) ListByResourceGroup(ctx context.Context, resource
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -578,6 +582,7 @@ func (client CapacitiesClient) ListSkus(ctx context.Context) (result SkuEnumerat
 	result, err = client.ListSkusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesClient", "ListSkus", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -665,6 +670,7 @@ func (client CapacitiesClient) ListSkusForCapacity(ctx context.Context, resource
 	result, err = client.ListSkusForCapacityResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "powerbidedicated.CapacitiesClient", "ListSkusForCapacity", resp, "Failure responding to request")
+		return
 	}
 
 	return

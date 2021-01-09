@@ -83,6 +83,7 @@ func (client RunbookDraftClient) Get(ctx context.Context, resourceGroupName stri
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.RunbookDraftClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -168,6 +169,7 @@ func (client RunbookDraftClient) GetContent(ctx context.Context, resourceGroupNa
 	result, err = client.GetContentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.RunbookDraftClient", "GetContent", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -340,6 +342,7 @@ func (client RunbookDraftClient) UndoEdit(ctx context.Context, resourceGroupName
 	result, err = client.UndoEditResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.RunbookDraftClient", "UndoEdit", resp, "Failure responding to request")
+		return
 	}
 
 	return

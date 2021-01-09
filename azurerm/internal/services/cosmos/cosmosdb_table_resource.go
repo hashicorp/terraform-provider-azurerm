@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmCosmosDbTable() *schema.Resource {
+func resourceCosmosDbTable() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCosmosDbTableCreate,
-		Read:   resourceArmCosmosDbTableRead,
-		Update: resourceArmCosmosDbTableUpdate,
-		Delete: resourceArmCosmosDbTableDelete,
+		Create: resourceCosmosDbTableCreate,
+		Read:   resourceCosmosDbTableRead,
+		Update: resourceCosmosDbTableUpdate,
+		Delete: resourceCosmosDbTableDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -75,7 +75,7 @@ func resourceArmCosmosDbTable() *schema.Resource {
 	}
 }
 
-func resourceArmCosmosDbTableCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbTableCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.TableClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -136,10 +136,10 @@ func resourceArmCosmosDbTableCreate(d *schema.ResourceData, meta interface{}) er
 
 	d.SetId(*resp.ID)
 
-	return resourceArmCosmosDbTableRead(d, meta)
+	return resourceCosmosDbTableRead(d, meta)
 }
 
-func resourceArmCosmosDbTableUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbTableUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.TableClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -187,10 +187,10 @@ func resourceArmCosmosDbTableUpdate(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
-	return resourceArmCosmosDbTableRead(d, meta)
+	return resourceCosmosDbTableRead(d, meta)
 }
 
-func resourceArmCosmosDbTableRead(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbTableRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.TableClient
 	accountClient := meta.(*clients.Client).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -255,7 +255,7 @@ func resourceArmCosmosDbTableRead(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceArmCosmosDbTableDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceCosmosDbTableDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.TableClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

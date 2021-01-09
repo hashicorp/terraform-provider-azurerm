@@ -203,8 +203,11 @@ func (page CachedImagesListResultPage) Values() []CachedImages {
 }
 
 // Creates a new instance of the CachedImagesListResultPage type.
-func NewCachedImagesListResultPage(getNextPage func(context.Context, CachedImagesListResult) (CachedImagesListResult, error)) CachedImagesListResultPage {
-	return CachedImagesListResultPage{fn: getNextPage}
+func NewCachedImagesListResultPage(cur CachedImagesListResult, getNextPage func(context.Context, CachedImagesListResult) (CachedImagesListResult, error)) CachedImagesListResultPage {
+	return CachedImagesListResultPage{
+		fn:   getNextPage,
+		cilr: cur,
+	}
 }
 
 // Capabilities the regional capabilities.
@@ -385,8 +388,11 @@ func (page CapabilitiesListResultPage) Values() []Capabilities {
 }
 
 // Creates a new instance of the CapabilitiesListResultPage type.
-func NewCapabilitiesListResultPage(getNextPage func(context.Context, CapabilitiesListResult) (CapabilitiesListResult, error)) CapabilitiesListResultPage {
-	return CapabilitiesListResultPage{fn: getNextPage}
+func NewCapabilitiesListResultPage(cur CapabilitiesListResult, getNextPage func(context.Context, CapabilitiesListResult) (CapabilitiesListResult, error)) CapabilitiesListResultPage {
+	return CapabilitiesListResultPage{
+		fn:  getNextPage,
+		clr: cur,
+	}
 }
 
 // CloudError an error response from the Container Instance service.
@@ -795,8 +801,11 @@ func (page ContainerGroupListResultPage) Values() []ContainerGroup {
 }
 
 // Creates a new instance of the ContainerGroupListResultPage type.
-func NewContainerGroupListResultPage(getNextPage func(context.Context, ContainerGroupListResult) (ContainerGroupListResult, error)) ContainerGroupListResultPage {
-	return ContainerGroupListResultPage{fn: getNextPage}
+func NewContainerGroupListResultPage(cur ContainerGroupListResult, getNextPage func(context.Context, ContainerGroupListResult) (ContainerGroupListResult, error)) ContainerGroupListResultPage {
+	return ContainerGroupListResultPage{
+		fn:   getNextPage,
+		cglr: cur,
+	}
 }
 
 // ContainerGroupNetworkProfile container group network profile information.
@@ -1374,8 +1383,8 @@ type OperationDisplay struct {
 	Description *string `json:"description,omitempty"`
 }
 
-// OperationListResult the operation list response that contains all operations for Azure Container Instance
-// service.
+// OperationListResult the operation list response that contains all operations for Azure Container
+// Instance service.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
 	// Value - The list of operations.
@@ -1527,8 +1536,11 @@ func (page OperationListResultPage) Values() []Operation {
 }
 
 // Creates a new instance of the OperationListResultPage type.
-func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
-	return OperationListResultPage{fn: getNextPage}
+func NewOperationListResultPage(cur OperationListResult, getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{
+		fn:  getNextPage,
+		olr: cur,
+	}
 }
 
 // Port the port exposed on the container group.

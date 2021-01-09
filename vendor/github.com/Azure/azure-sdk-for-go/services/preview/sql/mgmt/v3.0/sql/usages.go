@@ -77,6 +77,7 @@ func (client UsagesClient) ListByInstancePool(ctx context.Context, resourceGroup
 	result.ulr, err = client.ListByInstancePoolResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.UsagesClient", "ListByInstancePool", resp, "Failure responding to request")
+		return
 	}
 	if result.ulr.hasNextLink() && result.ulr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -144,6 +145,7 @@ func (client UsagesClient) listByInstancePoolNextResults(ctx context.Context, la
 	result, err = client.ListByInstancePoolResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.UsagesClient", "listByInstancePoolNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

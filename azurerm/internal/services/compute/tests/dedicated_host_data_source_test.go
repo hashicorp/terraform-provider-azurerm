@@ -4,31 +4,30 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
+
+type DedicatedHostDataSource struct {
+}
 
 func TestAccDataSourceAzureRMDedicatedHost_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_dedicated_host", "test")
+	r := DedicatedHostDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceDedicatedHost_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "tags.%"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("location").Exists(),
+				check.That(data.ResourceName).Key("tags.%").Exists(),
+			),
 		},
 	})
 }
 
-func testAccDataSourceDedicatedHost_basic(data acceptance.TestData) string {
-	config := testAccAzureRMDedicatedHost_basic(data)
+func (DedicatedHostDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -37,5 +36,5 @@ data "azurerm_dedicated_host" "test" {
   dedicated_host_group_name = azurerm_dedicated_host_group.test.name
   resource_group_name       = azurerm_dedicated_host_group.test.resource_group_name
 }
-`, config)
+`, DedicatedHostResource{}.basic(data))
 }

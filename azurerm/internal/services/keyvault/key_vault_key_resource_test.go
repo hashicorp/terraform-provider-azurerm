@@ -269,7 +269,7 @@ func TestAccKeyVaultKey_withExternalAccessPolicy(t *testing.T) {
 	})
 }
 
-func (t KeyVaultKeyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r KeyVaultKeyResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	client := clients.KeyVault.ManagementClient
 	keyVaultClient := clients.KeyVault.VaultsClient
 
@@ -410,7 +410,7 @@ resource "azurerm_key_vault_key" "test" {
     "verify",
   ]
 }
-`, r.template(data), data.RandomString)
+`, r.templateStandard(data), data.RandomString)
 }
 
 func (r KeyVaultKeyResource) basicECUpdatedExternally(data acceptance.TestData) string {
@@ -437,7 +437,7 @@ resource "azurerm_key_vault_key" "test" {
     Rick = "Morty"
   }
 }
-`, r.template(data), data.RandomString)
+`, r.templateStandard(data), data.RandomString)
 }
 
 func (r KeyVaultKeyResource) requiresImport(data acceptance.TestData) string {
@@ -481,7 +481,7 @@ resource "azurerm_key_vault_key" "test" {
     "wrapKey",
   ]
 }
-`, r.template(data), data.RandomString)
+`, r.templateStandard(data), data.RandomString)
 }
 
 func (r KeyVaultKeyResource) basicRSAHSM(data acceptance.TestData) string {
@@ -507,7 +507,7 @@ resource "azurerm_key_vault_key" "test" {
     "wrapKey",
   ]
 }
-`, r.template(data), data.RandomString)
+`, r.templatePremium(data), data.RandomString)
 }
 
 func (r KeyVaultKeyResource) complete(data acceptance.TestData) string {
@@ -539,7 +539,7 @@ resource "azurerm_key_vault_key" "test" {
     "hello" = "world"
   }
 }
-`, r.template(data), data.RandomString)
+`, r.templateStandard(data), data.RandomString)
 }
 
 func (r KeyVaultKeyResource) basicUpdated(data acceptance.TestData) string {
@@ -564,7 +564,7 @@ resource "azurerm_key_vault_key" "test" {
     "wrapKey",
   ]
 }
-`, r.template(data), data.RandomString)
+`, r.templateStandard(data), data.RandomString)
 }
 
 func (r KeyVaultKeyResource) curveEC(data acceptance.TestData) string {
@@ -586,7 +586,7 @@ resource "azurerm_key_vault_key" "test" {
     "verify",
   ]
 }
-`, r.template(data), data.RandomString)
+`, r.templateStandard(data), data.RandomString)
 }
 
 func (r KeyVaultKeyResource) basicECHSM(data acceptance.TestData) string {
@@ -608,7 +608,7 @@ resource "azurerm_key_vault_key" "test" {
     "verify",
   ]
 }
-`, r.template(data), data.RandomString)
+`, r.templatePremium(data), data.RandomString)
 }
 
 func (r KeyVaultKeyResource) softDeleteRecovery(data acceptance.TestData, purge bool) string {
@@ -645,7 +645,7 @@ resource "azurerm_key_vault_key" "test" {
     "hello" = "world"
   }
 }
-`, purge, r.template(data), data.RandomString)
+`, purge, r.templateStandard(data), data.RandomString)
 }
 
 func (KeyVaultKeyResource) withExternalAccessPolicy(data acceptance.TestData) string {
@@ -667,7 +667,7 @@ resource "azurerm_key_vault" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "premium"
+  sku_name                   = "standard"
   soft_delete_enabled        = true
   soft_delete_retention_days = 7
 
@@ -732,7 +732,7 @@ resource "azurerm_key_vault" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "premium"
+  sku_name                   = "standard"
   soft_delete_enabled        = true
   soft_delete_retention_days = 7
 
@@ -779,7 +779,15 @@ resource "azurerm_key_vault_key" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func (KeyVaultKeyResource) template(data acceptance.TestData) string {
+func (r KeyVaultKeyResource) templateStandard(data acceptance.TestData) string {
+	return r.template(data, "standard")
+}
+
+func (r KeyVaultKeyResource) templatePremium(data acceptance.TestData) string {
+	return r.template(data, "premium")
+}
+
+func (KeyVaultKeyResource) template(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -793,7 +801,7 @@ resource "azurerm_key_vault" "test" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "premium"
+  sku_name                   = "%s"
   soft_delete_enabled        = true
   soft_delete_retention_days = 7
 
@@ -821,5 +829,5 @@ resource "azurerm_key_vault" "test" {
     environment = "Production"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, sku)
 }
