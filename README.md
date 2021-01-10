@@ -125,9 +125,9 @@ The following Environment Variables must be set in your shell prior to running a
 
 ---
 
-## Developer: Instructing Terraform to use your locally compiled Azure Provider binary
+## Developer: Using the locally compiled Azure Provider binary
 
-After successfully compiling the Azure Provider, you must [instruct Terraform to use your locally compiled provider binary]https://www.terraform.io/docs/commands/cli-config.html#development-overrides-for-provider-developers instead of the official binary from the Terraform Registy.
+After successfully compiling the Azure Provider, you must [instruct Terraform to use your locally compiled provider binary](https://www.terraform.io/docs/commands/cli-config.html#development-overrides-for-provider-developers) instead of the official binary from the Terraform Registy.
 
 For example, add the following to `~/.terraformrc` for a provider binary located in `/home/developer/go/bin`:
 
