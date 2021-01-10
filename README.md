@@ -125,6 +125,32 @@ The following Environment Variables must be set in your shell prior to running a
 
 ---
 
+## Developer: Instructing Terraform to use your locally compiled Azure Provider binary
+
+After successfully compiling the Azure Provider, you must [instruct Terraform to use your locally compiled provider binary]https://www.terraform.io/docs/commands/cli-config.html#development-overrides-for-provider-developers instead of the official binary from the Terraform Registy.
+
+For example, add the following to `~/.terraformrc` for a provider binary located in `/home/developer/go/bin`:
+
+```hcl
+provider_installation {
+
+  # Use /home/developer/go/bin as an overridden package directory
+  # for the hashicorp/azurerm provider. This disables the version and checksum
+  # verifications for this provider and forces Terraform to look for the
+  # azurerm provider plugin in the given directory.
+  dev_overrides {
+    "hashicorp/azurerm" = "/home/developer/go/bin"
+  }
+
+  # For all other providers, install them directly from their origin provider
+  # registries as normal. If you omit this, Terraform will _only_ use
+  # the dev_overrides block, and so no other providers will be available.
+  direct {}
+}
+```
+
+---
+
 ## Developer: Generating Resource ID Formatters, Parsers and Validators
 
 You can generate a Resource ID Formatter, Parser and Validator by adding the following line to a `resourceids.go` within each Service Package (for example `./azurerm/internal/services/someservice/resourceids.go`):
