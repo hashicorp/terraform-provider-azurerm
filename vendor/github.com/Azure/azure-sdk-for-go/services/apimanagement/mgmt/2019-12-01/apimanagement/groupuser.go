@@ -89,6 +89,7 @@ func (client GroupUserClient) CheckEntityExists(ctx context.Context, resourceGro
 	result, err = client.CheckEntityExistsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GroupUserClient", "CheckEntityExists", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -181,6 +182,7 @@ func (client GroupUserClient) Create(ctx context.Context, resourceGroupName stri
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GroupUserClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -274,6 +276,7 @@ func (client GroupUserClient) Delete(ctx context.Context, resourceGroupName stri
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GroupUserClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -378,6 +381,7 @@ func (client GroupUserClient) List(ctx context.Context, resourceGroupName string
 	result.uc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GroupUserClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.uc.hasNextLink() && result.uc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -452,6 +456,7 @@ func (client GroupUserClient) listNextResults(ctx context.Context, lastResults U
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GroupUserClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

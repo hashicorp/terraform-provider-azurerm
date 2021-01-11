@@ -8,14 +8,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmServiceBusNamespace() *schema.Resource {
+func dataSourceServiceBusNamespace() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmServiceBusNamespaceRead,
+		Read: dataSourceServiceBusNamespaceRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -78,29 +80,25 @@ func dataSourceArmServiceBusNamespace() *schema.Resource {
 	}
 }
 
-func dataSourceArmServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.NamespacesClientPreview
 	clientStable := meta.(*clients.Client).ServiceBus.NamespacesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	resp, err := client.Get(ctx, resourceGroup, name)
+	id := parse.NewNamespaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("ServiceBus Namespace %q was not found in Resource Group %q", name, resourceGroup)
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("Error retrieving ServiceBus Namespace %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.SetId(*resp.ID)
-
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.SetId(id.ID())
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", string(sku.Name))
@@ -111,9 +109,9 @@ func dataSourceArmServiceBusNamespaceRead(d *schema.ResourceData, meta interface
 		d.Set("zone_redundant", properties.ZoneRedundant)
 	}
 
-	keys, err := clientStable.ListKeys(ctx, resourceGroup, name, serviceBusNamespaceDefaultAuthorizationRule)
+	keys, err := clientStable.ListKeys(ctx, id.ResourceGroup, id.Name, serviceBusNamespaceDefaultAuthorizationRule)
 	if err != nil {
-		log.Printf("[WARN] Unable to List default keys for Namespace %q (Resource Group %q): %+v", name, resourceGroup, err)
+		log.Printf("[WARN] listing default keys for %s: %+v", id, err)
 	} else {
 		d.Set("default_primary_connection_string", keys.PrimaryConnectionString)
 		d.Set("default_secondary_connection_string", keys.SecondaryConnectionString)

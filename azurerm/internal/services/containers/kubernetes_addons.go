@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	azureHelpers "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+
+	laparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 )
 
 const (
@@ -193,7 +195,11 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 		enabled := value["enabled"].(bool)
 
 		if workspaceID, ok := value["log_analytics_workspace_id"]; ok && workspaceID != "" {
-			config["logAnalyticsWorkspaceResourceID"] = utils.String(workspaceID.(string))
+			lawid, err := laparse.LogAnalyticsWorkspaceID(workspaceID.(string))
+			if err != nil {
+				return nil, fmt.Errorf("parsing Log Analytics Workspace ID: %+v", err)
+			}
+			config["logAnalyticsWorkspaceResourceID"] = utils.String(lawid.ID())
 		}
 
 		addonProfiles[omsAgentKey] = &containerservice.ManagedClusterAddonProfile{
@@ -344,7 +350,9 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 
 		workspaceID := ""
 		if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "logAnalyticsWorkspaceResourceID"); v != nil {
-			workspaceID = *v
+			if lawid, err := laparse.LogAnalyticsWorkspaceID(*v); err == nil {
+				workspaceID = lawid.ID()
+			}
 		}
 
 		omsagentIdentity := flattenKubernetesClusterOmsAgentIdentityProfile(omsAgent.Identity)

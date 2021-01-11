@@ -27,14 +27,15 @@ func NewDatabaseID(subscriptionId, resourceGroup, clusterName, name string) Data
 
 func (id DatabaseId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Cluster Name %q", id.ClusterName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Cluster Name %q", id.ClusterName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Database", segmentsStr)
 }
 
-func (id DatabaseId) ID(_ string) string {
+func (id DatabaseId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Kusto/Clusters/%s/Databases/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ClusterName, id.Name)
 }

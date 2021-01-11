@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmBotChannelEmail() *schema.Resource {
+func resourceBotChannelEmail() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmBotChannelEmailCreate,
-		Read:   resourceArmBotChannelEmailRead,
-		Delete: resourceArmBotChannelEmailDelete,
-		Update: resourceArmBotChannelEmailUpdate,
+		Create: resourceBotChannelEmailCreate,
+		Read:   resourceBotChannelEmailRead,
+		Delete: resourceBotChannelEmailDelete,
+		Update: resourceBotChannelEmailUpdate,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.BotChannelID(id)
@@ -66,7 +66,7 @@ func resourceArmBotChannelEmail() *schema.Resource {
 	}
 }
 
-func resourceArmBotChannelEmailCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelEmailCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -81,7 +81,7 @@ func resourceArmBotChannelEmailCreate(d *schema.ResourceData, meta interface{}) 
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_bot_channel_email", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_bot_channel_email", resourceId.ID())
 		}
 	}
 
@@ -102,11 +102,11 @@ func resourceArmBotChannelEmailCreate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("creating Email Channel for Bot %q (Resource Group %q): %+v", resourceId.BotServiceName, resourceId.ResourceGroup, err)
 	}
 
-	d.SetId(resourceId.ID(""))
-	return resourceArmBotChannelEmailRead(d, meta)
+	d.SetId(resourceId.ID())
+	return resourceBotChannelEmailRead(d, meta)
 }
 
-func resourceArmBotChannelEmailRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelEmailRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -142,7 +142,7 @@ func resourceArmBotChannelEmailRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceArmBotChannelEmailUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelEmailUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -169,10 +169,10 @@ func resourceArmBotChannelEmailUpdate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("updating Email Channel for Bot %q (Resource Group %q): %+v", id.ResourceGroup, id.BotServiceName, err)
 	}
 
-	return resourceArmBotChannelEmailRead(d, meta)
+	return resourceBotChannelEmailRead(d, meta)
 }
 
-func resourceArmBotChannelEmailDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelEmailDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.ChannelClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

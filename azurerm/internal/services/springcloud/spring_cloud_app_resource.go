@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSpringCloudApp() *schema.Resource {
+func resourceSpringCloudApp() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSpringCloudAppCreateUpdate,
-		Read:   resourceArmSpringCloudAppRead,
-		Update: resourceArmSpringCloudAppCreateUpdate,
-		Delete: resourceArmSpringCloudAppDelete,
+		Create: resourceSpringCloudAppCreate,
+		Read:   resourceSpringCloudAppRead,
+		Update: resourceSpringCloudAppUpdate,
+		Delete: resourceSpringCloudAppDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.SpringCloudAppID(id)
@@ -81,11 +81,51 @@ func resourceArmSpringCloudApp() *schema.Resource {
 					},
 				},
 			},
+
+			"is_public": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"https_only": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"persistent_disk": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"size_in_gb": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(0, 50),
+						},
+
+						"mount_path": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      "/persistent",
+							ValidateFunc: validate.MountPath,
+						},
+					},
+				},
+			},
+
+			"url": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
 
-func resourceArmSpringCloudAppCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.AppsClient
 	servicesClient := meta.(*clients.Client).AppPlatform.ServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -101,7 +141,7 @@ func resourceArmSpringCloudAppCreateUpdate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("unable to retrieve Spring Cloud Service %q (Resource Group %q): %+v", serviceName, resourceGroup, err)
 	}
 
-	resourceId := parse.NewSpringCloudAppID(subscriptionId, resourceGroup, serviceName, name).ID("")
+	resourceId := parse.NewSpringCloudAppID(subscriptionId, resourceGroup, serviceName, name).ID()
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, name, "")
 		if err != nil {
@@ -117,20 +157,62 @@ func resourceArmSpringCloudAppCreateUpdate(d *schema.ResourceData, meta interfac
 	app := appplatform.AppResource{
 		Location: serviceResp.Location,
 		Identity: expandSpringCloudAppIdentity(d.Get("identity").([]interface{})),
+		Properties: &appplatform.AppResourceProperties{
+			Public: utils.Bool(d.Get("is_public").(bool)),
+		},
 	}
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, app)
 	if err != nil {
-		return fmt.Errorf("creating/update Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
+		return fmt.Errorf("creating Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
+	}
+
+	// HTTPSOnly and PersistentDisk could only be set by update
+	app.Properties.HTTPSOnly = utils.Bool(d.Get("https_only").(bool))
+	app.Properties.PersistentDisk = expandSpringCloudAppPersistentDisk(d.Get("persistent_disk").([]interface{}))
+	future, err = client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, app)
+	if err != nil {
+		return fmt.Errorf("update Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
+	}
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for update of Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
 	}
 
 	d.SetId(resourceId)
-	return resourceArmSpringCloudAppRead(d, meta)
+	return resourceSpringCloudAppRead(d, meta)
 }
 
-func resourceArmSpringCloudAppRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).AppPlatform.AppsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+	serviceName := d.Get("service_name").(string)
+
+	app := appplatform.AppResource{
+		Identity: expandSpringCloudAppIdentity(d.Get("identity").([]interface{})),
+		Properties: &appplatform.AppResourceProperties{
+			Public:         utils.Bool(d.Get("is_public").(bool)),
+			HTTPSOnly:      utils.Bool(d.Get("https_only").(bool)),
+			PersistentDisk: expandSpringCloudAppPersistentDisk(d.Get("persistent_disk").([]interface{})),
+		},
+	}
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, app)
+	if err != nil {
+		return fmt.Errorf("update Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
+	}
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for update of Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
+	}
+
+	return resourceSpringCloudAppRead(d, meta)
+}
+
+func resourceSpringCloudAppRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.AppsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -158,10 +240,20 @@ func resourceArmSpringCloudAppRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("setting `identity`: %s", err)
 	}
 
+	if prop := resp.Properties; prop != nil {
+		d.Set("is_public", prop.Public)
+		d.Set("https_only", prop.HTTPSOnly)
+		d.Set("url", prop.URL)
+
+		if err := d.Set("persistent_disk", flattenSpringCloudAppPersistentDisk(prop.PersistentDisk)); err != nil {
+			return fmt.Errorf("setting `persistent_disk`: %s", err)
+		}
+	}
+
 	return nil
 }
 
-func resourceArmSpringCloudAppDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSpringCloudAppDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.AppsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -190,6 +282,17 @@ func expandSpringCloudAppIdentity(input []interface{}) *appplatform.ManagedIdent
 	}
 }
 
+func expandSpringCloudAppPersistentDisk(input []interface{}) *appplatform.PersistentDisk {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	raw := input[0].(map[string]interface{})
+	return &appplatform.PersistentDisk{
+		SizeInGB:  utils.Int32(int32(raw["size_in_gb"].(int))),
+		MountPath: utils.String(raw["mount_path"].(string)),
+	}
+}
+
 func flattenSpringCloudAppIdentity(identity *appplatform.ManagedIdentityProperties) []interface{} {
 	if identity == nil {
 		return make([]interface{}, 0)
@@ -210,6 +313,29 @@ func flattenSpringCloudAppIdentity(identity *appplatform.ManagedIdentityProperti
 			"principal_id": principalId,
 			"tenant_id":    tenantId,
 			"type":         string(identity.Type),
+		},
+	}
+}
+
+func flattenSpringCloudAppPersistentDisk(input *appplatform.PersistentDisk) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	sizeInGB := 0
+	if input.SizeInGB != nil {
+		sizeInGB = int(*input.SizeInGB)
+	}
+
+	mountPath := ""
+	if input.MountPath != nil {
+		mountPath = *input.MountPath
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"size_in_gb": sizeInGB,
+			"mount_path": mountPath,
 		},
 	}
 }

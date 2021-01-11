@@ -54,7 +54,7 @@ func ApplicationGroupUpgradeV0ToV1(rawState map[string]interface{}, _ interface{
 	if err != nil {
 		return nil, err
 	}
-	newId := id.ID("")
+	newId := id.ID()
 	log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newId)
 	rawState["id"] = newId
 
@@ -63,7 +63,7 @@ func ApplicationGroupUpgradeV0ToV1(rawState map[string]interface{}, _ interface{
 	if err != nil {
 		return nil, err
 	}
-	newHostPoolId := hostPoolId.ID("")
+	newHostPoolId := hostPoolId.ID()
 	log.Printf("[DEBUG] Updating Host Pool ID from %q to %q", oldHostPoolId, newHostPoolId)
 	rawState["host_pool_id"] = newHostPoolId
 

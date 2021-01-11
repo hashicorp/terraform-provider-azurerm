@@ -82,6 +82,7 @@ func (client AccountClient) CreateOrUpdate(ctx context.Context, resourceGroupNam
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.AccountClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -167,6 +168,7 @@ func (client AccountClient) Delete(ctx context.Context, resourceGroupName string
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.AccountClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -249,6 +251,7 @@ func (client AccountClient) Get(ctx context.Context, resourceGroupName string, a
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.AccountClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -322,6 +325,7 @@ func (client AccountClient) List(ctx context.Context) (result AccountListResultP
 	result.alr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.AccountClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.alr.hasNextLink() && result.alr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -384,6 +388,7 @@ func (client AccountClient) listNextResults(ctx context.Context, lastResults Acc
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.AccountClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -443,6 +448,7 @@ func (client AccountClient) ListByResourceGroup(ctx context.Context, resourceGro
 	result.alr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.AccountClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.alr.hasNextLink() && result.alr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -506,6 +512,7 @@ func (client AccountClient) listByResourceGroupNextResults(ctx context.Context, 
 	result, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.AccountClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -566,6 +573,7 @@ func (client AccountClient) Update(ctx context.Context, resourceGroupName string
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.AccountClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

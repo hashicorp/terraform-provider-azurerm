@@ -77,6 +77,7 @@ func (client CustomDomainsClient) CreateOrUpdate(ctx context.Context, resourceGr
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -159,6 +160,7 @@ func (client CustomDomainsClient) Delete(ctx context.Context, resourceGroupName 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -238,6 +240,7 @@ func (client CustomDomainsClient) Get(ctx context.Context, resourceGroupName str
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -318,6 +321,7 @@ func (client CustomDomainsClient) List(ctx context.Context, resourceGroupName st
 	result.cdrc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.cdrc.hasNextLink() && result.cdrc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -383,6 +387,7 @@ func (client CustomDomainsClient) listNextResults(ctx context.Context, lastResul
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -438,6 +443,7 @@ func (client CustomDomainsClient) Patch(ctx context.Context, resourceGroupName s
 	result, err = client.PatchResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "Patch", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -525,6 +531,7 @@ func (client CustomDomainsClient) Validate(ctx context.Context, resourceGroupNam
 	result, err = client.ValidateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "Validate", resp, "Failure responding to request")
+		return
 	}
 
 	return

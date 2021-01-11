@@ -26,7 +26,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_lighthouse_definition": resourceArmLighthouseDefinition(),
-		"azurerm_lighthouse_assignment": resourceArmLighthouseAssignment(),
+		"azurerm_lighthouse_definition": resourceLighthouseDefinition(),
+		"azurerm_lighthouse_assignment": resourceLighthouseAssignment(),
 	}
 }

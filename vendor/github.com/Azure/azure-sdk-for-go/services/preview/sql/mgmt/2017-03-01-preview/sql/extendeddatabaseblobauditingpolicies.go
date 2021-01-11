@@ -79,6 +79,7 @@ func (client ExtendedDatabaseBlobAuditingPoliciesClient) CreateOrUpdate(ctx cont
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ExtendedDatabaseBlobAuditingPoliciesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -160,6 +161,7 @@ func (client ExtendedDatabaseBlobAuditingPoliciesClient) Get(ctx context.Context
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ExtendedDatabaseBlobAuditingPoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -240,6 +242,7 @@ func (client ExtendedDatabaseBlobAuditingPoliciesClient) ListByDatabase(ctx cont
 	result.edbaplr, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ExtendedDatabaseBlobAuditingPoliciesClient", "ListByDatabase", resp, "Failure responding to request")
+		return
 	}
 	if result.edbaplr.hasNextLink() && result.edbaplr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -305,6 +308,7 @@ func (client ExtendedDatabaseBlobAuditingPoliciesClient) listByDatabaseNextResul
 	result, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ExtendedDatabaseBlobAuditingPoliciesClient", "listByDatabaseNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

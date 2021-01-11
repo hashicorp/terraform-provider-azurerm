@@ -86,6 +86,7 @@ func (client JobTargetGroupsClient) CreateOrUpdate(ctx context.Context, resource
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobTargetGroupsClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -168,6 +169,7 @@ func (client JobTargetGroupsClient) Delete(ctx context.Context, resourceGroupNam
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobTargetGroupsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -247,6 +249,7 @@ func (client JobTargetGroupsClient) Get(ctx context.Context, resourceGroupName s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobTargetGroupsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -327,6 +330,7 @@ func (client JobTargetGroupsClient) ListByAgent(ctx context.Context, resourceGro
 	result.jtglr, err = client.ListByAgentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobTargetGroupsClient", "ListByAgent", resp, "Failure responding to request")
+		return
 	}
 	if result.jtglr.hasNextLink() && result.jtglr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -392,6 +396,7 @@ func (client JobTargetGroupsClient) listByAgentNextResults(ctx context.Context, 
 	result, err = client.ListByAgentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobTargetGroupsClient", "listByAgentNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

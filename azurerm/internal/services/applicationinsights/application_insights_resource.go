@@ -141,7 +141,7 @@ func resourceApplicationInsightsCreateUpdate(d *schema.ResourceData, meta interf
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	resourceId := parse.NewComponentID(subscriptionId, resGroup, name).ID("")
+	resourceId := parse.NewComponentID(subscriptionId, resGroup, name).ID()
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {

@@ -78,6 +78,7 @@ func (client JobVersionsClient) Get(ctx context.Context, resourceGroupName strin
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobVersionsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -160,6 +161,7 @@ func (client JobVersionsClient) ListByJob(ctx context.Context, resourceGroupName
 	result.jvlr, err = client.ListByJobResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobVersionsClient", "ListByJob", resp, "Failure responding to request")
+		return
 	}
 	if result.jvlr.hasNextLink() && result.jvlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -226,6 +228,7 @@ func (client JobVersionsClient) listByJobNextResults(ctx context.Context, lastRe
 	result, err = client.ListByJobResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobVersionsClient", "listByJobNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

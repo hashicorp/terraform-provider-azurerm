@@ -82,6 +82,7 @@ func (client RegionClient) ListByService(ctx context.Context, resourceGroupName 
 	result.rlr, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.RegionClient", "ListByService", resp, "Failure responding to request")
+		return
 	}
 	if result.rlr.hasNextLink() && result.rlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -146,6 +147,7 @@ func (client RegionClient) listByServiceNextResults(ctx context.Context, lastRes
 	result, err = client.ListByServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.RegionClient", "listByServiceNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

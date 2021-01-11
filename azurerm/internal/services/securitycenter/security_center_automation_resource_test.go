@@ -1,444 +1,225 @@
 package securitycenter_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMSecurityCenterAutomation_logicApp(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_security_center_automation", "test")
+type SecurityCenterAutomationResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testAccAzureRMSecurityCenterAutomationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSecurityCenterAutomation_logicApp(data),
-				Check: resource.ComposeTestCheckFunc(
-					testAccAzureRMSecurityCenterAutomationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("action.0.trigger_url"), // trigger_url needs to be ignored
+func TestAccSecurityCenterAutomation_logicApp(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_security_center_automation", "test")
+	r := SecurityCenterAutomationResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.logicApp(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("action.0.trigger_url"), // trigger_url needs to be ignored
 	})
 }
 
-func TestAccAzureRMSecurityCenterAutomation_logAnalytics(t *testing.T) {
+func TestAccSecurityCenterAutomation_logAnalytics(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_automation", "test")
+	r := SecurityCenterAutomationResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testAccAzureRMSecurityCenterAutomationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSecurityCenterAutomation_logAnalytics(data),
-				Check: resource.ComposeTestCheckFunc(
-					testAccAzureRMSecurityCenterAutomationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.logAnalytics(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMSecurityCenterAutomation_eventHub(t *testing.T) {
+func TestAccSecurityCenterAutomation_eventHub(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_automation", "test")
+	r := SecurityCenterAutomationResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testAccAzureRMSecurityCenterAutomationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSecurityCenterAutomation_eventHub(data),
-				Check: resource.ComposeTestCheckFunc(
-					testAccAzureRMSecurityCenterAutomationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("action.0.connection_string"), // trigger_url needs to be ignored
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.eventHub(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("action.0.connection_string"), // trigger_url needs to be ignored
 	})
 }
 
-func TestAccAzureRMSecurityCenterAutomation_requiresImport(t *testing.T) {
+func TestAccSecurityCenterAutomation_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_automation", "test")
+	r := SecurityCenterAutomationResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testAccAzureRMSecurityCenterAutomationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSecurityCenterAutomation_logicApp(data),
-				Check: resource.ComposeTestCheckFunc(
-					testAccAzureRMSecurityCenterAutomationExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMSecurityCenterAutomation_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.logicApp(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccAzureRMSecurityCenterAutomation_update(t *testing.T) {
+func TestAccSecurityCenterAutomation_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_automation", "test")
+	r := SecurityCenterAutomationResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testAccAzureRMSecurityCenterAutomationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSecurityCenterAutomation_logicApp(data),
-				Check: resource.ComposeTestCheckFunc(
-					testAccAzureRMSecurityCenterAutomationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("action.0.trigger_url"), // trigger_url needs to be ignored
-			{
-				Config: testAccAzureRMSecurityCenterAutomation_ruleSingle(data),
-				Check: resource.ComposeTestCheckFunc(
-					testAccAzureRMSecurityCenterAutomationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("action.0.trigger_url"), // trigger_url needs to be ignored
-			{
-				Config: testAccAzureRMSecurityCenterAutomation_logicApp(data),
-				Check: resource.ComposeTestCheckFunc(
-					testAccAzureRMSecurityCenterAutomationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("action.0.trigger_url"), // trigger_url needs to be ignored
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.logicApp(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("action.0.trigger_url"), // trigger_url needs to be ignored
+		{
+			Config: r.ruleSingle(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("action.0.trigger_url"), // trigger_url needs to be ignored
+		{
+			Config: r.logicApp(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("action.0.trigger_url"), // trigger_url needs to be ignored
 	})
 }
 
-func TestAccAzureRMSecurityCenterAutomation_ruleSingle(t *testing.T) {
+func TestAccSecurityCenterAutomation_ruleSingle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_automation", "test")
+	r := SecurityCenterAutomationResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testAccAzureRMSecurityCenterAutomationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSecurityCenterAutomation_ruleSingle(data),
-				Check: resource.ComposeTestCheckFunc(
-					testAccAzureRMSecurityCenterAutomationCountRules(data.ResourceName, 1, 1),
-				),
-			},
-			data.ImportStep("action.0.trigger_url"), // trigger_url needs to be ignored
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.ruleSingle(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("source.#").HasValue("1"),
+				check.That(data.ResourceName).Key("source.0.rule_set.#").HasValue("1"),
+			),
 		},
+		data.ImportStep("action.0.trigger_url"), // trigger_url needs to be ignored
 	})
 }
 
-func TestAccAzureRMSecurityCenterAutomation_ruleMulti(t *testing.T) {
+func TestAccSecurityCenterAutomation_ruleMulti(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_automation", "test")
+	r := SecurityCenterAutomationResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testAccAzureRMSecurityCenterAutomationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSecurityCenterAutomation_ruleMulti(data),
-				Check: resource.ComposeTestCheckFunc(
-					testAccAzureRMSecurityCenterAutomationCountRules(data.ResourceName, 1, 3),
-				),
-			},
-			data.ImportStep("action.0.trigger_url"), // trigger_url needs to be ignored
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.ruleMulti(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("source.#").HasValue("1"),
+				check.That(data.ResourceName).Key("source.0.rule_set.#").HasValue("1"),
+				check.That(data.ResourceName).Key("source.0.rule_set.0.rule.#").HasValue("3"),
+			),
 		},
+		data.ImportStep("action.0.trigger_url"), // trigger_url needs to be ignored
 	})
 }
 
-func TestAccAzureRMSecurityCenterAutomation_ruleSetMulti(t *testing.T) {
+func TestAccSecurityCenterAutomation_ruleSetMulti(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_automation", "test")
+	r := SecurityCenterAutomationResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testAccAzureRMSecurityCenterAutomationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSecurityCenterAutomation_ruleSetMulti(data),
-				Check: resource.ComposeTestCheckFunc(
-					testAccAzureRMSecurityCenterAutomationCountRules(data.ResourceName, 2, 4),
-				),
-			},
-			data.ImportStep("action.0.trigger_url"), // trigger_url needs to be ignored
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.ruleSetMulti(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("source.#").HasValue("1"),
+				check.That(data.ResourceName).Key("source.0.rule_set.#").HasValue("2"),
+				check.That(data.ResourceName).Key("source.0.rule_set.0.rule.#").HasValue("2"),
+				check.That(data.ResourceName).Key("source.0.rule_set.1.rule.#").HasValue("2"),
+			),
 		},
+		data.ImportStep("action.0.trigger_url"), // trigger_url needs to be ignored
 	})
 }
 
-func TestAccAzureRMSecurityCenterAutomation_scopeMulti(t *testing.T) {
+func TestAccSecurityCenterAutomation_scopeMulti(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_automation", "test")
+	r := SecurityCenterAutomationResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testAccAzureRMSecurityCenterAutomationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSecurityCenterAutomation_scopeMulti(data),
-				Check: resource.ComposeTestCheckFunc(
-					testAccAzureRMSecurityCenterAutomationCountScopes(data.ResourceName, 3),
-				),
-			},
-			data.ImportStep("action.0.trigger_url"), // trigger_url needs to be ignored
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.scopeMulti(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("scopes.#").HasValue("3"),
+			),
 		},
+		data.ImportStep("action.0.trigger_url"), // trigger_url needs to be ignored
 	})
 }
 
-func TestAccAzureRMSecurityCenterAutomation_actionMulti(t *testing.T) {
+func TestAccSecurityCenterAutomation_actionMulti(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_automation", "test")
+	r := SecurityCenterAutomationResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testAccAzureRMSecurityCenterAutomationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSecurityCenterAutomation_actionMulti(data),
-				Check: resource.ComposeTestCheckFunc(
-					testAccAzureRMSecurityCenterAutomationCountActions(data.ResourceName, 2),
-				),
-			},
-			data.ImportStep("action.0.trigger_url", "action.1.trigger_url"), // trigger_url needs to be ignored
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.actionMulti(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("action.#").HasValue("2"),
+			),
 		},
+		data.ImportStep("action.0.trigger_url", "action.1.trigger_url"), // trigger_url needs to be ignored
 	})
 }
 
-func TestAccAzureRMSecurityCenterAutomation_sourceMulti(t *testing.T) {
+func TestAccSecurityCenterAutomation_sourceMulti(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_automation", "test")
+	r := SecurityCenterAutomationResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testAccAzureRMSecurityCenterAutomationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSecurityCenterAutomation_sourceMulti(data),
-				Check: resource.ComposeTestCheckFunc(
-					testAccAzureRMSecurityCenterAutomationCountSources(data.ResourceName, 3),
-					testAccAzureRMSecurityCenterAutomationCountRules(data.ResourceName, 3, 3),
-				),
-			},
-			data.ImportStep("action.0.trigger_url", "action.1.trigger_url"), // trigger_url needs to be ignored
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.sourceMulti(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("source.#").HasValue("3"),
+				check.That(data.ResourceName).Key("source.0.rule_set.#").HasValue("1"),
+				check.That(data.ResourceName).Key("source.1.rule_set.#").HasValue("1"),
+				check.That(data.ResourceName).Key("source.2.rule_set.#").HasValue("1"),
+			),
 		},
+		data.ImportStep("action.0.trigger_url", "action.1.trigger_url"), // trigger_url needs to be ignored
 	})
 }
 
-func testAccAzureRMSecurityCenterAutomationExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).SecurityCenter.AutomationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Security Center automation: %s", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Security Center automation %q (resource group: %q) does not exist", name, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on Security Center automation: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testAccAzureRMSecurityCenterAutomationCountScopes(resourceName string, scopeCount int) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).SecurityCenter.AutomationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Security Center automation: %s", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Security Center automation %q (resource group: %q) does not exist", name, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on Security Center automation: %+v", err)
-		}
-
-		if len(*resp.AutomationProperties.Scopes) != scopeCount {
-			return fmt.Errorf("Security Center automation doesn't have required number of scopes: got %d, wanted %d", len(*resp.AutomationProperties.Scopes), scopeCount)
-		}
-
-		return nil
-	}
-}
-
-func testAccAzureRMSecurityCenterAutomationCountRules(resourceName string, ruleSetCount int, ruleCount int) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).SecurityCenter.AutomationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Security Center automation: %s", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Security Center automation %q (resource group: %q) does not exist", name, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on Security Center automation: %+v", err)
-		}
-
-		actualRuleSetCount := 0
-		actualRuleCount := 0
-		for _, source := range *resp.AutomationProperties.Sources {
-			actualRuleSetCount += len(*source.RuleSets)
-			for _, ruleSet := range *source.RuleSets {
-				actualRuleCount += len(*ruleSet.Rules)
-			}
-		}
-
-		if actualRuleSetCount != ruleSetCount {
-			return fmt.Errorf("Security Center automation doesn't have required number of rule sets: got %d, wanted %d", actualRuleSetCount, ruleSetCount)
-		}
-		if actualRuleCount != ruleCount {
-			return fmt.Errorf("Security Center automation doesn't have required number of rules: got %d, wanted %d", actualRuleCount, ruleCount)
-		}
-
-		return nil
-	}
-}
-
-func testAccAzureRMSecurityCenterAutomationCountActions(resourceName string, actionCount int) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).SecurityCenter.AutomationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Security Center automation: %s", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Security Center automation %q (resource group: %q) does not exist", name, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on Security Center automation: %+v", err)
-		}
-
-		if len(*resp.AutomationProperties.Actions) != actionCount {
-			return fmt.Errorf("Security Center automation doesn't have required number of actions: got %d, wanted %d", len(*resp.AutomationProperties.Actions), actionCount)
-		}
-
-		return nil
-	}
-}
-
-func testAccAzureRMSecurityCenterAutomationCountSources(resourceName string, sourceCount int) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).SecurityCenter.AutomationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Security Center automation: %s", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Security Center automation %q (resource group: %q) does not exist", name, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on Security Center automation: %+v", err)
-		}
-
-		if len(*resp.AutomationProperties.Sources) != sourceCount {
-			return fmt.Errorf("Security Center automation doesn't have required number of sources: got %d, wanted %d", len(*resp.AutomationProperties.Sources), sourceCount)
-		}
-
-		return nil
-	}
-}
-
-func testAccAzureRMSecurityCenterAutomationDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).SecurityCenter.AutomationsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_security_center_automation" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return fmt.Errorf("Security Center automation still exists:\n%#v", resp)
-		}
+func (t SecurityCenterAutomationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.SecurityCenterAutomationID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.SecurityCenter.AutomationsClient.Get(ctx, id.ResourceGroup, id.AutomationName)
+	if err != nil {
+		return nil, fmt.Errorf("reading Security Center automation %q (resource group: %q): %v", id.AutomationName, id.ResourceGroup, err)
+	}
+
+	return utils.Bool(resp.AutomationProperties != nil), nil
 }
 
-func testAccAzureRMSecurityCenterAutomation_logicApp(data acceptance.TestData) string {
+func (SecurityCenterAutomationResource) logicApp(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -480,7 +261,7 @@ resource "azurerm_security_center_automation" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMSecurityCenterAutomation_logAnalytics(data acceptance.TestData) string {
+func (SecurityCenterAutomationResource) logAnalytics(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -522,7 +303,7 @@ resource "azurerm_security_center_automation" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMSecurityCenterAutomation_eventHub(data acceptance.TestData) string {
+func (SecurityCenterAutomationResource) eventHub(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -566,7 +347,7 @@ resource "azurerm_security_center_automation" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMSecurityCenterAutomation_requiresImport(data acceptance.TestData) string {
+func (r SecurityCenterAutomationResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -589,10 +370,10 @@ resource "azurerm_security_center_automation" "import" {
     event_source = "Alerts"
   }
 }
-`, testAccAzureRMSecurityCenterAutomation_logicApp(data))
+`, r.logicApp(data))
 }
 
-func testAccAzureRMSecurityCenterAutomation_ruleSingle(data acceptance.TestData) string {
+func (SecurityCenterAutomationResource) ruleSingle(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -647,7 +428,7 @@ resource "azurerm_security_center_automation" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMSecurityCenterAutomation_scopeMulti(data acceptance.TestData) string {
+func (SecurityCenterAutomationResource) scopeMulti(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -699,7 +480,7 @@ resource "azurerm_security_center_automation" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMSecurityCenterAutomation_ruleMulti(data acceptance.TestData) string {
+func (SecurityCenterAutomationResource) ruleMulti(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -761,7 +542,7 @@ resource "azurerm_security_center_automation" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMSecurityCenterAutomation_ruleSetMulti(data acceptance.TestData) string {
+func (SecurityCenterAutomationResource) ruleSetMulti(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -831,7 +612,7 @@ resource "azurerm_security_center_automation" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMSecurityCenterAutomation_actionMulti(data acceptance.TestData) string {
+func (SecurityCenterAutomationResource) actionMulti(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -885,7 +666,7 @@ resource "azurerm_security_center_automation" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMSecurityCenterAutomation_sourceMulti(data acceptance.TestData) string {
+func (SecurityCenterAutomationResource) sourceMulti(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -91,6 +91,7 @@ func (client EntityRelationsClient) GetRelation(ctx context.Context, resourceGro
 	result, err = client.GetRelationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.EntityRelationsClient", "GetRelation", resp, "Failure responding to request")
+		return
 	}
 
 	return

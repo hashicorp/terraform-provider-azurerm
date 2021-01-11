@@ -84,6 +84,7 @@ func (client VirtualNetworkRulesClient) CreateOrUpdate(ctx context.Context, reso
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.VirtualNetworkRulesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -163,6 +164,7 @@ func (client VirtualNetworkRulesClient) Delete(ctx context.Context, resourceGrou
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.VirtualNetworkRulesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -239,6 +241,7 @@ func (client VirtualNetworkRulesClient) Get(ctx context.Context, resourceGroupNa
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.VirtualNetworkRulesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -316,6 +319,7 @@ func (client VirtualNetworkRulesClient) ListByAccount(ctx context.Context, resou
 	result.vnrlr, err = client.ListByAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.VirtualNetworkRulesClient", "ListByAccount", resp, "Failure responding to request")
+		return
 	}
 	if result.vnrlr.hasNextLink() && result.vnrlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -380,6 +384,7 @@ func (client VirtualNetworkRulesClient) listByAccountNextResults(ctx context.Con
 	result, err = client.ListByAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.VirtualNetworkRulesClient", "listByAccountNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -433,6 +438,7 @@ func (client VirtualNetworkRulesClient) Update(ctx context.Context, resourceGrou
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.VirtualNetworkRulesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

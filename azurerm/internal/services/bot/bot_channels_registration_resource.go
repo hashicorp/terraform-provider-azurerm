@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmBotChannelsRegistration() *schema.Resource {
+func resourceBotChannelsRegistration() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmBotChannelsRegistrationCreate,
-		Read:   resourceArmBotChannelsRegistrationRead,
-		Delete: resourceArmBotChannelsRegistrationDelete,
-		Update: resourceArmBotChannelsRegistrationUpdate,
+		Create: resourceBotChannelsRegistrationCreate,
+		Read:   resourceBotChannelsRegistrationRead,
+		Delete: resourceBotChannelsRegistrationDelete,
+		Update: resourceBotChannelsRegistrationUpdate,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -131,7 +131,7 @@ func resourceArmBotChannelsRegistration() *schema.Resource {
 	}
 }
 
-func resourceArmBotChannelsRegistrationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelsRegistrationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.BotClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -146,7 +146,7 @@ func resourceArmBotChannelsRegistrationCreate(d *schema.ResourceData, meta inter
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_bot_channels_registration", resourceId.ID(""))
+			return tf.ImportAsExistsError("azurerm_bot_channels_registration", resourceId.ID())
 		}
 	}
 
@@ -176,11 +176,11 @@ func resourceArmBotChannelsRegistrationCreate(d *schema.ResourceData, meta inter
 		return fmt.Errorf("creating Bot Channels Registration %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
 	}
 
-	d.SetId(resourceId.ID(""))
-	return resourceArmBotChannelsRegistrationRead(d, meta)
+	d.SetId(resourceId.ID())
+	return resourceBotChannelsRegistrationRead(d, meta)
 }
 
-func resourceArmBotChannelsRegistrationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelsRegistrationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.BotClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -220,7 +220,7 @@ func resourceArmBotChannelsRegistrationRead(d *schema.ResourceData, meta interfa
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmBotChannelsRegistrationUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelsRegistrationUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.BotClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -257,10 +257,10 @@ func resourceArmBotChannelsRegistrationUpdate(d *schema.ResourceData, meta inter
 		return fmt.Errorf("updating Bot Channels Registration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return resourceArmBotChannelsRegistrationRead(d, meta)
+	return resourceBotChannelsRegistrationRead(d, meta)
 }
 
-func resourceArmBotChannelsRegistrationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceBotChannelsRegistrationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Bot.BotClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

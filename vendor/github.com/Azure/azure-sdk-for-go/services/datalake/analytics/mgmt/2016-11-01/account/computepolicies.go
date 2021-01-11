@@ -89,6 +89,7 @@ func (client ComputePoliciesClient) CreateOrUpdate(ctx context.Context, resource
 	result, err = client.CreateOrUpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.ComputePoliciesClient", "CreateOrUpdate", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -168,6 +169,7 @@ func (client ComputePoliciesClient) Delete(ctx context.Context, resourceGroupNam
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.ComputePoliciesClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -244,6 +246,7 @@ func (client ComputePoliciesClient) Get(ctx context.Context, resourceGroupName s
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.ComputePoliciesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -322,6 +325,7 @@ func (client ComputePoliciesClient) ListByAccount(ctx context.Context, resourceG
 	result.cplr, err = client.ListByAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.ComputePoliciesClient", "ListByAccount", resp, "Failure responding to request")
+		return
 	}
 	if result.cplr.hasNextLink() && result.cplr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -386,6 +390,7 @@ func (client ComputePoliciesClient) listByAccountNextResults(ctx context.Context
 	result, err = client.ListByAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.ComputePoliciesClient", "listByAccountNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -439,6 +444,7 @@ func (client ComputePoliciesClient) Update(ctx context.Context, resourceGroupNam
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.ComputePoliciesClient", "Update", resp, "Failure responding to request")
+		return
 	}
 
 	return

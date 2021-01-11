@@ -6,14 +6,16 @@ cloud.google.com/go/internal/optional
 cloud.google.com/go/internal/trace
 cloud.google.com/go/internal/version
 cloud.google.com/go/storage
-# github.com/Azure/azure-sdk-for-go v48.1.0+incompatible
+# github.com/Azure/azure-sdk-for-go v49.2.0+incompatible
 github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources
 github.com/Azure/azure-sdk-for-go/services/advisor/mgmt/2020-01-01/advisor
 github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices
 github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement
 github.com/Azure/azure-sdk-for-go/services/appconfiguration/mgmt/2019-10-01/appconfiguration
 github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights
-github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2019-08-01/batch
+github.com/Azure/azure-sdk-for-go/services/attestation/mgmt/2018-09-01/attestation
+github.com/Azure/azure-sdk-for-go/services/azurestackhci/mgmt/2020-10-01/azurestackhci
+github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2020-03-01/batch
 github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn
 github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices
 github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute
@@ -53,11 +55,11 @@ github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-10-01/netapp
 github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network
 github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network
 github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs
+github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2020-08-01/operationalinsights
 github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql
 github.com/Azure/azure-sdk-for-go/services/powerbidedicated/mgmt/2017-10-01/powerbidedicated
 github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement
 github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2019-05-01-preview/appplatform
-github.com/Azure/azure-sdk-for-go/services/preview/attestation/mgmt/2018-09-01-preview/attestation
 github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization
 github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation
 github.com/Azure/azure-sdk-for-go/services/preview/blueprint/mgmt/2018-11-01-preview/blueprint
@@ -72,7 +74,6 @@ github.com/Azure/azure-sdk-for-go/services/preview/maintenance/mgmt/2018-06-01-p
 github.com/Azure/azure-sdk-for-go/services/preview/mixedreality/mgmt/2019-02-28/mixedreality
 github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights
 github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi
-github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2020-03-01-preview/operationalinsights
 github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement
 github.com/Azure/azure-sdk-for-go/services/preview/policyinsights/mgmt/2019-10-01-preview/policyinsights
 github.com/Azure/azure-sdk-for-go/services/preview/portal/mgmt/2019-01-01-preview/portal
@@ -85,6 +86,7 @@ github.com/Azure/azure-sdk-for-go/services/preview/servicefabricmesh/mgmt/2018-0
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql
 github.com/Azure/azure-sdk-for-go/services/preview/sqlvirtualmachine/mgmt/2017-03-01-preview/sqlvirtualmachine
+github.com/Azure/azure-sdk-for-go/services/preview/synapse/2019-06-01-preview/managedvirtualnetwork
 github.com/Azure/azure-sdk-for-go/services/preview/synapse/2020-02-01-preview/accesscontrol
 github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/2019-06-01-preview/synapse
 github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns
@@ -96,9 +98,9 @@ github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis
 github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-02-01/resources
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks
-github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-06-01/subscriptions
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-07-01/managedapplications
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy
+github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-11-01/subscriptions
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources
 github.com/Azure/azure-sdk-for-go/services/search/mgmt/2020-03-13/search
 github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus
@@ -124,7 +126,7 @@ github.com/Azure/go-autorest/autorest/azure/cli
 github.com/Azure/go-autorest/autorest/date
 # github.com/Azure/go-autorest/autorest/to v0.4.0
 github.com/Azure/go-autorest/autorest/to
-# github.com/Azure/go-autorest/autorest/validation v0.3.0
+# github.com/Azure/go-autorest/autorest/validation v0.3.1
 github.com/Azure/go-autorest/autorest/validation
 # github.com/Azure/go-autorest/logger v0.2.0
 github.com/Azure/go-autorest/logger
@@ -369,13 +371,14 @@ github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/slices
 github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/tf
 github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate
 github.com/terraform-providers/terraform-provider-azuread/version
-# github.com/tombuildsstuff/giovanni v0.15.0
+# github.com/tombuildsstuff/giovanni v0.15.1
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/accounts
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/containers
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/datalakestore/filesystems
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/datalakestore/paths
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/directories
+github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/files
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/shares
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/queue/queues
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/table/entities

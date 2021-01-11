@@ -72,6 +72,7 @@ func (client RecommendationMetadataClient) Get(ctx context.Context, name string)
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.RecommendationMetadataClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -143,6 +144,7 @@ func (client RecommendationMetadataClient) List(ctx context.Context) (result Met
 	result.melr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.RecommendationMetadataClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.melr.hasNextLink() && result.melr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -201,6 +203,7 @@ func (client RecommendationMetadataClient) listNextResults(ctx context.Context, 
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "advisor.RecommendationMetadataClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

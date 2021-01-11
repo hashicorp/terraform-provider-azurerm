@@ -1,210 +1,157 @@
 package monitor_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMMonitorMetricAlert_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_monitor_metric_alert", "test")
+type MonitorMetricAlertResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorMetricAlertDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorMetricAlert_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorMetricAlertExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccMonitorMetricAlert_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_metric_alert", "test")
+	r := MonitorMetricAlertResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMonitorMetricAlert_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_metric_alert", "test")
+	r := MonitorMetricAlertResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_monitor_metric_alert"),
 		},
 	})
 }
 
-func TestAccAzureRMMonitorMetricAlert_requiresImport(t *testing.T) {
+func TestAccMonitorMetricAlert_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_metric_alert", "test")
+	r := MonitorMetricAlertResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorMetricAlertDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorMetricAlert_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorMetricAlertExists(data.ResourceName),
-				),
-			},
-			{
-				Config:      testAccAzureRMMonitorMetricAlert_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_monitor_metric_alert"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMonitorMetricAlert_basicAndCompleteUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_metric_alert", "test")
+	r := MonitorMetricAlertResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMMonitorMetricAlert_complete(t *testing.T) {
+func TestAccMonitorMetricAlert_multiScope(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_metric_alert", "test")
+	r := MonitorMetricAlertResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorMetricAlertDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorMetricAlert_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorMetricAlertExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.multiScope(data, 2),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.multiScope(data, 1),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.multiScope(data, 2),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMMonitorMetricAlert_basicAndCompleteUpdate(t *testing.T) {
+func TestAccMonitorMetricAlert_applicationInsightsWebTest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_metric_alert", "test")
+	r := MonitorMetricAlertResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorMetricAlertDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorMetricAlert_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorMetricAlertExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMMonitorMetricAlert_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorMetricAlertExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMMonitorMetricAlert_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorMetricAlertExists(data.ResourceName),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.applicationInsightsWebTest(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMMonitorMetricAlert_multiScope(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_monitor_metric_alert", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorMetricAlertDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorMetricAlert_multiScope(data, 2),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorMetricAlertExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMMonitorMetricAlert_multiScope(data, 1),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorMetricAlertExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMMonitorMetricAlert_multiScope(data, 2),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorMetricAlertExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMMonitorMetricAlert_applicationInsightsWebTest(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_monitor_metric_alert", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorMetricAlertDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorMetricAlert_applicationInsightsWebTest(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorMetricAlertExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func testCheckAzureRMMonitorMetricAlertDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.MetricAlertsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_monitor_metric_alert" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, name)
-		if err != nil {
-			return nil
-		}
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Metric alert still exists:\n%#v", resp)
-		}
+func (t MonitorMetricAlertResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
-	return nil
-}
+	resourceGroup := id.ResourceGroup
+	name := id.Path["metricAlerts"]
 
-func testCheckAzureRMMonitorMetricAlertExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.MetricAlertsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Metric Alert Instance: %s", name)
-		}
-
-		resp, err := conn.Get(ctx, resourceGroup, name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on monitorMetricAlertsClient: %+v", err)
-		}
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Metric Alert Instance %q (resource group: %q) does not exist", name, resourceGroup)
-		}
-
-		return nil
+	resp, err := clients.Monitor.MetricAlertsClient.Get(ctx, resourceGroup, name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Metric Alert (%s): %+v", id, err)
 	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMMonitorMetricAlert_basic(data acceptance.TestData) string {
+func (MonitorMetricAlertResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -241,8 +188,7 @@ resource "azurerm_monitor_metric_alert" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMMonitorMetricAlert_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMMonitorMetricAlert_basic(data)
+func (r MonitorMetricAlertResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -260,10 +206,10 @@ resource "azurerm_monitor_metric_alert" "import" {
   }
   window_size = "PT1H"
 }
-`, template)
+`, r.basic(data))
 }
 
-func testAccAzureRMMonitorMetricAlert_complete(data acceptance.TestData) string {
+func (MonitorMetricAlertResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -330,7 +276,7 @@ resource "azurerm_monitor_metric_alert" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMMonitorMetricAlert_multiVMTemplate(data acceptance.TestData, count int) string {
+func (MonitorMetricAlertResource) multiVMTemplate(data acceptance.TestData, count int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -396,7 +342,7 @@ resource "azurerm_linux_virtual_machine" "test" {
 `, data.RandomInteger, data.Locations.Primary, count)
 }
 
-func testAccAzureRMMonitorMetricAlert_multiScope(data acceptance.TestData, count int) string {
+func (r MonitorMetricAlertResource) multiScope(data acceptance.TestData, count int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -417,10 +363,10 @@ resource "azurerm_monitor_metric_alert" "test" {
   target_resource_type     = "Microsoft.Compute/virtualMachines"
   target_resource_location = "%s"
 }
-`, testAccAzureRMMonitorMetricAlert_multiVMTemplate(data, count), data.RandomInteger, data.Locations.Primary)
+`, r.multiVMTemplate(data, count), data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMMonitorMetricAlert_applicationInsightsWebTestTemplate(data acceptance.TestData) string {
+func (MonitorMetricAlertResource) applicationInsightsWebTestTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -463,8 +409,7 @@ XML
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMMonitorMetricAlert_applicationInsightsWebTest(data acceptance.TestData) string {
-	template := testAccAzureRMMonitorMetricAlert_applicationInsightsWebTestTemplate(data)
+func (r MonitorMetricAlertResource) applicationInsightsWebTest(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -483,5 +428,5 @@ resource "azurerm_monitor_metric_alert" "test" {
   window_size = "PT15M"
   frequency   = "PT1M"
 }
-`, template, data.RandomInteger)
+`, r.applicationInsightsWebTestTemplate(data), data.RandomInteger)
 }

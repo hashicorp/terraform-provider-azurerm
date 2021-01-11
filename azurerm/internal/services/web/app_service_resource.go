@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
@@ -20,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAppService() *schema.Resource {
+func resourceAppService() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAppServiceCreate,
-		Read:   resourceArmAppServiceRead,
-		Update: resourceArmAppServiceUpdate,
-		Delete: resourceArmAppServiceDelete,
+		Create: resourceAppServiceCreate,
+		Read:   resourceAppServiceRead,
+		Update: resourceAppServiceUpdate,
+		Delete: resourceAppServiceDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.AppServiceID(id)
@@ -177,15 +178,31 @@ func resourceArmAppService() *schema.Resource {
 				Computed: true,
 			},
 
+			"outbound_ip_address_list": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
 			"possible_outbound_ip_addresses": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+
+			"possible_outbound_ip_address_list": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}
 }
 
-func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	aspClient := meta.(*clients.Client).Web.AppServicePlansClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -338,10 +355,10 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	return resourceArmAppServiceUpdate(d, meta)
+	return resourceAppServiceUpdate(d, meta)
 }
 
-func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -550,10 +567,10 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	return resourceArmAppServiceRead(d, meta)
+	return resourceAppServiceRead(d, meta)
 }
 
-func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -652,7 +669,13 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("client_cert_enabled", props.ClientCertEnabled)
 		d.Set("default_site_hostname", props.DefaultHostName)
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
+		if props.OutboundIPAddresses != nil {
+			d.Set("outbound_ip_address_list", strings.Split(*props.OutboundIPAddresses, ","))
+		}
 		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
+		if props.PossibleOutboundIPAddresses != nil {
+			d.Set("possible_outbound_ip_address_list", strings.Split(*props.PossibleOutboundIPAddresses, ","))
+		}
 		d.Set("custom_domain_verification_id", props.CustomDomainVerificationID)
 	}
 
@@ -713,7 +736,7 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmAppServiceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAppServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -1,6 +1,7 @@
 package postgres_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -8,131 +9,87 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMPostgreSQLConfiguration_backslashQuote(t *testing.T) {
+type PostgreSQLConfigurationResource struct {
+}
+
+func TestAccPostgreSQLConfiguration_backslashQuote(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_configuration", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLConfigurationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPostgreSQLConfiguration_backslashQuote(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLConfigurationValue(data.ResourceName, "on"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMPostgreSQLConfiguration_empty(data),
-				Check: resource.ComposeTestCheckFunc(
-					// "delete" resets back to the default value
-					testCheckAzureRMPostgreSQLConfigurationValueReset(data.RandomInteger, "backslash_quote"),
-				),
-			},
+	r := PostgreSQLConfigurationResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.backslashQuote(data),
+			Check: resource.ComposeTestCheckFunc(
+				data.CheckWithClient(r.checkValue("on")),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.empty(data),
+			Check: resource.ComposeTestCheckFunc(
+				// "delete" resets back to the default value
+				data.CheckWithClientForResource(r.checkReset("backslash_quote"), "azurerm_postgresql_server.test"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMPostgreSQLConfiguration_clientMinMessages(t *testing.T) {
+func TestAccPostgreSQLConfiguration_clientMinMessages(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_configuration", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLConfigurationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPostgreSQLConfiguration_clientMinMessages(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLConfigurationValue(data.ResourceName, "DEBUG5"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMPostgreSQLConfiguration_empty(data),
-				Check: resource.ComposeTestCheckFunc(
-					// "delete" resets back to the default value
-					testCheckAzureRMPostgreSQLConfigurationValueReset(data.RandomInteger, "client_min_messages"),
-				),
-			},
+	r := PostgreSQLConfigurationResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.clientMinMessages(data),
+			Check: resource.ComposeTestCheckFunc(
+				data.CheckWithClient(r.checkValue("DEBUG5")),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.empty(data),
+			Check: resource.ComposeTestCheckFunc(
+				// "delete" resets back to the default value
+				data.CheckWithClientForResource(r.checkReset("client_min_messages"), "azurerm_postgresql_server.test"),
+			),
 		},
 	})
 }
 
-func TestAccAzureRMPostgreSQLConfiguration_deadlockTimeout(t *testing.T) {
+func TestAccPostgreSQLConfiguration_deadlockTimeout(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_configuration", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLConfigurationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPostgreSQLConfiguration_deadlockTimeout(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLConfigurationValue(data.ResourceName, "5000"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMPostgreSQLConfiguration_empty(data),
-				Check: resource.ComposeTestCheckFunc(
-					// "delete" resets back to the default value
-					testCheckAzureRMPostgreSQLConfigurationValueReset(data.RandomInteger, "deadlock_timeout"),
-				),
-			},
+	r := PostgreSQLConfigurationResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.deadlockTimeout(data),
+			Check: resource.ComposeTestCheckFunc(
+				data.CheckWithClient(r.checkValue("5000")),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.empty(data),
+			Check: resource.ComposeTestCheckFunc(
+				// "delete" resets back to the default value
+				data.CheckWithClientForResource(r.checkReset("deadlock_timeout"), "azurerm_postgresql_server.test"),
+			),
 		},
 	})
 }
 
-func testCheckAzureRMPostgreSQLConfigurationValue(resourceName string, value string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.ConfigurationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
+func (r PostgreSQLConfigurationResource) checkReset(configurationName string) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+		id, err := parse.ServerID(state.Attributes["id"])
+		if err != nil {
+			return err
 		}
 
-		name := rs.Primary.Attributes["name"]
-		serverName := rs.Primary.Attributes["server_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for PostgreSQL Configuration: %s", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, serverName, name)
+		resp, err := clients.Postgres.ConfigurationsClient.Get(ctx, id.ResourceGroup, id.Name, configurationName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: PostgreSQL Configuration %q (server %q resource group: %q) does not exist", name, serverName, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on postgresqlConfigurationsClient: %+v", err)
-		}
-
-		if *resp.Value != value {
-			return fmt.Errorf("PostgreSQL Configuration wasn't set. Expected '%s' - got '%s': \n%+v", value, *resp.Value, resp)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMPostgreSQLConfigurationValueReset(rInt int, configurationName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.ConfigurationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		resourceGroup := fmt.Sprintf("acctestRG-psql-%d", rInt)
-		serverName := fmt.Sprintf("acctest-psql-server-%d", rInt)
-
-		resp, err := client.Get(ctx, resourceGroup, serverName, configurationName)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: PostgreSQL Configuration %q (server %q resource group: %q) does not exist", configurationName, serverName, resourceGroup)
+				return fmt.Errorf("Bad: PostgreSQL Configuration %q (server %q resource group: %q) does not exist", configurationName, id.Name, id.ResourceGroup)
 			}
 			return fmt.Errorf("Bad: Get on postgresqlConfigurationsClient: %+v", err)
 		}
@@ -148,45 +105,57 @@ func testCheckAzureRMPostgreSQLConfigurationValueReset(rInt int, configurationNa
 	}
 }
 
-func testCheckAzureRMPostgreSQLConfigurationDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.ConfigurationsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_postgresql_configuration" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		serverName := rs.Primary.Attributes["server_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, serverName, name)
+func (r PostgreSQLConfigurationResource) checkValue(value string) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+		id, err := parse.ConfigurationID(state.Attributes["id"])
 		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
 			return err
 		}
+
+		resp, err := clients.Postgres.ConfigurationsClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: PostgreSQL Configuration %q (server %q resource group: %q) does not exist", id.Name, id.ServerName, id.ResourceGroup)
+			}
+
+			return fmt.Errorf("Bad: Get on postgresqlConfigurationsClient: %+v", err)
+		}
+
+		if *resp.Value != value {
+			return fmt.Errorf("PostgreSQL Configuration wasn't set. Expected '%s' - got '%s': \n%+v", value, *resp.Value, resp)
+		}
+
+		return nil
+	}
+}
+
+func (t PostgreSQLConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ConfigurationID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	resp, err := clients.Postgres.ConfigurationsClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("reading Postgresql Configuration (%s): %+v", id.String(), err)
+	}
+
+	return utils.Bool(resp.ID != nil), nil
 }
 
-func testAccAzureRMPostgreSQLConfiguration_backslashQuote(data acceptance.TestData) string {
-	return testAccAzureRMPostgreSQLConfiguration_template(data, "backslash_quote", "on")
+func (r PostgreSQLConfigurationResource) backslashQuote(data acceptance.TestData) string {
+	return r.template(data, "backslash_quote", "on")
 }
 
-func testAccAzureRMPostgreSQLConfiguration_clientMinMessages(data acceptance.TestData) string {
-	return testAccAzureRMPostgreSQLConfiguration_template(data, "client_min_messages", "DEBUG5")
+func (r PostgreSQLConfigurationResource) clientMinMessages(data acceptance.TestData) string {
+	return r.template(data, "client_min_messages", "DEBUG5")
 }
 
-func testAccAzureRMPostgreSQLConfiguration_deadlockTimeout(data acceptance.TestData) string {
-	return testAccAzureRMPostgreSQLConfiguration_template(data, "deadlock_timeout", "5000")
+func (r PostgreSQLConfigurationResource) deadlockTimeout(data acceptance.TestData) string {
+	return r.template(data, "deadlock_timeout", "5000")
 }
 
-func testAccAzureRMPostgreSQLConfiguration_template(data acceptance.TestData, name string, value string) string {
+func (r PostgreSQLConfigurationResource) template(data acceptance.TestData, name string, value string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -196,10 +165,10 @@ resource "azurerm_postgresql_configuration" "test" {
   server_name         = azurerm_postgresql_server.test.name
   value               = "%s"
 }
-`, testAccAzureRMPostgreSQLConfiguration_empty(data), name, value)
+`, r.empty(data), name, value)
 }
 
-func testAccAzureRMPostgreSQLConfiguration_empty(data acceptance.TestData) string {
+func (PostgreSQLConfigurationResource) empty(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

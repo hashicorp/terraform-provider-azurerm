@@ -43,7 +43,7 @@ func NewIncidentCommentsClientWithBaseURI(baseURI string, subscriptionID string)
 	return IncidentCommentsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateComment creates the incident comment.
+// CreateComment creates or updates the incident comment.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
@@ -96,6 +96,7 @@ func (client IncidentCommentsClient) CreateComment(ctx context.Context, resource
 	result, err = client.CreateCommentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.IncidentCommentsClient", "CreateComment", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -142,6 +143,102 @@ func (client IncidentCommentsClient) CreateCommentResponder(resp *http.Response)
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// DeleteComment delete the incident comment.
+// Parameters:
+// resourceGroupName - the name of the resource group within the user's subscription. The name is case
+// insensitive.
+// operationalInsightsResourceProvider - the namespace of workspaces resource provider-
+// Microsoft.OperationalInsights.
+// workspaceName - the name of the workspace.
+// incidentID - incident ID
+// incidentCommentID - incident comment ID
+func (client IncidentCommentsClient) DeleteComment(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, incidentID string, incidentCommentID string) (result autorest.Response, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/IncidentCommentsClient.DeleteComment")
+		defer func() {
+			sc := -1
+			if result.Response != nil {
+				sc = result.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: workspaceName,
+			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("securityinsight.IncidentCommentsClient", "DeleteComment", err.Error())
+	}
+
+	req, err := client.DeleteCommentPreparer(ctx, resourceGroupName, operationalInsightsResourceProvider, workspaceName, incidentID, incidentCommentID)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "securityinsight.IncidentCommentsClient", "DeleteComment", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.DeleteCommentSender(req)
+	if err != nil {
+		result.Response = resp
+		err = autorest.NewErrorWithError(err, "securityinsight.IncidentCommentsClient", "DeleteComment", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.DeleteCommentResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "securityinsight.IncidentCommentsClient", "DeleteComment", resp, "Failure responding to request")
+		return
+	}
+
+	return
+}
+
+// DeleteCommentPreparer prepares the DeleteComment request.
+func (client IncidentCommentsClient) DeleteCommentPreparer(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, incidentID string, incidentCommentID string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"incidentCommentId":                   autorest.Encode("path", incidentCommentID),
+		"incidentId":                          autorest.Encode("path", incidentID),
+		"operationalInsightsResourceProvider": autorest.Encode("path", operationalInsightsResourceProvider),
+		"resourceGroupName":                   autorest.Encode("path", resourceGroupName),
+		"subscriptionId":                      autorest.Encode("path", client.SubscriptionID),
+		"workspaceName":                       autorest.Encode("path", workspaceName),
+	}
+
+	const APIVersion = "2019-01-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsDelete(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{operationalInsightsResourceProvider}/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/incidents/{incidentId}/comments/{incidentCommentId}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// DeleteCommentSender sends the DeleteComment request. The method will close the
+// http.Response Body if it receives an error.
+func (client IncidentCommentsClient) DeleteCommentSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// DeleteCommentResponder handles the response to the DeleteComment request. The method always
+// closes the http.Response Body.
+func (client IncidentCommentsClient) DeleteCommentResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
+		autorest.ByClosing())
+	result.Response = resp
 	return
 }
 
@@ -194,6 +291,7 @@ func (client IncidentCommentsClient) GetComment(ctx context.Context, resourceGro
 	result, err = client.GetCommentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.IncidentCommentsClient", "GetComment", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -296,6 +394,7 @@ func (client IncidentCommentsClient) ListByIncident(ctx context.Context, resourc
 	result.icl, err = client.ListByIncidentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.IncidentCommentsClient", "ListByIncident", resp, "Failure responding to request")
+		return
 	}
 	if result.icl.hasNextLink() && result.icl.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -374,6 +473,7 @@ func (client IncidentCommentsClient) listByIncidentNextResults(ctx context.Conte
 	result, err = client.ListByIncidentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.IncidentCommentsClient", "listByIncidentNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

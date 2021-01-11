@@ -23,12 +23,12 @@ import (
 // Message="Invalid workspace settings name 'kttest' , only default is allowed "
 const securityCenterWorkspaceName = "default"
 
-func resourceArmSecurityCenterWorkspace() *schema.Resource {
+func resourceSecurityCenterWorkspace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSecurityCenterWorkspaceCreateUpdate,
-		Read:   resourceArmSecurityCenterWorkspaceRead,
-		Update: resourceArmSecurityCenterWorkspaceCreateUpdate,
-		Delete: resourceArmSecurityCenterWorkspaceDelete,
+		Create: resourceSecurityCenterWorkspaceCreateUpdate,
+		Read:   resourceSecurityCenterWorkspaceRead,
+		Update: resourceSecurityCenterWorkspaceCreateUpdate,
+		Delete: resourceSecurityCenterWorkspaceDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -57,7 +57,7 @@ func resourceArmSecurityCenterWorkspace() *schema.Resource {
 	}
 }
 
-func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	priceClient := meta.(*clients.Client).SecurityCenter.PricingClient
 	client := meta.(*clients.Client).SecurityCenter.WorkspaceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -97,7 +97,7 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 	contact := security.WorkspaceSetting{
 		WorkspaceSettingProperties: &security.WorkspaceSettingProperties{
 			Scope:       utils.String(d.Get("scope").(string)),
-			WorkspaceID: utils.String(workspaceID.ID("")),
+			WorkspaceID: utils.String(workspaceID.ID()),
 		},
 	}
 
@@ -145,7 +145,7 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 		d.SetId(*resp.(security.WorkspaceSetting).ID)
 	}
 
-	return resourceArmSecurityCenterWorkspaceRead(d, meta)
+	return resourceSecurityCenterWorkspaceRead(d, meta)
 }
 
 func isPricingStandard(ctx context.Context, priceClient *security.PricingsClient) (bool, error) {
@@ -160,7 +160,7 @@ func isPricingStandard(ctx context.Context, priceClient *security.PricingsClient
 				return false, fmt.Errorf("%v Security Center Subscription pricing properties is nil", *resourcePrice.Type)
 			}
 
-			if resourcePrice.PricingProperties.PricingTier == security.Standard {
+			if resourcePrice.PricingProperties.PricingTier == security.PricingTierStandard {
 				return true, nil
 			}
 		}
@@ -169,7 +169,7 @@ func isPricingStandard(ctx context.Context, priceClient *security.PricingsClient
 	return false, nil
 }
 
-func resourceArmSecurityCenterWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.WorkspaceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -187,13 +187,21 @@ func resourceArmSecurityCenterWorkspaceRead(d *schema.ResourceData, meta interfa
 
 	if properties := resp.WorkspaceSettingProperties; properties != nil {
 		d.Set("scope", properties.Scope)
-		d.Set("workspace_id", properties.WorkspaceID)
+		workspaceId := ""
+		if properties.WorkspaceID != nil {
+			id, err := parse.LogAnalyticsWorkspaceID(*properties.WorkspaceID)
+			if err != nil {
+				return fmt.Errorf("Reading Security Center Log Analytics Workspace ID: %+v", err)
+			}
+			workspaceId = id.ID()
+		}
+		d.Set("workspace_id", utils.String(workspaceId))
 	}
 
 	return nil
 }
 
-func resourceArmSecurityCenterWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceSecurityCenterWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.WorkspaceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

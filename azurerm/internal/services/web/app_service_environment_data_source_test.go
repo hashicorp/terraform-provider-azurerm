@@ -11,7 +11,7 @@ import (
 
 type AppServiceEnvironmentDataSource struct{}
 
-func TestAccDataSourceAzureRMAppServiceEnvironment_basic(t *testing.T) {
+func TestAccDataSourceAppServiceEnvironment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service_environment", "test")
 
 	data.DataSourceTest(t, []resource.TestStep{

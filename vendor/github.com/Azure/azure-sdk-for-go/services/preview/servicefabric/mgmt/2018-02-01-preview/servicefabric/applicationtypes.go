@@ -75,6 +75,7 @@ func (client ApplicationTypesClient) Create(ctx context.Context, resourceGroupNa
 	result, err = client.CreateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabric.ApplicationTypesClient", "Create", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -231,6 +232,7 @@ func (client ApplicationTypesClient) Get(ctx context.Context, resourceGroupName 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabric.ApplicationTypesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -308,6 +310,7 @@ func (client ApplicationTypesClient) List(ctx context.Context, resourceGroupName
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabric.ApplicationTypesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return

@@ -84,6 +84,7 @@ func (client TasksClient) GetResourceGroupLevelTask(ctx context.Context, resourc
 	result, err = client.GetResourceGroupLevelTaskResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.TasksClient", "GetResourceGroupLevelTask", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -165,6 +166,7 @@ func (client TasksClient) GetSubscriptionLevelTask(ctx context.Context, taskName
 	result, err = client.GetSubscriptionLevelTaskResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.TasksClient", "GetSubscriptionLevelTask", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -246,9 +248,11 @@ func (client TasksClient) List(ctx context.Context, filter string) (result TaskL
 	result.tl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.TasksClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.tl.hasNextLink() && result.tl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -368,9 +372,11 @@ func (client TasksClient) ListByHomeRegion(ctx context.Context, filter string) (
 	result.tl, err = client.ListByHomeRegionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.TasksClient", "ListByHomeRegion", resp, "Failure responding to request")
+		return
 	}
 	if result.tl.hasNextLink() && result.tl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -497,9 +503,11 @@ func (client TasksClient) ListByResourceGroup(ctx context.Context, resourceGroup
 	result.tl, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.TasksClient", "ListByResourceGroup", resp, "Failure responding to request")
+		return
 	}
 	if result.tl.hasNextLink() && result.tl.IsEmpty() {
 		err = result.NextWithContext(ctx)
+		return
 	}
 
 	return
@@ -628,6 +636,7 @@ func (client TasksClient) UpdateResourceGroupLevelTaskState(ctx context.Context,
 	result, err = client.UpdateResourceGroupLevelTaskStateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.TasksClient", "UpdateResourceGroupLevelTaskState", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -711,6 +720,7 @@ func (client TasksClient) UpdateSubscriptionLevelTaskState(ctx context.Context, 
 	result, err = client.UpdateSubscriptionLevelTaskStateResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.TasksClient", "UpdateSubscriptionLevelTaskState", resp, "Failure responding to request")
+		return
 	}
 
 	return

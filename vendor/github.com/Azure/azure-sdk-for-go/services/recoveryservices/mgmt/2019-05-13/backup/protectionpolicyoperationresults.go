@@ -75,6 +75,7 @@ func (client ProtectionPolicyOperationResultsClient) Get(ctx context.Context, va
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionPolicyOperationResultsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return

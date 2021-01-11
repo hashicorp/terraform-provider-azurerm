@@ -89,6 +89,7 @@ func (client FileServicesClient) GetServiceProperties(ctx context.Context, resou
 	result, err = client.GetServicePropertiesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.FileServicesClient", "GetServiceProperties", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -180,6 +181,7 @@ func (client FileServicesClient) List(ctx context.Context, resourceGroupName str
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.FileServicesClient", "List", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -282,6 +284,7 @@ func (client FileServicesClient) SetServiceProperties(ctx context.Context, resou
 	result, err = client.SetServicePropertiesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.FileServicesClient", "SetServiceProperties", resp, "Failure responding to request")
+		return
 	}
 
 	return

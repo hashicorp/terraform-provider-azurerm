@@ -27,14 +27,15 @@ func NewShareID(subscriptionId, resourceGroup, accountName, name string) ShareId
 
 func (id ShareId) String() string {
 	segments := []string{
-		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
-		fmt.Sprintf("Account Name %q", id.AccountName),
 		fmt.Sprintf("Name %q", id.Name),
+		fmt.Sprintf("Account Name %q", id.AccountName),
+		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
-	return strings.Join(segments, " / ")
+	segmentsStr := strings.Join(segments, " / ")
+	return fmt.Sprintf("%s: (%s)", "Share", segmentsStr)
 }
 
-func (id ShareId) ID(_ string) string {
+func (id ShareId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataShare/accounts/%s/shares/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.AccountName, id.Name)
 }

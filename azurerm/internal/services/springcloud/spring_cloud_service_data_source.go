@@ -14,9 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmSpringCloudService() *schema.Resource {
+func dataSourceSpringCloudService() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmSpringCloudServiceRead,
+		Read: dataSourceSpringCloudServiceRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -115,7 +115,7 @@ func dataSourceArmSpringCloudService() *schema.Resource {
 	}
 }
 
-func dataSourceArmSpringCloudServiceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceSpringCloudServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.ServicesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -132,7 +132,7 @@ func dataSourceArmSpringCloudServiceRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error reading Spring Cloud %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	d.SetId(parse.NewSpringCloudServiceID(subscriptionId, resourceGroup, name).ID(""))
+	d.SetId(parse.NewSpringCloudServiceID(subscriptionId, resourceGroup, name).ID())
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
@@ -141,7 +141,7 @@ func dataSourceArmSpringCloudServiceRead(d *schema.ResourceData, meta interface{
 	}
 
 	if props := resp.Properties; props != nil {
-		if err := d.Set("config_server_git_setting", flattenArmSpringCloudConfigServerGitProperty(props.ConfigServerProperties, d)); err != nil {
+		if err := d.Set("config_server_git_setting", flattenSpringCloudConfigServerGitProperty(props.ConfigServerProperties, d)); err != nil {
 			return fmt.Errorf("setting `config_server_git_setting`: %+v", err)
 		}
 

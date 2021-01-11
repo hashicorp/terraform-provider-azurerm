@@ -231,7 +231,7 @@ func resourceArmPrivateEndpointCreate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if existing.PrivateEndpointProperties != nil {
-		return tf.ImportAsExistsError("azurerm_private_endpoint", id.ID(""))
+		return tf.ImportAsExistsError("azurerm_private_endpoint", id.ID())
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -263,7 +263,7 @@ func resourceArmPrivateEndpointCreate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("waiting for creation of Private Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(id.ID())
 
 	// 1 Private Endpoint can have 1 Private DNS Zone Group
 	// since this is a new resource, there shouldn't be an existing one - so there's no need to delete it
@@ -628,7 +628,7 @@ func createPrivateDnsZoneGroupForPrivateEndpoint(ctx context.Context, client *ne
 		privateDnsZoneConfigs = append(privateDnsZoneConfigs, network.PrivateDNSZoneConfig{
 			Name: utils.String(privateDnsZone.Name),
 			PrivateDNSZonePropertiesFormat: &network.PrivateDNSZonePropertiesFormat{
-				PrivateDNSZoneID: utils.String(privateDnsZone.ID("")),
+				PrivateDNSZoneID: utils.String(privateDnsZone.ID()),
 			},
 		})
 	}
@@ -746,7 +746,7 @@ func retrieveAndFlattenPrivateDnsZone(ctx context.Context, client *network.Priva
 
 			recordSets := flattenPrivateDnsZoneGroupRecordSets(props.RecordSets)
 			dnsZoneConfigs = append(dnsZoneConfigs, map[string]interface{}{
-				"id":                  parse.NewPrivateDnsZoneConfigID(id.SubscriptionId, id.ResourceGroup, id.PrivateEndpointName, id.Name, name).ID(""),
+				"id":                  parse.NewPrivateDnsZoneConfigID(id.SubscriptionId, id.ResourceGroup, id.PrivateEndpointName, id.Name, name).ID(),
 				"name":                name,
 				"private_dns_zone_id": privateDnsZoneId,
 				"record_sets":         recordSets,
@@ -757,7 +757,7 @@ func retrieveAndFlattenPrivateDnsZone(ctx context.Context, client *network.Priva
 	return &flattenedPrivateDnsZoneGroup{
 		DnsZoneConfig: dnsZoneConfigs,
 		DnsZoneGroup: map[string]interface{}{
-			"id":                   id.ID(""),
+			"id":                   id.ID(),
 			"name":                 id.Name,
 			"private_dns_zone_ids": privateDnsZoneIds,
 		},

@@ -179,6 +179,7 @@ func (client AppsClient) Delete(ctx context.Context, resourceGroupName string, s
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.AppsClient", "Delete", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -257,6 +258,7 @@ func (client AppsClient) Get(ctx context.Context, resourceGroupName string, serv
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.AppsClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -338,6 +340,7 @@ func (client AppsClient) GetResourceUploadURL(ctx context.Context, resourceGroup
 	result, err = client.GetResourceUploadURLResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.AppsClient", "GetResourceUploadURL", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -416,6 +419,7 @@ func (client AppsClient) List(ctx context.Context, resourceGroupName string, ser
 	result.arc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.AppsClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.arc.hasNextLink() && result.arc.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -480,6 +484,7 @@ func (client AppsClient) listNextResults(ctx context.Context, lastResults AppRes
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.AppsClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }

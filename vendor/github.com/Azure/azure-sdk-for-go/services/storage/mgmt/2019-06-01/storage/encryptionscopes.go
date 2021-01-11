@@ -95,6 +95,7 @@ func (client EncryptionScopesClient) Get(ctx context.Context, resourceGroupName 
 	result, err = client.GetResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.EncryptionScopesClient", "Get", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -187,6 +188,7 @@ func (client EncryptionScopesClient) List(ctx context.Context, resourceGroupName
 	result.eslr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.EncryptionScopesClient", "List", resp, "Failure responding to request")
+		return
 	}
 	if result.eslr.hasNextLink() && result.eslr.IsEmpty() {
 		err = result.NextWithContext(ctx)
@@ -251,6 +253,7 @@ func (client EncryptionScopesClient) listNextResults(ctx context.Context, lastRe
 	result, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.EncryptionScopesClient", "listNextResults", resp, "Failure responding to next results request")
+		return
 	}
 	return
 }
@@ -325,6 +328,7 @@ func (client EncryptionScopesClient) Patch(ctx context.Context, resourceGroupNam
 	result, err = client.PatchResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.EncryptionScopesClient", "Patch", resp, "Failure responding to request")
+		return
 	}
 
 	return
@@ -427,6 +431,7 @@ func (client EncryptionScopesClient) Put(ctx context.Context, resourceGroupName 
 	result, err = client.PutResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.EncryptionScopesClient", "Put", resp, "Failure responding to request")
+		return
 	}
 
 	return
