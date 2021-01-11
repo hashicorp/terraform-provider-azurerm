@@ -75,6 +75,10 @@ The following arguments are supported:
 
 * `aad_admin` - (Optional) An `aad_admin` block as defined below.
 
+* `azure_devops_configuration` - (Optional) An `azure_devops_configuration` block as defined below.
+
+* `github_configuration` - (Optional) A `github_configuration` block as defined below.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Synapse Workspace.
 
 ---
@@ -86,6 +90,36 @@ An `aad_admin` block supports the following:
 * `object_id` - (Required) The object id of the Azure AD Administrator of this Synapse Workspace.
 
 * `tenant_id` - (Required) The tenant id of the Azure AD Administrator of this Synapse Workspace.
+
+---
+
+An `azure_devops_configuration` block supports the following:
+
+* `account_name` - (Required) Specifies the Azure DevOps account name.
+
+* `branch_name` - (Required) Specifies the collaboration branch of the repository to get code from.
+
+* `project_name` - (Required) Specifies the name of the Azure DevOps project.
+
+* `repository_name` - (Required) Specifies the name of the git repository.
+
+* `root_folder` - (Required) Specifies the root folder within the repository. Set to `/` for the top level.
+
+---
+
+A `github_configuration` block supports the following:
+
+* `account_name` - (Required) Specifies the GitHub account name.
+
+* `branch_name` - (Required) Specifies the collaboration branch of the repository to get code from.
+
+* `repository_name` - (Required) Specifies the name of the git repository.
+
+* `root_folder` - (Required) Specifies the root folder within the repository. Set to `/` for the top level.
+
+* `git_url` - (Optional) Specifies the GitHub Enterprise host name. For example: https://github.mydomain.com.
+
+-> **Note:** You must log in to the Data Factory management UI to complete the authentication to the GitHub repository.
 
 ## Attributes Reference
 
