@@ -61,7 +61,7 @@ func TestAccSecurityCenterAssessmentMetadata_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("categories"),
+		data.ImportStep(),
 	})
 }
 
@@ -77,14 +77,14 @@ func TestAccSecurityCenterAssessmentMetadata_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("categories"),
+		data.ImportStep(),
 		{
 			Config: r.update(uuid),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("categories"),
+		data.ImportStep(),
 	})
 }
 
@@ -149,7 +149,6 @@ resource "azurerm_security_center_assessment_metadata" "test" {
   assessment_type         = "CustomerManaged"
   severity                = "Low"
   description             = "Test Description"
-  categories              = ["Compute"]
   implementation_effort   = "Low"
   is_preview              = false
   remediation_description = "Test Remediation Description"
@@ -168,10 +167,9 @@ provider "azurerm" {
 resource "azurerm_security_center_assessment_metadata" "test" {
   name                    = "%s"
   display_name            = "Updated Test Display Name"
-  assessment_type         = "VerifiedPartner"
+  assessment_type         = "CustomerManaged"
   severity                = "Medium"
   description             = "Updated Test Description"
-  categories              = ["Data"]
   implementation_effort   = "Moderate"
   is_preview              = true
   remediation_description = "Updated Test Remediation Description"

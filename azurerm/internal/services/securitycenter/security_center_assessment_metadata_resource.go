@@ -61,7 +61,6 @@ func resourceArmSecurityCenterAssessmentMetadata() *schema.Resource {
 				Default:  string(security.CustomerManaged),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(security.CustomerManaged),
-					string(security.VerifiedPartner),
 				}, false),
 			},
 
@@ -74,23 +73,6 @@ func resourceArmSecurityCenterAssessmentMetadata() *schema.Resource {
 					string(security.SeverityMedium),
 					string(security.SeverityHigh),
 				}, false),
-			},
-
-			// The Azure API always returns `nil` for this property after set it.
-			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/12297
-			"categories": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(security.Compute),
-						string(security.Networking),
-						string(security.Data),
-						string(security.IdentityAndAccess),
-						string(security.IoT),
-					}, false),
-				},
 			},
 
 			"implementation_effort": {
@@ -141,6 +123,10 @@ func resourceArmSecurityCenterAssessmentMetadata() *schema.Resource {
 					string(security.UserImpactHigh),
 				}, false),
 			},
+
+			// The `category` property doesn't take effect at the service side since the property name is incorrect and it should be `categories`.
+			// To implement this property once the bug is fixed.
+			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/12297
 		},
 	}
 }
@@ -175,14 +161,6 @@ func resourceArmSecurityCenterAssessmentMetadataCreateUpdate(d *schema.ResourceD
 			DisplayName:    utils.String(d.Get("display_name").(string)),
 			Severity:       security.Severity(d.Get("severity").(string)),
 		},
-	}
-
-	if v, ok := d.GetOk("categories"); ok {
-		category := make([]security.Category, 0)
-		for _, item := range *(utils.ExpandStringSlice(v.(*schema.Set).List())) {
-			category = append(category, (security.Category)(item))
-		}
-		params.AssessmentMetadataProperties.Category = &category
 	}
 
 	if v, ok := d.GetOk("threats"); ok {

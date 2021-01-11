@@ -28,7 +28,7 @@ The following arguments are supported:
 
 * `name` - (Required) The GUID as name which should be used for this Security Center Assessment Metadata. Changing this forces a new Security Center Assessment Metadata to be created.
 
-* `assessment_type` - (Required) The type of the Security Center Assessment. Possible values are `CustomerManaged` and `VerifiedPartner`.
+* `assessment_type` - (Required) The type of the Security Center Assessment which can be specified by user. Possible value is `CustomerManaged`.
 
 * `description` - (Required) The description of the Security Center Assessment.
 
@@ -37,8 +37,6 @@ The following arguments are supported:
 * `severity` - (Required) The severity level of the Security Center Assessment. Possible values are `Low`, `Medium` and `High`.
 
 ---
-
-* `categories` - (Optional) A list of the categories which are at risk when the Security Center Assessment is unhealthy. Possible values are `Compute`, `Data`, `IdentityAndAccess`, `IoT` and `Networking`.
 
 * `implementation_effort` - (Optional) The implementation effort which is used to remediate the Security Center Assessment. Possible values are `Low`, `Moderate` and `High`.
 
